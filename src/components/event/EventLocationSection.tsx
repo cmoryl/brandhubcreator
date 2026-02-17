@@ -267,6 +267,15 @@ export const EventLocationSection = ({
                         placeholder="Paste iframe code or URL from Google Maps"
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Venue Background Image URL</Label>
+                      <Input
+                        value={draft.venueBackgroundImage || ''}
+                        onChange={(e) => setDraft({ ...draft, venueBackgroundImage: e.target.value })}
+                        placeholder="https://... venue photo URL"
+                      />
+                      <p className="text-xs text-muted-foreground">Adds a background image to the venue info card</p>
+                    </div>
                   </div>
                 </div>
 
@@ -299,14 +308,20 @@ export const EventLocationSection = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Venue Info Card */}
-              <Card>
-                <CardHeader>
+              <Card className="overflow-hidden relative">
+                {location.venueBackgroundImage && (
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-15"
+                    style={{ backgroundImage: `url(${location.venueBackgroundImage})` }}
+                  />
+                )}
+                <CardHeader className="relative z-10">
                   <CardTitle className="flex items-center gap-2">
                     <Building2 className="h-5 w-5 text-primary" />
                     {location.venueName || 'Venue'}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 relative z-10">
                   <div>
                     <p className="font-medium">{location.address}</p>
                     <p className="text-muted-foreground">

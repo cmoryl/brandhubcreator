@@ -238,6 +238,7 @@ export interface EventLocation {
   nearbyHotels?: string;
   customNotes?: string;
   venueMaps?: EventVenueMap[];
+  venueBackgroundImage?: string;
   locationResearchReport?: LocationResearchReport;
 }
 
