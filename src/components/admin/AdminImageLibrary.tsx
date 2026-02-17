@@ -49,7 +49,9 @@ import {
   MoreVertical,
   FolderOpen,
   Loader2,
+  Grid2X2,
   Grid3X3,
+  LayoutGrid,
   List,
   RefreshCw,
   Download,
@@ -69,7 +71,7 @@ interface UploadProgress {
   thumbnailUrl?: string;
 }
 
-type ViewMode = 'grid' | 'list';
+type ViewMode = 'grid-lg' | 'grid-md' | 'grid-sm' | 'list';
 
 interface OrgOption {
   id: string;
@@ -91,7 +93,7 @@ export function AdminImageLibrary() {
   const [selectedOrgId, setSelectedOrgId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<ImageCategory | 'All'>('All');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid-md');
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [bulkCategoryDialogOpen, setBulkCategoryDialogOpen] = useState(false);
   const [bulkCategory, setBulkCategory] = useState<ImageCategory>('General');
@@ -384,23 +386,24 @@ export function AdminImageLibrary() {
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-1 border rounded-md p-1">
-              <Button
-                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setViewMode('grid')}
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setViewMode('list')}
-              >
-                <List className="h-4 w-4" />
-              </Button>
+            <div className="flex items-center gap-0.5 border rounded-md p-1">
+              {([
+                { mode: 'grid-lg' as ViewMode, icon: LayoutGrid, title: 'Large Grid' },
+                { mode: 'grid-md' as ViewMode, icon: Grid3X3, title: 'Medium Grid' },
+                { mode: 'grid-sm' as ViewMode, icon: Grid2X2, title: 'Small Grid' },
+                { mode: 'list' as ViewMode, icon: List, title: 'List' },
+              ]).map(({ mode, icon: Icon, title }) => (
+                <Button
+                  key={mode}
+                  variant={viewMode === mode ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setViewMode(mode)}
+                  title={title}
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              ))}
             </div>
             <Button
               onClick={() => fileInputRef.current?.click()}
@@ -557,13 +560,19 @@ export function AdminImageLibrary() {
                   Supports PNG, JPG, WEBP, GIF, SVG
                 </p>
               </div>
-            ) : viewMode === 'grid' ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            ) : viewMode !== 'list' ? (
+              <div className={cn(
+                'grid gap-3',
+                viewMode === 'grid-lg' && 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-3',
+                viewMode === 'grid-md' && 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
+                viewMode === 'grid-sm' && 'grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2',
+              )}>
                 {filteredImages.map((img) => (
                   <div
                     key={img.id}
                     className={cn(
-                      'relative group aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer',
+                      'relative group rounded-lg overflow-hidden border-2 transition-all cursor-pointer',
+                      viewMode === 'grid-lg' ? 'aspect-video' : 'aspect-square',
                       selectedImages.has(img.id)
                         ? 'border-primary ring-2 ring-primary/30'
                         : 'border-border hover:border-primary/50'
@@ -577,7 +586,7 @@ export function AdminImageLibrary() {
                       loading="lazy"
                     />
                     <div
-                      className="absolute top-2 left-2"
+                      className={cn("absolute top-2 left-2", viewMode === 'grid-sm' && 'top-1 left-1')}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleImageSelection(img.id);
@@ -585,15 +594,17 @@ export function AdminImageLibrary() {
                     >
                       <Checkbox
                         checked={selectedImages.has(img.id)}
-                        className="bg-background/80"
+                        className={cn("bg-background/80", viewMode === 'grid-sm' && 'h-3.5 w-3.5')}
                       />
                     </div>
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-xs text-white truncate">{img.name}</p>
-                      <Badge variant="secondary" className="text-[10px] mt-1">
-                        {img.category}
-                      </Badge>
-                    </div>
+                    {viewMode !== 'grid-sm' && (
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <p className="text-xs text-white truncate">{img.name}</p>
+                        <Badge variant="secondary" className="text-[10px] mt-1">
+                          {img.category}
+                        </Badge>
+                      </div>
+                    )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
