@@ -252,11 +252,19 @@ export const EventLocationSection = ({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Google Maps Embed (iframe src)</Label>
+                      <Label>Google Maps Embed (paste iframe or URL)</Label>
                       <Input
                         value={draft.googleMapsEmbed || ''}
-                        onChange={(e) => setDraft({ ...draft, googleMapsEmbed: e.target.value })}
-                        placeholder="https://www.google.com/maps/embed?..."
+                        onChange={(e) => {
+                          let value = e.target.value.trim();
+                          // Extract src URL if user pastes a full <iframe> tag
+                          const srcMatch = value.match(/src=["']([^"']+)["']/i);
+                          if (srcMatch) {
+                            value = srcMatch[1];
+                          }
+                          setDraft({ ...draft, googleMapsEmbed: value });
+                        }}
+                        placeholder="Paste iframe code or URL from Google Maps"
                       />
                     </div>
                   </div>
