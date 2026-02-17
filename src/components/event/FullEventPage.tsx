@@ -410,6 +410,7 @@ export const FullEventPage = ({
             assets={sharedAssets}
             onAssetsChange={canEdit ? (assets) => updateEvent({ sharedAssets: assets } as any) : undefined}
             isEditable={canEdit}
+            eventId={event?.id}
           />
         );
       }
