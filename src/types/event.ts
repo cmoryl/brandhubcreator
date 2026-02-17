@@ -164,7 +164,7 @@ export interface EventVideo {
   title: string;
   url: string;
   type: 'promo' | 'recap' | 'speaker' | 'stage' | 'testimonial' | 'teaser' | 'slideshow' | 'livestream' | 'other';
-  platform: 'youtube' | 'vimeo' | 'direct';
+  platform: 'youtube' | 'vimeo' | 'transperfect' | 'direct';
   thumbnailUrl?: string;
   description?: string;
   duration?: string;
