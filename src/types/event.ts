@@ -62,6 +62,16 @@ export interface EventDetails {
   expectedAttendees?: number;
   hashtag?: string;
   registrationUrl?: string;
+  /** Card images for each info card section */
+  cardImages?: {
+    eventType?: string;
+    dates?: string;
+    location?: string;
+    venue?: string;
+    attendees?: string;
+    hashtag?: string;
+    registration?: string;
+  };
 }
 
 export interface EventLogo {
