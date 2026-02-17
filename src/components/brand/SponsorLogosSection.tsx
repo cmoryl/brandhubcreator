@@ -408,7 +408,10 @@ const SponsorCard = ({ sponsor, canEdit, tierConfig, onUpdate, onDelete, onFileD
     >
       <CardContent className="p-3 space-y-2">
         {/* Logo */}
-        <div className="aspect-[3/2] bg-white rounded-md flex items-center justify-center overflow-hidden border">
+        <div className={cn(
+          "aspect-[3/2] rounded-md flex items-center justify-center overflow-hidden border",
+          sponsor.url && /white/i.test(sponsor.url) ? "bg-gray-900" : "bg-white"
+        )}>
           {sponsor.url ? (
             <img
               src={sponsor.url}

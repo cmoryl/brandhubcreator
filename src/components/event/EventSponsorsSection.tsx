@@ -394,7 +394,8 @@ export const EventSponsorsSection = ({
                           {/* Primary Logo */}
                           {sponsor.logoUrl ? (
                             <div className={cn(
-                              "flex items-center justify-center bg-white rounded-lg mb-3",
+                              "flex items-center justify-center rounded-lg mb-3",
+                              /white/i.test(sponsor.logoUrl) ? "bg-gray-900" : "bg-white",
                               tier === 'platinum' && "h-24",
                               tier === 'gold' && "h-20",
                               tier === 'silver' && "h-16",
