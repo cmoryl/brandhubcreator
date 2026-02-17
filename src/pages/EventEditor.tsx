@@ -807,9 +807,14 @@ const EventEditor = () => {
 
   // Render all sections for full page view
   const renderFullPage = () => {
+    const deduplicatedOrder = sectionOrder.filter(id => {
+      if (id === 'eventbanners' && sectionOrder.includes('eventdigital')) return false;
+      if ((id === 'casestudies' || id === 'brochures') && sectionOrder.includes('eventdigital')) return false;
+      return true;
+    });
     const visibleSections = isGuideAdmin 
-      ? sectionOrder 
-      : sectionOrder.filter(id => !hiddenSections.includes(id));
+      ? deduplicatedOrder 
+      : deduplicatedOrder.filter(id => !hiddenSections.includes(id));
 
     return (
       <div className={getSectionSpacingClass()}>
