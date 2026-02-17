@@ -47,7 +47,7 @@ const getTypeColor = (type: EventVideo['type']) => {
   return colors[type] || colors.other;
 };
 
-const extractVideoId = (url: string, platform: 'youtube' | 'vimeo' | 'direct'): string | null => {
+const extractVideoId = (url: string, platform: EventVideo['platform']): string | null => {
   if (platform === 'youtube') {
     const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     return match ? match[1] : null;
@@ -62,6 +62,7 @@ const extractVideoId = (url: string, platform: 'youtube' | 'vimeo' | 'direct'): 
 const detectPlatform = (url: string): EventVideo['platform'] => {
   if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
   if (url.includes('vimeo.com')) return 'vimeo';
+  if (url.includes('tv.transperfect.com')) return 'transperfect' as EventVideo['platform'];
   return 'direct';
 };
 
@@ -69,6 +70,8 @@ const getEmbedUrl = (url: string, platform: EventVideo['platform']): string => {
   const videoId = extractVideoId(url, platform);
   if (platform === 'youtube' && videoId) return `https://www.youtube.com/embed/${videoId}`;
   if (platform === 'vimeo' && videoId) return `https://player.vimeo.com/video/${videoId}`;
+  // TransPerfect TV public URLs work directly as iframe src
+  if ((platform as string) === 'transperfect') return url;
   return url;
 };
 
@@ -186,9 +189,9 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
                   <Input
                     value={newVideo.url || ''}
                     onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })}
-                    placeholder="https://youtube.com/watch?v=... or direct URL"
+                    placeholder="https://youtube.com/watch?v=... or tv.transperfect.com/..."
                   />
-                  <p className="text-xs text-muted-foreground">Supports YouTube, Vimeo, or direct video URLs</p>
+                  <p className="text-xs text-muted-foreground">Supports YouTube, Vimeo, TransPerfect TV, or direct video URLs</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -275,6 +278,7 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                     />
                   ) : thumbnail ? (
                     <div className="relative w-full h-full">
