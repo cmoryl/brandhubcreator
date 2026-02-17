@@ -35,6 +35,7 @@ import { EventScheduleSection } from '@/components/event/EventScheduleSection';
 import { EventHistorySection } from '@/components/event/EventHistorySection';
 import { EventVideosSection } from '@/components/event/EventVideosSection';
 import { EventLocationSection } from '@/components/event/EventLocationSection';
+import { EventPatternsSection } from '@/components/event/EventPatternsSection';
 import { EventWebsiteSection } from '@/components/event/EventWebsiteSection';
 import { SubEventsManager, LinkedEventGuide } from '@/components/event/SubEventsManager';
 import { SharedAssetsSection, SharedAsset } from '@/components/event/SharedAssetsSection';
@@ -709,6 +710,7 @@ const EventEditor = () => {
       case 'logos': return <LogoSection logos={event.logos} onLogosChange={editHandler((logos) => updateEvent({ logos }))} />;
       case 'brandicon': return <BrandIconsSection brandIcons={event.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateEvent({ brandIcons }))} />;
       case 'patterns': return <PatternsSection patterns={event.patterns} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} brandName={event.hero.name} brandColors={event.colors} />;
+      case 'eventpatterns': return <EventPatternsSection patterns={event.patterns || []} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} isEditable={canEdit} eventName={event.hero.name} eventColors={event.colors} eventTagline={event.hero.tagline} />;
       case 'textstyles': return <TextStylesSection textStyles={event.textStyles} onTextStylesChange={editHandler((textStyles) => updateEvent({ textStyles }))} />;
       case 'iconography': return <IconographySection iconography={event.iconography} onIconographyChange={editHandler((iconography) => updateEvent({ iconography }))} brandColors={event.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} />;
       case 'socialicons': return <SocialIconsSection socialIcons={event.socialIcons} onSocialIconsChange={editHandler((socialIcons) => updateEvent({ socialIcons }))} />;
