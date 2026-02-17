@@ -13,7 +13,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { cn } from '@/lib/utils';
 import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
+import { GlobalLogoPickerDialog } from '@/components/brand/GlobalLogoPickerDialog';
+import { Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
+import type { ClientLogo } from '@/types/brand';
 
 interface EventSponsorsSectionProps {
   sponsors: EventSponsor[];
@@ -164,10 +167,26 @@ export const EventSponsorsSection = ({
           )}
         </div>
         {isEditable && (
-          <Button onClick={() => setIsAddingNew(true)} disabled={isAddingNew}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Sponsor
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsAddingNew(true)} disabled={isAddingNew}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Sponsor
+            </Button>
+            <GlobalLogoPickerDialog
+              existingLogoNames={sponsors.map(s => s.name)}
+              onImport={(imported) => {
+                const newSponsors: EventSponsor[] = imported.map(logo => ({
+                  id: crypto.randomUUID(),
+                  name: logo.name,
+                  tier: 'partner' as const,
+                  logoUrl: logo.files?.find(f => f.variant === 'color')?.url || logo.files?.[0]?.url || '',
+                  logoVariants: [],
+                  websiteUrl: logo.websiteUrl,
+                }));
+                onUpdate([...sponsors, ...newSponsors]);
+              }}
+            />
+          </div>
         )}
       </div>
 
@@ -316,10 +335,26 @@ export const EventSponsorsSection = ({
             <h3 className="font-semibold text-lg mb-2">No sponsors yet</h3>
             <p className="text-muted-foreground mb-4">Add sponsors and partners with their tier and logo placement</p>
             {isEditable && (
-              <Button onClick={() => setIsAddingNew(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Sponsor
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setIsAddingNew(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Sponsor
+                </Button>
+                <GlobalLogoPickerDialog
+                  existingLogoNames={sponsors.map(s => s.name)}
+                  onImport={(imported) => {
+                    const newSponsors: EventSponsor[] = imported.map(logo => ({
+                      id: crypto.randomUUID(),
+                      name: logo.name,
+                      tier: 'partner' as const,
+                      logoUrl: logo.files?.find(f => f.variant === 'color')?.url || logo.files?.[0]?.url || '',
+                      logoVariants: [],
+                      websiteUrl: logo.websiteUrl,
+                    }));
+                    onUpdate([...sponsors, ...newSponsors]);
+                  }}
+                />
+              </div>
             )}
           </CardContent>
         </Card>
