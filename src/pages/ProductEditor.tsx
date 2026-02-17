@@ -657,7 +657,7 @@ const ProductEditor = () => {
       case 'templates': return <TemplatesSection templates={currentProduct.templates} onTemplatesChange={editHandler((templates) => handleUpdateProduct({ templates }))} />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={currentProduct.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => handleUpdateProduct({ templateSpecs }))} brandColors={currentProduct.colors || []} />;
       case 'products': return <ProductsSection productId={currentProduct.id} linkedGuides={currentProduct.linkedGuides || []} onLinkedGuidesChange={editHandler((linkedGuides) => handleUpdateProduct({ linkedGuides }))} />;
-      case 'sponsorlogos': return <SponsorLogosSection sponsors={currentProduct.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => handleUpdateProduct({ sponsorLogos }))} />;
+      case 'sponsorlogos': return <SponsorLogosSection sponsors={currentProduct.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => handleUpdateProduct({ sponsorLogos }))} websiteUrl={currentProduct.websites?.[0]?.url} />;
       case 'clientlogos': return <ClientLogosSection clientLogos={currentProduct.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => handleUpdateProduct({ clientLogos }))} />;
       case 'insights': return (
         <InsightsSection

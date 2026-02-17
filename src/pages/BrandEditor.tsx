@@ -775,7 +775,7 @@ const BrandEditor = () => {
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={editHandler((templates) => updateBrand({ templates }))} />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateBrand({ templateSpecs }))} brandColors={brand.colors || []} />;
       case 'products': return <ProductsSection brandId={brand.id} />;
-      case 'sponsorlogos': return <SponsorLogosSection sponsors={brand.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateBrand({ sponsorLogos }))} />;
+      case 'sponsorlogos': return <SponsorLogosSection sponsors={brand.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateBrand({ sponsorLogos }))} websiteUrl={brand.websites?.[0]?.url} />;
       case 'clientlogos': return <ClientLogosSection clientLogos={brand.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateBrand({ clientLogos }))} />;
       case 'insights': return (
         <InsightsSection
