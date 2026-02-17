@@ -1,74 +1,30 @@
 
 
-# Surface Compliance Scores Across the Application
+## Add Grid Density Options to Image Library
 
-## Overview
+Currently the Image Library has two view modes: **Grid** (5 columns max) and **List**. This plan adds multiple grid density options so you can view images at different sizes.
 
-Currently, DataForce compliance scores are only visible inside the DataForce Dashboard widget and the dedicated Compliance Checker component. This plan adds compliance score badges and indicators to three high-visibility areas so users can see brand compliance health at a glance without navigating to the DataForce section.
+### What Changes
 
-## Where Scores Will Appear
+**New grid density toggle** replacing the current simple grid/list switch with 4 options:
+- **Large Grid** (3 columns) -- bigger thumbnails for detailed viewing
+- **Medium Grid** (5 columns) -- current default
+- **Small Grid** (8 columns) -- compact view to see more images at once  
+- **List** -- existing list view
 
-### 1. Portal Brand Cards (Organization Dashboard)
-Add a small compliance score badge to each brand card on the org portal (both `PortalBrandCard` and `StandaloneBrandCard`). The badge will show the most recent compliance score with a color-coded indicator (green/yellow/red).
+The toolbar will show 4 small icon buttons (large grid, medium grid, small grid, list) in the same toggle group area where the current grid/list buttons sit.
 
-### 2. Brand Hero Section (Brand Editor)
-Add a compliance score stat alongside the existing Health Score in the hero stats panel. This gives editors immediate visibility into compliance status while working on a brand.
+### Technical Details
 
-### 3. Admin Brand Analytics Hub
-Add a compliance score column to the brand health table so admins can compare compliance scores alongside health scores in one view.
+**File: `src/components/admin/AdminImageLibrary.tsx`**
 
----
-
-## Technical Details
-
-### Data Fetching
-
-**New hook: `useLatestComplianceScores`**
-- Fetches the latest compliance score per entity from `dataforce_compliance_jobs` (grouped by `entity_id`, ordered by `created_at desc`, limit 1 per entity)
-- Returns a `Map<entityId, { score: number, status: string, date: string }>` for efficient lookup
-- Used by the portal page and admin analytics
-
-### File Changes
-
-**1. `src/hooks/dataforce/useLatestComplianceScores.ts`** (new)
-- Custom hook accepting `organizationId`
-- Queries `dataforce_compliance_jobs` for completed jobs, deduplicates to latest per entity
-- Returns a lookup map and loading state
-
-**2. `src/hooks/dataforce/index.ts`** (edit)
-- Export the new hook
-
-**3. `src/components/portal/PortalCards.tsx`** (edit)
-- Accept optional `complianceScore?: number` prop on `PortalBrandCard`
-- Render a small badge (e.g., shield icon + score%) in the card footer area, color-coded by threshold
-
-**4. `src/components/portal/HierarchicalBrandGrid.tsx`** (edit)
-- Accept optional `complianceScores` map prop
-- Pass score to `StandaloneBrandCard` and `SubBrandCard`
-- Add the same badge treatment
-
-**5. `src/pages/OrganizationPortal.tsx`** (edit)
-- Call `useLatestComplianceScores` with the org ID
-- Pass the scores map down to the brand grid components
-
-**6. `src/components/brand/HeroSection.tsx`** (edit)
-- Add a compliance score stat pill next to the existing Health stat
-- Fetch via `useLatestComplianceScores` (single entity) or accept as prop
-- Show shield icon + percentage with color coding
-
-**7. `src/components/admin/BrandAnalyticsHub.tsx`** (edit)
-- Fetch compliance scores alongside brand health data
-- Add "Compliance" column to the brand table
-- Include compliance in the summary stats cards
-
-### Score Display Component
-
-**`src/components/dataforce/ComplianceScoreBadge.tsx`** (new)
-- Reusable small badge: shield icon + score + color
-- Props: `score: number`, `size: 'sm' | 'md'`, `showLabel: boolean`
-- Color thresholds: 80+ green, 60-79 yellow, below 60 red
-- Shows "N/A" if no score exists yet
-
-### No Database Changes Required
-All data already exists in `dataforce_compliance_jobs`. This is purely a frontend read/display feature.
+1. Change `ViewMode` type from `'grid' | 'list'` to `'grid-lg' | 'grid-md' | 'grid-sm' | 'list'`
+2. Update default state to `'grid-md'`
+3. Replace the 2-button toggle with 4 buttons using appropriate icons (`LayoutGrid` for large, `Grid3X3` for medium, `Grid2X2` or similar for small, `List` for list)
+4. Map each grid mode to different Tailwind column classes:
+   - `grid-lg`: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-3` with larger aspect ratio
+   - `grid-md`: `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5` (current)
+   - `grid-sm`: `grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8` 
+5. Conditionally hide file name overlay text on small grid to keep cards clean
+6. List view logic stays unchanged
 
