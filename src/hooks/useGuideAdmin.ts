@@ -29,6 +29,8 @@ interface UseGuideAdminReturn {
   isLoading: boolean;
   /** Whether the user can edit (has write access) */
   canEdit: boolean;
+  /** Whether the user can view analytics areas (insights, intelligence, competitive, audit, brand health) */
+  canViewAnalytics: boolean;
 }
 
 export const useGuideAdmin = (options: UseGuideAdminOptions = {}): UseGuideAdminReturn => {
@@ -44,6 +46,7 @@ export const useGuideAdmin = (options: UseGuideAdminOptions = {}): UseGuideAdmin
         isGuideAdmin: false,
         isLoading: false,
         canEdit: false,
+        canViewAnalytics: false,
       };
     }
 
@@ -53,6 +56,7 @@ export const useGuideAdmin = (options: UseGuideAdminOptions = {}): UseGuideAdmin
         isGuideAdmin: true,
         isLoading: false,
         canEdit: true,
+        canViewAnalytics: true,
       };
     }
 
@@ -65,6 +69,7 @@ export const useGuideAdmin = (options: UseGuideAdminOptions = {}): UseGuideAdmin
         isGuideAdmin: true, // Optimistic: show admin UI while loading
         isLoading: true,
         canEdit: true,
+        canViewAnalytics: true,
       };
     }
 
@@ -76,6 +81,7 @@ export const useGuideAdmin = (options: UseGuideAdminOptions = {}): UseGuideAdmin
         isGuideAdmin: true, // Optimistic until we know for sure
         isLoading: true,
         canEdit: true,
+        canViewAnalytics: true,
       };
     }
 
@@ -83,16 +89,22 @@ export const useGuideAdmin = (options: UseGuideAdminOptions = {}): UseGuideAdmin
     // User must be owner or admin in their organization
     const hasOrgAdminRole = orgRole === 'owner' || orgRole === 'admin';
     
+    // Members can view analytics areas (insights, intelligence, competitive, audit, brand health)
+    // but cannot edit content or access admin settings
+    const hasOrgMemberRole = orgRole === 'owner' || orgRole === 'admin' || orgRole === 'member';
+    
     // If entity has no org, org admins can edit
     // If entity has an org, it must match the user's org
     const orgMatches = !entityOrgId || !organization?.id || organization.id === entityOrgId;
     
     const canEditOrg = hasOrgAdminRole && orgMatches;
+    const canViewAnalyticsOrg = hasOrgMemberRole && orgMatches;
 
     return {
       isGuideAdmin: canEditOrg,
       isLoading: false,
       canEdit: canEditOrg,
+      canViewAnalytics: canViewAnalyticsOrg,
     };
   }, [user, isGlobalAdmin, authLoading, orgRole, organization, orgLoading, entityOrgId]);
 

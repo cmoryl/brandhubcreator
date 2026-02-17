@@ -68,7 +68,7 @@ import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEdi
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { BrandBackupManager } from '@/components/brand/BrandBackupManager';
 import { QuickBackupButton } from '@/components/brand/QuickBackupButton';
-import { AdminToolbar } from '@/components/admin/AdminToolbar';
+import { AdminToolbar, type AdminToolbarAction } from '@/components/admin/AdminToolbar';
 import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { BackToTopButton } from '@/components/BackToTopButton';
@@ -341,7 +341,7 @@ const ProductEditor = () => {
   const effectiveOrgName = resolvedOrgName || organization?.name;
 
   // Use centralized admin detection hook for consistent behavior across all editors
-  const { isGuideAdmin, canEdit } = useGuideAdmin({ 
+  const { isGuideAdmin, canEdit, canViewAnalytics } = useGuideAdmin({ 
     entityOrgId: currentProduct?.organizationId 
   });
 
@@ -620,7 +620,7 @@ const ProductEditor = () => {
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
     
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={editHandler((hero) => handleUpdateProduct({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={currentProduct as unknown as Record<string, unknown>} entityType="product" entityId={currentProduct.id} complianceScore={complianceScores?.get(currentProduct.id)?.score} hiddenSections={hiddenSections} compact={viewMode === 'cards'} />;
+      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={editHandler((hero) => handleUpdateProduct({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={currentProduct as unknown as Record<string, unknown>} entityType="product" entityId={currentProduct.id} complianceScore={complianceScores?.get(currentProduct.id)?.score} hiddenSections={hiddenSections} compact={viewMode === 'cards'} />;
       case 'tagline': return <TaglineSection tagline={currentProduct.tagline} onTaglineChange={editHandler((tagline) => handleUpdateProduct({ tagline }))} />;
       case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={editHandler((identity) => handleUpdateProduct({ identity }))} />;
       case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={editHandler((values) => handleUpdateProduct({ values }))} organizationId={currentProduct.organizationId} brandId={currentProduct.id} brandName={currentProduct.hero.name} canEdit={canEdit} />;
@@ -953,11 +953,11 @@ const ProductEditor = () => {
             </div>
           </header>
 
-          {/* Admin Toolbar - Consolidated admin actions */}
+          {/* Admin Toolbar - visible to members (analytics) and admins (full) */}
           <AdminToolbar
-            isVisible={canEdit || false}
+            isVisible={canViewAnalytics || false}
             guideType="product"
-            hiddenSectionCount={hiddenSections.length}
+            hiddenSectionCount={canEdit ? hiddenSections.length : 0}
             actions={[
               {
                 id: 'intelligence',
@@ -988,35 +988,38 @@ const ProductEditor = () => {
                 icon: ClipboardCheck,
                 render: () => <BrandAuditButton brand={currentProduct} />,
               },
-              {
-                id: 'settings',
-                label: 'Page Settings',
-                icon: Settings,
-                render: () => (
-                  <BrandPageSettingsEditor 
-                    settings={pageSettings} 
-                    onSettingsChange={handlePageSettingsChange}
-                  />
-                ),
-              },
-              {
-                id: 'export',
-                label: 'Export PDF',
-                icon: Download,
-                render: () => <ExportPdfButton guide={currentProduct} />,
-              },
-              {
-                id: 'quick-backup',
-                label: 'Quick Backup',
-                icon: HardDrive,
-                render: () => <QuickBackupButton guide={currentProduct} />,
-              },
-              {
-                id: 'backups',
-                label: 'Manage Backups',
-                icon: HardDrive,
-                render: () => <BrandBackupManager guide={currentProduct} />,
-              },
+              // Admin-only actions below
+              ...(canEdit ? [
+                {
+                  id: 'settings',
+                  label: 'Page Settings',
+                  icon: Settings,
+                  render: () => (
+                    <BrandPageSettingsEditor 
+                      settings={pageSettings} 
+                      onSettingsChange={handlePageSettingsChange}
+                    />
+                  ),
+                },
+                {
+                  id: 'export',
+                  label: 'Export PDF',
+                  icon: Download,
+                  render: () => <ExportPdfButton guide={currentProduct} />,
+                },
+                {
+                  id: 'quick-backup',
+                  label: 'Quick Backup',
+                  icon: HardDrive,
+                  render: () => <QuickBackupButton guide={currentProduct} />,
+                },
+                {
+                  id: 'backups',
+                  label: 'Manage Backups',
+                  icon: HardDrive,
+                  render: () => <BrandBackupManager guide={currentProduct} />,
+                },
+              ] as AdminToolbarAction[] : []),
             ]}
           />
 
@@ -1070,7 +1073,7 @@ const ProductEditor = () => {
                     entityTagline={currentProduct?.hero?.tagline}
                     healthScore={cardViewHealthScore}
                     complianceScore={complianceScores?.get(currentProduct.id)?.score}
-                    onOpenIntelligence={isGuideAdmin ? () => setIntelligenceOpen(true) : undefined}
+                    onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined}
                     entityType="product"
                     entityId={currentProduct?.id}
                     onSectionsComputed={setGridSections}
@@ -1103,7 +1106,7 @@ const ProductEditor = () => {
                   hiddenSections={hiddenSections}
                   isAdmin={isGuideAdmin}
                   canEdit={isGuideAdmin}
-                  onOpenIntelligence={isGuideAdmin ? () => setIntelligenceOpen(true) : undefined}
+                  onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined}
                   entityType="product"
                 />
               )}

@@ -29,7 +29,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-interface AdminToolbarAction {
+export interface AdminToolbarAction {
   id: string;
   label: string;
   icon: React.ElementType;
