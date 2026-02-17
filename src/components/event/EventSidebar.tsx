@@ -47,8 +47,8 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   // Event-specific
   eventlogos: { label: 'Event Logos', icon: Image, category: 'Event Assets' },
   eventsignage: { label: 'Signage & Banners', icon: Presentation, category: 'Event Assets' },
-  eventbanners: { label: 'Digital Banners', icon: LayoutGrid, category: 'Event Assets' },
-  eventdigital: { label: 'Digital Materials', icon: FolderArchive, category: 'Event Assets' },
+  eventbanners: { label: 'Digital Collateral', icon: FolderArchive, category: 'Event Assets' }, // Merged into eventdigital
+  eventdigital: { label: 'Digital Collateral', icon: FolderArchive, category: 'Event Assets' },
   
   // Visual
   colors: { label: 'Event Colors', icon: Palette, category: 'Visual' },
@@ -162,9 +162,14 @@ export const EventSidebar = ({
   };
 
   // Filter sections: non-admins never see hidden sections
+  // Also deduplicate eventbanners (merged into eventdigital)
+  const deduplicatedOrder = sectionOrder.filter(id => {
+    if (id === 'eventbanners' && sectionOrder.includes('eventdigital')) return false;
+    return true;
+  });
   const displayedSections = isAdmin 
-    ? sectionOrder 
-    : sectionOrder.filter(id => !hiddenSections.includes(id));
+    ? deduplicatedOrder 
+    : deduplicatedOrder.filter(id => !hiddenSections.includes(id));
     
   const visibleCount = sectionOrder.length - hiddenSections.length;
 
