@@ -317,6 +317,58 @@ const AdvancedModulesSection = ({ scan }: { scan: ScanRow }) => {
               </div>
             ))}
           </div>
+
+          {/* Recruitment Panels per Stage */}
+          {Object.values(pie.touchpoints as Record<string, any>).some((tp: any) => Array.isArray(tp?.recruitment_panel) && tp.recruitment_panel.length > 0) && (
+            <div className="mt-3 pt-3 border-t space-y-2">
+              <p className="text-[10px] font-semibold flex items-center gap-1">
+                <Users className="h-3 w-3 text-primary" />
+                AI-Generated Diverse Recruitment Panels
+              </p>
+              {Object.entries(pie.touchpoints as Record<string, any>).map(([key, tp]) => {
+                const panel = Array.isArray(tp?.recruitment_panel) ? tp.recruitment_panel : [];
+                if (panel.length === 0) return null;
+                return (
+                  <div key={key} className="space-y-1">
+                    <p className="text-[9px] font-semibold capitalize text-muted-foreground">{key} Stage</p>
+                    <div className="grid grid-cols-1 gap-1">
+                      {panel.map((persona: any, i: number) => (
+                        <div key={i} className="p-1.5 rounded border bg-card text-[9px] space-y-0.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">{persona.persona_name || 'Persona'}</span>
+                            <Badge variant="outline" className="text-[7px] h-4 capitalize">{(persona.dimension || '').replace(/_/g, ' ')}</Badge>
+                          </div>
+                          {persona.needs && <p className="text-muted-foreground"><strong>Needs:</strong> {persona.needs}</p>}
+                          {persona.curb_cut_benefit && <p className="text-muted-foreground"><strong>Curb-Cut:</strong> {persona.curb_cut_benefit}</p>}
+                          {persona.recruitment_criteria && <p className="text-muted-foreground italic">{persona.recruitment_criteria}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Aggregate Recruitment Summary */}
+          {pie.aggregate_recruitment_summary && (
+            <div className="mt-2 pt-2 border-t text-[9px] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Total Personas Recommended</span>
+                <span className="font-bold">{pie.aggregate_recruitment_summary.total_personas_recommended || 0}</span>
+              </div>
+              {Array.isArray(pie.aggregate_recruitment_summary.dimensions_missing) && pie.aggregate_recruitment_summary.dimensions_missing.length > 0 && (
+                <div className="flex items-start gap-1">
+                  <AlertTriangle className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" />
+                  <span>Missing dimensions: {pie.aggregate_recruitment_summary.dimensions_missing.join(', ')}</span>
+                </div>
+              )}
+              <Badge variant={pie.aggregate_recruitment_summary.recruitment_priority === 'immediate' ? 'destructive' : 'outline'} className="text-[8px] capitalize">
+                Priority: {pie.aggregate_recruitment_summary.recruitment_priority || 'N/A'}
+              </Badge>
+            </div>
+          )}
+
           {pie.touchpoints && Object.values(pie.touchpoints as Record<string, any>).some((tp: any) => tp?.recommendation) && (
             <div className="mt-2 pt-2 border-t space-y-1">
               {Object.entries(pie.touchpoints as Record<string, any>).map(([key, tp]) => tp?.recommendation ? (

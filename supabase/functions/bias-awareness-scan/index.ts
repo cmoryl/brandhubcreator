@@ -9,7 +9,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { scanTextForInclusiveLanguage, buildDeepIntelligencePromptContext, WCAG_22_NEW_CRITERIA, WFA_12_AREAS, PIE_TOUCHPOINTS, IMAGERY_STOP_GO, EVENT_ACCESSIBILITY_CHECKLIST, AI_POLICY_AS_CODE, PERSONA_SPECTRUM_DIMENSIONS, OKLCH_COLOR_STANDARD, COLOR_PSYCHOLOGY_DBA, CULTURAL_COLOR_GEOMETRY, COLOR_TRENDS_2026 } from "../_shared/inclusive-language-patterns.ts";
+import { scanTextForInclusiveLanguage, buildDeepIntelligencePromptContext, WCAG_22_NEW_CRITERIA, WFA_12_AREAS, PIE_TOUCHPOINTS, PIE_RECRUITMENT_DIMENSIONS, IMAGERY_STOP_GO, EVENT_ACCESSIBILITY_CHECKLIST, AI_POLICY_AS_CODE, PERSONA_SPECTRUM_DIMENSIONS, OKLCH_COLOR_STANDARD, COLOR_PSYCHOLOGY_DBA, CULTURAL_COLOR_GEOMETRY, COLOR_TRENDS_2026 } from "../_shared/inclusive-language-patterns.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -146,6 +146,7 @@ serve(async (req) => {
         const wcagContext = WCAG_22_NEW_CRITERIA.map(c => `${c.id} ${c.name} [${c.level}]: ${c.objective}`).join('\n');
         const wfaContext = WFA_12_AREAS.map(a => `Stage ${a.stage} ${a.name}: ${a.audit_question}`).join('\n');
         const pieContext = PIE_TOUCHPOINTS.map(t => `${t.name}: ${t.audit_question}`).join('\n');
+        const recruitmentContext = PIE_RECRUITMENT_DIMENSIONS.map(d => `${d.label}: ${d.description} (e.g. ${d.examples.join(', ')})`).join('\n');
         const imageryContext = `STOP: ${IMAGERY_STOP_GO.stop_signals.join('; ')}\nGO: ${IMAGERY_STOP_GO.go_signals.join('; ')}`;
         const eventContext = EVENT_ACCESSIBILITY_CHECKLIST.map(e => `${e.category}: ${e.specification}`).join('\n');
         const personaContext = PERSONA_SPECTRUM_DIMENSIONS.map(p => `${p.dimension}: Permanent(${p.permanent}), Temporary(${p.temporary}), Situational(${p.situational})`).join('\n');
@@ -202,6 +203,16 @@ ADVANCED MODULES:
 MODULE 1 - PI&E "Who Else?" Framework (Annie Jean-Baptiste/Google):
 ${pieContext}
 Score each touchpoint 0-100. Apply the "Curb-Cut Effect" principle. Address intersectionality.
+
+For EACH touchpoint, generate a "recruitment_panel" — a list of 3-5 diverse user personas that should be recruited for testing/validation at that stage. Each persona must include:
+- "persona_name": A descriptive name (e.g., "Low-vision retiree on shared tablet")
+- "dimension": Which PI&E recruitment dimension they represent (from: ${PIE_RECRUITMENT_DIMENSIONS.map(d => d.id).join(', ')})
+- "needs": What specific needs this persona brings to testing
+- "curb_cut_benefit": How designing for this persona benefits ALL users
+- "recruitment_criteria": Practical screening criteria for recruiting this person
+
+RECRUITMENT DIMENSIONS:
+${recruitmentContext}
 
 MODULE 2 - WFA 12 Key Areas Bias Litmus Test (Color-Linked):
 ${wfaContext}
@@ -264,16 +275,22 @@ RESPONSE FORMAT (strict JSON):
     "cognitive": {"permanent": <bool>, "temporary": <bool>, "situational": <bool>},
     "coverage_percentage": <0-100>
   },
-  "pie_module": {
-    "overall_score": <0-100>,
-    "touchpoints": {
-      "ideation": {"score": <0-100>, "missing_voices": ["..."], "recommendation": "..."},
-      "research": {"score": <0-100>, "generalization_risks": ["..."], "recommendation": "..."},
-      "design": {"score": <0-100>, "curb_cut_opportunities": ["..."], "recommendation": "..."},
-      "testing": {"score": <0-100>, "diversity_gaps": ["..."], "recommendation": "..."},
-      "marketing": {"score": <0-100>, "intersectionality_issues": ["..."], "recommendation": "..."}
-    }
-  },
+   "pie_module": {
+     "overall_score": <0-100>,
+     "touchpoints": {
+       "ideation": {"score": <0-100>, "missing_voices": ["..."], "recommendation": "...", "recruitment_panel": [{"persona_name": "...", "dimension": "...", "needs": "...", "curb_cut_benefit": "...", "recruitment_criteria": "..."}]},
+       "research": {"score": <0-100>, "generalization_risks": ["..."], "recommendation": "...", "recruitment_panel": [...]},
+       "design": {"score": <0-100>, "curb_cut_opportunities": ["..."], "recommendation": "...", "recruitment_panel": [...]},
+       "testing": {"score": <0-100>, "diversity_gaps": ["..."], "recommendation": "...", "recruitment_panel": [...]},
+       "marketing": {"score": <0-100>, "intersectionality_issues": ["..."], "recommendation": "...", "recruitment_panel": [...]}
+     },
+     "aggregate_recruitment_summary": {
+       "total_personas_recommended": <number>,
+       "dimensions_covered": ["..."],
+       "dimensions_missing": ["..."],
+       "recruitment_priority": "immediate|short_term|long_term"
+     }
+   },
   "wfa_module": {
     "overall_score": <0-100>,
     "areas": {
