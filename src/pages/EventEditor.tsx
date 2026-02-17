@@ -685,7 +685,7 @@ const EventEditor = () => {
         );
       }
       case 'sponsorlogos':
-        return <SponsorLogosSection sponsors={event.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateEvent({ sponsorLogos }))} />;
+        return <SponsorLogosSection sponsors={event.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateEvent({ sponsorLogos }))} websiteUrl={(event as any).websites?.[0]?.url} />;
       case 'clientlogos':
         return <ClientLogosSection clientLogos={event.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateEvent({ clientLogos }))} />;
       case 'insights':

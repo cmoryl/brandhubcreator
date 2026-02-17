@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Trash2, Upload, Link2, ExternalLink, Crown, Award, Medal, Star, Handshake, Megaphone, Plus } from 'lucide-react';
+import { Trash2, Upload, Link2, ExternalLink, Crown, Award, Medal, Star, Handshake, Megaphone, Plus, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,7 @@ import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { cn } from '@/lib/utils';
+import { WebsiteImageScanner } from './WebsiteImageScanner';
 import type { SponsorLogo } from '@/types/brand';
 
 const TIER_CONFIG = {
@@ -30,6 +31,7 @@ interface SponsorLogosSectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   isEditable?: boolean;
+  websiteUrl?: string;
 }
 
 export const SponsorLogosSection = ({
@@ -38,11 +40,13 @@ export const SponsorLogosSection = ({
   customSubtitle,
   onSubtitleChange,
   isEditable,
+  websiteUrl,
 }: SponsorLogosSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [urlPopoverOpen, setUrlPopoverOpen] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState('');
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [newSponsor, setNewSponsor] = useState({
     name: '',
     tier: 'partner' as TierType,
@@ -113,6 +117,18 @@ export const SponsorLogosSection = ({
     setUrlPopoverOpen(null);
   };
 
+  const handleImportFromScanner = (images: { name: string; url: string; type: string }[]) => {
+    if (!onSponsorsChange) return;
+    const newSponsors = images.map((img) => ({
+      id: crypto.randomUUID(),
+      name: img.name,
+      url: img.url,
+      tier: 'partner' as TierType,
+    }));
+    onSponsorsChange([...sponsors, ...newSponsors]);
+    toast.success(`Imported ${newSponsors.length} sponsor logos`);
+  };
+
   // Group sponsors by tier
   const sponsorsByTier = Object.keys(TIER_CONFIG).reduce((acc, tier) => {
     acc[tier as TierType] = sponsors.filter(s => s.tier === tier);
@@ -139,10 +155,16 @@ export const SponsorLogosSection = ({
             <h3 className="font-semibold text-lg mb-2">No sponsor logos yet</h3>
             <p className="text-muted-foreground mb-4">Add sponsor and partner logos organized by tier</p>
             {canEdit && (
-              <Button onClick={() => setIsAddingNew(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Sponsor
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setIsAddingNew(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Sponsor
+                </Button>
+                <Button variant="outline" onClick={() => setIsScannerOpen(true)}>
+                  <Globe className="h-4 w-4 mr-2" />
+                  Scan Website
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -282,14 +304,29 @@ export const SponsorLogosSection = ({
             );
           })}
 
-          {/* Add Button */}
+          {/* Add Buttons */}
           {canEdit && !isAddingNew && (
-            <Button variant="outline" onClick={() => setIsAddingNew(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Sponsor
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsAddingNew(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Sponsor
+              </Button>
+              <Button variant="outline" onClick={() => setIsScannerOpen(true)}>
+                <Globe className="h-4 w-4 mr-2" />
+                Scan Website
+              </Button>
+            </div>
           )}
         </div>
+      )}
+
+      {canEdit && (
+        <WebsiteImageScanner
+          open={isScannerOpen}
+          onOpenChange={setIsScannerOpen}
+          defaultUrl={websiteUrl || ''}
+          onImportImages={handleImportFromScanner}
+        />
       )}
     </section>
   );
