@@ -1,21 +1,12 @@
 /**
  * Schedule PDF Export Utility
  * Exports event schedules as professionally formatted PDF documents
+ * Uses jsPDF native text API for reliable, searchable output
  */
 
-import html2pdf from 'html2pdf.js';
+import jsPDF from 'jspdf';
 import { EventScheduleItem, EventSpeaker } from '@/types/event';
-import {
-  PDF_FONTS,
-  PDF_COLORS,
-  PDF_TYPOGRAPHY,
-  PDF_SPACING,
-  PDF_PAPER_CONFIGS,
-  applyPdfContainerStyles,
-  generatePdfFooter,
-  escapeHtml,
-  formatPdfDate,
-} from './pdfStyleConfig';
+import { PDF_COLORS } from './pdfStyleConfig';
 
 interface PdfExportOptions {
   eventName: string;
@@ -24,16 +15,16 @@ interface PdfExportOptions {
   speakers?: EventSpeaker[];
 }
 
-// Session type styling for PDF
-const SESSION_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
-  keynote: { bg: '#f3e8ff', text: '#7c3aed' },
-  session: { bg: '#dbeafe', text: '#2563eb' },
-  workshop: { bg: '#dcfce7', text: '#16a34a' },
-  panel: { bg: '#ffedd5', text: '#ea580c' },
-  break: { bg: '#f3f4f6', text: '#4b5563' },
-  networking: { bg: '#fce7f3', text: '#db2777' },
-  lunch: { bg: '#fef9c3', text: '#ca8a04' },
-  registration: { bg: '#ccfbf1', text: '#0d9488' },
+// Session type badge colors (RGB tuples)
+const SESSION_TYPE_COLORS: Record<string, { bg: [number, number, number]; text: [number, number, number] }> = {
+  keynote: { bg: [243, 232, 255], text: [124, 58, 237] },
+  session: { bg: [219, 234, 254], text: [37, 99, 235] },
+  workshop: { bg: [220, 252, 231], text: [22, 163, 74] },
+  panel: { bg: [255, 237, 213], text: [234, 88, 12] },
+  break: { bg: [243, 244, 246], text: [75, 85, 99] },
+  networking: { bg: [252, 231, 243], text: [219, 39, 119] },
+  lunch: { bg: [254, 249, 195], text: [202, 138, 4] },
+  registration: { bg: [204, 251, 241], text: [13, 148, 136] },
 };
 
 const SESSION_TYPE_LABELS: Record<string, string> = {
@@ -47,206 +38,218 @@ const SESSION_TYPE_LABELS: Record<string, string> = {
   registration: 'Registration',
 };
 
-/**
- * Get speaker name from ID or name string
- */
 const getSpeakerName = (speakerIdOrName: string | undefined, speakers?: EventSpeaker[]): string => {
   if (!speakerIdOrName) return '';
   const speaker = speakers?.find(s => s.id === speakerIdOrName || s.name === speakerIdOrName);
   return speaker?.name || speakerIdOrName;
 };
 
-/**
- * Extract day number from time string
- */
 const extractDayNumber = (timeStr: string): string => {
   const match = timeStr?.match(/Day\s*(\d+)/i);
   return match ? `Day ${match[1]}` : 'Day 1';
 };
 
-/**
- * Clean time string (remove day prefix)
- */
 const cleanTime = (timeStr: string): string => {
   return (timeStr || '').replace(/Day\s*\d+\s*-?\s*/i, '').trim();
 };
 
-/**
- * Group schedule items by day
- */
 const groupByDay = (schedule: EventScheduleItem[]): Record<string, EventScheduleItem[]> => {
   const groups: Record<string, EventScheduleItem[]> = {};
-  
   schedule.forEach(item => {
     const day = extractDayNumber(item.time);
     if (!groups[day]) groups[day] = [];
     groups[day].push(item);
   });
-
-  // Sort items within each day by time
   Object.keys(groups).forEach(day => {
-    groups[day].sort((a, b) => {
-      const timeA = cleanTime(a.time);
-      const timeB = cleanTime(b.time);
-      return timeA.localeCompare(timeB);
-    });
+    groups[day].sort((a, b) => cleanTime(a.time).localeCompare(cleanTime(b.time)));
   });
-
   return groups;
 };
 
-/**
- * Generate HTML content for the PDF
- */
-const generatePdfHtml = (schedule: EventScheduleItem[], options: PdfExportOptions): string => {
-  const { eventName, eventDates, eventLocation, speakers } = options;
-  const groupedSchedule = groupByDay(schedule);
-  const days = Object.keys(groupedSchedule).sort();
-
-  const scheduleHtml = days.map(day => {
-    const items = groupedSchedule[day];
-    
-    const itemsHtml = items.map(item => {
-      const typeColors = SESSION_TYPE_COLORS[item.track || 'session'] || SESSION_TYPE_COLORS.session;
-      const typeLabel = SESSION_TYPE_LABELS[item.track || 'session'] || 'Session';
-      const speakerName = getSpeakerName(item.speaker, speakers);
-      
-      // Escape all user-controlled fields to prevent XSS
-      const safeTitle = escapeHtml(item.title);
-      const safeDescription = escapeHtml(item.description || '');
-      const safeSpeakerName = escapeHtml(speakerName);
-      const safeLocation = escapeHtml(item.location || '');
-      const safeTime = escapeHtml(cleanTime(item.time));
-      
-      return `
-        <div style="display: flex; gap: ${PDF_SPACING.lg}; padding: ${PDF_SPACING.md} 0; border-bottom: 1px solid ${PDF_COLORS.border.light};">
-          <div style="min-width: 80px; font-size: ${PDF_TYPOGRAPHY.small.size}; font-weight: 500; color: ${PDF_COLORS.text.secondary};">
-            ${safeTime}
-          </div>
-          <div style="flex: 1;">
-            <div style="display: flex; align-items: center; gap: ${PDF_SPACING.sm}; margin-bottom: ${PDF_SPACING.xs};">
-              <span style="font-weight: 600; color: ${PDF_COLORS.text.primary};">${safeTitle}</span>
-              <span style="
-                display: inline-block;
-                padding: 2px 8px;
-                font-size: ${PDF_TYPOGRAPHY.tiny.size};
-                font-weight: 500;
-                border-radius: 9999px;
-                background-color: ${typeColors.bg};
-                color: ${typeColors.text};
-              ">${typeLabel}</span>
-            </div>
-            ${item.description ? `<p style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.muted}; margin: ${PDF_SPACING.xs} 0;">${safeDescription}</p>` : ''}
-            <div style="display: flex; gap: ${PDF_SPACING.lg}; margin-top: 6px;">
-              ${speakerName ? `
-                <span style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.secondary};">
-                  <strong>Speaker:</strong> ${safeSpeakerName}
-                </span>
-              ` : ''}
-              ${item.location ? `
-                <span style="font-size: ${PDF_TYPOGRAPHY.caption.size}; color: ${PDF_COLORS.text.secondary};">
-                  <strong>Location:</strong> ${safeLocation}
-                </span>
-              ` : ''}
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    return `
-      <div style="margin-bottom: ${PDF_SPACING['2xl']};" class="pdf-avoid-break">
-        <h3 style="
-          font-size: ${PDF_TYPOGRAPHY.h4.size};
-          font-weight: ${PDF_TYPOGRAPHY.h4.weight};
-          color: ${PDF_COLORS.text.primary};
-          padding: ${PDF_SPACING.sm} ${PDF_SPACING.md};
-          background-color: ${PDF_COLORS.background.muted};
-          border-radius: 6px;
-          margin-bottom: ${PDF_SPACING.sm};
-        ">${day}</h3>
-        ${itemsHtml}
-      </div>
-    `;
-  }).join('');
-
-  return `
-    <div style="font-family: ${PDF_FONTS.primary}; padding: 20px; max-width: 800px;">
-      <!-- Header -->
-      <div style="text-align: center; margin-bottom: ${PDF_SPACING['3xl']}; padding-bottom: ${PDF_SPACING['2xl']}; border-bottom: 2px solid ${PDF_COLORS.border.light};">
-        <h1 style="font-size: ${PDF_TYPOGRAPHY.h1.size}; font-weight: ${PDF_TYPOGRAPHY.h1.weight}; color: ${PDF_COLORS.text.primary}; margin: 0 0 8px 0;">
-          ${escapeHtml(eventName)}
-        </h1>
-        <p style="font-size: ${PDF_TYPOGRAPHY.body.size}; color: ${PDF_COLORS.text.muted}; margin: 0;">
-          Event Schedule
-        </p>
-        ${eventDates || eventLocation ? `
-          <div style="margin-top: ${PDF_SPACING.md}; font-size: ${PDF_TYPOGRAPHY.small.size}; color: ${PDF_COLORS.text.secondary};">
-            ${eventDates ? `<span>${escapeHtml(eventDates)}</span>` : ''}
-            ${eventDates && eventLocation ? ' • ' : ''}
-            ${eventLocation ? `<span>${escapeHtml(eventLocation)}</span>` : ''}
-          </div>
-        ` : ''}
-      </div>
-
-      <!-- Schedule -->
-      ${scheduleHtml}
-
-      <!-- Footer -->
-      <div style="margin-top: ${PDF_SPACING['3xl']}; padding-top: ${PDF_SPACING.lg}; border-top: 1px solid ${PDF_COLORS.border.light}; text-align: center;">
-        <p style="font-size: ${PDF_TYPOGRAPHY.tiny.size}; color: ${PDF_COLORS.text.subtle}; margin: 0;">
-          Generated by BrandHub • ${formatPdfDate()} • ${schedule.length} sessions
-        </p>
-      </div>
-    </div>
-  `;
+// Parse hex color to RGB tuple
+const hexToRgb = (hex: string): [number, number, number] => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+    : [0, 0, 0];
 };
 
 /**
- * Export schedule as PDF
+ * Export schedule as PDF using jsPDF native text
  */
 export const exportScheduleToPdf = async (
   schedule: EventScheduleItem[],
   options: PdfExportOptions
 ): Promise<void> => {
-  const { eventName } = options;
-  const safeEventName = eventName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-  const timestamp = new Date().toISOString().split('T')[0];
-  const filename = `${safeEventName}-schedule-${timestamp}.pdf`;
-
-  // Create container with consistent PDF styling
-  const container = document.createElement('div');
-  container.innerHTML = generatePdfHtml(schedule, options);
-  applyPdfContainerStyles(container, 'a4');
-  document.body.appendChild(container);
+  const { eventName, eventDates, eventLocation, speakers } = options;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
   
-  // Force layout calculation
-  container.offsetHeight;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+  const contentWidth = pageWidth - margin * 2;
+  let y = margin;
 
-  const pdfOptions = {
-    margin: PDF_PAPER_CONFIGS.a4.margins,
-    filename,
-    image: { type: 'jpeg' as const, quality: 0.95 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: PDF_COLORS.background.white,
-    },
-    jsPDF: {
-      ...PDF_PAPER_CONFIGS.a4.jsPDF,
-      compress: true,
-    },
-    pagebreak: {
-      mode: ['avoid-all', 'css'],
-      avoid: '.pdf-avoid-break',
-    },
+  const checkPageBreak = (neededHeight: number) => {
+    if (y + neededHeight > pageHeight - 20) {
+      doc.addPage();
+      y = margin;
+      return true;
+    }
+    return false;
   };
 
-  try {
-    await html2pdf().set(pdfOptions).from(container).save();
-  } finally {
-    // Clean up
-    document.body.removeChild(container);
+  // ── HEADER ──
+  doc.setFillColor(17, 24, 39); // gray-900
+  doc.rect(0, 0, pageWidth, 42, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text(eventName, margin, 18);
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Event Schedule', margin, 26);
+
+  if (eventDates || eventLocation) {
+    doc.setFontSize(9);
+    const meta = [eventDates, eventLocation].filter(Boolean).join(' • ');
+    doc.text(meta, margin, 34);
   }
+
+  y = 50;
+
+  // ── SCHEDULE BODY ──
+  const groupedSchedule = groupByDay(schedule);
+  const days = Object.keys(groupedSchedule).sort();
+
+  const textColor = hexToRgb(PDF_COLORS.text.primary);
+  const mutedColor = hexToRgb(PDF_COLORS.text.muted);
+  const secondaryColor = hexToRgb(PDF_COLORS.text.secondary);
+
+  days.forEach((day, dayIndex) => {
+    const items = groupedSchedule[day];
+
+    if (dayIndex > 0) {
+      checkPageBreak(20);
+      y += 6;
+    }
+
+    // Day header bar
+    checkPageBreak(14);
+    doc.setFillColor(243, 244, 246); // gray-100
+    doc.roundedRect(margin, y, contentWidth, 10, 2, 2, 'F');
+    doc.setTextColor(...textColor);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text(day, margin + 4, y + 7);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...mutedColor);
+    const countText = `${items.length} session${items.length !== 1 ? 's' : ''}`;
+    doc.text(countText, margin + contentWidth - 4, y + 7, { align: 'right' });
+    y += 14;
+
+    // Items
+    items.forEach((item, i) => {
+      const time = cleanTime(item.time);
+      const typeKey = item.track || 'session';
+      const typeColors = SESSION_TYPE_COLORS[typeKey] || SESSION_TYPE_COLORS.session;
+      const typeLabel = SESSION_TYPE_LABELS[typeKey] || 'Session';
+      const speakerName = getSpeakerName(item.speaker, speakers);
+      const hasDescription = !!item.description;
+      const hasDetails = !!speakerName || !!item.location;
+
+      // Estimate height needed
+      const descLines = hasDescription ? doc.splitTextToSize(item.description!, contentWidth - 30) : [];
+      const itemHeight = 8 + (hasDescription ? descLines.length * 4 + 2 : 0) + (hasDetails ? 6 : 0) + 4;
+      checkPageBreak(itemHeight);
+
+      // Separator line (except first)
+      if (i > 0) {
+        doc.setDrawColor(229, 231, 235); // gray-200
+        doc.setLineWidth(0.3);
+        doc.line(margin + 25, y, margin + contentWidth, y);
+        y += 2;
+      }
+
+      // Time column
+      doc.setTextColor(...secondaryColor);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text(time, margin + 2, y + 5);
+
+      // Title
+      doc.setTextColor(...textColor);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      const titleX = margin + 28;
+      doc.text(item.title, titleX, y + 5);
+
+      // Type badge
+      const titleWidth = doc.getTextWidth(item.title);
+      const badgeX = titleX + titleWidth + 3;
+      const badgeLabelWidth = doc.getTextWidth(typeLabel);
+      doc.setFillColor(...typeColors.bg);
+      doc.roundedRect(badgeX, y + 1, badgeLabelWidth + 4, 5.5, 1.5, 1.5, 'F');
+      doc.setTextColor(...typeColors.text);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(typeLabel, badgeX + 2, y + 5);
+
+      y += 8;
+
+      // Description
+      if (hasDescription) {
+        doc.setTextColor(...mutedColor);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        const wrappedDesc = doc.splitTextToSize(item.description!, contentWidth - 30);
+        doc.text(wrappedDesc, titleX, y + 1);
+        y += wrappedDesc.length * 3.5 + 2;
+      }
+
+      // Speaker & Location
+      if (hasDetails) {
+        doc.setFontSize(7.5);
+        doc.setTextColor(...secondaryColor);
+        let detailX = titleX;
+        if (speakerName) {
+          doc.setFont('helvetica', 'bold');
+          doc.text('Speaker: ', detailX, y + 1);
+          detailX += doc.getTextWidth('Speaker: ');
+          doc.setFont('helvetica', 'normal');
+          doc.text(speakerName, detailX, y + 1);
+          detailX += doc.getTextWidth(speakerName) + 6;
+        }
+        if (item.location) {
+          doc.setFont('helvetica', 'bold');
+          doc.text('Location: ', detailX, y + 1);
+          detailX += doc.getTextWidth('Location: ');
+          doc.setFont('helvetica', 'normal');
+          doc.text(item.location, detailX, y + 1);
+        }
+        y += 5;
+      }
+
+      y += 2;
+    });
+  });
+
+  // ── FOOTER ──
+  const totalPages = doc.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFontSize(7);
+    doc.setTextColor(156, 163, 175); // gray-400
+    doc.setFont('helvetica', 'normal');
+    const footerText = `Generated by BrandHub • ${new Date().toLocaleDateString()} • ${schedule.length} sessions • Page ${p} of ${totalPages}`;
+    doc.text(footerText, pageWidth / 2, pageHeight - 8, { align: 'center' });
+  }
+
+  // Save
+  const safeEventName = eventName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+  const timestamp = new Date().toISOString().split('T')[0];
+  doc.save(`${safeEventName}-schedule-${timestamp}.pdf`);
 };
