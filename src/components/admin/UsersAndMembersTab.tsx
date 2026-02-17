@@ -1,6 +1,7 @@
 /**
  * UsersAndMembersTab
  * Unified admin component consolidating Users + Org Members management
+ * Super admin capabilities: create users, delete users, reset passwords, change roles
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -8,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Users, Search, Building2, Crown, Shield, User,
   MoreHorizontal, UserMinus, RefreshCw, Mail, Calendar,
-  TrendingDown, UserPlus, ChevronDown, ChevronRight
+  TrendingDown, UserPlus, ChevronDown, ChevronRight, Trash2, KeyRound
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -29,6 +31,10 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,7 +46,7 @@ interface UserRow {
   user_id: string;
   email: string;
   created_at: string;
-  role: string; // app-level role from user_roles
+  role: string;
   organizations: number;
   brands: number;
   memberships: MembershipRow[];
@@ -51,7 +57,7 @@ interface MembershipRow {
   organization_id: string;
   organization_name: string;
   organization_slug: string;
-  role: string; // org-level role
+  role: string;
   invite_accepted_at: string | null;
   invite_expires_at: string | null;
   created_at: string;
@@ -106,6 +112,18 @@ export function UsersAndMembersTab() {
   const [memberToRemove, setMemberToRemove] = useState<{ id: string; email: string; orgName: string } | null>(null);
   const [subTab, setSubTab] = useState<'users' | 'pending'>('users');
 
+  // Super admin dialogs
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'user', organizationId: '', orgRole: 'member' });
+  const [isCreating, setIsCreating] = useState(false);
+
+  const [userToDelete, setUserToDelete] = useState<{ id: string; email: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [showResetPassword, setShowResetPassword] = useState<{ id: string; email: string } | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+
   useEffect(() => { fetchAll(); }, []);
 
   const fetchAll = async () => {
@@ -126,22 +144,16 @@ export function UsersAndMembersTab() {
   };
 
   const fetchUsersAndMembers = async () => {
-    // 1) All profiles
     const { data: profiles } = await supabase.from('profiles').select('user_id, email, created_at').order('created_at', { ascending: false });
-    // 2) App-level roles
     const { data: roles } = await supabase.from('user_roles').select('user_id, role');
     const roleMap = new Map(roles?.map(r => [r.user_id, r.role]) || []);
-    // 3) Org memberships
     const { data: memberships } = await supabase.from('organization_members').select('id, user_id, invited_email, role, organization_id, invite_accepted_at, invite_expires_at, created_at');
-    // 4) Orgs for names
     const { data: orgs } = await supabase.from('organizations').select('id, name, slug');
     const orgMap = new Map(orgs?.map(o => [o.id, { name: o.name, slug: o.slug }]) || []);
-    // 5) Brand counts per user
     const { data: brandData } = await supabase.from('brands').select('user_id');
     const brandCount = new Map<string, number>();
     brandData?.forEach(b => brandCount.set(b.user_id, (brandCount.get(b.user_id) || 0) + 1));
 
-    // Build user rows
     const userMap = new Map<string, UserRow>();
     for (const p of profiles || []) {
       userMap.set(p.user_id, {
@@ -156,7 +168,6 @@ export function UsersAndMembersTab() {
       });
     }
 
-    // Attach memberships & collect pending invites
     const pending: PendingInvite[] = [];
     for (const m of memberships || []) {
       const org = orgMap.get(m.organization_id);
@@ -239,6 +250,96 @@ export function UsersAndMembersTab() {
     fetchUsersAndMembers();
   };
 
+  // ── Super Admin: Create User ─────────────────
+
+  const handleCreateUser = async () => {
+    if (!createForm.email || !createForm.password) {
+      toast.error('Email and password are required');
+      return;
+    }
+    if (createForm.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    setIsCreating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: createForm.email,
+          password: createForm.password,
+          role: createForm.role,
+          organizationId: createForm.organizationId || undefined,
+          orgRole: createForm.orgRole,
+        },
+      });
+      if (error || data?.error) {
+        toast.error(data?.error || error?.message || 'Failed to create user');
+        return;
+      }
+      toast.success(`User ${createForm.email} created successfully`);
+      setShowCreateUser(false);
+      setCreateForm({ email: '', password: '', role: 'user', organizationId: '', orgRole: 'member' });
+      fetchAll();
+    } catch (err) {
+      toast.error('Failed to create user');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  // ── Super Admin: Delete User ─────────────────
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_delete_user', {
+        target_user_id: userToDelete.id,
+      });
+      if (error) {
+        toast.error(error.message || 'Failed to delete user');
+        return;
+      }
+      toast.success(`User ${userToDelete.email} deleted`);
+      setUserToDelete(null);
+      fetchAll();
+    } catch (err) {
+      toast.error('Failed to delete user');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // ── Super Admin: Reset Password ─────────────────
+
+  const handleResetPassword = async () => {
+    if (!showResetPassword || !newPassword) return;
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    setIsResetting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-reset-password', {
+        body: {
+          userId: showResetPassword.id,
+          newPassword,
+        },
+      });
+      if (error || data?.error) {
+        toast.error(data?.error || error?.message || 'Failed to reset password');
+        return;
+      }
+      toast.success(`Password reset for ${showResetPassword.email}`);
+      setShowResetPassword(null);
+      setNewPassword('');
+    } catch (err) {
+      toast.error('Failed to reset password');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   // ── Filtering ───────────────
 
   const filteredUsers = useMemo(() => {
@@ -319,10 +420,18 @@ export function UsersAndMembersTab() {
                 Manage platform users and their organization memberships
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={fetchAll} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              {isSuperAdmin && (
+                <Button size="sm" onClick={() => setShowCreateUser(true)} className="gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Create User
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={fetchAll} className="gap-2">
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {/* Filters */}
@@ -427,6 +536,7 @@ export function UsersAndMembersTab() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                {/* Role management */}
                                 {isSuperAdmin && u.role === 'admin' && (
                                   <DropdownMenuItem onClick={() => promoteToSuperAdmin(u.id)}>
                                     <Shield className="h-4 w-4 mr-2" />
@@ -451,6 +561,26 @@ export function UsersAndMembersTab() {
                                     <Crown className="h-4 w-4 mr-2" />
                                     Promote to Admin
                                   </DropdownMenuItem>
+                                )}
+
+                                {/* Super admin actions: Reset Password & Delete */}
+                                {isSuperAdmin && u.id !== user?.id && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => setShowResetPassword({ id: u.id, email: u.email })}>
+                                      <KeyRound className="h-4 w-4 mr-2" />
+                                      Reset Password
+                                    </DropdownMenuItem>
+                                    {u.role !== 'super_admin' && u.role !== 'admin' && (
+                                      <DropdownMenuItem
+                                        className="text-destructive focus:text-destructive"
+                                        onClick={() => setUserToDelete({ id: u.id, email: u.email })}
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Delete User
+                                      </DropdownMenuItem>
+                                    )}
+                                  </>
                                 )}
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -610,7 +740,7 @@ export function UsersAndMembersTab() {
         </CardContent>
       </Card>
 
-      {/* Remove Confirmation */}
+      {/* Remove Member Confirmation */}
       <AlertDialog open={!!memberToRemove} onOpenChange={() => setMemberToRemove(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -627,6 +757,144 @@ export function UsersAndMembersTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Delete User Confirmation */}
+      <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Permanently delete <strong>{userToDelete?.email}</strong>? This will remove their profile, roles, and all organization memberships. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete User'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Create User Dialog */}
+      <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
+              Create New User
+            </DialogTitle>
+            <DialogDescription>
+              Create a new platform user with an auto-confirmed email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                placeholder="user@example.com"
+                value={createForm.email}
+                onChange={(e) => setCreateForm(f => ({ ...f, email: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Password</Label>
+              <Input
+                type="password"
+                placeholder="Minimum 6 characters"
+                value={createForm.password}
+                onChange={(e) => setCreateForm(f => ({ ...f, password: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Platform Role</Label>
+              <Select value={createForm.role} onValueChange={(v) => setCreateForm(f => ({ ...f, role: v }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="super_admin">Super Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Organization (optional)</Label>
+              <Select value={createForm.organizationId} onValueChange={(v) => setCreateForm(f => ({ ...f, organizationId: v }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="No organization" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No organization</SelectItem>
+                  {organizations.map(org => (
+                    <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {createForm.organizationId && (
+              <div className="space-y-2">
+                <Label>Organization Role</Label>
+                <Select value={createForm.orgRole} onValueChange={(v) => setCreateForm(f => ({ ...f, orgRole: v }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owner">Owner</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateUser(false)} disabled={isCreating}>Cancel</Button>
+            <Button onClick={handleCreateUser} disabled={isCreating}>
+              {isCreating ? 'Creating...' : 'Create User'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={!!showResetPassword} onOpenChange={() => { setShowResetPassword(null); setNewPassword(''); }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5" />
+              Reset Password
+            </DialogTitle>
+            <DialogDescription>
+              Set a new password for <strong>{showResetPassword?.email}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                placeholder="Minimum 6 characters"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowResetPassword(null); setNewPassword(''); }} disabled={isResetting}>Cancel</Button>
+            <Button onClick={handleResetPassword} disabled={isResetting || newPassword.length < 6}>
+              {isResetting ? 'Resetting...' : 'Reset Password'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
