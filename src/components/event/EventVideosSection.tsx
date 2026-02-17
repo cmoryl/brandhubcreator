@@ -86,7 +86,7 @@ const getThumbnail = (url: string, platform: EventVideo['platform']): string | n
 export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtitle }: EventVideosSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('all');
-  // previewVideo state kept for potential future use
+  const [loadedIframes, setLoadedIframes] = useState<Set<string>>(new Set());
   const [newVideo, setNewVideo] = useState<Partial<EventVideo>>({
     title: '',
     url: '',
@@ -274,14 +274,25 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
             return (
               <Card key={video.id} className="group overflow-hidden">
                 <div className="relative aspect-video bg-muted">
-                  {video.platform !== 'direct' ? (
+                  {video.platform !== 'direct' && loadedIframes.has(video.id) ? (
                     <iframe
                       src={embedUrl}
                       className="w-full h-full"
+                      loading="lazy"
                       allow="clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                     />
+                  ) : video.platform !== 'direct' ? (
+                    <button
+                      onClick={() => setLoadedIframes(prev => new Set(prev).add(video.id))}
+                      className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-muted to-muted/60 hover:from-muted/80 hover:to-muted/40 transition-all"
+                    >
+                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Play className="h-7 w-7 text-primary ml-0.5" />
+                      </div>
+                      <span className="text-xs text-muted-foreground font-medium">Click to play</span>
+                    </button>
                   ) : thumbnail ? (
                     <div className="relative w-full h-full">
                       <img src={thumbnail} alt={video.title} className="w-full h-full object-cover" />
