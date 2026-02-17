@@ -94,7 +94,14 @@ export function AdminImageLibrary() {
   const [selectedOrgId, setSelectedOrgId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<ImageCategory | 'All'>('All');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid-md');
+  const [viewMode, setViewModeState] = useState<ViewMode>(() => {
+    const saved = localStorage.getItem('admin-image-library-view-mode');
+    return (saved as ViewMode) || 'grid-md';
+  });
+  const setViewMode = useCallback((mode: ViewMode) => {
+    setViewModeState(mode);
+    localStorage.setItem('admin-image-library-view-mode', mode);
+  }, []);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [bulkCategoryDialogOpen, setBulkCategoryDialogOpen] = useState(false);
   const [bulkCategory, setBulkCategory] = useState<ImageCategory>('General');
