@@ -66,64 +66,38 @@ export const useImageLibrary = () => {
       if (dbError) throw dbError;
 
       // Also scan organization-assets bucket for legacy/existing uploads
-      const { data: storageFiles, error: storageError } = await supabase.storage
-        .from('organization-assets')
-        .list(targetOrgId, { limit: 200, sortBy: { column: 'created_at', order: 'desc' } });
-
-      // Convert storage files to OrganizationImage format (that aren't already in DB)
       const existingPaths = new Set((dbImages || []).map((img: any) => img.file_path));
       const legacyImages: OrganizationImage[] = [];
 
-      if (!storageError && storageFiles) {
-        // Recursively get files from subdirectories
-        for (const item of storageFiles) {
+      // Recursive folder scanner
+      const scanFolder = async (prefix: string, depth: number = 0) => {
+        if (depth > 4) return; // Safety limit
+        const { data: items, error } = await supabase.storage
+          .from('organization-assets')
+          .list(prefix, { limit: 500, sortBy: { column: 'created_at', order: 'desc' } });
+        
+        if (error || !items) return;
+
+        for (const item of items) {
           if (item.id === null) {
-            // It's a folder - list its contents
-            const { data: folderFiles } = await supabase.storage
-              .from('organization-assets')
-              .list(`${targetOrgId}/${item.name}`, { limit: 100 });
-            
-            if (folderFiles) {
-              for (const file of folderFiles) {
-                if (file.id && file.name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
-                  const filePath = `${targetOrgId}/${item.name}/${file.name}`;
-                  if (!existingPaths.has(filePath)) {
-                    const { data: urlData } = supabase.storage
-                      .from('organization-assets')
-                      .getPublicUrl(filePath);
-                    
-                    legacyImages.push({
-                      id: `legacy-${file.id}`,
-                      organization_id: targetOrgId,
-                      name: file.name.replace(/\.[^.]+$/, ''),
-                      file_path: filePath,
-                      public_url: urlData.publicUrl,
-                      category: inferCategory(item.name),
-                      file_size_bytes: file.metadata?.size || null,
-                      mime_type: file.metadata?.mimetype || null,
-                      uploaded_by: null,
-                      created_at: file.created_at || new Date().toISOString(),
-                      updated_at: file.updated_at || new Date().toISOString(),
-                    });
-                  }
-                }
-              }
-            }
+            // It's a folder - recurse into it
+            await scanFolder(`${prefix}/${item.name}`, depth + 1);
           } else if (item.name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
-            // It's a file at root level
-            const filePath = `${targetOrgId}/${item.name}`;
+            const filePath = `${prefix}/${item.name}`;
             if (!existingPaths.has(filePath)) {
               const { data: urlData } = supabase.storage
                 .from('organization-assets')
                 .getPublicUrl(filePath);
               
+              // Infer category from folder path
+              const folderName = prefix.split('/').pop() || '';
               legacyImages.push({
                 id: `legacy-${item.id}`,
                 organization_id: targetOrgId,
                 name: item.name.replace(/\.[^.]+$/, ''),
                 file_path: filePath,
                 public_url: urlData.publicUrl,
-                category: 'General' as ImageCategory,
+                category: inferCategory(folderName),
                 file_size_bytes: item.metadata?.size || null,
                 mime_type: item.metadata?.mimetype || null,
                 uploaded_by: null,
@@ -133,7 +107,49 @@ export const useImageLibrary = () => {
             }
           }
         }
-      }
+      };
+
+      await scanFolder(targetOrgId);
+
+      // Also scan org-image-library bucket for images uploaded via the library
+      const scanLibraryFolder = async (prefix: string, depth: number = 0) => {
+        if (depth > 3) return;
+        const { data: items, error } = await supabase.storage
+          .from('org-image-library')
+          .list(prefix, { limit: 500, sortBy: { column: 'created_at', order: 'desc' } });
+        
+        if (error || !items) return;
+
+        for (const item of items) {
+          if (item.id === null) {
+            await scanLibraryFolder(`${prefix}/${item.name}`, depth + 1);
+          } else if (item.name.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+            const filePath = `${prefix}/${item.name}`;
+            if (!existingPaths.has(filePath)) {
+              const { data: urlData } = supabase.storage
+                .from('org-image-library')
+                .getPublicUrl(filePath);
+              
+              const folderName = prefix.split('/').pop() || '';
+              legacyImages.push({
+                id: `lib-${item.id}`,
+                organization_id: targetOrgId,
+                name: item.name.replace(/\.[^.]+$/, ''),
+                file_path: filePath,
+                public_url: urlData.publicUrl,
+                category: inferCategory(folderName),
+                file_size_bytes: item.metadata?.size || null,
+                mime_type: item.metadata?.mimetype || null,
+                uploaded_by: null,
+                created_at: item.created_at || new Date().toISOString(),
+                updated_at: item.updated_at || new Date().toISOString(),
+              });
+            }
+          }
+        }
+      };
+
+      await scanLibraryFolder(targetOrgId);
 
       // Combine DB images with legacy storage images
       const allImages = [...(dbImages as unknown as OrganizationImage[] || []), ...legacyImages];
