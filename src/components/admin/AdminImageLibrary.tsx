@@ -5,6 +5,7 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -393,16 +394,21 @@ export function AdminImageLibrary() {
                 { mode: 'grid-sm' as ViewMode, icon: Grid2X2, title: 'Small Grid' },
                 { mode: 'list' as ViewMode, icon: List, title: 'List' },
               ]).map(({ mode, icon: Icon, title }) => (
-                <Button
-                  key={mode}
-                  variant={viewMode === mode ? 'secondary' : 'ghost'}
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setViewMode(mode)}
-                  title={title}
-                >
-                  <Icon className="h-4 w-4" />
-                </Button>
+                <Tooltip key={mode}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={viewMode === mode ? 'secondary' : 'ghost'}
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setViewMode(mode)}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    {title}
+                  </TooltipContent>
+                </Tooltip>
               ))}
             </div>
             <Button
