@@ -188,7 +188,10 @@ export function GlobalLogoPickerDialog({ existingLogoNames = [], onImport, trigg
                     )}
                     
                     {/* Preview */}
-                    <div className="aspect-square bg-white flex items-center justify-center p-4">
+                    <div className={cn(
+                      "aspect-square flex items-center justify-center p-4",
+                      colorPreview && /white/i.test(colorPreview) ? "bg-gray-900" : "bg-white"
+                    )}>
                       {colorPreview ? (
                         <img src={colorPreview} alt={logo.name} className="max-h-full max-w-full object-contain" />
                       ) : (
