@@ -165,6 +165,8 @@ export const EventSidebar = ({
   // Also deduplicate eventbanners (merged into eventdigital)
   const deduplicatedOrder = sectionOrder.filter(id => {
     if (id === 'eventbanners' && sectionOrder.includes('eventdigital')) return false;
+    // casestudies and brochures are deprecated in events - eventdigital covers all digital collateral
+    if ((id === 'casestudies' || id === 'brochures') && sectionOrder.includes('eventdigital')) return false;
     return true;
   });
   const displayedSections = isAdmin 

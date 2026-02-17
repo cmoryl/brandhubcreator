@@ -68,8 +68,8 @@ const detectPlatform = (url: string): EventVideo['platform'] => {
 
 const getEmbedUrl = (url: string, platform: EventVideo['platform']): string => {
   const videoId = extractVideoId(url, platform);
-  if (platform === 'youtube' && videoId) return `https://www.youtube.com/embed/${videoId}`;
-  if (platform === 'vimeo' && videoId) return `https://player.vimeo.com/video/${videoId}`;
+  if (platform === 'youtube' && videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`;
+  if (platform === 'vimeo' && videoId) return `https://player.vimeo.com/video/${videoId}?autoplay=0`;
   // TransPerfect TV public URLs work directly as iframe src
   if ((platform as string) === 'transperfect') return url;
   return url;
@@ -278,7 +278,7 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
                     <iframe
                       src={embedUrl}
                       className="w-full h-full"
-                      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allow="clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                     />
