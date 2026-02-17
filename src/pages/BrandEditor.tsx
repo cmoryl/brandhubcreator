@@ -75,7 +75,7 @@ import { QuickBackupButton } from '@/components/brand/QuickBackupButton';
 import { RegionalVariantWizard } from '@/components/brand/RegionalVariantWizard';
 import { TranslationHub } from '@/components/brand/TranslationHub';
 import { GlobalLinkWorkflowTrigger } from '@/components/brand/GlobalLinkWorkflowTrigger';
-import { AdminToolbar } from '@/components/admin/AdminToolbar';
+import { AdminToolbar, type AdminToolbarAction } from '@/components/admin/AdminToolbar';
 import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSelector';
@@ -453,7 +453,7 @@ const BrandEditor = () => {
   }, [brand, contextBrand, syncPublicBrandToDb, updateBrandContext]);
   
   // Use centralized admin detection hook for consistent behavior across all editors
-  const { isGuideAdmin, canEdit } = useGuideAdmin({ 
+  const { isGuideAdmin, canEdit, canViewAnalytics } = useGuideAdmin({ 
     entityOrgId: brand?.organizationId 
   });
   
@@ -737,7 +737,7 @@ const BrandEditor = () => {
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
     
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => updateBrand({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={brand as unknown as Record<string, unknown>} entityType="brand" entityId={brand.id} complianceScore={complianceScores?.get(brand.id)?.score} hiddenSections={hiddenSections} compact={viewMode === 'cards'} />;
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => updateBrand({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={brand as unknown as Record<string, unknown>} entityType="brand" entityId={brand.id} complianceScore={complianceScores?.get(brand.id)?.score} hiddenSections={hiddenSections} compact={viewMode === 'cards'} />;
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => updateBrand({ tagline }))} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={editHandler((identity) => updateBrand({ identity }))} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => updateBrand({ values }))} organizationId={brand.organizationId} brandId={brand.id} brandName={brand.hero.name} canEdit={canEdit} />;
@@ -1100,11 +1100,11 @@ const BrandEditor = () => {
             </div>
           </header>
 
-          {/* Admin Toolbar - Consolidated admin actions */}
+          {/* Admin Toolbar - visible to members (analytics) and admins (full) */}
           <AdminToolbar
-            isVisible={canEdit || false}
+            isVisible={canViewAnalytics || false}
             guideType="brand"
-            hiddenSectionCount={hiddenSections.length}
+            hiddenSectionCount={canEdit ? hiddenSections.length : 0}
             actions={[
               {
                 id: 'intelligence',
@@ -1135,60 +1135,63 @@ const BrandEditor = () => {
                 icon: ClipboardCheck,
                 render: () => <BrandAuditButton brand={brand} />,
               },
-              {
-                id: 'settings',
-                label: 'Page Settings',
-                icon: Settings,
-                render: () => (
-                  <BrandPageSettingsEditor
-                    settings={pageSettings} 
-                    onSettingsChange={handlePageSettingsChange} 
-                  />
-                ),
-              },
-              {
-                id: 'export',
-                label: 'Export PDF',
-                icon: Download,
-                render: () => <ExportPdfButton guide={brand} />,
-              },
-              {
-                id: 'quick-backup',
-                label: 'Quick Backup',
-                icon: HardDrive,
-                render: () => <QuickBackupButton guide={brand} />,
-              },
-              {
-                id: 'backups',
-                label: 'Manage Backups',
-                icon: HardDrive,
-                render: () => <BrandBackupManager guide={brand} />,
-              },
-              {
-                id: 'regional',
-                label: 'Regional Variants',
-                icon: MapPin,
-                onClick: () => setRegionalWizardOpen(true),
-              },
-              {
-                id: 'translations',
-                label: 'Translations',
-                icon: Languages,
-                onClick: () => setTranslationHubOpen(true),
-              },
-              {
-                id: 'workflow',
-                label: 'GlobalLink Workflow',
-                icon: Zap,
-                render: () => organization?.id ? (
-                  <GlobalLinkWorkflowTrigger
-                    entityId={brand.id}
-                    entityType="brand"
-                    entityName={brand.hero.name}
-                    organizationId={organization.id}
-                  />
-                ) : null,
-              },
+              // Admin-only actions below
+              ...(canEdit ? [
+                {
+                  id: 'settings',
+                  label: 'Page Settings',
+                  icon: Settings,
+                  render: () => (
+                    <BrandPageSettingsEditor
+                      settings={pageSettings} 
+                      onSettingsChange={handlePageSettingsChange} 
+                    />
+                  ),
+                },
+                {
+                  id: 'export',
+                  label: 'Export PDF',
+                  icon: Download,
+                  render: () => <ExportPdfButton guide={brand} />,
+                },
+                {
+                  id: 'quick-backup',
+                  label: 'Quick Backup',
+                  icon: HardDrive,
+                  render: () => <QuickBackupButton guide={brand} />,
+                },
+                {
+                  id: 'backups',
+                  label: 'Manage Backups',
+                  icon: HardDrive,
+                  render: () => <BrandBackupManager guide={brand} />,
+                },
+                {
+                  id: 'regional',
+                  label: 'Regional Variants',
+                  icon: MapPin,
+                  onClick: () => setRegionalWizardOpen(true),
+                },
+                {
+                  id: 'translations',
+                  label: 'Translations',
+                  icon: Languages,
+                  onClick: () => setTranslationHubOpen(true),
+                },
+                {
+                  id: 'workflow',
+                  label: 'GlobalLink Workflow',
+                  icon: Zap,
+                  render: () => organization?.id ? (
+                    <GlobalLinkWorkflowTrigger
+                      entityId={brand.id}
+                      entityType="brand"
+                      entityName={brand.hero.name}
+                      organizationId={organization.id}
+                    />
+                  ) : null,
+                },
+              ] as AdminToolbarAction[] : []),
             ]}
           />
 
@@ -1261,7 +1264,7 @@ const BrandEditor = () => {
                     entityTagline={brand?.hero?.tagline}
                     healthScore={cardViewHealthScore}
                     complianceScore={complianceScores?.get(brand.id)?.score}
-                    onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined}
+                    onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined}
                     entityType="brand"
                     entityId={brand?.id}
                     onSectionsComputed={setGridSections}
@@ -1297,7 +1300,7 @@ const BrandEditor = () => {
                   isAdmin={isGuideAdmin}
                   canEdit={canEdit || false}
                   heroFullWidth={pageSettings.heroFullWidth}
-                  onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined}
+                  onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined}
                 />
               )}
             </div>

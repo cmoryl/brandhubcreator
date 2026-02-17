@@ -78,7 +78,7 @@ import { ShareButton } from '@/components/brand/ShareButton';
 import { EventExportPdfButton } from '@/components/event/EventExportPdfButton';
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
-import { AdminToolbar } from '@/components/admin/AdminToolbar';
+import { AdminToolbar, type AdminToolbarAction } from '@/components/admin/AdminToolbar';
 import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { HeroBackground } from '@/components/HeroBackground';
@@ -331,7 +331,7 @@ const EventEditor = () => {
   }, [event?.id, event?.slug]);
   
   // Use centralized admin detection hook for consistent behavior across all editors
-  const { isGuideAdmin, canEdit } = useGuideAdmin({ 
+  const { isGuideAdmin, canEdit, canViewAnalytics } = useGuideAdmin({ 
     entityOrgId: event?.organizationId 
   });
 
@@ -527,7 +527,7 @@ const EventEditor = () => {
     switch (sectionId) {
       case 'hero': 
         console.log('[EventEditor] Rendering hero section with canEdit:', canEdit);
-        return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} onOpenIntelligence={canEdit ? () => setIntelligenceOpen(true) : undefined} guideData={event as unknown as Record<string, unknown>} entityType="event" entityId={event.id} hiddenSections={hiddenSections} />;
+        return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={event as unknown as Record<string, unknown>} entityType="event" entityId={event.id} hiddenSections={hiddenSections} />;
       case 'eventdetails':
         return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
       case 'tagline': 
@@ -1074,11 +1074,11 @@ const EventEditor = () => {
             </div>
           </header>
 
-          {/* Admin Toolbar - Consolidated admin actions */}
+          {/* Admin Toolbar - visible to members (analytics) and admins (full) */}
           <AdminToolbar
-            isVisible={canEdit || false}
+            isVisible={canViewAnalytics || false}
             guideType="event"
-            hiddenSectionCount={hiddenSections.length}
+            hiddenSectionCount={canEdit ? hiddenSections.length : 0}
             actions={[
               {
                 id: 'intelligence',
@@ -1103,23 +1103,26 @@ const EventEditor = () => {
                   );
                 },
               },
-              {
-                id: 'settings',
-                label: 'Page Settings',
-                icon: Settings,
-                render: () => (
-                  <BrandPageSettingsEditor
-                    settings={pageSettings} 
-                    onSettingsChange={handlePageSettingsChange} 
-                  />
-                ),
-              },
-              {
-                id: 'export',
-                label: 'Export PDF',
-                icon: Download,
-                render: () => <EventExportPdfButton event={event} />,
-              },
+              // Admin-only actions below
+              ...(canEdit ? [
+                {
+                  id: 'settings',
+                  label: 'Page Settings',
+                  icon: Settings,
+                  render: () => (
+                    <BrandPageSettingsEditor
+                      settings={pageSettings} 
+                      onSettingsChange={handlePageSettingsChange} 
+                    />
+                  ),
+                },
+                {
+                  id: 'export',
+                  label: 'Export PDF',
+                  icon: Download,
+                  render: () => <EventExportPdfButton event={event} />,
+                },
+              ] as AdminToolbarAction[] : []),
             ]}
           />
 
@@ -1175,7 +1178,7 @@ const EventEditor = () => {
                     entityName={event?.hero?.name}
                     entityTagline={event?.hero?.tagline}
                     healthScore={cardViewHealthScore}
-                    onOpenIntelligence={isGuideAdmin ? () => setIntelligenceOpen(true) : undefined}
+                    onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined}
                     entityType="event"
                     entityId={event?.id}
                     customSectionMeta={eventSectionMeta}
