@@ -453,6 +453,17 @@ export const FullEventPage = ({
             onLayoutChange={canEdit ? (insightsLayout) => updateEvent({ insightsLayout } as any) : undefined}
             entityType="event"
             entityId={eventId}
+            websites={(event as any).websites}
+            entityName={event.hero?.name}
+            industry={event.identity?.archetype}
+            organizationId={(event as any).organizationId}
+            brandContext={{
+              colors: event.colors?.map?.((c: any) => c.hex) || [],
+              archetype: event.identity?.archetype,
+              mission: event.identity?.missionStatement,
+              tagline: event.hero?.tagline,
+            }}
+            insightsAccessCode={(event as any).insightsAccessCode}
           />
         );
       default:
