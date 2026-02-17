@@ -50,7 +50,7 @@ export const EventSponsorsSection = ({
   subtitle,
 }: EventSponsorsSectionProps) => {
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [logoInputMode, setLogoInputMode] = useState<'upload' | 'url'>('upload');
+  const [logoInputMode, setLogoInputMode] = useState<'upload' | 'url' | 'library'>('upload');
   const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(new Set());
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [newItem, setNewItem] = useState<Partial<EventSponsor>>({
@@ -203,8 +203,8 @@ export const EventSponsorsSection = ({
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label>Logo</Label>
-                <Tabs value={logoInputMode} onValueChange={(v) => setLogoInputMode(v as 'upload' | 'url')} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 h-9">
+                <Tabs value={logoInputMode} onValueChange={(v) => setLogoInputMode(v as 'upload' | 'url' | 'library')} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 h-9">
                     <TabsTrigger value="upload" className="text-xs gap-1.5">
                       <Upload className="h-3.5 w-3.5" />
                       Upload
@@ -212,6 +212,10 @@ export const EventSponsorsSection = ({
                     <TabsTrigger value="url" className="text-xs gap-1.5">
                       <Link className="h-3.5 w-3.5" />
                       URL
+                    </TabsTrigger>
+                    <TabsTrigger value="library" className="text-xs gap-1.5">
+                      <Image className="h-3.5 w-3.5" />
+                      Library
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="upload" className="mt-2">
@@ -245,6 +249,24 @@ export const EventSponsorsSection = ({
                       onChange={(e) => setNewItem({ ...newItem, logoUrl: e.target.value })}
                       placeholder="https://example.com/logo.png"
                     />
+                  </TabsContent>
+                  <TabsContent value="library" className="mt-2">
+                    <div className="flex gap-2">
+                      <ImageLibraryPicker
+                        onSelect={(url) => setNewItem({ ...newItem, logoUrl: url })}
+                        trigger={
+                          <Button type="button" variant="outline" className="flex-1 gap-2">
+                            <Image className="h-4 w-4" />
+                            {newItem.logoUrl ? 'Change from Library' : 'Pick from Library'}
+                          </Button>
+                        }
+                      />
+                      {newItem.logoUrl && (
+                        <div className="h-10 w-10 border rounded flex items-center justify-center bg-white">
+                          <img src={newItem.logoUrl} alt="Preview" className="max-h-8 max-w-8 object-contain" />
+                        </div>
+                      )}
+                    </div>
                   </TabsContent>
                 </Tabs>
               </div>
