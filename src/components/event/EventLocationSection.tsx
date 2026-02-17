@@ -80,8 +80,21 @@ export const EventLocationSection = ({
   };
 
   const generateGoogleMapsEmbed = () => {
-    if (!draft.coordinates?.lat || !draft.coordinates?.lng) return '';
-    return `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${draft.coordinates.lat},${draft.coordinates.lng}&zoom=15`;
+    // Build a search query from available location data (no API key needed)
+    const parts: string[] = [];
+    if (draft.venueName) parts.push(draft.venueName);
+    if (draft.address) parts.push(draft.address);
+    if (draft.city) parts.push(draft.city);
+    if (draft.state) parts.push(draft.state);
+    if (draft.country) parts.push(draft.country);
+    
+    if (parts.length === 0 && draft.coordinates?.lat && draft.coordinates?.lng) {
+      return `https://www.google.com/maps?q=${draft.coordinates.lat},${draft.coordinates.lng}&output=embed`;
+    }
+    
+    if (parts.length === 0) return '';
+    const query = encodeURIComponent(parts.join(', '));
+    return `https://www.google.com/maps?q=${query}&output=embed`;
   };
 
   const exportLocationCard = () => {
@@ -334,30 +347,55 @@ export const EventLocationSection = ({
               {/* Map Embed */}
               <Card className="overflow-hidden">
                 <div className="aspect-[16/10] bg-muted">
-                  {location.googleMapsEmbed ? (
-                    <iframe
-                      src={location.googleMapsEmbed}
-                      className="w-full h-full border-0"
-                      allowFullScreen
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                    />
-                  ) : location.googleMapsUrl ? (
-                    <a 
-                      href={location.googleMapsUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="w-full h-full flex flex-col items-center justify-center gap-2 hover:bg-muted/80 transition-colors"
-                    >
-                      <Map className="h-12 w-12 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Click to open in Google Maps</span>
-                    </a>
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                      <Map className="h-12 w-12 opacity-50" />
-                      <span className="text-sm">No map configured</span>
-                    </div>
-                  )}
+                  {(() => {
+                    // Determine embed URL: explicit embed > auto-generated from address > Google Maps URL fallback
+                    let embedSrc = location.googleMapsEmbed || '';
+                    if (!embedSrc) {
+                      const parts: string[] = [];
+                      if (location.venueName) parts.push(location.venueName);
+                      if (location.address) parts.push(location.address);
+                      if (location.city) parts.push(location.city);
+                      if (location.state) parts.push(location.state);
+                      if (location.country) parts.push(location.country);
+                      
+                      if (parts.length > 0) {
+                        embedSrc = `https://www.google.com/maps?q=${encodeURIComponent(parts.join(', '))}&output=embed`;
+                      } else if (location.coordinates?.lat && location.coordinates?.lng) {
+                        embedSrc = `https://www.google.com/maps?q=${location.coordinates.lat},${location.coordinates.lng}&output=embed`;
+                      }
+                    }
+                    
+                    if (embedSrc) {
+                      return (
+                        <iframe
+                          src={embedSrc}
+                          className="w-full h-full border-0"
+                          allowFullScreen
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        />
+                      );
+                    } else if (location.googleMapsUrl) {
+                      return (
+                        <a 
+                          href={location.googleMapsUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="w-full h-full flex flex-col items-center justify-center gap-2 hover:bg-muted/80 transition-colors"
+                        >
+                          <Map className="h-12 w-12 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Click to open in Google Maps</span>
+                        </a>
+                      );
+                    } else {
+                      return (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                          <Map className="h-12 w-12 opacity-50" />
+                          <span className="text-sm">No map configured</span>
+                        </div>
+                      );
+                    }
+                  })()}
                 </div>
               </Card>
             </div>
