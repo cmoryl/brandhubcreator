@@ -356,8 +356,13 @@ export const EventLocationSection = ({
               <Card className="overflow-hidden">
                 <div className="aspect-[16/10] bg-muted">
                   {(() => {
-                    // Determine embed URL: explicit embed > auto-generated from address > Google Maps URL fallback
-                     let embedSrc = location.googleMapsEmbed || '';
+                     // Extract src from pasted iframe HTML if needed
+                     let rawEmbed = location.googleMapsEmbed || '';
+                     let embedSrc = '';
+                     if (rawEmbed) {
+                       const srcMatch = rawEmbed.match(/src=["']([^"']+)["']/i);
+                       embedSrc = srcMatch ? srcMatch[1] : rawEmbed;
+                     }
                     if (!embedSrc) {
                       const parts: string[] = [];
                       if (location.venueName) parts.push(location.venueName);
