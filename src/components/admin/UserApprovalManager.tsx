@@ -400,12 +400,12 @@ export function UserApprovalManager() {
                   Assign to Organization (Optional)
                 </Label>
               </div>
-              <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
+              <Select value={selectedOrgId || 'none'} onValueChange={(val) => setSelectedOrgId(val === 'none' ? '' : val)}>
                 <SelectTrigger id="org-select" className="w-full">
                   <SelectValue placeholder="Select an organization..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No organization</SelectItem>
+                  <SelectItem value="none">No organization</SelectItem>
                   {organizations.map((org) => (
                     <SelectItem key={org.id} value={org.id}>
                       {org.name}
