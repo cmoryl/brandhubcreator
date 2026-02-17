@@ -313,7 +313,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'eventspeakers',
   'eventsponsors',       // Unified sponsors section with logos
   'eventhistory',
-  'casestudies',
+  
   'templatespecs',
   'presentations',
   'insights',
