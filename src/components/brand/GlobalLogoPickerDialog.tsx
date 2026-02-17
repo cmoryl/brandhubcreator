@@ -29,10 +29,17 @@ interface GlobalClientLogo {
   files: ClientLogoFile[];
 }
 
-const getPreviewUrl = (files: ClientLogoFile[], variant: ClientLogoVariant): string | null => {
-  return files.find(f => f.variant === variant && f.format === 'png')?.url
-    || files.find(f => f.variant === variant && f.format === 'svg')?.url
-    || null;
+const getPreviewUrl = (files: ClientLogoFile[]): { url: string; isWhite: boolean } | null => {
+  // Prefer color, then black, then white variant; prefer png over svg
+  for (const variant of ['color', 'black', 'white'] as ClientLogoVariant[]) {
+    const png = files.find(f => f.variant === variant && f.format === 'png');
+    if (png) return { url: png.url, isWhite: variant === 'white' };
+    const svg = files.find(f => f.variant === variant && f.format === 'svg');
+    if (svg) return { url: svg.url, isWhite: variant === 'white' };
+  }
+  // Fallback: any file
+  if (files.length > 0) return { url: files[0].url, isWhite: /white/i.test(files[0].variant) };
+  return null;
 };
 
 export function GlobalLogoPickerDialog({ existingLogoNames = [], onImport, trigger }: GlobalLogoPickerDialogProps) {
@@ -162,7 +169,7 @@ export function GlobalLogoPickerDialog({ existingLogoNames = [], onImport, trigg
               {filteredLogos.map(logo => {
                 const isSelected = selectedIds.has(logo.id);
                 const alreadyAdded = isAlreadyAdded(logo.name);
-                const colorPreview = getPreviewUrl(logo.files, 'color');
+                const preview = getPreviewUrl(logo.files);
                 
                 return (
                   <button
@@ -190,10 +197,10 @@ export function GlobalLogoPickerDialog({ existingLogoNames = [], onImport, trigg
                     {/* Preview */}
                     <div className={cn(
                       "aspect-square flex items-center justify-center p-4",
-                      colorPreview && /white/i.test(colorPreview) ? "bg-gray-900" : "bg-white"
+                      preview?.isWhite ? "bg-gray-900" : "bg-white"
                     )}>
-                      {colorPreview ? (
-                        <img src={colorPreview} alt={logo.name} className="max-h-full max-w-full object-contain" />
+                      {preview ? (
+                        <img src={preview.url} alt={logo.name} className="max-h-full max-w-full object-contain" />
                       ) : (
                         <span className="text-xs text-muted-foreground">No preview</span>
                       )}
