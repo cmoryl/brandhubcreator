@@ -12,7 +12,8 @@ import { toast } from 'sonner';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { cn } from '@/lib/utils';
 import { WebsiteImageScanner } from './WebsiteImageScanner';
-import type { SponsorLogo } from '@/types/brand';
+import { GlobalLogoPickerDialog } from './GlobalLogoPickerDialog';
+import type { SponsorLogo, ClientLogo } from '@/types/brand';
 
 const TIER_CONFIG = {
   platinum: { label: 'Platinum', icon: Crown, color: 'bg-slate-100 text-slate-800 border-slate-300' },
@@ -160,6 +161,20 @@ export const SponsorLogosSection = ({
                   <Plus className="h-4 w-4 mr-2" />
                   Add Sponsor
                 </Button>
+                <GlobalLogoPickerDialog
+                  existingLogoNames={sponsors.map(s => s.name)}
+                  onImport={(imported) => {
+                    if (!onSponsorsChange) return;
+                    const newSponsors: SponsorLogo[] = imported.map(logo => ({
+                      id: crypto.randomUUID(),
+                      name: logo.name,
+                      url: logo.files?.find(f => f.variant === 'color')?.url || logo.files?.[0]?.url || '',
+                      tier: 'partner' as const,
+                      websiteUrl: logo.websiteUrl,
+                    }));
+                    onSponsorsChange([...sponsors, ...newSponsors]);
+                  }}
+                />
                 <Button variant="outline" onClick={() => setIsScannerOpen(true)}>
                   <Globe className="h-4 w-4 mr-2" />
                   Scan Website
@@ -311,6 +326,20 @@ export const SponsorLogosSection = ({
                 <Plus className="h-4 w-4 mr-2" />
                 Add Sponsor
               </Button>
+              <GlobalLogoPickerDialog
+                existingLogoNames={sponsors.map(s => s.name)}
+                onImport={(imported) => {
+                  if (!onSponsorsChange) return;
+                  const newSponsors: SponsorLogo[] = imported.map(logo => ({
+                    id: crypto.randomUUID(),
+                    name: logo.name,
+                    url: logo.files?.find(f => f.variant === 'color')?.url || logo.files?.[0]?.url || '',
+                    tier: 'partner' as const,
+                    websiteUrl: logo.websiteUrl,
+                  }));
+                  onSponsorsChange([...sponsors, ...newSponsors]);
+                }}
+              />
               <Button variant="outline" onClick={() => setIsScannerOpen(true)}>
                 <Globe className="h-4 w-4 mr-2" />
                 Scan Website
