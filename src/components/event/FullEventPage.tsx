@@ -178,6 +178,7 @@ export const FullEventPage = ({
             banners={event.eventBanners || []}
             onUpdate={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : () => {}}
             isEditable={canEdit}
+            eventId={event.id}
           />
         );
       case 'eventdigital':

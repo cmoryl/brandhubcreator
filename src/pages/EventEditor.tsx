@@ -572,7 +572,7 @@ const EventEditor = () => {
       case 'eventsignage':
         return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} brandName={event.hero?.name} brandColors={event.colors?.map(c => c.hex)} eventId={event.id} />;
       case 'eventbanners':
-        return <EventBannersSection banners={event.eventBanners || []} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} />;
+        return <EventBannersSection banners={event.eventBanners || []} onUpdate={(eventBanners) => updateEvent({ eventBanners })} isEditable={canEdit || false} eventId={event.id} />;
       case 'eventdigital':
         return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} isEditable={canEdit || false} />;
       case 'colors': 
