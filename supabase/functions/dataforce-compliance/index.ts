@@ -145,6 +145,11 @@ Analyze the provided brand data and identify:
 4. Imagery style inconsistencies
 5. Messaging alignment issues
 6. Strategic alignment with organization-level brand standards (if Oracle context provided)
+7. PI&E "Who Else?" Inclusion Assessment — evaluate whether the brand assets demonstrate consideration for diverse users across product development stages:
+   - Discovery: Are there signals of inclusive audience mapping beyond primary demographics?
+   - Design: Are Curb-Cut Effect opportunities being leveraged?
+   - Testing: Is there evidence of diverse user testing panels?
+   - Marketing: Are narratives intersectional and non-tokenistic?
 
 ${oracleCtx ? `ORGANIZATION STRATEGIC CONTEXT (Oracle Brain):\n${oracleCtx}\n\nUse this context to also evaluate whether the entity\'s brand assets align with the organization\'s overall strategic direction, voice, and positioning.` : ''}
 
@@ -153,14 +158,21 @@ Return your analysis as a JSON object with this structure:
   "complianceScore": 0-100,
   "issues": [
     {
-      "type": "color|typography|logo|imagery|messaging|layout",
+      "type": "color|typography|logo|imagery|messaging|layout|inclusion",
       "severity": "critical|warning|info",
       "assetName": "string",
       "description": "string",
       "recommendation": "string",
       "confidence": 0-1
     }
-  ]
+  ],
+  "pie_inclusion_score": 0-100,
+  "pie_stage_scores": {
+    "discovery": {"score": 0-100, "finding": "string"},
+    "design": {"score": 0-100, "finding": "string"},
+    "testing": {"score": 0-100, "finding": "string"},
+    "marketing": {"score": 0-100, "finding": "string"}
+  }
 }`;
 
       // Build multimodal content for visual compliance analysis
@@ -194,7 +206,7 @@ Return your analysis as a JSON object with this structure:
                     items: {
                       type: "object",
                       properties: {
-                        type: { type: "string", enum: ["color", "typography", "logo", "imagery", "messaging", "layout"] },
+                        type: { type: "string", enum: ["color", "typography", "logo", "imagery", "messaging", "layout", "inclusion"] },
                         severity: { type: "string", enum: ["critical", "warning", "info"] },
                         assetName: { type: "string" },
                         description: { type: "string" },
@@ -202,6 +214,16 @@ Return your analysis as a JSON object with this structure:
                         confidence: { type: "number" }
                       },
                       required: ["type", "severity", "assetName", "description", "recommendation", "confidence"]
+                    }
+                  },
+                  pie_inclusion_score: { type: "number", description: "PI&E Who Else inclusion score 0-100" },
+                  pie_stage_scores: {
+                    type: "object",
+                    properties: {
+                      discovery: { type: "object", properties: { score: { type: "number" }, finding: { type: "string" } } },
+                      design: { type: "object", properties: { score: { type: "number" }, finding: { type: "string" } } },
+                      testing: { type: "object", properties: { score: { type: "number" }, finding: { type: "string" } } },
+                      marketing: { type: "object", properties: { score: { type: "number" }, finding: { type: "string" } } }
                     }
                   }
                 },

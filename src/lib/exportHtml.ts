@@ -941,30 +941,70 @@ export function exportBiasAwarenessHtml(
     if (data.imagery_inclusion_score !== undefined) body += scoreBar(data.imagery_inclusion_score, 'Imagery Score');
     if (data.score !== undefined) body += scoreBar(data.score, 'Checklist Score');
 
-    Object.entries(data as Record<string, unknown>).forEach(([key, val]) => {
-      if (['overall_score', 'imagery_inclusion_score', 'score'].includes(key)) return;
-      const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-      if (Array.isArray(val) && val.length) {
-        body += `<h3>${esc(label)}</h3>${listHtml(val.map((v: any) => typeof v === 'object' ? (v.area || v.recommendation || v.action || JSON.stringify(v)) : v), key.includes('go_') ? 'list-check' : key.includes('stop_') ? 'list-risk' : '')}`;
-      } else if (typeof val === 'object' && val !== null) {
-        body += `<h3>${esc(label)}</h3>`;
-        Object.entries(val as Record<string, unknown>).forEach(([sk, sv]) => {
-          const sl = sk.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-          if (typeof sv === 'object' && sv !== null) {
-            const subObj = sv as Record<string, unknown>;
-            if (subObj.score !== undefined) body += scoreBar(Number(subObj.score), sl);
-            const subArr = Object.entries(subObj).filter(([k, v]) => Array.isArray(v) && (v as unknown[]).length > 0);
-            subArr.forEach(([k, v]) => {
-              body += `<p style="font-size:11px;font-weight:600;color:var(--fg-muted);margin:8px 0 4px;text-transform:uppercase">${esc(k.replace(/_/g, ' '))}</p>${listHtml(v as unknown[])}`;
-            });
-          } else if (typeof sv === 'string') {
-            body += `<p style="margin:4px 0"><span style="color:var(--fg-muted);font-size:12px">${esc(sl)}:</span> ${esc(sv)}</p>`;
-          }
-        });
-      } else if (typeof val === 'string') {
-        body += `<p style="margin:4px 0"><span style="color:var(--fg-muted);font-size:12px">${esc(label)}:</span> ${esc(val)}</p>`;
+    // Special handling for PI&E recruitment panels
+    if (m.key === 'pie_module' && data.touchpoints) {
+      Object.entries(data.touchpoints as Record<string, any>).forEach(([tpKey, tp]) => {
+        if (!tp || typeof tp !== 'object') return;
+        const tpLabel = tpKey.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+        body += `<h3>${esc(tpLabel)}</h3>`;
+        if (tp.score !== undefined) body += scoreBar(Number(tp.score), tpLabel);
+        if (tp.recommendation) body += `<p style="margin:4px 0;font-size:12px"><strong>Recommendation:</strong> ${esc(tp.recommendation)}</p>`;
+        
+        // Render recruitment panel
+        const panel = Array.isArray(tp.recruitment_panel) ? tp.recruitment_panel : [];
+        if (panel.length > 0) {
+          body += `<p style="font-size:11px;font-weight:600;color:var(--fg-muted);margin:12px 0 4px;text-transform:uppercase">Diverse Recruitment Panel</p>`;
+          body += `<table><thead><tr><th>Persona</th><th>Dimension</th><th>Needs</th><th>Curb-Cut Benefit</th><th>Criteria</th></tr></thead><tbody>`;
+          panel.forEach((p: any) => {
+            body += `<tr>
+              <td style="font-weight:600">${esc(p.persona_name || '')}</td>
+              <td>${esc((p.dimension || '').replace(/_/g, ' '))}</td>
+              <td>${esc(p.needs || '')}</td>
+              <td>${esc(p.curb_cut_benefit || '')}</td>
+              <td style="font-style:italic">${esc(p.recruitment_criteria || '')}</td>
+            </tr>`;
+          });
+          body += `</tbody></table>`;
+        }
+      });
+      
+      // Aggregate summary
+      if (data.aggregate_recruitment_summary) {
+        const ars = data.aggregate_recruitment_summary;
+        body += `<h3>Recruitment Summary</h3>`;
+        body += `<p style="margin:4px 0"><strong>Total Personas:</strong> ${ars.total_personas_recommended || 0}</p>`;
+        if (Array.isArray(ars.dimensions_missing) && ars.dimensions_missing.length > 0) {
+          body += `<p style="margin:4px 0;color:#d97706"><strong>⚠ Missing Dimensions:</strong> ${esc(ars.dimensions_missing.join(', '))}</p>`;
+        }
+        body += `<p style="margin:4px 0"><strong>Priority:</strong> <span class="badge ${ars.recruitment_priority === 'immediate' ? 'badge-red' : 'badge-amber'}">${esc(ars.recruitment_priority || 'N/A')}</span></p>`;
       }
-    });
+    } else {
+      // Default rendering for other modules
+      Object.entries(data as Record<string, unknown>).forEach(([key, val]) => {
+        if (['overall_score', 'imagery_inclusion_score', 'score'].includes(key)) return;
+        const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        if (Array.isArray(val) && val.length) {
+          body += `<h3>${esc(label)}</h3>${listHtml(val.map((v: any) => typeof v === 'object' ? (v.area || v.recommendation || v.action || JSON.stringify(v)) : v), key.includes('go_') ? 'list-check' : key.includes('stop_') ? 'list-risk' : '')}`;
+        } else if (typeof val === 'object' && val !== null) {
+          body += `<h3>${esc(label)}</h3>`;
+          Object.entries(val as Record<string, unknown>).forEach(([sk, sv]) => {
+            const sl = sk.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            if (typeof sv === 'object' && sv !== null) {
+              const subObj = sv as Record<string, unknown>;
+              if (subObj.score !== undefined) body += scoreBar(Number(subObj.score), sl);
+              const subArr = Object.entries(subObj).filter(([k, v]) => Array.isArray(v) && (v as unknown[]).length > 0);
+              subArr.forEach(([k, v]) => {
+                body += `<p style="font-size:11px;font-weight:600;color:var(--fg-muted);margin:8px 0 4px;text-transform:uppercase">${esc(k.replace(/_/g, ' '))}</p>${listHtml(v as unknown[])}`;
+              });
+            } else if (typeof sv === 'string') {
+              body += `<p style="margin:4px 0"><span style="color:var(--fg-muted);font-size:12px">${esc(sl)}:</span> ${esc(sv)}</p>`;
+            }
+          });
+        } else if (typeof val === 'string') {
+          body += `<p style="margin:4px 0"><span style="color:var(--fg-muted);font-size:12px">${esc(label)}:</span> ${esc(val)}</p>`;
+        }
+      });
+    }
     body += `</div>`;
   });
 

@@ -269,11 +269,31 @@ export interface PIETouchpoint {
 }
 
 export const PIE_TOUCHPOINTS: PIETouchpoint[] = [
-  { id: 'ideation', name: 'Ideation', audit_question: 'Whose voice is missing from the initial concept?', example: 'Analyze the core premise for excluded perspectives.' },
-  { id: 'research', name: 'Research', audit_question: 'Do "pen portraits" or focus groups rely on generalizations or exclude underrepresented groups?', example: 'Flag homogeneous user personas.' },
-  { id: 'design', name: 'Design', audit_question: 'Implement the "Curb-Cut Effect" — features solving for a specific disability but improving usability for all.', example: 'Google sensor tuning for skin tones benefits all users.' },
-  { id: 'testing', name: 'Testing', audit_question: 'Automate recruitment of co-designers from diverse backgrounds to validate usability before code freeze.', example: 'Inclusive beta testing panels.' },
-  { id: 'marketing', name: 'Marketing', audit_question: 'Evaluate narratives for intersectionality — are portrayals oversimplified or tokenistic?', example: 'Avoid single-dimension representation.' },
+  { id: 'ideation', name: 'Discovery & Ideation', audit_question: 'Whose voice is missing from the initial concept? Who else might benefit from this product/service beyond the primary audience?', example: 'Analyze the core premise for excluded perspectives. Map secondary & tertiary beneficiaries.' },
+  { id: 'research', name: 'Research & Insight', audit_question: 'Do "pen portraits" or focus groups rely on generalizations? Who else should be represented in research panels?', example: 'Flag homogeneous user personas. Recruit across age, ability, ethnicity, socioeconomic status, neurodiversity.' },
+  { id: 'design', name: 'Design & Prototyping', audit_question: 'Implement the "Curb-Cut Effect" — who else might struggle to use this? Features solving for a specific disability improve usability for all.', example: 'Google sensor tuning for skin tones benefits all users. Voice UI helps mobility-impaired AND hands-busy drivers.' },
+  { id: 'testing', name: 'Pre-Launch Testing', audit_question: 'Who else should we test with before launch? Automate recruitment of co-designers from diverse backgrounds to validate usability before code freeze.', example: 'Inclusive beta testing panels spanning permanent/temporary/situational needs per Microsoft Persona Spectrum.' },
+  { id: 'marketing', name: 'Post-Launch Marketing', audit_question: 'Who else are we failing to reach? Evaluate narratives for intersectionality — are portrayals oversimplified or tokenistic?', example: 'Avoid single-dimension representation. Map campaign reach gaps across underserved demographics.' },
+];
+
+// ── PI&E Recruitment Panel Dimensions ──
+// Used by bias-awareness-scan to generate diverse user recruitment persona panels
+
+export interface PIERecruitmentDimension {
+  id: string;
+  label: string;
+  description: string;
+  examples: string[];
+}
+
+export const PIE_RECRUITMENT_DIMENSIONS: PIERecruitmentDimension[] = [
+  { id: 'age_generation', label: 'Age & Generation', description: 'Span generational digital fluency gaps', examples: ['Gen Z digital native', 'Gen X tech-cautious', 'Baby Boomer first-time user', 'Elderly non-tech user'] },
+  { id: 'ability_spectrum', label: 'Ability Spectrum', description: 'Microsoft Persona Spectrum: permanent, temporary, situational', examples: ['Blind screen-reader user', 'Broken-arm temporary one-handed', 'Parent holding baby (situational)', 'Low-vision elderly', 'Neurodivergent (ADHD/dyslexia)'] },
+  { id: 'cultural_linguistic', label: 'Cultural & Linguistic', description: 'Language fluency, cultural context, and communication norms', examples: ['ESL/EFL speaker', 'RTL language reader', 'Low-literacy user', 'Indigenous language speaker', 'Multilingual code-switcher'] },
+  { id: 'socioeconomic', label: 'Socioeconomic Access', description: 'Device quality, bandwidth, and financial constraints', examples: ['Low-bandwidth rural user', 'Feature phone user', 'Shared-device household', 'Prepaid data-limited', 'Public library internet'] },
+  { id: 'gender_identity', label: 'Gender & Identity', description: 'Gender spectrum, family structures, cultural norms', examples: ['Non-binary user', 'Trans user navigating forms', 'Single parent', 'Multigenerational caregiver'] },
+  { id: 'geographic_context', label: 'Geographic Context', description: 'Urban vs rural, climate, infrastructure', examples: ['Rural low-connectivity', 'Dense urban commuter', 'Extreme climate user (gloves/bright sun)', 'Developing-market infrastructure'] },
+  { id: 'expertise_level', label: 'Domain Expertise', description: 'Novice to expert spectrum', examples: ['First-time category user', 'Power user', 'Professional/expert', 'Reluctant/forced adopter'] },
 ];
 
 // ── Module 8: Inclusive Imagery Stop/Go Framework ──
