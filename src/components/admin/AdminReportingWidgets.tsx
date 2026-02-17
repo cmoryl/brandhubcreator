@@ -60,7 +60,6 @@ const WeeklyActivityChart: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const days: WeeklyData[] = [];
         const queries = [];
 
         for (let i = 6; i >= 0; i--) {
@@ -69,11 +68,12 @@ const WeeklyActivityChart: React.FC = () => {
           const start = startOfDay(date).toISOString();
           const end = endOfDay(date).toISOString();
 
+          // Track both created AND updated content for accurate activity
           queries.push(
             Promise.all([
-              supabase.from('brands').select('id', { count: 'exact', head: true }).gte('created_at', start).lte('created_at', end),
-              supabase.from('products').select('id', { count: 'exact', head: true }).gte('created_at', start).lte('created_at', end),
-              supabase.from('events').select('id', { count: 'exact', head: true }).gte('created_at', start).lte('created_at', end),
+              supabase.from('brands').select('id', { count: 'exact', head: true }).gte('updated_at', start).lte('updated_at', end),
+              supabase.from('products').select('id', { count: 'exact', head: true }).gte('updated_at', start).lte('updated_at', end),
+              supabase.from('events').select('id', { count: 'exact', head: true }).gte('updated_at', start).lte('updated_at', end),
             ]).then(([b, p, e]) => ({
               day: dayLabel,
               brands: b.count || 0,
