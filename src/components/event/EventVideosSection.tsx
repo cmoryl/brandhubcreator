@@ -270,25 +270,11 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
           {filteredVideos.map((video) => {
             const embedUrl = getEmbedUrl(video.url, video.platform);
             const thumbnail = video.thumbnailUrl || getThumbnail(video.url, video.platform);
-            const isTransperfect = video.platform === 'transperfect';
             
             return (
               <Card key={video.id} className="group overflow-hidden">
                 <div className="relative aspect-video bg-muted">
-                  {isTransperfect ? (
-                    <button
-                      onClick={() => window.open(video.url, '_blank')}
-                      className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20 transition-all"
-                    >
-                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                        <Tv className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="text-center px-4">
-                        <span className="text-xs font-semibold text-foreground block">GlobalLink TV</span>
-                        <span className="text-[10px] text-muted-foreground mt-0.5 block">Opens in new tab</span>
-                      </div>
-                    </button>
-                  ) : video.platform !== 'direct' ? (
+                  {video.platform !== 'direct' ? (
                     <iframe
                       src={embedUrl}
                       className="w-full h-full"
