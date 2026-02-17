@@ -469,12 +469,14 @@ export const FullEventPage = ({
   }, [event, canEdit, heroFullWidth, editHandler, updateEvent]);
 
   // Filter out hidden sections for non-admin users
-  const visibleSections = useMemo(() =>
-    isAdmin
-      ? sectionOrder
-      : sectionOrder.filter(id => !hiddenSections.includes(id)),
-    [isAdmin, sectionOrder, hiddenSections]
-  );
+  const visibleSections = useMemo(() => {
+    // Deduplicate: eventbanners merged into eventdigital
+    const deduped = sectionOrder.filter(id => {
+      if (id === 'eventbanners' && sectionOrder.includes('eventdigital')) return false;
+      return true;
+    });
+    return isAdmin ? deduped : deduped.filter(id => !hiddenSections.includes(id));
+  }, [isAdmin, sectionOrder, hiddenSections]);
 
   return (
     <div className="space-y-8 sm:space-y-12">
