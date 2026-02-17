@@ -119,8 +119,8 @@ export const DigitalTemplatesSection = ({ division, isAdmin }: DigitalTemplatesS
                 <ImageIcon className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Booth Mockup</span>
               </div>
-              <div className="bg-card">
-                <img src={mockupUrl} alt={`${division.name} booth mockup`} className="w-full h-auto" />
+              <div className="bg-card flex items-center justify-center p-4 max-h-[60vh] overflow-auto">
+                <img src={mockupUrl} alt={`${division.name} booth mockup`} className="max-w-full max-h-[55vh] w-auto h-auto object-contain rounded-lg" />
               </div>
             </div>
           )}
