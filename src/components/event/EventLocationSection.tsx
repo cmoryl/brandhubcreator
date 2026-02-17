@@ -357,7 +357,7 @@ export const EventLocationSection = ({
                 <div className="aspect-[16/10] bg-muted">
                   {(() => {
                     // Determine embed URL: explicit embed > auto-generated from address > Google Maps URL fallback
-                    let embedSrc = location.googleMapsEmbed || '';
+                     let embedSrc = location.googleMapsEmbed || '';
                     if (!embedSrc) {
                       const parts: string[] = [];
                       if (location.venueName) parts.push(location.venueName);
@@ -367,9 +367,12 @@ export const EventLocationSection = ({
                       if (location.country) parts.push(location.country);
                       
                       if (parts.length > 0) {
-                        embedSrc = `https://www.google.com/maps?q=${encodeURIComponent(parts.join(', '))}&output=embed`;
+                        const query = encodeURIComponent(parts.join(', '));
+                        embedSrc = `https://www.google.com/maps/embed/v1/place?key=&q=${query}`;
+                        // Use the free search embed format instead
+                        embedSrc = `https://maps.google.com/maps?q=${query}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
                       } else if (location.coordinates?.lat && location.coordinates?.lng) {
-                        embedSrc = `https://www.google.com/maps?q=${location.coordinates.lat},${location.coordinates.lng}&output=embed`;
+                        embedSrc = `https://maps.google.com/maps?q=${location.coordinates.lat},${location.coordinates.lng}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
                       }
                     }
                     
