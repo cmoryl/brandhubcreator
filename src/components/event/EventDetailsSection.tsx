@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { RichTextDisplay } from '@/components/ui/rich-text-editor';
+import { EventInfoCardImagePicker } from './EventInfoCardImagePicker';
 
 interface EventDetailsSectionProps {
   eventDetails: EventDetails;
@@ -71,6 +72,7 @@ export const EventDetailsSection = ({
     accent = false,
     href,
     iconEmoji,
+    cardImage,
   }: { 
     icon?: React.ElementType; 
     label: string; 
@@ -79,11 +81,12 @@ export const EventDetailsSection = ({
     accent?: boolean;
     href?: string;
     iconEmoji?: string;
+    cardImage?: string;
   }) => {
     const content = (
       <div 
         className={cn(
-          "group relative p-5 rounded-2xl border transition-all duration-500 cursor-default",
+          "group relative rounded-2xl border transition-all duration-500 cursor-default overflow-hidden",
           "bg-gradient-to-br from-card via-card to-muted/30",
           "hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1",
           "animate-fade-in",
@@ -94,55 +97,68 @@ export const EventDetailsSection = ({
           animationFillMode: 'backwards',
         }}
       >
-        {/* Animated glow effect */}
-        <div className={cn(
-          "absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500",
-          "bg-gradient-to-br from-primary/10 via-transparent to-accent/10",
-          "group-hover:opacity-100"
-        )} />
-        
-        {/* Floating icon with pulse */}
-        <div className={cn(
-          "relative flex items-center gap-3 mb-3",
-        )}>
-          <div className={cn(
-            "relative p-2.5 rounded-xl transition-all duration-300",
-            "bg-gradient-to-br from-primary/20 to-primary/10",
-            "group-hover:scale-110 group-hover:rotate-3",
-            accent && "from-primary/30 to-accent/20"
-          )}>
-            {iconEmoji ? (
-              <span className="text-lg">{iconEmoji}</span>
-            ) : Icon ? (
-              <Icon className="h-5 w-5 text-primary" />
-            ) : null}
-            
-            {/* Pulse ring on hover */}
-            <div className="absolute inset-0 rounded-xl bg-primary/20 animate-ping opacity-0 group-hover:opacity-30" 
-              style={{ animationDuration: '1.5s' }} 
+        {/* Card image */}
+        {cardImage && (
+          <div className="w-full h-28 overflow-hidden">
+            <img 
+              src={cardImage} 
+              alt={label} 
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
             />
           </div>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
-        </div>
-        
-        {/* Value with slide-up animation */}
-        <div className="relative">
-          <p className={cn(
-            "font-semibold text-lg text-foreground transition-all duration-300",
-            "group-hover:text-primary",
-            href && "flex items-center gap-2"
+        )}
+
+        <div className="p-5">
+          {/* Animated glow effect */}
+          <div className={cn(
+            "absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500",
+            "bg-gradient-to-br from-primary/10 via-transparent to-accent/10",
+            "group-hover:opacity-100"
+          )} />
+          
+          {/* Floating icon with pulse */}
+          <div className={cn(
+            "relative flex items-center gap-3 mb-3",
           )}>
-            {value || '—'}
-            {href && <ExternalLink className="h-3.5 w-3.5 opacity-50" />}
-          </p>
+            <div className={cn(
+              "relative p-2.5 rounded-xl transition-all duration-300",
+              "bg-gradient-to-br from-primary/20 to-primary/10",
+              "group-hover:scale-110 group-hover:rotate-3",
+              accent && "from-primary/30 to-accent/20"
+            )}>
+              {iconEmoji ? (
+                <span className="text-lg">{iconEmoji}</span>
+              ) : Icon ? (
+                <Icon className="h-5 w-5 text-primary" />
+              ) : null}
+              
+              {/* Pulse ring on hover */}
+              <div className="absolute inset-0 rounded-xl bg-primary/20 animate-ping opacity-0 group-hover:opacity-30" 
+                style={{ animationDuration: '1.5s' }} 
+              />
+            </div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+          </div>
+          
+          {/* Value with slide-up animation */}
+          <div className="relative">
+            <p className={cn(
+              "font-semibold text-lg text-foreground transition-all duration-300",
+              "group-hover:text-primary",
+              href && "flex items-center gap-2"
+            )}>
+              {value || '—'}
+              {href && <ExternalLink className="h-3.5 w-3.5 opacity-50" />}
+            </p>
+          </div>
+          
+          {/* Bottom accent line */}
+          <div className={cn(
+            "absolute bottom-0 left-4 right-4 h-0.5 rounded-full",
+            "bg-gradient-to-r from-transparent via-primary/30 to-transparent",
+            "scale-x-0 group-hover:scale-x-100 transition-transform duration-500"
+          )} />
         </div>
-        
-        {/* Bottom accent line */}
-        <div className={cn(
-          "absolute bottom-0 left-4 right-4 h-0.5 rounded-full",
-          "bg-gradient-to-r from-transparent via-primary/30 to-transparent",
-          "scale-x-0 group-hover:scale-x-100 transition-transform duration-500"
-        )} />
       </div>
     );
 
@@ -301,6 +317,56 @@ export const EventDetailsSection = ({
                 />
               </div>
             </div>
+
+            {/* Card Images Section */}
+            <div className="border-t pt-6">
+              <Label className="text-base font-semibold mb-4 block">Section Card Images</Label>
+              <p className="text-xs text-muted-foreground mb-4">Add optional background images to each info card.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <EventInfoCardImagePicker
+                  label="Event Type"
+                  currentImage={draft.cardImages?.eventType}
+                  onImageChange={(url) => setDraft({ ...draft, cardImages: { ...draft.cardImages, eventType: url } })}
+                  entityId={undefined}
+                />
+                <EventInfoCardImagePicker
+                  label="Dates"
+                  currentImage={draft.cardImages?.dates}
+                  onImageChange={(url) => setDraft({ ...draft, cardImages: { ...draft.cardImages, dates: url } })}
+                  entityId={undefined}
+                />
+                <EventInfoCardImagePicker
+                  label="Location"
+                  currentImage={draft.cardImages?.location}
+                  onImageChange={(url) => setDraft({ ...draft, cardImages: { ...draft.cardImages, location: url } })}
+                  entityId={undefined}
+                />
+                <EventInfoCardImagePicker
+                  label="Venue"
+                  currentImage={draft.cardImages?.venue}
+                  onImageChange={(url) => setDraft({ ...draft, cardImages: { ...draft.cardImages, venue: url } })}
+                  entityId={undefined}
+                />
+                <EventInfoCardImagePicker
+                  label="Attendees"
+                  currentImage={draft.cardImages?.attendees}
+                  onImageChange={(url) => setDraft({ ...draft, cardImages: { ...draft.cardImages, attendees: url } })}
+                  entityId={undefined}
+                />
+                <EventInfoCardImagePicker
+                  label="Hashtag"
+                  currentImage={draft.cardImages?.hashtag}
+                  onImageChange={(url) => setDraft({ ...draft, cardImages: { ...draft.cardImages, hashtag: url } })}
+                  entityId={undefined}
+                />
+                <EventInfoCardImagePicker
+                  label="Registration"
+                  currentImage={draft.cardImages?.registration}
+                  onImageChange={(url) => setDraft({ ...draft, cardImages: { ...draft.cardImages, registration: url } })}
+                  entityId={undefined}
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -338,18 +404,21 @@ export const EventDetailsSection = ({
               label="Event Type" 
               value={eventType?.label}
               delay={50}
+              cardImage={eventDetails.cardImages?.eventType}
             />
             <InfoCard 
               icon={Calendar} 
               label="Dates" 
               value={eventDetails.eventDates}
               delay={100}
+              cardImage={eventDetails.cardImages?.dates}
             />
             <InfoCard 
               icon={MapPin} 
               label="Location" 
               value={eventDetails.location}
               delay={150}
+              cardImage={eventDetails.cardImages?.location}
             />
             {eventDetails.venue && (
               <InfoCard 
@@ -357,6 +426,7 @@ export const EventDetailsSection = ({
                 label="Venue" 
                 value={eventDetails.venue}
                 delay={200}
+                cardImage={eventDetails.cardImages?.venue}
               />
             )}
             {eventDetails.expectedAttendees && (
@@ -365,6 +435,7 @@ export const EventDetailsSection = ({
                 label="Expected Attendees" 
                 value={eventDetails.expectedAttendees.toLocaleString()}
                 delay={250}
+                cardImage={eventDetails.cardImages?.attendees}
               />
             )}
             {eventDetails.hashtag && (
@@ -374,6 +445,7 @@ export const EventDetailsSection = ({
                 value={eventDetails.hashtag}
                 delay={300}
                 accent
+                cardImage={eventDetails.cardImages?.hashtag}
               />
             )}
             {eventDetails.registrationUrl && (
@@ -384,6 +456,7 @@ export const EventDetailsSection = ({
                 delay={350}
                 href={eventDetails.registrationUrl}
                 accent
+                cardImage={eventDetails.cardImages?.registration}
               />
             )}
           </div>
