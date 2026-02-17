@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Globe, Search, Check, Download, Loader2, ImageIcon, X, RefreshCw } from 'lucide-react';
+import { Globe, Search, Check, Download, Loader2, ImageIcon, X, RefreshCw, Library } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useSaveToLibrary } from '@/hooks/useSaveToLibrary';
 
 interface ScannedImage {
   url: string;
@@ -35,6 +36,8 @@ export const WebsiteImageScanner = ({
   const [hasScanned, setHasScanned] = useState(false);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
   const [scanProgress, setScanProgress] = useState('');
+  const [isSavingToLibrary, setIsSavingToLibrary] = useState(false);
+  const { saveMultipleToLibrary } = useSaveToLibrary();
 
   const handleScan = useCallback(async () => {
     if (!url.trim()) {
@@ -113,6 +116,32 @@ export const WebsiteImageScanner = ({
       img.url.toLowerCase().includes(q)
     );
   });
+
+  const handleSaveToLibrary = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setIsSavingToLibrary(true);
+    try {
+      const imagesToSave = Array.from(selectedIds).map((i) => {
+        const img = filteredImages[i];
+        return {
+          source: img.url,
+          name: img.alt || img.filename || `website-image-${i}`,
+        };
+      });
+
+      const results = await saveMultipleToLibrary(imagesToSave, 'General');
+      if (results.length > 0) {
+        toast.success(`Saved ${results.length} images to Image Library`);
+      } else {
+        toast.error('Failed to save images to library');
+      }
+    } catch (err) {
+      console.error('Save to library error:', err);
+      toast.error('Failed to save images to library');
+    } finally {
+      setIsSavingToLibrary(false);
+    }
+  }, [selectedIds, filteredImages, saveMultipleToLibrary]);
 
   const handleImageError = (index: number) => {
     setFailedImages((prev) => new Set(prev).add(index));
@@ -266,16 +295,31 @@ export const WebsiteImageScanner = ({
         {hasScanned && images.length > 0 && (
           <div className="border-t border-border p-3 flex items-center justify-between bg-muted/30 shrink-0">
             <p className="text-xs text-muted-foreground">
-              Select images to import into your brand assets
+              Select images to import or save to library
             </p>
-            <Button
-              onClick={handleImport}
-              disabled={selectedIds.size === 0}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Import {selectedIds.size > 0 ? `${selectedIds.size} Images` : 'Selected'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={handleSaveToLibrary}
+                disabled={selectedIds.size === 0 || isSavingToLibrary}
+                className="gap-2"
+              >
+                {isSavingToLibrary ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Library className="h-4 w-4" />
+                )}
+                {isSavingToLibrary ? 'Saving...' : `Save to Library`}
+              </Button>
+              <Button
+                onClick={handleImport}
+                disabled={selectedIds.size === 0}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Import {selectedIds.size > 0 ? `${selectedIds.size} Images` : 'Selected'}
+              </Button>
+            </div>
           </div>
         )}
       </DialogContent>
