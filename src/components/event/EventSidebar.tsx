@@ -2,7 +2,7 @@ import {
   Shield, Quote, Calendar, MapPin, Image, Palette, Type, Camera, 
   Users, LayoutGrid, FolderArchive, Ban, Flag, Presentation, Crown,
   Blend, Clock, Mic2, UserCircle, History, Video, MapPinned,
-  FileText, BookOpen, Layers, Ruler, Globe, Award, Grid, ImageIcon, TrendingUp
+  FileText, BookOpen, Layers, Ruler, Globe, Award, Grid, ImageIcon, TrendingUp, Building2
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -111,6 +111,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   universe: { label: 'Product Universe', icon: Globe, category: 'Collateral' },
   sponsorlogos: { label: 'Sponsor Logos', icon: Crown, category: 'Collateral' },
   clientlogos: { label: 'Client Logos', icon: Users, category: 'Collateral' },
+  partnerbooths: { label: 'Partner Booths', icon: Building2, category: 'Event Assets' },
   locations: { label: 'Global Locations', icon: MapPin, category: 'Venue' },
   insights: { label: 'Insights & Updates', icon: TrendingUp, category: 'Resources' },
   presentations: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },

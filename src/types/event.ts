@@ -51,6 +51,7 @@ import {
   BrandLocation,
   LocationStat,
   PresentationTemplate,
+  LinkedBoothCard,
 } from './brand';
 
 // Event-specific types
@@ -284,6 +285,7 @@ export type EventSectionId =
   | 'subevents'         // Sub-events / regional events
   | 'sharedassets'      // Shared asset library for inheritance
   | 'eventpatterns'     // Event-specific patterns
+  | 'partnerbooths'     // Partner booth catalog
   | 'sponsorlogos'      // Sponsor logos
   | 'clientlogos';      // Client logos
 
@@ -313,6 +315,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'eventschedule',
   'eventspeakers',
   'eventsponsors',       // Unified sponsors section with logos
+  'partnerbooths',       // Partner booth catalog
   'eventhistory',
   
   'templatespecs',
@@ -413,6 +416,9 @@ export interface EventGuide {
   
   // Shared Assets (for event inheritance)
   sharedAssets?: any[];
+  
+  // Partner Booths (linked from booth catalog + custom entries)
+  partnerBooths?: LinkedBoothCard[];
   
   // Webinars
   webinars?: BrandWebinar[];

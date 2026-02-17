@@ -39,6 +39,7 @@ import { EventPatternsSection } from '@/components/event/EventPatternsSection';
 import { EventWebsiteSection } from '@/components/event/EventWebsiteSection';
 import { SubEventsManager, LinkedEventGuide } from '@/components/event/SubEventsManager';
 import { SharedAssetsSection, SharedAsset } from '@/components/event/SharedAssetsSection';
+import { PartnerBoothsSection } from '@/components/event/PartnerBoothsSection';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { TaglineSection } from '@/components/brand/TaglineSection';
 import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
@@ -687,6 +688,8 @@ const EventEditor = () => {
       }
       case 'sponsorlogos':
         return <SponsorLogosSection sponsors={event.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateEvent({ sponsorLogos }))} websiteUrl={(event as any).websites?.[0]?.url} />;
+      case 'partnerbooths':
+        return <PartnerBoothsSection partnerBooths={(event as any).partnerBooths || []} onUpdate={canEdit ? (partnerBooths) => updateEvent({ partnerBooths } as any) : undefined} isEditable={canEdit || false} />;
       case 'clientlogos':
         return <ClientLogosSection clientLogos={event.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateEvent({ clientLogos }))} />;
       case 'insights':
