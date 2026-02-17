@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
-import { X, Download, Upload, Image as ImageIcon, Expand, FolderOpen, Loader2 } from 'lucide-react';
+import { X, Download, Upload, Image as ImageIcon, Expand, FolderOpen, Loader2, Grid3X3, LayoutGrid, Grid2X2, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { safeUUID } from '@/lib/safeUUID';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
@@ -53,6 +54,26 @@ export const ImageAssetsSection = ({
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [previewAsset, setPreviewAsset] = useState<ImageAsset | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+
+  type GridDensity = 'grid-lg' | 'grid-md' | 'grid-sm' | 'list';
+  const [gridDensity, setGridDensity] = useState<GridDensity>(() => {
+    try {
+      return (localStorage.getItem('image-assets-grid-density') as GridDensity) || 'grid-lg';
+    } catch { return 'grid-lg'; }
+  });
+  const handleDensityChange = (d: GridDensity) => {
+    setGridDensity(d);
+    try { localStorage.setItem('image-assets-grid-density', d); } catch {}
+  };
+
+  const gridClass = {
+    'grid-lg': 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4',
+    'grid-md': 'grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 gap-3',
+    'grid-sm': 'grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2',
+    'list': 'flex flex-col gap-2',
+  }[gridDensity];
+  const isCompact = gridDensity === 'grid-sm';
+  const isList = gridDensity === 'list';
 
   // Use storage upload hook for proper blob storage (avoids base64 database storage issues)
   const { uploadFile, isUploading, uploadProgress } = useStorageUpload({ 
@@ -191,11 +212,37 @@ export const ImageAssetsSection = ({
               ) : (
                 <Upload className="h-4 w-4" />
               )}
-              {isUploading ? 'Uploading...' : 'Upload'}
-            </Button>
-          </div>
-        )}
+            {isUploading ? 'Uploading...' : 'Upload'}
+          </Button>
+        </div>
+      )}
+    </div>
+
+    {/* Grid Density Controls */}
+    {validAssets.length > 0 && (
+      <div className="flex items-center justify-end gap-1">
+        {([
+          { id: 'grid-lg' as const, icon: LayoutGrid, label: 'Large Grid (5 cols)' },
+          { id: 'grid-md' as const, icon: Grid2X2, label: 'Medium Grid (7 cols)' },
+          { id: 'grid-sm' as const, icon: Grid3X3, label: 'Small Grid (8 cols)' },
+          { id: 'list' as const, icon: List, label: 'List View' },
+        ]).map(opt => (
+          <Tooltip key={opt.id}>
+            <TooltipTrigger asChild>
+              <Button
+                variant={gridDensity === opt.id ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleDensityChange(opt.id)}
+              >
+                <opt.icon className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{opt.label}</TooltipContent>
+          </Tooltip>
+        ))}
       </div>
+    )}
 
       <input
         ref={fileInputRef}
@@ -236,66 +283,72 @@ export const ImageAssetsSection = ({
       )}
 
       {validAssets.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {validAssets.map((asset, index) => (
+        <div className={gridClass}>
+          {validAssets.map((asset, index) => isList ? (
             <div
               key={asset.id}
-              className="group relative bg-card rounded-xl border border-border overflow-hidden animate-fade-in"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className="group relative bg-card rounded-lg border border-border overflow-hidden animate-fade-in flex items-center gap-3 pr-2"
+              style={{ animationDelay: `${index * 30}ms` }}
               onMouseEnter={() => setHoveredId(asset.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
-              {/* Image Preview */}
+              <div className="h-14 w-14 shrink-0 overflow-hidden bg-muted/30">
+                <img src={asset.url} alt={asset.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{asset.name}</p>
+                <p className="text-xs text-muted-foreground">{asset.size} • {asset.type.split('/')[1]?.toUpperCase() || 'IMAGE'}</p>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPreviewAsset(asset)}>
+                  <Expand className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => downloadAsset(asset)}>
+                  <Download className="h-3.5 w-3.5" />
+                </Button>
+                {canEdit && (
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteAsset(asset.id)}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div
+              key={asset.id}
+              className={cn(
+                "group relative bg-card rounded-xl border border-border overflow-hidden animate-fade-in",
+                isCompact && "rounded-lg"
+              )}
+              style={{ animationDelay: `${index * 30}ms` }}
+              onMouseEnter={() => setHoveredId(asset.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            >
               <div className="aspect-square relative overflow-hidden bg-muted/30">
-                <img
-                  src={asset.url}
-                  alt={asset.name}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                
-                {/* Hover Overlay */}
+                <img src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 <div className={cn(
-                  "absolute inset-0 bg-black/60 flex items-center justify-center gap-2 transition-opacity duration-200",
+                  "absolute inset-0 bg-black/60 flex items-center justify-center gap-1.5 transition-opacity duration-200",
                   hoveredId === asset.id ? 'opacity-100' : 'opacity-0'
                 )}>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="h-9 w-9"
-                    onClick={() => setPreviewAsset(asset)}
-                  >
-                    <Expand className="h-4 w-4" />
+                  <Button variant="secondary" size="icon" className={cn(isCompact ? "h-7 w-7" : "h-9 w-9")} onClick={() => setPreviewAsset(asset)}>
+                    <Expand className={cn(isCompact ? "h-3 w-3" : "h-4 w-4")} />
                   </Button>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="h-9 w-9"
-                    onClick={() => downloadAsset(asset)}
-                  >
-                    <Download className="h-4 w-4" />
+                  <Button variant="secondary" size="icon" className={cn(isCompact ? "h-7 w-7" : "h-9 w-9")} onClick={() => downloadAsset(asset)}>
+                    <Download className={cn(isCompact ? "h-3 w-3" : "h-4 w-4")} />
                   </Button>
                   {canEdit && (
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="h-9 w-9"
-                      onClick={() => deleteAsset(asset.id)}
-                    >
-                      <X className="h-4 w-4" />
+                    <Button variant="destructive" size="icon" className={cn(isCompact ? "h-7 w-7" : "h-9 w-9")} onClick={() => deleteAsset(asset.id)}>
+                      <X className={cn(isCompact ? "h-3 w-3" : "h-4 w-4")} />
                     </Button>
                   )}
                 </div>
               </div>
-
-              {/* Asset Info */}
-              <div className="p-3 space-y-1">
-                <p className="text-sm font-medium truncate" title={asset.name}>
-                  {asset.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {asset.size} • {asset.type.split('/')[1]?.toUpperCase() || 'IMAGE'}
-                </p>
-              </div>
+              {!isCompact && (
+                <div className="p-3 space-y-1">
+                  <p className="text-sm font-medium truncate" title={asset.name}>{asset.name}</p>
+                  <p className="text-xs text-muted-foreground">{asset.size} • {asset.type.split('/')[1]?.toUpperCase() || 'IMAGE'}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
