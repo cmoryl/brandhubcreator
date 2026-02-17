@@ -826,12 +826,12 @@ export function UsersAndMembersTab() {
             </div>
             <div className="space-y-2">
               <Label>Organization (optional)</Label>
-              <Select value={createForm.organizationId} onValueChange={(v) => setCreateForm(f => ({ ...f, organizationId: v }))}>
+              <Select value={createForm.organizationId || 'none'} onValueChange={(v) => setCreateForm(f => ({ ...f, organizationId: v === 'none' ? '' : v }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="No organization" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No organization</SelectItem>
+                  <SelectItem value="none">No organization</SelectItem>
                   {organizations.map(org => (
                     <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
                   ))}
