@@ -283,6 +283,18 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
                       allowFullScreen
                       sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                     />
+                  ) : video.platform !== 'direct' && thumbnail ? (
+                    <button
+                      onClick={() => setLoadedIframes(prev => new Set(prev).add(video.id))}
+                      className="relative w-full h-full group/play"
+                    >
+                      <img src={thumbnail} alt={video.title} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/play:bg-black/40 transition-colors">
+                        <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center shadow-lg">
+                          <Play className="h-7 w-7 text-primary-foreground ml-0.5" />
+                        </div>
+                      </div>
+                    </button>
                   ) : video.platform !== 'direct' ? (
                     <button
                       onClick={() => setLoadedIframes(prev => new Set(prev).add(video.id))}
@@ -300,7 +312,7 @@ export const EventVideosSection = ({ videos, onUpdate, isEditable = true, subtit
                         onClick={() => window.open(video.url, '_blank')}
                         className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"
                       >
-                        <Play className="h-12 w-12 text-white" />
+                        <Play className="h-12 w-12 text-primary-foreground" />
                       </button>
                     </div>
                   ) : (
