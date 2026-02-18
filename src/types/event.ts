@@ -91,7 +91,7 @@ export interface EventLogo {
 export interface EventSignage {
   id: string;
   name: string;
-  type: 'booth-backdrop' | 'pull-up-banner' | 'table-banner' | 'hanging-sign' | 'floor-graphic' | 'directional' | 'podium-sign' | 'stage-backdrop' | 'outdoor-banner' | 'other';
+  type: 'booth-backdrop' | 'pull-up-banner' | 'table-banner' | 'hanging-sign' | 'floor-graphic' | 'directional' | 'podium-sign' | 'stage-backdrop' | 'outdoor-banner' | 'registration' | 'technology-counter' | 'information-counter' | 'large-backwall' | 'location-pillars' | 'map-pillars' | 'other';
   dimensions: string; // e.g., "10ft x 8ft"
   previewUrl?: string;
   templateUrl?: string;

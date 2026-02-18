@@ -34,6 +34,12 @@ const SIGNAGE_TYPES = [
   { value: 'podium-sign', label: 'Podium Sign' },
   { value: 'stage-backdrop', label: 'Stage Backdrop' },
   { value: 'outdoor-banner', label: 'Outdoor Banner' },
+  { value: 'registration', label: 'Registration' },
+  { value: 'technology-counter', label: 'Technology Counter' },
+  { value: 'information-counter', label: 'Information Counter' },
+  { value: 'large-backwall', label: 'Large Backwall' },
+  { value: 'location-pillars', label: 'Location Pillars' },
+  { value: 'map-pillars', label: 'Map Pillars' },
   { value: 'other', label: 'Other' },
 ];
 
@@ -48,6 +54,12 @@ const getTypeColor = (type: EventSignage['type']) => {
     'podium-sign': 'bg-amber-100 text-amber-800',
     'stage-backdrop': 'bg-indigo-100 text-indigo-800',
     'outdoor-banner': 'bg-yellow-100 text-yellow-800',
+    'registration': 'bg-emerald-100 text-emerald-800',
+    'technology-counter': 'bg-sky-100 text-sky-800',
+    'information-counter': 'bg-teal-100 text-teal-800',
+    'large-backwall': 'bg-violet-100 text-violet-800',
+    'location-pillars': 'bg-rose-100 text-rose-800',
+    'map-pillars': 'bg-lime-100 text-lime-800',
     'other': 'bg-gray-100 text-gray-800',
   };
   return colors[type] || colors.other;
