@@ -46,6 +46,8 @@ interface HeroSectionProps {
   complianceScore?: number | null;
   /** Hidden sections excluded from health score */
   hiddenSections?: string[] | null;
+  /** Section order from sidebar — used to scope health scoring to visible sections */
+  sectionOrder?: string[] | null;
   /** Compact mode — reduces height 50% for card grid view */
   compact?: boolean;
 }
@@ -63,6 +65,7 @@ export const HeroSection = ({
   entityId,
   complianceScore,
   hiddenSections,
+  sectionOrder,
   compact = false,
 }: HeroSectionProps) => {
   // Only allow editing if onHeroChange is provided (canEdit mode)
@@ -87,8 +90,8 @@ export const HeroSection = ({
 
   // Calculate real health score from guide_data (excluding hidden sections)
   const calculatedHealth = useMemo(() => {
-    return calculateBrandHealth(guideData, hiddenSections, entityType);
-  }, [guideData, hiddenSections, entityType]);
+    return calculateBrandHealth(guideData, hiddenSections, entityType, sectionOrder);
+  }, [guideData, hiddenSections, entityType, sectionOrder]);
 
   // Use calculated health score if guideData provided, otherwise fall back to stats prop
   const displayStats: HeroStats = useMemo(() => {
@@ -635,7 +638,7 @@ export const HeroSection = ({
                         )}
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent side="right" className="max-w-xs p-3 bg-popover/95 backdrop-blur-sm">
+                    <TooltipContent side="right" className="max-w-md max-h-[400px] overflow-y-auto p-3 bg-popover/95 backdrop-blur-sm">
                       <div className="space-y-2">
                         <p className="font-semibold text-sm">Brand Completeness: {calculatedHealth.overallScore}%</p>
                         <p className="text-xs text-muted-foreground">{calculatedHealth.filledSections}/{calculatedHealth.totalSections} sections filled</p>

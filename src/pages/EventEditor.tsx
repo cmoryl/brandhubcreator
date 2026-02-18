@@ -350,9 +350,9 @@ const EventEditor = () => {
   // Calculate health for card view
   const cardViewHealthScore = useMemo(() => {
     if (!event) return undefined;
-    const health = calculateBrandHealth(event as unknown as Record<string, unknown>, hiddenSections, 'event');
+    const health = calculateBrandHealth(event as unknown as Record<string, unknown>, hiddenSections, 'event', sectionOrder);
     return health.overallScore;
-  }, [event, hiddenSections]);
+  }, [event, hiddenSections, sectionOrder]);
 
   const getSectionLayout = useCallback((sectionId: EventSectionId): LayoutPreset => {
     return (sectionLayouts[sectionId as SectionId] as LayoutPreset) || 'grid-3';
@@ -531,7 +531,7 @@ const EventEditor = () => {
     switch (sectionId) {
       case 'hero': 
         console.log('[EventEditor] Rendering hero section with canEdit:', canEdit);
-        return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={event as unknown as Record<string, unknown>} entityType="event" entityId={event.id} hiddenSections={hiddenSections} />;
+        return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={event as unknown as Record<string, unknown>} entityType="event" entityId={event.id} hiddenSections={hiddenSections} sectionOrder={sectionOrder} />;
       case 'eventdetails':
         return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
       case 'tagline': 

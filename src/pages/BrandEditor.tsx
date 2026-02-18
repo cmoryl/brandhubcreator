@@ -471,9 +471,9 @@ const BrandEditor = () => {
   // Calculate brand health for card view
   const cardViewHealthScore = useMemo(() => {
     if (!brand) return undefined;
-    const health = calculateBrandHealth(brand as unknown as Record<string, unknown>, hiddenSections, 'brand');
+    const health = calculateBrandHealth(brand as unknown as Record<string, unknown>, hiddenSections, 'brand', sectionOrder);
     return health.overallScore;
-  }, [brand, hiddenSections]);
+  }, [brand, hiddenSections, sectionOrder]);
 
   // Continuous bias monitoring — triggers scan on content changes
   // MUST be called before any early returns to respect Rules of Hooks
@@ -737,7 +737,7 @@ const BrandEditor = () => {
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
     
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => updateBrand({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={brand as unknown as Record<string, unknown>} entityType="brand" entityId={brand.id} complianceScore={complianceScores?.get(brand.id)?.score} hiddenSections={hiddenSections} compact={viewMode === 'cards'} />;
+      case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => updateBrand({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={brand as unknown as Record<string, unknown>} entityType="brand" entityId={brand.id} complianceScore={complianceScores?.get(brand.id)?.score} hiddenSections={hiddenSections} sectionOrder={sectionOrder} compact={viewMode === 'cards'} />;
       case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => updateBrand({ tagline }))} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={editHandler((identity) => updateBrand({ identity }))} />;
       case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => updateBrand({ values }))} organizationId={brand.organizationId} brandId={brand.id} brandName={brand.hero.name} canEdit={canEdit} />;
