@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2 } from 'lucide-react';
-import { EventDigitalMaterial, EventBanner } from '@/types/event';
+import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2, Printer } from 'lucide-react';
+import { EventDigitalMaterial, EventBanner, EventPrintMaterial } from '@/types/event';
 import { BrandTemplate, BrandBrochure } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,8 @@ interface EventDigitalSectionProps {
   onTemplatesChange?: (templates: BrandTemplate[]) => void;
   brochures?: BrandBrochure[];
   onBrochuresChange?: (brochures: BrandBrochure[]) => void;
+  printMaterials?: EventPrintMaterial[];
+  onPrintMaterialsChange?: (materials: EventPrintMaterial[]) => void;
   isEditable?: boolean;
   subtitle?: string;
   eventId?: string;
@@ -41,6 +43,18 @@ const MATERIAL_TYPES = [
   { value: 'agenda', label: 'Agenda', icon: Calendar },
   { value: 'map', label: 'Venue Map', icon: Map },
   { value: 'mobile-app', label: 'Mobile App', icon: Smartphone },
+  { value: 'other', label: 'Other', icon: FileText },
+];
+
+const PRINT_MATERIAL_TYPES = [
+  { value: 'flyer', label: 'Flyer', icon: FileText },
+  { value: 'poster', label: 'Poster', icon: ImageIcon },
+  { value: 'brochure', label: 'Brochure', icon: BookOpen },
+  { value: 'banner', label: 'Banner', icon: Printer },
+  { value: 'business-card', label: 'Business Card', icon: IdCard },
+  { value: 'badge', label: 'Badge', icon: IdCard },
+  { value: 'signage', label: 'Signage', icon: Presentation },
+  { value: 'sticker', label: 'Sticker', icon: FileText },
   { value: 'other', label: 'Other', icon: FileText },
 ];
 
@@ -105,16 +119,20 @@ export const EventDigitalSection = ({
   onTemplatesChange,
   brochures = [],
   onBrochuresChange,
+  printMaterials = [],
+  onPrintMaterialsChange,
   isEditable = true,
   subtitle,
   eventId,
 }: EventDigitalSectionProps) => {
-  const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures'>('banners');
+  const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures' | 'print'>('banners');
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<EventBanner | null>(null);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
+  const printFileInputRef = useRef<HTMLInputElement>(null);
   const [bannerImageMode, setBannerImageMode] = useState<'upload' | 'url' | 'library'>('upload');
+  const [printImageMode, setPrintImageMode] = useState<'upload' | 'url' | 'library'>('upload');
   const { uploadFile, isUploading } = useStorageUpload({ entityType: 'event', entityId: eventId });
   
   // Material form state
@@ -143,6 +161,14 @@ export const EventDigitalSection = ({
   const [newBrochure, setNewBrochure] = useState<{ title: string; category: string }>({
     title: '',
     category: 'event',
+  });
+
+  // Print material form state
+  const [newPrintMaterial, setNewPrintMaterial] = useState<Partial<EventPrintMaterial>>({
+    name: '',
+    type: 'flyer',
+    dimensions: '',
+    description: '',
   });
 
   // Banner handlers
@@ -243,8 +269,34 @@ export const EventDigitalSection = ({
     toast.success('Brochure removed');
   };
 
+  // Print material handlers
+  const handleAddPrintMaterial = () => {
+    if (!newPrintMaterial.name || !onPrintMaterialsChange) return;
+    const item: EventPrintMaterial = {
+      id: crypto.randomUUID(),
+      name: newPrintMaterial.name,
+      type: (newPrintMaterial.type || 'flyer') as EventPrintMaterial['type'],
+      dimensions: newPrintMaterial.dimensions,
+      previewUrl: newPrintMaterial.previewUrl,
+      fileUrl: newPrintMaterial.fileUrl,
+      description: newPrintMaterial.description,
+      quantity: newPrintMaterial.quantity,
+    };
+    onPrintMaterialsChange([...printMaterials, item]);
+    setNewPrintMaterial({ name: '', type: 'flyer', dimensions: '', description: '' });
+    setIsAddingNew(false);
+    toast.success('Print material added');
+  };
+
+  const handleDeletePrintMaterial = (id: string) => {
+    if (!onPrintMaterialsChange) return;
+    onPrintMaterialsChange(printMaterials.filter(p => p.id !== id));
+    toast.success('Print material removed');
+  };
+
   const hasTemplatesSection = !!onTemplatesChange;
   const hasBrochuresSection = !!onBrochuresChange;
+  const hasPrintSection = !!onPrintMaterialsChange;
 
   return (
     <section id="eventdigital" className="scroll-mt-24">
@@ -292,6 +344,13 @@ export const EventDigitalSection = ({
               <BookOpen className="h-4 w-4" />
               Brochures
               {brochures.length > 0 && <span className="text-xs text-muted-foreground">({brochures.length})</span>}
+            </TabsTrigger>
+          )}
+          {hasPrintSection && (
+            <TabsTrigger value="print" className="gap-1.5">
+              <Printer className="h-4 w-4" />
+              Print Materials
+              {printMaterials.length > 0 && <span className="text-xs text-muted-foreground">({printMaterials.length})</span>}
             </TabsTrigger>
           )}
         </TabsList>
@@ -866,6 +925,173 @@ export const EventDigitalSection = ({
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            )}
+          </TabsContent>
+        )}
+
+        {/* Print Materials Tab */}
+        {hasPrintSection && (
+          <TabsContent value="print">
+            {isAddingNew && activeTab === 'print' && (
+              <Card className="mb-6 border-dashed border-primary">
+                <CardContent className="p-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Name</Label>
+                      <Input value={newPrintMaterial.name || ''} onChange={(e) => setNewPrintMaterial({ ...newPrintMaterial, name: e.target.value })} placeholder="Event Flyer" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Type</Label>
+                      <Select value={newPrintMaterial.type} onValueChange={(value) => setNewPrintMaterial({ ...newPrintMaterial, type: value as EventPrintMaterial['type'] })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {PRINT_MATERIAL_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Dimensions (optional)</Label>
+                      <Input value={newPrintMaterial.dimensions || ''} onChange={(e) => setNewPrintMaterial({ ...newPrintMaterial, dimensions: e.target.value })} placeholder="8.5 x 11 in" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Quantity (optional)</Label>
+                      <Input value={newPrintMaterial.quantity || ''} onChange={(e) => setNewPrintMaterial({ ...newPrintMaterial, quantity: e.target.value })} placeholder="500" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Description (optional)</Label>
+                      <Input value={newPrintMaterial.description || ''} onChange={(e) => setNewPrintMaterial({ ...newPrintMaterial, description: e.target.value })} placeholder="Brief description..." />
+                    </div>
+                  </div>
+                  {/* Print Material Image */}
+                  <div className="space-y-2">
+                    <Label>Preview Image (optional)</Label>
+                    {newPrintMaterial.previewUrl && (
+                      <div className="relative w-full h-24 rounded-lg overflow-hidden border bg-muted">
+                        <img src={newPrintMaterial.previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                        <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-5 w-5" onClick={() => setNewPrintMaterial({ ...newPrintMaterial, previewUrl: undefined })}>
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                    <Tabs value={printImageMode} onValueChange={(v) => setPrintImageMode(v as any)} className="w-full">
+                      <TabsList className="grid w-full grid-cols-3 h-8">
+                        <TabsTrigger value="upload" className="text-[10px] gap-1"><Upload className="h-3 w-3" />Upload</TabsTrigger>
+                        <TabsTrigger value="url" className="text-[10px] gap-1"><Link className="h-3 w-3" />URL</TabsTrigger>
+                        <TabsTrigger value="library" className="text-[10px] gap-1"><ImageIcon className="h-3 w-3" />Library</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="upload" className="mt-1">
+                        <input ref={printFileInputRef} type="file" accept="image/*" className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const result = await uploadFile(file, 'asset', `print-${(newPrintMaterial.name || 'new').toLowerCase().replace(/\s+/g, '-')}`);
+                            if (result) setNewPrintMaterial(prev => ({ ...prev, previewUrl: result.url }));
+                          }}
+                        />
+                        <Button type="button" variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => printFileInputRef.current?.click()} disabled={isUploading}>
+                          {isUploading ? 'Uploading...' : 'Choose File'}
+                        </Button>
+                      </TabsContent>
+                      <TabsContent value="url" className="mt-1">
+                        <div className="flex gap-1">
+                          <Input placeholder="https://..." className="h-8 text-xs"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const val = (e.target as HTMLInputElement).value.trim();
+                                if (val) { setNewPrintMaterial(prev => ({ ...prev, previewUrl: val })); (e.target as HTMLInputElement).value = ''; }
+                              }
+                            }}
+                          />
+                          <Button type="button" size="sm" className="h-8 text-xs px-2">Set</Button>
+                        </div>
+                      </TabsContent>
+                      <TabsContent value="library" className="mt-1">
+                        <ImageLibraryPicker
+                          onSelect={(url) => setNewPrintMaterial(prev => ({ ...prev, previewUrl: url }))}
+                          trigger={
+                            <Button type="button" variant="outline" size="sm" className="w-full text-xs h-8 gap-1">
+                              <ImageIcon className="h-3 w-3" />Pick from Library
+                            </Button>
+                          }
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsAddingNew(false)}><X className="h-4 w-4 mr-2" />Cancel</Button>
+                    <Button onClick={handleAddPrintMaterial} disabled={!newPrintMaterial.name}><Check className="h-4 w-4 mr-2" />Add Print Material</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {printMaterials.length === 0 && !isAddingNew ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <Printer className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="font-semibold text-lg mb-2">No print materials yet</h3>
+                  <p className="text-muted-foreground mb-4">Add flyers, posters, brochures, and other printed collateral</p>
+                  {isEditable && onPrintMaterialsChange && (
+                    <Button onClick={() => { setActiveTab('print'); setIsAddingNew(true); }}>
+                      <Plus className="h-4 w-4 mr-2" />Add First Print Material
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {printMaterials.map((item) => {
+                  const TypeIcon = PRINT_MATERIAL_TYPES.find(t => t.value === item.type)?.icon || FileText;
+                  return (
+                    <Card key={item.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
+                      {item.previewUrl ? (
+                        <div className="bg-muted/30 relative flex items-center justify-center p-2">
+                          <img src={item.previewUrl} alt={item.name} className="w-full h-auto max-h-[180px] object-contain rounded" />
+                          <Badge className="absolute top-1.5 left-1.5 text-[10px] bg-amber-100 text-amber-800">
+                            {PRINT_MATERIAL_TYPES.find(t => t.value === item.type)?.label}
+                          </Badge>
+                        </div>
+                      ) : (
+                        <div className="aspect-[4/3] bg-gradient-to-br from-amber-500/10 to-amber-500/5 flex items-center justify-center relative">
+                          <div className="text-center">
+                            <TypeIcon className="h-8 w-8 text-muted-foreground/30 mx-auto mb-1" />
+                            {item.dimensions && <p className="text-xs text-muted-foreground font-mono">{item.dimensions}</p>}
+                          </div>
+                          <Badge className="absolute top-2 left-2 text-xs bg-amber-100 text-amber-800">
+                            {PRINT_MATERIAL_TYPES.find(t => t.value === item.type)?.label}
+                          </Badge>
+                        </div>
+                      )}
+                      <CardContent className="p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h4 className="font-medium text-sm truncate">{item.name}</h4>
+                            {item.dimensions && <p className="text-xs text-muted-foreground">{item.dimensions}</p>}
+                            {item.quantity && <Badge variant="outline" className="mt-1.5 text-xs">Qty: {item.quantity}</Badge>}
+                            {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
+                          </div>
+                          {isEditable && onPrintMaterialsChange && (
+                            <Button variant="ghost" size="icon"
+                              className="h-7 w-7 text-destructive hover:text-destructive shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => handleDeletePrintMaterial(item.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                        {item.fileUrl && (
+                          <Button variant="default" size="sm" className="w-full mt-3 text-xs h-8" asChild>
+                            <a href={item.fileUrl} target="_blank" rel="noopener noreferrer">
+                              <Download className="h-3 w-3 mr-1.5" />Download
+                            </a>
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
