@@ -727,7 +727,7 @@ const EventEditor = () => {
       case 'products': return <ProductsSection brandId={event.id} />;
       case 'events': return <EventsSection brandId={event.id} />;
       case 'universe': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><GlobalLinkUniverseSection linkedGuides={(event as any).linkedGuides || []} primaryColor={event.colors?.[0]?.hex} /></Suspense>;
-      case 'presentations': return <PresentationTemplatesSection presentations={(event as any).presentations || []} onUpdate={canEdit ? (presentations) => updateEvent({ presentations } as any) : undefined} isEditable={canEdit} />;
+      case 'presentations': return <PresentationTemplatesSection entityType="event" entityId={event.id} isEditable={canEdit} />;
       case 'locations': return (
         <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading map...</div>}>
           <LeafletLocationsSection
