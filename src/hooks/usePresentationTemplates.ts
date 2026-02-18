@@ -110,7 +110,7 @@ export function usePresentationTemplates(
         file_name: template.fileName,
         file_size: template.fileSize || null,
         file_type: template.fileType || 'pptx',
-        slides: JSON.stringify(template.slides || []),
+        slides: template.slides || [],
         category: template.category || 'presentations',
         created_by: session.session?.user?.id || null,
         thumbnail_url: template.thumbnailUrl || null,
