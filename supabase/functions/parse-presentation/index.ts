@@ -231,66 +231,67 @@ serve(async (req) => {
         title = extractTitleFromSlideXml(xmlContent);
         textContent = extractTextFromSlideXml(xmlContent);
         
-        // Collect ALL image candidates from this slide and pick the largest
-        const imageCandidates: { path: string; size: number }[] = [];
+        // Collect ALL image candidates — use actual byte data for accurate size
+        const imageCandidates: { path: string; data: Uint8Array; isBackground: boolean }[] = [];
         
         const relMap = slideRelationships.get(slideNum);
         if (relMap) {
+          // Collect all background image rIds so we can tag them
+          const bgRelIds = new Set<string>();
+          const bgBlipMatches = xmlContent.matchAll(/<p:bg>[\s\S]*?<a:blipFill[\s\S]*?r:embed="(rId\d+)"/g);
+          for (const m of bgBlipMatches) {
+            bgRelIds.add(m[1]);
+          }
+          
           // Look for ALL image references in the slide XML (r:embed="rId...")
           const imageRefMatches = xmlContent.matchAll(/r:embed="(rId\d+)"/g);
+          const seenPaths = new Set<string>();
           
           for (const match of imageRefMatches) {
             const relId = match[1];
             const targetPath = relMap.get(relId);
             
-            if (targetPath && zip.files[targetPath]) {
+            if (targetPath && zip.files[targetPath] && !seenPaths.has(targetPath)) {
+              seenPaths.add(targetPath);
               const ext = targetPath.split(".").pop()?.toLowerCase();
               if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "")) {
-                // Get file size to pick the largest (most detailed) image
-                const fileData = zip.files[targetPath];
-                const uncompressedSize = fileData._data?.uncompressedSize || 0;
-                imageCandidates.push({ path: targetPath, size: uncompressedSize });
-              }
-            }
-          }
-          
-          // Also check slide background fill images (common in Canva exports)
-          const bgBlipMatch = xmlContent.match(/<p:bg>[\s\S]*?<a:blipFill[\s\S]*?r:embed="(rId\d+)"/);
-          if (bgBlipMatch) {
-            const bgRelId = bgBlipMatch[1];
-            const bgTargetPath = relMap.get(bgRelId);
-            if (bgTargetPath && zip.files[bgTargetPath]) {
-              const ext = bgTargetPath.split(".").pop()?.toLowerCase();
-              if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "")) {
-                const fileData = zip.files[bgTargetPath];
-                const uncompressedSize = fileData._data?.uncompressedSize || 0;
-                // Boost background images priority by adding size bonus
-                imageCandidates.push({ path: bgTargetPath, size: uncompressedSize + 1000000 });
+                const data = await zip.files[targetPath].async("uint8array");
+                // Skip tiny icons/bullets under 5KB
+                if (data.length > 5000) {
+                  imageCandidates.push({ 
+                    path: targetPath, 
+                    data, 
+                    isBackground: bgRelIds.has(relId) 
+                  });
+                }
               }
             }
           }
         }
         
-        // Also check the slide's layout for inherited background images
-        const layoutRelPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
-        if (zip.files[layoutRelPath] && imageCandidates.length === 0) {
-          const relContent = await zip.files[layoutRelPath].async("text");
-          const layoutRefMatch = relContent.match(/Target="\.\.\/slideLayouts\/slideLayout(\d+)\.xml"/);
-          if (layoutRefMatch) {
-            const layoutKey = `slideLayout${layoutRefMatch[1]}`;
-            const layoutRels = layoutRelationships.get(layoutKey);
-            const layoutXmlPath = `ppt/slideLayouts/slideLayout${layoutRefMatch[1]}.xml`;
-            if (layoutRels && zip.files[layoutXmlPath]) {
-              const layoutXml = await zip.files[layoutXmlPath].async("text");
-              const layoutBlipMatches = layoutXml.matchAll(/r:embed="(rId\d+)"/g);
-              for (const lm of layoutBlipMatches) {
-                const targetPath = layoutRels.get(lm[1]);
-                if (targetPath && zip.files[targetPath]) {
-                  const ext = targetPath.split(".").pop()?.toLowerCase();
-                  if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "")) {
-                    const fileData = zip.files[targetPath];
-                    const uncompressedSize = fileData._data?.uncompressedSize || 0;
-                    imageCandidates.push({ path: targetPath, size: uncompressedSize });
+        // Also check the slide's layout for inherited background images (only if no images found)
+        if (imageCandidates.length === 0) {
+          const layoutRelPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
+          if (zip.files[layoutRelPath]) {
+            const relContent = await zip.files[layoutRelPath].async("text");
+            const layoutRefMatch = relContent.match(/Target="\.\.\/slideLayouts\/slideLayout(\d+)\.xml"/);
+            if (layoutRefMatch) {
+              const layoutKey = `slideLayout${layoutRefMatch[1]}`;
+              const layoutRels = layoutRelationships.get(layoutKey);
+              const layoutXmlPath = `ppt/slideLayouts/slideLayout${layoutRefMatch[1]}.xml`;
+              if (layoutRels && zip.files[layoutXmlPath]) {
+                const layoutXml = await zip.files[layoutXmlPath].async("text");
+                const layoutBlipMatches = layoutXml.matchAll(/r:embed="(rId\d+)"/g);
+                for (const lm of layoutBlipMatches) {
+                  const targetPath = layoutRels.get(lm[1]);
+                  if (targetPath && zip.files[targetPath]) {
+                    const ext = targetPath.split(".").pop()?.toLowerCase();
+                    if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "")) {
+                      const data = await zip.files[targetPath].async("uint8array");
+                      if (data.length > 5000) {
+                        imageCandidates.push({ path: targetPath, data, isBackground: true });
+                      }
+                    }
                   }
                 }
               }
@@ -298,33 +299,29 @@ serve(async (req) => {
           }
         }
         
-        // Sort by size descending and pick the largest image
+        // Prefer content images over background images; within each group pick largest
         if (imageCandidates.length > 0) {
-          // Deduplicate by path
-          const unique = [...new Map(imageCandidates.map(c => [c.path, c])).values()];
-          unique.sort((a, b) => b.size - a.size);
+          const contentImages = imageCandidates.filter(c => !c.isBackground);
+          const candidates = contentImages.length > 0 ? contentImages : imageCandidates;
+          candidates.sort((a, b) => b.data.length - a.data.length);
           
-          const bestImage = unique[0];
+          const bestImage = candidates[0];
           const ext = bestImage.path.split(".").pop()?.toLowerCase();
-          const imageData = await zip.files[bestImage.path].async("uint8array");
           
-          // Only use if the image is substantial (> 5KB to skip tiny icons/bullets)
-          if (imageData.length > 5000) {
-            const slidePath = `${organizationId}/${entityType}s/${entityId}/presentations/slides/${sanitizedFileName}-slide-${slideNum}.${ext}`;
-            
-            const { error: slideUploadError } = await supabase.storage
+          const slidePath = `${organizationId}/${entityType}s/${entityId}/presentations/slides/${sanitizedFileName}-slide-${slideNum}.${ext}`;
+          
+          const { error: slideUploadError } = await supabase.storage
+            .from("organization-assets")
+            .upload(slidePath, bestImage.data, {
+              contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
+              upsert: true,
+            });
+          
+          if (!slideUploadError) {
+            const { data: slideUrlData } = supabase.storage
               .from("organization-assets")
-              .upload(slidePath, imageData, {
-                contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
-                upsert: true,
-              });
-            
-            if (!slideUploadError) {
-              const { data: slideUrlData } = supabase.storage
-                .from("organization-assets")
-                .getPublicUrl(slidePath);
-              thumbnailUrl = `${slideUrlData.publicUrl}?t=${timestamp}`;
-            }
+              .getPublicUrl(slidePath);
+            thumbnailUrl = `${slideUrlData.publicUrl}?t=${timestamp}`;
           }
         }
       }
