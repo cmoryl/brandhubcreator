@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { FileText, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { FileText, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
 
 interface PdfThumbnailCardProps {
   url: string;
@@ -10,51 +10,58 @@ export const PdfThumbnailCard = ({ url, name }: PdfThumbnailCardProps) => {
   const [thumbnailDataUrl, setThumbnailDataUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    // Guard: skip if url is empty/undefined
+  const generate = useCallback(async (signal: AbortSignal) => {
     if (!url) {
       setLoading(false);
       setError(true);
       return;
     }
 
-    let cancelled = false;
+    setLoading(true);
+    setError(false);
 
-    const generate = async () => {
-      try {
-        const pdfjsLib = await import('pdfjs-dist');
-        // Use .min.mjs for v4+, fallback to .min.js
-        const version = pdfjsLib.version;
-        const majorVersion = parseInt(version.split('.')[0], 10);
-        const workerExt = majorVersion >= 4 ? 'pdf.worker.min.mjs' : 'pdf.worker.min.js';
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/${workerExt}`;
+    try {
+      const pdfjsLib = await import('pdfjs-dist');
+      const version = pdfjsLib.version;
+      const majorVersion = parseInt(version.split('.')[0], 10);
+      const workerExt = majorVersion >= 4 ? 'pdf.worker.min.mjs' : 'pdf.worker.min.js';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/${workerExt}`;
 
-        const pdf = await pdfjsLib.getDocument(url).promise;
-        const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 1.5 });
+      const pdf = await pdfjsLib.getDocument(url).promise;
+      if (signal.aborted) return;
 
-        const canvas = document.createElement('canvas');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx || cancelled) return;
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 1.5 });
 
-        await page.render({ canvasContext: ctx, viewport }).promise;
-        if (!cancelled) {
-          setThumbnailDataUrl(canvas.toDataURL('image/jpeg', 0.7));
-        }
-      } catch (err) {
-        console.warn('PDF thumbnail generation failed:', err);
-        if (!cancelled) setError(true);
-      } finally {
-        if (!cancelled) setLoading(false);
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx || signal.aborted) return;
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      if (!signal.aborted) {
+        setThumbnailDataUrl(canvas.toDataURL('image/jpeg', 0.7));
       }
-    };
-
-    generate();
-    return () => { cancelled = true; };
+    } catch (err) {
+      console.warn('PDF thumbnail generation failed:', err);
+      if (!signal.aborted) setError(true);
+    } finally {
+      if (!signal.aborted) setLoading(false);
+    }
   }, [url]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    generate(controller.signal);
+    return () => controller.abort();
+  }, [generate, retryCount]);
+
+  const handleRetry = () => {
+    setRetryCount(c => c + 1);
+  };
 
   if (loading) {
     return (
@@ -74,7 +81,7 @@ export const PdfThumbnailCard = ({ url, name }: PdfThumbnailCardProps) => {
     );
   }
 
-  // Fallback: if we have a valid URL, try native browser PDF embed; otherwise show icon
+  // Fallback: if we have a valid URL, try native browser PDF embed
   if (!error && url) {
     return (
       <object
@@ -82,20 +89,44 @@ export const PdfThumbnailCard = ({ url, name }: PdfThumbnailCardProps) => {
         type="application/pdf"
         className="w-full h-full pointer-events-none"
       >
-        <FallbackIcon name={name} />
+        <FallbackIcon name={name} onRetry={handleRetry} />
       </object>
     );
   }
 
-  return <FallbackIcon name={name} />;
+  // No URL or error
+  if (!url) {
+    return <MissingFileIcon name={name} />;
+  }
+
+  return <FallbackIcon name={name} onRetry={handleRetry} />;
 };
 
-const FallbackIcon = ({ name }: { name: string }) => (
+const MissingFileIcon = ({ name }: { name: string }) => (
+  <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
+    <div className="relative">
+      <AlertTriangle className="h-8 w-8 text-warning/80" />
+    </div>
+    <span className="text-[10px] text-muted-foreground font-medium">File not found</span>
+    <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{name}</span>
+  </div>
+);
+
+const FallbackIcon = ({ name, onRetry }: { name: string; onRetry?: () => void }) => (
   <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
     <div className="relative">
       <FileText className="h-10 w-10 text-destructive/80" />
       <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1 rounded">PDF</span>
     </div>
     <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{name}</span>
+    {onRetry && (
+      <button 
+        onClick={(e) => { e.stopPropagation(); onRetry(); }}
+        className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors"
+      >
+        <RefreshCw className="h-3 w-3" />
+        Retry
+      </button>
+    )}
   </div>
 );
