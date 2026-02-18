@@ -1,6 +1,8 @@
 import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink, Link as LinkIcon, ImagePlus } from 'lucide-react';
+import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink, Link as LinkIcon, ImagePlus, PenLine } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -261,12 +263,15 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
   onLink: (booth: LinkedBoothCard) => void;
 }) => {
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('catalog');
+  const [customName, setCustomName] = useState('');
+  const [customTagline, setCustomTagline] = useState('');
+  const [customColor, setCustomColor] = useState('hsl(200, 70%, 45%)');
   const { divisions: customDivisions } = useCustomDivisions();
   const linkedIds = new Set(linkedBooths.map(b => b.divisionId));
 
   // Merge static divisions with DB overrides + add any purely custom divisions
   const allDivisions = useMemo(() => {
-    // Apply DB overrides to static divisions
     const merged = BOOTH_DIVISIONS.map(staticDiv => {
       const dbOverride = customDivisions.find(d => d.division_id === staticDiv.id);
       if (dbOverride) {
@@ -282,7 +287,6 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
       return staticDiv;
     });
 
-    // Add custom divisions that don't match any static ID
     const staticIds = new Set(BOOTH_DIVISIONS.map(d => d.id));
     const uniqueCustoms = customDivisions
       .filter(d => !staticIds.has(d.division_id))
@@ -319,65 +323,137 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
     });
   };
 
+  const handleCreateCustom = () => {
+    if (!customName.trim()) return;
+    const customId = `custom-${crypto.randomUUID()}`;
+    onLink({
+      id: crypto.randomUUID(),
+      divisionId: customId,
+      divisionName: customName.trim(),
+      tagline: customTagline.trim(),
+      color: customColor,
+      iconName: 'Building2',
+      services: [],
+      linkedAt: new Date().toISOString(),
+    });
+    setCustomName('');
+    setCustomTagline('');
+    setCustomColor('hsl(200, 70%, 45%)');
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Link Booth Card</DialogTitle>
-          <DialogDescription>Select a booth division to embed in this brand guide's Event Signage section.</DialogDescription>
+          <DialogDescription>Select from the catalog or create a custom standalone booth card.</DialogDescription>
         </DialogHeader>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search divisions..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <ScrollArea className="flex-1 -mx-6 px-6">
-          <div className="space-y-2 py-2">
-            {filtered.map((div) => {
-              const Icon = ICON_MAP[div.iconName] || Building2;
-              const alreadyLinked = linkedIds.has(div.id);
-              return (
-                <button
-                  key={div.id}
-                  onClick={() => !alreadyLinked && handleSelect(div)}
-                  disabled={alreadyLinked}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/40 hover:bg-muted/40 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg shrink-0" style={{ backgroundColor: div.color }}>
-                    <Icon className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{div.name}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-1">{div.tagline}</p>
-                    {div.services.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {div.services.slice(0, 3).map(s => (
-                          <Badge key={s} variant="outline" className="text-[10px] font-normal py-0">{s}</Badge>
-                        ))}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="catalog">From Catalog</TabsTrigger>
+            <TabsTrigger value="custom">Create Custom</TabsTrigger>
+          </TabsList>
+          <TabsContent value="catalog" className="flex-1 flex flex-col overflow-hidden mt-3">
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search divisions..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <ScrollArea className="flex-1 -mx-6 px-6">
+              <div className="space-y-2 py-2">
+                {filtered.map((div) => {
+                  const Icon = ICON_MAP[div.iconName] || Building2;
+                  const alreadyLinked = linkedIds.has(div.id);
+                  return (
+                    <button
+                      key={div.id}
+                      onClick={() => !alreadyLinked && handleSelect(div)}
+                      disabled={alreadyLinked}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg border border-border/40 hover:border-primary/40 hover:bg-muted/40 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg shrink-0" style={{ backgroundColor: div.color }}>
+                        <Icon className="h-5 w-5 text-white" />
                       </div>
-                    )}
-                  </div>
-                  {alreadyLinked ? (
-                    <Badge variant="secondary" className="text-[10px] shrink-0">Linked</Badge>
-                  ) : (
-                    <Plus className="h-4 w-4 text-muted-foreground shrink-0" />
-                  )}
-                </button>
-              );
-            })}
-            {filtered.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">No matching divisions found</p>
-            )}
-          </div>
-        </ScrollArea>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">{div.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{div.tagline}</p>
+                        {div.services.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {div.services.slice(0, 3).map(s => (
+                              <Badge key={s} variant="outline" className="text-[10px] font-normal py-0">{s}</Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {alreadyLinked ? (
+                        <Badge variant="secondary" className="text-[10px] shrink-0">Linked</Badge>
+                      ) : (
+                        <Plus className="h-4 w-4 text-muted-foreground shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-8">No matching divisions found</p>
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+          <TabsContent value="custom" className="mt-3 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="custom-booth-name">Booth Name *</Label>
+              <Input
+                id="custom-booth-name"
+                placeholder="e.g. Partner Company Name"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="custom-booth-tagline">Tagline</Label>
+              <Input
+                id="custom-booth-tagline"
+                placeholder="e.g. Innovation in Translation"
+                value={customTagline}
+                onChange={(e) => setCustomTagline(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="custom-booth-color">Card Color</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  id="custom-booth-color"
+                  value="#3b82f6"
+                  onChange={(e) => {
+                    const hex = e.target.value;
+                    setCustomColor(hex);
+                  }}
+                  className="h-9 w-12 rounded border border-border cursor-pointer"
+                />
+                <span className="text-xs text-muted-foreground">Choose a brand color for the card header</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-border/60 bg-muted/20">
+              <PenLine className="h-5 w-5 text-muted-foreground shrink-0" />
+              <p className="text-xs text-muted-foreground">You can add custom preview images and file links after creating the card.</p>
+            </div>
+            <Button onClick={handleCreateCustom} disabled={!customName.trim()} className="w-full gap-2">
+              <Plus className="h-4 w-4" />
+              Create Booth Card
+            </Button>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
 };
+
 // Helper: resolve a LinkedBoothCard to a full BoothDivision for DivisionDetail — exported for inline use
 export function resolveBoothDivision(booth: LinkedBoothCard, customDivisions: ReturnType<typeof useCustomDivisions>['divisions']): BoothDivision | null {
   // Check static DIVISIONS first
