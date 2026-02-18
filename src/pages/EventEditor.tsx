@@ -39,6 +39,7 @@ import { EventPatternsSection } from '@/components/event/EventPatternsSection';
 import { EventWebsiteSection } from '@/components/event/EventWebsiteSection';
 import { SubEventsManager, LinkedEventGuide } from '@/components/event/SubEventsManager';
 import { SharedAssetsSection, SharedAsset } from '@/components/event/SharedAssetsSection';
+import { syncSharedAssetsToSubEvents } from '@/lib/syncSharedAssetsToSubEvents';
 import { PartnerBoothsSection } from '@/components/event/PartnerBoothsSection';
 import { HeroSection } from '@/components/brand/HeroSection';
 import { TaglineSection } from '@/components/brand/TaglineSection';
@@ -677,10 +678,18 @@ const EventEditor = () => {
           tags: a.tags,
         }));
         
+        const handleSharedAssetsChange = canEdit ? (assets: SharedAsset[]) => {
+          updateEvent({ sharedAssets: assets } as any);
+          // Auto-sync to all linked sub-events
+          if (event?.id) {
+            syncSharedAssetsToSubEvents(event.id, assets);
+          }
+        } : undefined;
+        
         return (
           <SharedAssetsSection
             assets={sharedAssets}
-            onAssetsChange={canEdit ? (assets) => updateEvent({ sharedAssets: assets } as any) : undefined}
+            onAssetsChange={handleSharedAssetsChange}
             isEditable={canEdit || false}
             eventId={event?.id}
           />
