@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink } from 'lucide-react';
+import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LinkedBoothCard } from '@/types/brand';
+import { LinkedBoothCard, BoothLink } from '@/types/brand';
 import { useBoothImages } from '@/hooks/useBoothImages';
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
 import { DivisionDetail, DIVISIONS, customToBoothDivision, type BoothDivision } from '@/pages/BoothsCatalog';
@@ -40,64 +40,86 @@ const BOOTH_DIVISIONS = [
 ];
 
 // Card that renders a linked booth in the brand guide — exported for inline use
-export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDetail }: {
+export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDetail, onUpdateLinks }: {
   booth: LinkedBoothCard;
   isEditable: boolean;
   onRemove: () => void;
   onOpenDetail: () => void;
+  onUpdateLinks?: (links: BoothLink[]) => void;
 }) => {
   const Icon = ICON_MAP[booth.iconName] || Building2;
   const { images, getVariantImage } = useBoothImages(booth.divisionId);
-  // Try __card__ first, then fall back to the first available image from the division
   const cardImage = getVariantImage('__card__', '') || images[0]?.image_url || '';
+  const [showAddLink, setShowAddLink] = useState(false);
+  const [newLinkLabel, setNewLinkLabel] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+
+  const boothLinks = booth.links || [];
+
+  const handleAddLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!newLinkLabel.trim() || !newLinkUrl.trim() || !onUpdateLinks) return;
+    const newLink: BoothLink = { id: crypto.randomUUID(), label: newLinkLabel.trim(), url: newLinkUrl.trim() };
+    onUpdateLinks([...boothLinks, newLink]);
+    setNewLinkLabel('');
+    setNewLinkUrl('');
+    setShowAddLink(false);
+  };
+
+  const handleRemoveLink = (linkId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onUpdateLinks?.(boothLinks.filter(l => l.id !== linkId));
+  };
 
   return (
-    <motion.button
-      onClick={onOpenDetail}
-      className="group relative overflow-hidden rounded-2xl border border-border/40 bg-card text-left transition-all hover:border-primary/30 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary w-full"
-      whileHover={{ y: -4, scale: 1.01 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-    >
-      <div className="relative aspect-[16/10] overflow-hidden">
-        {cardImage ? (
-          <img
-            src={cardImage}
-            alt={`${booth.divisionName} booth`}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="h-full w-full flex items-center justify-center" style={{ backgroundColor: booth.color + '20' }}>
-            <Icon className="h-12 w-12 text-muted-foreground/30" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: booth.color }}>
-              <Icon className="h-4 w-4 text-white" />
+    <div className="group relative overflow-hidden rounded-2xl border border-border/40 bg-card transition-all hover:border-primary/30 hover:shadow-2xl w-full">
+      <motion.button
+        onClick={onOpenDetail}
+        className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        whileHover={{ y: -2, scale: 1.005 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      >
+        <div className="relative aspect-[16/10] overflow-hidden">
+          {cardImage ? (
+            <img
+              src={cardImage}
+              alt={`${booth.divisionName} booth`}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center" style={{ backgroundColor: booth.color + '20' }}>
+              <Icon className="h-12 w-12 text-muted-foreground/30" />
             </div>
-            <h3 className="text-lg font-bold text-white font-heading">{booth.divisionName}</h3>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: booth.color }}>
+                <Icon className="h-4 w-4 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-white font-heading">{booth.divisionName}</h3>
+            </div>
+            <p className="text-xs text-white/80 line-clamp-1">{booth.tagline}</p>
           </div>
-          <p className="text-xs text-white/80 line-clamp-1">{booth.tagline}</p>
+          <div className="absolute top-3 right-3 flex gap-1.5">
+            <Badge variant="secondary" className="bg-white/90 text-foreground text-xs backdrop-blur-sm border-none gap-1">
+              <ExternalLink className="h-3 w-3" />
+              Booth Card
+            </Badge>
+          </div>
+          {isEditable && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onRemove(); }}
+              className="absolute top-3 left-3 h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-destructive/70 transition-colors opacity-0 group-hover:opacity-100"
+              title="Remove linked booth"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
-        <div className="absolute top-3 right-3 flex gap-1.5">
-          <Badge variant="secondary" className="bg-white/90 text-foreground text-xs backdrop-blur-sm border-none gap-1">
-            <ExternalLink className="h-3 w-3" />
-            Booth Card
-          </Badge>
-        </div>
-        {isEditable && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            className="absolute top-3 left-3 h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-destructive/70 transition-colors opacity-0 group-hover:opacity-100"
-            title="Remove linked booth"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
-      <div className="p-4">
+      </motion.button>
+      <div className="p-4 space-y-3">
         <div className="flex flex-wrap gap-1.5">
           {booth.services.slice(0, 3).map((s) => (
             <Badge key={s} variant="outline" className="text-[10px] font-normal">{s}</Badge>
@@ -108,8 +130,62 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
             </Badge>
           )}
         </div>
+
+        {/* Links */}
+        {boothLinks.length > 0 && (
+          <div className="space-y-1.5">
+            {boothLinks.map((link) => (
+              <div key={link.id} className="flex items-center gap-2 group/link">
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-1.5 text-xs text-primary hover:underline truncate flex-1"
+                >
+                  <LinkIcon className="h-3 w-3 shrink-0" />
+                  {link.label}
+                </a>
+                {isEditable && (
+                  <button
+                    onClick={(e) => handleRemoveLink(link.id, e)}
+                    className="h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive opacity-0 group-hover/link:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add Link */}
+        {isEditable && (
+          showAddLink ? (
+            <div className="space-y-2 pt-1" onClick={(e) => e.stopPropagation()}>
+              <Input placeholder="Link label" value={newLinkLabel} onChange={(e) => setNewLinkLabel(e.target.value)} className="h-8 text-xs" />
+              <Input placeholder="https://..." value={newLinkUrl} onChange={(e) => setNewLinkUrl(e.target.value)} className="h-8 text-xs" />
+              <div className="flex gap-1.5">
+                <Button size="sm" variant="default" className="h-7 text-xs gap-1" onClick={handleAddLink} disabled={!newLinkLabel.trim() || !newLinkUrl.trim()}>
+                  <Plus className="h-3 w-3" /> Add
+                </Button>
+                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setShowAddLink(false); }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowAddLink(true); }}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors pt-1"
+            >
+              <Plus className="h-3 w-3" />
+              Add Link
+            </button>
+          )
+        )}
       </div>
-    </motion.button>
+    </div>
   );
 };
 
@@ -273,6 +349,10 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
     onChange?.(linkedBooths.filter(b => b.id !== id));
   };
 
+  const handleUpdateLinks = (boothId: string, links: BoothLink[]) => {
+    onChange?.(linkedBooths.map(b => b.id === boothId ? { ...b, links } : b));
+  };
+
   const handleOpenDetail = (booth: LinkedBoothCard) => {
     const division = resolveBoothDivision(booth, customDivisions);
     if (division) {
@@ -304,6 +384,7 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
               isEditable={isEditable}
               onRemove={() => handleRemove(booth.id)}
               onOpenDetail={() => handleOpenDetail(booth)}
+              onUpdateLinks={(links) => handleUpdateLinks(booth.id, links)}
             />
           ))}
         </div>

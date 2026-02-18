@@ -369,6 +369,12 @@ export interface BrandEventSignage {
 }
 
 // LINKED BOOTH CARDS - References to booth catalog divisions
+export interface BoothLink {
+  id: string;
+  label: string;
+  url: string;
+}
+
 export interface LinkedBoothCard {
   id: string;
   divisionId: string;
@@ -378,6 +384,7 @@ export interface LinkedBoothCard {
   iconName: string;
   services: string[];
   linkedAt: string;
+  links?: BoothLink[];
 }
 
 // IMAGE ASSETS - Downloadable Image Library

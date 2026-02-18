@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Building2, Plus, Trash2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
-import { LinkedBoothCard } from '@/types/brand';
+import { LinkedBoothCard, BoothLink } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { LinkedBoothPreviewCard, resolveBoothDivision, LinkBoothDialog } from '@/components/brand/LinkedBoothCards';
 import { DivisionDetail, type BoothDivision } from '@/pages/BoothsCatalog';
@@ -33,6 +33,11 @@ export const PartnerBoothsSection = ({
   const handleRemove = (divisionId: string) => {
     if (!onUpdate) return;
     onUpdate(partnerBooths.filter(b => b.divisionId !== divisionId));
+  };
+
+  const handleUpdateLinks = (boothId: string, links: BoothLink[]) => {
+    if (!onUpdate) return;
+    onUpdate(partnerBooths.map(b => b.id === boothId ? { ...b, links } : b));
   };
 
   const handleOpenDetail = (booth: LinkedBoothCard) => {
@@ -82,6 +87,7 @@ export const PartnerBoothsSection = ({
               isEditable={isEditable}
               onRemove={() => handleRemove(booth.divisionId)}
               onOpenDetail={() => handleOpenDetail(booth)}
+              onUpdateLinks={(links) => handleUpdateLinks(booth.id, links)}
             />
           ))}
         </div>
