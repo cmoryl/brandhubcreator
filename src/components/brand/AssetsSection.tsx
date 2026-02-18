@@ -230,11 +230,17 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
                           <div className="aspect-[4/3] relative overflow-hidden bg-muted/30 flex items-center justify-center">
                             {asset.type?.startsWith('image/') ? (
                               <img src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                            ) : asset.type === 'application/pdf' ? (
+                              <iframe
+                                src={`${asset.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                                title={asset.name}
+                                className="w-full h-full pointer-events-none border-0"
+                              />
                             ) : (
                               <span className="text-2xl">{getFileIcon(asset.type)}</span>
                             )}
                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                              {asset.type?.startsWith('image/') && (
+                              {(asset.type?.startsWith('image/') || asset.type === 'application/pdf') && (
                                 <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => setPreviewAsset(asset)}>
                                   <Expand className="h-3 w-3" />
                                 </Button>
@@ -364,9 +370,9 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
       <PreviewDialog
         open={!!previewAsset}
         onOpenChange={(open) => !open && setPreviewAsset(null)}
-        title={previewAsset?.name || 'Image Preview'}
+        title={previewAsset?.name || 'Preview'}
         previewUrl={previewAsset?.url}
-        type="image"
+        type={previewAsset?.type === 'application/pdf' ? 'iframe' : 'image'}
         aspectRatio="auto"
       />
     </section>
