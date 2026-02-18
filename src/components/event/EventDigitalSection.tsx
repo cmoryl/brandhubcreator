@@ -432,12 +432,12 @@ export const EventDigitalSection = ({
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {banners.map((banner) => (
                 <Card key={banner.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
                   {banner.previewUrl ? (
-                    <div className={cn("bg-muted relative", getAspectRatio(banner.dimensions || ''))}>
-                      <img src={banner.previewUrl} alt={banner.name} className="w-full h-full object-cover" />
+                    <div className="bg-muted/30 relative flex items-center justify-center p-3">
+                      <img src={banner.previewUrl} alt={banner.name} className="w-full h-auto max-h-[280px] object-contain rounded" />
                       <Badge className={cn("absolute top-2 left-2 text-xs", getTypeColor(banner.type))}>
                         {BANNER_TYPES.find(t => t.value === banner.type)?.label}
                       </Badge>
