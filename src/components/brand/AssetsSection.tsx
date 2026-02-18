@@ -1,5 +1,6 @@
 import { useState, useCallback, forwardRef } from 'react';
 import { X, Download, Folder, File, FileText, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical } from 'lucide-react';
+import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { BrandAsset, ASSET_CATEGORIES, AssetCategory } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
@@ -85,13 +86,7 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
             <span className="absolute top-1 left-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded">PDF</span>
           </>
         ) : asset.type === 'application/pdf' ? (
-          <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
-            <div className="relative">
-              <FileText className="h-10 w-10 text-destructive/80" />
-              <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1 rounded">PDF</span>
-            </div>
-            <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{asset.name}</span>
-          </div>
+          <PdfThumbnailCard url={asset.url} name={asset.name} />
         ) : (
           <span className="text-2xl">{getFileIcon(asset.type)}</span>
         )}
