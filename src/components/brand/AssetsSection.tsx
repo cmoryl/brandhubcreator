@@ -1,5 +1,5 @@
 import { useState, useCallback, forwardRef } from 'react';
-import { X, Download, Folder, File, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical } from 'lucide-react';
+import { X, Download, Folder, File, FileText, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical } from 'lucide-react';
 import { BrandAsset, ASSET_CATEGORIES, AssetCategory } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
@@ -80,16 +80,13 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
         {asset.type?.startsWith('image/') ? (
           <img src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
         ) : asset.type === 'application/pdf' ? (
-          <object
-            data={`${asset.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-            type="application/pdf"
-            className="w-full h-full pointer-events-none border-0"
-          >
-            <div className="flex flex-col items-center justify-center h-full gap-1">
-              <span className="text-2xl">📄</span>
-              <span className="text-[10px] text-muted-foreground">PDF</span>
+          <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
+            <div className="relative">
+              <FileText className="h-10 w-10 text-destructive/80" />
+              <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1 rounded">PDF</span>
             </div>
-          </object>
+            <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{asset.name}</span>
+          </div>
         ) : (
           <span className="text-2xl">{getFileIcon(asset.type)}</span>
         )}
