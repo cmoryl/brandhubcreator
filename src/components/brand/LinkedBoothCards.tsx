@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink, Link as LinkIcon, ImagePlus, PenLine } from 'lucide-react';
+import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink, Link as LinkIcon, ImagePlus, PenLine, ZoomIn } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import { LinkedBoothCard, BoothLink } from '@/types/brand';
 import { useBoothImages } from '@/hooks/useBoothImages';
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
 import { DivisionDetail, DIVISIONS, customToBoothDivision, type BoothDivision } from '@/pages/BoothsCatalog';
+import { PreviewDialog } from '@/components/ui/preview-dialog';
 
 // Icon map matching BoothsCatalog DIVISIONS
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -62,6 +63,7 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  const [previewOpen, setPreviewOpen] = useState(false);
   const boothLinks = booth.links || [];
 
   const handleAddLink = (e: React.MouseEvent) => {
@@ -139,6 +141,15 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
             <p className="text-xs text-white/80 line-clamp-1">{booth.tagline}</p>
           </div>
           <div className="absolute top-3 right-3 flex gap-1.5">
+            {cardImage && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setPreviewOpen(true); }}
+                className="h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-primary/70 transition-colors opacity-0 group-hover:opacity-100"
+                title="View larger"
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+              </button>
+            )}
             {isEditable && (
               <button
                 onClick={(e) => { e.stopPropagation(); setShowImageOptions(!showImageOptions); }}
@@ -251,6 +262,13 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
           )
         )}
       </div>
+      <PreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        title={`${booth.divisionName} — Booth Preview`}
+        previewUrl={cardImage}
+        type="image"
+      />
     </div>
   );
 };
