@@ -453,7 +453,7 @@ const ProductEditor = () => {
   // Calculate health for card view
   const cardViewHealthScore = useMemo(() => {
     if (!currentProduct) return undefined;
-    const health = calculateBrandHealth(currentProduct as unknown as Record<string, unknown>, hiddenSections);
+    const health = calculateBrandHealth(currentProduct as unknown as Record<string, unknown>, hiddenSections, 'product');
     return health.overallScore;
   }, [currentProduct, hiddenSections]);
 
