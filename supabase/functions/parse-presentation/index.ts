@@ -193,7 +193,31 @@ serve(async (req) => {
       }
     }
 
-    // Extract text and find the best representative image for each slide
+    // Also build slide layout relationships for inherited background images
+    // Slide layouts define background images that slides inherit
+    const layoutRelationships: Map<string, Map<string, string>> = new Map();
+    const layoutFiles = Object.keys(zip.files).filter(name => 
+      name.match(/^ppt\/slideLayouts\/_rels\/slideLayout\d+\.xml\.rels$/)
+    );
+    for (const relPath of layoutFiles) {
+      const layoutName = relPath.match(/slideLayout(\d+)/)?.[0] || "";
+      const relContent = await zip.files[relPath].async("text");
+      const relMap = new Map<string, string>();
+      const relMatches = relContent.matchAll(/Relationship[^>]*Id="(rId\d+)"[^>]*Target="([^"]+)"/g);
+      for (const match of relMatches) {
+        const [, relId, target] = match;
+        let targetPath = target;
+        if (target.startsWith("../")) {
+          targetPath = "ppt/" + target.substring(3);
+        } else if (!target.startsWith("ppt/")) {
+          targetPath = "ppt/slideLayouts/" + target;
+        }
+        relMap.set(relId, targetPath);
+      }
+      layoutRelationships.set(layoutName, relMap);
+    }
+
+    // Extract text and find the BEST (largest) representative image for each slide
     for (let i = 0; i < slideCount; i++) {
       const slideNum = i + 1;
       const slideXmlPath = `ppt/slides/slide${slideNum}.xml`;
@@ -207,10 +231,12 @@ serve(async (req) => {
         title = extractTitleFromSlideXml(xmlContent);
         textContent = extractTextFromSlideXml(xmlContent);
         
-        // Find images referenced in this slide
+        // Collect ALL image candidates from this slide and pick the largest
+        const imageCandidates: { path: string; size: number }[] = [];
+        
         const relMap = slideRelationships.get(slideNum);
         if (relMap) {
-          // Look for image references in the slide XML (r:embed="rId...")
+          // Look for ALL image references in the slide XML (r:embed="rId...")
           const imageRefMatches = xmlContent.matchAll(/r:embed="(rId\d+)"/g);
           
           for (const match of imageRefMatches) {
@@ -219,32 +245,91 @@ serve(async (req) => {
             
             if (targetPath && zip.files[targetPath]) {
               const ext = targetPath.split(".").pop()?.toLowerCase();
-              if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext || "")) {
-                // Found an image for this slide, upload it as thumbnail
-                const imageData = await zip.files[targetPath].async("uint8array");
-                const slidePath = `${organizationId}/${entityType}s/${entityId}/presentations/slides/${sanitizedFileName}-slide-${slideNum}.${ext}`;
-                
-                const { error: slideUploadError } = await supabase.storage
-                  .from("organization-assets")
-                  .upload(slidePath, imageData, {
-                    contentType: `image/${ext === "jpg" ? "jpeg" : ext === "svg" ? "svg+xml" : ext}`,
-                    upsert: true,
-                  });
-                
-                if (!slideUploadError) {
-                  const { data: slideUrlData } = supabase.storage
-                    .from("organization-assets")
-                    .getPublicUrl(slidePath);
-                  thumbnailUrl = `${slideUrlData.publicUrl}?t=${timestamp}`;
-                  break; // Use first image found
+              if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "")) {
+                // Get file size to pick the largest (most detailed) image
+                const fileData = zip.files[targetPath];
+                const uncompressedSize = fileData._data?.uncompressedSize || 0;
+                imageCandidates.push({ path: targetPath, size: uncompressedSize });
+              }
+            }
+          }
+          
+          // Also check slide background fill images (common in Canva exports)
+          const bgBlipMatch = xmlContent.match(/<p:bg>[\s\S]*?<a:blipFill[\s\S]*?r:embed="(rId\d+)"/);
+          if (bgBlipMatch) {
+            const bgRelId = bgBlipMatch[1];
+            const bgTargetPath = relMap.get(bgRelId);
+            if (bgTargetPath && zip.files[bgTargetPath]) {
+              const ext = bgTargetPath.split(".").pop()?.toLowerCase();
+              if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "")) {
+                const fileData = zip.files[bgTargetPath];
+                const uncompressedSize = fileData._data?.uncompressedSize || 0;
+                // Boost background images priority by adding size bonus
+                imageCandidates.push({ path: bgTargetPath, size: uncompressedSize + 1000000 });
+              }
+            }
+          }
+        }
+        
+        // Also check the slide's layout for inherited background images
+        const layoutRelPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
+        if (zip.files[layoutRelPath] && imageCandidates.length === 0) {
+          const relContent = await zip.files[layoutRelPath].async("text");
+          const layoutRefMatch = relContent.match(/Target="\.\.\/slideLayouts\/slideLayout(\d+)\.xml"/);
+          if (layoutRefMatch) {
+            const layoutKey = `slideLayout${layoutRefMatch[1]}`;
+            const layoutRels = layoutRelationships.get(layoutKey);
+            const layoutXmlPath = `ppt/slideLayouts/slideLayout${layoutRefMatch[1]}.xml`;
+            if (layoutRels && zip.files[layoutXmlPath]) {
+              const layoutXml = await zip.files[layoutXmlPath].async("text");
+              const layoutBlipMatches = layoutXml.matchAll(/r:embed="(rId\d+)"/g);
+              for (const lm of layoutBlipMatches) {
+                const targetPath = layoutRels.get(lm[1]);
+                if (targetPath && zip.files[targetPath]) {
+                  const ext = targetPath.split(".").pop()?.toLowerCase();
+                  if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "")) {
+                    const fileData = zip.files[targetPath];
+                    const uncompressedSize = fileData._data?.uncompressedSize || 0;
+                    imageCandidates.push({ path: targetPath, size: uncompressedSize });
+                  }
                 }
               }
             }
           }
         }
+        
+        // Sort by size descending and pick the largest image
+        if (imageCandidates.length > 0) {
+          // Deduplicate by path
+          const unique = [...new Map(imageCandidates.map(c => [c.path, c])).values()];
+          unique.sort((a, b) => b.size - a.size);
+          
+          const bestImage = unique[0];
+          const ext = bestImage.path.split(".").pop()?.toLowerCase();
+          const imageData = await zip.files[bestImage.path].async("uint8array");
+          
+          // Only use if the image is substantial (> 5KB to skip tiny icons/bullets)
+          if (imageData.length > 5000) {
+            const slidePath = `${organizationId}/${entityType}s/${entityId}/presentations/slides/${sanitizedFileName}-slide-${slideNum}.${ext}`;
+            
+            const { error: slideUploadError } = await supabase.storage
+              .from("organization-assets")
+              .upload(slidePath, imageData, {
+                contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
+                upsert: true,
+              });
+            
+            if (!slideUploadError) {
+              const { data: slideUrlData } = supabase.storage
+                .from("organization-assets")
+                .getPublicUrl(slidePath);
+              thumbnailUrl = `${slideUrlData.publicUrl}?t=${timestamp}`;
+            }
+          }
+        }
       }
       
-      // If no embedded image found, try to get docProps thumbnail for first slide
+      // If no embedded image found, try to get docProps thumbnail (usually the first slide rendered)
       if (!thumbnailUrl && slideNum === 1) {
         const thumbnailPath = Object.keys(zip.files).find(
           (name) => name === "docProps/thumbnail.jpeg" || name === "docProps/thumbnail.png"

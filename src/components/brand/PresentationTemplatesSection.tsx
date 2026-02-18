@@ -805,10 +805,13 @@ export const PresentationTemplatesSection = ({
                     />
                   ) : template.fileType === 'pdf' && template.fileUrl ? (
                     <PdfThumbnailCard url={template.fileUrl} name={template.name} />
-                  ) : template.fileType === 'pptx' && template.fileUrl ? (
+                  ) : template.fileType === 'pptx' ? (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20">
                       <Presentation className="h-10 w-10 text-blue-600 dark:text-blue-400" />
                       <span className="text-[10px] font-bold bg-blue-600 text-white px-1.5 py-0.5 rounded">PPTX</span>
+                      {template.slides && template.slides.length > 0 && (
+                        <span className="text-[10px] text-muted-foreground">{template.slides.length} slides</span>
+                      )}
                       <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{template.name}</span>
                     </div>
                   ) : (
