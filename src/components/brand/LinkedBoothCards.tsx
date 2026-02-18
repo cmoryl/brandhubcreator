@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink, Link as LinkIcon } from 'lucide-react';
+import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink, Link as LinkIcon, ImagePlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,19 +40,25 @@ const BOOTH_DIVISIONS = [
 ];
 
 // Card that renders a linked booth in the brand guide — exported for inline use
-export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDetail, onUpdateLinks }: {
+export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDetail, onUpdateLinks, onUpdateImage }: {
   booth: LinkedBoothCard;
   isEditable: boolean;
   onRemove: () => void;
   onOpenDetail: () => void;
   onUpdateLinks?: (links: BoothLink[]) => void;
+  onUpdateImage?: (imageUrl: string | undefined) => void;
 }) => {
   const Icon = ICON_MAP[booth.iconName] || Building2;
   const { images, getVariantImage } = useBoothImages(booth.divisionId);
-  const cardImage = getVariantImage('__card__', '') || images[0]?.image_url || '';
+  const catalogImage = getVariantImage('__card__', '') || images[0]?.image_url || '';
+  const cardImage = booth.customImage || catalogImage;
   const [showAddLink, setShowAddLink] = useState(false);
   const [newLinkLabel, setNewLinkLabel] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [showImageOptions, setShowImageOptions] = useState(false);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const boothLinks = booth.links || [];
 
@@ -69,6 +75,34 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
   const handleRemoveLink = (linkId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     onUpdateLinks?.(boothLinks.filter(l => l.id !== linkId));
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !onUpdateImage) return;
+    setIsUploadingImage(true);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const ext = file.name.split('.').pop();
+      const path = `booth-images/partner-${booth.id}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('organization-assets').upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('organization-assets').getPublicUrl(path);
+      onUpdateImage(urlData.publicUrl);
+      setShowImageOptions(false);
+    } catch (err) {
+      console.error('Upload failed:', err);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleImageUrlSubmit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!imageUrlInput.trim() || !onUpdateImage) return;
+    onUpdateImage(imageUrlInput.trim());
+    setImageUrlInput('');
+    setShowImageOptions(false);
   };
 
   return (
@@ -103,6 +137,15 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
             <p className="text-xs text-white/80 line-clamp-1">{booth.tagline}</p>
           </div>
           <div className="absolute top-3 right-3 flex gap-1.5">
+            {isEditable && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowImageOptions(!showImageOptions); }}
+                className="h-7 w-7 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-primary/70 transition-colors opacity-0 group-hover:opacity-100"
+                title="Change preview image"
+              >
+                <ImagePlus className="h-3.5 w-3.5" />
+              </button>
+            )}
             <Badge variant="secondary" className="bg-white/90 text-foreground text-xs backdrop-blur-sm border-none gap-1">
               <ExternalLink className="h-3 w-3" />
               Booth Card
@@ -117,8 +160,29 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           )}
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
         </div>
       </motion.button>
+
+      {/* Image Options */}
+      {isEditable && showImageOptions && (
+        <div className="px-4 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
+          <div className="flex gap-1.5">
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1 flex-1" onClick={() => fileInputRef.current?.click()} disabled={isUploadingImage}>
+              <ImagePlus className="h-3 w-3" /> {isUploadingImage ? 'Uploading...' : 'Upload'}
+            </Button>
+            {booth.customImage && (
+              <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => { onUpdateImage?.(undefined); setShowImageOptions(false); }}>
+                <X className="h-3 w-3" /> Remove
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-1.5">
+            <Input placeholder="Paste image URL..." value={imageUrlInput} onChange={(e) => setImageUrlInput(e.target.value)} className="h-7 text-xs flex-1" />
+            <Button size="sm" variant="default" className="h-7 text-xs" onClick={handleImageUrlSubmit} disabled={!imageUrlInput.trim()}>Set</Button>
+          </div>
+        </div>
+      )}
       <div className="p-4 space-y-3">
         <div className="flex flex-wrap gap-1.5">
           {booth.services.slice(0, 3).map((s) => (
@@ -353,6 +417,10 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
     onChange?.(linkedBooths.map(b => b.id === boothId ? { ...b, links } : b));
   };
 
+  const handleUpdateImage = (boothId: string, customImage: string | undefined) => {
+    onChange?.(linkedBooths.map(b => b.id === boothId ? { ...b, customImage } : b));
+  };
+
   const handleOpenDetail = (booth: LinkedBoothCard) => {
     const division = resolveBoothDivision(booth, customDivisions);
     if (division) {
@@ -385,6 +453,7 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
               onRemove={() => handleRemove(booth.id)}
               onOpenDetail={() => handleOpenDetail(booth)}
               onUpdateLinks={(links) => handleUpdateLinks(booth.id, links)}
+              onUpdateImage={(img) => handleUpdateImage(booth.id, img)}
             />
           ))}
         </div>
