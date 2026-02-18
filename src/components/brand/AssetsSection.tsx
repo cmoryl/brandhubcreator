@@ -79,6 +79,11 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
       <div className="aspect-[4/3] relative overflow-hidden bg-muted/30 flex items-center justify-center">
         {asset.type?.startsWith('image/') ? (
           <img src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        ) : asset.type === 'application/pdf' && asset.thumbnailUrl ? (
+          <>
+            <img src={asset.thumbnailUrl} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <span className="absolute top-1 left-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded">PDF</span>
+          </>
         ) : asset.type === 'application/pdf' ? (
           <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
             <div className="relative">
@@ -149,11 +154,40 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     });
   }, [onAssetsChange]);
 
-  const confirmUpload = useCallback(() => {
+  const generatePdfThumbnail = useCallback(async (dataUrl: string): Promise<string | undefined> => {
+    try {
+      const pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+      
+      const pdf = await pdfjsLib.getDocument(dataUrl).promise;
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 1.5 });
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return undefined;
+      
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      return canvas.toDataURL('image/jpeg', 0.7);
+    } catch (err) {
+      console.warn('PDF thumbnail generation failed:', err);
+      return undefined;
+    }
+  }, []);
+
+  const confirmUpload = useCallback(async () => {
     if (!pendingFile || !onAssetsChange) return;
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const url = event.target?.result as string;
+      let thumbnailUrl: string | undefined;
+      
+      if (pendingFile.file.type === 'application/pdf') {
+        thumbnailUrl = await generatePdfThumbnail(url);
+      }
+      
       const newAsset: BrandAsset = {
         id: crypto.randomUUID(),
         name: pendingFile.name,
@@ -161,12 +195,13 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
         url,
         size: formatFileSize(pendingFile.file.size),
         category: pendingFile.category,
+        thumbnailUrl,
       };
       onAssetsChange([...assets, newAsset]);
       setPendingFile(null);
     };
     reader.readAsDataURL(pendingFile.file);
-  }, [pendingFile, assets, onAssetsChange]);
+  }, [pendingFile, assets, onAssetsChange, generatePdfThumbnail]);
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker } = useDropZone({
     onFileDrop: handleFileDrop,

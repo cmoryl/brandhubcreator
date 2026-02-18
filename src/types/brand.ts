@@ -353,6 +353,7 @@ export interface BrandAsset {
   url: string;
   size: string;
   category?: AssetCategory;
+  thumbnailUrl?: string;
 }
 
 // EVENT SIGNAGE - Booths & Banners for brand events
