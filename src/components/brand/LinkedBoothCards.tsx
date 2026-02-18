@@ -285,6 +285,9 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
   const [customName, setCustomName] = useState('');
   const [customTagline, setCustomTagline] = useState('');
   const [customColor, setCustomColor] = useState('hsl(200, 70%, 45%)');
+  const [customLinks, setCustomLinks] = useState<{ label: string; url: string }[]>([]);
+  const [newSizeLabel, setNewSizeLabel] = useState('');
+  const [newSizeUrl, setNewSizeUrl] = useState('');
   const { divisions: customDivisions } = useCustomDivisions();
   const linkedIds = new Set(linkedBooths.map(b => b.divisionId));
 
@@ -341,9 +344,25 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
     });
   };
 
+  const handleAddSizeLink = () => {
+    if (!newSizeLabel.trim() || !newSizeUrl.trim()) return;
+    setCustomLinks(prev => [...prev, { label: newSizeLabel.trim(), url: newSizeUrl.trim() }]);
+    setNewSizeLabel('');
+    setNewSizeUrl('');
+  };
+
+  const handleRemoveSizeLink = (index: number) => {
+    setCustomLinks(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleCreateCustom = () => {
     if (!customName.trim()) return;
     const customId = `custom-${crypto.randomUUID()}`;
+    const boothLinks: BoothLink[] = customLinks.map(l => ({
+      id: crypto.randomUUID(),
+      label: l.label,
+      url: l.url,
+    }));
     onLink({
       id: crypto.randomUUID(),
       divisionId: customId,
@@ -352,11 +371,13 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
       color: customColor,
       iconName: 'Building2',
       services: [],
+      links: boothLinks.length > 0 ? boothLinks : undefined,
       linkedAt: new Date().toISOString(),
     });
     setCustomName('');
     setCustomTagline('');
     setCustomColor('hsl(200, 70%, 45%)');
+    setCustomLinks([]);
     onOpenChange(false);
   };
 
@@ -457,9 +478,36 @@ export const LinkBoothDialog = ({ open, onOpenChange, linkedBooths, onLink }: {
                 <span className="text-xs text-muted-foreground">Choose a brand color for the card header</span>
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>Download Links (Sizes)</Label>
+              {customLinks.length > 0 && (
+                <div className="space-y-1.5">
+                  {customLinks.map((link, i) => (
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-md border border-border/40 bg-muted/20">
+                      <LinkIcon className="h-3.5 w-3.5 text-primary shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{link.label}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{link.url}</p>
+                      </div>
+                      <button onClick={() => handleRemoveSizeLink(i)} className="h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-1.5">
+                <Input placeholder="Size label (e.g. 10×10)" value={newSizeLabel} onChange={(e) => setNewSizeLabel(e.target.value)} className="h-8 text-xs flex-1" />
+                <Input placeholder="https://..." value={newSizeUrl} onChange={(e) => setNewSizeUrl(e.target.value)} className="h-8 text-xs flex-1" />
+                <Button size="sm" variant="outline" className="h-8 text-xs gap-1 shrink-0" onClick={handleAddSizeLink} disabled={!newSizeLabel.trim() || !newSizeUrl.trim()}>
+                  <Plus className="h-3 w-3" /> Add
+                </Button>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Add download links for each booth size variant (e.g. 10×10, 10×20, 20×20)</p>
+            </div>
             <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-border/60 bg-muted/20">
               <PenLine className="h-5 w-5 text-muted-foreground shrink-0" />
-              <p className="text-xs text-muted-foreground">You can add custom preview images and file links after creating the card.</p>
+              <p className="text-xs text-muted-foreground">You can also add custom preview images and more links after creating the card.</p>
             </div>
             <Button onClick={handleCreateCustom} disabled={!customName.trim()} className="w-full gap-2">
               <Plus className="h-4 w-4" />
