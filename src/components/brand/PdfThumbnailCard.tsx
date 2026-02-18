@@ -9,14 +9,26 @@ interface PdfThumbnailCardProps {
 export const PdfThumbnailCard = ({ url, name }: PdfThumbnailCardProps) => {
   const [thumbnailDataUrl, setThumbnailDataUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
+    // Guard: skip if url is empty/undefined
+    if (!url) {
+      setLoading(false);
+      setError(true);
+      return;
+    }
+
     let cancelled = false;
 
     const generate = async () => {
       try {
         const pdfjsLib = await import('pdfjs-dist');
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+        // Use .min.mjs for v4+, fallback to .min.js
+        const version = pdfjsLib.version;
+        const majorVersion = parseInt(version.split('.')[0], 10);
+        const workerExt = majorVersion >= 4 ? 'pdf.worker.min.mjs' : 'pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/${workerExt}`;
 
         const pdf = await pdfjsLib.getDocument(url).promise;
         const page = await pdf.getPage(1);
@@ -34,6 +46,7 @@ export const PdfThumbnailCard = ({ url, name }: PdfThumbnailCardProps) => {
         }
       } catch (err) {
         console.warn('PDF thumbnail generation failed:', err);
+        if (!cancelled) setError(true);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -61,19 +74,28 @@ export const PdfThumbnailCard = ({ url, name }: PdfThumbnailCardProps) => {
     );
   }
 
-  return (
-    <object
-      data={`${url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-      type="application/pdf"
-      className="w-full h-full pointer-events-none"
-    >
-      <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
-        <div className="relative">
-          <FileText className="h-10 w-10 text-destructive/80" />
-          <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1 rounded">PDF</span>
-        </div>
-        <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{name}</span>
-      </div>
-    </object>
-  );
+  // Fallback: if we have a valid URL, try native browser PDF embed; otherwise show icon
+  if (!error && url) {
+    return (
+      <object
+        data={`${url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+        type="application/pdf"
+        className="w-full h-full pointer-events-none"
+      >
+        <FallbackIcon name={name} />
+      </object>
+    );
+  }
+
+  return <FallbackIcon name={name} />;
 };
+
+const FallbackIcon = ({ name }: { name: string }) => (
+  <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
+    <div className="relative">
+      <FileText className="h-10 w-10 text-destructive/80" />
+      <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1 rounded">PDF</span>
+    </div>
+    <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{name}</span>
+  </div>
+);
