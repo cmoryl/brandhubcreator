@@ -577,7 +577,7 @@ const EventEditor = () => {
         return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} brandName={event.hero?.name} brandColors={event.colors?.map(c => c.hex)} eventId={event.id} />;
       case 'eventbanners':
       case 'eventdigital':
-        return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} banners={event.eventBanners || []} onBannersChange={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : undefined} isEditable={canEdit || false} eventId={event.id} />;
+        return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} banners={event.eventBanners || []} onBannersChange={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : undefined} printMaterials={event.eventPrintMaterials || []} onPrintMaterialsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined} isEditable={canEdit || false} eventId={event.id} />;
       case 'colors': 
         return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
       case 'gradients': 
