@@ -469,6 +469,7 @@ export const FullEventPage = ({
     // Deduplicate: eventbanners merged into eventdigital
     const deduped = sectionOrder.filter(id => {
       if (id === 'eventbanners' && sectionOrder.includes('eventdigital')) return false;
+      if (id === 'templates') return false; // Master Scaffolds removed from events
       return true;
     });
     return isAdmin ? deduped : deduped.filter(id => !hiddenSections.includes(id));
