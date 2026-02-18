@@ -36,6 +36,7 @@ import { EventHistorySection } from '@/components/event/EventHistorySection';
 import { EventVideosSection } from '@/components/event/EventVideosSection';
 import { EventLocationSection } from '@/components/event/EventLocationSection';
 import { EventPatternsSection } from '@/components/event/EventPatternsSection';
+import { EventSpeakersSection } from '@/components/event/EventSpeakersSection';
 import { EventWebsiteSection } from '@/components/event/EventWebsiteSection';
 import { SubEventsManager, LinkedEventGuide } from '@/components/event/SubEventsManager';
 import { SharedAssetsSection, SharedAsset } from '@/components/event/SharedAssetsSection';
@@ -598,25 +599,12 @@ const EventEditor = () => {
         );
       case 'eventspeakers':
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Event Speakers</h2>
-            {event.eventSpeakers?.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {event.eventSpeakers.map((speaker) => (
-                  <div key={speaker.id} className="p-4 rounded-lg border bg-card text-center">
-                    {speaker.photoUrl && (
-                      <img src={speaker.photoUrl} alt={speaker.name} className="w-24 h-24 rounded-full mx-auto mb-3 object-cover" />
-                    )}
-                    <h3 className="font-medium">{speaker.name}</h3>
-                    <p className="text-sm text-muted-foreground">{speaker.title}</p>
-                    {speaker.company && <p className="text-xs text-muted-foreground">{speaker.company}</p>}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">No speakers added yet.</p>
-            )}
-          </div>
+          <EventSpeakersSection
+            speakers={event.eventSpeakers || []}
+            onUpdate={(eventSpeakers) => updateEvent({ eventSpeakers })}
+            isEditable={canEdit || false}
+            eventId={event?.id}
+          />
         );
       case 'eventsponsors':
         return <EventSponsorsSection sponsors={event.eventSponsors || []} onUpdate={(eventSponsors) => updateEvent({ eventSponsors })} isEditable={canEdit || false} />;

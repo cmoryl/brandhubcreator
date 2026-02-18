@@ -33,6 +33,7 @@ import { SubEventsManager } from './SubEventsManager';
 import { SharedAssetsSection, SharedAsset } from './SharedAssetsSection';
 import { syncSharedAssetsToSubEvents } from '@/lib/syncSharedAssetsToSubEvents';
 import { EventPatternsSection } from './EventPatternsSection';
+import { EventSpeakersSection } from './EventSpeakersSection';
 import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
 import { Separator } from '@/components/ui/separator';
 import { InsightsSection } from '@/components/brand/InsightsSection';
@@ -216,26 +217,12 @@ export const FullEventPage = ({
         );
       case 'eventspeakers':
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl sm:text-2xl font-serif font-semibold">Event Speakers</h2>
-            {event.eventSpeakers && event.eventSpeakers.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {event.eventSpeakers.map((speaker) => (
-                  <div key={speaker.id} className="p-4 rounded-lg border bg-card text-center">
-                    {speaker.photoUrl && (
-                      <img src={speaker.photoUrl} alt={speaker.name} className="w-20 h-20 sm:w-24 sm:h-24 rounded-full mx-auto mb-3 object-cover" />
-                    )}
-                    <h3 className="font-medium text-sm sm:text-base">{speaker.name}</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground">{speaker.title}</p>
-                    {speaker.company && <p className="text-xs text-muted-foreground">{speaker.company}</p>}
-                    {speaker.bio && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{speaker.bio}</p>}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">No speakers added yet.</p>
-            )}
-          </div>
+          <EventSpeakersSection
+            speakers={event.eventSpeakers || []}
+            onUpdate={canEdit ? (eventSpeakers) => updateEvent({ eventSpeakers }) : () => {}}
+            isEditable={canEdit}
+            eventId={event?.id}
+          />
         );
       case 'eventsponsors':
         return (
