@@ -80,11 +80,16 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
         {asset.type?.startsWith('image/') ? (
           <img src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
         ) : asset.type === 'application/pdf' ? (
-          <iframe
-            src={`${asset.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-            title={asset.name}
+          <object
+            data={`${asset.url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+            type="application/pdf"
             className="w-full h-full pointer-events-none border-0"
-          />
+          >
+            <div className="flex flex-col items-center justify-center h-full gap-1">
+              <span className="text-2xl">📄</span>
+              <span className="text-[10px] text-muted-foreground">PDF</span>
+            </div>
+          </object>
         ) : (
           <span className="text-2xl">{getFileIcon(asset.type)}</span>
         )}
