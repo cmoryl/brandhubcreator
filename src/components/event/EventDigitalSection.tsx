@@ -964,6 +964,14 @@ export const EventDigitalSection = ({
                       <Label>Description (optional)</Label>
                       <Input value={newPrintMaterial.description || ''} onChange={(e) => setNewPrintMaterial({ ...newPrintMaterial, description: e.target.value })} placeholder="Brief description..." />
                     </div>
+                    <div className="space-y-2 md:col-span-2 lg:col-span-3">
+                      <Label>File Link (optional)</Label>
+                      <div className="flex items-center gap-2">
+                        <Link className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <Input value={newPrintMaterial.fileUrl || ''} onChange={(e) => setNewPrintMaterial({ ...newPrintMaterial, fileUrl: e.target.value })} placeholder="https://drive.google.com/... or any download link" className="flex-1" />
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">Paste a link to the live file (Google Drive, Dropbox, etc.) for direct access</p>
+                    </div>
                   </div>
                   {/* Print Material Image */}
                   <div className="space-y-2">
