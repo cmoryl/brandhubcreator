@@ -11,6 +11,7 @@ import {
   Grid3X3, List, Search, FileType, Image
 } from 'lucide-react';
 import { PresentationTemplate, PresentationFileType, PresentationCategory } from '@/types/brand';
+import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -795,13 +796,21 @@ export const PresentationTemplatesSection = ({
             const thumbnail = getPreviewThumbnail(template);
             return (
               <Card key={template.id} className="group overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-[4/3] relative bg-muted">
+                <div className="aspect-[4/3] relative bg-muted overflow-hidden">
                   {thumbnail ? (
                     <OptimizedImage
                       src={thumbnail}
                       alt={template.name}
                       className="w-full h-full object-cover"
                     />
+                  ) : template.fileType === 'pdf' && template.fileUrl ? (
+                    <PdfThumbnailCard url={template.fileUrl} name={template.name} />
+                  ) : template.fileType === 'pptx' && template.fileUrl ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20">
+                      <Presentation className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+                      <span className="text-[10px] font-bold bg-blue-600 text-white px-1.5 py-0.5 rounded">PPTX</span>
+                      <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{template.name}</span>
+                    </div>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="text-4xl">{getFileTypeIcon(template.fileType)}</span>
