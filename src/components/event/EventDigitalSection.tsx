@@ -60,6 +60,7 @@ const getTypeIcon = (type: EventDigitalMaterial['type']) => {
 const BANNER_TYPES = [
   { value: 'email-header', label: 'Email Header', icon: Mail, category: 'email' },
   { value: 'social-cover', label: 'Social Cover', icon: Share2, category: 'social' },
+  { value: 'social-banner', label: 'Social Banner', icon: Share2, category: 'social' },
   { value: 'website-hero', label: 'Website Hero', icon: Globe, category: 'web' },
   { value: 'landing-page', label: 'Landing Page', icon: Globe, category: 'web' },
   { value: 'countdown', label: 'Countdown', icon: ImageIcon, category: 'promo' },
@@ -72,6 +73,7 @@ const getTypeColor = (type: EventBanner['type']) => {
   const colors: Record<string, string> = {
     'email-header': 'bg-blue-100 text-blue-800',
     'social-cover': 'bg-purple-100 text-purple-800',
+    'social-banner': 'bg-violet-100 text-violet-800',
     'website-hero': 'bg-green-100 text-green-800',
     'landing-page': 'bg-teal-100 text-teal-800',
     'countdown': 'bg-orange-100 text-orange-800',
