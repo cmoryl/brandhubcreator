@@ -62,12 +62,18 @@ export const PdfThumbnailCard = ({ url, name }: PdfThumbnailCardProps) => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
-      <div className="relative">
-        <FileText className="h-10 w-10 text-destructive/80" />
-        <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1 rounded">PDF</span>
+    <object
+      data={`${url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+      type="application/pdf"
+      className="w-full h-full pointer-events-none"
+    >
+      <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
+        <div className="relative">
+          <FileText className="h-10 w-10 text-destructive/80" />
+          <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1 rounded">PDF</span>
+        </div>
+        <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{name}</span>
       </div>
-      <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{name}</span>
-    </div>
+    </object>
   );
 };
