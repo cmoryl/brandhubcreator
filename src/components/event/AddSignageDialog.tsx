@@ -32,6 +32,12 @@ const SIGNAGE_TYPES = [
   { value: 'podium-sign', label: 'Podium Sign' },
   { value: 'stage-backdrop', label: 'Stage Backdrop' },
   { value: 'outdoor-banner', label: 'Outdoor Banner' },
+  { value: 'registration', label: 'Registration' },
+  { value: 'technology-counter', label: 'Technology Counter' },
+  { value: 'information-counter', label: 'Information Counter' },
+  { value: 'large-backwall', label: 'Large Backwall' },
+  { value: 'location-pillars', label: 'Location Pillars' },
+  { value: 'map-pillars', label: 'Map Pillars' },
   { value: 'other', label: 'Other' },
 ];
 
