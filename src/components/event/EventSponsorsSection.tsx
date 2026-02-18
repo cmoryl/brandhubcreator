@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, Check, X, Crown, Star, Medal, Award, Users, ExternalLink, Upload, Link, ChevronDown, ChevronUp, Image } from 'lucide-react';
 import { EventSponsor, SponsorLogoVariant } from '@/types/event';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { GlobalLogoPickerDialog } from '@/components/brand/GlobalLogoPickerDialog';
 import { Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import type { ClientLogo } from '@/types/brand';
 
 interface EventSponsorsSectionProps {
@@ -46,6 +47,16 @@ const getTierInfo = (tier: EventSponsor['tier']) => {
   return SPONSOR_TIERS.find(t => t.value === tier) || SPONSOR_TIERS[SPONSOR_TIERS.length - 1];
 };
 
+// Helper to extract preferred logo URL from files array
+const getPreferredLogoUrl = (files: any): string => {
+  if (!files || !Array.isArray(files) || files.length === 0) return '';
+  const blackFile = files.find((f: any) => f.variant === 'black');
+  if (blackFile?.url) return blackFile.url;
+  const colorFile = files.find((f: any) => f.variant === 'color');
+  if (colorFile?.url) return colorFile.url;
+  return files[0]?.url || '';
+};
+
 export const EventSponsorsSection = ({
   sponsors,
   onUpdate,
@@ -62,6 +73,40 @@ export const EventSponsorsSection = ({
     logoUrl: '',
     logoVariants: [],
   });
+
+  // Auto-backfill missing sponsor logos from global library
+  useEffect(() => {
+    const sponsorsWithoutLogos = sponsors.filter(s => !s.logoUrl);
+    if (sponsorsWithoutLogos.length === 0) return;
+
+    const backfillLogos = async () => {
+      const names = sponsorsWithoutLogos.map(s => s.name);
+      const { data: globalLogos } = await supabase
+        .from('global_client_logos')
+        .select('name, files')
+        .in('name', names);
+
+      if (!globalLogos || globalLogos.length === 0) return;
+
+      const logoMap = new Map<string, string>();
+      globalLogos.forEach((gl) => {
+        const url = getPreferredLogoUrl(gl.files);
+        if (url) logoMap.set(gl.name, url);
+      });
+
+      if (logoMap.size === 0) return;
+
+      const updated = sponsors.map(s => {
+        if (!s.logoUrl && logoMap.has(s.name)) {
+          return { ...s, logoUrl: logoMap.get(s.name)! };
+        }
+        return s;
+      });
+      onUpdate(updated);
+    };
+
+    backfillLogos();
+  }, [sponsors.length]); // Only re-run when sponsor count changes
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -176,15 +221,12 @@ export const EventSponsorsSection = ({
               existingLogoNames={sponsors.map(s => s.name)}
               onImport={(imported) => {
                 const newSponsors: EventSponsor[] = imported.map(logo => {
-                  // Prefer black (transparent) logo, then color, then any available
-                  const preferredFile = logo.files?.find(f => f.variant === 'black')
-                    || logo.files?.find(f => f.variant === 'color')
-                    || logo.files?.[0];
+                  const logoUrl = getPreferredLogoUrl(logo.files);
                   return {
                     id: crypto.randomUUID(),
                     name: logo.name,
                     tier: 'partner' as const,
-                    logoUrl: preferredFile?.url || '',
+                    logoUrl,
                     logoVariants: [],
                     websiteUrl: logo.websiteUrl,
                   };
@@ -350,14 +392,12 @@ export const EventSponsorsSection = ({
                   existingLogoNames={sponsors.map(s => s.name)}
                   onImport={(imported) => {
                     const newSponsors: EventSponsor[] = imported.map(logo => {
-                      const preferredFile = logo.files?.find(f => f.variant === 'black')
-                        || logo.files?.find(f => f.variant === 'color')
-                        || logo.files?.[0];
+                      const logoUrl = getPreferredLogoUrl(logo.files);
                       return {
                         id: crypto.randomUUID(),
                         name: logo.name,
                         tier: 'partner' as const,
-                        logoUrl: preferredFile?.url || '',
+                        logoUrl,
                         logoVariants: [],
                         websiteUrl: logo.websiteUrl,
                       };
