@@ -331,12 +331,28 @@ export interface BrandVideo {
 }
 
 // ASSETS - Operational Vault
+export const ASSET_CATEGORIES = [
+  'Print Materials',
+  'Digital Assets',
+  'Photography',
+  'Video',
+  'Logos & Icons',
+  'Templates',
+  'Presentations',
+  'Signage & Banners',
+  'Packaging',
+  'Other',
+] as const;
+
+export type AssetCategory = typeof ASSET_CATEGORIES[number];
+
 export interface BrandAsset {
   id: string;
   name: string;
   type: string;
   url: string;
   size: string;
+  category?: AssetCategory;
 }
 
 // EVENT SIGNAGE - Booths & Banners for brand events
