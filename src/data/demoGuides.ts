@@ -1410,6 +1410,7 @@ export const DEMO_EVENT_SUMMIT: Omit<EventGuide, 'createdAt' | 'updatedAt'> = {
     { id: 'da4', name: 'Attendee Badge Designs', type: 'other', fileType: 'pdf', description: 'VIP, Speaker, Attendee, and Staff badge templates', previewUrl: collateralSummitBadges },
     { id: 'da5', name: 'Social Media Kit', type: 'other', fileType: 'zip', description: 'Pre-made graphics for attendee sharing' },
   ],
+  eventPrintMaterials: [],
   eventSchedule: [
     // Day 1
     { id: 's1', time: '8:00 AM', title: 'Registration & Welcome Coffee', location: 'Main Lobby' },

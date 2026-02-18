@@ -370,6 +370,7 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
     eventSignage: safeArray(g.eventSignage),
     eventBanners: safeArray(g.eventBanners),
     eventDigitalMaterials: safeArray(g.eventDigitalMaterials),
+    eventPrintMaterials: safeArray(g.eventPrintMaterials),
     eventSchedule: safeArray(g.eventSchedule),
     eventSpeakers: safeArray(g.eventSpeakers),
     eventSponsors: safeArray(g.eventSponsors).map((s: any) => ({

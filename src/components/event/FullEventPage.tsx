@@ -186,6 +186,8 @@ export const FullEventPage = ({
             onTemplatesChange={editHandler((templates) => updateEvent({ templates }))}
             brochures={event.brochures || []}
             onBrochuresChange={editHandler((brochures) => updateEvent({ brochures }))}
+            printMaterials={event.eventPrintMaterials || []}
+            onPrintMaterialsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined}
             isEditable={canEdit}
             eventId={event.id}
           />
