@@ -486,6 +486,8 @@ const EVENT_ONLY_SECTIONS = new Set([
 // Sections that only apply to brands/products (excluded from event scoring)
 const BRAND_ONLY_SECTIONS = new Set([
   'webinars', 'locations', 'revenueData', 'customShapes',
+  'websites', 'signatures', 'qr', 'displayBanners', 'caseStudies',
+  'emailBanners', 'statistics', 'iconography', 'socialIcons', 'brandIcons',
 ]);
 
 /**
