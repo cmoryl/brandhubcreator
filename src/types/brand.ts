@@ -385,6 +385,7 @@ export interface LinkedBoothCard {
   services: string[];
   linkedAt: string;
   links?: BoothLink[];
+  customImage?: string;
 }
 
 // IMAGE ASSETS - Downloadable Image Library
