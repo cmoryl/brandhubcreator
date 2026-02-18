@@ -624,7 +624,8 @@ const EventEditor = () => {
       case 'brochures': 
         return <DigitalCollateralSection collateral={event.brochures} onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))} />;
       case 'templates': 
-        return <TemplatesSection templates={event.templates} onTemplatesChange={editHandler((templates) => updateEvent({ templates }))} />;
+        // Handled in eventdigital unified section - no standalone render
+        return null;
       case 'templatespecs':
         return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))} />;
       case 'subevents': {
