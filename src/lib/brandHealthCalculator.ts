@@ -494,24 +494,43 @@ const BRAND_ONLY_SECTIONS = new Set([
  * Calculate brand health score from guide_data
  * @param hiddenSections - sections hidden by the admin; excluded from scoring
  * @param entityType - 'brand' | 'product' | 'event' to filter relevant sections
+ * @param sectionOrder - optional ordered list of sidebar section IDs; when provided, ONLY
+ *   sections present in this list (and not hidden) are scored. This ensures the health
+ *   checklist matches the sidebar exactly.
  */
 export function calculateBrandHealth(
   guideData: GuideData | null | undefined,
   hiddenSections?: string[] | null,
-  entityType?: 'brand' | 'product' | 'event'
+  entityType?: 'brand' | 'product' | 'event',
+  sectionOrder?: string[] | null
 ): HealthScoreResult {
   // Build the set of WEIGHT keys that correspond to hidden SectionIds
   const hiddenWeightKeys = new Set(
     (hiddenSections ?? []).map(id => SECTION_ID_TO_WEIGHT_KEY[id] ?? id)
   );
-  // Filter sections by entity type relevance
+
+  // When a sectionOrder is provided, build a whitelist of weight keys from it.
+  // This guarantees the health score only counts sections visible in the sidebar.
+  let allowedByOrder: Set<string> | null = null;
+  if (sectionOrder && sectionOrder.length > 0) {
+    allowedByOrder = new Set(
+      sectionOrder.map(id => SECTION_ID_TO_WEIGHT_KEY[id] ?? id)
+    );
+  }
+
+  // Filter sections by entity type relevance (fallback when no sectionOrder)
   const excludeByType = entityType === 'event' ? BRAND_ONLY_SECTIONS
     : (entityType === 'brand' || entityType === 'product') ? EVENT_ONLY_SECTIONS
     : new Set<string>();
+
   // Only count sections that are NOT hidden and relevant to the entity type
-  const activeSections = Object.entries(SECTION_WEIGHTS).filter(
-    ([key]) => !hiddenWeightKeys.has(key) && !excludeByType.has(key)
-  );
+  const activeSections = Object.entries(SECTION_WEIGHTS).filter(([key]) => {
+    if (hiddenWeightKeys.has(key)) return false;
+    // If sectionOrder whitelist exists, only include sections in it
+    if (allowedByOrder) return allowedByOrder.has(key);
+    // Otherwise fall back to entity-type exclusion
+    return !excludeByType.has(key);
+  });
   const totalSections = activeSections.length;
 
   if (!guideData) {

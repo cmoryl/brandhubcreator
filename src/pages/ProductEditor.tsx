@@ -453,9 +453,9 @@ const ProductEditor = () => {
   // Calculate health for card view
   const cardViewHealthScore = useMemo(() => {
     if (!currentProduct) return undefined;
-    const health = calculateBrandHealth(currentProduct as unknown as Record<string, unknown>, hiddenSections, 'product');
+    const health = calculateBrandHealth(currentProduct as unknown as Record<string, unknown>, hiddenSections, 'product', sectionOrder);
     return health.overallScore;
-  }, [currentProduct, hiddenSections]);
+  }, [currentProduct, hiddenSections, sectionOrder]);
 
   const handlePageSettingsChange = useCallback((newSettings: BrandPageSettings) => {
     if (currentProduct) {
@@ -620,7 +620,7 @@ const ProductEditor = () => {
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
     
     switch (activeSection) {
-      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={editHandler((hero) => handleUpdateProduct({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={currentProduct as unknown as Record<string, unknown>} entityType="product" entityId={currentProduct.id} complianceScore={complianceScores?.get(currentProduct.id)?.score} hiddenSections={hiddenSections} compact={viewMode === 'cards'} />;
+      case 'hero': return <HeroSection hero={currentProduct.hero} onHeroChange={editHandler((hero) => handleUpdateProduct({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={currentProduct as unknown as Record<string, unknown>} entityType="product" entityId={currentProduct.id} complianceScore={complianceScores?.get(currentProduct.id)?.score} hiddenSections={hiddenSections} sectionOrder={sectionOrder} compact={viewMode === 'cards'} />;
       case 'tagline': return <TaglineSection tagline={currentProduct.tagline} onTaglineChange={editHandler((tagline) => handleUpdateProduct({ tagline }))} />;
       case 'identity': return <IdentitySection identity={currentProduct.identity} onIdentityChange={editHandler((identity) => handleUpdateProduct({ identity }))} />;
       case 'values': return <ValuesSection values={currentProduct.values} onValuesChange={editHandler((values) => handleUpdateProduct({ values }))} organizationId={currentProduct.organizationId} brandId={currentProduct.id} brandName={currentProduct.hero.name} canEdit={canEdit} />;
