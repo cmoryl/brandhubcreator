@@ -32,6 +32,7 @@ const SECTION_WEIGHTS: Record<string, { weight: number; label: string }> = {
   social: { weight: 5, label: 'Social Profiles' },
   socialIcons: { weight: 2, label: 'Social Icons' },
   socialAssets: { weight: 2, label: 'Social Assets' },
+  socialMetrics: { weight: 2, label: 'Social Metrics' },
   websites: { weight: 3, label: 'Website' },
   qr: { weight: 2, label: 'QR Codes' },
   signatures: { weight: 2, label: 'Email Signatures' },
@@ -67,6 +68,23 @@ const SECTION_WEIGHTS: Record<string, { weight: number; label: string }> = {
   // Extended Features (Low Weight)
   linkedGuides: { weight: 1, label: 'Linked Guides' },
   emailBanners: { weight: 1, label: 'Email Banners' },
+
+  // ─── Event-Specific Sections ───
+  eventDetails: { weight: 8, label: 'Event Details' },
+  eventLogos: { weight: 5, label: 'Event Logos' },
+  eventSchedule: { weight: 6, label: 'Event Schedule' },
+  eventSpeakers: { weight: 5, label: 'Speakers' },
+  eventSponsors: { weight: 5, label: 'Sponsors' },
+  eventHistory: { weight: 2, label: 'Event History' },
+  eventVideos: { weight: 3, label: 'Event Videos' },
+  eventLocation: { weight: 4, label: 'Event Location' },
+  eventWebsites: { weight: 3, label: 'Event Websites' },
+  eventBanners: { weight: 2, label: 'Event Banners' },
+  eventDigitalMaterials: { weight: 3, label: 'Digital Materials' },
+  eventPatterns: { weight: 2, label: 'Event Patterns' },
+  subevents: { weight: 3, label: 'Sub-Events' },
+  sharedAssets: { weight: 2, label: 'Shared Assets' },
+  partnerBooths: { weight: 3, label: 'Partner Booths' },
 };
 
 export interface SectionScore {
@@ -340,9 +358,77 @@ function calculateSectionCompleteness(
     case 'emailBanners':
     case 'videos':
     case 'assets':
-    case 'imageAssets': {
+    case 'imageAssets':
+    case 'eventLogos':
+    case 'eventBanners':
+    case 'eventDigitalMaterials':
+    case 'eventVideos':
+    case 'eventHistory':
+    case 'eventPatterns':
+    case 'sharedAssets':
+    case 'partnerBooths':
+    case 'eventWebsites': {
       const arr = safeArray(guideData[section]);
       return scoreArray(arr);
+    }
+
+    // ─── Event-Specific Sections ───
+
+    case 'eventDetails': {
+      const details = guideData.eventDetails as Record<string, unknown> | undefined;
+      if (!details) return 0;
+      const fields = ['eventName', 'startDate', 'endDate', 'venue', 'city', 'country', 'description', 'format'];
+      const filled = countFilledFields(details, fields);
+      if (filled >= 5) return 1;
+      if (filled >= 3) return 0.7;
+      if (filled >= 1) return 0.3;
+      return 0;
+    }
+
+    case 'eventSchedule': {
+      const schedule = safeArray(guideData.eventSchedule);
+      if (schedule.length === 0) return 0;
+      if (schedule.length >= 5) return 1;
+      if (schedule.length >= 3) return 0.7;
+      return 0.4;
+    }
+
+    case 'eventSpeakers': {
+      const speakers = safeArray(guideData.eventSpeakers);
+      if (speakers.length === 0) return 0;
+      if (speakers.length >= 4) return 1;
+      if (speakers.length >= 2) return 0.7;
+      return 0.4;
+    }
+
+    case 'eventSponsors': {
+      const sponsors = safeArray(guideData.eventSponsors);
+      if (sponsors.length === 0) return 0;
+      if (sponsors.length >= 3) return 1;
+      if (sponsors.length >= 1) return 0.5;
+      return 0;
+    }
+
+    case 'eventLocation': {
+      const loc = guideData.eventLocation as Record<string, unknown> | undefined;
+      if (!loc) return 0;
+      const fields = ['venue', 'address', 'city', 'country', 'mapUrl', 'directions'];
+      const filled = countFilledFields(loc, fields);
+      if (filled >= 3) return 1;
+      if (filled >= 2) return 0.7;
+      if (filled >= 1) return 0.4;
+      return 0;
+    }
+
+    case 'subevents': {
+      const subs = safeArray(guideData.subEvents || guideData.subevents);
+      return subs.length > 0 ? 1 : 0;
+    }
+
+    case 'socialMetrics': {
+      const metrics = guideData.socialMetrics as Record<string, unknown> | undefined;
+      const snapshots = safeArray((metrics as any)?.snapshots || guideData.socialMetricsSnapshots);
+      return snapshots.length > 0 ? 1 : 0;
     }
 
     default:
@@ -371,24 +457,58 @@ const SECTION_ID_TO_WEIGHT_KEY: Record<string, string> = {
   eventsignage: 'eventSignage',
   revenue: 'revenueData',
   universe: 'linkedGuides',
+  // Event-specific section ID → weight key mappings
+  eventdetails: 'eventDetails',
+  eventlogos: 'eventLogos',
+  eventschedule: 'eventSchedule',
+  eventspeakers: 'eventSpeakers',
+  eventsponsors: 'eventSponsors',
+  eventhistory: 'eventHistory',
+  eventvideos: 'eventVideos',
+  eventlocation: 'eventLocation',
+  eventwebsites: 'eventWebsites',
+  eventbanners: 'eventBanners',
+  eventdigital: 'eventDigitalMaterials',
+  eventpatterns: 'eventPatterns',
+  partnerbooths: 'partnerBooths',
+  subevents: 'subevents',
+  sharedassets: 'sharedAssets',
   // 'products' and 'events' are nav-only sections with no weight key
 };
+
+// Sections that only apply to events (excluded from brand/product scoring)
+const EVENT_ONLY_SECTIONS = new Set([
+  'eventDetails', 'eventLogos', 'eventSchedule', 'eventSpeakers', 'eventSponsors',
+  'eventHistory', 'eventVideos', 'eventLocation', 'eventWebsites', 'eventBanners',
+  'eventDigitalMaterials', 'eventPatterns', 'subevents', 'sharedAssets', 'partnerBooths',
+]);
+
+// Sections that only apply to brands/products (excluded from event scoring)
+const BRAND_ONLY_SECTIONS = new Set([
+  'webinars', 'locations', 'revenueData', 'customShapes',
+]);
 
 /**
  * Calculate brand health score from guide_data
  * @param hiddenSections - sections hidden by the admin; excluded from scoring
+ * @param entityType - 'brand' | 'product' | 'event' to filter relevant sections
  */
 export function calculateBrandHealth(
   guideData: GuideData | null | undefined,
-  hiddenSections?: string[] | null
+  hiddenSections?: string[] | null,
+  entityType?: 'brand' | 'product' | 'event'
 ): HealthScoreResult {
   // Build the set of WEIGHT keys that correspond to hidden SectionIds
   const hiddenWeightKeys = new Set(
     (hiddenSections ?? []).map(id => SECTION_ID_TO_WEIGHT_KEY[id] ?? id)
   );
-  // Only count sections that are NOT hidden
+  // Filter sections by entity type relevance
+  const excludeByType = entityType === 'event' ? BRAND_ONLY_SECTIONS
+    : (entityType === 'brand' || entityType === 'product') ? EVENT_ONLY_SECTIONS
+    : new Set<string>();
+  // Only count sections that are NOT hidden and relevant to the entity type
   const activeSections = Object.entries(SECTION_WEIGHTS).filter(
-    ([key]) => !hiddenWeightKeys.has(key)
+    ([key]) => !hiddenWeightKeys.has(key) && !excludeByType.has(key)
   );
   const totalSections = activeSections.length;
 
@@ -431,12 +551,16 @@ export function calculateBrandHealth(
   const categories = [
     { name: 'Core Identity', sections: ['hero', 'tagline', 'identity', 'values', 'services'] },
     { name: 'Visual Identity', sections: ['colors', 'colorCombinations', 'typography', 'logos', 'brandIcons', 'gradients', 'patterns', 'customShapes', 'iconography', 'textstyles'] },
-    { name: 'Digital Presence', sections: ['social', 'socialIcons', 'socialAssets', 'websites', 'qr', 'signatures'] },
+    { name: 'Digital Presence', sections: ['social', 'socialIcons', 'socialAssets', 'socialMetrics', 'websites', 'qr', 'signatures'] },
     { name: 'Content & Assets', sections: ['imagery', 'imageAssets', 'videos', 'assets', 'misuse'] },
     { name: 'Marketing Materials', sections: ['templates', 'templateSpecs', 'presentationTemplates', 'brochures', 'displayBanners'] },
     { name: 'Business & Events', sections: ['awards', 'caseStudies', 'statistics', 'revenueData', 'locations', 'webinars', 'insights', 'eventSignage'] },
     { name: 'Partnerships', sections: ['clientLogos', 'sponsorLogos'] },
     { name: 'Extended Features', sections: ['linkedGuides', 'emailBanners'] },
+    // Event-specific categories (only score if sections exist in guide)
+    { name: 'Event Core', sections: ['eventDetails', 'eventLocation', 'eventSchedule', 'eventSpeakers', 'subevents'] },
+    { name: 'Event Branding', sections: ['eventLogos', 'eventBanners', 'eventDigitalMaterials', 'eventPatterns', 'eventVideos', 'eventWebsites'] },
+    { name: 'Event Partners', sections: ['eventSponsors', 'partnerBooths', 'sharedAssets', 'eventHistory'] },
   ];
 
   const categoryScores = categories.map(cat => {

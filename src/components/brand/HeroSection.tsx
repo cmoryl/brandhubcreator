@@ -87,8 +87,8 @@ export const HeroSection = ({
 
   // Calculate real health score from guide_data (excluding hidden sections)
   const calculatedHealth = useMemo(() => {
-    return calculateBrandHealth(guideData, hiddenSections);
-  }, [guideData, hiddenSections]);
+    return calculateBrandHealth(guideData, hiddenSections, entityType);
+  }, [guideData, hiddenSections, entityType]);
 
   // Use calculated health score if guideData provided, otherwise fall back to stats prop
   const displayStats: HeroStats = useMemo(() => {

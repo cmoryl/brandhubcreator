@@ -471,7 +471,7 @@ const BrandEditor = () => {
   // Calculate brand health for card view
   const cardViewHealthScore = useMemo(() => {
     if (!brand) return undefined;
-    const health = calculateBrandHealth(brand as unknown as Record<string, unknown>, hiddenSections);
+    const health = calculateBrandHealth(brand as unknown as Record<string, unknown>, hiddenSections, 'brand');
     return health.overallScore;
   }, [brand, hiddenSections]);
 

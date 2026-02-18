@@ -348,7 +348,7 @@ const EventEditor = () => {
   // Calculate health for card view
   const cardViewHealthScore = useMemo(() => {
     if (!event) return undefined;
-    const health = calculateBrandHealth(event as unknown as Record<string, unknown>, hiddenSections);
+    const health = calculateBrandHealth(event as unknown as Record<string, unknown>, hiddenSections, 'event');
     return health.overallScore;
   }, [event, hiddenSections]);
 
