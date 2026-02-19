@@ -124,7 +124,7 @@ export interface EventDigitalMaterial {
 export interface EventPrintMaterial {
   id: string;
   name: string;
-  type: 'flyer' | 'poster' | 'brochure' | 'banner' | 'business-card' | 'badge' | 'signage' | 'sticker' | 'other';
+  type: 'flyer' | 'poster' | 'brochure' | 'banner' | 'business-card' | 'badge' | 'signage' | 'sticker' | 'prospectus' | 'deck' | 'tier-sheet' | 'agreement' | 'logo-sheet' | 'benefits' | 'activation' | 'thank-you' | 'other';
   dimensions?: string;
   previewUrl?: string;
   fileUrl?: string;
