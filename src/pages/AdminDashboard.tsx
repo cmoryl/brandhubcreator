@@ -65,6 +65,7 @@ import { BotManagementPanel } from '@/components/admin/BotManagementPanel';
 import { OracleBrainPanel } from '@/components/admin/OracleBrainPanel';
 import { BiasAwarenessAdminPanel } from '@/components/admin/BiasAwarenessAdminPanel';
 import { AccessibilityStandardsPanel } from '@/components/admin/AccessibilityStandardsPanel';
+import { HealthTimelinePanel } from '@/components/admin/HealthTimelinePanel';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -783,6 +784,11 @@ export default function AdminDashboard() {
           {/* Bias Awareness Tab */}
           <TabsContent value="bias-awareness" className="space-y-6">
             <BiasAwarenessAdminPanel />
+          </TabsContent>
+
+          {/* Health Timeline Tab */}
+          <TabsContent value="health-timeline" className="space-y-6">
+            <HealthTimelinePanel />
           </TabsContent>
 
           {/* Bot Management Tab */}

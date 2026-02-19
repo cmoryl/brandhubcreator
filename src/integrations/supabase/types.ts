@@ -2393,6 +2393,89 @@ export type Database = {
           },
         ]
       }
+      health_snapshots: {
+        Row: {
+          bias_details: Json | null
+          bias_inclusion_score: number | null
+          brand_health_score: number | null
+          competitive_details: Json | null
+          competitive_score: number | null
+          compliance_details: Json | null
+          compliance_score: number | null
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          id: string
+          organization_id: string
+          period_type: string
+          score_deltas: Json | null
+          snapshot_date: string
+          social_metrics: Json | null
+          triggered_by: string | null
+          updated_at: string
+          website_details: Json | null
+          website_score: number | null
+        }
+        Insert: {
+          bias_details?: Json | null
+          bias_inclusion_score?: number | null
+          brand_health_score?: number | null
+          competitive_details?: Json | null
+          competitive_score?: number | null
+          compliance_details?: Json | null
+          compliance_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_name: string
+          entity_type?: string
+          id?: string
+          organization_id: string
+          period_type?: string
+          score_deltas?: Json | null
+          snapshot_date?: string
+          social_metrics?: Json | null
+          triggered_by?: string | null
+          updated_at?: string
+          website_details?: Json | null
+          website_score?: number | null
+        }
+        Update: {
+          bias_details?: Json | null
+          bias_inclusion_score?: number | null
+          brand_health_score?: number | null
+          competitive_details?: Json | null
+          competitive_score?: number | null
+          compliance_details?: Json | null
+          compliance_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_name?: string
+          entity_type?: string
+          id?: string
+          organization_id?: string
+          period_type?: string
+          score_deltas?: Json | null
+          snapshot_date?: string
+          social_metrics?: Json | null
+          triggered_by?: string | null
+          updated_at?: string
+          website_details?: Json | null
+          website_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_snapshots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_submissions: {
         Row: {
           admin_notes: string | null
@@ -4245,6 +4328,20 @@ export type Database = {
           slug: string
         }[]
       }
+      get_health_trends: {
+        Args: { p_entity_id: string; p_entity_type?: string; p_months?: number }
+        Returns: {
+          bias_inclusion_score: number
+          brand_health_score: number
+          competitive_score: number
+          compliance_score: number
+          period_type: string
+          score_deltas: Json
+          snapshot_date: string
+          triggered_by: string
+          website_score: number
+        }[]
+      }
       get_linked_products_card_data: {
         Args: { p_parent_brand_id: string }
         Returns: {
@@ -4253,6 +4350,17 @@ export type Database = {
           id: string
           name: string
           slug: string
+        }[]
+      }
+      get_org_health_summary: {
+        Args: { p_months?: number; p_org_id: string }
+        Returns: {
+          avg_bias_score: number
+          avg_compliance_score: number
+          avg_health_score: number
+          avg_website_score: number
+          entity_count: number
+          snapshot_date: string
         }[]
       }
       get_org_slug_by_id: {
