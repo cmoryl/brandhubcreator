@@ -617,7 +617,7 @@ const EventEditor = () => {
       case 'eventlocation':
         return <EventLocationSection location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} onUpdate={(eventLocation) => updateEvent({ eventLocation })} isEditable={canEdit || false} />;
       case 'assets': 
-        return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} websiteUrl={(event as any).websites?.[0]?.url} />;
+        return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} websiteUrl={(event as any).websites?.[0]?.url} entityId={event.id} entityType="event" />;
       case 'misuse': 
         return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} />;
       case 'casestudies': 
