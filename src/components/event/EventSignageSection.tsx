@@ -246,7 +246,7 @@ export const EventSignageSection = ({
       ) : (
         <div className="space-y-3">
           {Object.entries(groupedSignage).map(([type, items]) => (
-            <Collapsible key={type} defaultOpen={true}>
+            <Collapsible key={type} defaultOpen={false}>
               <CollapsibleTrigger className="w-full flex items-center justify-between p-3 rounded-lg border border-border/40 bg-muted/20 hover:bg-muted/40 transition-colors group/trigger">
                 <div className="flex items-center gap-3">
                   <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=closed]/trigger:-rotate-90" />
