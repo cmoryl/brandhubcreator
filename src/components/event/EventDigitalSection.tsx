@@ -141,6 +141,15 @@ export const EventDigitalSection = ({
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<EventBanner | null>(null);
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
+  const [imagePreviewTitle, setImagePreviewTitle] = useState<string>('');
+
+  const openImagePreview = (url: string, title: string) => {
+    setImagePreviewUrl(url);
+    setImagePreviewTitle(title);
+    setImagePreviewOpen(true);
+  };
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
   const printFileInputRef = useRef<HTMLInputElement>(null);
   const emailBannerFileInputRef = useRef<HTMLInputElement>(null);
@@ -759,7 +768,10 @@ export const EventDigitalSection = ({
                 return (
                   <Card key={material.id} className="group hover:border-primary/50 transition-colors overflow-hidden">
                     <CardContent className="p-0">
-                      <div className="aspect-[3/4] bg-muted/30 flex items-center justify-center relative">
+                      <div
+                        className="aspect-[3/4] bg-muted/30 flex items-center justify-center relative cursor-pointer"
+                        onClick={() => material.previewUrl && openImagePreview(material.previewUrl, material.name)}
+                      >
                         {material.previewUrl ? (
                           <img 
                             src={material.previewUrl} 
@@ -776,12 +788,17 @@ export const EventDigitalSection = ({
                             )}
                           </div>
                         )}
+                        {material.previewUrl && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors">
+                            <Maximize2 className="h-5 w-5 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
+                          </div>
+                        )}
                         {isEditable && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute top-1 right-1 h-6 w-6 text-destructive hover:text-destructive bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDeleteMaterial(material.id)}
+                            className="absolute top-1 right-1 h-6 w-6 text-destructive hover:text-destructive bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteMaterial(material.id); }}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -1004,7 +1021,10 @@ export const EventDigitalSection = ({
                 {brochures.map((brochure) => (
                   <Card key={brochure.id} className="group hover:border-primary/50 transition-colors overflow-hidden">
                     <CardContent className="p-0">
-                      <div className="aspect-[3/4] bg-muted/30 flex items-center justify-center relative">
+                      <div
+                        className="aspect-[3/4] bg-muted/30 flex items-center justify-center relative cursor-pointer"
+                        onClick={() => brochure.previewUrl && openImagePreview(brochure.previewUrl, brochure.title)}
+                      >
                         {brochure.previewUrl ? (
                           <img 
                             src={brochure.previewUrl} 
@@ -1014,12 +1034,17 @@ export const EventDigitalSection = ({
                         ) : (
                           <BookOpen className="h-8 w-8 text-muted-foreground/60" />
                         )}
+                        {brochure.previewUrl && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors">
+                            <Maximize2 className="h-5 w-5 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
+                          </div>
+                        )}
                         {isEditable && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute top-1 right-1 h-6 w-6 text-destructive hover:text-destructive bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDeleteBrochure(brochure.id)}
+                            className="absolute top-1 right-1 h-6 w-6 text-destructive hover:text-destructive bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteBrochure(brochure.id); }}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -1165,11 +1190,17 @@ export const EventDigitalSection = ({
                   return (
                     <Card key={item.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
                       {item.previewUrl ? (
-                        <div className="bg-muted/30 relative flex items-center justify-center p-2">
+                        <div
+                          className="bg-muted/30 relative flex items-center justify-center p-2 cursor-pointer group/img"
+                          onClick={() => openImagePreview(item.previewUrl!, item.name)}
+                        >
                           <img src={item.previewUrl} alt={item.name} className="w-full h-auto max-h-[180px] object-contain rounded" />
                           <Badge className="absolute top-1.5 left-1.5 text-[10px] bg-primary/10 text-primary">
                             {SPONSORSHIP_TYPES.find(t => t.value === item.type)?.label}
                           </Badge>
+                          <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover/img:bg-foreground/20 transition-colors rounded">
+                            <Maximize2 className="h-5 w-5 text-background opacity-0 group-hover/img:opacity-80 transition-opacity drop-shadow-lg" />
+                          </div>
                         </div>
                       ) : (
                         <div className="aspect-[4/3] bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center relative">
@@ -1257,18 +1288,26 @@ export const EventDigitalSection = ({
                             className="relative w-full overflow-hidden rounded border border-border"
                             style={{ aspectRatio: `${aspectRatio}` }}
                           >
-                            {banner.imageUrl ? (
-                              <img src={banner.imageUrl} alt={banner.name} className="w-full h-full object-contain" />
+                          {banner.imageUrl ? (
+                              <img src={banner.imageUrl} alt={banner.name} className="w-full h-full object-contain cursor-pointer" onClick={() => openImagePreview(banner.imageUrl, banner.name)} />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <Mail className="h-8 w-8 text-muted-foreground/30" />
                               </div>
                             )}
+                            {banner.imageUrl && (
+                              <div
+                                className="absolute inset-0 flex items-center justify-center bg-foreground/0 hover:bg-foreground/20 transition-colors cursor-pointer"
+                                onClick={() => openImagePreview(banner.imageUrl, banner.name)}
+                              >
+                                <Maximize2 className="h-5 w-5 text-background opacity-0 hover:opacity-80 transition-opacity drop-shadow-lg" />
+                              </div>
+                            )}
                             {isEditable && (
                               <Button
                                 variant="ghost" size="icon"
-                                className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => handleDeleteEmailBanner(banner.id)}
+                                className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                onClick={(e) => { e.stopPropagation(); handleDeleteEmailBanner(banner.id); }}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -1332,13 +1371,19 @@ export const EventDigitalSection = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {infographics.map((item) => (
                     <Card key={item.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
-                      <div className="bg-muted/30 relative">
+                      <div
+                        className="bg-muted/30 relative cursor-pointer"
+                        onClick={() => openImagePreview(item.imageUrl, item.name)}
+                      >
                         <img src={item.imageUrl} alt={item.name} className="w-full h-auto max-h-[300px] object-contain" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors">
+                          <Maximize2 className="h-6 w-6 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
+                        </div>
                         {isEditable && (
                           <Button
                             variant="ghost" size="icon"
-                            className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDeleteInfographic(item.id)}
+                            className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteInfographic(item.id); }}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -1393,13 +1438,19 @@ export const EventDigitalSection = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {applications.map((app) => (
                     <Card key={app.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
-                      <div className="bg-muted/30 relative">
+                      <div
+                        className="bg-muted/30 relative cursor-pointer"
+                        onClick={() => openImagePreview(app.imageUrl, app.name)}
+                      >
                         <img src={app.imageUrl} alt={app.name} className="w-full h-auto max-h-[300px] object-contain" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors">
+                          <Maximize2 className="h-6 w-6 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
+                        </div>
                         {isEditable && (
                           <Button
                             variant="ghost" size="icon"
-                            className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleDeleteApplication(app.id)}
+                            className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteApplication(app.id); }}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -1437,6 +1488,15 @@ export const EventDigitalSection = ({
           previewUrl={previewItem.previewUrl}
         />
       )}
+
+      {/* General Image Preview Dialog */}
+      <PreviewDialog
+        open={imagePreviewOpen}
+        onOpenChange={setImagePreviewOpen}
+        title={imagePreviewTitle}
+        previewUrl={imagePreviewUrl}
+        type="image"
+      />
     </section>
   );
 };
