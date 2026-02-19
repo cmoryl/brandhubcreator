@@ -342,6 +342,7 @@ export const analyzePalette = (
 
 /** Extract hex colors from a CSS gradient string */
 export const extractGradientColors = (css: string): string[] => {
+  if (!css || typeof css !== 'string') return [];
   const hexMatches = css.match(/#[0-9a-fA-F]{3,8}/g) || [];
   // Normalize 3-char hex to 6-char
   return hexMatches.map(h => {
@@ -362,6 +363,9 @@ export interface GradientAccessibility {
 }
 
 export const analyzeGradient = (css: string): GradientAccessibility => {
+  if (!css || typeof css !== 'string') {
+    return { colors: [], minContrast: 0, maxContrast: 0, wcagLevel: 'Fail', colorblindSafe: false, darkModeScore: 0 };
+  }
   const colors = extractGradientColors(css);
   if (colors.length < 2) {
     return { colors, minContrast: 0, maxContrast: 0, wcagLevel: 'Fail', colorblindSafe: false, darkModeScore: 0 };
