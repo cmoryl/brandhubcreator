@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2, Printer } from 'lucide-react';
+import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2, Handshake, DollarSign, Award, Heart, Star } from 'lucide-react';
 import { EventDigitalMaterial, EventBanner, EventPrintMaterial } from '@/types/event';
 import { BrandTemplate, BrandBrochure } from '@/types/brand';
 import { Input } from '@/components/ui/input';
@@ -46,15 +46,15 @@ const MATERIAL_TYPES = [
   { value: 'other', label: 'Other', icon: FileText },
 ];
 
-const PRINT_MATERIAL_TYPES = [
-  { value: 'flyer', label: 'Flyer', icon: FileText },
-  { value: 'poster', label: 'Poster', icon: ImageIcon },
-  { value: 'brochure', label: 'Brochure', icon: BookOpen },
-  { value: 'banner', label: 'Banner', icon: Printer },
-  { value: 'business-card', label: 'Business Card', icon: IdCard },
-  { value: 'badge', label: 'Badge', icon: IdCard },
-  { value: 'signage', label: 'Signage', icon: Presentation },
-  { value: 'sticker', label: 'Sticker', icon: FileText },
+const SPONSORSHIP_TYPES = [
+  { value: 'prospectus', label: 'Sponsorship Prospectus', icon: FileText },
+  { value: 'deck', label: 'Sponsorship Deck', icon: Presentation },
+  { value: 'tier-sheet', label: 'Tier / Pricing Sheet', icon: DollarSign },
+  { value: 'agreement', label: 'Sponsorship Agreement', icon: FileText },
+  { value: 'logo-sheet', label: 'Logo Placement Guide', icon: ImageIcon },
+  { value: 'benefits', label: 'Benefits Overview', icon: Award },
+  { value: 'activation', label: 'Activation Plan', icon: Star },
+  { value: 'thank-you', label: 'Thank You Package', icon: Heart },
   { value: 'other', label: 'Other', icon: FileText },
 ];
 
@@ -125,7 +125,7 @@ export const EventDigitalSection = ({
   subtitle,
   eventId,
 }: EventDigitalSectionProps) => {
-  const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures' | 'print'>('banners');
+  const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures' | 'sponsorship'>('banners');
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<EventBanner | null>(null);
@@ -163,10 +163,10 @@ export const EventDigitalSection = ({
     category: 'event',
   });
 
-  // Print material form state
+  // Sponsorship material form state
   const [newPrintMaterial, setNewPrintMaterial] = useState<Partial<EventPrintMaterial>>({
     name: '',
-    type: 'flyer',
+    type: 'prospectus',
     dimensions: '',
     description: '',
   });
@@ -269,13 +269,13 @@ export const EventDigitalSection = ({
     toast.success('Brochure removed');
   };
 
-  // Print material handlers
+  // Sponsorship material handlers
   const handleAddPrintMaterial = () => {
     if (!newPrintMaterial.name || !onPrintMaterialsChange) return;
     const item: EventPrintMaterial = {
       id: crypto.randomUUID(),
       name: newPrintMaterial.name,
-      type: (newPrintMaterial.type || 'flyer') as EventPrintMaterial['type'],
+      type: (newPrintMaterial.type || 'prospectus') as EventPrintMaterial['type'],
       dimensions: newPrintMaterial.dimensions,
       previewUrl: newPrintMaterial.previewUrl,
       fileUrl: newPrintMaterial.fileUrl,
@@ -283,15 +283,15 @@ export const EventDigitalSection = ({
       quantity: newPrintMaterial.quantity,
     };
     onPrintMaterialsChange([...printMaterials, item]);
-    setNewPrintMaterial({ name: '', type: 'flyer', dimensions: '', description: '' });
+    setNewPrintMaterial({ name: '', type: 'prospectus', dimensions: '', description: '' });
     setIsAddingNew(false);
-    toast.success('Print material added');
+    toast.success('Sponsorship material added');
   };
 
   const handleDeletePrintMaterial = (id: string) => {
     if (!onPrintMaterialsChange) return;
     onPrintMaterialsChange(printMaterials.filter(p => p.id !== id));
-    toast.success('Print material removed');
+    toast.success('Sponsorship material removed');
   };
 
   const hasTemplatesSection = !!onTemplatesChange;
@@ -347,9 +347,9 @@ export const EventDigitalSection = ({
             </TabsTrigger>
           )}
           {hasPrintSection && (
-            <TabsTrigger value="print" className="gap-1.5">
-              <Printer className="h-4 w-4" />
-              Print Materials
+            <TabsTrigger value="sponsorship" className="gap-1.5">
+              <Handshake className="h-4 w-4" />
+              Sponsorship
               {printMaterials.length > 0 && <span className="text-xs text-muted-foreground">({printMaterials.length})</span>}
             </TabsTrigger>
           )}
@@ -930,23 +930,23 @@ export const EventDigitalSection = ({
           </TabsContent>
         )}
 
-        {/* Print Materials Tab */}
+        {/* Sponsorship Tab */}
         {hasPrintSection && (
-          <TabsContent value="print">
-            {isAddingNew && activeTab === 'print' && (
+          <TabsContent value="sponsorship">
+            {isAddingNew && activeTab === 'sponsorship' && (
               <Card className="mb-6 border-dashed border-primary">
                 <CardContent className="p-6 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>Name</Label>
-                      <Input value={newPrintMaterial.name || ''} onChange={(e) => setNewPrintMaterial({ ...newPrintMaterial, name: e.target.value })} placeholder="Event Flyer" />
+                      <Input value={newPrintMaterial.name || ''} onChange={(e) => setNewPrintMaterial({ ...newPrintMaterial, name: e.target.value })} placeholder="Sponsorship Prospectus 2026" />
                     </div>
                     <div className="space-y-2">
                       <Label>Type</Label>
                       <Select value={newPrintMaterial.type} onValueChange={(value) => setNewPrintMaterial({ ...newPrintMaterial, type: value as EventPrintMaterial['type'] })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {PRINT_MATERIAL_TYPES.map((type) => (
+                          {SPONSORSHIP_TYPES.map((type) => (
                             <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                           ))}
                         </SelectContent>
@@ -1030,7 +1030,7 @@ export const EventDigitalSection = ({
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setIsAddingNew(false)}><X className="h-4 w-4 mr-2" />Cancel</Button>
-                    <Button onClick={handleAddPrintMaterial} disabled={!newPrintMaterial.name}><Check className="h-4 w-4 mr-2" />Add Print Material</Button>
+                    <Button onClick={handleAddPrintMaterial} disabled={!newPrintMaterial.name}><Check className="h-4 w-4 mr-2" />Add Sponsorship Material</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -1039,12 +1039,12 @@ export const EventDigitalSection = ({
             {printMaterials.length === 0 && !isAddingNew ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <Printer className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h3 className="font-semibold text-lg mb-2">No print materials yet</h3>
-                  <p className="text-muted-foreground mb-4">Add flyers, posters, brochures, and other printed collateral</p>
+                  <Handshake className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="font-semibold text-lg mb-2">No sponsorship materials yet</h3>
+                  <p className="text-muted-foreground mb-4">Add sponsorship decks, prospectuses, and partnership collateral</p>
                   {isEditable && onPrintMaterialsChange && (
-                    <Button onClick={() => { setActiveTab('print'); setIsAddingNew(true); }}>
-                      <Plus className="h-4 w-4 mr-2" />Add First Print Material
+                    <Button onClick={() => { setActiveTab('sponsorship'); setIsAddingNew(true); }}>
+                      <Plus className="h-4 w-4 mr-2" />Add First Sponsorship Material
                     </Button>
                   )}
                 </CardContent>
@@ -1052,24 +1052,24 @@ export const EventDigitalSection = ({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {printMaterials.map((item) => {
-                  const TypeIcon = PRINT_MATERIAL_TYPES.find(t => t.value === item.type)?.icon || FileText;
+                  const TypeIcon = SPONSORSHIP_TYPES.find(t => t.value === item.type)?.icon || FileText;
                   return (
                     <Card key={item.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
                       {item.previewUrl ? (
                         <div className="bg-muted/30 relative flex items-center justify-center p-2">
                           <img src={item.previewUrl} alt={item.name} className="w-full h-auto max-h-[180px] object-contain rounded" />
-                          <Badge className="absolute top-1.5 left-1.5 text-[10px] bg-amber-100 text-amber-800">
-                            {PRINT_MATERIAL_TYPES.find(t => t.value === item.type)?.label}
+                          <Badge className="absolute top-1.5 left-1.5 text-[10px] bg-primary/10 text-primary">
+                            {SPONSORSHIP_TYPES.find(t => t.value === item.type)?.label}
                           </Badge>
                         </div>
                       ) : (
-                        <div className="aspect-[4/3] bg-gradient-to-br from-amber-500/10 to-amber-500/5 flex items-center justify-center relative">
+                        <div className="aspect-[4/3] bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center relative">
                           <div className="text-center">
                             <TypeIcon className="h-8 w-8 text-muted-foreground/30 mx-auto mb-1" />
                             {item.dimensions && <p className="text-xs text-muted-foreground font-mono">{item.dimensions}</p>}
                           </div>
-                          <Badge className="absolute top-2 left-2 text-xs bg-amber-100 text-amber-800">
-                            {PRINT_MATERIAL_TYPES.find(t => t.value === item.type)?.label}
+                          <Badge className="absolute top-2 left-2 text-xs bg-primary/10 text-primary">
+                            {SPONSORSHIP_TYPES.find(t => t.value === item.type)?.label}
                           </Badge>
                         </div>
                       )}
