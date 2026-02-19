@@ -177,7 +177,7 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
                   </p>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="font-mono">{type.fontFamily?.split(',')[0] || 'Unknown'}</span>
-                    {getGoogleFontsUrl(type.fontFamily) && canEdit && (
+                    {getGoogleFontsUrl(type.fontFamily) && (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
