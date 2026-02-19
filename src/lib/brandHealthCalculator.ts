@@ -38,28 +38,28 @@ const SECTION_WEIGHTS: Record<string, { weight: number; label: string }> = {
   signatures: { weight: 2, label: 'Email Signatures' },
 
   // Content & Assets (Medium Weight)
-  imagery: { weight: 3, label: 'Imagery Guidelines' },
+  imagery: { weight: 3, label: 'Visual Direction' },
   imageAssets: { weight: 2, label: 'Image Assets' },
   videos: { weight: 2, label: 'Videos' },
-  assets: { weight: 2, label: 'Assets' },
-  misuse: { weight: 2, label: 'Misuse Guidelines' },
+  assets: { weight: 2, label: 'Asset Downloads' },
+  misuse: { weight: 2, label: 'Anti-Patterns' },
 
   // Marketing Materials (Low-Medium Weight)
   templates: { weight: 3, label: 'Templates' },
   templateSpecs: { weight: 2, label: 'Template Specs' },
-  presentationTemplates: { weight: 2, label: 'Presentations' },
-  brochures: { weight: 3, label: 'Brochures' },
+  presentationTemplates: { weight: 2, label: 'Presentation Templates' },
+  brochures: { weight: 3, label: 'Digital Collateral' },
   displayBanners: { weight: 1, label: 'Display Banners' },
 
   // Business & Events (Low Weight)
   awards: { weight: 2, label: 'Awards & Recognition' },
   caseStudies: { weight: 2, label: 'Case Studies' },
-  statistics: { weight: 2, label: 'Statistics' },
+  statistics: { weight: 2, label: 'By the Numbers' },
   revenueData: { weight: 1, label: 'Revenue Metrics' },
-  locations: { weight: 2, label: 'Locations' },
-  webinars: { weight: 2, label: 'Webinars' },
+  locations: { weight: 2, label: 'Global Locations' },
+  webinars: { weight: 2, label: 'Webinar Series' },
   insights: { weight: 2, label: 'Insights & Updates' },
-  eventSignage: { weight: 1, label: 'Event Signage' },
+  eventSignage: { weight: 1, label: 'Signage & Banners' },
 
   // Partnerships (Low Weight)
   clientLogos: { weight: 2, label: 'Client Logos' },
@@ -77,12 +77,12 @@ const SECTION_WEIGHTS: Record<string, { weight: number; label: string }> = {
   eventSponsors: { weight: 5, label: 'Sponsors' },
   eventHistory: { weight: 2, label: 'Event History' },
   eventVideos: { weight: 3, label: 'Event Videos' },
-  eventLocation: { weight: 4, label: 'Event Location' },
-  eventWebsites: { weight: 3, label: 'Event Websites' },
-  eventBanners: { weight: 2, label: 'Event Banners' },
-  eventDigitalMaterials: { weight: 3, label: 'Digital Materials' },
+  eventLocation: { weight: 4, label: 'Venue & Location' },
+  eventWebsites: { weight: 3, label: 'Event Website' },
+  eventBanners: { weight: 2, label: 'Digital Collateral' },
+  eventDigitalMaterials: { weight: 3, label: 'Digital Collateral' },
   eventPatterns: { weight: 2, label: 'Event Patterns' },
-  subevents: { weight: 3, label: 'Sub-Events' },
+  subevents: { weight: 3, label: 'Regional Events' },
   sharedAssets: { weight: 2, label: 'Shared Assets' },
   partnerBooths: { weight: 3, label: 'Partner Booths' },
 };
@@ -481,6 +481,7 @@ const EVENT_ONLY_SECTIONS = new Set([
   'eventDetails', 'eventLogos', 'eventSchedule', 'eventSpeakers', 'eventSponsors',
   'eventHistory', 'eventVideos', 'eventLocation', 'eventWebsites', 'eventBanners',
   'eventDigitalMaterials', 'eventPatterns', 'subevents', 'sharedAssets', 'partnerBooths',
+  'eventSignage',
 ]);
 
 // Sections that only apply to brands/products (excluded from event scoring)
@@ -488,6 +489,7 @@ const BRAND_ONLY_SECTIONS = new Set([
   'webinars', 'locations', 'revenueData', 'customShapes',
   'websites', 'signatures', 'qr', 'displayBanners', 'caseStudies',
   'emailBanners', 'statistics', 'iconography', 'socialIcons', 'brandIcons',
+  'templates', 'presentationTemplates', 'brochures',
 ]);
 
 /**
