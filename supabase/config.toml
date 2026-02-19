@@ -85,3 +85,6 @@ verify_jwt = false
 
 [functions.booth-analysis]
 verify_jwt = false
+
+[functions.health-snapshot]
+verify_jwt = false
