@@ -771,7 +771,7 @@ const BrandEditor = () => {
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={editHandler((assets) => updateBrand({ assets }))} websiteUrl={brand.websites?.[0]?.url} />;
       case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => updateBrand({ misuse }))} />;
       case 'casestudies': 
-      case 'brochures': return <DigitalCollateralSection collateral={brand.brochures} onCollateralChange={editHandler((brochures) => updateBrand({ brochures }))} />;
+      case 'brochures': return <DigitalCollateralSection collateral={brand.brochures} onCollateralChange={editHandler((brochures) => updateBrand({ brochures }))} entityId={brand.id} entityType="brand" />;
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={editHandler((templates) => updateBrand({ templates }))} />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateBrand({ templateSpecs }))} brandColors={brand.colors || []} />;
       case 'products': return <ProductsSection brandId={brand.id} />;
