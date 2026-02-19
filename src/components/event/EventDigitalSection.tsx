@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2, Handshake, DollarSign, Award, Heart, Star, BarChart3, Pencil } from 'lucide-react';
-import { EventDigitalMaterial, EventBanner, EventPrintMaterial, EventInfographic } from '@/types/event';
+import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2, Handshake, DollarSign, Award, Heart, Star, BarChart3, Pencil, AppWindow } from 'lucide-react';
+import { EventDigitalMaterial, EventBanner, EventPrintMaterial, EventInfographic, EventApplication } from '@/types/event';
 import { BrandTemplate, BrandBrochure, BrandEmailBanner } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,8 @@ interface EventDigitalSectionProps {
   onEmailBannersChange?: (banners: BrandEmailBanner[]) => void;
   infographics?: EventInfographic[];
   onInfographicsChange?: (infographics: EventInfographic[]) => void;
+  applications?: EventApplication[];
+  onApplicationsChange?: (apps: EventApplication[]) => void;
   isEditable?: boolean;
   subtitle?: string;
   eventId?: string;
@@ -129,11 +131,13 @@ export const EventDigitalSection = ({
   onEmailBannersChange,
   infographics = [],
   onInfographicsChange,
+  applications = [],
+  onApplicationsChange,
   isEditable = true,
   subtitle,
   eventId,
 }: EventDigitalSectionProps) => {
-  const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures' | 'sponsorship' | 'emailbanners' | 'infographics'>('banners');
+  const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures' | 'sponsorship' | 'emailbanners' | 'infographics' | 'applications'>('banners');
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<EventBanner | null>(null);
@@ -141,6 +145,7 @@ export const EventDigitalSection = ({
   const printFileInputRef = useRef<HTMLInputElement>(null);
   const emailBannerFileInputRef = useRef<HTMLInputElement>(null);
   const infographicFileInputRef = useRef<HTMLInputElement>(null);
+  const applicationFileInputRef = useRef<HTMLInputElement>(null);
   const [bannerImageMode, setBannerImageMode] = useState<'upload' | 'url' | 'library'>('upload');
   const [printImageMode, setPrintImageMode] = useState<'upload' | 'url' | 'library'>('upload');
   const { uploadFile, isUploading } = useStorageUpload({ entityType: 'event', entityId: eventId });
@@ -352,11 +357,34 @@ export const EventDigitalSection = ({
     toast.success('Infographic removed');
   };
 
+  // Application handlers
+  const handleAddApplication = async (file: File) => {
+    if (!onApplicationsChange) return;
+    const result = await uploadFile(file, 'asset', `app-asset-${Date.now()}`);
+    if (result) {
+      const app: EventApplication = {
+        id: crypto.randomUUID(),
+        name: file.name.replace(/\.[^/.]+$/, ''),
+        imageUrl: result.url,
+        platform: 'other',
+      };
+      onApplicationsChange([...applications, app]);
+      toast.success('Application asset added');
+    }
+  };
+
+  const handleDeleteApplication = (id: string) => {
+    if (!onApplicationsChange) return;
+    onApplicationsChange(applications.filter(a => a.id !== id));
+    toast.success('Application asset removed');
+  };
+
   const hasTemplatesSection = !!onTemplatesChange;
   const hasBrochuresSection = !!onBrochuresChange;
   const hasPrintSection = !!onPrintMaterialsChange;
   const hasEmailBannersSection = !!onEmailBannersChange;
   const hasInfographicsSection = !!onInfographicsChange;
+  const hasApplicationsSection = !!onApplicationsChange;
 
   return (
     <section id="eventdigital" className="scroll-mt-24">
@@ -425,6 +453,13 @@ export const EventDigitalSection = ({
               <BarChart3 className="h-4 w-4" />
               Infographics
               {infographics.length > 0 && <span className="text-xs text-muted-foreground">({infographics.length})</span>}
+            </TabsTrigger>
+          )}
+          {hasApplicationsSection && (
+            <TabsTrigger value="applications" className="gap-1.5">
+              <AppWindow className="h-4 w-4" />
+              Applications
+              {applications.length > 0 && <span className="text-xs text-muted-foreground">({applications.length})</span>}
             </TabsTrigger>
           )}
         </TabsList>
@@ -1313,6 +1348,76 @@ export const EventDigitalSection = ({
                         <h4 className="font-medium text-sm truncate">{item.name}</h4>
                         {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
                         {item.category && <Badge variant="outline" className="mt-1.5 text-xs">{item.category}</Badge>}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        )}
+
+        {/* Applications Tab */}
+        {hasApplicationsSection && (
+          <TabsContent value="applications">
+            {applications.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <AppWindow className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="font-semibold text-lg mb-2">No application assets yet</h3>
+                  <p className="text-muted-foreground mb-4">Upload event app screenshots, splash screens, and mobile assets</p>
+                  {isEditable && (
+                    <>
+                      <input ref={applicationFileInputRef} type="file" accept="image/*" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAddApplication(f); if (applicationFileInputRef.current) applicationFileInputRef.current.value = ''; }}
+                      />
+                      <Button onClick={() => applicationFileInputRef.current?.click()} disabled={isUploading}>
+                        <Upload className="h-4 w-4 mr-2" />{isUploading ? 'Uploading...' : 'Upload First App Asset'}
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {isEditable && (
+                  <div className="flex justify-end">
+                    <input ref={applicationFileInputRef} type="file" accept="image/*" className="hidden"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAddApplication(f); if (applicationFileInputRef.current) applicationFileInputRef.current.value = ''; }}
+                    />
+                    <Button size="sm" onClick={() => applicationFileInputRef.current?.click()} disabled={isUploading}>
+                      <Upload className="h-4 w-4 mr-2" />{isUploading ? 'Uploading...' : 'Add App Asset'}
+                    </Button>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {applications.map((app) => (
+                    <Card key={app.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
+                      <div className="bg-muted/30 relative">
+                        <img src={app.imageUrl} alt={app.name} className="w-full h-auto max-h-[300px] object-contain" />
+                        {isEditable && (
+                          <Button
+                            variant="ghost" size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handleDeleteApplication(app.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                      <CardContent className="p-3">
+                        <h4 className="font-medium text-sm truncate">{app.name}</h4>
+                        {app.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{app.description}</p>}
+                        {app.platform && app.platform !== 'other' && (
+                          <Badge variant="outline" className="mt-1.5 text-xs capitalize">{app.platform}</Badge>
+                        )}
+                        {app.appUrl && (
+                          <Button variant="outline" size="sm" className="w-full mt-2 text-xs h-7" asChild>
+                            <a href={app.appUrl} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-3 w-3 mr-1.5" />View App
+                            </a>
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
