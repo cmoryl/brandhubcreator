@@ -1,5 +1,5 @@
 import { useState, useCallback, forwardRef } from 'react';
-import { X, Download, Folder, File, FileText, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical } from 'lucide-react';
+import { X, Download, Folder, File, FileText, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical, Loader2 } from 'lucide-react';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { BrandAsset, ASSET_CATEGORIES, AssetCategory } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 
 interface AssetsSectionProps {
   assets: BrandAsset[];
@@ -21,6 +22,8 @@ interface AssetsSectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   websiteUrl?: string;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -114,7 +117,7 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
   );
 };
 
-export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtitleChange, websiteUrl }: AssetsSectionProps) => {
+export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtitleChange, websiteUrl, entityId, entityType = 'brand' }: AssetsSectionProps) => {
   const canEdit = Boolean(onAssetsChange);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -122,6 +125,9 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [pendingFile, setPendingFile] = useState<PendingFile | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -149,23 +155,28 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     });
   }, [onAssetsChange]);
 
-  const generatePdfThumbnail = useCallback(async (dataUrl: string): Promise<string | undefined> => {
+  const generatePdfThumbnailFromFile = useCallback(async (file: File): Promise<Blob | undefined> => {
     try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
       const pdfjsLib = await import('pdfjs-dist');
       pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-      
       const pdf = await pdfjsLib.getDocument(dataUrl).promise;
       const page = await pdf.getPage(1);
       const viewport = page.getViewport({ scale: 1.5 });
-      
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       const ctx = canvas.getContext('2d');
       if (!ctx) return undefined;
-      
       await page.render({ canvasContext: ctx, viewport }).promise;
-      return canvas.toDataURL('image/jpeg', 0.7);
+      return await new Promise<Blob | undefined>((resolve) =>
+        canvas.toBlob((b) => resolve(b ?? undefined), 'image/jpeg', 0.7)
+      );
     } catch (err) {
       console.warn('PDF thumbnail generation failed:', err);
       return undefined;
@@ -174,29 +185,54 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
 
   const confirmUpload = useCallback(async () => {
     if (!pendingFile || !onAssetsChange) return;
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const url = event.target?.result as string;
+    setIsConfirming(true);
+    try {
+      const assetId = crypto.randomUUID();
+      const sizeLabel = formatFileSize(pendingFile.file.size);
+      const fileType = pendingFile.file.type || 'unknown';
+
+      let fileUrl: string;
       let thumbnailUrl: string | undefined;
-      
-      if (pendingFile.file.type === 'application/pdf') {
-        thumbnailUrl = await generatePdfThumbnail(url);
+
+      if (entityId) {
+        // Upload main file to cloud storage
+        const uploaded = await uploadFile(pendingFile.file, 'asset', `vault-${assetId}`);
+        if (!uploaded) { setIsConfirming(false); return; }
+        fileUrl = uploaded.url;
+
+        // For PDFs, generate thumbnail and upload it too
+        if (fileType === 'application/pdf') {
+          const thumbBlob = await generatePdfThumbnailFromFile(pendingFile.file);
+          if (thumbBlob) {
+            const thumbFile = Object.assign(thumbBlob, { name: `thumb-${assetId}.jpg`, lastModified: Date.now() }) as unknown as File;
+            const thumbUploaded = await uploadFile(thumbFile, 'asset', `vault-thumb-${assetId}`);
+            if (thumbUploaded) thumbnailUrl = thumbUploaded.url;
+          }
+        }
+      } else {
+        // Fallback: use base64 for unsaved entities (rare edge case)
+        fileUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(pendingFile.file);
+        });
       }
-      
+
       const newAsset: BrandAsset = {
-        id: crypto.randomUUID(),
+        id: assetId,
         name: pendingFile.name,
-        type: pendingFile.file.type || 'unknown',
-        url,
-        size: formatFileSize(pendingFile.file.size),
+        type: fileType,
+        url: fileUrl,
+        size: sizeLabel,
         category: pendingFile.category,
         thumbnailUrl,
       };
       onAssetsChange([...assets, newAsset]);
       setPendingFile(null);
-    };
-    reader.readAsDataURL(pendingFile.file);
-  }, [pendingFile, assets, onAssetsChange, generatePdfThumbnail]);
+    } finally {
+      setIsConfirming(false);
+    }
+  }, [pendingFile, assets, onAssetsChange, entityId, uploadFile, generatePdfThumbnailFromFile]);
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker } = useDropZone({
     onFileDrop: handleFileDrop,
@@ -443,8 +479,11 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPendingFile(null)}>Cancel</Button>
-            <Button onClick={confirmUpload}>Upload</Button>
+            <Button variant="outline" onClick={() => setPendingFile(null)} disabled={isConfirming || isUploading}>Cancel</Button>
+            <Button onClick={confirmUpload} disabled={isConfirming || isUploading} className="gap-2">
+              {(isConfirming || isUploading) && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {(isConfirming || isUploading) ? 'Uploading…' : 'Upload'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
