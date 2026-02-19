@@ -11,6 +11,7 @@ import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 import {
   DndContext,
   closestCenter,
@@ -38,6 +39,8 @@ interface DigitalCollateralSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
   onLayoutChange?: (layout: LayoutPreset) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 // Extended category options with all content types
@@ -274,7 +277,9 @@ export const DigitalCollateralSection = ({
   customSubtitle,
   onSubtitleChange,
   layout = 'compact',
-  onLayoutChange
+  onLayoutChange,
+  entityId,
+  entityType = 'brand',
 }: DigitalCollateralSectionProps) => {
   const collateral = Array.isArray(collateralProp) ? collateralProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -287,6 +292,7 @@ export const DigitalCollateralSection = ({
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   
   const { gridClass } = useLayoutClasses(layout);
+  const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
   
   // Determine if editing is allowed
   const canEdit = !!onCollateralChange;
@@ -303,31 +309,45 @@ export const DigitalCollateralSection = ({
     })
   );
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !onCollateralChange) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    // Upload to cloud storage if entityId available, else fallback to base64
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `collateral-${Date.now()}`);
+      if (!result) return;
       const newItem: BrandBrochure = {
         id: crypto.randomUUID(),
         title: file.name.replace(/\.[^/.]+$/, ''),
         category: selectedCategory || 'Other',
-        previewUrl: url,
+        previewUrl: result.url,
       };
       onCollateralChange([...collateral, newItem]);
       setEditingId(newItem.id);
       setSelectedCategory(null);
-    };
-    reader.readAsDataURL(file);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    } else {
+      // Fallback: base64 (no entityId yet — entity not yet saved)
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const url = event.target?.result as string;
+        const newItem: BrandBrochure = {
+          id: crypto.randomUUID(),
+          title: file.name.replace(/\.[^/.]+$/, ''),
+          category: selectedCategory || 'Other',
+          previewUrl: url,
+        };
+        onCollateralChange([...collateral, newItem]);
+        setEditingId(newItem.id);
+        setSelectedCategory(null);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !uploadingThumbnailFor) return;
 
@@ -336,18 +356,24 @@ export const DigitalCollateralSection = ({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const thumbnailUrl = event.target?.result as string;
-      updateItem(uploadingThumbnailFor, { thumbnailUrl });
-      toast.success('Preview thumbnail added');
-    };
-    reader.readAsDataURL(file);
-
-    if (thumbnailInputRef.current) {
-      thumbnailInputRef.current.value = '';
-    }
+    if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
+    const itemId = uploadingThumbnailFor;
     setUploadingThumbnailFor(null);
+
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `thumbnail-${itemId}`);
+      if (!result) return;
+      updateItem(itemId, { thumbnailUrl: result.url });
+      toast.success('Preview thumbnail added');
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const thumbnailUrl = event.target?.result as string;
+        updateItem(itemId, { thumbnailUrl });
+        toast.success('Preview thumbnail added');
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const triggerThumbnailUpload = (itemId: string) => {
@@ -466,9 +492,9 @@ export const DigitalCollateralSection = ({
             />
           )}
           {canEdit && (
-            <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0">
+            <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0" disabled={isUploading}>
               <Upload className="h-4 w-4" />
-              Upload
+              {isUploading ? 'Uploading...' : 'Upload'}
             </Button>
           )}
         </div>

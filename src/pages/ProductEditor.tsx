@@ -653,7 +653,7 @@ const ProductEditor = () => {
       case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={editHandler((assets) => handleUpdateProduct({ assets }))} websiteUrl={currentProduct.websites?.[0]?.url} />;
       case 'misuse': return <MisuseSection misuse={currentProduct.misuse} onMisuseChange={editHandler((misuse) => handleUpdateProduct({ misuse }))} />;
       case 'casestudies':
-      case 'brochures': return <DigitalCollateralSection collateral={currentProduct.brochures} onCollateralChange={editHandler((brochures) => handleUpdateProduct({ brochures }))} />;
+      case 'brochures': return <DigitalCollateralSection collateral={currentProduct.brochures} onCollateralChange={editHandler((brochures) => handleUpdateProduct({ brochures }))} entityId={currentProduct.id} entityType="product" />;
       case 'templates': return <TemplatesSection templates={currentProduct.templates} onTemplatesChange={editHandler((templates) => handleUpdateProduct({ templates }))} />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={currentProduct.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => handleUpdateProduct({ templateSpecs }))} brandColors={currentProduct.colors || []} />;
       case 'products': return <ProductsSection productId={currentProduct.id} linkedGuides={currentProduct.linkedGuides || []} onLinkedGuidesChange={editHandler((linkedGuides) => handleUpdateProduct({ linkedGuides }))} />;

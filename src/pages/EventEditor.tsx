@@ -622,7 +622,7 @@ const EventEditor = () => {
         return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} />;
       case 'casestudies': 
       case 'brochures': 
-        return <DigitalCollateralSection collateral={event.brochures} onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))} />;
+        return <DigitalCollateralSection collateral={event.brochures} onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))} entityId={event.id} entityType="event" />;
       case 'templates': 
         // Handled in eventdigital unified section - no standalone render
         return null;
