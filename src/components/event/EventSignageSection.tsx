@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil, Check, X } from 'lucide-react';
+import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil, Check, X, ChevronDown } from 'lucide-react';
 import { EventSignage } from '@/types/event';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { LayoutSelector, LayoutPreset, useLayoutClasses } from '@/components/brand/LayoutSelector';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
@@ -243,114 +244,137 @@ export const EventSignageSection = ({
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-3">
           {Object.entries(groupedSignage).map(([type, items]) => (
-            <div key={type}>
-              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                {SIGNAGE_TYPES.find(t => t.value === type)?.label || type}
-                <Badge variant="secondary" className="font-normal">
-                  {items.length}
-                </Badge>
-              </h3>
-              <div className={gridClass}>
-                {items.map((item) => (
-                  <Card key={item.id} className="group relative overflow-hidden hover:border-primary/50 transition-colors">
-                    {item.previewUrl ? (
-                      <div className="aspect-[16/9] bg-muted relative">
-                        <img
-                          src={item.previewUrl}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <Badge className={cn("absolute top-2 left-2", getTypeColor(item.type))}>
-                          {item.dimensions}
-                        </Badge>
+            <Collapsible key={type} defaultOpen={true}>
+              <CollapsibleTrigger className="w-full flex items-center justify-between p-3 rounded-lg border border-border/40 bg-muted/20 hover:bg-muted/40 transition-colors group/trigger">
+                <div className="flex items-center gap-3">
+                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=closed]/trigger:-rotate-90" />
+                  <h3 className="font-semibold text-base">
+                    {SIGNAGE_TYPES.find(t => t.value === type)?.label || type}
+                  </h3>
+                  <Badge variant="secondary" className="font-normal text-xs">
+                    {items.length}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-1.5 group-data-[state=open]/trigger:hidden">
+                  {items.slice(0, 4).map((item) => (
+                    item.previewUrl ? (
+                      <div key={item.id} className="h-8 w-12 rounded border border-border/40 overflow-hidden bg-muted shrink-0">
+                        <img src={item.previewUrl} alt="" className="h-full w-full object-cover" />
                       </div>
                     ) : (
-                      <div className="aspect-[16/9] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center relative">
-                        <div className="text-center">
-                          <FileImage className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
-                          <p className="text-sm font-mono text-muted-foreground">{item.dimensions}</p>
-                        </div>
-                        <Badge className={cn("absolute top-2 left-2", getTypeColor(item.type))}>
-                          {SIGNAGE_TYPES.find(t => t.value === item.type)?.label}
-                        </Badge>
+                      <div key={item.id} className="h-8 w-12 rounded border border-border/40 bg-muted flex items-center justify-center shrink-0">
+                        <FileImage className="h-3 w-3 text-muted-foreground/40" />
                       </div>
-                    )}
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold truncate">
-                            <InlineEditField
-                              value={item.name}
-                              onSave={(v) => handleInlineUpdate(item.id, 'name', v)}
-                              isEditable={isEditable}
-                              inputClassName="font-semibold"
-                            />
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            <InlineEditField
-                              value={item.dimensions}
-                              onSave={(v) => handleInlineUpdate(item.id, 'dimensions', v)}
-                              isEditable={isEditable}
-                              className="text-sm text-muted-foreground"
-                            />
-                          </p>
+                    )
+                  ))}
+                  {items.length > 4 && (
+                    <span className="text-xs text-muted-foreground ml-1">+{items.length - 4}</span>
+                  )}
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3">
+                <div className={gridClass}>
+                  {items.map((item) => (
+                    <Card key={item.id} className="group relative overflow-hidden hover:border-primary/50 transition-colors">
+                      {item.previewUrl ? (
+                        <div className="aspect-[16/9] bg-muted relative">
+                          <img
+                            src={item.previewUrl}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <Badge className={cn("absolute top-2 left-2", getTypeColor(item.type))}>
+                            {item.dimensions}
+                          </Badge>
                         </div>
-                        {isEditable && (
-                          <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => openEditDialog(item)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                              onClick={() => handleDelete(item.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                      ) : (
+                        <div className="aspect-[16/9] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center relative">
+                          <div className="text-center">
+                            <FileImage className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+                            <p className="text-sm font-mono text-muted-foreground">{item.dimensions}</p>
                           </div>
-                        )}
-                      </div>
-                      
-                      {item.notes && (
-                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{item.notes}</p>
+                          <Badge className={cn("absolute top-2 left-2", getTypeColor(item.type))}>
+                            {SIGNAGE_TYPES.find(t => t.value === item.type)?.label}
+                          </Badge>
+                        </div>
                       )}
-                      
-                      {/* Action Buttons - Always visible */}
-                      <div className="flex gap-2">
-                        {item.previewUrl && (
-                          <Button variant="outline" size="sm" className="flex-1" onClick={() => openPreview(item)}>
-                            <Eye className="h-3.5 w-3.5 mr-1.5" />
-                            Preview
-                          </Button>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold truncate">
+                              <InlineEditField
+                                value={item.name}
+                                onSave={(v) => handleInlineUpdate(item.id, 'name', v)}
+                                isEditable={isEditable}
+                                inputClassName="font-semibold"
+                              />
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              <InlineEditField
+                                value={item.dimensions}
+                                onSave={(v) => handleInlineUpdate(item.id, 'dimensions', v)}
+                                isEditable={isEditable}
+                                className="text-sm text-muted-foreground"
+                              />
+                            </p>
+                          </div>
+                          {isEditable && (
+                            <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => openEditDialog(item)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                onClick={() => handleDelete(item.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {item.notes && (
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{item.notes}</p>
                         )}
-                        {item.templateUrl && (
-                          <Button variant="default" size="sm" className="flex-1" asChild>
-                            <a href={item.templateUrl} target="_blank" rel="noopener noreferrer">
-                              <Download className="h-3.5 w-3.5 mr-1.5" />
-                              Download
-                            </a>
-                          </Button>
-                        )}
-                        {isEditable && !item.previewUrl && !item.templateUrl && (
-                          <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditDialog(item)}>
-                            <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                            Edit
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
+                        
+                        {/* Action Buttons - Always visible */}
+                        <div className="flex gap-2">
+                          {item.previewUrl && (
+                            <Button variant="outline" size="sm" className="flex-1" onClick={() => openPreview(item)}>
+                              <Eye className="h-3.5 w-3.5 mr-1.5" />
+                              Preview
+                            </Button>
+                          )}
+                          {item.templateUrl && (
+                            <Button variant="default" size="sm" className="flex-1" asChild>
+                              <a href={item.templateUrl} target="_blank" rel="noopener noreferrer">
+                                <Download className="h-3.5 w-3.5 mr-1.5" />
+                                Download
+                              </a>
+                            </Button>
+                          )}
+                          {isEditable && !item.previewUrl && !item.templateUrl && (
+                            <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditDialog(item)}>
+                              <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                              Edit
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           ))}
         </div>
       )}
