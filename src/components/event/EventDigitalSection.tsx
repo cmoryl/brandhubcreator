@@ -416,7 +416,7 @@ export const EventDigitalSection = ({
           {hasEmailBannersSection && (
             <TabsTrigger value="emailbanners" className="gap-1.5">
               <Mail className="h-4 w-4" />
-              Email Banners
+              Social Banners
               {emailBanners.length > 0 && <span className="text-xs text-muted-foreground">({emailBanners.length})</span>}
             </TabsTrigger>
           )}
