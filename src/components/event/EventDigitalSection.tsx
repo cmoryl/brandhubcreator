@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2, Handshake, DollarSign, Award, Heart, Star } from 'lucide-react';
-import { EventDigitalMaterial, EventBanner, EventPrintMaterial } from '@/types/event';
-import { BrandTemplate, BrandBrochure } from '@/types/brand';
+import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2, Handshake, DollarSign, Award, Heart, Star, BarChart3, Pencil } from 'lucide-react';
+import { EventDigitalMaterial, EventBanner, EventPrintMaterial, EventInfographic } from '@/types/event';
+import { BrandTemplate, BrandBrochure, BrandEmailBanner } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -28,6 +28,10 @@ interface EventDigitalSectionProps {
   onBrochuresChange?: (brochures: BrandBrochure[]) => void;
   printMaterials?: EventPrintMaterial[];
   onPrintMaterialsChange?: (materials: EventPrintMaterial[]) => void;
+  emailBanners?: BrandEmailBanner[];
+  onEmailBannersChange?: (banners: BrandEmailBanner[]) => void;
+  infographics?: EventInfographic[];
+  onInfographicsChange?: (infographics: EventInfographic[]) => void;
   isEditable?: boolean;
   subtitle?: string;
   eventId?: string;
@@ -121,16 +125,22 @@ export const EventDigitalSection = ({
   onBrochuresChange,
   printMaterials = [],
   onPrintMaterialsChange,
+  emailBanners = [],
+  onEmailBannersChange,
+  infographics = [],
+  onInfographicsChange,
   isEditable = true,
   subtitle,
   eventId,
 }: EventDigitalSectionProps) => {
-  const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures' | 'sponsorship'>('banners');
+  const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures' | 'sponsorship' | 'emailbanners' | 'infographics'>('banners');
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<EventBanner | null>(null);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
   const printFileInputRef = useRef<HTMLInputElement>(null);
+  const emailBannerFileInputRef = useRef<HTMLInputElement>(null);
+  const infographicFileInputRef = useRef<HTMLInputElement>(null);
   const [bannerImageMode, setBannerImageMode] = useState<'upload' | 'url' | 'library'>('upload');
   const [printImageMode, setPrintImageMode] = useState<'upload' | 'url' | 'library'>('upload');
   const { uploadFile, isUploading } = useStorageUpload({ entityType: 'event', entityId: eventId });
@@ -294,9 +304,59 @@ export const EventDigitalSection = ({
     toast.success('Sponsorship material removed');
   };
 
+  // Email banner handlers
+  const handleAddEmailBanner = async (file: File) => {
+    if (!onEmailBannersChange) return;
+    const result = await uploadFile(file, 'asset', `email-banner-${Date.now()}`);
+    if (result) {
+      const img = new Image();
+      img.onload = () => {
+        const banner: BrandEmailBanner = {
+          id: crypto.randomUUID(),
+          name: file.name.replace(/\.[^/.]+$/, ''),
+          imageUrl: result.url,
+          width: img.naturalWidth || 600,
+          height: img.naturalHeight || 200,
+        };
+        onEmailBannersChange([...emailBanners, banner]);
+        toast.success('Email banner added');
+      };
+      img.src = result.url;
+    }
+  };
+
+  const handleDeleteEmailBanner = (id: string) => {
+    if (!onEmailBannersChange) return;
+    onEmailBannersChange(emailBanners.filter(b => b.id !== id));
+    toast.success('Email banner removed');
+  };
+
+  // Infographic handlers
+  const handleAddInfographic = async (file: File) => {
+    if (!onInfographicsChange) return;
+    const result = await uploadFile(file, 'asset', `infographic-${Date.now()}`);
+    if (result) {
+      const item: EventInfographic = {
+        id: crypto.randomUUID(),
+        name: file.name.replace(/\.[^/.]+$/, ''),
+        imageUrl: result.url,
+      };
+      onInfographicsChange([...infographics, item]);
+      toast.success('Infographic added');
+    }
+  };
+
+  const handleDeleteInfographic = (id: string) => {
+    if (!onInfographicsChange) return;
+    onInfographicsChange(infographics.filter(i => i.id !== id));
+    toast.success('Infographic removed');
+  };
+
   const hasTemplatesSection = !!onTemplatesChange;
   const hasBrochuresSection = !!onBrochuresChange;
   const hasPrintSection = !!onPrintMaterialsChange;
+  const hasEmailBannersSection = !!onEmailBannersChange;
+  const hasInfographicsSection = !!onInfographicsChange;
 
   return (
     <section id="eventdigital" className="scroll-mt-24">
@@ -351,6 +411,20 @@ export const EventDigitalSection = ({
               <Handshake className="h-4 w-4" />
               Sponsorship
               {printMaterials.length > 0 && <span className="text-xs text-muted-foreground">({printMaterials.length})</span>}
+            </TabsTrigger>
+          )}
+          {hasEmailBannersSection && (
+            <TabsTrigger value="emailbanners" className="gap-1.5">
+              <Mail className="h-4 w-4" />
+              Email Banners
+              {emailBanners.length > 0 && <span className="text-xs text-muted-foreground">({emailBanners.length})</span>}
+            </TabsTrigger>
+          )}
+          {hasInfographicsSection && (
+            <TabsTrigger value="infographics" className="gap-1.5">
+              <BarChart3 className="h-4 w-4" />
+              Infographics
+              {infographics.length > 0 && <span className="text-xs text-muted-foreground">({infographics.length})</span>}
             </TabsTrigger>
           )}
         </TabsList>
@@ -1100,6 +1174,149 @@ export const EventDigitalSection = ({
                     </Card>
                   );
                 })}
+              </div>
+            )}
+          </TabsContent>
+        )}
+
+        {/* Email Banners Tab */}
+        {hasEmailBannersSection && (
+          <TabsContent value="emailbanners">
+            {emailBanners.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <Mail className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="font-semibold text-lg mb-2">No email banners yet</h3>
+                  <p className="text-muted-foreground mb-4">Add promotional banners for email campaigns and newsletters</p>
+                  {isEditable && (
+                    <>
+                      <input ref={emailBannerFileInputRef} type="file" accept="image/*" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAddEmailBanner(f); if (emailBannerFileInputRef.current) emailBannerFileInputRef.current.value = ''; }}
+                      />
+                      <Button onClick={() => emailBannerFileInputRef.current?.click()} disabled={isUploading}>
+                        <Upload className="h-4 w-4 mr-2" />{isUploading ? 'Uploading...' : 'Upload First Email Banner'}
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {isEditable && (
+                  <div className="flex justify-end">
+                    <input ref={emailBannerFileInputRef} type="file" accept="image/*" className="hidden"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAddEmailBanner(f); if (emailBannerFileInputRef.current) emailBannerFileInputRef.current.value = ''; }}
+                    />
+                    <Button size="sm" onClick={() => emailBannerFileInputRef.current?.click()} disabled={isUploading}>
+                      <Upload className="h-4 w-4 mr-2" />{isUploading ? 'Uploading...' : 'Add Banner'}
+                    </Button>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {emailBanners.map((banner) => {
+                    const aspectRatio = banner.width / banner.height;
+                    return (
+                      <Card key={banner.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
+                        <div className="bg-muted/30 p-3">
+                          <div
+                            className="relative w-full overflow-hidden rounded border border-border"
+                            style={{ aspectRatio: `${aspectRatio}` }}
+                          >
+                            {banner.imageUrl ? (
+                              <img src={banner.imageUrl} alt={banner.name} className="w-full h-full object-contain" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Mail className="h-8 w-8 text-muted-foreground/30" />
+                              </div>
+                            )}
+                            {isEditable && (
+                              <Button
+                                variant="ghost" size="icon"
+                                className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => handleDeleteEmailBanner(banner.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                        <CardContent className="p-3">
+                          <h4 className="font-medium text-sm truncate">{banner.name}</h4>
+                          <p className="text-xs text-muted-foreground">{banner.width} × {banner.height}px</p>
+                          {banner.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{banner.description}</p>}
+                          {banner.linkUrl && (
+                            <Button variant="outline" size="sm" className="w-full mt-2 text-xs h-7" asChild>
+                              <a href={banner.linkUrl} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-3 w-3 mr-1.5" />View Link
+                              </a>
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        )}
+
+        {/* Infographics Tab */}
+        {hasInfographicsSection && (
+          <TabsContent value="infographics">
+            {infographics.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <BarChart3 className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="font-semibold text-lg mb-2">No infographics yet</h3>
+                  <p className="text-muted-foreground mb-4">Upload event infographics, data visualizations, and stat sheets</p>
+                  {isEditable && (
+                    <>
+                      <input ref={infographicFileInputRef} type="file" accept="image/*" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAddInfographic(f); if (infographicFileInputRef.current) infographicFileInputRef.current.value = ''; }}
+                      />
+                      <Button onClick={() => infographicFileInputRef.current?.click()} disabled={isUploading}>
+                        <Upload className="h-4 w-4 mr-2" />{isUploading ? 'Uploading...' : 'Upload First Infographic'}
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {isEditable && (
+                  <div className="flex justify-end">
+                    <input ref={infographicFileInputRef} type="file" accept="image/*" className="hidden"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAddInfographic(f); if (infographicFileInputRef.current) infographicFileInputRef.current.value = ''; }}
+                    />
+                    <Button size="sm" onClick={() => infographicFileInputRef.current?.click()} disabled={isUploading}>
+                      <Upload className="h-4 w-4 mr-2" />{isUploading ? 'Uploading...' : 'Add Infographic'}
+                    </Button>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {infographics.map((item) => (
+                    <Card key={item.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
+                      <div className="bg-muted/30 relative">
+                        <img src={item.imageUrl} alt={item.name} className="w-full h-auto max-h-[300px] object-contain" />
+                        {isEditable && (
+                          <Button
+                            variant="ghost" size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handleDeleteInfographic(item.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                      <CardContent className="p-3">
+                        <h4 className="font-medium text-sm truncate">{item.name}</h4>
+                        {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
+                        {item.category && <Badge variant="outline" className="mt-1.5 text-xs">{item.category}</Badge>}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
           </TabsContent>
