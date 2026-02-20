@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Upload, ThumbsUp, ThumbsDown, Grid2X2, Grid3X3, LayoutGrid, Rows3, ImageIcon } from 'lucide-react';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 import {
   DndContext,
   closestCenter,
@@ -29,11 +30,13 @@ interface ImagerySectionProps {
   onImageryChange?: (imagery: BrandImagery[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 type ViewMode = 'split' | 'grid-2' | 'grid-3' | 'grid-4';
 
-export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange }: ImagerySectionProps) => {
+export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand' }: ImagerySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingType, setPendingType] = useState<'do' | 'dont'>('do');
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -41,6 +44,7 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
   const [viewMode, setViewMode] = useState<ViewMode>('grid-4');
 
   const canEdit = Boolean(onImageryChange);
+  const { uploadFile } = useStorageUpload({ entityType, entityId });
 
   // DnD sensors
   const sensors = useSensors(
@@ -54,21 +58,28 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
     })
   );
 
-  const handleFileDrop = useCallback((file: File) => {
+  const handleFileDrop = useCallback(async (file: File) => {
     if (!onImageryChange) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      const newImagery: BrandImagery = {
-        id: crypto.randomUUID(),
-        url,
-        type: pendingType,
-        description: pendingType === 'do' ? 'Good example of brand photography' : 'Avoid this style',
-      };
-      onImageryChange([...imagery, newImagery]);
+    let url: string;
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `imagery-${crypto.randomUUID()}`);
+      if (!result) return;
+      url = result.url;
+    } else {
+      const reader = new FileReader();
+      url = await new Promise((resolve) => {
+        reader.onload = (event) => resolve(event.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
+    const newImagery: BrandImagery = {
+      id: crypto.randomUUID(),
+      url,
+      type: pendingType,
+      description: pendingType === 'do' ? 'Good example of brand photography' : 'Avoid this style',
     };
-    reader.readAsDataURL(file);
-  }, [imagery, onImageryChange, pendingType]);
+    onImageryChange([...imagery, newImagery]);
+  }, [imagery, onImageryChange, pendingType, entityId, uploadFile]);
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,

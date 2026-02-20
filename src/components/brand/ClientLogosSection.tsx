@@ -1,4 +1,4 @@
-import { useState, useRef, forwardRef, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive, Globe2, ArrowUpDown, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { ClientLogo, ClientLogoFile, ClientLogoVariant, ClientLogoFormat } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -47,14 +47,14 @@ const FORMAT_LABELS: Record<ClientLogoFormat, string> = {
   eps: 'EPS',
 };
 
-export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProps>(({
+export const ClientLogosSection = ({
   clientLogos,
   onClientLogosChange,
   customSubtitle,
   onSubtitleChange,
   entityId,
   entityType = 'brand',
-}, ref) => {
+}: ClientLogosSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [editingLogoId, setEditingLogoId] = useState<string | null>(null);
   const [previewLogo, setPreviewLogo] = useState<ClientLogo | null>(null);
@@ -462,7 +462,7 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
   };
 
   return (
-    <section ref={ref} id="clientlogos" className="scroll-mt-24 space-y-6">
+    <section id="clientlogos" className="scroll-mt-24 space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           <SectionHeader
@@ -686,6 +686,4 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
       </Dialog>
     </section>
   );
-});
-
-ClientLogosSection.displayName = 'ClientLogosSection';
+};

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { X, Pencil, Upload, Download, Package, Maximize2, Sparkles, Loader2, FolderOpen } from 'lucide-react';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { BrandPattern, BrandColor, LayoutPreset, CustomDesignShape } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,8 @@ interface PatternsSectionProps {
   // Custom shapes
   customShapes?: CustomDesignShape[];
   onCustomShapesChange?: (shapes: CustomDesignShape[]) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 const RESOLUTION_OPTIONS = [
@@ -59,7 +62,9 @@ export const PatternsSection = ({
   brandArchetype,
   brandSlug,
   customShapes = [],
-  onCustomShapesChange
+  onCustomShapesChange,
+  entityId,
+  entityType = 'brand',
 }: PatternsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -69,6 +74,7 @@ export const PatternsSection = ({
   
   const { gridClass } = useLayoutClasses(layout);
   const { saveToLibrary } = useSaveToLibrary();
+  const { uploadFile } = useStorageUpload({ entityType, entityId });
 
   const generateAIPatterns = async () => {
     if (!brandColors || brandColors.length === 0) {
@@ -136,27 +142,32 @@ export const PatternsSection = ({
   };
 
   const handleFileDrop = useCallback(async (file: File) => {
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const dataUrl = event.target?.result as string;
-      const fileName = file.name.replace(/\.[^/.]+$/, '');
-      
-      // Save to library first
+    const fileName = file.name.replace(/\.[^/.]+$/, '');
+    
+    let fileUrl: string;
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `pattern-${crypto.randomUUID()}`);
+      if (!result) return;
+      fileUrl = result.url;
+    } else {
+      // Fallback: save to library via base64 for unsaved entities
+      const reader = new FileReader();
+      const dataUrl = await new Promise<string>((resolve) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
       const savedResult = await saveToLibrary(dataUrl, `${brandName || 'Brand'} - ${fileName}`, 'Backgrounds');
-      
-      const newPattern: BrandPattern = {
-        id: crypto.randomUUID(),
-        name: fileName,
-        url: savedResult?.publicUrl || dataUrl,
-      };
-      onPatternsChange([...patterns, newPattern]);
-      
-      if (savedResult) {
-        toast.success(`"${fileName}" saved to Image Library`);
-      }
+      fileUrl = savedResult?.publicUrl || dataUrl;
+    }
+
+    const newPattern: BrandPattern = {
+      id: crypto.randomUUID(),
+      name: fileName,
+      url: fileUrl,
     };
-    reader.readAsDataURL(file);
-  }, [patterns, onPatternsChange, saveToLibrary, brandName]);
+    onPatternsChange([...patterns, newPattern]);
+    toast.success(`"${fileName}" uploaded`);
+  }, [patterns, onPatternsChange, saveToLibrary, brandName, entityId, uploadFile]);
 
   const handleLibrarySelect = useCallback((url: string) => {
     const urlParts = url.split('/');

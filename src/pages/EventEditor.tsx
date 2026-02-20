@@ -585,7 +585,7 @@ const EventEditor = () => {
       case 'typography': 
         return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} />;
       case 'imagery': 
-        return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} />;
+        return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} entityId={event.id} entityType="event" />;
       case 'social': 
         return <SocialSection social={event.social} onSocialChange={editHandler((social) => updateEvent({ social }))} entityId={event.id} entityType="event" organizationId={event.organizationId} entityName={event.hero?.name} />;
       case 'socialassets': 
@@ -710,7 +710,7 @@ const EventEditor = () => {
         );
       case 'logos': return <LogoSection logos={event.logos} onLogosChange={editHandler((logos) => updateEvent({ logos }))} entityId={event.id} entityType="event" />;
       case 'brandicon': return <BrandIconsSection brandIcons={event.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateEvent({ brandIcons }))} entityId={event.id} entityType="event" />;
-      case 'patterns': return <PatternsSection patterns={event.patterns} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} brandName={event.hero.name} brandColors={event.colors} />;
+      case 'patterns': return <PatternsSection patterns={event.patterns} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} brandName={event.hero.name} brandColors={event.colors} entityId={event.id} entityType="event" />;
       case 'eventpatterns': return <EventPatternsSection patterns={event.patterns || []} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} isEditable={canEdit} eventName={event.hero.name} eventColors={event.colors} eventTagline={event.hero.tagline} />;
       case 'textstyles': return <TextStylesSection textStyles={event.textStyles} onTextStylesChange={editHandler((textStyles) => updateEvent({ textStyles }))} />;
       case 'iconography': return <IconographySection iconography={event.iconography} onIconographyChange={editHandler((iconography) => updateEvent({ iconography }))} brandColors={event.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} />;
