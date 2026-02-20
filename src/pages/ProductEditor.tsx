@@ -651,14 +651,14 @@ const ProductEditor = () => {
       case 'qr': return <QRSection qr={currentProduct.qr} onQRChange={editHandler((qr) => handleUpdateProduct({ qr }))} entityType="product" entityId={currentProduct.id} logos={currentProduct.logos} />;
       case 'videos': return <VideosSection videos={currentProduct.videos} onVideosChange={editHandler((videos) => handleUpdateProduct({ videos }))} />;
       case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={editHandler((assets) => handleUpdateProduct({ assets }))} websiteUrl={currentProduct.websites?.[0]?.url} entityId={currentProduct.id} entityType="product" />;
-      case 'misuse': return <MisuseSection misuse={currentProduct.misuse} onMisuseChange={editHandler((misuse) => handleUpdateProduct({ misuse }))} />;
+      case 'misuse': return <MisuseSection misuse={currentProduct.misuse} onMisuseChange={editHandler((misuse) => handleUpdateProduct({ misuse }))} entityId={currentProduct.id} entityType="product" />;
       case 'casestudies':
       case 'brochures': return <DigitalCollateralSection collateral={currentProduct.brochures} onCollateralChange={editHandler((brochures) => handleUpdateProduct({ brochures }))} entityId={currentProduct.id} entityType="product" />;
       case 'templates': return <TemplatesSection templates={currentProduct.templates} onTemplatesChange={editHandler((templates) => handleUpdateProduct({ templates }))} />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={currentProduct.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => handleUpdateProduct({ templateSpecs }))} brandColors={currentProduct.colors || []} />;
       case 'products': return <ProductsSection productId={currentProduct.id} linkedGuides={currentProduct.linkedGuides || []} onLinkedGuidesChange={editHandler((linkedGuides) => handleUpdateProduct({ linkedGuides }))} />;
-      case 'sponsorlogos': return <SponsorLogosSection sponsors={currentProduct.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => handleUpdateProduct({ sponsorLogos }))} websiteUrl={currentProduct.websites?.[0]?.url} />;
-      case 'clientlogos': return <ClientLogosSection clientLogos={currentProduct.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => handleUpdateProduct({ clientLogos }))} />;
+      case 'sponsorlogos': return <SponsorLogosSection sponsors={currentProduct.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => handleUpdateProduct({ sponsorLogos }))} websiteUrl={currentProduct.websites?.[0]?.url} isEditable={canEdit} entityId={currentProduct.id} entityType="product" />;
+      case 'clientlogos': return <ClientLogosSection clientLogos={currentProduct.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => handleUpdateProduct({ clientLogos }))} entityId={currentProduct.id} entityType="product" />;
       case 'insights': return (
         <InsightsSection
           insights={(currentProduct as any).insights || []}
@@ -676,7 +676,7 @@ const ProductEditor = () => {
           onAccessCodeChange={canEdit ? (insightsAccessCode) => handleUpdateProduct({ insightsAccessCode } as any) : undefined}
         />
       );
-      case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={editHandler((logos) => handleUpdateProduct({ logos }))} />;
+      case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={editHandler((logos) => handleUpdateProduct({ logos }))} entityId={currentProduct.id} entityType="product" />;
       case 'imageassets': return <ImageAssetsSection imageAssets={(currentProduct as any).imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => handleUpdateProduct({ imageAssets } as any))} />;
       case 'webinars': return <WebinarSeriesSection webinars={(currentProduct as any).webinars || []} onWebinarsChange={editHandler((webinars) => handleUpdateProduct({ webinars } as any))} />;
       case 'awards': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><AwardsSection awards={(currentProduct as any).awards || []} onUpdate={editHandler((awards) => handleUpdateProduct({ awards } as any))} entityType="product" entityId={currentProduct.id} /></Suspense>;

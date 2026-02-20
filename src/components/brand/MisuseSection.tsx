@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Plus, X, Upload, AlertTriangle, FolderOpen } from 'lucide-react';
+import { Plus, X, Upload, AlertTriangle, FolderOpen, Loader2 } from 'lucide-react';
 import { BrandMisuse } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,32 +7,52 @@ import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { toast } from 'sonner';
 
 interface MisuseSectionProps {
   misuse: BrandMisuse[];
   onMisuseChange: (misuse: BrandMisuse[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
-export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtitleChange }: MisuseSectionProps) => {
+export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand' }: MisuseSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
 
-  const handleFileDrop = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      const newMisuse: BrandMisuse = {
-        id: crypto.randomUUID(),
-        url,
-        description: 'Describe why this is incorrect usage',
-      };
-      onMisuseChange([...misuse, newMisuse]);
-      setEditingId(newMisuse.id);
+  const handleFileDrop = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    let url: string;
+
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `misuse-${crypto.randomUUID()}`);
+      if (!result) return;
+      url = result.url;
+    } else {
+      // Fallback for unsaved entities - small images only
+      const reader = new FileReader();
+      url = await new Promise((resolve) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const newMisuse: BrandMisuse = {
+      id: crypto.randomUUID(),
+      url,
+      description: 'Describe why this is incorrect usage',
     };
-    reader.readAsDataURL(file);
-  }, [misuse, onMisuseChange]);
+    onMisuseChange([...misuse, newMisuse]);
+    setEditingId(newMisuse.id);
+  }, [misuse, onMisuseChange, entityId, uploadFile]);
 
   const handleLibrarySelect = useCallback((url: string) => {
     const newMisuse: BrandMisuse = {

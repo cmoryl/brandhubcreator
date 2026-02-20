@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, forwardRef } from 'react';
-import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2, FolderOpen } from 'lucide-react';
+import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2, FolderOpen, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { cn } from '@/lib/utils';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 
 // Generic logo type that works for all entity types
 export interface UnifiedLogo {
@@ -74,6 +75,8 @@ interface UnifiedLogoSectionProps {
   isEditable?: boolean;
   showGroupedByVariant?: boolean;
   gridLayout?: 'grouped' | 'flat';
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProps>(({
@@ -87,6 +90,8 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
   isEditable,
   showGroupedByVariant = true,
   gridLayout = 'grouped',
+  entityId,
+  entityType = 'brand',
 }, ref) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -94,27 +99,36 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
   const [urlPopoverOpen, setUrlPopoverOpen] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState('');
   const [expandedLogo, setExpandedLogo] = useState<UnifiedLogo | null>(null);
+  const { uploadFile } = useStorageUpload({ entityType, entityId });
 
   // Default to false for public view; only editable if explicitly enabled AND handler exists
   const canEdit = (isEditable ?? false) && !!onLogosChange;
 
-  const handleFileDrop = useCallback((file: File, variant: string) => {
+  const handleFileDrop = useCallback(async (file: File, variant: string) => {
     if (!onLogosChange) return;
     
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      const newLogo: UnifiedLogo = {
-        id: crypto.randomUUID(),
-        name: file.name.replace(/\.[^/.]+$/, ''),
-        url,
-        variant,
-      };
-      onLogosChange([...logos, newLogo]);
-      toast.success(`${file.name} uploaded`);
+    let url: string;
+    if (entityId) {
+      const result = await uploadFile(file, 'logo', `logo-${crypto.randomUUID()}`);
+      if (!result) return;
+      url = result.url;
+    } else {
+      const reader = new FileReader();
+      url = await new Promise((resolve) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const newLogo: UnifiedLogo = {
+      id: crypto.randomUUID(),
+      name: file.name.replace(/\.[^/.]+$/, ''),
+      url,
+      variant,
     };
-    reader.readAsDataURL(file);
-  }, [logos, onLogosChange]);
+    onLogosChange([...logos, newLogo]);
+    toast.success(`${file.name} uploaded`);
+  }, [logos, onLogosChange, entityId, uploadFile]);
 
   const handleUrlSubmit = useCallback((variant: string) => {
     if (!onLogosChange || !urlInput.trim()) return;

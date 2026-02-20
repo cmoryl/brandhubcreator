@@ -619,7 +619,7 @@ const EventEditor = () => {
       case 'assets': 
         return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} websiteUrl={(event as any).websites?.[0]?.url} entityId={event.id} entityType="event" />;
       case 'misuse': 
-        return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} />;
+        return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} entityId={event.id} entityType="event" />;
       case 'casestudies': 
       case 'brochures': 
         return <DigitalCollateralSection collateral={event.brochures} onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))} entityId={event.id} entityType="event" />;
@@ -685,11 +685,11 @@ const EventEditor = () => {
         );
       }
       case 'sponsorlogos':
-        return <SponsorLogosSection sponsors={event.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateEvent({ sponsorLogos }))} websiteUrl={(event as any).websites?.[0]?.url} />;
+        return <SponsorLogosSection sponsors={event.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateEvent({ sponsorLogos }))} websiteUrl={(event as any).websites?.[0]?.url} isEditable={canEdit} entityId={event.id} entityType="event" />;
       case 'partnerbooths':
         return <PartnerBoothsSection partnerBooths={(event as any).partnerBooths || []} onUpdate={canEdit ? (partnerBooths) => updateEvent({ partnerBooths } as any) : undefined} isEditable={canEdit || false} />;
       case 'clientlogos':
-        return <ClientLogosSection clientLogos={event.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateEvent({ clientLogos }))} />;
+        return <ClientLogosSection clientLogos={event.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateEvent({ clientLogos }))} entityId={event.id} entityType="event" />;
       case 'insights':
         return (
           <InsightsSection
@@ -708,7 +708,7 @@ const EventEditor = () => {
             onAccessCodeChange={canEdit ? (insightsAccessCode) => updateEvent({ insightsAccessCode } as any) : undefined}
           />
         );
-      case 'logos': return <LogoSection logos={event.logos} onLogosChange={editHandler((logos) => updateEvent({ logos }))} />;
+      case 'logos': return <LogoSection logos={event.logos} onLogosChange={editHandler((logos) => updateEvent({ logos }))} entityId={event.id} entityType="event" />;
       case 'brandicon': return <BrandIconsSection brandIcons={event.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateEvent({ brandIcons }))} entityId={event.id} entityType="event" />;
       case 'patterns': return <PatternsSection patterns={event.patterns} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} brandName={event.hero.name} brandColors={event.colors} />;
       case 'eventpatterns': return <EventPatternsSection patterns={event.patterns || []} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} isEditable={canEdit} eventName={event.hero.name} eventColors={event.colors} eventTagline={event.hero.tagline} />;

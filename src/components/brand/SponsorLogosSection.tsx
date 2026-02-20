@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Trash2, Upload, Link2, ExternalLink, Crown, Award, Medal, Star, Handshake, Megaphone, Plus, Globe } from 'lucide-react';
+import { Trash2, Upload, Link2, ExternalLink, Crown, Award, Medal, Star, Handshake, Megaphone, Plus, Globe, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,7 @@ import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { cn } from '@/lib/utils';
 import { WebsiteImageScanner } from './WebsiteImageScanner';
 import { GlobalLogoPickerDialog } from './GlobalLogoPickerDialog';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 import type { SponsorLogo, ClientLogo } from '@/types/brand';
 
 const TIER_CONFIG = {
@@ -33,6 +34,8 @@ interface SponsorLogosSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   isEditable?: boolean;
   websiteUrl?: string;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 export const SponsorLogosSection = ({
@@ -42,6 +45,8 @@ export const SponsorLogosSection = ({
   onSubtitleChange,
   isEditable,
   websiteUrl,
+  entityId,
+  entityType = 'brand',
 }: SponsorLogosSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [urlPopoverOpen, setUrlPopoverOpen] = useState<string | null>(null);
@@ -54,6 +59,7 @@ export const SponsorLogosSection = ({
     websiteUrl: '',
     placement: '',
   });
+  const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
 
   // Default to false for public view; only editable if explicitly enabled AND handler exists
   const canEdit = (isEditable ?? false) && !!onSponsorsChange;
@@ -87,23 +93,31 @@ export const SponsorLogosSection = ({
     toast.success('Sponsor removed');
   };
 
-  const handleFileDrop = useCallback((file: File, sponsorId?: string) => {
+  const handleFileDrop = useCallback(async (file: File, sponsorId?: string) => {
     if (!file.type.startsWith('image/')) {
       toast.error('Please upload an image file');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const url = e.target?.result as string;
-      if (sponsorId) {
-        handleUpdateSponsor(sponsorId, { url });
-      } else {
-        handleAddSponsor(url);
-      }
-    };
-    reader.readAsDataURL(file);
-  }, [sponsors, onSponsorsChange]);
+    let url: string;
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `sponsor-${crypto.randomUUID()}`);
+      if (!result) return;
+      url = result.url;
+    } else {
+      const reader = new FileReader();
+      url = await new Promise((resolve) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (sponsorId) {
+      handleUpdateSponsor(sponsorId, { url });
+    } else {
+      handleAddSponsor(url);
+    }
+  }, [sponsors, onSponsorsChange, entityId, uploadFile]);
 
   const handleUrlSubmit = (sponsorId?: string) => {
     if (!urlInput.trim()) return;
