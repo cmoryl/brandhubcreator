@@ -1,7 +1,7 @@
-import { useState, useCallback, forwardRef } from 'react';
-import { X, Download, Folder, File, FileText, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical, Loader2 } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { X, Download, Folder, File, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical, Loader2 } from 'lucide-react';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
-import { BrandAsset, ASSET_CATEGORIES, AssetCategory } from '@/types/brand';
+import { BrandAsset, ASSET_CATEGORIES, AssetCategory, PRINT_SIGNAGE_TYPES } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
@@ -42,10 +42,14 @@ const getFileIcon = (type?: string) => {
   return '📁';
 };
 
+const PRINT_CATEGORIES = ['Print Materials', 'Signage & Banners'] as const;
+
 interface PendingFile {
   file: File;
   name: string;
   category: AssetCategory;
+  printType?: string;
+  dimensions?: string;
 }
 
 // Sortable asset card component
@@ -114,6 +118,12 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
       <div className="p-2 space-y-0.5">
         <p className="text-xs font-medium truncate" title={asset.name}>{asset.name}</p>
         <p className="text-[10px] text-muted-foreground">{asset.size} • {asset.type?.split('/')[1]?.toUpperCase() || 'FILE'}</p>
+        {asset.printType && (
+          <p className="text-[10px] text-primary/70 font-medium truncate">
+            {PRINT_SIGNAGE_TYPES.find(t => t.value === asset.printType)?.label || asset.printType}
+            {asset.dimensions ? ` · ${asset.dimensions}` : ''}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -228,6 +238,8 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
         size: sizeLabel,
         category: pendingFile.category,
         thumbnailUrl,
+        printType: pendingFile.printType,
+        dimensions: pendingFile.dimensions,
       };
       onAssetsChange([...assets, newAsset]);
       setPendingFile(null);
@@ -463,7 +475,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
                 <Label>Category</Label>
                 <Select
                   value={pendingFile.category}
-                  onValueChange={(val) => setPendingFile(prev => prev ? { ...prev, category: val as AssetCategory } : null)}
+                  onValueChange={(val) => setPendingFile(prev => prev ? { ...prev, category: val as AssetCategory, printType: undefined } : null)}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -475,6 +487,36 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Sub-type picker for print & signage categories */}
+              {PRINT_CATEGORIES.includes(pendingFile.category as typeof PRINT_CATEGORIES[number]) && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Material / Signage Type</Label>
+                    <Select
+                      value={pendingFile.printType || ''}
+                      onValueChange={(val) => setPendingFile(prev => prev ? { ...prev, printType: val } : null)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PRINT_SIGNAGE_TYPES.map(t => (
+                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Dimensions <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                    <Input
+                      value={pendingFile.dimensions || ''}
+                      onChange={(e) => setPendingFile(prev => prev ? { ...prev, dimensions: e.target.value } : null)}
+                      placeholder="e.g. 10ft × 8ft, A3, 24×36in"
+                    />
+                  </div>
+                </>
+              )}
               <p className="text-xs text-muted-foreground">
                 {formatFileSize(pendingFile.file.size)} • {pendingFile.file.type?.split('/')[1]?.toUpperCase() || 'FILE'}
               </p>
