@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Upload, Star, StarOff, Layers, Library } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Star, StarOff, Layers, Library, Loader2 } from 'lucide-react';
 import { BrandIcon } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,22 +7,29 @@ import { SectionHeader } from './SectionHeader';
 import { Badge } from '@/components/ui/badge';
 import { IconLibraryPicker } from './iconography';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { toast } from 'sonner';
 
 interface BrandIconsSectionProps {
   brandIcons: BrandIcon[];
   onBrandIconsChange: (brandIcons: BrandIcon[]) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
 
-export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtitle, onSubtitleChange }: BrandIconsSectionProps) => {
+export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand' }: BrandIconsSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [showLibraryPicker, setShowLibraryPicker] = useState(false);
+  const [isUploadingIcon, setIsUploadingIcon] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const variationInputRef = useRef<HTMLInputElement>(null);
+  const pendingUploadMeta = useRef<{ asPrimary: boolean; asVariation: boolean }>({ asPrimary: false, asVariation: false });
   
   const { organization } = useOrganization();
+  const { uploadFile } = useStorageUpload({ entityType, entityId });
   
   // Derive canEdit from whether change handler is provided
   const canEdit = Boolean(onBrandIconsChange);
@@ -35,32 +42,45 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
     onBrandIconsChange([...brandIcons, ...icons]);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, asPrimary: boolean = false, asVariation: boolean = false) => {
+  const triggerUpload = (asPrimary: boolean, asVariation: boolean) => {
+    pendingUploadMeta.current = { asPrimary, asVariation };
+    (asPrimary || !asVariation ? fileInputRef : variationInputRef).current?.click();
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const { asPrimary, asVariation } = pendingUploadMeta.current;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      
-      // If setting as primary, remove primary flag from others
+    if (!entityId) {
+      toast.error('Save the entity first to enable icon uploads.');
+      e.target.value = '';
+      return;
+    }
+
+    setIsUploadingIcon(true);
+    try {
+      const iconId = crypto.randomUUID();
+      const result = await uploadFile(file, 'asset', `brand-icon-${iconId}`);
+      if (!result) return;
+
       let updatedIcons = [...brandIcons];
       if (asPrimary) {
         updatedIcons = updatedIcons.map(icon => ({ ...icon, isPrimary: false }));
       }
-      
       const newIcon: BrandIcon = {
-        id: crypto.randomUUID(),
+        id: iconId,
         name: file.name.replace(/\.[^/.]+$/, ''),
-        url,
+        url: result.url,
         settings: asPrimary ? 'Primary brand symbol' : (asVariation ? 'Symbol variation' : 'min-size: 16px, max-size: 512px'),
         isPrimary: asPrimary,
         isVariation: asVariation,
       };
       onBrandIconsChange([...updatedIcons, newIcon]);
-    };
-    reader.readAsDataURL(file);
-
+    } finally {
+      setIsUploadingIcon(false);
+      e.target.value = '';
+    }
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (variationInputRef.current) variationInputRef.current.value = '';
   };
@@ -256,14 +276,14 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        onChange={(e) => handleFileUpload(e, false, false)}
+        onChange={handleFileUpload}
         className="hidden"
       />
       <input
         ref={variationInputRef}
         type="file"
         accept="image/*"
-        onChange={(e) => handleFileUpload(e, false, true)}
+        onChange={handleFileUpload}
         className="hidden"
       />
 
@@ -282,13 +302,7 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
             </div>
           ) : (
             <button
-              onClick={() => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = (e) => handleFileUpload(e as any, true, false);
-                input.click();
-              }}
+              onClick={() => { pendingUploadMeta.current = { asPrimary: true, asVariation: false }; fileInputRef.current?.click(); }}
               className="flex-shrink-0 w-48 h-48 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-3 text-muted-foreground hover:border-accent hover:text-accent transition-all duration-300 hover:shadow-lg hover:scale-[1.02] bg-card"
             >
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">

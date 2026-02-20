@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, X, Briefcase, Upload, Palette, FileText, Share2, Zap, Settings, Users, Globe, Shield, Heart, Star, Sparkles, Layers, Package, Target, Award, TrendingUp, MessageSquare, ChevronDown, ExternalLink } from 'lucide-react';
+import { Plus, X, Briefcase, Upload, Palette, FileText, Share2, Zap, Settings, Users, Globe, Shield, Heart, Star, Sparkles, Layers, Package, Target, Award, TrendingUp, MessageSquare, ChevronDown, ExternalLink, Loader2 } from 'lucide-react';
 import { BrandService } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { toast } from 'sonner';
 
 // Available icons for services
 const SERVICE_ICONS = [
@@ -55,11 +57,15 @@ interface ServicesSectionProps {
   onServicesChange?: (services: BrandService[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
-export const ServicesSection = ({ services, onServicesChange, customSubtitle, onSubtitleChange }: ServicesSectionProps) => {
+export const ServicesSection = ({ services, onServicesChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand' }: ServicesSectionProps) => {
   const canEdit = Boolean(onServicesChange);
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const { uploadFile } = useStorageUpload({ entityType, entityId });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<BrandService | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -125,26 +131,34 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
     onServicesChange(services.filter(s => s.id !== id));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    e.target.value = '';
+    if (!entityId) {
+      toast.error('Save the entity first to enable image uploads.');
+      return;
     }
+    setIsUploadingImage(true);
+    try {
+      const result = await uploadFile(file, 'asset', `service-img-${Date.now()}`);
+      if (result?.url) setFormData(prev => ({ ...prev, imageUrl: result.url }));
+    } finally { setIsUploadingImage(false); }
   };
 
-  const handleHeaderImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHeaderImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, headerImage: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    e.target.value = '';
+    if (!entityId) {
+      toast.error('Save the entity first to enable image uploads.');
+      return;
     }
+    setIsUploadingImage(true);
+    try {
+      const result = await uploadFile(file, 'asset', `service-header-${Date.now()}`);
+      if (result?.url) setFormData(prev => ({ ...prev, headerImage: result.url }));
+    } finally { setIsUploadingImage(false); }
   };
 
   // Determine if any service has an image (imageUrl or headerImage) for the full-width card layout

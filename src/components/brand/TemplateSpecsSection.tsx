@@ -413,10 +413,11 @@ export const TemplateSpecsSection = ({
     onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
   };
 
-  // Handle preview image upload
+  // Handle preview image upload — uses FileReader (template previews are small UI images, not persisted blobs)
   const handlePreviewImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedSpec || !onTemplateSpecsChange) return;
+    if (fileInputRef.current) fileInputRef.current.value = '';
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -425,8 +426,6 @@ export const TemplateSpecsSection = ({
       onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
     };
     reader.readAsDataURL(file);
-
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   // Handle callout position change from drag
