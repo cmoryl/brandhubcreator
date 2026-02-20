@@ -418,52 +418,6 @@ export const EventPrintCollateralSection = ({
       </div>
 
 
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelected} />
-
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-serif font-semibold text-foreground">
-            Print Collateral
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Signage, printed materials, identity collateral, and event-specific print assets
-          </p>
-        </div>
-        {isEditable && onItemsChange && (
-          <Button size="sm" className="gap-2 shrink-0" onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Add Item
-          </Button>
-        )}
-      </div>
-
-      {/* Summary bar */}
-      {items.length > 0 && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-primary/5 rounded-lg border border-primary/20">
-          <FileText className="h-4 w-4 text-primary" />
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{items.length} print item{items.length !== 1 ? 's' : ''}</span>
-            {' across '}
-            <span className="font-medium text-foreground">
-              {PRINT_SUBSECTIONS.filter(sub => items.some(it => getSubsectionForType(it.type) === sub.id)).length} categories
-            </span>
-          </p>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {items.length === 0 && (
-        <div className="border-2 border-dashed border-border rounded-xl h-40 flex flex-col items-center justify-center gap-3 text-muted-foreground">
-          <FileText className="h-8 w-8 opacity-30" />
-          <div className="text-center">
-            <p className="text-sm font-medium">No print collateral yet</p>
-            {isEditable && <p className="text-xs">Add signage, brochures, badges, and more</p>}
-          </div>
-        </div>
-      )}
-
-
 
       {/* Add dialog */}
       <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) setIsDialogOpen(false); }}>
