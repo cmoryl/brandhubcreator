@@ -18,12 +18,15 @@ import { Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { ClientLogo } from '@/types/brand';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 
 interface EventSponsorsSectionProps {
   sponsors: EventSponsor[];
   onUpdate: (sponsors: EventSponsor[]) => void;
   isEditable?: boolean;
   subtitle?: string;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 const SPONSOR_TIERS = [
@@ -62,10 +65,13 @@ export const EventSponsorsSection = ({
   onUpdate,
   isEditable = true,
   subtitle,
+  entityId,
+  entityType = 'event',
 }: EventSponsorsSectionProps) => {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [logoInputMode, setLogoInputMode] = useState<'upload' | 'url' | 'library'>('upload');
   const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(new Set());
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [newItem, setNewItem] = useState<Partial<EventSponsor>>({
     name: '',
@@ -73,6 +79,8 @@ export const EventSponsorsSection = ({
     logoUrl: '',
     logoVariants: [],
   });
+
+  const { uploadFile } = useStorageUpload({ entityType, entityId });
 
   // Auto-backfill missing sponsor logos from global library
   useEffect(() => {
@@ -108,21 +116,31 @@ export const EventSponsorsSection = ({
     backfillLogos();
   }, [sponsors.length]); // Only re-run when sponsor count changes
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (logoInputRef.current) logoInputRef.current.value = '';
 
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setNewItem({ ...newItem, logoUrl: dataUrl });
-    };
-    reader.readAsDataURL(file);
+    if (!entityId) {
+      toast.error('Please save the event first before uploading logos.');
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const tempId = newItem.name ? newItem.name.replace(/\s+/g, '-').toLowerCase() : crypto.randomUUID();
+      const result = await uploadFile(file, 'asset', `sponsor-logo-${tempId}`);
+      if (result?.url) {
+        setNewItem(prev => ({ ...prev, logoUrl: result.url }));
+      }
+    } finally {
+      setIsUploadingLogo(false);
+    }
   };
 
   const handleAdd = () => {
@@ -299,9 +317,14 @@ export const EventSponsorsSection = ({
                         variant="outline"
                         onClick={() => logoInputRef.current?.click()}
                         className="flex-1 gap-2"
+                        disabled={isUploadingLogo}
                       >
-                        <Upload className="h-4 w-4" />
-                        {newItem.logoUrl ? 'Change Logo' : 'Upload Logo'}
+                        {isUploadingLogo ? (
+                          <span className="h-4 w-4 block animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                        {isUploadingLogo ? 'Uploading...' : newItem.logoUrl ? 'Change Logo' : 'Upload Logo'}
                       </Button>
                       {newItem.logoUrl && (
                         <div className="h-10 w-10 border rounded flex items-center justify-center bg-white">

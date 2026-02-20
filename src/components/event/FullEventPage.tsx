@@ -232,6 +232,8 @@ export const FullEventPage = ({
             sponsors={event.eventSponsors || []}
             onUpdate={canEdit ? (eventSponsors) => updateEvent({ eventSponsors }) : () => {}}
             isEditable={canEdit}
+            entityId={event.id}
+            entityType="event"
           />
         );
       case 'eventhistory':
