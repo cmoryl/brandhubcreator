@@ -36,6 +36,11 @@ const PRINT_SUBSECTIONS = [
     types: ['brochure', 'flyer', 'poster', 'catalog', 'postcard', 'folder'] as const,
   },
   {
+    id: 'stationery',
+    label: 'General Stationery',
+    types: ['letterhead', 'envelope', 'business-card', 'notepad', 'sticker', 'stamp', 'with-compliments'] as const,
+  },
+  {
     id: 'maps',
     label: 'Maps',
     types: ['venue-map', 'floor-plan', 'wayfinding-map', 'campus-map', 'booth-map', 'evacuation-map', 'other-map'] as const,
@@ -48,7 +53,30 @@ const PRINT_SUBSECTIONS = [
 ] as const;
 
 const PRINT_TYPES: Record<string, string> = {
-  // Signage
+  // Collateral
+  'brochure': 'Brochure',
+  'flyer': 'Flyer',
+  'poster': 'Poster',
+  'catalog': 'Catalog',
+  'postcard': 'Postcard',
+  'folder': 'Presentation Folder',
+  // Stationery
+  'letterhead': 'Letterhead',
+  'envelope': 'Envelope',
+  'business-card': 'Business Card',
+  'notepad': 'Notepad',
+  'sticker': 'Sticker / Label',
+  'stamp': 'Stamp',
+  'with-compliments': 'With Compliments Slip',
+  // Maps
+  'venue-map': 'Venue Map',
+  'floor-plan': 'Floor Plan',
+  'wayfinding-map': 'Wayfinding Map',
+  'campus-map': 'Campus Map',
+  'booth-map': 'Booth / Exhibitor Map',
+  'evacuation-map': 'Evacuation Map',
+  'other-map': 'Other Map',
+  // Legacy (kept for existing data)
   'booth-backdrop': 'Booth Backdrop',
   'pull-up-banner': 'Pull-Up Banner',
   'table-banner': 'Table Banner',
@@ -59,46 +87,17 @@ const PRINT_TYPES: Record<string, string> = {
   'stage-backdrop': 'Stage Backdrop',
   'outdoor-banner': 'Outdoor Banner',
   'registration': 'Registration Desk',
-  'a-frame': 'A-Frame Sign',
-  'step-repeat': 'Step & Repeat',
-  'ceiling-banner': 'Ceiling Banner',
-  'kiosk-wrap': 'Kiosk Wrap',
-  'pop-up-display': 'Pop-Up Display',
-  'feather-flag': 'Feather Flag',
-  'canopy-tent': 'Canopy / Tent',
-  'window-cling': 'Window Cling',
-  'counter-display': 'Counter Display',
-  // Collateral
-  'brochure': 'Brochure',
-  'flyer': 'Flyer',
-  'poster': 'Poster',
-  'catalog': 'Catalog',
-  'postcard': 'Postcard',
-  'folder': 'Presentation Folder',
-  // Identity
-  'business-card': 'Business Card',
   'badge': 'Badge',
-  'letterhead': 'Letterhead',
-  'envelope': 'Envelope',
-  'sticker': 'Sticker / Label',
-  // Event (kept for legacy items)
   'program': 'Program / Booklet',
   'agenda': 'Agenda Card',
   'name-badge': 'Name Badge',
   'ticket': 'Ticket',
   'lanyard': 'Lanyard',
   'wristband': 'Wristband',
-  // Maps
-  'venue-map': 'Venue Map',
-  'floor-plan': 'Floor Plan',
-  'wayfinding-map': 'Wayfinding Map',
-  'campus-map': 'Campus Map',
-  'booth-map': 'Booth / Exhibitor Map',
-  'evacuation-map': 'Evacuation Map',
-  'other-map': 'Other Map',
   // Other
   'other': 'Other',
 };
+
 
 const ALL_TYPE_OPTIONS = Object.entries(PRINT_TYPES).map(([value, label]) => ({ value, label }));
 
