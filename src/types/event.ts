@@ -128,6 +128,7 @@ export interface EventPrintMaterial {
   dimensions?: string;
   previewUrl?: string;
   fileUrl?: string;
+  liveFileUrl?: string;   // Link to live design files (Figma, Google Drive, Dropbox, etc.)
   description?: string;
   quantity?: string;
 }
@@ -315,7 +316,8 @@ export type EventSectionId =
   | 'eventpatterns'     // Event-specific patterns
   | 'partnerbooths'     // Partner booth catalog
   | 'sponsorlogos'      // Sponsor logos
-  | 'clientlogos';      // Client logos
+  | 'clientlogos'       // Client logos
+  | 'eventprint';       // Print collateral
 
 // Default Event Section Order
 // Note: eventsponsors now includes sponsor logos - sponsorlogos section is not used in events
@@ -330,6 +332,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'eventlocation',
   'eventlogos',
   'eventsignage',
+  'eventprint',          // Print collateral (signage, brochures, badges, etc.)
   'eventdigital',        // Unified digital collateral (banners, materials, templates, brochures)
   'eventvideos',
   'colors',

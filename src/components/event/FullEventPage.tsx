@@ -20,6 +20,7 @@ import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
 import { EventDetailsSection } from './EventDetailsSection';
 import { EventLogosSection } from './EventLogosSection';
 import { EventSignageSection } from './EventSignageSection';
+import { EventPrintCollateralSection } from './EventPrintCollateralSection';
 
 import { EventDigitalSection } from './EventDigitalSection';
 import { EventSponsorsSection } from './EventSponsorsSection';
@@ -171,6 +172,15 @@ export const FullEventPage = ({
             isEditable={canEdit}
             brandName={event.hero?.name}
             brandColors={event.colors?.map(c => c.hex)}
+            eventId={eventId}
+          />
+        );
+      case 'eventprint':
+        return (
+          <EventPrintCollateralSection
+            items={event.eventPrintMaterials || []}
+            onItemsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined}
+            isEditable={canEdit}
             eventId={eventId}
           />
         );
