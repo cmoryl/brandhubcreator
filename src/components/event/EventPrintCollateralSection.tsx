@@ -31,22 +31,9 @@ interface EventPrintCollateralSectionProps {
 // Sub-sections / categories grouping related types
 const PRINT_SUBSECTIONS = [
   {
-    id: 'signage',
-    label: 'Signage & Displays',
-    types: ['booth-backdrop', 'pull-up-banner', 'table-banner', 'hanging-sign', 'floor-graphic',
-      'directional', 'podium-sign', 'stage-backdrop', 'outdoor-banner', 'registration',
-      'a-frame', 'step-repeat', 'ceiling-banner', 'kiosk-wrap', 'pop-up-display',
-      'feather-flag', 'canopy-tent', 'window-cling', 'counter-display'] as const,
-  },
-  {
     id: 'collateral',
     label: 'Printed Collateral',
     types: ['brochure', 'flyer', 'poster', 'catalog', 'postcard', 'folder'] as const,
-  },
-  {
-    id: 'identity',
-    label: 'Identity Materials',
-    types: ['business-card', 'badge', 'letterhead', 'envelope', 'sticker'] as const,
   },
   {
     id: 'event',
