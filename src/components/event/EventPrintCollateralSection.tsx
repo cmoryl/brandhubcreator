@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import {
-  Plus, Trash2, ExternalLink, Upload, Loader2, Link2, FileText,
-  ChevronDown, ChevronUp, Image as ImageIcon, Edit2, Check, X, Download
+  Plus, Trash2, Upload, Loader2, Link2, FileText,
+  ChevronDown, Download
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -257,7 +258,6 @@ export const EventPrintCollateralSection = ({
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [uploadingPreviewId, setUploadingPreviewId] = useState<string | null>(null);
   const [targetPreviewId, setTargetPreviewId] = useState<string | null>(null);
-  const [collapsedSubs, setCollapsedSubs] = useState<Record<string, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { uploadFile } = useStorageUpload({ entityType: 'event', entityId: eventId || '' });
@@ -315,8 +315,6 @@ export const EventPrintCollateralSection = ({
     }
   }, [targetPreviewId, onItemsChange, items, eventId, uploadFile]);
 
-  const toggleCollapse = (id: string) =>
-    setCollapsedSubs((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
     <section className="space-y-6">
@@ -366,35 +364,36 @@ export const EventPrintCollateralSection = ({
         </div>
       )}
 
-      {/* Sub-sections */}
-      {grouped.map((sub) => {
-        const isCollapsed = collapsedSubs[sub.id];
-        const colorCls = SUBSECTION_COLORS[sub.id] || SUBSECTION_COLORS.other;
-
-        return (
-          <div key={sub.id} className="space-y-3">
-            {/* Sub-section header */}
-            <button
-              className="w-full flex items-center justify-between gap-2 group"
-              onClick={() => toggleCollapse(sub.id)}
-            >
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className={`text-xs ${colorCls}`}>
-                  {sub.label}
-                </Badge>
-                <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+      {/* Sub-sections – accordion style matching EventSignageSection */}
+      <div className="space-y-3">
+        {grouped.map((sub) => (
+          <Collapsible key={sub.id} defaultOpen={false}>
+            <CollapsibleTrigger className="w-full flex items-center justify-between p-3 rounded-lg border border-border/40 bg-muted/20 hover:bg-muted/40 transition-colors group/trigger">
+              <div className="flex items-center gap-3">
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=closed]/trigger:-rotate-90" />
+                <h3 className="font-semibold text-base">{sub.label}</h3>
+                <Badge variant="secondary" className="font-normal text-xs">
                   {sub.items.length}
-                </span>
+                </Badge>
               </div>
-              <div className="flex items-center gap-1 text-muted-foreground">
-                {isCollapsed
-                  ? <ChevronDown className="h-3.5 w-3.5" />
-                  : <ChevronUp className="h-3.5 w-3.5" />}
+              <div className="flex items-center gap-1.5 group-data-[state=open]/trigger:hidden">
+                {sub.items.slice(0, 4).map((item) => (
+                  item.previewUrl ? (
+                    <div key={item.id} className="h-8 w-12 rounded border border-border/40 overflow-hidden bg-muted shrink-0">
+                      <img src={item.previewUrl} alt="" className="h-full w-full object-cover" />
+                    </div>
+                  ) : (
+                    <div key={item.id} className="h-8 w-12 rounded border border-border/40 bg-muted flex items-center justify-center shrink-0">
+                      <FileText className="h-3 w-3 text-muted-foreground/40" />
+                    </div>
+                  )
+                ))}
+                {sub.items.length > 4 && (
+                  <span className="text-xs text-muted-foreground ml-1">+{sub.items.length - 4}</span>
+                )}
               </div>
-            </button>
-
-            {/* Grid */}
-            {!isCollapsed && (
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {sub.items.map((item) => (
                   <PrintCard
@@ -406,8 +405,6 @@ export const EventPrintCollateralSection = ({
                     isUploadingPreview={uploadingPreviewId === item.id}
                   />
                 ))}
-
-                {/* Add button inside sub-section */}
                 {isEditable && onItemsChange && (
                   <button
                     onClick={() => {
@@ -421,10 +418,58 @@ export const EventPrintCollateralSection = ({
                   </button>
                 )}
               </div>
-            )}
+            </CollapsibleContent>
+          </Collapsible>
+        ))}
+      </div>
+
+
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelected} />
+
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-serif font-semibold text-foreground">
+            Print Collateral
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Signage, printed materials, identity collateral, and event-specific print assets
+          </p>
+        </div>
+        {isEditable && onItemsChange && (
+          <Button size="sm" className="gap-2 shrink-0" onClick={() => setIsDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add Item
+          </Button>
+        )}
+      </div>
+
+      {/* Summary bar */}
+      {items.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-primary/5 rounded-lg border border-primary/20">
+          <FileText className="h-4 w-4 text-primary" />
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{items.length} print item{items.length !== 1 ? 's' : ''}</span>
+            {' across '}
+            <span className="font-medium text-foreground">
+              {PRINT_SUBSECTIONS.filter(sub => items.some(it => getSubsectionForType(it.type) === sub.id)).length} categories
+            </span>
+          </p>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {items.length === 0 && (
+        <div className="border-2 border-dashed border-border rounded-xl h-40 flex flex-col items-center justify-center gap-3 text-muted-foreground">
+          <FileText className="h-8 w-8 opacity-30" />
+          <div className="text-center">
+            <p className="text-sm font-medium">No print collateral yet</p>
+            {isEditable && <p className="text-xs">Add signage, brochures, badges, and more</p>}
           </div>
-        );
-      })}
+        </div>
+      )}
+
+
 
       {/* Add dialog */}
       <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) setIsDialogOpen(false); }}>
@@ -498,7 +543,7 @@ export const EventPrintCollateralSection = ({
 
               <div className="col-span-2 space-y-2">
                 <Label className="flex items-center gap-1.5">
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <Download className="h-3.5 w-3.5" />
                   Download / Export URL
                   <span className="text-muted-foreground font-normal text-xs">(PDF, print-ready file…)</span>
                 </Label>
