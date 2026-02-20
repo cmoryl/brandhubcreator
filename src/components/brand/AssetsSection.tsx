@@ -88,8 +88,10 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
             <img src={asset.thumbnailUrl} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
             <span className="absolute top-1 left-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded">PDF</span>
           </>
-        ) : asset.type === 'application/pdf' ? (
-          <PdfThumbnailCard url={asset.url} name={asset.name} />
+      ) : asset.type === 'application/pdf' ? (
+          <div className="absolute inset-0">
+            <PdfThumbnailCard url={asset.url} name={asset.name} />
+          </div>
         ) : (
           <span className="text-2xl">{getFileIcon(asset.type)}</span>
         )}
