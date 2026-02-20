@@ -65,9 +65,9 @@ export const PdfThumbnailCard = ({ url, name }: PdfThumbnailCardProps) => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        <span className="text-[10px] text-muted-foreground">Rendering PDF…</span>
+      <div className="flex flex-col items-center justify-center w-full h-full gap-2 bg-muted/30">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <span className="text-[10px] text-muted-foreground">Rendering…</span>
       </div>
     );
   }
@@ -103,28 +103,26 @@ export const PdfThumbnailCard = ({ url, name }: PdfThumbnailCardProps) => {
 };
 
 const MissingFileIcon = ({ name }: { name: string }) => (
-  <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
-    <div className="relative">
-      <AlertTriangle className="h-8 w-8 text-warning/80" />
-    </div>
-    <span className="text-[10px] text-muted-foreground font-medium">File not found</span>
-    <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{name}</span>
+  <div className="flex flex-col items-center justify-center w-full h-full gap-1.5 bg-muted/20">
+    <AlertTriangle className="h-6 w-6 text-warning/70" />
+    <span className="text-[9px] text-muted-foreground font-medium">File not found</span>
+    <span className="text-[9px] text-muted-foreground max-w-[85%] truncate text-center">{name}</span>
   </div>
 );
 
 const FallbackIcon = ({ name, onRetry }: { name: string; onRetry?: () => void }) => (
-  <div className="flex flex-col items-center justify-center h-full gap-2 bg-gradient-to-br from-destructive/10 to-destructive/5">
+  <div className="flex flex-col items-center justify-center w-full h-full gap-1.5 bg-muted/20">
     <div className="relative">
-      <FileText className="h-10 w-10 text-destructive/80" />
-      <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1 rounded">PDF</span>
+      <FileText className="h-7 w-7 text-muted-foreground/60" />
+      <span className="absolute -bottom-1 -right-1 text-[7px] font-bold bg-destructive text-destructive-foreground px-1 rounded">PDF</span>
     </div>
-    <span className="text-[10px] text-muted-foreground max-w-[80%] truncate text-center">{name}</span>
+    <span className="text-[9px] text-muted-foreground max-w-[85%] truncate text-center">{name}</span>
     {onRetry && (
       <button 
         onClick={(e) => { e.stopPropagation(); onRetry(); }}
-        className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors"
+        className="flex items-center gap-1 text-[9px] text-primary hover:text-primary/80 transition-colors mt-0.5"
       >
-        <RefreshCw className="h-3 w-3" />
+        <RefreshCw className="h-2.5 w-2.5" />
         Retry
       </button>
     )}
