@@ -570,7 +570,7 @@ const EventEditor = () => {
           </div>
         );
       case 'eventwebsites':
-        return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={(websites) => updateEvent({ websites })} isEditable={canEdit || false} />;
+        return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={(websites) => updateEvent({ websites })} isEditable={canEdit || false} entityId={event.id} />;
       case 'eventlogos':
         return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
       case 'eventsignage':
@@ -709,7 +709,7 @@ const EventEditor = () => {
           />
         );
       case 'logos': return <LogoSection logos={event.logos} onLogosChange={editHandler((logos) => updateEvent({ logos }))} />;
-      case 'brandicon': return <BrandIconsSection brandIcons={event.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateEvent({ brandIcons }))} />;
+      case 'brandicon': return <BrandIconsSection brandIcons={event.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateEvent({ brandIcons }))} entityId={event.id} entityType="event" />;
       case 'patterns': return <PatternsSection patterns={event.patterns} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} brandName={event.hero.name} brandColors={event.colors} />;
       case 'eventpatterns': return <EventPatternsSection patterns={event.patterns || []} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} isEditable={canEdit} eventName={event.hero.name} eventColors={event.colors} eventTagline={event.hero.tagline} />;
       case 'textstyles': return <TextStylesSection textStyles={event.textStyles} onTextStylesChange={editHandler((textStyles) => updateEvent({ textStyles }))} />;

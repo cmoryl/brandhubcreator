@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, ExternalLink, Image, Upload, Globe, Eye } from 'lucide-react';
+import { Plus, X, Pencil, ExternalLink, Image, Upload, Globe, Eye, Loader2 } from 'lucide-react';
 import { BrandWebsiteLink } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from '@/components/brand/SectionHeader';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { toast } from 'sonner';
 
 interface EventWebsiteSectionProps {
   websites: BrandWebsiteLink[];
@@ -12,6 +14,7 @@ interface EventWebsiteSectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   isEditable?: boolean;
+  entityId?: string;
 }
 
 export const EventWebsiteSection = ({ 
@@ -20,13 +23,16 @@ export const EventWebsiteSection = ({
   customSubtitle, 
   onSubtitleChange,
   isEditable = true,
+  entityId,
 }: EventWebsiteSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<BrandWebsiteLink | null>(null);
+  const [isUploadingScreenshot, setIsUploadingScreenshot] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingUploadId, setPendingUploadId] = useState<string | null>(null);
+  const { uploadFile } = useStorageUpload({ entityType: 'event', entityId });
 
   const addLink = () => {
     const newLink: BrandWebsiteLink = {
@@ -52,20 +58,26 @@ export const EventWebsiteSection = ({
     fileInputRef.current?.click();
   };
 
-  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !pendingUploadId) return;
+    if (fileInputRef.current) fileInputRef.current.value = '';
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      updateLink(pendingUploadId, { screenshotUrl: dataUrl });
+    if (!entityId) {
+      toast.error('Save the event first to enable screenshot uploads.');
       setPendingUploadId(null);
-    };
-    reader.readAsDataURL(file);
-    
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      return;
+    }
+
+    setIsUploadingScreenshot(true);
+    try {
+      const result = await uploadFile(file, 'asset', `website-screenshot-${pendingUploadId}`);
+      if (result?.url) {
+        updateLink(pendingUploadId, { screenshotUrl: result.url });
+      }
+    } finally {
+      setIsUploadingScreenshot(false);
+      setPendingUploadId(null);
     }
   };
 
