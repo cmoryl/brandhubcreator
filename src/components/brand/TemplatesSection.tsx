@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { X, Pencil, Upload, Download, FileType, Link, ExternalLink, Image, FileText, FolderOpen, Maximize2, Minimize2 } from 'lucide-react';
 import { BrandTemplate } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,8 @@ interface TemplatesSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
   onLayoutChange?: (layout: LayoutPreset) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -107,8 +110,9 @@ const getDriveEmbedUrl = (url: string): string => {
   return url;
 };
 
-export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, customSubtitle, onSubtitleChange, layout = 'grid-2', onLayoutChange }: TemplatesSectionProps) => {
+export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, customSubtitle, onSubtitleChange, layout = 'grid-2', onLayoutChange, entityId, entityType = 'brand' }: TemplatesSectionProps) => {
   const canEdit = Boolean(onTemplatesChange);
+  const { uploadFile } = useStorageUpload({ entityType, entityId });
   // Defensive: ensure templates is always an array
   const templates = Array.isArray(templatesProp) ? templatesProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -154,21 +158,26 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
     }
   };
 
-  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !pendingThumbnailId) return;
+    const currentPendingId = pendingThumbnailId;
+    if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
+    setPendingThumbnailId(null);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      updateTemplate(pendingThumbnailId, { thumbnailUrl: url });
-      setPendingThumbnailId(null);
-    };
-    reader.readAsDataURL(file);
-
-    if (thumbnailInputRef.current) {
-      thumbnailInputRef.current.value = '';
+    let url: string;
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `template-thumb-${crypto.randomUUID()}`);
+      if (!result) return;
+      url = result.url;
+    } else {
+      const reader = new FileReader();
+      url = await new Promise((resolve) => {
+        reader.onload = (event) => resolve(event.target?.result as string);
+        reader.readAsDataURL(file);
+      });
     }
+    updateTemplate(currentPendingId, { thumbnailUrl: url });
   };
 
   const handleAddExternalLink = () => {
