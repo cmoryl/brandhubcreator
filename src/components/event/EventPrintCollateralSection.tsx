@@ -36,9 +36,9 @@ const PRINT_SUBSECTIONS = [
     types: ['brochure', 'flyer', 'poster', 'catalog', 'postcard', 'folder'] as const,
   },
   {
-    id: 'event',
-    label: 'Event Specifics',
-    types: ['program', 'agenda', 'name-badge', 'ticket', 'lanyard', 'wristband'] as const,
+    id: 'maps',
+    label: 'Maps',
+    types: ['venue-map', 'floor-plan', 'wayfinding-map', 'campus-map', 'booth-map', 'evacuation-map', 'other-map'] as const,
   },
   {
     id: 'other',
@@ -81,13 +81,21 @@ const PRINT_TYPES: Record<string, string> = {
   'letterhead': 'Letterhead',
   'envelope': 'Envelope',
   'sticker': 'Sticker / Label',
-  // Event
+  // Event (kept for legacy items)
   'program': 'Program / Booklet',
   'agenda': 'Agenda Card',
   'name-badge': 'Name Badge',
   'ticket': 'Ticket',
   'lanyard': 'Lanyard',
   'wristband': 'Wristband',
+  // Maps
+  'venue-map': 'Venue Map',
+  'floor-plan': 'Floor Plan',
+  'wayfinding-map': 'Wayfinding Map',
+  'campus-map': 'Campus Map',
+  'booth-map': 'Booth / Exhibitor Map',
+  'evacuation-map': 'Evacuation Map',
+  'other-map': 'Other Map',
   // Other
   'other': 'Other',
 };
