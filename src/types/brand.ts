@@ -346,6 +346,40 @@ export const ASSET_CATEGORIES = [
 
 export type AssetCategory = typeof ASSET_CATEGORIES[number];
 
+export const PRINT_SIGNAGE_TYPES = [
+  { value: 'booth-backdrop', label: 'Booth Backdrop' },
+  { value: 'pull-up-banner', label: 'Pull-Up Banner' },
+  { value: 'table-banner', label: 'Table Banner' },
+  { value: 'hanging-sign', label: 'Hanging Sign' },
+  { value: 'floor-graphic', label: 'Floor Graphic' },
+  { value: 'directional', label: 'Directional Sign' },
+  { value: 'podium-sign', label: 'Podium Sign' },
+  { value: 'stage-backdrop', label: 'Stage Backdrop' },
+  { value: 'outdoor-banner', label: 'Outdoor Banner' },
+  { value: 'registration-desk', label: 'Registration Desk' },
+  { value: 'feather-flag', label: 'Feather Flag' },
+  { value: 'pop-up-display', label: 'Pop-Up Display' },
+  { value: 'canopy-tent', label: 'Canopy / Tent' },
+  { value: 'window-cling', label: 'Window Cling' },
+  { value: 'a-frame', label: 'A-Frame Sign' },
+  { value: 'demo-station', label: 'Demo Station' },
+  { value: 'kiosk-wrap', label: 'Kiosk Wrap' },
+  { value: 'step-repeat', label: 'Step & Repeat' },
+  { value: 'counter-display', label: 'Counter Display' },
+  { value: 'ceiling-banner', label: 'Ceiling Banner' },
+  { value: 'brochure', label: 'Brochure' },
+  { value: 'flyer', label: 'Flyer' },
+  { value: 'poster', label: 'Poster' },
+  { value: 'business-card', label: 'Business Card' },
+  { value: 'letterhead', label: 'Letterhead' },
+  { value: 'envelope', label: 'Envelope' },
+  { value: 'postcard', label: 'Postcard' },
+  { value: 'catalog', label: 'Catalog' },
+  { value: 'folder', label: 'Presentation Folder' },
+  { value: 'sticker', label: 'Sticker / Label' },
+  { value: 'other', label: 'Other' },
+] as const;
+
 export interface BrandAsset {
   id: string;
   name: string;
@@ -354,6 +388,10 @@ export interface BrandAsset {
   size: string;
   category?: AssetCategory;
   thumbnailUrl?: string;
+  /** Optional sub-type for Print Materials & Signage & Banners categories */
+  printType?: string;
+  /** Dimensions e.g. "10ft x 8ft" */
+  dimensions?: string;
 }
 
 // EVENT SIGNAGE - Booths & Banners for brand events
