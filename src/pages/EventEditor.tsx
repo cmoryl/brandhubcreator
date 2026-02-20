@@ -28,6 +28,7 @@ import { EventSidebar } from '@/components/event/EventSidebar';
 import { EventDetailsSection } from '@/components/event/EventDetailsSection';
 import { EventLogosSection } from '@/components/event/EventLogosSection';
 import { EventSignageSection } from '@/components/event/EventSignageSection';
+import { EventPrintCollateralSection } from '@/components/event/EventPrintCollateralSection';
 
 import { EventDigitalSection } from '@/components/event/EventDigitalSection';
 import { EventSponsorsSection } from '@/components/event/EventSponsorsSection';
@@ -575,6 +576,8 @@ const EventEditor = () => {
         return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
       case 'eventsignage':
         return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} brandName={event.hero?.name} brandColors={event.colors?.map(c => c.hex)} eventId={event.id} />;
+      case 'eventprint':
+        return <EventPrintCollateralSection items={event.eventPrintMaterials || []} onItemsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined} isEditable={canEdit || false} eventId={event.id} />;
       case 'eventbanners':
       case 'eventdigital':
         return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} banners={event.eventBanners || []} onBannersChange={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : undefined} printMaterials={event.eventPrintMaterials || []} onPrintMaterialsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined} emailBanners={event.emailBanners || []} onEmailBannersChange={canEdit ? (emailBanners) => updateEvent({ emailBanners }) : undefined} infographics={event.eventInfographics || []} onInfographicsChange={canEdit ? (eventInfographics) => updateEvent({ eventInfographics }) : undefined} applications={event.eventApplications || []} onApplicationsChange={canEdit ? (eventApplications) => updateEvent({ eventApplications }) : undefined} isEditable={canEdit || false} eventId={event.id} />;

@@ -91,6 +91,7 @@ const EVENT_SECTION_METADATA = [
   // Event Assets
   { id: 'eventlogos', label: 'Event Logos', category: 'assets' },
   { id: 'eventsignage', label: 'Signage', category: 'assets' },
+  { id: 'eventprint', label: 'Print Collateral', category: 'assets' },
   { id: 'eventbanners', label: 'Digital Banners', category: 'assets' },
   { id: 'eventdigital', label: 'Digital Materials', category: 'assets' },
   
