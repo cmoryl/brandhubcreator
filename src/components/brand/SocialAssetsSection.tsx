@@ -190,6 +190,8 @@ const PlatformCard = ({
   onExpand,
   onMockupPreview,
   canEdit = false,
+  entityId,
+  entityType,
 }: {
   asset: BrandSocialAssetSpec;
   onUpdate: (updates: Partial<BrandSocialAssetSpec>) => void;
@@ -197,10 +199,37 @@ const PlatformCard = ({
   onExpand: () => void;
   onMockupPreview: () => void;
   canEdit?: boolean;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }) => {
   const IconComponent = platformIcons[asset.platform] || Monitor;
   const hasTemplates = (asset.templates?.length || 0) > 0;
   const sizeCount = [asset.postSize, asset.storySize, asset.reelSize, asset.coverSize].filter(s => s && s !== 'N/A').length;
+  const [uploadingCard, setUploadingCard] = useState(false);
+  const cardFileInputRef = useRef<HTMLInputElement>(null);
+
+  const { uploadFile } = useStorageUpload({
+    entityType: entityType || 'brand',
+    entityId: entityId || '',
+  });
+
+  const handleCardImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    if (entityId) {
+      setUploadingCard(true);
+      try {
+        const result = await uploadFile(file, 'asset', `social-card-${asset.id}`);
+        if (result?.url) onUpdate({ previewImageUrl: result.url });
+      } catch { toast.error('Failed to upload card image'); }
+      finally { setUploadingCard(false); }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (ev) => onUpdate({ previewImageUrl: ev.target?.result as string });
+      reader.readAsDataURL(file);
+    }
+  }, [asset.id, entityId, onUpdate, uploadFile]);
 
   return (
     <div 
@@ -236,6 +265,29 @@ const PlatformCard = ({
 
         {/* Actions overlay */}
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {canEdit && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); cardFileInputRef.current?.click(); }}
+                className="p-1.5 rounded-md bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+                title="Upload Card Image"
+                disabled={uploadingCard}
+              >
+                {uploadingCard ? (
+                  <span className="h-3 w-3 block animate-spin rounded-full border border-muted-foreground border-t-transparent" />
+                ) : (
+                  <Upload className="h-3 w-3 text-foreground" />
+                )}
+              </button>
+              <input
+                ref={cardFileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleCardImageUpload}
+              />
+            </>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); onMockupPreview(); }}
             className="p-1.5 rounded-md bg-primary backdrop-blur-sm hover:bg-primary/90 transition-colors"
@@ -1058,6 +1110,8 @@ export const SocialAssetsSection = ({
               onExpand={() => setSelectedPlatform(asset)}
               onMockupPreview={() => setMockupPreviewPlatform(asset)}
               canEdit={canEditSocial}
+              entityId={entityId}
+              entityType={entityType}
             />
           ))}
         </div>
