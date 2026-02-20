@@ -248,19 +248,11 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     }
   }, [pendingFile, assets, onAssetsChange, entityId, uploadFile, generatePdfThumbnailFromFile]);
 
-  const { isDragging, fileInputRef, dragHandlers, openFilePicker } = useDropZone({
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: '*',
     maxSize: 50 * 1024 * 1024,
   });
-
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileDrop(file);
-    }
-    e.target.value = '';
-  }, [handleFileDrop]);
 
   const deleteAsset = (id: string) => {
     if (!onAssetsChange) return;
@@ -359,7 +351,6 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
       <input
         ref={fileInputRef}
         type="file"
-        multiple
         onChange={handleInputChange}
         className="hidden"
       />
