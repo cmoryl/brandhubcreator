@@ -299,6 +299,8 @@ export const FullEventPage = ({
             onSocialAssetsChange={editHandler((socialAssets) => updateEvent({ socialAssets }))}
             displayBanners={event.displayBanners || []}
             onDisplayBannersChange={editHandler((displayBanners) => updateEvent({ displayBanners }))}
+            entityId={eventId}
+            entityType="event"
           />
         );
       case 'assets':

@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye } from 'lucide-react';
 import { BrandSocialAssetSpec, BrandDisplayBannerSpec, SocialAssetTemplate } from '@/types/brand';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,6 +28,8 @@ interface SocialAssetsProps {
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
   onLayoutChange?: (layout: LayoutPreset) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 const platformIcons: Record<string, React.ElementType> = {
@@ -347,33 +351,58 @@ const PlatformDetailModal = ({
   open,
   onOpenChange,
   onUpdate,
+  entityId,
+  entityType,
 }: {
   asset: BrandSocialAssetSpec | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdate: (id: string, updates: Partial<BrandSocialAssetSpec>) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newTemplate, setNewTemplate] = useState<Partial<SocialAssetTemplate>>({});
   const [showTemplateForm, setShowTemplateForm] = useState(false);
+  const [uploadingPreview, setUploadingPreview] = useState(false);
+  const [uploadingProfile, setUploadingProfile] = useState(false);
 
-  const handleFileDrop = useCallback((file: File) => {
-    if (!asset) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      onUpdate(asset.id, { previewImageUrl: event.target?.result as string });
-    };
-    reader.readAsDataURL(file);
-  }, [asset, onUpdate]);
+  const { uploadFile } = useStorageUpload({
+    entityType: entityType || 'brand',
+    entityId: entityId || '',
+  });
 
-  const handleProfileIconDrop = useCallback((file: File) => {
+  const handleFileDrop = useCallback(async (file: File) => {
     if (!asset) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      onUpdate(asset.id, { profileIconUrl: event.target?.result as string });
-    };
-    reader.readAsDataURL(file);
-  }, [asset, onUpdate]);
+    if (entityId) {
+      setUploadingPreview(true);
+      try {
+        const result = await uploadFile(file, 'asset', `social-preview-${asset.id}`);
+        if (result?.url) onUpdate(asset.id, { previewImageUrl: result.url });
+      } catch { toast.error('Failed to upload preview image'); }
+      finally { setUploadingPreview(false); }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => { onUpdate(asset.id, { previewImageUrl: event.target?.result as string }); };
+      reader.readAsDataURL(file);
+    }
+  }, [asset, onUpdate, entityId, uploadFile]);
+
+  const handleProfileIconDrop = useCallback(async (file: File) => {
+    if (!asset) return;
+    if (entityId) {
+      setUploadingProfile(true);
+      try {
+        const result = await uploadFile(file, 'asset', `social-profile-${asset.id}`);
+        if (result?.url) onUpdate(asset.id, { profileIconUrl: result.url });
+      } catch { toast.error('Failed to upload profile icon'); }
+      finally { setUploadingProfile(false); }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => { onUpdate(asset.id, { profileIconUrl: event.target?.result as string }); };
+      reader.readAsDataURL(file);
+    }
+  }, [asset, onUpdate, entityId, uploadFile]);
 
   const handleLibrarySelectPreview = useCallback((url: string) => {
     if (!asset) return;
@@ -736,22 +765,39 @@ const BannerDetailModal = ({
   open,
   onOpenChange,
   onUpdate,
+  entityId,
+  entityType,
 }: {
   banner: BrandDisplayBannerSpec | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdate: (id: string, updates: Partial<BrandDisplayBannerSpec>) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
-  const handleFileDrop = useCallback((file: File) => {
+  const { uploadFile } = useStorageUpload({
+    entityType: entityType || 'brand',
+    entityId: entityId || '',
+  });
+
+  const handleFileDrop = useCallback(async (file: File) => {
     if (!banner) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      onUpdate(banner.id, { previewImageUrl: event.target?.result as string });
-    };
-    reader.readAsDataURL(file);
-  }, [banner, onUpdate]);
+    if (entityId) {
+      setUploadingBanner(true);
+      try {
+        const result = await uploadFile(file, 'asset', `banner-preview-${banner.id}`);
+        if (result?.url) onUpdate(banner.id, { previewImageUrl: result.url });
+      } catch { toast.error('Failed to upload banner preview'); }
+      finally { setUploadingBanner(false); }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => { onUpdate(banner.id, { previewImageUrl: event.target?.result as string }); };
+      reader.readAsDataURL(file);
+    }
+  }, [banner, onUpdate, entityId, uploadFile]);
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
@@ -857,6 +903,8 @@ export const SocialAssetsSection = ({
   onSubtitleChange,
   layout = 'grid-3',
   onLayoutChange,
+  entityId,
+  entityType,
 }: SocialAssetsProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
@@ -1075,6 +1123,8 @@ export const SocialAssetsSection = ({
         open={!!selectedPlatform}
         onOpenChange={(open) => !open && setSelectedPlatform(null)}
         onUpdate={updateSocialAsset}
+        entityId={entityId}
+        entityType={entityType}
       />
 
       <BannerDetailModal
@@ -1082,6 +1132,8 @@ export const SocialAssetsSection = ({
         open={!!selectedBanner}
         onOpenChange={(open) => !open && setSelectedBanner(null)}
         onUpdate={updateDisplayBanner}
+        entityId={entityId}
+        entityType={entityType}
       />
 
       {/* Mockup Preview Dialog */}
