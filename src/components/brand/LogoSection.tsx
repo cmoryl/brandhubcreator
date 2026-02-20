@@ -6,9 +6,11 @@ interface LogoSectionProps {
   onLogosChange?: (logos: BrandLogo[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
-export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleChange }: LogoSectionProps) => {
+export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand' }: LogoSectionProps) => {
   // Convert BrandLogo[] to UnifiedLogo[] for the unified component
   const unifiedLogos: UnifiedLogo[] = logos.map(logo => ({
     id: logo.id,
@@ -40,6 +42,9 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
       isEditable={!!onLogosChange}
       showGroupedByVariant={true}
       gridLayout="grouped"
+      entityId={entityId}
+      entityType={entityType}
     />
   );
 };
+

@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react';
-import { Plus, X, Pencil, Upload, ExternalLink } from 'lucide-react';
+import { Plus, X, Pencil, Upload, ExternalLink, Loader2 } from 'lucide-react';
 import { BrandCaseStudy } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SectionHeader } from './SectionHeader';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { toast } from 'sonner';
 
 import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector';
 
@@ -15,9 +17,11 @@ interface CaseStudiesSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
   onLayoutChange?: (layout: LayoutPreset) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
-export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudiesChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange }: CaseStudiesSectionProps) => {
+export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudiesChange, customSubtitle, onSubtitleChange, layout = 'grid-3', onLayoutChange, entityId, entityType = 'brand' }: CaseStudiesSectionProps) => {
   const canEdit = Boolean(onCaseStudiesChange);
   // Defensive: ensure caseStudies is always an array
   const caseStudies = Array.isArray(caseStudiesProp) ? caseStudiesProp : [];
@@ -25,6 +29,7 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
   
   const { gridClass } = useLayoutClasses(layout);
 
@@ -40,21 +45,27 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
     setEditingId(newCase.id);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !pendingId) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      updateCaseStudy(pendingId, { previewUrl: url });
-    };
-    reader.readAsDataURL(file);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    const currentPendingId = pendingId;
+    if (fileInputRef.current) fileInputRef.current.value = '';
     setPendingId(null);
+
+    let url: string;
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `casestudy-${crypto.randomUUID()}`);
+      if (!result) return;
+      url = result.url;
+    } else {
+      const reader = new FileReader();
+      url = await new Promise((resolve) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
+    updateCaseStudy(currentPendingId, { previewUrl: url });
   };
 
   const triggerUpload = (id: string) => {
@@ -132,17 +143,24 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
                 e.preventDefault();
                 e.currentTarget.classList.remove('ring-2', 'ring-primary');
               } : undefined}
-              onDrop={canEdit ? (e) => {
+              onDrop={canEdit ? async (e) => {
                 e.preventDefault();
                 e.currentTarget.classList.remove('ring-2', 'ring-primary');
                 const file = e.dataTransfer.files?.[0];
                 if (file && file.type.startsWith('image/')) {
-                  setPendingId(study.id);
-                  const reader = new FileReader();
-                  reader.onload = (event) => {
-                    updateCaseStudy(study.id, { previewUrl: event.target?.result as string });
-                  };
-                  reader.readAsDataURL(file);
+                  let url: string;
+                  if (entityId) {
+                    const result = await uploadFile(file, 'asset', `casestudy-${crypto.randomUUID()}`);
+                    if (!result) return;
+                    url = result.url;
+                  } else {
+                    const reader = new FileReader();
+                    url = await new Promise((resolve) => {
+                      reader.onload = (ev) => resolve(ev.target?.result as string);
+                      reader.readAsDataURL(file);
+                    });
+                  }
+                  updateCaseStudy(study.id, { previewUrl: url });
                 }
               } : undefined}
               style={study.previewUrl ? { backgroundImage: `url(${study.previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}

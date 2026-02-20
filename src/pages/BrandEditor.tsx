@@ -745,7 +745,7 @@ const BrandEditor = () => {
       case 'services': return <ServicesSection services={brand.services || []} onServicesChange={editHandler((services) => updateBrand({ services }))} entityId={brand.id} entityType="brand" />;
       case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={editHandler((revenueData) => updateBrand({ revenueData }))} brandName={brand.hero.name} chartTheme={brand.chartTheme} onChartThemeChange={editHandler((chartTheme) => updateBrand({ chartTheme }))} brandColors={brand.colors || []} />;
       case 'webinars': return <WebinarSeriesSection webinars={brand.webinars || []} onWebinarsChange={editHandler((webinars) => updateBrand({ webinars }))} />;
-      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={editHandler((logos) => updateBrand({ logos }))} />;
+      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={editHandler((logos) => updateBrand({ logos }))} entityId={brand.id} entityType="brand" />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateBrand({ brandIcons }))} entityId={brand.id} entityType="brand" />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => updateBrand({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateBrand({ colorCombinations }))} brandName={brand.hero.name} />;
       case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => updateBrand({ gradients }))} brandName={brand.hero.name} brandColors={brand.colors} />;
@@ -769,14 +769,14 @@ const BrandEditor = () => {
       case 'qr': return <QRSection qr={brand.qr} onQRChange={editHandler((qr) => updateBrand({ qr }))} entityType="brand" entityId={brand.id} logos={brand.logos} />;
       case 'videos': return <VideosSection videos={brand.videos} onVideosChange={editHandler((videos) => updateBrand({ videos }))} />;
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={editHandler((assets) => updateBrand({ assets }))} websiteUrl={brand.websites?.[0]?.url} entityId={brand.id} entityType="brand" />;
-      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => updateBrand({ misuse }))} />;
+      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => updateBrand({ misuse }))} entityId={brand.id} entityType="brand" />;
       case 'casestudies': 
       case 'brochures': return <DigitalCollateralSection collateral={brand.brochures} onCollateralChange={editHandler((brochures) => updateBrand({ brochures }))} entityId={brand.id} entityType="brand" />;
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={editHandler((templates) => updateBrand({ templates }))} />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateBrand({ templateSpecs }))} brandColors={brand.colors || []} />;
       case 'products': return <ProductsSection brandId={brand.id} />;
-      case 'sponsorlogos': return <SponsorLogosSection sponsors={brand.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateBrand({ sponsorLogos }))} websiteUrl={brand.websites?.[0]?.url} />;
-      case 'clientlogos': return <ClientLogosSection clientLogos={brand.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateBrand({ clientLogos }))} />;
+      case 'sponsorlogos': return <SponsorLogosSection sponsors={brand.sponsorLogos || []} onSponsorsChange={editHandler((sponsorLogos) => updateBrand({ sponsorLogos }))} websiteUrl={brand.websites?.[0]?.url} isEditable={canEdit} entityId={brand.id} entityType="brand" />;
+      case 'clientlogos': return <ClientLogosSection clientLogos={brand.clientLogos || []} onClientLogosChange={editHandler((clientLogos) => updateBrand({ clientLogos }))} entityId={brand.id} entityType="brand" />;
       case 'insights': return (
         <InsightsSection
           insights={brand.insights || []}

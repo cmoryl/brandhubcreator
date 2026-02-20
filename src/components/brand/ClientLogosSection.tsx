@@ -1,5 +1,5 @@
 import { useState, useRef, forwardRef, useMemo } from 'react';
-import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive, Globe2, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive, Globe2, ArrowUpDown, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { ClientLogo, ClientLogoFile, ClientLogoVariant, ClientLogoFormat } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,12 +18,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 
 interface ClientLogosSectionProps {
   clientLogos: ClientLogo[];
   onClientLogosChange?: (clientLogos: ClientLogo[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 const VARIANT_LABELS: Record<ClientLogoVariant, string> = {
@@ -49,6 +52,8 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
   onClientLogosChange,
   customSubtitle,
   onSubtitleChange,
+  entityId,
+  entityType = 'brand',
 }, ref) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [editingLogoId, setEditingLogoId] = useState<string | null>(null);
@@ -58,6 +63,7 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
   const [newLogo, setNewLogo] = useState<Partial<ClientLogo>>({ name: '', description: '', files: [] });
   const [sortOption, setSortOption] = useState<'default' | 'name-asc' | 'name-desc' | 'files-desc'>('default');
   const [isExpanded, setIsExpanded] = useState(false);
+  const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
 
   const VISIBLE_COUNT = 6;
 
@@ -109,43 +115,49 @@ export const ClientLogosSection = forwardRef<HTMLElement, ClientLogosSectionProp
     toast.success('Logo removed');
   };
 
-  const handleFileUpload = (logoId: string, variant: ClientLogoVariant, format: ClientLogoFormat, file: File) => {
+  const handleFileUpload = async (logoId: string, variant: ClientLogoVariant, format: ClientLogoFormat, file: File) => {
     if (!onClientLogosChange) return;
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const url = e.target?.result as string;
-      const logo = clientLogos.find(l => l.id === logoId);
-      if (!logo) return;
-      
-      // Remove existing file with same variant/format
-      const filteredFiles = logo.files.filter(
-        f => !(f.variant === variant && f.format === format)
-      );
-      
-      const newFile: ClientLogoFile = { variant, format, url };
-      handleUpdateLogo(logoId, { files: [...filteredFiles, newFile] });
-      toast.success(`${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} uploaded`);
-    };
-    reader.readAsDataURL(file);
+    let url: string;
+    if (entityId) {
+      const result = await uploadFile(file, 'logo', `clientlogo-${crypto.randomUUID()}`);
+      if (!result) return;
+      url = result.url;
+    } else {
+      const reader = new FileReader();
+      url = await new Promise((resolve) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const logo = clientLogos.find(l => l.id === logoId);
+    if (!logo) return;
+    const filteredFiles = logo.files.filter(f => !(f.variant === variant && f.format === format));
+    const newFile: ClientLogoFile = { variant, format, url };
+    handleUpdateLogo(logoId, { files: [...filteredFiles, newFile] });
+    toast.success(`${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} uploaded`);
   };
 
-  const handleNewLogoFileUpload = (variant: ClientLogoVariant, format: ClientLogoFormat, file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const url = e.target?.result as string;
-      const newFile: ClientLogoFile = { variant, format, url };
-      
-      // Remove existing file with same variant/format
-      const existingFiles = newLogo.files || [];
-      const filteredFiles = existingFiles.filter(
-        f => !(f.variant === variant && f.format === format)
-      );
-      
-      setNewLogo(prev => ({ ...prev, files: [...filteredFiles, newFile] }));
-      toast.success(`${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
-    };
-    reader.readAsDataURL(file);
+  const handleNewLogoFileUpload = async (variant: ClientLogoVariant, format: ClientLogoFormat, file: File) => {
+    let url: string;
+    if (entityId) {
+      const result = await uploadFile(file, 'logo', `clientlogo-new-${crypto.randomUUID()}`);
+      if (!result) return;
+      url = result.url;
+    } else {
+      const reader = new FileReader();
+      url = await new Promise((resolve) => {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const newFile: ClientLogoFile = { variant, format, url };
+    const existingFiles = newLogo.files || [];
+    const filteredFiles = existingFiles.filter(f => !(f.variant === variant && f.format === format));
+    setNewLogo(prev => ({ ...prev, files: [...filteredFiles, newFile] }));
+    toast.success(`${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
   };
 
   const downloadFile = (file: ClientLogoFile, logoName: string) => {
