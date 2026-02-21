@@ -4,6 +4,8 @@ import { useBrandIntelligenceInsights } from '@/hooks/useBrandIntelligenceInsigh
 import { useComplianceAuditInsights } from '@/hooks/useComplianceAuditInsights';
 import { useSocialMetricsInsights } from '@/hooks/useSocialMetricsInsights';
 import { useBiasAwarenessInsights } from '@/hooks/useBiasAwarenessInsights';
+import { useEventCohesivenessInsights } from '@/hooks/useEventCohesivenessInsights';
+import type { EventGuide } from '@/types/event';
 import { 
   TrendingUp, TrendingDown, Minus, FileText, BarChart2, Newspaper, 
   Bell, AlertCircle, Calendar, ExternalLink, Plus, Trash2, Pencil,
@@ -57,6 +59,8 @@ interface InsightsSectionProps {
   /** Access code to protect this section for public/anonymous users */
   insightsAccessCode?: string;
   onAccessCodeChange?: (code: string) => void;
+  /** Full event data for event-specific cohesiveness insights */
+  eventData?: EventGuide;
 }
 
 const typeIcons = {
@@ -323,6 +327,7 @@ export const InsightsSection = ({
   brandContext,
   insightsAccessCode,
   onAccessCodeChange,
+  eventData,
 }: InsightsSectionProps) => {
   const canEdit = Boolean(onInsightsChange);
   const [isEditing, setIsEditing] = useState(false);
@@ -370,10 +375,16 @@ export const InsightsSection = ({
     enabled: Boolean(entityType && entityId),
   });
 
-  // Merge manual insights with auto-fetched competitive, intelligence, compliance, social, and bias insights
+  // Event-specific design & marketing cohesiveness insights
+  const { cohesivenessInsights } = useEventCohesivenessInsights({
+    event: entityType === 'event' ? eventData ?? null : null,
+    enabled: entityType === 'event' && Boolean(eventData),
+  });
+
+  // Merge manual insights with auto-fetched competitive, intelligence, compliance, social, bias, and event cohesiveness insights
   const allInsights = useMemo(() => {
-    return [...insights, ...competitiveInsights, ...intelligenceInsights, ...complianceInsights, ...socialInsights, ...biasInsights];
-  }, [insights, competitiveInsights, intelligenceInsights, complianceInsights, socialInsights, biasInsights]);
+    return [...insights, ...competitiveInsights, ...intelligenceInsights, ...complianceInsights, ...socialInsights, ...biasInsights, ...cohesivenessInsights];
+  }, [insights, competitiveInsights, intelligenceInsights, complianceInsights, socialInsights, biasInsights, cohesivenessInsights]);
 
   const handleDelete = (id: string) => {
     if (!onInsightsChange) return;

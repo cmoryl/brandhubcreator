@@ -473,6 +473,7 @@ export const FullEventPage = ({
               tagline: event.hero?.tagline,
             }}
             insightsAccessCode={(event as any).insightsAccessCode}
+            eventData={event}
           />
         );
       default:
