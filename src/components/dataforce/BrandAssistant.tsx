@@ -115,10 +115,40 @@ export const BrandAssistant = ({
     }
   }, [messages]);
 
+  // Load existing conversation when entity changes
   useEffect(() => {
     setMessages([]);
     setConversationId(null);
-  }, [entityId, entityType]);
+
+    if (!organization?.id || !entityId || !entityType) return;
+
+    const loadExisting = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data } = await supabase
+          .from('dataforce_assistant_conversations')
+          .select('id, messages')
+          .eq('organization_id', organization.id)
+          .eq('entity_id', entityId)
+          .eq('entity_type', entityType)
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          setConversationId(data.id);
+          setMessages(data.messages as unknown as Message[]);
+        }
+      } catch (err) {
+        console.warn('Failed to load existing conversation:', err);
+      }
+    };
+
+    loadExisting();
+  }, [entityId, entityType, organization?.id]);
 
   // Cleanup speech recognition on unmount
   useEffect(() => {
