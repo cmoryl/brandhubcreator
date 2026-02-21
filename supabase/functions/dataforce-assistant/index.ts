@@ -130,8 +130,40 @@ serve(async (req) => {
       ]);
       const dirParts: string[] = [];
       if (allBrands?.length) dirParts.push(`Brands: ${allBrands.map(b => `${b.name} [slug:${b.slug}]`).join(', ')}`);
-      if (allProducts?.length) dirParts.push(`Products: ${allProducts.map(p => `${p.name} [slug:${p.slug}]`).join(', ')}`);
-      if (allEvents?.length) dirParts.push(`Events: ${allEvents.map(e => `${e.name} [slug:${e.slug}]`).join(', ')}`);
+      if (allProducts?.length) {
+        const parentProducts = allProducts.filter(p => !p.parent_brand_id);
+        const subProducts = allProducts.filter(p => p.parent_brand_id);
+        if (parentProducts.length) dirParts.push(`Products: ${parentProducts.map(p => `${p.name} [slug:${p.slug}]`).join(', ')}`);
+        if (subProducts.length) {
+          const grouped = subProducts.reduce((acc: Record<string, any[]>, p) => {
+            const parent = allBrands?.find(b => b.id === p.parent_brand_id) || allProducts?.find(pp => pp.id === p.parent_brand_id);
+            const parentName = parent?.name || 'Unknown';
+            if (!acc[parentName]) acc[parentName] = [];
+            acc[parentName].push(p);
+            return acc;
+          }, {});
+          for (const [parentName, subs] of Object.entries(grouped)) {
+            dirParts.push(`Sub-Products of ${parentName}: ${subs.map((p: any) => `${p.name} [slug:${p.slug}]`).join(', ')}`);
+          }
+        }
+      }
+      if (allEvents?.length) {
+        const parentEvents = allEvents.filter(e => !e.parent_brand_id);
+        const subEvents = allEvents.filter(e => e.parent_brand_id);
+        if (parentEvents.length) dirParts.push(`Events: ${parentEvents.map(e => `${e.name} [slug:${e.slug}]`).join(', ')}`);
+        if (subEvents.length) {
+          const grouped = subEvents.reduce((acc: Record<string, any[]>, e) => {
+            const parent = allBrands?.find(b => b.id === e.parent_brand_id) || allEvents?.find(ee => ee.id === e.parent_brand_id);
+            const parentName = parent?.name || 'Unknown';
+            if (!acc[parentName]) acc[parentName] = [];
+            acc[parentName].push(e);
+            return acc;
+          }, {});
+          for (const [parentName, subs] of Object.entries(grouped)) {
+            dirParts.push(`Sub-Events of ${parentName}: ${subs.map((e: any) => `${e.name} [slug:${e.slug}]`).join(', ')}`);
+          }
+        }
+      }
       if (dirParts.length) entityDirectory = `\n\nAVAILABLE ENTITIES IN THIS ORGANIZATION:\n${dirParts.join('\n')}`;
     } catch (e) {
       console.warn('[dataforce-assistant] Entity directory fetch failed:', e);
