@@ -41,6 +41,7 @@ const SIGNAGE_TYPES = [
   { value: 'location-pillars', label: 'Location Pillars' },
   { value: 'map-pillars', label: 'Map Pillars' },
   { value: 'pillars', label: 'Pillars' },
+  { value: 'doors', label: 'Doors' },
   { value: 'stairs', label: 'Stairs' },
   { value: 'other', label: 'Other' },
 ];
