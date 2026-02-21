@@ -551,6 +551,9 @@ serve(async (req) => {
       );
     }
 
+    // Build message history (must be before demo mode block that references it)
+    const existingMessages = Array.isArray(conversation.messages) ? conversation.messages : [];
+
     // Demo mode - return helpful placeholder response
     if (isDemo && !LOVABLE_API_KEY) {
       const demoResponse = generateDemoAssistantResponse(message, entityName);
@@ -578,8 +581,6 @@ serve(async (req) => {
       );
     }
 
-    // Build message history
-    const existingMessages = conversation.messages || [];
     const messageHistory = existingMessages.map((m: any) => ({
       role: m.role,
       content: m.content

@@ -122,10 +122,12 @@ export const BrandAssistant = ({
 
     if (!organization?.id || !entityId || !entityType) return;
 
+    let cancelled = false;
+
     const loadExisting = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user || cancelled) return;
 
         const { data } = await supabase
           .from('dataforce_assistant_conversations')
@@ -138,16 +140,19 @@ export const BrandAssistant = ({
           .limit(1)
           .maybeSingle();
 
+        if (cancelled) return;
+
         if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
           setConversationId(data.id);
           setMessages(data.messages as unknown as Message[]);
         }
       } catch (err) {
-        console.warn('Failed to load existing conversation:', err);
+        if (!cancelled) console.warn('Failed to load existing conversation:', err);
       }
     };
 
     loadExisting();
+    return () => { cancelled = true; };
   }, [entityId, entityType, organization?.id]);
 
   // Cleanup speech recognition on unmount
