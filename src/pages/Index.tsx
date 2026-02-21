@@ -132,16 +132,16 @@ const Index = () => {
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         
-        {/* Blue Particle Embers Background - non-interactive for smooth scrolling */}
+        {/* Blue Particle Embers Background - reduced on mobile */}
         <ParticleEmbers 
-          count={35} 
+          count={20} 
           color="hsl(199 89% 48%)" 
           interactive={false}
           className="z-[1]"
         />
         
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Animated background elements - hidden on mobile for performance */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none hidden sm:block">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000" />
           <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-500" />
@@ -225,7 +225,7 @@ const Index = () => {
       </section>
 
       {/* Featured Demos Section */}
-      <section className="py-24 bg-gradient-to-b from-muted/20 via-muted/40 to-muted/20 relative overflow-hidden">
+      <section className="py-24 bg-gradient-to-b from-muted/20 via-muted/40 to-muted/20 relative overflow-hidden" style={{ contentVisibility: 'auto', containIntrinsicSize: '0 800px' }}>
         {/* Decorative background elements */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />

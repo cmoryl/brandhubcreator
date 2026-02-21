@@ -30,9 +30,11 @@
     <!-- Demo hero images are lazy-loaded since they appear below the fold -->
     
     <!-- Fonts with non-blocking load using media print trick -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@500;600&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@500;600&display=swap" rel="stylesheet"></noscript>
+    <!-- Defer non-critical font weights -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;800&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
   
   

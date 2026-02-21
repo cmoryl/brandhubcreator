@@ -24,6 +24,12 @@ export function ParticleEmbers({
   className = '',
   interactive = false // Disabled by default to prevent scroll blocking
 }: ParticleEmbersProps) {
+  // Reduce particle count on mobile/tablet for better performance
+  const effectiveCount = typeof window !== 'undefined' && window.innerWidth < 768 
+    ? Math.min(count, 12) 
+    : typeof window !== 'undefined' && window.innerWidth < 1024 
+      ? Math.min(count, 20) 
+      : count;
   const containerRef = useRef<HTMLDivElement>(null);
   const particleRefs = useRef<(HTMLDivElement | null)[]>([]);
   const mousePosRef = useRef({ x: 0, y: 0 });
@@ -32,7 +38,7 @@ export function ParticleEmbers({
   const rafRef = useRef<number | null>(null);
 
   const particles = useMemo(() => {
-    return Array.from({ length: count }, (_, i): Particle => {
+    return Array.from({ length: effectiveCount }, (_, i): Particle => {
       const size = Math.random() * 4 + 2;
       const left = Math.random() * 100;
       const delay = Math.random() * 8;
@@ -52,7 +58,7 @@ export function ParticleEmbers({
         opacity,
       };
     });
-  }, [count]);
+  }, [effectiveCount]);
 
   // Direct DOM updates instead of React state - throttled to 20fps
   const updateParticles = useCallback(() => {
