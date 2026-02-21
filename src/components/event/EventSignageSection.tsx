@@ -42,6 +42,7 @@ const SIGNAGE_TYPES = [
   { value: 'location-pillars', label: 'Location Pillars' },
   { value: 'map-pillars', label: 'Map Pillars' },
   { value: 'pillars', label: 'Pillars' },
+  { value: 'doors', label: 'Doors' },
   { value: 'stairs', label: 'Stairs' },
   { value: 'other', label: 'Other' },
 ];
@@ -64,6 +65,7 @@ const getTypeColor = (type: EventSignage['type']) => {
     'location-pillars': 'bg-rose-100 text-rose-800',
     'map-pillars': 'bg-lime-100 text-lime-800',
     'pillars': 'bg-stone-100 text-stone-800',
+    'doors': 'bg-slate-100 text-slate-800',
     'stairs': 'bg-fuchsia-100 text-fuchsia-800',
     'other': 'bg-gray-100 text-gray-800',
   };
