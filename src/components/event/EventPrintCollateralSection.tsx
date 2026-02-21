@@ -46,6 +46,16 @@ const PRINT_SUBSECTIONS = [
     types: ['venue-map', 'floor-plan', 'wayfinding-map', 'campus-map', 'booth-map', 'evacuation-map', 'other-map'] as const,
   },
   {
+    id: 'badges',
+    label: 'Badges & Wearables',
+    types: ['badge', 'name-badge', 'lanyard', 'wristband', 'ticket'] as const,
+  },
+  {
+    id: 'packaging',
+    label: 'Packaging',
+    types: ['gift-box', 'gift-bag', 'swag-bag', 'packaging-sleeve', 'packaging-label', 'packaging-other'] as const,
+  },
+  {
     id: 'other',
     label: 'Other',
     types: ['other'] as const,
@@ -94,6 +104,13 @@ const PRINT_TYPES: Record<string, string> = {
   'ticket': 'Ticket',
   'lanyard': 'Lanyard',
   'wristband': 'Wristband',
+  // Packaging
+  'gift-box': 'Gift Box',
+  'gift-bag': 'Gift Bag',
+  'swag-bag': 'Swag Bag',
+  'packaging-sleeve': 'Packaging Sleeve',
+  'packaging-label': 'Packaging Label',
+  'packaging-other': 'Other Packaging',
   // Other
   'other': 'Other',
 };
@@ -113,6 +130,10 @@ const SUBSECTION_COLORS: Record<string, string> = {
   collateral: 'bg-green-500/10 text-green-600 border-green-500/20',
   identity: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
   event: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  stationery: 'bg-teal-500/10 text-teal-600 border-teal-500/20',
+  maps: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
+  badges: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+  packaging: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
   other: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
 };
 
