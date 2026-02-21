@@ -270,6 +270,11 @@ serve(async (req) => {
             { data: researchJobs },
             { data: complianceJobs },
             { data: regionalVariants },
+            { data: biasScan },
+            { data: healthSnapshots },
+            { data: localizationJobs },
+            { data: generatedAssets },
+            { data: websiteReports },
           ] = await Promise.all([
             fetchDocumentContext(supabase, entity_id, entity_type, guideData as Record<string, unknown>, 1500),
             fetchSocialMetricsContext(supabase, entity_id, entity_type),
@@ -303,6 +308,41 @@ serve(async (req) => {
               .eq('entity_id', entity_id)
               .eq('entity_type', entity_type)
               .limit(10),
+            // NEW: Bias & Inclusion Scans
+            supabase.from('bias_awareness_scans')
+              .select('inclusion_score, language_score, visual_score, accessibility_score, ai_governance_score, findings, recommendations, persona_coverage, status, created_at')
+              .eq('entity_id', entity_id)
+              .eq('entity_type', entity_type)
+              .eq('status', 'completed')
+              .order('created_at', { ascending: false })
+              .limit(1),
+            // NEW: Brand Health Snapshots
+            supabase.from('health_snapshots')
+              .select('snapshot_date, brand_health_score, compliance_score, bias_inclusion_score, website_score, competitive_score, score_deltas')
+              .eq('entity_id', entity_id)
+              .eq('entity_type', entity_type)
+              .order('snapshot_date', { ascending: false })
+              .limit(6),
+            // NEW: Localization Jobs
+            supabase.from('localization_jobs')
+              .select('source_language, target_language, word_count, translation_method, status, created_at')
+              .eq('entity_id', entity_id)
+              .order('created_at', { ascending: false })
+              .limit(10),
+            // NEW: Generated Assets
+            supabase.from('brand_generated_assets')
+              .select('name, category, asset_type, prompt_used, is_approved, created_at')
+              .eq('entity_id', entity_id)
+              .eq('entity_type', entity_type)
+              .order('created_at', { ascending: false })
+              .limit(10),
+            // NEW: Website Analysis Reports
+            supabase.from('website_analysis_reports')
+              .select('website_url, overall_score, grade, summary, created_at')
+              .eq('entity_id', entity_id)
+              .eq('entity_type', entity_type)
+              .order('created_at', { ascending: false })
+              .limit(3),
           ]);
 
           if (docResult.text) entityContext += `\n${docResult.text}`;
@@ -394,6 +434,85 @@ serve(async (req) => {
               if (adaptations?.notes) rvParts.push(`  Cultural notes: ${String(adaptations.notes).slice(0, 150)}`);
             }
             if (rvParts.length > 0) entityContext += `\n\nREGIONAL VARIANTS:\n${rvParts.join('\n')}`;
+          }
+
+          // Bias & Inclusion Scans
+          if (biasScan) {
+            const bs = biasScan as any;
+            const bsParts: string[] = [];
+            if (bs.inclusion_score != null) bsParts.push(`Overall Inclusion Score: ${bs.inclusion_score}/100`);
+            if (bs.language_score != null) bsParts.push(`Language Score: ${bs.language_score}/100`);
+            if (bs.visual_score != null) bsParts.push(`Visual Score: ${bs.visual_score}/100`);
+            if (bs.accessibility_score != null) bsParts.push(`Accessibility Score: ${bs.accessibility_score}/100`);
+            if (bs.ai_governance_score != null) bsParts.push(`AI Governance Score: ${bs.ai_governance_score}/100`);
+            const findings = Array.isArray(bs.findings) ? bs.findings : [];
+            if (findings.length) bsParts.push(`Key Findings: ${findings.slice(0, 5).map((f: any) => `[${f.severity || 'info'}] ${f.title || f.description || ''}`).join('; ')}`);
+            const recs = Array.isArray(bs.recommendations) ? bs.recommendations : [];
+            if (recs.length) bsParts.push(`Recommendations: ${recs.slice(0, 3).map((r: any) => typeof r === 'string' ? r : r.text || r.title || '').filter(Boolean).join('; ')}`);
+            const persona = bs.persona_coverage as any;
+            if (persona) {
+              const dims = ['vision', 'mobility', 'hearing', 'speech', 'cognitive'];
+              const covered = dims.filter(d => persona[d]?.covered || persona[d] === true);
+              bsParts.push(`Persona Spectrum Coverage: ${covered.length}/${dims.length} (${covered.join(', ') || 'none'})`);
+            }
+            if (bsParts.length > 0) entityContext += `\n\nBIAS & INCLUSION ANALYSIS:\n${bsParts.join('\n')}`;
+          }
+
+          // Brand Health Snapshots (trends)
+          if (healthSnapshots?.length) {
+            const hsParts: string[] = [];
+            const latest = healthSnapshots[0] as any;
+            hsParts.push(`Latest Health Score (${latest.snapshot_date}): ${latest.brand_health_score ?? 'N/A'}/100`);
+            if (latest.compliance_score != null) hsParts.push(`Compliance: ${latest.compliance_score}/100`);
+            if (latest.bias_inclusion_score != null) hsParts.push(`Bias & Inclusion: ${latest.bias_inclusion_score}/100`);
+            if (latest.website_score != null) hsParts.push(`Website: ${latest.website_score}/100`);
+            if (latest.competitive_score != null) hsParts.push(`Competitive: ${latest.competitive_score}/100`);
+            const deltas = latest.score_deltas as any;
+            if (deltas?.health != null) hsParts.push(`Health Trend: ${deltas.health > 0 ? '▲' : '▼'} ${Math.abs(deltas.health)} pts`);
+            if (healthSnapshots.length > 1) {
+              const oldest = healthSnapshots[healthSnapshots.length - 1] as any;
+              hsParts.push(`${healthSnapshots.length}-period range: ${oldest.brand_health_score ?? '?'} → ${latest.brand_health_score ?? '?'}`);
+            }
+            if (hsParts.length > 0) entityContext += `\n\nBRAND HEALTH TRENDS:\n${hsParts.join('\n')}`;
+          }
+
+          // Localization Jobs
+          if (localizationJobs?.length) {
+            const ljParts: string[] = [];
+            const statusCounts: Record<string, number> = {};
+            const languages = new Set<string>();
+            let totalWords = 0;
+            for (const job of localizationJobs) {
+              const j = job as any;
+              statusCounts[j.status] = (statusCounts[j.status] || 0) + 1;
+              if (j.target_language) languages.add(j.target_language);
+              totalWords += j.word_count || 0;
+            }
+            ljParts.push(`Translation Jobs: ${localizationJobs.length} (${Object.entries(statusCounts).map(([s, c]) => `${c} ${s}`).join(', ')})`);
+            ljParts.push(`Target Languages: ${Array.from(languages).join(', ')}`);
+            ljParts.push(`Total Words Translated: ${totalWords.toLocaleString()}`);
+            if (ljParts.length > 0) entityContext += `\n\nLOCALIZATION STATUS:\n${ljParts.join('\n')}`;
+          }
+
+          // Generated Assets
+          if (generatedAssets?.length) {
+            const gaParts: string[] = [];
+            const approved = generatedAssets.filter((a: any) => a.is_approved);
+            gaParts.push(`AI-Generated Assets: ${generatedAssets.length} total, ${approved.length} approved`);
+            const categories = [...new Set(generatedAssets.map((a: any) => a.category).filter(Boolean))];
+            if (categories.length) gaParts.push(`Categories: ${categories.join(', ')}`);
+            gaParts.push(`Recent: ${generatedAssets.slice(0, 3).map((a: any) => `${a.name} (${a.asset_type})`).join(', ')}`);
+            if (gaParts.length > 0) entityContext += `\n\nCREATIVE STUDIO ASSETS:\n${gaParts.join('\n')}`;
+          }
+
+          // Website Analysis Reports
+          if (websiteReports?.length) {
+            const waParts: string[] = [];
+            for (const wr of websiteReports) {
+              const w = wr as any;
+              waParts.push(`${w.website_url}: Score ${w.overall_score}/100 (Grade: ${w.grade || 'N/A'}) - ${(w.summary || '').slice(0, 200)}`);
+            }
+            if (waParts.length > 0) entityContext += `\n\nWEBSITE ANALYSIS:\n${waParts.join('\n')}`;
           }
 
         } catch (e) {
