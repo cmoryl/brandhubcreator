@@ -91,7 +91,7 @@ export interface EventLogo {
 export interface EventSignage {
   id: string;
   name: string;
-  type: 'booth-backdrop' | 'pull-up-banner' | 'table-banner' | 'hanging-sign' | 'floor-graphic' | 'directional' | 'podium-sign' | 'stage-backdrop' | 'outdoor-banner' | 'registration' | 'technology-counter' | 'information-counter' | 'large-backwall' | 'location-pillars' | 'map-pillars' | 'other';
+  type: 'booth-backdrop' | 'pull-up-banner' | 'table-banner' | 'hanging-sign' | 'floor-graphic' | 'directional' | 'podium-sign' | 'stage-backdrop' | 'outdoor-banner' | 'registration' | 'technology-counter' | 'information-counter' | 'large-backwall' | 'location-pillars' | 'map-pillars' | 'pillars' | 'doors' | 'stairs' | 'other' | (string & {});
   dimensions: string; // e.g., "10ft x 8ft"
   previewUrl?: string;
   templateUrl?: string;
@@ -124,7 +124,7 @@ export interface EventDigitalMaterial {
 export interface EventPrintMaterial {
   id: string;
   name: string;
-  type: 'flyer' | 'poster' | 'brochure' | 'banner' | 'business-card' | 'badge' | 'signage' | 'sticker' | 'prospectus' | 'deck' | 'tier-sheet' | 'agreement' | 'logo-sheet' | 'benefits' | 'activation' | 'thank-you' | 'other';
+  type: 'flyer' | 'poster' | 'brochure' | 'banner' | 'business-card' | 'badge' | 'name-badge' | 'signage' | 'sticker' | 'stamp' | 'prospectus' | 'deck' | 'tier-sheet' | 'agreement' | 'logo-sheet' | 'benefits' | 'activation' | 'thank-you' | 'catalog' | 'postcard' | 'folder' | 'letterhead' | 'envelope' | 'notepad' | 'with-compliments' | 'venue-map' | 'floor-plan' | 'wayfinding-map' | 'campus-map' | 'booth-map' | 'evacuation-map' | 'other-map' | 'lanyard' | 'wristband' | 'ticket' | 'gift-box' | 'gift-bag' | 'swag-bag' | 'packaging-sleeve' | 'packaging-label' | 'packaging-other' | 'other' | (string & {});
   dimensions?: string;
   previewUrl?: string;
   fileUrl?: string;
