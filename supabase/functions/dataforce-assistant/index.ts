@@ -701,73 +701,226 @@ Only use slugs that exist in the entity directory. Do not fabricate slugs. If no
 });
 
 function buildEntityContext(guideData: Record<string, unknown>, entityName: string): string {
-  // Use shared full brand context extractor for 100% section coverage
   try {
-    // Dynamic import wrapped in sync usage - build inline fallback
     const g = guideData || {};
     const parts: string[] = [`Brand/Entity: ${entityName}`];
     
+    // HERO - full details
     const hero = g.hero as any;
     if (hero) {
+      if (hero.name) parts.push(`Display Name: ${hero.name}`);
       if (hero.tagline) parts.push(`Tagline: ${hero.tagline}`);
+      if (hero.description) parts.push(`Description: ${String(hero.description).slice(0, 300)}`);
+      if (hero.coverImage) parts.push(`Has Cover Image: yes`);
+      if (hero.cardImage) parts.push(`Has Card Image: yes`);
     }
+
+    // IDENTITY - deep
     const identity = g.identity as any;
     if (identity) {
       if (identity.missionStatement || identity.mission) parts.push(`Mission: ${identity.missionStatement || identity.mission}`);
-      if (identity.vision) parts.push(`Vision: ${identity.vision}`);
+      if (identity.visionStatement || identity.vision) parts.push(`Vision: ${identity.visionStatement || identity.vision}`);
       if (identity.archetype) parts.push(`Brand Archetype: ${identity.archetype}`);
       if (identity.industry) parts.push(`Industry: ${identity.industry}`);
+      if (identity.brandPromise) parts.push(`Brand Promise: ${String(identity.brandPromise).slice(0, 200)}`);
+      if (identity.brandStory) parts.push(`Brand Story: ${String(identity.brandStory).slice(0, 400)}`);
+      if (identity.personality) parts.push(`Personality: ${typeof identity.personality === 'string' ? identity.personality : JSON.stringify(identity.personality).slice(0, 200)}`);
+      if (identity.voiceTone) parts.push(`Voice & Tone: ${typeof identity.voiceTone === 'string' ? identity.voiceTone : JSON.stringify(identity.voiceTone).slice(0, 200)}`);
       const tone = Array.isArray(identity.toneOfVoice) ? identity.toneOfVoice : [];
-      if (tone.length) parts.push(`Tone of Voice: ${tone.join(', ')}`);
+      if (tone.length) parts.push(`Tone of Voice Keywords: ${tone.join(', ')}`);
+      if (identity.positioning) parts.push(`Positioning: ${String(identity.positioning).slice(0, 200)}`);
+      if (identity.targetAudience) parts.push(`Target Audience: ${String(identity.targetAudience).slice(0, 200)}`);
+      if (identity.uniqueSellingProposition) parts.push(`USP: ${String(identity.uniqueSellingProposition).slice(0, 200)}`);
     }
+
+    // TAGLINE section
+    const tagline = g.tagline as any;
+    if (tagline) {
+      if (tagline.primary) parts.push(`Primary Tagline: ${tagline.primary}`);
+      if (tagline.secondary) parts.push(`Secondary Tagline: ${tagline.secondary}`);
+      if (tagline.guidelines) parts.push(`Tagline Guidelines: ${String(tagline.guidelines).slice(0, 200)}`);
+    }
+
+    // VALUES - with descriptions
     const values = Array.isArray(g.values) ? g.values : [];
-    if (values.length) parts.push(`Core Values: ${values.map((v: any) => v.title || v.text || v.name).filter(Boolean).join(', ')}`);
+    if (values.length) parts.push(`Core Values:\n${values.map((v: any) => `  • ${v.title || v.text || v.name}${v.description ? ': ' + String(v.description).slice(0, 100) : ''}`).join('\n')}`);
+
+    // COLORS - deep with roles, usage, accessibility
     const colors = Array.isArray(g.colors) ? g.colors : [];
-    if (colors.length) parts.push(`Colors (${colors.length}): ${colors.slice(0, 6).map((c: any) => `${c.name || 'color'}(${c.hex || ''})`).join(', ')}`);
+    if (colors.length) parts.push(`Colors (${colors.length}):\n${colors.slice(0, 10).map((c: any) => `  • ${c.name || 'Color'}: ${c.hex || ''}${c.role ? ' [' + c.role + ']' : ''}${c.usage ? ' — ' + String(c.usage).slice(0, 80) : ''}${c.pantone ? ' (Pantone: ' + c.pantone + ')' : ''}${c.cmyk ? ' (CMYK: ' + c.cmyk + ')' : ''}`).join('\n')}`);
+
+    // COLOR COMBINATIONS
+    const colorCombinations = Array.isArray(g.colorCombinations) ? g.colorCombinations : [];
+    if (colorCombinations.length) parts.push(`Color Combinations: ${colorCombinations.length} defined pairings${colorCombinations.slice(0, 3).map((cc: any) => ` — ${cc.name || cc.label || 'combo'}: ${cc.description || ''}`).join(';')}`);
+
+    // TYPOGRAPHY - deep with weights, sizes, usage
     const typography = Array.isArray(g.typography) ? g.typography : [];
-    if (typography.length) parts.push(`Typography: ${typography.slice(0, 4).map((t: any) => t.fontFamily || t.name || 'font').join(', ')}`);
+    if (typography.length) parts.push(`Typography (${typography.length}):\n${typography.slice(0, 6).map((t: any) => `  • ${t.fontFamily || t.family || t.name || 'Font'}${t.weight ? ' w' + t.weight : ''}${t.role ? ' [' + t.role + ']' : ''}${t.usage ? ' — ' + String(t.usage).slice(0, 80) : ''}${t.size ? ' size:' + t.size : ''}${t.lineHeight ? ' lh:' + t.lineHeight : ''}`).join('\n')}`);
+
+    // LOGOS - detailed with variants and usage rules
     const logos = Array.isArray(g.logos) ? g.logos : [];
-    if (logos.length) parts.push(`Logos: ${logos.length} defined`);
+    if (logos.length) parts.push(`Logos (${logos.length}):\n${logos.slice(0, 8).map((l: any) => `  • ${l.name || l.label || 'Logo'}${l.variant ? ' [' + l.variant + ']' : ''}${l.usage ? ' — ' + String(l.usage).slice(0, 100) : ''}${l.clearSpace ? ' clearSpace:' + l.clearSpace : ''}${l.minSize ? ' minSize:' + l.minSize : ''}`).join('\n')}`);
+
+    // SERVICES - with descriptions
     const services = Array.isArray(g.services) ? g.services : [];
-    if (services.length) parts.push(`Services: ${services.slice(0, 5).map((s: any) => s.name || s.title).filter(Boolean).join(', ')}`);
+    if (services.length) parts.push(`Services:\n${services.slice(0, 8).map((s: any) => `  • ${s.name || s.title || 'Service'}${s.description ? ': ' + String(s.description).slice(0, 100) : ''}`).join('\n')}`);
+
+    // SOCIAL profiles
     const social = Array.isArray(g.social) ? g.social : [];
-    if (social.length) parts.push(`Social: ${social.slice(0, 5).map((s: any) => `${s.platform || ''}: ${s.handle || s.url || ''}`).join(', ')}`);
+    if (social.length) parts.push(`Social Profiles: ${social.map((s: any) => `${s.platform || ''}: ${s.handle || s.url || ''}`).join(', ')}`);
+
+    // SOCIAL ASSETS
+    const socialAssets = Array.isArray(g.socialAssets) ? g.socialAssets : [];
+    if (socialAssets.length) parts.push(`Social Assets: ${socialAssets.length} (${socialAssets.slice(0, 3).map((a: any) => a.name || a.title || a.platform || 'asset').join(', ')})`);
+
+    // WEBSITES
     const websites = Array.isArray(g.websites) ? g.websites : [];
-    if (websites.length) parts.push(`Websites: ${websites.slice(0, 3).map((w: any) => w.url || w.name || '').join(', ')}`);
+    if (websites.length) parts.push(`Websites:\n${websites.slice(0, 5).map((w: any) => `  • ${w.url || w.name || ''}${w.label ? ' (' + w.label + ')' : ''}${w.description ? ' — ' + String(w.description).slice(0, 80) : ''}`).join('\n')}`);
+
+    // GRADIENTS - with details
     const gradients = Array.isArray(g.gradients) ? g.gradients : [];
-    if (gradients.length) parts.push(`Gradients: ${gradients.length}`);
+    if (gradients.length) parts.push(`Gradients (${gradients.length}):\n${gradients.slice(0, 5).map((gr: any) => `  • ${gr.name || 'Gradient'}${gr.type ? ' [' + gr.type + ']' : ''}${gr.colors ? ' colors: ' + (Array.isArray(gr.colors) ? gr.colors.join(' → ') : gr.colors) : ''}${gr.usage ? ' — ' + String(gr.usage).slice(0, 80) : ''}`).join('\n')}`);
+
+    // PATTERNS - with details
     const patterns = Array.isArray(g.patterns) ? g.patterns : [];
-    if (patterns.length) parts.push(`Patterns: ${patterns.length}`);
+    if (patterns.length) parts.push(`Patterns (${patterns.length}):\n${patterns.slice(0, 5).map((p: any) => `  • ${p.name || 'Pattern'}${p.usage ? ' — ' + String(p.usage).slice(0, 80) : ''}`).join('\n')}`);
+
+    // IMAGERY / VISUAL DIRECTION
     const imagery = Array.isArray(g.imagery) ? g.imagery : [];
-    if (imagery.length) parts.push(`Imagery: ${imagery.length} assets`);
+    if (imagery.length) parts.push(`Visual Direction / Imagery (${imagery.length}):\n${imagery.slice(0, 5).map((im: any) => `  • ${im.name || im.title || 'Image'}${im.category ? ' [' + im.category + ']' : ''}${im.description ? ' — ' + String(im.description).slice(0, 80) : ''}`).join('\n')}`);
+
+    // IMAGE ASSETS
+    const imageAssets = Array.isArray(g.imageAssets) ? g.imageAssets : [];
+    if (imageAssets.length) parts.push(`Image Assets: ${imageAssets.length} files`);
+
+    // TEMPLATES
     const templates = Array.isArray(g.templates) ? g.templates : [];
-    if (templates.length) parts.push(`Templates: ${templates.length}`);
-    const awards = Array.isArray(g.awards) ? g.awards : [];
-    if (awards.length) parts.push(`Awards: ${awards.length}`);
-    const statistics = Array.isArray(g.statistics) ? g.statistics : [];
-    if (statistics.length) parts.push(`Statistics: ${statistics.length}`);
-    const brandIcons = Array.isArray(g.brandIcons) ? g.brandIcons : [];
-    if (brandIcons.length) parts.push(`Brand Icons: ${brandIcons.length}`);
-    const iconography = Array.isArray(g.iconography) ? g.iconography : [];
-    if (iconography.length) parts.push(`Iconography: ${iconography.length}`);
-    const signatures = Array.isArray(g.signatures) ? g.signatures : [];
-    if (signatures.length) parts.push(`Email Signatures: ${signatures.length}`);
+    if (templates.length) parts.push(`Templates (${templates.length}):\n${templates.slice(0, 5).map((t: any) => `  • ${t.name || t.title || 'Template'}${t.category ? ' [' + t.category + ']' : ''}${t.description ? ' — ' + String(t.description).slice(0, 80) : ''}`).join('\n')}`);
+
+    // BROCHURES
+    const brochures = Array.isArray(g.brochures) ? g.brochures : [];
+    if (brochures.length) parts.push(`Brochures (${brochures.length}):\n${brochures.slice(0, 5).map((b: any) => `  • ${b.name || b.title || 'Brochure'}${b.description ? ' — ' + String(b.description).slice(0, 80) : ''}`).join('\n')}`);
+
+    // PRESENTATION TEMPLATES
+    const presentationTemplates = Array.isArray(g.presentationTemplates) ? g.presentationTemplates : [];
+    if (presentationTemplates.length) parts.push(`Presentation Templates: ${presentationTemplates.length}`);
+
+    // DIGITAL COLLATERAL
     const emailBanners = Array.isArray(g.emailBanners) ? g.emailBanners : [];
     if (emailBanners.length) parts.push(`Email Banners: ${emailBanners.length}`);
+
+    // BRAND ICONS & ICONOGRAPHY
+    const brandIcons = Array.isArray(g.brandIcons) ? g.brandIcons : [];
+    if (brandIcons.length) parts.push(`Brand Icons (${brandIcons.length}):\n${brandIcons.slice(0, 5).map((ic: any) => `  • ${ic.name || 'Icon'}${ic.style ? ' [' + ic.style + ']' : ''}${ic.usage ? ' — ' + String(ic.usage).slice(0, 60) : ''}`).join('\n')}`);
+    const iconography = Array.isArray(g.iconography) ? g.iconography : [];
+    if (iconography.length) parts.push(`Iconography Library: ${iconography.length} icons`);
+
+    // SIGNATURES
+    const signatures = Array.isArray(g.signatures) ? g.signatures : [];
+    if (signatures.length) parts.push(`Email Signatures (${signatures.length}):\n${signatures.slice(0, 3).map((s: any) => `  • ${s.name || s.title || 'Signature'}${s.role ? ' — ' + s.role : ''}`).join('\n')}`);
+
+    // QR CODES
+    const qr = g.qr as any;
+    if (qr) {
+      if (qr.defaultUrl) parts.push(`QR Code URL: ${qr.defaultUrl}`);
+      if (qr.style) parts.push(`QR Style: ${JSON.stringify(qr.style).slice(0, 100)}`);
+    }
+
+    // VIDEOS
     const videos = Array.isArray(g.videos) ? g.videos : [];
-    if (videos.length) parts.push(`Videos: ${videos.length}`);
+    if (videos.length) parts.push(`Videos (${videos.length}):\n${videos.slice(0, 5).map((v: any) => `  • ${v.title || v.name || 'Video'}${v.url ? ' — ' + v.url : ''}${v.description ? ' — ' + String(v.description).slice(0, 80) : ''}`).join('\n')}`);
+
+    // MISUSE / ANTI-PATTERNS
     const misuse = Array.isArray(g.misuse) ? g.misuse : [];
-    if (misuse.length) parts.push(`Misuse Guidelines: ${misuse.length}`);
+    if (misuse.length) parts.push(`Anti-Pattern / Misuse Rules (${misuse.length}):\n${misuse.slice(0, 5).map((m: any) => `  • ${m.title || m.name || 'Rule'}${m.description ? ': ' + String(m.description).slice(0, 100) : ''}`).join('\n')}`);
+
+    // CASE STUDIES
     const caseStudies = Array.isArray(g.caseStudies) ? g.caseStudies : [];
-    if (caseStudies.length) parts.push(`Case Studies: ${caseStudies.length}`);
+    if (caseStudies.length) parts.push(`Case Studies (${caseStudies.length}):\n${caseStudies.slice(0, 5).map((cs: any) => `  • ${cs.title || cs.name || 'Case Study'}${cs.description ? ': ' + String(cs.description).slice(0, 100) : ''}`).join('\n')}`);
+
+    // AWARDS
+    const awards = Array.isArray(g.awards) ? g.awards : [];
+    if (awards.length) parts.push(`Awards (${awards.length}):\n${awards.slice(0, 5).map((a: any) => `  • ${a.title || a.name || 'Award'}${a.organization ? ' from ' + a.organization : ''}${a.year ? ' (' + a.year + ')' : ''}${a.category ? ' [' + a.category + ']' : ''}`).join('\n')}`);
+
+    // STATISTICS
+    const statistics = Array.isArray(g.statistics) ? g.statistics : [];
+    if (statistics.length) parts.push(`Statistics:\n${statistics.slice(0, 8).map((s: any) => `  • ${s.label || s.title || 'Stat'}: ${s.value || ''}`).join('\n')}`);
+
+    // CUSTOM SHAPES / GEOMETRIC PRIMITIVES
     const customShapes = Array.isArray(g.customShapes) ? g.customShapes : [];
-    if (customShapes.length) parts.push(`Custom Shapes: ${customShapes.length}`);
-    const locations = Array.isArray(g.locations) ? g.locations : [];
-    if (locations.length) parts.push(`Locations: ${locations.length}`);
+    if (customShapes.length) parts.push(`Geometric Primitives / Custom Shapes: ${customShapes.length}`);
+
+    // SPONSOR LOGOS
     const sponsorLogos = Array.isArray(g.sponsorLogos) ? g.sponsorLogos : [];
-    if (sponsorLogos.length) parts.push(`Sponsor Logos: ${sponsorLogos.length}`);
+    if (sponsorLogos.length) parts.push(`Sponsor Logos: ${sponsorLogos.length} (${sponsorLogos.slice(0, 5).map((s: any) => s.name || s.title || 'sponsor').join(', ')})`);
+
+    // CLIENT LOGOS
     const clientLogos = Array.isArray(g.clientLogos) ? g.clientLogos : [];
-    if (clientLogos.length) parts.push(`Client Logos: ${clientLogos.length}`);
+    if (clientLogos.length) parts.push(`Client Logos: ${clientLogos.length} (${clientLogos.slice(0, 5).map((c: any) => c.name || c.title || 'client').join(', ')})`);
+
+    // LINKED GUIDES (sub-products, sub-events)
+    const linkedGuides = Array.isArray(g.linkedGuides) ? g.linkedGuides : [];
+    if (linkedGuides.length) parts.push(`Linked Sub-Entities: ${linkedGuides.map((lg: any) => `${lg.name || 'entity'} (${lg.type || 'unknown'})`).join(', ')}`);
+
+    // EVENT-SPECIFIC SECTIONS
+    const eventBrief = g.eventBrief as any;
+    if (eventBrief) {
+      const ebParts: string[] = [];
+      if (eventBrief.objective) ebParts.push(`Objective: ${String(eventBrief.objective).slice(0, 200)}`);
+      if (eventBrief.audience) ebParts.push(`Audience: ${String(eventBrief.audience).slice(0, 150)}`);
+      if (eventBrief.theme) ebParts.push(`Theme: ${eventBrief.theme}`);
+      if (eventBrief.venue) ebParts.push(`Venue: ${eventBrief.venue}`);
+      if (eventBrief.dates) ebParts.push(`Dates: ${eventBrief.dates}`);
+      if (eventBrief.budget) ebParts.push(`Budget: ${eventBrief.budget}`);
+      if (ebParts.length) parts.push(`Event Brief:\n${ebParts.map(p => '  ' + p).join('\n')}`);
+    }
+
+    // WEBINARS
+    const webinars = Array.isArray(g.webinars) ? g.webinars : [];
+    if (webinars.length) parts.push(`Webinars (${webinars.length}):\n${webinars.slice(0, 5).map((w: any) => `  • ${w.title || 'Webinar'}${w.speakers ? ' — Speakers: ' + w.speakers : ''}${w.date ? ' (' + w.date + ')' : ''}`).join('\n')}`);
+
+    // PRESENTATIONS
+    const presentations = Array.isArray(g.presentations) ? g.presentations : [];
+    if (presentations.length) parts.push(`Presentations: ${presentations.length}`);
+
+    // SHARED ASSETS (events)
+    const sharedAssets = Array.isArray(g.sharedAssets) ? g.sharedAssets : [];
+    if (sharedAssets.length) parts.push(`Shared Assets: ${sharedAssets.length} files`);
+
+    // LOCATIONS
+    const locations = Array.isArray(g.locations) ? g.locations : [];
+    if (locations.length) parts.push(`Locations (${locations.length}):\n${locations.slice(0, 5).map((loc: any) => `  • ${loc.name || loc.city || 'Location'}${loc.address ? ' — ' + loc.address : ''}${loc.category ? ' [' + loc.category + ']' : ''}`).join('\n')}`);
+
+    // SIGNAGE
+    const signage = Array.isArray(g.signage) ? g.signage : [];
+    if (signage.length) parts.push(`Event Signage (${signage.length}):\n${signage.slice(0, 5).map((s: any) => `  • ${s.name || s.title || 'Sign'} [${s.type || 'general'}]${s.dimensions ? ' ' + s.dimensions : ''}`).join('\n')}`);
+
+    // PARTNER BOOTHS
+    const partnerBooths = Array.isArray(g.partnerBooths) ? g.partnerBooths : [];
+    if (partnerBooths.length) parts.push(`Partner Booths: ${partnerBooths.length} (${partnerBooths.slice(0, 5).map((b: any) => b.name || b.company || 'booth').join(', ')})`);
+
+    // PRINT MATERIALS (events)
+    const eventPrintMaterials = Array.isArray(g.eventPrintMaterials) ? g.eventPrintMaterials : [];
+    if (eventPrintMaterials.length) parts.push(`Event Print Materials: ${eventPrintMaterials.length}`);
+
+    // INFOGRAPHICS
+    const eventInfographics = Array.isArray(g.eventInfographics) ? g.eventInfographics : [];
+    if (eventInfographics.length) parts.push(`Event Infographics: ${eventInfographics.length}`);
+
+    // APPLICATIONS
+    const eventApplications = Array.isArray(g.eventApplications) ? g.eventApplications : [];
+    if (eventApplications.length) parts.push(`Event Applications: ${eventApplications.length}`);
+
+    // INSIGHTS
+    const insights = Array.isArray(g.insights) ? g.insights : [];
+    if (insights.length) parts.push(`Insights & Updates: ${insights.length} entries`);
+
+    // SECTION LAYOUTS (admin config)
+    const sectionLayouts = g.sectionLayouts as any;
+    if (sectionLayouts && typeof sectionLayouts === 'object') {
+      const layoutEntries = Object.entries(sectionLayouts).filter(([_, v]) => v);
+      if (layoutEntries.length) parts.push(`Configured Section Layouts: ${layoutEntries.map(([k, v]) => `${k}=${v}`).join(', ')}`);
+    }
 
     return parts.join('\n');
   } catch {
