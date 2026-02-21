@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import {
   Plus, Trash2, Upload, Loader2, Link2, FileText,
-  ChevronDown, Download
+  ChevronDown, Download, Maximize2
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
@@ -163,12 +163,14 @@ const PrintCard = ({
   onDelete,
   onPreviewUpload,
   isUploadingPreview,
+  onViewLarger,
 }: {
   item: PrintCollateralItem;
   canEdit: boolean;
   onDelete: (id: string) => void;
   onPreviewUpload: (id: string) => void;
   isUploadingPreview: boolean;
+  onViewLarger: (url: string, name: string) => void;
 }) => {
   const label = PRINT_TYPES[item.type] || item.type;
   const subsection = getSubsectionForType(item.type);
@@ -191,25 +193,40 @@ const PrintCard = ({
         )}
 
         {/* Hover overlay */}
-        {canEdit && !isUploadingPreview && (
+        {!isUploadingPreview && (
           <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-            <Button
-              size="icon"
-              variant="secondary"
-              className="h-8 w-8"
-              title="Upload preview image"
-              onClick={() => onPreviewUpload(item.id)}
-            >
-              <Upload className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="destructive"
-              className="h-8 w-8"
-              onClick={() => onDelete(item.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {item.previewUrl && (
+              <Button
+                size="icon"
+                variant="secondary"
+                className="h-8 w-8"
+                title="View larger"
+                onClick={() => onViewLarger(item.previewUrl!, item.name)}
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            )}
+            {canEdit && (
+              <>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8"
+                  title="Upload preview image"
+                  onClick={() => onPreviewUpload(item.id)}
+                >
+                  <Upload className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="h-8 w-8"
+                  onClick={() => onDelete(item.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
         )}
 
@@ -273,6 +290,7 @@ export const EventPrintCollateralSection = ({
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [uploadingPreviewId, setUploadingPreviewId] = useState<string | null>(null);
   const [targetPreviewId, setTargetPreviewId] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { uploadFile } = useStorageUpload({ entityType: 'event', entityId: eventId || '' });
@@ -418,6 +436,7 @@ export const EventPrintCollateralSection = ({
                     onDelete={handleDelete}
                     onPreviewUpload={handlePreviewUpload}
                     isUploadingPreview={uploadingPreviewId === item.id}
+                    onViewLarger={(url, name) => setPreviewImage({ url, name })}
                   />
                 ))}
                 {isEditable && onItemsChange && (
@@ -535,6 +554,21 @@ export const EventPrintCollateralSection = ({
               Add Item
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Image preview dialog */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-4xl p-2">
+          <DialogHeader className="px-4 pt-2">
+            <DialogTitle>{previewImage?.name}</DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <img
+              src={previewImage.url}
+              alt={previewImage.name}
+              className="w-full h-auto max-h-[80vh] object-contain rounded-md"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </section>
