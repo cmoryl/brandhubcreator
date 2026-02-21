@@ -85,6 +85,10 @@ const SECTION_WEIGHTS: Record<string, { weight: number; label: string }> = {
   subevents: { weight: 3, label: 'Regional Events' },
   sharedAssets: { weight: 2, label: 'Shared Assets' },
   partnerBooths: { weight: 3, label: 'Partner Booths' },
+  eventPrintMaterials: { weight: 4, label: 'Print Collateral' },
+  eventInfographics: { weight: 2, label: 'Event Infographics' },
+  eventApplications: { weight: 2, label: 'Event Applications' },
+  brief: { weight: 3, label: 'Event Brief' },
 };
 
 export interface SectionScore {
@@ -362,6 +366,9 @@ function calculateSectionCompleteness(
     case 'eventLogos':
     case 'eventBanners':
     case 'eventDigitalMaterials':
+    case 'eventPrintMaterials':
+    case 'eventInfographics':
+    case 'eventApplications':
     case 'eventVideos':
     case 'eventHistory':
     case 'eventPatterns':
@@ -431,6 +438,17 @@ function calculateSectionCompleteness(
       return snapshots.length > 0 ? 1 : 0;
     }
 
+    case 'brief': {
+      const brief = guideData.brief as Record<string, unknown> | undefined;
+      if (!brief) return 0;
+      const fields = ['objective', 'audience', 'keyMessages', 'timeline', 'budget', 'deliverables'];
+      const filled = countFilledFields(brief, fields);
+      if (filled >= 4) return 1;
+      if (filled >= 2) return 0.6;
+      if (filled >= 1) return 0.3;
+      return 0;
+    }
+
     default:
       return 0;
   }
@@ -473,6 +491,8 @@ const SECTION_ID_TO_WEIGHT_KEY: Record<string, string> = {
   partnerbooths: 'partnerBooths',
   subevents: 'subevents',
   sharedassets: 'sharedAssets',
+  eventprint: 'eventPrintMaterials',
+  brief: 'brief',
   // 'products' and 'events' are nav-only sections with no weight key
 };
 
@@ -481,7 +501,7 @@ const EVENT_ONLY_SECTIONS = new Set([
   'eventDetails', 'eventLogos', 'eventSchedule', 'eventSpeakers', 'eventSponsors',
   'eventHistory', 'eventVideos', 'eventLocation', 'eventWebsites', 'eventBanners',
   'eventDigitalMaterials', 'eventPatterns', 'subevents', 'sharedAssets', 'partnerBooths',
-  'eventSignage',
+  'eventSignage', 'eventPrintMaterials', 'eventInfographics', 'eventApplications', 'brief',
 ]);
 
 // Sections that only apply to brands/products (excluded from event scoring)
@@ -582,8 +602,9 @@ export function calculateBrandHealth(
     { name: 'Extended Features', sections: ['linkedGuides', 'emailBanners'] },
     // Event-specific categories (only score if sections exist in guide)
     { name: 'Event Core', sections: ['eventDetails', 'eventLocation', 'eventSchedule', 'eventSpeakers', 'subevents'] },
-    { name: 'Event Branding', sections: ['eventLogos', 'eventBanners', 'eventDigitalMaterials', 'eventPatterns', 'eventVideos', 'eventWebsites'] },
-    { name: 'Event Partners', sections: ['eventSponsors', 'partnerBooths', 'sharedAssets', 'eventHistory'] },
+    { name: 'Event Branding', sections: ['eventLogos', 'eventBanners', 'eventDigitalMaterials', 'eventPrintMaterials', 'eventPatterns', 'eventVideos', 'eventWebsites', 'eventInfographics'] },
+    { name: 'Event Partners', sections: ['eventSponsors', 'partnerBooths', 'sharedAssets', 'eventHistory', 'eventApplications'] },
+    { name: 'Event Planning', sections: ['brief'] },
   ];
 
   const categoryScores = categories.map(cat => {
