@@ -30,7 +30,9 @@ import {
   User,
   Sparkles,
   Globe,
-  ExternalLink
+  ExternalLink,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -103,6 +105,8 @@ export const BrandAssistant = ({
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [language, setLanguage] = useState('en_US');
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,6 +119,73 @@ export const BrandAssistant = ({
     setMessages([]);
     setConversationId(null);
   }, [entityId, entityType]);
+
+  // Cleanup speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
+
+  const toggleListening = useCallback(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error('Speech recognition is not supported in this browser');
+      return;
+    }
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    // Map language codes to BCP-47
+    const langMap: Record<string, string> = {
+      en_US: 'en-US', es_ES: 'es-ES', fr_FR: 'fr-FR',
+      de_DE: 'de-DE', ja_JP: 'ja-JP', zh_CN: 'zh-CN', pt_BR: 'pt-BR',
+    };
+    recognition.lang = langMap[language] || 'en-US';
+
+    recognition.onresult = (event: any) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      if (finalTranscript) {
+        setInput(prev => (prev + ' ' + finalTranscript).trim());
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      if (event.error !== 'aborted') {
+        toast.error('Microphone error: ' + event.error);
+      }
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  }, [isListening, language]);
 
   const handleNavClick = useCallback((link: NavLink) => {
     const path = `/${link.type}/${link.slug}`;
@@ -345,10 +416,19 @@ export const BrandAssistant = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about brand guidelines..."
+              placeholder={isListening ? 'Listening...' : 'Ask about brand guidelines...'}
               disabled={isLoading}
-              className="flex-1"
+              className={`flex-1 ${isListening ? 'border-red-500/50 animate-pulse' : ''}`}
             />
+            <Button
+              onClick={toggleListening}
+              variant={isListening ? 'destructive' : 'outline'}
+              size="icon"
+              title={isListening ? 'Stop listening' : 'Voice input'}
+              disabled={isLoading}
+            >
+              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
             <Button 
               onClick={sendMessage} 
               disabled={!input.trim() || isLoading}
