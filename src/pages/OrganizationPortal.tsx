@@ -391,8 +391,8 @@ const OrganizationPortal = () => {
         </div>
 
         {/* Hero Content */}
-        <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-4 sm:pt-8 pb-16 sm:pb-24 overflow-visible`}>
-          <div className="relative min-h-[400px] lg:min-h-[480px]">
+        <div className={`relative z-10 ${heroFullWidth ? 'px-4 sm:px-6 lg:px-8' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} pt-4 sm:pt-8 pb-8 sm:pb-24 overflow-visible`}>
+          <div className="relative min-h-0 lg:min-h-[480px]">
             {/* Global Asset Orbit - background layer, not clickable except icons */}
             <div 
               className="hidden lg:block absolute top-1/2 -translate-y-1/2 z-30 animate-fade-in pointer-events-none"
