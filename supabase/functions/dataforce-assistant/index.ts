@@ -122,21 +122,35 @@ serve(async (req) => {
     
     // Build entity directory for navigation (all brands, products, events in org)
     let entityDirectory = '';
+    // Store entity map for cross-entity lookups: name → { id, type, table }
+    const entityMap: Map<string, { id: string; type: string; table: string; slug: string }> = new Map();
+    let allBrands: any[] = [];
+    let allProducts: any[] = [];
+    let allEvents: any[] = [];
     try {
-      const [{ data: allBrands }, { data: allProducts }, { data: allEvents }] = await Promise.all([
+      const [brandsRes, productsRes, eventsRes] = await Promise.all([
         supabase.from('brands').select('id, name, slug').eq('organization_id', organization_id).limit(100),
         supabase.from('products').select('id, name, slug, parent_brand_id').eq('organization_id', organization_id).limit(100),
         supabase.from('events').select('id, name, slug, parent_brand_id').eq('organization_id', organization_id).limit(100),
       ]);
+      allBrands = brandsRes.data || [];
+      allProducts = productsRes.data || [];
+      allEvents = eventsRes.data || [];
+
+      // Populate entity map
+      for (const b of allBrands) entityMap.set(b.name.toLowerCase(), { id: b.id, type: 'brand', table: 'brands', slug: b.slug });
+      for (const p of allProducts) entityMap.set(p.name.toLowerCase(), { id: p.id, type: 'product', table: 'products', slug: p.slug });
+      for (const e of allEvents) entityMap.set(e.name.toLowerCase(), { id: e.id, type: 'event', table: 'events', slug: e.slug });
+
       const dirParts: string[] = [];
-      if (allBrands?.length) dirParts.push(`Brands: ${allBrands.map(b => `${b.name} [slug:${b.slug}]`).join(', ')}`);
-      if (allProducts?.length) {
+      if (allBrands.length) dirParts.push(`Brands: ${allBrands.map(b => `${b.name} [slug:${b.slug}]`).join(', ')}`);
+      if (allProducts.length) {
         const parentProducts = allProducts.filter(p => !p.parent_brand_id);
         const subProducts = allProducts.filter(p => p.parent_brand_id);
         if (parentProducts.length) dirParts.push(`Products: ${parentProducts.map(p => `${p.name} [slug:${p.slug}]`).join(', ')}`);
         if (subProducts.length) {
           const grouped = subProducts.reduce((acc: Record<string, any[]>, p) => {
-            const parent = allBrands?.find(b => b.id === p.parent_brand_id) || allProducts?.find(pp => pp.id === p.parent_brand_id);
+            const parent = allBrands.find(b => b.id === p.parent_brand_id) || allProducts.find(pp => pp.id === p.parent_brand_id);
             const parentName = parent?.name || 'Unknown';
             if (!acc[parentName]) acc[parentName] = [];
             acc[parentName].push(p);
@@ -147,13 +161,13 @@ serve(async (req) => {
           }
         }
       }
-      if (allEvents?.length) {
+      if (allEvents.length) {
         const parentEvents = allEvents.filter(e => !e.parent_brand_id);
         const subEvents = allEvents.filter(e => e.parent_brand_id);
         if (parentEvents.length) dirParts.push(`Events: ${parentEvents.map(e => `${e.name} [slug:${e.slug}]`).join(', ')}`);
         if (subEvents.length) {
           const grouped = subEvents.reduce((acc: Record<string, any[]>, e) => {
-            const parent = allBrands?.find(b => b.id === e.parent_brand_id) || allEvents?.find(ee => ee.id === e.parent_brand_id);
+            const parent = allBrands.find(b => b.id === e.parent_brand_id) || allEvents.find(ee => ee.id === e.parent_brand_id);
             const parentName = parent?.name || 'Unknown';
             if (!acc[parentName]) acc[parentName] = [];
             acc[parentName].push(e);
@@ -167,6 +181,42 @@ serve(async (req) => {
       if (dirParts.length) entityDirectory = `\n\nAVAILABLE ENTITIES IN THIS ORGANIZATION:\n${dirParts.join('\n')}`;
     } catch (e) {
       console.warn('[dataforce-assistant] Entity directory fetch failed:', e);
+    }
+
+    // Cross-entity on-demand knowledge: detect entity names mentioned in user message
+    let crossEntityContext = '';
+    try {
+      const messageLower = message.toLowerCase();
+      const matchedEntities: { id: string; type: string; table: string; name: string }[] = [];
+      for (const [name, info] of entityMap.entries()) {
+        // Skip the active entity (already has deep context)
+        if (entity_id && info.id === entity_id) continue;
+        // Match entity names (at least 3 chars to avoid false positives)
+        if (name.length >= 3 && messageLower.includes(name)) {
+          matchedEntities.push({ ...info, name });
+        }
+      }
+      // Fetch up to 3 cross-referenced entities to stay within memory limits
+      if (matchedEntities.length > 0) {
+        const toFetch = matchedEntities.slice(0, 3);
+        const crossResults = await Promise.all(
+          toFetch.map(ent => 
+            supabase.from(ent.table).select('name, guide_data').eq('id', ent.id).single()
+          )
+        );
+        const crossParts: string[] = [];
+        for (let i = 0; i < crossResults.length; i++) {
+          const { data: crossEntity } = crossResults[i];
+          if (crossEntity?.guide_data) {
+            crossParts.push(`\n--- ${crossEntity.name} (${toFetch[i].type}) ---\n${buildEntityContext(crossEntity.guide_data as Record<string, unknown>, crossEntity.name)}`);
+          }
+        }
+        if (crossParts.length > 0) {
+          crossEntityContext = `\n\nCROSS-REFERENCED ENTITY DATA (user asked about these):\n${crossParts.join('\n')}`;
+        }
+      }
+    } catch (e) {
+      console.warn('[dataforce-assistant] Cross-entity fetch failed (non-critical):', e);
     }
     
     // Fetch Oracle context in parallel with entity data
@@ -431,7 +481,7 @@ serve(async (req) => {
 
     const systemPrompt = `${persona}${personalityBlock}${styleBlock}
 
-${entityContext}${oracleContext}${entityDirectory}
+${entityContext}${oracleContext}${crossEntityContext}${entityDirectory}
 ${languageInstruction}
 
 Guidelines for responses:
