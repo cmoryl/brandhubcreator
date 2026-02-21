@@ -332,100 +332,222 @@ function calculateSectionCompleteness(
     }
 
     // ─── Generic array-based sections ───
-    // These all follow the same pattern: check the array length
     case 'gradients':
     case 'patterns':
     case 'customShapes':
     case 'socialIcons':
-    case 'socialAssets':
     case 'templates':
     case 'templateSpecs':
     case 'presentationTemplates':
     case 'brochures':
     case 'displayBanners':
     case 'caseStudies':
-    case 'awards':
     case 'webinars':
     case 'insights':
-    case 'eventSignage': {
-      const signageArr = safeArray(guideData[section]);
-      const linkedBooths = safeArray(guideData.linkedBooths);
-      const combined = signageArr.length + linkedBooths.length;
-      if (combined === 0) return 0;
-      if (combined >= 3) return 1;
-      if (combined >= 2) return 0.7;
-      return 0.4;
-    }
     case 'clientLogos':
     case 'sponsorLogos':
     case 'linkedGuides':
     case 'emailBanners':
     case 'videos':
-    case 'assets':
     case 'imageAssets':
-    case 'eventLogos':
-    case 'eventBanners':
-    case 'eventDigitalMaterials':
-    case 'eventPrintMaterials':
-    case 'eventInfographics':
-    case 'eventApplications':
-    case 'eventVideos':
-    case 'eventHistory':
-    case 'eventPatterns':
-    case 'sharedAssets':
-    case 'partnerBooths':
-    case 'eventWebsites': {
+    case 'eventPatterns': {
       const arr = safeArray(guideData[section]);
       return scoreArray(arr);
     }
 
-    // ─── Event-Specific Sections ───
-
-    case 'eventDetails': {
-      const details = guideData.eventDetails as Record<string, unknown> | undefined;
-      if (!details) return 0;
-      const fields = ['eventName', 'startDate', 'endDate', 'venue', 'city', 'country', 'description', 'format'];
-      const filled = countFilledFields(details, fields);
-      if (filled >= 5) return 1;
-      if (filled >= 3) return 0.7;
-      if (filled >= 1) return 0.3;
-      return 0;
+    // ─── Event Signage (depth: check previews + dimensions) ───
+    case 'eventSignage': {
+      const signageArr = safeArray(guideData.eventSignage);
+      const linkedBooths = safeArray(guideData.linkedBooths);
+      const combined = signageArr.length + linkedBooths.length;
+      if (combined === 0) return 0;
+      const withPreview = signageArr.filter((s: any) => s?.previewUrl || s?.templateUrl || s?.liveFilesUrl).length;
+      const withDimensions = signageArr.filter((s: any) => s?.dimensions).length;
+      const previewRatio = signageArr.length > 0 ? withPreview / signageArr.length : 0;
+      const dimRatio = signageArr.length > 0 ? withDimensions / signageArr.length : 0;
+      const depthBonus = (previewRatio * 0.4 + dimRatio * 0.2);
+      const countScore = combined >= 5 ? 0.4 : combined >= 3 ? 0.3 : 0.2;
+      return Math.min(1, countScore + depthBonus);
     }
 
-    case 'eventSchedule': {
-      const schedule = safeArray(guideData.eventSchedule);
-      if (schedule.length === 0) return 0;
-      if (schedule.length >= 5) return 1;
-      if (schedule.length >= 3) return 0.7;
+    // ─── Event Logos (depth: check url, variant, description) ───
+    case 'eventLogos': {
+      const logos = safeArray(guideData.eventLogos);
+      if (logos.length === 0) return 0;
+      const withUrl = logos.filter((l: any) => l?.url).length;
+      const withVariant = logos.filter((l: any) => l?.variant).length;
+      const urlRatio = withUrl / logos.length;
+      const varRatio = withVariant / logos.length;
+      if (logos.length >= 4 && urlRatio >= 0.8 && varRatio >= 0.5) return 1;
+      if (logos.length >= 2 && urlRatio >= 0.6) return 0.7;
       return 0.4;
     }
 
-    case 'eventSpeakers': {
-      const speakers = safeArray(guideData.eventSpeakers);
-      if (speakers.length === 0) return 0;
-      if (speakers.length >= 4) return 1;
-      if (speakers.length >= 2) return 0.7;
-      return 0.4;
-    }
-
+    // ─── Event Sponsors (depth: check logos, tiers, descriptions) ───
     case 'eventSponsors': {
       const sponsors = safeArray(guideData.eventSponsors);
       if (sponsors.length === 0) return 0;
-      if (sponsors.length >= 3) return 1;
-      if (sponsors.length >= 1) return 0.5;
+      const withLogo = sponsors.filter((s: any) => s?.logoUrl).length;
+      const withTier = sponsors.filter((s: any) => s?.tier).length;
+      const withDesc = sponsors.filter((s: any) => s?.description).length;
+      const logoRatio = withLogo / sponsors.length;
+      const tierRatio = withTier / sponsors.length;
+      const descRatio = withDesc / sponsors.length;
+      const depth = logoRatio * 0.4 + tierRatio * 0.3 + descRatio * 0.3;
+      if (sponsors.length >= 3 && depth >= 0.7) return 1;
+      if (sponsors.length >= 2 && depth >= 0.4) return 0.7;
+      if (sponsors.length >= 1) return 0.4;
       return 0;
     }
 
-    case 'eventLocation': {
-      const loc = guideData.eventLocation as Record<string, unknown> | undefined;
-      if (!loc) return 0;
-      const fields = ['venue', 'address', 'city', 'country', 'mapUrl', 'directions'];
-      const filled = countFilledFields(loc, fields);
-      if (filled >= 3) return 1;
-      if (filled >= 2) return 0.7;
-      if (filled >= 1) return 0.4;
+    // ─── Event Schedule (depth: check descriptions, speakers, locations) ───
+    case 'eventSchedule': {
+      const schedule = safeArray(guideData.eventSchedule);
+      if (schedule.length === 0) return 0;
+      const withDesc = schedule.filter((s: any) => s?.description).length;
+      const withLocation = schedule.filter((s: any) => s?.location).length;
+      const withTime = schedule.filter((s: any) => s?.time && s?.title).length;
+      const coreRatio = withTime / schedule.length;
+      const descRatio = withDesc / schedule.length;
+      const locRatio = withLocation / schedule.length;
+      const depth = coreRatio * 0.4 + descRatio * 0.3 + locRatio * 0.3;
+      if (schedule.length >= 5 && depth >= 0.6) return 1;
+      if (schedule.length >= 3 && depth >= 0.4) return 0.7;
+      return 0.4;
+    }
+
+    // ─── Partner Booths (depth: check services, tagline, image) ───
+    case 'partnerBooths': {
+      const booths = safeArray(guideData.partnerBooths);
+      if (booths.length === 0) return 0;
+      const withImage = booths.filter((b: any) => b?.customImage || b?.logoUrl).length;
+      const withServices = booths.filter((b: any) => Array.isArray(b?.services) && b.services.length > 0).length;
+      const withTagline = booths.filter((b: any) => b?.tagline).length;
+      const depth = (withImage / booths.length) * 0.4 + (withServices / booths.length) * 0.3 + (withTagline / booths.length) * 0.3;
+      if (booths.length >= 4 && depth >= 0.6) return 1;
+      if (booths.length >= 2 && depth >= 0.3) return 0.7;
+      return 0.4;
+    }
+
+    // ─── Event Print Materials (depth: check preview, liveFile, dimensions) ───
+    case 'eventPrintMaterials': {
+      const prints = safeArray(guideData.eventPrintMaterials);
+      if (prints.length === 0) return 0;
+      const withPreview = prints.filter((p: any) => p?.previewUrl).length;
+      const withFile = prints.filter((p: any) => p?.fileUrl || p?.liveFileUrl).length;
+      const depth = (withPreview / prints.length) * 0.5 + (withFile / prints.length) * 0.5;
+      if (prints.length >= 3 && depth >= 0.6) return 1;
+      if (prints.length >= 2 && depth >= 0.3) return 0.7;
+      return 0.4;
+    }
+
+    // ─── Event Digital Materials (depth: check preview, template) ───
+    case 'eventDigitalMaterials': {
+      const digital = safeArray(guideData.eventDigitalMaterials);
+      if (digital.length === 0) return 0;
+      const withPreview = digital.filter((d: any) => d?.previewUrl).length;
+      const withTemplate = digital.filter((d: any) => d?.templateUrl).length;
+      const depth = (withPreview / digital.length) * 0.5 + (withTemplate / digital.length) * 0.5;
+      if (digital.length >= 3 && depth >= 0.5) return 1;
+      if (digital.length >= 2) return 0.7;
+      return 0.4;
+    }
+
+    // ─── Event Banners (depth: check preview, dimensions) ───
+    case 'eventBanners': {
+      const banners = safeArray(guideData.eventBanners);
+      if (banners.length === 0) return 0;
+      const withPreview = banners.filter((b: any) => b?.previewUrl).length;
+      const depth = banners.length > 0 ? withPreview / banners.length : 0;
+      if (banners.length >= 3 && depth >= 0.5) return 1;
+      if (banners.length >= 2) return 0.7;
+      return 0.4;
+    }
+
+    // ─── Event Videos (depth: check url, thumbnail, description) ───
+    case 'eventVideos': {
+      const vids = safeArray(guideData.eventVideos);
+      if (vids.length === 0) return 0;
+      const withUrl = vids.filter((v: any) => v?.url).length;
+      const withThumb = vids.filter((v: any) => v?.thumbnailUrl).length;
+      const withDesc = vids.filter((v: any) => v?.description).length;
+      const depth = (withUrl / vids.length) * 0.5 + (withThumb / vids.length) * 0.25 + (withDesc / vids.length) * 0.25;
+      if (vids.length >= 2 && depth >= 0.6) return 1;
+      if (vids.length >= 1 && depth >= 0.4) return 0.7;
+      return 0.4;
+    }
+
+    // ─── Event History (depth: check highlights, attendees, location) ───
+    case 'eventHistory': {
+      const history = safeArray(guideData.eventHistory);
+      if (history.length === 0) return 0;
+      const withHighlights = history.filter((h: any) => h?.highlights).length;
+      const withAttendees = history.filter((h: any) => h?.attendees).length;
+      const withLocation = history.filter((h: any) => h?.location).length;
+      const depth = (withHighlights / history.length) * 0.4 + (withAttendees / history.length) * 0.3 + (withLocation / history.length) * 0.3;
+      if (history.length >= 2 && depth >= 0.6) return 1;
+      if (history.length >= 1 && depth >= 0.3) return 0.7;
+      return 0.4;
+    }
+
+    // ─── Social Assets (depth: check platform, previewImage, directives) ───
+    case 'socialAssets': {
+      const socAssets = safeArray(guideData.socialAssets);
+      if (socAssets.length === 0) return 0;
+      const withPlatform = socAssets.filter((s: any) => s?.platform).length;
+      const withPreview = socAssets.filter((s: any) => s?.previewImageUrl).length;
+      const withDirective = socAssets.filter((s: any) => s?.directive || s?.postSize).length;
+      const depth = (withPlatform / socAssets.length) * 0.3 + (withPreview / socAssets.length) * 0.4 + (withDirective / socAssets.length) * 0.3;
+      if (socAssets.length >= 3 && depth >= 0.6) return 1;
+      if (socAssets.length >= 2 && depth >= 0.3) return 0.7;
+      return 0.4;
+    }
+
+    // ─── Awards (depth: check title, organization, year) ───
+    case 'awards': {
+      const awards = safeArray(guideData.awards);
+      if (awards.length === 0) return 0;
+      const withTitle = awards.filter((a: any) => a?.title || a?.name).length;
+      const withOrg = awards.filter((a: any) => a?.organization).length;
+      const withYear = awards.filter((a: any) => a?.year).length;
+      const depth = (withTitle / awards.length) * 0.4 + (withOrg / awards.length) * 0.3 + (withYear / awards.length) * 0.3;
+      if (awards.length >= 3 && depth >= 0.7) return 1;
+      if (awards.length >= 1 && depth >= 0.4) return 0.7;
+      return 0.4;
+    }
+
+    // ─── Event Websites (depth: check url, label) ───
+    case 'eventWebsites': {
+      const sites = safeArray(guideData.eventWebsites);
+      if (sites.length === 0) return 0;
+      const withUrl = sites.filter((s: any) => s?.url).length;
+      if (sites.length >= 1 && withUrl >= 1) return 1;
+      return 0.4;
+    }
+
+    // ─── Shared Assets & remaining simple arrays ───
+    case 'sharedAssets':
+    case 'eventInfographics':
+    case 'eventApplications':
+    case 'assets': {
+      const arr = safeArray(guideData[section]);
+      return scoreArray(arr);
+    }
+
+    // ─── Event Details (depth: check key fields) ───
+    case 'eventDetails': {
+      const details = guideData.eventDetails as Record<string, unknown> | undefined;
+      if (!details) return 0;
+      const fields = ['eventName', 'startDate', 'endDate', 'venue', 'location', 'eventDates', 'tagline', 'expectedAttendees', 'hashtag', 'registrationUrl'];
+      const filled = countFilledFields(details, fields);
+      if (filled >= 6) return 1;
+      if (filled >= 4) return 0.7;
+      if (filled >= 2) return 0.4;
+      if (filled >= 1) return 0.2;
       return 0;
     }
+
+    // ─── Remaining Event Sections ───
 
     case 'subevents': {
       const subs = safeArray(guideData.subEvents || guideData.subevents);
