@@ -725,6 +725,7 @@ export const BrandIntelligencePanel = ({
                   culturalInsights={intelligence?.cultural_insights}
                   globallinkRecommendations={intelligence?.globallink_recommendations}
                   localizationReadinessScore={intelligence?.localization_readiness_score}
+                  inclusiveImagery={(intelligence?.learning_context as any)?.inclusive_imagery}
                 />
               </CollapsibleContent>
             </Collapsible>
