@@ -126,8 +126,11 @@ export function EventReportGenerator() {
       let query = supabase
         .from('events')
         .select('id, name, created_at, updated_at, is_public, organization_id, parent_brand_id, guide_data')
-        .gte('created_at', dateFilter.toISOString())
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false });
+
+      if (dateRange !== 'all') {
+        query = query.gte('updated_at', dateFilter.toISOString());
+      }
 
       if (reportType === 'public') {
         query = query.eq('is_public', true);
