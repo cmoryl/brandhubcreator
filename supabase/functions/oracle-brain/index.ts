@@ -295,10 +295,10 @@ Return ONLY valid JSON:
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-2.5-flash",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
-        max_tokens: 2000,
+        max_tokens: 4000,
       }),
     });
 
