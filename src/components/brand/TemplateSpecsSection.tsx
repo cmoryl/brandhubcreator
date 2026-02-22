@@ -643,16 +643,16 @@ export const TemplateSpecsSection = ({
                 <div 
                   ref={previewContainerRef}
                   className={cn(
-                    "relative bg-muted rounded-lg overflow-hidden min-h-[300px] max-h-[60vh]",
+                    "relative bg-muted rounded-lg overflow-hidden",
                     isDragMode && "ring-2 ring-primary ring-offset-2"
                   )}
                 >
                   {selectedSpec.previewImageUrl ? (
-                    <div className="relative w-full h-full overflow-auto">
+                    <div className="relative w-full">
                       <img
                         src={selectedSpec.previewImageUrl}
                         alt={selectedSpec.name}
-                        className="w-full h-auto max-w-full object-contain pointer-events-none select-none"
+                        className="w-full h-auto object-contain pointer-events-none select-none"
                         draggable={false}
                       />
                       {/* Hint overlay when in drag mode */}
