@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { X, Download, Folder, File, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical, Loader2 } from 'lucide-react';
+import { X, Download, Folder, File, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical, Loader2, ExternalLink } from 'lucide-react';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { BrandAsset, ASSET_CATEGORIES, AssetCategory, PRINT_SIGNAGE_TYPES } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -105,7 +105,10 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
               <Expand className="h-3 w-3" />
             </Button>
           )}
-          <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => onDownload(asset)}>
+          <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => window.open(asset.url, '_blank')} title="Open in new tab">
+            <ExternalLink className="h-3 w-3" />
+          </Button>
+          <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => onDownload(asset)} title="Download">
             <Download className="h-3 w-3" />
           </Button>
           {canEdit && (
