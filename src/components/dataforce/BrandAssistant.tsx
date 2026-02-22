@@ -1,6 +1,6 @@
 /**
  * DataForce AI Brand Assistant Component
- * Multilingual chatbot with live voice conversation mode
+ * Multilingual chatbot with orb-style voice UI and live dictation
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { 
   Sheet,
   SheetContent,
@@ -33,14 +34,15 @@ import {
   ExternalLink,
   Mic,
   MicOff,
-  AudioLines,
   Volume2,
   VolumeX,
+  RotateCcw,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import ReactMarkdown from 'react-markdown';
+import { AssistantOrb } from './AssistantOrb';
 
 interface Message {
   id: string;
@@ -134,6 +136,8 @@ export const BrandAssistant = ({
   const [isListening, setIsListening] = useState(false);
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [dictationEnabled, setDictationEnabled] = useState(false);
   const [interimText, setInterimText] = useState('');
   
   const recognitionRef = useRef<any>(null);
@@ -165,7 +169,6 @@ export const BrandAssistant = ({
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || cancelled) return;
 
-        // Load conversations and persona status in parallel
         const [convResult, personaResult] = await Promise.all([
           supabase
             .from('dataforce_assistant_conversations')
@@ -184,16 +187,13 @@ export const BrandAssistant = ({
 
         if (cancelled) return;
 
-        // Count total past conversations
         const allConvs = convResult.data || [];
         setPastConversationCount(allConvs.length);
 
-        // Check if user has a persona profile
         if (personaResult.data) {
           setHasPersona(true);
         }
 
-        // Prefer entity-specific conversation, fall back to most recent
         const entityConv = entityId 
           ? allConvs.find(c => c.entity_id === entityId)
           : null;
@@ -224,6 +224,7 @@ export const BrandAssistant = ({
   useEffect(() => {
     if (!open) {
       stopVoiceMode();
+      setDictationEnabled(false);
     }
   }, [open]);
 
@@ -236,7 +237,6 @@ export const BrandAssistant = ({
       return;
     }
 
-    // Stop any existing instance
     if (recognitionRef.current) {
       try { recognitionRef.current.abort(); } catch {}
       recognitionRef.current = null;
@@ -264,7 +264,6 @@ export const BrandAssistant = ({
       if (finalTranscript) {
         setInterimText('');
         if (voiceModeRef.current) {
-          // In voice mode, auto-send the message
           sendVoiceMessage(finalTranscript.trim());
         } else {
           setInput(prev => (prev + ' ' + finalTranscript).trim());
@@ -280,15 +279,15 @@ export const BrandAssistant = ({
         isListeningRef.current = false;
         setIsVoiceMode(false);
         voiceModeRef.current = false;
+        setDictationEnabled(false);
       } else if (event.error === 'no-speech') {
-        // Normal timeout, will auto-restart via onend
+        // Normal timeout
       } else if (event.error !== 'aborted') {
         toast.error('Microphone error: ' + event.error);
       }
     };
 
     recognition.onend = () => {
-      // Auto-restart if still in listening mode
       if (isListeningRef.current) {
         try {
           recognition.start();
@@ -328,6 +327,10 @@ export const BrandAssistant = ({
   // ───── Text-to-Speech ─────
 
   const speakText = useCallback((text: string, onComplete?: () => void) => {
+    if (isMuted) {
+      onComplete?.();
+      return;
+    }
     window.speechSynthesis.cancel();
     
     const plainText = stripMarkdown(text);
@@ -360,7 +363,7 @@ export const BrandAssistant = ({
     };
 
     window.speechSynthesis.speak(utterance);
-  }, [language]);
+  }, [language, isMuted]);
 
   const stopSpeaking = useCallback(() => {
     window.speechSynthesis.cancel();
@@ -390,21 +393,21 @@ export const BrandAssistant = ({
     }
   }, [isVoiceMode, startVoiceMode, stopVoiceMode]);
 
-  // Simple mic toggle (dictation only, no TTS)
-  const toggleDictation = useCallback(() => {
-    if (isListening) {
-      stopListening();
-    } else {
+  // Dictation toggle
+  const toggleDictation = useCallback((enabled: boolean) => {
+    setDictationEnabled(enabled);
+    if (enabled) {
       startListening();
+    } else {
+      stopListening();
     }
-  }, [isListening, startListening, stopListening]);
+  }, [startListening, stopListening]);
 
   // ───── Message Sending ─────
 
   const sendVoiceMessage = useCallback(async (text: string) => {
     if (!text || !organization?.id) return;
 
-    // Stop listening while processing
     stopListening();
 
     const userMessage: Message = {
@@ -447,7 +450,6 @@ export const BrandAssistant = ({
       setMessages(prev => [...prev, assistantMessage]);
       setIsLoading(false);
 
-      // In voice mode, speak the response then resume listening
       if (voiceModeRef.current) {
         speakText(data.message, () => {
           if (voiceModeRef.current) {
@@ -461,7 +463,6 @@ export const BrandAssistant = ({
       setMessages(prev => prev.filter(m => m.id !== userMessage.id));
       setIsLoading(false);
       
-      // Resume listening in voice mode even on error
       if (voiceModeRef.current) {
         startListening();
       }
@@ -534,6 +535,22 @@ export const BrandAssistant = ({
     setTimeout(() => navigate(`${path}${hash}`), 150);
   }, [navigate, onOpenChange]);
 
+  const handleReset = useCallback(() => {
+    setMessages([]);
+    setConversationId(null);
+    stopVoiceMode();
+    toast.success('Conversation reset');
+  }, [stopVoiceMode]);
+
+  const handleMuteToggle = useCallback(() => {
+    if (isMuted) {
+      setIsMuted(false);
+    } else {
+      setIsMuted(true);
+      stopSpeaking();
+    }
+  }, [isMuted, stopSpeaking]);
+
   const suggestedQuestions = entityName ? [
     `What are the core values of ${entityName}?`,
     `What colors should I use for ${entityName}?`,
@@ -579,7 +596,6 @@ export const BrandAssistant = ({
             ))}
           </div>
         )}
-        {/* Speak button on assistant messages */}
         <div className="flex gap-1 pt-1">
           <Button
             variant="ghost"
@@ -601,130 +617,121 @@ export const BrandAssistant = ({
     );
   };
 
-  // Voice mode visual state
-  const voiceStatus = isVoiceMode
-    ? isSpeaking
-      ? 'Bot speaking...'
-      : isLoading
-        ? 'Thinking...'
-        : isListening
-          ? 'Listening — speak now...'
-          : 'Starting...'
-    : null;
+  // Orb state
+  const orbState = isSpeaking ? 'speaking' : isLoading ? 'thinking' : isListening ? 'listening' : 'idle';
+  const statusText = isSpeaking
+    ? 'Speaking...'
+    : isLoading
+      ? 'Thinking...'
+      : isListening
+        ? 'Listening — speak now'
+        : 'Ready to assist';
+  const statusSubtext = isListening
+    ? (interimText ? `"${interimText}"` : 'Speak to the orb for creative assistance.')
+    : entityName
+      ? `Ask about ${entityName}'s brand guidelines`
+      : 'Speak to the orb for creative assistance.';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg flex flex-col h-full p-0">
-        <SheetHeader className="p-6 pb-4 border-b">
+        {/* Header */}
+        <SheetHeader className="p-4 pb-3 border-b">
           <div className="flex items-center justify-between">
-            <SheetTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-green-500" />
+            <SheetTitle className="flex items-center gap-2 text-base">
+              <Bot className="h-5 w-5 text-primary" />
               Brand Assistant
+              {hasPersona && (
+                <Badge variant="secondary" className="text-[10px] h-5 gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  Personalized
+                </Badge>
+              )}
             </SheetTitle>
-            <div className="flex items-center gap-2">
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger className="w-32">
-                  <Globe className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LANGUAGES.map(lang => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      {lang.flag} {lang.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger className="w-28 h-8 text-xs">
+                <Globe className="h-3.5 w-3.5 mr-1" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map(lang => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <SheetDescription className="flex items-center gap-2">
-            <span>
-              {entityName 
-                ? `Ask questions about ${entityName}'s brand guidelines`
-                : 'Your AI-powered brand knowledge assistant'}
-            </span>
-            {hasPersona && (
-              <Badge variant="secondary" className="text-[10px] h-5 gap-1">
-                <Sparkles className="h-3 w-3" />
-                Personalized
-              </Badge>
-            )}
-            {pastConversationCount > 1 && (
-              <Badge variant="outline" className="text-[10px] h-5">
-                {pastConversationCount} sessions
-              </Badge>
-            )}
-          </SheetDescription>
+          <SheetDescription className="sr-only">AI-powered brand knowledge assistant</SheetDescription>
         </SheetHeader>
 
-        {/* Voice Mode Banner */}
-        {isVoiceMode && (
-          <div className="px-4 py-3 bg-primary/5 border-b flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                isSpeaking ? 'bg-amber-500 animate-pulse' 
-                : isListening ? 'bg-red-500 animate-pulse' 
-                : isLoading ? 'bg-blue-500 animate-pulse'
-                : 'bg-muted-foreground'
-              }`} />
-              <span className="text-sm font-medium truncate">{voiceStatus}</span>
-              {interimText && (
-                <span className="text-xs text-muted-foreground italic truncate">
-                  "{interimText}"
-                </span>
-              )}
-            </div>
+        {/* Orb Section - always visible */}
+        <div className="flex flex-col items-center py-6 px-4 border-b bg-gradient-to-b from-background to-muted/30">
+          <AssistantOrb
+            state={orbState}
+            onClick={toggleVoiceMode}
+          />
+          <h3 className="mt-4 text-lg font-semibold text-foreground">{statusText}</h3>
+          <p className="text-sm text-muted-foreground text-center mt-1 max-w-xs">
+            {statusSubtext}
+          </p>
+
+          {/* Control buttons */}
+          <div className="flex items-center gap-3 mt-4">
             <Button
               variant="outline"
               size="sm"
-              onClick={stopVoiceMode}
-              className="flex-shrink-0 text-xs h-7"
+              onClick={handleReset}
+              className="gap-2 rounded-full px-5 h-9 border-border/60"
             >
-              End Voice Chat
+              <RotateCcw className="h-3.5 w-3.5" />
+              Reset
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleMuteToggle}
+              className="gap-2 rounded-full px-5 h-9 border-border/60"
+            >
+              {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+              {isMuted ? 'Unmute' : 'Mute'}
             </Button>
           </div>
-        )}
 
+          {/* Dictation toggle */}
+          <div className="flex items-center gap-2.5 mt-4 bg-muted/50 rounded-full px-4 py-2">
+            <Mic className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">Live Dictation</span>
+            <Switch
+              checked={dictationEnabled}
+              onCheckedChange={toggleDictation}
+              className="scale-90"
+            />
+          </div>
+
+          {pastConversationCount > 1 && (
+            <Badge variant="outline" className="text-[10px] h-5 mt-3">
+              {pastConversationCount} past sessions
+            </Badge>
+          )}
+        </div>
+
+        {/* Messages Area */}
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           {messages.length === 0 ? (
-            <div className="space-y-4">
-              <div className="text-center py-8">
-                <Sparkles className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  Ask me anything about your brand guidelines
-                </p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
-                  I can navigate you to any brand, product, or event page
-                </p>
-              </div>
-              
-              {/* Voice Mode CTA */}
-              <div className="flex justify-center">
+            <div className="space-y-3 pt-2">
+              <p className="text-xs text-muted-foreground font-medium">Suggested questions:</p>
+              {suggestedQuestions.map((question, i) => (
                 <Button
+                  key={i}
                   variant="outline"
-                  onClick={startVoiceMode}
-                  className="gap-2"
-                  disabled={isVoiceMode}
+                  size="sm"
+                  className="w-full justify-start text-left h-auto py-2.5 px-3 text-xs"
+                  onClick={() => setInput(question)}
                 >
-                  <AudioLines className="h-4 w-4" />
-                  Start Voice Conversation
+                  {question}
                 </Button>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground font-medium">Suggested questions:</p>
-                {suggestedQuestions.map((question, i) => (
-                  <Button
-                    key={i}
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start text-left h-auto py-2 px-3"
-                    onClick={() => setInput(question)}
-                  >
-                    {question}
-                  </Button>
-                ))}
-              </div>
+              ))}
             </div>
           ) : (
             <div className="space-y-4">
@@ -736,12 +743,12 @@ export const BrandAssistant = ({
                   }`}
                 >
                   {message.role === 'assistant' && (
-                    <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                      <Bot className="h-4 w-4 text-green-500" />
+                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Bot className="h-3.5 w-3.5 text-primary" />
                     </div>
                   )}
                   <div
-                    className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                    className={`max-w-[80%] rounded-lg px-3.5 py-2 ${
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
@@ -750,26 +757,26 @@ export const BrandAssistant = ({
                     {renderMessageContent(message)}
                   </div>
                   {message.role === 'user' && (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <User className="h-4 w-4 text-primary" />
+                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <User className="h-3.5 w-3.5 text-primary" />
                     </div>
                   )}
                 </div>
               ))}
-              {/* Show interim speech text */}
+              {/* Interim speech text */}
               {interimText && !isVoiceMode && (
                 <div className="flex gap-3 justify-end">
-                  <div className="max-w-[80%] rounded-lg px-4 py-2 bg-primary/20 text-foreground italic text-sm">
+                  <div className="max-w-[80%] rounded-lg px-3.5 py-2 bg-primary/20 text-foreground italic text-sm">
                     {interimText}...
                   </div>
                 </div>
               )}
               {isLoading && (
                 <div className="flex gap-3 justify-start">
-                  <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-green-500" />
+                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Bot className="h-3.5 w-3.5 text-primary" />
                   </div>
-                  <div className="bg-muted rounded-lg px-4 py-3">
+                  <div className="bg-muted rounded-lg px-3.5 py-3">
                     <Loader2 className="h-4 w-4 animate-spin" />
                   </div>
                 </div>
@@ -778,51 +785,52 @@ export const BrandAssistant = ({
           )}
         </ScrollArea>
 
-        <div className="border-t p-4">
+        {/* Input Area */}
+        <div className="border-t p-3">
           <div className="flex gap-2">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isListening ? 'Listening...' : 'Ask about brand guidelines...'}
+              placeholder={dictationEnabled ? 'Listening...' : 'Ask about brand guidelines...'}
               disabled={isLoading || isVoiceMode}
-              className={`flex-1 ${isListening && !isVoiceMode ? 'border-red-500/50 animate-pulse' : ''}`}
+              className={`flex-1 h-9 text-sm ${dictationEnabled ? 'border-primary/40' : ''}`}
             />
-            {/* Voice Mode Toggle */}
-            <Button
-              onClick={toggleVoiceMode}
-              variant={isVoiceMode ? 'destructive' : 'secondary'}
-              size="icon"
-              title={isVoiceMode ? 'End voice chat' : 'Start voice chat'}
-              disabled={isLoading && !isVoiceMode}
-            >
-              <AudioLines className="h-4 w-4" />
-            </Button>
-            {/* Dictation mic (non-voice-mode only) */}
-            {!isVoiceMode && (
+            {!isVoiceMode && !dictationEnabled && (
               <Button
-                onClick={toggleDictation}
-                variant={isListening ? 'destructive' : 'outline'}
+                onClick={() => toggleDictation(true)}
+                variant="outline"
                 size="icon"
-                title={isListening ? 'Stop dictation' : 'Dictate'}
+                className="h-9 w-9"
+                title="Start dictation"
                 disabled={isLoading}
               >
-                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                <Mic className="h-4 w-4" />
+              </Button>
+            )}
+            {dictationEnabled && !isVoiceMode && (
+              <Button
+                onClick={() => toggleDictation(false)}
+                variant="destructive"
+                size="icon"
+                className="h-9 w-9"
+                title="Stop dictation"
+              >
+                <MicOff className="h-4 w-4" />
               </Button>
             )}
             <Button 
               onClick={sendMessage} 
               disabled={!input.trim() || isLoading || isVoiceMode}
               size="icon"
+              className="h-9 w-9"
             >
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          {entityName && (
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              Powered by DataForce AI • Context: {entityName}
-            </p>
-          )}
+          <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+            Powered by DataForce AI {entityName ? `• ${entityName}` : ''}
+          </p>
         </div>
       </SheetContent>
     </Sheet>
