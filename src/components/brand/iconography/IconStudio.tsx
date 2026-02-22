@@ -10,7 +10,7 @@
  * - Creator: Design individual custom icons
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -124,6 +124,13 @@ export const IconStudio = ({
 }: IconStudioProps) => {
   const [activeTab, setActiveTab] = useState<IconStudioTab>(initialTab);
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
+
+  // Sync activeTab when dialog opens with a different initialTab
+  useEffect(() => {
+    if (open) {
+      setActiveTab(initialTab);
+    }
+  }, [open, initialTab]);
   
   // Shared icon library state
   const {

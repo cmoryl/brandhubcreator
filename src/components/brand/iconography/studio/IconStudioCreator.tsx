@@ -3,7 +3,9 @@
  * Create individual icons from Lucide library or custom SVGs
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, createElement } from 'react';
+import { flushSync } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -71,14 +73,37 @@ export const IconStudioCreator = ({
     }
 
     const icons: BrandIconography[] = Array.from(selectedIcons).map(iconName => {
-      const IconComponent = (LucideIcons as any)[iconName];
-      // Generate SVG string from Lucide icon
-      const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#${iconName.toLowerCase()}"/></svg>`;
+      // Extract SVG by temporarily rendering the Lucide icon to DOM
+      const tempDiv = document.createElement('div');
+      tempDiv.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
+      document.body.appendChild(tempDiv);
+      
+      let svgString = '';
+      try {
+        const IconComp = (LucideIcons as any)[iconName];
+        if (IconComp) {
+          const root = createRoot(tempDiv);
+          flushSync(() => {
+            root.render(createElement(IconComp, { size: 24 }));
+          });
+          
+          const svgEl = tempDiv.querySelector('svg');
+          if (svgEl) {
+            svgEl.removeAttribute('class');
+            svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            svgString = svgEl.outerHTML;
+          }
+          root.unmount();
+        }
+      } catch (err) {
+        console.warn('Failed to extract SVG for', iconName, err);
+      }
+      document.body.removeChild(tempDiv);
       
       return {
         id: `icon-${Date.now()}-${iconName}`,
         name: iconName.replace(/([A-Z])/g, ' $1').trim(),
-        svgPath: svgString,
+        svgPath: svgString || `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`,
         category: 'lucide',
         viewBox: '0 0 24 24',
         fillMode: 'stroke' as const,
