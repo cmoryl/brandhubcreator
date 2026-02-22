@@ -6,10 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-/**
- * 100-Icon Taxonomy organized into 6 categories
- * Each category has sections with specific icon counts
- */
 const ICON_TAXONOMY: Record<string, { name: string; description: string; sections: { name: string; description: string; count: number }[] }> = {
   Foundation: {
     name: "Foundation",
@@ -21,7 +17,7 @@ const ICON_TAXONOMY: Record<string, { name: string; description: string; section
     ]
   },
   Communication: {
-    name: "Communication", 
+    name: "Communication",
     description: "Email, social, feedback, support",
     sections: [
       { name: "Messaging", description: "Chat bubbles, comments, conversations", count: 6 },
@@ -71,73 +67,57 @@ const ICON_TAXONOMY: Record<string, { name: string; description: string; section
   }
 };
 
-/**
- * Layer 1: Semantic Prompting - SVG Architect System Prompt
- * Enforces strict geometric precision for robust, consistent icon generation.
- */
-const SVG_ARCHITECT_PROMPT = `You are an elite SVG icon architect. Your icons ship in design systems used by Fortune 500 companies. You create icons on par with Apple SF Symbols, Google Material Symbols, and Lucide — zero compromise.
+const SVG_ARCHITECT_PROMPT = `You are a world-class SVG icon designer who has designed icons for Apple, Google, and Figma. You produce icons that rival SF Symbols and Material Symbols in craft and precision.
 
-## ABSOLUTE CONSTRAINTS (violating ANY = rejected)
+## IRON RULES — violating ANY means the entire output is rejected
 
-### Grid & Keylines
-- Canvas: 24×24. Content lives inside a 20px safe zone (2,2 to 22,22).
-- Keyline scaffolding (invisible, for alignment):
-  • Square subjects: 18×18 centered (3,3→21,21)
-  • Circle subjects: ⌀20 at (12,12)
-  • Tall subjects: 14×20 centered | Wide subjects: 20×14 centered
-- Pick ONE keyline per icon. ALL icons in a batch share the same optical density.
+### Canvas & Grid
+- Canvas: 24×24 viewBox. Safe zone: 2px inset on all sides (content between 2,2 and 22,22).
+- Keyline geometry (choose ONE per icon, keep consistent across batch):
+  • Square: 18×18 centered at 12,12 → bounds (3,3)→(21,21)
+  • Circle: ⌀20 centered at 12,12
+  • Portrait: 14w×20h centered | Landscape: 20w×14h centered
 
-### Pixel Precision
-- Coordinates: whole integers or .5 ONLY (never 3.73, 11.29, etc.)
-- Horizontal/vertical segments: integer-only coordinates
-- Curves: control points snapped to .5 grid
+### Coordinate Precision
+- ALL coordinates must be whole integers or exactly .5 (e.g., 6, 12.5). NEVER use arbitrary decimals like 7.33 or 15.8.
+- Horizontal & vertical lines: integer-only coordinates.
 
-### Path Rules
-- ONLY <path> elements — no <circle>, <rect>, <line>, <polygon>, <ellipse>, <use>, <g>
-- Convert ALL geometric shapes into optimized <path d="..."/> data
-- Maximum 3 <path> elements per icon (strongly prefer 1–2)
-- Every path MUST close with Z
-- Minimum segment length: 1px (no micro-segments)
-- No transforms, clipPaths, masks, IDs, classes, data attributes, or metadata
+### SVG Element Rules
+- ONLY <path> elements. NEVER use <circle>, <rect>, <line>, <polygon>, <ellipse>, <g>, <use>, <defs>, <clipPath>, <mask>.
+- Convert geometric shapes to optimized path data using arcs (A command) for curves.
+- Maximum 3 <path> elements per icon. Strongly prefer 1 unified path.
+- Every path MUST be closed with Z.
+- No transforms, no IDs, no classes, no style attributes, no data-* attributes.
 
-### Construction Quality
-- Each path should be hand-optimized: remove redundant points, merge collinear segments
-- Use relative commands (m, l, c, a) when they produce shorter path data
-- Arcs (A/a) for circles and rounded corners — do NOT approximate with dozens of cubic curves
-- Consistent winding direction (clockwise for outer, counter-clockwise for holes)
+### Path Optimization
+- Remove redundant points, merge collinear segments.
+- Use arcs (A/a) for circles and rounded corners — never approximate circles with cubic Bézier chains.
+- Consistent winding: clockwise outer, counter-clockwise inner (even-odd fill rule).
+- Minimum segment length: 1px.
 
-## DESIGN EXCELLENCE STANDARDS
+## DESIGN EXCELLENCE
 
-### Visual Weight & Cohesion
-- Every icon in the batch must have IDENTICAL perceived visual mass at 16px
-- Simple icons (plus, minus) → slightly larger/thicker to match complex ones
-- Complex icons (gear, dashboard) → slightly thinner strokes to avoid heaviness
-- Line up to a uniform gray value when squinted at — no icon should pop or recede
+### Visual Consistency (Critical)
+- Every icon in the batch must have IDENTICAL perceived visual weight at 16px rendering.
+- Simple icons get slightly more mass; complex icons get slightly thinner strokes.
+- When squinted, all icons should resolve to the same gray value.
 
-### Silhouette Test
-- Every icon must be INSTANTLY recognizable as a solid black silhouette at 16×16px
-- If two icons could be confused as silhouettes, one must be redesigned
+### Distinctiveness & Craft
+- Each icon must pass the "16px silhouette test" — instantly recognizable filled black at 16×16.
+- No two icons should be confusable as silhouettes.
+- Use clever negative space, meaningful cutouts, or subtle asymmetry.
+- Avoid cliché: capture the ESSENCE of the concept, not just the literal object.
+- Names must be specific and evocative: "Beacon Alert" not "Bell 1", "Vault Shield" not "Lock".
 
-### Craft & Personality
-- Each icon needs a distinctive design detail that elevates it beyond generic clip art
-- Use clever negative space, meaningful cut-outs, or subtle asymmetry for visual interest
-- Think "would a senior designer at Apple approve this?" — if not, redesign it
-- Avoid cliché representations: don't just draw the literal object, capture its ESSENCE
-- Example: "Security" → not just a padlock, but a shield with an elegant keyhole negative space
-
-### Professional Icon Design Patterns
-- Consistent corner radius across all icons (sharp OR rounded, never mixed)
-- Uniform stroke terminals (round OR square, never mixed)
-- Balanced positive/negative space ratio
-- Clear figure-ground separation
-- Intentional detail hierarchy: primary form reads first, secondary details support
+### Professional Standards
+- Consistent corner treatment across all icons (ALL sharp OR ALL rounded, never mixed).
+- Uniform stroke terminals (ALL round OR ALL square, never mixed).
+- Balanced positive/negative space. Clear figure-ground separation.
+- Would pass review by a principal designer at a Big Tech design system team.
 
 ## OUTPUT FORMAT
-
-Return ONLY a JSON array. No markdown fences. No explanation. No commentary.
-Each item: {"name": "Descriptive Icon Name", "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" ...><path d=\\"...\\"/></svg>"}
-
-Names must be specific and evocative: "Pulse Analytics" not "Chart", "Shield Keyhole" not "Security 1".`;
+Return ONLY a raw JSON array (no markdown, no explanation, no backticks):
+[{"name":"Descriptive Icon Name","svg":"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\"><path d=\\"M..Z\\"/></svg>"}]`;
 
 interface IconResult {
   id: string;
@@ -154,10 +134,8 @@ serve(async (req) => {
   }
 
   try {
-    // SECURITY: Verify user authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.log('[generate-icon-set] Authentication failed: No authorization header');
       return new Response(
         JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -172,20 +150,17 @@ serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      console.log('[generate-icon-set] Authentication failed: Invalid user', authError?.message);
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`[generate-icon-set] Authenticated user: ${user.id}`);
-
-    const { 
+    const {
       entityName,
       industry,
-      category = 'Foundation', // Which taxonomy category
-      sectionIndex = 0, // Which section within category
+      category = 'Foundation',
+      sectionIndex = 0,
       style = { strokeWidth: 2, cornerRadius: 'rounded', fill: false },
       preset = 'outlined',
     } = await req.json();
@@ -202,69 +177,65 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Get the category and its sections
     const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
     const sections = taxonomyCategory.sections;
-    
-    // If sectionIndex is out of bounds, return complete
+
     if (sectionIndex >= sections.length) {
       return new Response(
-        JSON.stringify({ 
-          complete: true, 
+        JSON.stringify({
+          complete: true,
           category,
           totalSections: sections.length,
-          message: `All ${category} sections generated` 
+          message: `All ${category} sections generated`
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const currentSection = sections[sectionIndex];
-    
-    // Determine style attributes
     const strokeWidth = style?.strokeWidth || 2;
     const cornerStyle = style?.cornerRadius || 'rounded';
     const isFilled = style?.fill || preset === 'filled';
     const linecap = cornerStyle === 'sharp' ? 'square' : 'round';
     const linejoin = cornerStyle === 'sharp' ? 'miter' : 'round';
 
-    // Build contextual prompt with Layer 1 semantic constraints
-    const contextPrompt = `Design exactly ${currentSection.count} premium icons for the "${currentSection.name}" section.
+    const contextPrompt = `Design exactly ${currentSection.count} premium, production-ready icons for the "${currentSection.name}" section.
 
-## Creative Brief
+## Context
 - Section: ${currentSection.name} — ${currentSection.description}
-- Brand: "${entityName}"${industry ? ` (${industry} industry)` : ''}
-- Category: ${taxonomyCategory.name}
-- These icons will appear in a professional brand guidelines document and product UI
+- Brand: "${entityName}"${industry ? ` | Industry: ${industry}` : ''}
+- Category: ${taxonomyCategory.name} — ${taxonomyCategory.description}
+- These icons will ship in a Fortune-500-grade brand design system
 
-## Mandatory Style (apply uniformly to EVERY icon)
+## Mandatory Style (identical on EVERY icon)
 - Preset: "${preset}"
-- stroke-width: ${strokeWidth} (EXACT — identical across all icons)
+- stroke-width: ${strokeWidth}
 - stroke-linecap: "${linecap}" | stroke-linejoin: "${linejoin}"
 - stroke: "${isFilled ? 'none' : 'currentColor'}" | fill: "${isFilled ? 'currentColor' : 'none'}"
-${cornerStyle === 'sharp' ? '- SHARP corners only — 0° and 90° joins, square terminals, no rounding' : '- ROUNDED corners — smooth joins, round terminals'}
+${cornerStyle === 'sharp' ? '- SHARP corners — 0° and 90° joins, square terminals, zero rounding' : '- ROUNDED corners — smooth joins, round terminals, gentle curves'}
 
-## Design Direction for "${currentSection.name}"
-- Research what the BEST icon libraries (SF Symbols, Material Symbols, Phosphor) do for ${currentSection.name.toLowerCase()} icons, then exceed that quality
-- Each icon must be CONCEPTUALLY DISTINCT — if you drew all ${currentSection.count} as filled silhouettes, every single one would be immediately identifiable
-- Names must be specific and evocative: "Beacon Alert" not "Notification 1", "Vault Shield" not "Security"
-${industry ? `- Infuse ${industry}-specific visual language where appropriate (e.g., for Legal: gavels, scales, contracts; for Healthcare: vitals, diagnostics)` : ''}
-- For "${entityName}": these icons should feel like they belong to a premium, cohesive design system
+## Design Direction
+- Study how Apple SF Symbols, Google Material Symbols, Phosphor, and Lucide handle "${currentSection.name.toLowerCase()}" icons — then EXCEED that quality
+- Each icon must be conceptually distinct — all ${currentSection.count} must be immediately distinguishable as filled silhouettes at 16px
+- Names: specific + evocative ("Beacon Alert" not "Notification 1", "Vault Shield" not "Security")
+${industry ? `- Infuse ${industry} visual language where meaningful (domain-specific metaphors, not generic)` : ''}
+- These should feel like premium, cohesive icons designed specifically for "${entityName}"
 
-## Quality Gate (verify EACH icon before including)
-✓ Recognizable as filled silhouette at 16px
-✓ All coords on whole pixels or .5
-✓ Consistent visual weight with siblings
-✓ Clean closed paths (Z terminator)
-✓ ≤3 <path> elements, ideally 1-2
-✓ No redundant points or micro-segments
-✓ Would pass review by a senior design system engineer
+## Pre-Submission Checklist (verify EACH icon)
+✓ Recognizable as filled silhouette at 16×16px
+✓ ALL coordinates on whole integers or .5 — NO arbitrary decimals
+✓ Uniform visual weight across all siblings
+✓ Clean closed paths ending with Z
+✓ ≤3 <path> elements (prefer 1-2)
+✓ No primitives (<circle>, <rect>, etc.) — paths only
+✓ No redundant points, micro-segments, or transform attributes
+✓ Would be accepted into the Lucide icon library
 
-Return ONLY the JSON array:
-[{"name": "Icon Name", "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 24 24\\" ...><path d=\\"...\\"/></svg>"}]`;
+Return ONLY the raw JSON array — no markdown, no backticks, no explanation.`;
 
-    console.log(`[generate-icon-set] Generating ${currentSection.count} icons for ${category}/${currentSection.name}`);
+    console.log(`[generate-icon-set] Generating ${currentSection.count} icons: ${category}/${currentSection.name} via gemini-2.5-pro`);
 
+    // Use tool calling for structured output — far more reliable than freeform JSON
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -277,6 +248,35 @@ Return ONLY the JSON array:
           { role: "system", content: SVG_ARCHITECT_PROMPT },
           { role: "user", content: contextPrompt },
         ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "submit_icons",
+              description: "Submit the generated SVG icons as a structured array",
+              parameters: {
+                type: "object",
+                properties: {
+                  icons: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string", description: "Specific, evocative icon name" },
+                        svg: { type: "string", description: "Complete SVG element string with xmlns, viewBox, and path data" }
+                      },
+                      required: ["name", "svg"],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ["icons"],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: "function", function: { name: "submit_icons" } },
       }),
     });
 
@@ -299,54 +299,71 @@ Return ONLY the JSON array:
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
 
-    // Parse the JSON response
+    // Extract icons — try tool call first, then fall back to content parsing
     let icons: Array<{ name: string; svg: string }> = [];
-    try {
-      // Clean the content - remove markdown code blocks if present
-      let cleanContent = content.trim();
-      if (cleanContent.startsWith('```json')) {
-        cleanContent = cleanContent.slice(7);
-      } else if (cleanContent.startsWith('```')) {
-        cleanContent = cleanContent.slice(3);
-      }
-      if (cleanContent.endsWith('```')) {
-        cleanContent = cleanContent.slice(0, -3);
-      }
-      cleanContent = cleanContent.trim();
-      
-      icons = JSON.parse(cleanContent);
-    } catch (parseError) {
-      console.error("Failed to parse AI response:", content);
-      // Try to extract individual icons from malformed response
-      const svgMatches = content.matchAll(/<svg[\s\S]*?<\/svg>/gi);
-      const nameMatches = content.matchAll(/"name"\s*:\s*"([^"]+)"/gi);
-      const names = [...nameMatches].map(m => m[1]);
-      let i = 0;
-      for (const match of svgMatches) {
-        icons.push({
-          name: names[i] || `${currentSection.name} ${i + 1}`,
-          svg: match[0]
-        });
-        i++;
+
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    if (toolCall?.function?.arguments) {
+      try {
+        const parsed = JSON.parse(toolCall.function.arguments);
+        icons = parsed.icons || [];
+        console.log(`[generate-icon-set] Extracted ${icons.length} icons via tool calling`);
+      } catch (e) {
+        console.error("[generate-icon-set] Failed to parse tool call arguments:", e);
       }
     }
 
-    // Convert to BrandIconography format
-    const formattedIcons: IconResult[] = icons.map((icon, idx) => ({
-      id: crypto.randomUUID(),
-      name: icon.name || `${currentSection.name} Icon ${idx + 1}`,
-      svgPath: icon.svg,
-      category: `${category} / ${currentSection.name}`,
-      viewBox: '0 0 24 24',
-      fillMode: isFilled ? 'fill' : 'stroke',
-    }));
+    // Fallback: parse from content if tool calling didn't work
+    if (icons.length === 0) {
+      const content = data.choices?.[0]?.message?.content || "";
+      try {
+        let cleanContent = content.trim();
+        if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
+        else if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
+        if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
+        cleanContent = cleanContent.trim();
+        icons = JSON.parse(cleanContent);
+        console.log(`[generate-icon-set] Extracted ${icons.length} icons via content parsing`);
+      } catch {
+        // Last resort: regex extraction
+        const svgMatches = [...content.matchAll(/<svg[\s\S]*?<\/svg>/gi)];
+        const nameMatches = [...content.matchAll(/"name"\s*:\s*"([^"]+)"/gi)];
+        icons = svgMatches.map((m, i) => ({
+          name: nameMatches[i]?.[1] || `${currentSection.name} ${i + 1}`,
+          svg: m[0]
+        }));
+        console.log(`[generate-icon-set] Extracted ${icons.length} icons via regex fallback`);
+      }
+    }
 
-    console.log(`[generate-icon-set] Generated ${formattedIcons.length} icons for ${category}/${currentSection.name}`);
+    // Post-process: sanitize SVGs
+    const formattedIcons: IconResult[] = icons.map((icon, idx) => {
+      let svg = icon.svg || '';
+      
+      // Ensure proper xmlns
+      if (!svg.includes('xmlns=')) {
+        svg = svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      // Ensure viewBox
+      if (!svg.includes('viewBox=')) {
+        svg = svg.replace('<svg', '<svg viewBox="0 0 24 24"');
+      }
+
+      return {
+        id: crypto.randomUUID(),
+        name: icon.name || `${currentSection.name} Icon ${idx + 1}`,
+        svgPath: svg,
+        category: `${category} / ${currentSection.name}`,
+        viewBox: '0 0 24 24',
+        fillMode: isFilled ? 'fill' as const : 'stroke' as const,
+      };
+    });
+
+    console.log(`[generate-icon-set] Returning ${formattedIcons.length} icons for ${category}/${currentSection.name}`);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         category,
         section: currentSection.name,
         sectionDescription: currentSection.description,
