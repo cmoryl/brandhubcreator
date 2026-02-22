@@ -86,16 +86,55 @@ serve(async (req) => {
       );
     }
 
-    // Get or create conversation
+    // Get or create conversation + load user persona + past conversation summaries in parallel
     let conversation;
-    if (conversation_id) {
-      const { data } = await supabase
-        .from('dataforce_assistant_conversations')
-        .select('*')
-        .eq('id', conversation_id)
-        .eq('user_id', user.id)
-        .single();
-      conversation = data;
+    let userPersona: any = null;
+    let pastConversationSummaries: string[] = [];
+
+    const conversationPromise = conversation_id
+      ? supabase.from('dataforce_assistant_conversations').select('*').eq('id', conversation_id).eq('user_id', user.id).single()
+      : Promise.resolve({ data: null });
+
+    const personaPromise = supabase
+      .from('user_assistant_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('organization_id', organization_id)
+      .maybeSingle();
+
+    // Load last 5 past conversations for this user (excluding current) to give continuity
+    const pastConvsPromise = supabase
+      .from('dataforce_assistant_conversations')
+      .select('id, messages, entity_type, entity_name, updated_at')
+      .eq('organization_id', organization_id)
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(6);
+
+    const [convResult, personaResult, pastConvsResult] = await Promise.all([
+      conversationPromise,
+      personaPromise,
+      pastConvsPromise,
+    ]);
+
+    conversation = convResult.data;
+    userPersona = personaResult.data;
+
+    // Build past conversation summaries (skip current conversation)
+    if (pastConvsResult.data?.length) {
+      for (const pc of pastConvsResult.data) {
+        if (conversation_id && pc.id === conversation_id) continue;
+        const msgs = Array.isArray(pc.messages) ? pc.messages : [];
+        if (msgs.length < 2) continue;
+        // Extract last few user messages as topic summary
+        const userMsgs = msgs.filter((m: any) => m.role === 'user').slice(-3);
+        const topics = userMsgs.map((m: any) => (m.content || '').slice(0, 80)).join('; ');
+        if (topics) {
+          const entityLabel = pc.entity_name ? ` (${pc.entity_type}: ${pc.entity_name})` : '';
+          pastConversationSummaries.push(`${new Date(pc.updated_at).toLocaleDateString()}${entityLabel}: ${topics}`);
+        }
+        if (pastConversationSummaries.length >= 5) break;
+      }
     }
 
     if (!conversation) {
@@ -599,9 +638,35 @@ serve(async (req) => {
       ? `\nResponse style: ${botConfig.response_style}` 
       : '';
 
+    // Build user persona context block
+    let personaContext = '';
+    if (userPersona) {
+      const pp: string[] = [];
+      const style = userPersona.communication_style as any;
+      if (style?.tone) pp.push(`Communication tone: ${style.tone}`);
+      if (style?.detail_level) pp.push(`Detail preference: ${style.detail_level}`);
+      if (style?.format_preference) pp.push(`Format preference: ${style.format_preference}`);
+      const prefs = userPersona.preferences as any;
+      if (prefs?.focus_areas?.length) pp.push(`Focus areas: ${prefs.focus_areas.join(', ')}`);
+      if (prefs?.avoid?.length) pp.push(`Avoids: ${prefs.avoid.join(', ')}`);
+      if (prefs?.likes?.length) pp.push(`Likes: ${prefs.likes.join(', ')}`);
+      const feedback = userPersona.feedback_patterns as any;
+      if (feedback?.common_corrections?.length) pp.push(`Common corrections from user: ${feedback.common_corrections.slice(0, 3).join('; ')}`);
+      if (feedback?.satisfaction_signals?.length) pp.push(`Things they appreciate: ${feedback.satisfaction_signals.slice(0, 3).join('; ')}`);
+      if (userPersona.expertise_level) pp.push(`Expertise level: ${userPersona.expertise_level}`);
+      if (userPersona.topics_of_interest?.length) pp.push(`Topics of interest: ${userPersona.topics_of_interest.slice(0, 8).join(', ')}`);
+      if (pp.length > 0) personaContext = `\n\nUSER PERSONA (adapt your style to this specific user):\n${pp.join('\n')}`;
+    }
+
+    // Build past conversation context
+    let pastConversationContext = '';
+    if (pastConversationSummaries.length > 0) {
+      pastConversationContext = `\n\nPAST CONVERSATIONS WITH THIS USER (for continuity):\n${pastConversationSummaries.join('\n')}`;
+    }
+
     const systemPrompt = `${persona}${personalityBlock}${styleBlock}
 
-${entityContext}${oracleContext}${crossEntityContext}${entityDirectory}
+${entityContext}${oracleContext}${crossEntityContext}${entityDirectory}${personaContext}${pastConversationContext}
 ${languageInstruction}
 
 Guidelines for responses:
@@ -610,6 +675,8 @@ Guidelines for responses:
 - Provide practical, actionable advice
 - Maintain brand voice and tone
 - If you don't have specific information, say so clearly
+- Adapt your communication style to this user's preferences and expertise level
+- Remember and reference relevant past interactions when applicable
 
 NAVIGATION LINKS:
 When a user asks about a specific brand, product, or event that exists in the entity directory above, include navigation links in your response using this exact format:
@@ -682,12 +749,118 @@ Only use slugs that exist in the entity directory. Do not fabricate slugs. If no
       .update({ messages: newMessages })
       .eq('id', conversation.id);
 
+    // Background persona learning: every 5 interactions, extract user preferences via AI
+    const interactionCount = (userPersona?.interaction_count || 0) + 1;
+    const shouldUpdatePersona = interactionCount % 5 === 0 || !userPersona;
+
+    // Use EdgeRuntime.waitUntil for background persona extraction
+    const personaUpdateTask = async () => {
+      try {
+        // Upsert interaction count immediately
+        await supabase
+          .from('user_assistant_profiles')
+          .upsert({
+            user_id: user.id,
+            organization_id,
+            interaction_count: interactionCount,
+          }, { onConflict: 'user_id,organization_id' });
+
+        if (shouldUpdatePersona && LOVABLE_API_KEY) {
+          // Collect recent messages for persona extraction (last 20 across conversations)
+          const recentMsgs = newMessages.slice(-20).map((m: any) => `${m.role}: ${(m.content || '').slice(0, 200)}`).join('\n');
+
+          const personaExtraction = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash-lite',
+              temperature: 0.3,
+              max_tokens: 1024,
+              messages: [
+                { role: "system", content: "Extract user persona traits from these chat messages. Return ONLY valid JSON." },
+                { role: "user", content: `Analyze these messages and extract the user's working style and preferences:\n\n${recentMsgs}\n\nReturn JSON with these fields:\n- communication_style: { tone: string, detail_level: "brief"|"moderate"|"detailed", format_preference: "bullet_points"|"paragraphs"|"mixed" }\n- preferences: { focus_areas: string[], likes: string[], avoid: string[] }\n- feedback_patterns: { common_corrections: string[], satisfaction_signals: string[] }\n- expertise_level: "beginner"|"intermediate"|"advanced"|"expert"\n- topics_of_interest: string[]` }
+              ],
+              tools: [{
+                type: "function",
+                function: {
+                  name: "update_persona",
+                  description: "Update user persona profile",
+                  parameters: {
+                    type: "object",
+                    properties: {
+                      communication_style: { type: "object", properties: { tone: { type: "string" }, detail_level: { type: "string" }, format_preference: { type: "string" } } },
+                      preferences: { type: "object", properties: { focus_areas: { type: "array", items: { type: "string" } }, likes: { type: "array", items: { type: "string" } }, avoid: { type: "array", items: { type: "string" } } } },
+                      feedback_patterns: { type: "object", properties: { common_corrections: { type: "array", items: { type: "string" } }, satisfaction_signals: { type: "array", items: { type: "string" } } } },
+                      expertise_level: { type: "string" },
+                      topics_of_interest: { type: "array", items: { type: "string" } }
+                    },
+                    required: ["communication_style", "expertise_level"],
+                    additionalProperties: false
+                  }
+                }
+              }],
+              tool_choice: { type: "function", function: { name: "update_persona" } }
+            }),
+          });
+
+          if (personaExtraction.ok) {
+            const pResult = await personaExtraction.json();
+            const toolCall = pResult.choices?.[0]?.message?.tool_calls?.[0];
+            if (toolCall?.function?.arguments) {
+              try {
+                const extracted = JSON.parse(toolCall.function.arguments);
+                // Merge with existing persona (cumulative learning)
+                const mergedStyle = { ...(userPersona?.communication_style || {}), ...extracted.communication_style };
+                const mergedPrefs = {
+                  focus_areas: [...new Set([...(userPersona?.preferences?.focus_areas || []), ...(extracted.preferences?.focus_areas || [])])].slice(0, 15),
+                  likes: [...new Set([...(userPersona?.preferences?.likes || []), ...(extracted.preferences?.likes || [])])].slice(0, 10),
+                  avoid: [...new Set([...(userPersona?.preferences?.avoid || []), ...(extracted.preferences?.avoid || [])])].slice(0, 10),
+                };
+                const mergedFeedback = {
+                  common_corrections: [...new Set([...(userPersona?.feedback_patterns?.common_corrections || []), ...(extracted.feedback_patterns?.common_corrections || [])])].slice(0, 10),
+                  satisfaction_signals: [...new Set([...(userPersona?.feedback_patterns?.satisfaction_signals || []), ...(extracted.feedback_patterns?.satisfaction_signals || [])])].slice(0, 10),
+                };
+                const mergedTopics = [...new Set([...(userPersona?.topics_of_interest || []), ...(extracted.topics_of_interest || [])])].slice(0, 20);
+
+                await supabase
+                  .from('user_assistant_profiles')
+                  .upsert({
+                    user_id: user.id,
+                    organization_id,
+                    communication_style: mergedStyle,
+                    preferences: mergedPrefs,
+                    feedback_patterns: mergedFeedback,
+                    expertise_level: extracted.expertise_level || userPersona?.expertise_level || 'intermediate',
+                    topics_of_interest: mergedTopics,
+                    interaction_count: interactionCount,
+                    last_persona_update: new Date().toISOString(),
+                  }, { onConflict: 'user_id,organization_id' });
+
+                console.log('[dataforce-assistant] User persona updated successfully');
+              } catch (parseErr) {
+                console.warn('[dataforce-assistant] Persona parse error:', parseErr);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[dataforce-assistant] Background persona update failed (non-critical):', e);
+      }
+    };
+
+    // Run persona update in background
+    (globalThis as any).EdgeRuntime?.waitUntil?.(personaUpdateTask()) || personaUpdateTask();
+
     return new Response(
       JSON.stringify({
         success: true,
         conversationId: conversation.id,
         message: assistantMessage,
         languageCode: language_code,
+        hasPersona: !!userPersona,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

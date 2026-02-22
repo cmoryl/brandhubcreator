@@ -3969,6 +3969,59 @@ export type Database = {
           },
         ]
       }
+      user_assistant_profiles: {
+        Row: {
+          communication_style: Json | null
+          created_at: string
+          expertise_level: string | null
+          feedback_patterns: Json | null
+          id: string
+          interaction_count: number | null
+          last_persona_update: string | null
+          organization_id: string | null
+          preferences: Json | null
+          topics_of_interest: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          communication_style?: Json | null
+          created_at?: string
+          expertise_level?: string | null
+          feedback_patterns?: Json | null
+          id?: string
+          interaction_count?: number | null
+          last_persona_update?: string | null
+          organization_id?: string | null
+          preferences?: Json | null
+          topics_of_interest?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          communication_style?: Json | null
+          created_at?: string
+          expertise_level?: string | null
+          feedback_patterns?: Json | null
+          id?: string
+          interaction_count?: number | null
+          last_persona_update?: string | null
+          organization_id?: string | null
+          preferences?: Json | null
+          topics_of_interest?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_assistant_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_locale_preferences: {
         Row: {
           created_at: string | null
