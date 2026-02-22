@@ -98,7 +98,7 @@ export const CaseStudiesSection = ({ caseStudies: caseStudiesProp, onCaseStudies
           />
         </div>
         <div className="flex items-center gap-2">
-          {canEdit && onLayoutChange && (
+          {onLayoutChange && (
             <LayoutSelector
               value={layout}
               onChange={onLayoutChange}

@@ -496,11 +496,13 @@ export const usePortalData = (slug: string | undefined): UsePortalDataReturn => 
 
 // Helper hook for filtering portal data
 // Excludes sub-events (events that are linked from other parent events) from main grid
+// Supports personalized ordering by user's most recently viewed entities
 export const useFilteredPortalData = (
   brands: PortalBrand[],
   products: PortalProduct[],
   events: PortalEvent[],
-  searchQuery: string
+  searchQuery: string,
+  recentEntityIds?: string[] // ordered from most recent to least recent
 ) => {
   // Build set of sub-event IDs (events linked from other events)
   const subEventIds = useMemo(() => {
@@ -526,47 +528,68 @@ export const useFilteredPortalData = (
     return events.filter(event => !subEventIds.has(event.id));
   }, [events, subEventIds]);
 
-  const filteredBrands = useMemo(() => {
-    if (!searchQuery.trim()) return brands;
-    const query = searchQuery.toLowerCase();
-    return brands.filter(brand => {
-      const hero = brand.hero || { name: brand.name, tagline: '' };
-      return (
-        brand.name.toLowerCase().includes(query) ||
-        hero.name?.toLowerCase().includes(query) ||
-        hero.tagline?.toLowerCase().includes(query)
-      );
+  // Helper to sort by recency if recentEntityIds provided
+  const sortByRecency = useCallback(<T extends { id: string }>(items: T[]): T[] => {
+    if (!recentEntityIds || recentEntityIds.length === 0) return items;
+    const indexMap = new Map(recentEntityIds.map((id, i) => [id, i]));
+    return [...items].sort((a, b) => {
+      const aIdx = indexMap.get(a.id) ?? Infinity;
+      const bIdx = indexMap.get(b.id) ?? Infinity;
+      if (aIdx === bIdx) return 0; // preserve original order for unviewed items
+      return aIdx - bIdx;
     });
-  }, [brands, searchQuery]);
+  }, [recentEntityIds]);
+
+  const filteredBrands = useMemo(() => {
+    let result = brands;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = brands.filter(brand => {
+        const hero = brand.hero || { name: brand.name, tagline: '' };
+        return (
+          brand.name.toLowerCase().includes(query) ||
+          hero.name?.toLowerCase().includes(query) ||
+          hero.tagline?.toLowerCase().includes(query)
+        );
+      });
+    }
+    return sortByRecency(result);
+  }, [brands, searchQuery, sortByRecency]);
 
   const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return products;
-    const query = searchQuery.toLowerCase();
-    return products.filter(product => {
-      const hero = product.hero || { name: product.name, tagline: '' };
-      return (
-        product.name.toLowerCase().includes(query) ||
-        hero.name?.toLowerCase().includes(query) ||
-        hero.tagline?.toLowerCase().includes(query)
-      );
-    });
-  }, [products, searchQuery]);
+    let result = products;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = products.filter(product => {
+        const hero = product.hero || { name: product.name, tagline: '' };
+        return (
+          product.name.toLowerCase().includes(query) ||
+          hero.name?.toLowerCase().includes(query) ||
+          hero.tagline?.toLowerCase().includes(query)
+        );
+      });
+    }
+    return sortByRecency(result);
+  }, [products, searchQuery, sortByRecency]);
 
   const filteredEvents = useMemo(() => {
-    if (!searchQuery.trim()) return masterEvents;
-    const query = searchQuery.toLowerCase();
-    return masterEvents.filter(event => {
-      const hero = event.hero || { name: event.name, tagline: '' };
-      const eventDetails = event.eventDetails || { eventName: '', eventDates: '', location: '' };
-      return (
-        event.name.toLowerCase().includes(query) ||
-        hero.name?.toLowerCase().includes(query) ||
-        hero.tagline?.toLowerCase().includes(query) ||
-        eventDetails.eventName?.toLowerCase().includes(query) ||
-        eventDetails.location?.toLowerCase().includes(query)
-      );
-    });
-  }, [masterEvents, searchQuery]);
+    let result = masterEvents;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = masterEvents.filter(event => {
+        const hero = event.hero || { name: event.name, tagline: '' };
+        const eventDetails = event.eventDetails || { eventName: '', eventDates: '', location: '' };
+        return (
+          event.name.toLowerCase().includes(query) ||
+          hero.name?.toLowerCase().includes(query) ||
+          hero.tagline?.toLowerCase().includes(query) ||
+          eventDetails.eventName?.toLowerCase().includes(query) ||
+          eventDetails.location?.toLowerCase().includes(query)
+        );
+      });
+    }
+    return sortByRecency(result);
+  }, [masterEvents, searchQuery, sortByRecency]);
 
   const totalResults = filteredBrands.length + filteredProducts.length + filteredEvents.length;
 

@@ -2,6 +2,7 @@ import { useRef, useEffect, memo, useMemo, useCallback, lazy, Suspense } from 'r
 import { motion, useInView } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { BaseGuide, SectionId, DEFAULT_SECTION_ORDER, LayoutPreset, InfographicLayout, BrandLocation, LocationStat } from '@/types/brand';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { HeroSection } from './HeroSection';
 import { TaglineSection } from './TaglineSection';
 import { IdentitySection } from './IdentitySection';
@@ -239,7 +240,22 @@ export const FullBrandPage = ({
   }, []);
 
   const sectionSubtitles = brand.sectionSubtitles || {};
-  const sectionLayouts = brand.sectionLayouts || {};
+  const adminLayouts = brand.sectionLayouts || {};
+
+  // User preferences for layout overrides (viewer-level personalization)
+  const { getPreference, setPreference } = useUserPreferences();
+  const brandPrefKey = (sectionId: SectionId) => `layout.${brandId}.${sectionId}`;
+
+  // Merge: user preference > admin default > fallback
+  const sectionLayouts = useMemo(() => {
+    const merged: Record<string, LayoutPreset> = { ...adminLayouts };
+    // Override with user preferences if present
+    Object.keys(adminLayouts).forEach(key => {
+      const userPref = getPreference<LayoutPreset | undefined>(brandPrefKey(key as SectionId));
+      if (userPref) merged[key] = userPref;
+    });
+    return merged;
+  }, [adminLayouts, getPreference, brandId]);
 
   const handleSubtitleChange = useCallback((sectionId: SectionId) => (subtitle: string) => {
     onBrandUpdate?.({
@@ -251,21 +267,27 @@ export const FullBrandPage = ({
   }, [onBrandUpdate, sectionSubtitles]);
 
   const handleLayoutChange = useCallback((sectionId: SectionId) => (layout: LayoutPreset) => {
-    onBrandUpdate?.({
-      sectionLayouts: {
-        ...sectionLayouts,
-        [sectionId]: layout,
-      },
-    });
-  }, [onBrandUpdate, sectionLayouts]);
+    if (canEdit) {
+      // Admin: save to guide data (affects all viewers)
+      onBrandUpdate?.({
+        sectionLayouts: {
+          ...adminLayouts,
+          [sectionId]: layout,
+        },
+      });
+    }
+    // Always save as user preference (personal override)
+    setPreference(brandPrefKey(sectionId), layout);
+  }, [onBrandUpdate, adminLayouts, canEdit, setPreference, brandId]);
 
   // Memoize section content to prevent unnecessary re-renders
   // When canEdit is false, pass undefined for all change handlers to disable editing
   const renderSection = useCallback((sectionId: SectionId) => {
     const customSubtitle = sectionSubtitles[sectionId];
     const onSubtitleChange = canEdit ? handleSubtitleChange(sectionId) : undefined;
-    const layout = sectionLayouts[sectionId];
-    const onLayoutChange = canEdit ? handleLayoutChange(sectionId) : undefined;
+    const layout = getPreference<LayoutPreset | undefined>(brandPrefKey(sectionId)) || sectionLayouts[sectionId];
+    // Allow ALL authenticated users to change layout (personal pref), not just admins
+    const onLayoutChange = handleLayoutChange(sectionId);
 
     // Helper to conditionally create change handler
     const editHandler = <T,>(handler: (value: T) => void) => canEdit ? handler : undefined;
@@ -403,7 +425,7 @@ export const FullBrandPage = ({
         return null;
       default: return null;
     }
-  }, [brand, brandId, onBrandUpdate, sectionSubtitles, sectionLayouts, handleSubtitleChange, handleLayoutChange, heroFullWidth, onOpenIntelligence]);
+  }, [brand, brandId, onBrandUpdate, sectionSubtitles, sectionLayouts, handleSubtitleChange, handleLayoutChange, heroFullWidth, onOpenIntelligence, getPreference, setPreference]);
 
   // Filter out hidden sections for non-admin users - memoized
   const visibleSections = useMemo(() => 

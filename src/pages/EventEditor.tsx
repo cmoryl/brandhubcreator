@@ -10,6 +10,7 @@ import { GlobalBrandToolbar } from '@/components/brand/GlobalBrandToolbar';
 import { RegionalAnalysisPanel } from '@/components/brand/RegionalAnalysisPanel';
 import { DEFAULT_PAGE_SETTINGS, BrandPageSettings, SectionId, SectionLayoutSettings } from '@/types/brand';
 import { LayoutPreset } from '@/components/brand/LayoutSelector';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { UnsavedChangesBlocker } from '@/components/UnsavedChangesBlocker';
 import { PublicLoadingScreen } from '@/components/PublicLoadingScreen';
 import { supabase } from '@/integrations/supabase/client';
@@ -347,8 +348,23 @@ const EventEditor = () => {
   
   const sectionOrder = useMemo(() => event?.sectionOrder || DEFAULT_EVENT_SECTION_ORDER, [event?.sectionOrder]);
   const hiddenSections = useMemo(() => event?.hiddenSections || [], [event?.hiddenSections]);
-  const sectionLayouts = useMemo(() => event?.sectionLayouts || {}, [event?.sectionLayouts]);
+  const adminLayouts = useMemo(() => event?.sectionLayouts || {}, [event?.sectionLayouts]);
   const pageSettings = event?.pageSettings || DEFAULT_PAGE_SETTINGS;
+
+  // User preferences for layout overrides
+  const { getPreference, setPreference } = useUserPreferences();
+  const eventPrefKey = (sectionId: EventSectionId) => `layout.event.${event?.id}.${sectionId}`;
+
+  const sectionLayouts = useMemo(() => {
+    const merged: Record<string, LayoutPreset> = { ...(adminLayouts as Record<string, LayoutPreset>) };
+    if (event?.id) {
+      Object.keys(merged).forEach(key => {
+        const userPref = getPreference<LayoutPreset | undefined>(eventPrefKey(key as EventSectionId));
+        if (userPref) merged[key] = userPref;
+      });
+    }
+    return merged;
+  }, [adminLayouts, getPreference, event?.id]);
 
   // Calculate health for card view
   const cardViewHealthScore = useMemo(() => {
@@ -358,16 +374,21 @@ const EventEditor = () => {
   }, [event, hiddenSections, sectionOrder]);
 
   const getSectionLayout = useCallback((sectionId: EventSectionId): LayoutPreset => {
-    return (sectionLayouts[sectionId as SectionId] as LayoutPreset) || 'grid-3';
-  }, [sectionLayouts]);
+    const userPref = getPreference<LayoutPreset | undefined>(eventPrefKey(sectionId));
+    return userPref || (sectionLayouts[sectionId as SectionId] as LayoutPreset) || 'grid-3';
+  }, [sectionLayouts, getPreference, event?.id]);
 
   const handleSectionLayoutChange = useCallback((sectionId: EventSectionId, layout: LayoutPreset) => {
     if (event) {
-      updateEventContext(event.id, {
-        sectionLayouts: { ...sectionLayouts, [sectionId]: layout }
-      });
+      if (canEdit) {
+        updateEventContext(event.id, {
+          sectionLayouts: { ...adminLayouts, [sectionId]: layout }
+        });
+      }
+      // Always save as user preference
+      setPreference(eventPrefKey(sectionId), layout);
     }
-  }, [event, updateEventContext, sectionLayouts]);
+  }, [event, updateEventContext, adminLayouts, canEdit, setPreference]);
 
   // SEO metadata
   useSEO({

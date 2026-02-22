@@ -274,7 +274,7 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
       
       {/* Controls row - separate from header */}
       <div className="flex items-center gap-2 flex-wrap">
-            {canEdit && onLayoutChange && (
+            {onLayoutChange && (
             <LayoutSelector
               value={layout}
               onChange={onLayoutChange}
