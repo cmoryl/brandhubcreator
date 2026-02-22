@@ -307,10 +307,37 @@ export const BrandAssistant = ({
 
   // ───── Speech Recognition (FIXED: session-based restart guard) ─────
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast.error('Speech recognition is not supported in this browser');
+      return;
+    }
+
+    // CRITICAL: Pre-request microphone access via getUserMedia.
+    // SpeechRecognition alone does NOT reliably trigger the browser permission prompt,
+    // especially in iframes or certain browsers. getUserMedia forces the prompt.
+    try {
+      console.log('[Dictation] Requesting microphone permission via getUserMedia...');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Got permission — stop the stream immediately (SpeechRecognition manages its own)
+      stream.getTracks().forEach(track => track.stop());
+      console.log('[Dictation] Microphone permission granted');
+    } catch (micErr: any) {
+      console.error('[Dictation] Microphone permission denied:', micErr);
+      if (micErr.name === 'NotAllowedError' || micErr.name === 'PermissionDeniedError') {
+        toast.error('Microphone permission denied. Please allow microphone access in your browser settings and try again.', { duration: 6000 });
+      } else if (micErr.name === 'NotFoundError') {
+        toast.error('No microphone detected. Please connect a microphone and try again.', { duration: 6000 });
+      } else {
+        toast.error(`Microphone error: ${micErr.message || micErr.name}`, { duration: 5000 });
+      }
+      setIsListening(false);
+      isListeningRef.current = false;
+      setDictationEnabled(false);
+      dictationEnabledRef.current = false;
+      setIsVoiceMode(false);
+      voiceModeRef.current = false;
       return;
     }
 
@@ -418,7 +445,7 @@ export const BrandAssistant = ({
     setIsListening(true);
     setInterimText('');
     
-    // CRITICAL: start() must be called synchronously from the user gesture
+    // Start recognition — mic is already permitted from getUserMedia above
     try {
       recognition.start();
       console.log('[Dictation] Recognition started, lang:', recognition.lang);
@@ -490,10 +517,10 @@ export const BrandAssistant = ({
 
   // ───── Voice Mode ─────
 
-  const startVoiceMode = useCallback(() => {
+  const startVoiceMode = useCallback(async () => {
     setIsVoiceMode(true);
     voiceModeRef.current = true;
-    startListening();
+    await startListening();
   }, [startListening]);
 
   const stopVoiceMode = useCallback(() => {
@@ -512,12 +539,15 @@ export const BrandAssistant = ({
   }, [isVoiceMode, startVoiceMode, stopVoiceMode]);
 
   // Dictation toggle
-  const toggleDictation = useCallback((enabled: boolean) => {
+  const toggleDictation = useCallback(async (enabled: boolean) => {
     setDictationEnabled(enabled);
     dictationEnabledRef.current = enabled;
     if (enabled) {
-      startListening();
-      toast.success('Dictation active — speak and I\'ll respond with voice', { duration: 3000 });
+      await startListening();
+      // Only show success if we're still in dictation mode (permission wasn't denied)
+      if (dictationEnabledRef.current) {
+        toast.success('Dictation active — speak and I\'ll respond with voice', { duration: 3000 });
+      }
     } else {
       stopListening();
     }
