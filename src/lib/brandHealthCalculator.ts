@@ -549,10 +549,12 @@ function calculateSectionCompleteness(
 
     // ─── Event Websites (depth: check url, label) ───
     case 'eventWebsites': {
+      // Events may store websites under 'eventWebsites' or 'websites'
       const sites = safeArray(guideData.eventWebsites);
-      if (sites.length === 0) return 0;
-      const withUrl = sites.filter((s: any) => s?.url).length;
-      if (sites.length >= 1 && withUrl >= 1) return 1;
+      const fallbackSites = sites.length > 0 ? sites : safeArray(guideData.websites);
+      if (fallbackSites.length === 0) return 0;
+      const withUrl = fallbackSites.filter((s: any) => s?.url).length;
+      if (fallbackSites.length >= 1 && withUrl >= 1) return 1;
       return 0.4;
     }
 
