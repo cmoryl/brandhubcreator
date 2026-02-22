@@ -250,16 +250,6 @@ async function handleGenerate(
     );
   }
 
-  const body: GenerateRequest = await req.json();
-  const { organization_id, entity_type, entity_id, prompt, content_type } = body;
-
-  if (!organization_id || !entity_type || !entity_id || !prompt) {
-    return new Response(
-      JSON.stringify({ success: false, error: 'Missing required fields' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
   // Get entity data
   const tableName = entity_type === 'brand' ? 'brands' : entity_type === 'product' ? 'products' : 'events';
   const { data: entity } = await supabase
