@@ -796,12 +796,12 @@ export const PresentationTemplatesSection = ({
             const thumbnail = getPreviewThumbnail(template);
             return (
               <Card key={template.id} className="group overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-[4/3] relative bg-muted/30 overflow-hidden flex items-center justify-center p-2">
+                <div className="relative bg-muted/30 overflow-hidden flex items-center justify-center p-3 min-h-[120px] max-h-[280px]">
                   {thumbnail ? (
                     <OptimizedImage
                       src={thumbnail}
                       alt={template.name}
-                      className="max-w-full max-h-full object-contain rounded"
+                      className="max-w-full max-h-[260px] w-auto h-auto object-contain rounded"
                     />
                   ) : template.fileType === 'pdf' && template.fileUrl ? (
                     <PdfThumbnailCard url={template.fileUrl} name={template.name} />
