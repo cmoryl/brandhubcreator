@@ -112,6 +112,7 @@ import { Badge } from '@/components/ui/badge';
 import { SectionCardGrid } from '@/components/brand/SectionCardGrid';
 import { eventSectionMeta } from '@/components/event/EventSidebar';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
+import { useExternalSectionCounts } from '@/hooks/useExternalSectionCounts';
 
 type ViewMode = 'sections' | 'full' | 'cards';
 
@@ -366,12 +367,14 @@ const EventEditor = () => {
     return merged;
   }, [adminLayouts, getPreference, event?.id]);
 
+  const externalCounts = useExternalSectionCounts(event?.id, 'event');
+
   // Calculate health for card view
   const cardViewHealthScore = useMemo(() => {
     if (!event) return undefined;
-    const health = calculateBrandHealth(event as unknown as Record<string, unknown>, hiddenSections, 'event', sectionOrder);
+    const health = calculateBrandHealth(event as unknown as Record<string, unknown>, hiddenSections, 'event', sectionOrder, externalCounts);
     return health.overallScore;
-  }, [event, hiddenSections, sectionOrder]);
+  }, [event, hiddenSections, sectionOrder, externalCounts]);
 
   const getSectionLayout = useCallback((sectionId: EventSectionId): LayoutPreset => {
     const userPref = getPreference<LayoutPreset | undefined>(eventPrefKey(sectionId));

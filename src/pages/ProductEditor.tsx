@@ -85,6 +85,7 @@ import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrd
 import { SectionCardGrid } from '@/components/brand/SectionCardGrid';
 import { ActiveSectionHeader } from '@/components/brand/ActiveSectionHeader';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
+import { useExternalSectionCounts } from '@/hooks/useExternalSectionCounts';
 
 type ViewMode = 'sections' | 'full' | 'cards';
 
@@ -453,12 +454,14 @@ const ProductEditor = () => {
     return currentProduct?.pageSettings ?? DEFAULT_PAGE_SETTINGS;
   }, [currentProduct?.pageSettings]);
 
+  const externalCounts = useExternalSectionCounts(currentProduct?.id, 'product');
+
   // Calculate health for card view
   const cardViewHealthScore = useMemo(() => {
     if (!currentProduct) return undefined;
-    const health = calculateBrandHealth(currentProduct as unknown as Record<string, unknown>, hiddenSections, 'product', sectionOrder);
+    const health = calculateBrandHealth(currentProduct as unknown as Record<string, unknown>, hiddenSections, 'product', sectionOrder, externalCounts);
     return health.overallScore;
-  }, [currentProduct, hiddenSections, sectionOrder]);
+  }, [currentProduct, hiddenSections, sectionOrder, externalCounts]);
 
   const handlePageSettingsChange = useCallback((newSettings: BrandPageSettings) => {
     if (currentProduct) {
