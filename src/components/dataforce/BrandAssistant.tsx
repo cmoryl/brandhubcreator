@@ -115,12 +115,13 @@ export const BrandAssistant = ({
     }
   }, [messages]);
 
-  // Load existing conversation when entity changes
+  // Load existing conversation scoped to org + user (not entity-scoped)
+  // This enables a cohesive bot across brands, products, and events
   useEffect(() => {
-    setMessages([]);
-    setConversationId(null);
+    if (!organization?.id) return;
 
-    if (!organization?.id || !entityId || !entityType) return;
+    // Don't reset if we already have a conversation for this org
+    if (conversationId) return;
 
     let cancelled = false;
 
@@ -133,8 +134,6 @@ export const BrandAssistant = ({
           .from('dataforce_assistant_conversations')
           .select('id, messages')
           .eq('organization_id', organization.id)
-          .eq('entity_id', entityId)
-          .eq('entity_type', entityType)
           .eq('user_id', user.id)
           .order('updated_at', { ascending: false })
           .limit(1)
@@ -153,7 +152,7 @@ export const BrandAssistant = ({
 
     loadExisting();
     return () => { cancelled = true; };
-  }, [entityId, entityType, organization?.id]);
+  }, [organization?.id, conversationId]);
 
   // Cleanup speech recognition on unmount
   useEffect(() => {

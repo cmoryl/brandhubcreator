@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2 } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Bot } from 'lucide-react';
 import { toast } from 'sonner';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
@@ -120,6 +120,7 @@ const CompetitiveReportCardLazy = lazy(() =>
 const LeafletLocationsSection = lazy(() => import('@/components/brand/LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
 const AwardsSection = lazy(() => import('@/components/brand/AwardsSection'));
 const GlobalLinkUniverseSection = lazy(() => import('@/components/brand/GlobalLinkUniverseSection'));
+const BrandAssistant = lazy(() => import('@/components/dataforce/BrandAssistant').then(m => ({ default: m.BrandAssistant })));
 
 const EventEditor = () => {
   const { eventSlug } = useParams<{ eventSlug: string }>();
@@ -141,6 +142,7 @@ const EventEditor = () => {
   // Translation hub state
   const [translationHubOpen, setTranslationHubOpen] = useState(false);
   const [parentEvent, setParentEvent] = useState<{ id: string; name: string; slug: string } | null>(null);
+  const [assistantOpen, setAssistantOpen] = useState(false);
 
   // Redirect unapproved users
   useEffect(() => {
@@ -1258,6 +1260,28 @@ const EventEditor = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Brand Assistant Floating Button */}
+      {canEdit && (
+        <>
+          <Button
+            onClick={() => setAssistantOpen(true)}
+            className="fixed bottom-6 left-6 z-50 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground p-0"
+            aria-label="Open Brand Assistant"
+          >
+            <Bot className="h-5 w-5" />
+          </Button>
+          <Suspense fallback={null}>
+            <BrandAssistant
+              open={assistantOpen}
+              onOpenChange={setAssistantOpen}
+              entityType="event"
+              entityId={event.id}
+              entityName={event.hero.name}
+            />
+          </Suspense>
+        </>
+      )}
     </TooltipProvider>
   );
 };

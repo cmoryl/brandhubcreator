@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2 } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Bot } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -116,6 +116,8 @@ const PRODUCT_SLUG_ALIASES: Record<string, string> = {
   'trial-int': 'trial-interactive',
 };
 
+const BrandAssistant = lazy(() => import('@/components/dataforce/BrandAssistant').then(m => ({ default: m.BrandAssistant })));
+
 const ProductEditor = () => {
   const { productSlug } = useParams<{ productSlug: string }>();
   const navigate = useNavigate();
@@ -139,6 +141,7 @@ const ProductEditor = () => {
   // Translation hub state
   const [translationHubOpen, setTranslationHubOpen] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -1163,6 +1166,28 @@ const ProductEditor = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Brand Assistant Floating Button */}
+      {canEdit && (
+        <>
+          <Button
+            onClick={() => setAssistantOpen(true)}
+            className="fixed bottom-6 left-6 z-50 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground p-0"
+            aria-label="Open Brand Assistant"
+          >
+            <Bot className="h-5 w-5" />
+          </Button>
+          <Suspense fallback={null}>
+            <BrandAssistant
+              open={assistantOpen}
+              onOpenChange={setAssistantOpen}
+              entityType="product"
+              entityId={currentProduct.id}
+              entityName={currentProduct.hero.name}
+            />
+          </Suspense>
+        </>
+      )}
     </TooltipProvider>
   );
 };
