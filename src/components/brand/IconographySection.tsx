@@ -1,5 +1,5 @@
-import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Building2, Layers, Eye } from 'lucide-react';
+import { useState, useRef, useMemo, useCallback } from 'react';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Building2, Layers, Eye, FolderPlus } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { SectionHeader } from './SectionHeader';
 import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './iconography';
 import { IconPreviewDialog } from './iconography/IconPreviewDialog';
@@ -84,12 +86,14 @@ export const IconographySection = ({
   const [showIconStudio, setShowIconStudio] = useState(false);
   const [iconStudioInitialTab, setIconStudioInitialTab] = useState<IconStudioTab>('library');
   const [previewIcon, setPreviewIcon] = useState<BrandIconography | null>(null);
+  const [showAddToLibrary, setShowAddToLibrary] = useState(false);
+  const [addToLibraryTargetId, setAddToLibraryTargetId] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const ICONS_PREVIEW_LIMIT = 8;
 
   // Fetch inherited icon libraries
-  const { coreLibraries, productLineLibraries, isLoading: librariesLoading } = useIconLibraries(organizationId);
+  const { libraries, coreLibraries, productLineLibraries, brandLibraries, isLoading: librariesLoading, updateLibrary: updateOrgLibrary, createLibrary: createOrgLibrary } = useIconLibraries(organizationId);
 
   // Calculate inherited icons summary
   const inheritedSummary = useMemo(() => {
@@ -129,6 +133,44 @@ export const IconographySection = ({
 
   // Determine if editing is allowed
   const canEdit = !!onIconographyChange;
+
+  // Add brand icons to an org library
+  const handleAddToOrgLibrary = useCallback(async () => {
+    if (iconography.length === 0) {
+      toast.error('No icons to add');
+      return;
+    }
+    
+    if (addToLibraryTargetId === '__new__') {
+      // Create new core library with current brand icons
+      createOrgLibrary.mutate({
+        organization_id: organizationId || '',
+        name: `${entityName || 'Brand'} Icons`,
+        level: 'core' as const,
+        description: `Icons imported from ${entityName || 'brand'} guide`,
+        icons: iconography,
+      });
+      toast.success(`Created new library with ${iconography.length} icons`);
+    } else if (addToLibraryTargetId) {
+      const targetLib = libraries.find(l => l.id === addToLibraryTargetId);
+      if (targetLib) {
+        // Deduplicate by name to avoid duplicates
+        const existingNames = new Set(targetLib.icons.map(i => i.name));
+        const newIcons = iconography.filter(i => !existingNames.has(i.name));
+        if (newIcons.length === 0) {
+          toast.info('All icons already exist in this library');
+        } else {
+          updateOrgLibrary.mutate({
+            id: addToLibraryTargetId,
+            updates: { icons: [...targetLib.icons, ...newIcons] },
+          });
+          toast.success(`Added ${newIcons.length} icon(s) to ${targetLib.name}`);
+        }
+      }
+    }
+    setShowAddToLibrary(false);
+    setAddToLibraryTargetId('');
+  }, [iconography, addToLibraryTargetId, libraries, organizationId, entityName, updateOrgLibrary, createOrgLibrary]);
 
   const addIcon = () => {
     if (!onIconographyChange) return;
@@ -499,10 +541,23 @@ ${innerContent}
             </ToggleGroupItem>
           </ToggleGroup>
           {iconography.length > 0 && (
-            <Button onClick={downloadAllIcons} variant="outline" size="sm" className="gap-2">
-              <Package className="h-4 w-4" />
-              Download All
-            </Button>
+            <>
+              <Button onClick={downloadAllIcons} variant="outline" size="sm" className="gap-2">
+                <Package className="h-4 w-4" />
+                Download All
+              </Button>
+              {canEdit && organizationId && (
+                <Button 
+                  onClick={() => setShowAddToLibrary(true)} 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                >
+                  <FolderPlus className="h-4 w-4" />
+                  Add to Library
+                </Button>
+              )}
+            </>
           )}
           {canEdit && (
             <>
@@ -777,8 +832,14 @@ ${innerContent}
         organizationName={entityName}
         brandColors={brandColors}
         initialTab={iconStudioInitialTab}
-        onIconsCreated={(newIcons) => {
-          onIconographyChange([...iconography, ...newIcons]);
+        onIconsCreated={(newIcons, libraryId) => {
+          // If saved to a specific library, don't also add to brand iconography
+          // The icons live in org libraries and are inherited automatically
+          if (!libraryId) {
+            onIconographyChange([...iconography, ...newIcons]);
+          } else {
+            toast.success(`${newIcons.length} icon(s) saved to library`);
+          }
         }}
       />
 
@@ -788,6 +849,55 @@ ${innerContent}
         open={!!previewIcon}
         onOpenChange={(open) => !open && setPreviewIcon(null)}
       />
+
+      {/* Add to Org Library Dialog */}
+      <Dialog open={showAddToLibrary} onOpenChange={setShowAddToLibrary}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderPlus className="h-5 w-5" />
+              Add Icons to Organization Library
+            </DialogTitle>
+            <DialogDescription>
+              Push {iconography.length} brand icon(s) to an organization-wide library for reuse across all brands.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Target Library</Label>
+              <Select value={addToLibraryTargetId} onValueChange={setAddToLibraryTargetId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a library..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__new__">
+                    <div className="flex items-center gap-2">
+                      <Plus className="h-3 w-3" />
+                      Create New Core Library
+                    </div>
+                  </SelectItem>
+                  {libraries.map(lib => (
+                    <SelectItem key={lib.id} value={lib.id}>
+                      <div className="flex items-center gap-2">
+                        {lib.level === 'core' && <Building2 className="h-3 w-3 text-primary" />}
+                        {lib.level === 'product_line' && <Package className="h-3 w-3 text-primary" />}
+                        {lib.level === 'brand' && <Layers className="h-3 w-3 text-primary" />}
+                        {lib.name} ({lib.icons.length} icons)
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddToLibrary(false)}>Cancel</Button>
+            <Button onClick={handleAddToOrgLibrary} disabled={!addToLibraryTargetId}>
+              Add {iconography.length} Icon(s)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
