@@ -10,7 +10,7 @@
  * - Creator: Design individual custom icons
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -47,11 +47,10 @@ import { IconStudioAIGenerator } from './studio/IconStudioAIGenerator';
 import { IconStudioAppIcons } from './studio/IconStudioAppIcons';
 import { IconStudioCreator } from './studio/IconStudioCreator';
 import { IconStylizer } from './studio/IconStylizer';
-import { IconAdvancedFeatures } from './studio/IconAdvancedFeatures';
 import { IconBrandHierarchy } from './studio/IconBrandHierarchy';
 import { iconKitHelpSections } from '@/components/help/IconKitTooltip';
 
-export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'advanced' | 'hierarchy' | 'app-icons' | 'creator';
+export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'hierarchy' | 'app-icons' | 'creator';
 
 interface IconStudioProps {
   open: boolean;
@@ -84,13 +83,6 @@ const TAB_CONFIG = [
     icon: ImageIcon,
     description: 'PNG to SVG conversion',
     helpId: 'stylizer' as const,
-  },
-  {
-    id: 'advanced' as const,
-    label: 'Advanced',
-    icon: Zap,
-    description: 'Responsive, states & animation',
-    helpId: 'optical-sizing' as const,
   },
   {
     id: 'hierarchy' as const,
@@ -219,7 +211,7 @@ export const IconStudio = ({
         >
           {/* Tab Navigation */}
           <div className="px-6 pt-4 pb-2 border-b bg-muted/30">
-            <TabsList className="grid grid-cols-7 w-full max-w-5xl">
+            <TabsList className="grid grid-cols-6 w-full max-w-5xl">
               {TAB_CONFIG.map((tab) => {
                 const Icon = tab.icon;
                 const helpSection = iconKitHelpSections[tab.helpId];
@@ -293,19 +285,8 @@ export const IconStudio = ({
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="advanced" className="h-full m-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full">
-                <div className="p-6">
-                  <IconAdvancedFeatures
-                    selectedIcon={selectedIcon}
-                    brandColors={brandColors.map(c => c.hex)}
-                    onIconUpdate={(icon) => {
-                      setSelectedIcon(icon);
-                    }}
-                  />
-                </div>
-              </ScrollArea>
-            </TabsContent>
+
+
 
             <TabsContent value="hierarchy" className="h-full m-0 data-[state=inactive]:hidden">
               <ScrollArea className="h-full">
