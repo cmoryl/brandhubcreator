@@ -127,6 +127,8 @@ export const BrandAssistant = ({
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [language, setLanguage] = useState('en_US');
+  const [hasPersona, setHasPersona] = useState(false);
+  const [pastConversationCount, setPastConversationCount] = useState(0);
   
   // Voice state
   const [isListening, setIsListening] = useState(false);
@@ -153,7 +155,7 @@ export const BrandAssistant = ({
     return () => window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
   }, []);
 
-  // Load existing conversation
+  // Load existing conversation for this entity + check persona
   useEffect(() => {
     if (!organization?.id || conversationId) return;
 
@@ -163,19 +165,43 @@ export const BrandAssistant = ({
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || cancelled) return;
 
-        const { data } = await supabase
-          .from('dataforce_assistant_conversations')
-          .select('id, messages')
-          .eq('organization_id', organization.id)
-          .eq('user_id', user.id)
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        // Load conversations and persona status in parallel
+        const [convResult, personaResult] = await Promise.all([
+          supabase
+            .from('dataforce_assistant_conversations')
+            .select('id, messages, entity_id')
+            .eq('organization_id', organization.id)
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+            .limit(10),
+          supabase
+            .from('user_assistant_profiles')
+            .select('id, interaction_count')
+            .eq('user_id', user.id)
+            .eq('organization_id', organization.id)
+            .maybeSingle(),
+        ]);
 
         if (cancelled) return;
-        if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
-          setConversationId(data.id);
-          setMessages(data.messages as unknown as Message[]);
+
+        // Count total past conversations
+        const allConvs = convResult.data || [];
+        setPastConversationCount(allConvs.length);
+
+        // Check if user has a persona profile
+        if (personaResult.data) {
+          setHasPersona(true);
+        }
+
+        // Prefer entity-specific conversation, fall back to most recent
+        const entityConv = entityId 
+          ? allConvs.find(c => c.entity_id === entityId)
+          : null;
+        const targetConv = entityConv || allConvs[0];
+
+        if (targetConv?.messages && Array.isArray(targetConv.messages) && targetConv.messages.length > 0) {
+          setConversationId(targetConv.id);
+          setMessages(targetConv.messages as unknown as Message[]);
         }
       } catch (err) {
         if (!cancelled) console.warn('Failed to load existing conversation:', err);
@@ -184,7 +210,7 @@ export const BrandAssistant = ({
 
     loadExisting();
     return () => { cancelled = true; };
-  }, [organization?.id, conversationId]);
+  }, [organization?.id, conversationId, entityId]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -409,6 +435,7 @@ export const BrandAssistant = ({
       if (!data.success) throw new Error(data.error || 'Failed to get response');
 
       if (data.conversationId) setConversationId(data.conversationId);
+      if (data.hasPersona) setHasPersona(true);
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
@@ -473,6 +500,7 @@ export const BrandAssistant = ({
       if (!data.success) throw new Error(data.error || 'Failed to get response');
 
       if (data.conversationId) setConversationId(data.conversationId);
+      if (data.hasPersona) setHasPersona(true);
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
@@ -609,10 +637,23 @@ export const BrandAssistant = ({
               </Select>
             </div>
           </div>
-          <SheetDescription>
-            {entityName 
-              ? `Ask questions about ${entityName}'s brand guidelines`
-              : 'Your AI-powered brand knowledge assistant'}
+          <SheetDescription className="flex items-center gap-2">
+            <span>
+              {entityName 
+                ? `Ask questions about ${entityName}'s brand guidelines`
+                : 'Your AI-powered brand knowledge assistant'}
+            </span>
+            {hasPersona && (
+              <Badge variant="secondary" className="text-[10px] h-5 gap-1">
+                <Sparkles className="h-3 w-3" />
+                Personalized
+              </Badge>
+            )}
+            {pastConversationCount > 1 && (
+              <Badge variant="outline" className="text-[10px] h-5">
+                {pastConversationCount} sessions
+              </Badge>
+            )}
           </SheetDescription>
         </SheetHeader>
 
