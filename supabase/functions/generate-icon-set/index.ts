@@ -171,7 +171,7 @@ serve(async (req) => {
     const jobData = await dbFetch("brand_intelligence_jobs", {
       method: "POST",
       body: JSON.stringify({
-        entity_id: entityName,
+        entity_id: crypto.randomUUID(),
         entity_type: "icon_generation",
         user_id: user.id,
         status: "pending",
