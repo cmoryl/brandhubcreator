@@ -338,7 +338,7 @@ export const IconStudioCreator = ({
               <div className="border rounded-lg p-8 flex items-center justify-center bg-muted/30 min-h-[200px]">
                 {customSvg ? (
                   <div
-                    className="w-24 h-24 flex items-center justify-center"
+                    className="w-24 h-24 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
                     dangerouslySetInnerHTML={{
                       __html: DOMPurify.sanitize(customSvg, {
                         USE_PROFILES: { svg: true, svgFilters: true },
@@ -363,7 +363,7 @@ export const IconStudioCreator = ({
                       <div key={size} className="flex flex-col items-center gap-1">
                         <div
                           style={{ width: size, height: size }}
-                          className="flex items-center justify-center"
+                          className="flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
                           dangerouslySetInnerHTML={{
                             __html: DOMPurify.sanitize(customSvg, {
                               USE_PROFILES: { svg: true },

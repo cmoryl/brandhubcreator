@@ -451,37 +451,36 @@ export const IconStudioAIGenerator = ({
   }, [iconOptimizer, brandHexColors]);
 
   const renderIcon = (svgPath: string, size: number = 20) => {
-    const isFullSvg = svgPath.trim().startsWith('<svg') || svgPath.includes('<path') || svgPath.includes('<circle') || svgPath.includes('<rect') || svgPath.includes('<g');
-    
+    const trimmed = svgPath.trim();
+    const isFullSvg = trimmed.startsWith('<');
+
     if (isFullSvg) {
-      // Full SVG content - extract inner content and render as proper SVG
       const sanitized = DOMPurify.sanitize(svgPath, {
         USE_PROFILES: { svg: true, svgFilters: true },
         FORBID_TAGS: ['script', 'foreignObject'],
       });
-      
-      // Try to extract viewBox from full SVG
-      const viewBoxMatch = svgPath.match(/viewBox="([^"]+)"/);
-      const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
-      
-      // Extract inner content if it's a full <svg> tag
-      const innerMatch = sanitized.match(/<svg[^>]*>([\s\S]*)<\/svg>/i);
-      const innerContent = innerMatch ? innerMatch[1] : sanitized;
-      
+
+      // If it's a complete <svg> element, inject directly
+      if (sanitized.trim().startsWith('<svg')) {
+        return (
+          <div
+            className="flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
+            style={{ width: size, height: size }}
+            dangerouslySetInnerHTML={{ __html: sanitized }}
+          />
+        );
+      }
+
+      // Inner SVG content (paths, groups) - wrap in SVG
       return (
-        <svg
-          viewBox={viewBox}
-          width={size}
-          height={size}
-          fill="currentColor"
-          stroke="currentColor"
-          className="flex-shrink-0"
-          style={{ overflow: 'visible' }}
-          dangerouslySetInnerHTML={{ __html: innerContent }}
-        />
+        <div className="flex items-center justify-center" style={{ width: size, height: size }}>
+          <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <g dangerouslySetInnerHTML={{ __html: sanitized }} />
+          </svg>
+        </div>
       );
     }
-    
+
     // Simple path data
     return (
       <svg

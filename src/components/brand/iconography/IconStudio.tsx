@@ -10,7 +10,9 @@
  * - Creator: Design individual custom icons
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -143,6 +145,25 @@ export const IconStudio = ({
     updateLibrary,
     deleteLibrary,
   } = useIconLibraries(organizationId);
+
+  // Fetch brands, products, and events for the Hierarchy tab
+  const { data: hierarchyBrands = [] } = useQuery({
+    queryKey: ['hierarchy-brands', organizationId],
+    queryFn: async () => {
+      if (!organizationId) return [];
+      const [brandsRes, productsRes, eventsRes] = await Promise.all([
+        supabase.from('brands').select('id, name').eq('organization_id', organizationId),
+        supabase.from('products').select('id, name').eq('organization_id', organizationId),
+        supabase.from('events').select('id, name').eq('organization_id', organizationId),
+      ]);
+      const items: Array<{ id: string; name: string; type: 'brand' | 'product' | 'event' }> = [];
+      (brandsRes.data || []).forEach(b => items.push({ id: b.id, name: b.name, type: 'brand' }));
+      (productsRes.data || []).forEach(p => items.push({ id: p.id, name: p.name, type: 'product' }));
+      (eventsRes.data || []).forEach(e => items.push({ id: e.id, name: e.name, type: 'event' }));
+      return items;
+    },
+    enabled: open && !!organizationId,
+  });
 
   // Handle icons being created/saved from any sub-component
   const handleSaveIcons = useCallback((icons: BrandIconography[], libraryId?: string) => {
@@ -292,7 +313,7 @@ export const IconStudio = ({
                   <IconBrandHierarchy
                     organizationId={organizationId}
                     organizationName={organizationName}
-                    brands={[]} // Would be populated from actual brands/products
+                    brands={hierarchyBrands}
                     brandColors={brandColors}
                     icons={libraries.flatMap(l => l.icons)}
                     onExportCSS={(css) => {

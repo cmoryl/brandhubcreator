@@ -123,7 +123,7 @@ export const IconAdvancedFeatures: React.FC<IconAdvancedFeaturesProps> = ({
     });
     return (
       <div
-        className="flex items-center justify-center"
+        className="flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
         style={{ width: size, height: size }}
         dangerouslySetInnerHTML={{ __html: sanitized }}
       />
