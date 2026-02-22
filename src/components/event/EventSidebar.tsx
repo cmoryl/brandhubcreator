@@ -78,7 +78,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   eventhistory: { label: 'Event History', icon: History, category: 'Archive' },
   
   // Resources
-  assets: { label: 'Asset Downloads', icon: FolderArchive, category: 'Resources' },
+  assets: { label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
   imageassets: { label: 'Image Assets', icon: ImageIcon, category: 'Resources' },
   misuse: { label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
   
