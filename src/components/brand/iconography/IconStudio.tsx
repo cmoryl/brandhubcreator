@@ -1,16 +1,16 @@
 /**
- * IconStudio - Unified icon creation and management system
+ * IconStudio - Guided wizard for icon creation, management, and export
  * 
- * Consolidates all icon-related features into a single cohesive interface:
- * - Library: Manage organization icon libraries with hierarchy
- * - AI Generator: Generate complete icon sets with AI
- * - Stylizer: Convert PNG images to brand-aligned SVG icons
- * - Advanced: Responsive, stateful, and animated icon variants
- * - App Icons: Create platform-specific app icons (Android, iOS, PWA)
- * - Creator: Design individual custom icons
+ * Step-by-step flow:
+ * 1. Library - Manage or start icon collections
+ * 2. AI Generator - Generate icon sets with AI
+ * 3. Stylizer - Convert PNG images to SVG icons
+ * 4. Colorizer - AI colors, gradients & duotone
+ * 5. Hierarchy - Brand inheritance & overrides
+ * 6. Export - Batch export in multiple formats
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -20,38 +20,36 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import {
   Library,
   Wand2,
-  Smartphone,
-  Palette,
   Sparkles,
   ImageIcon,
   Paintbrush,
   GitBranch,
+  Package,
+  ChevronLeft,
+  ChevronRight,
+  Smartphone,
+  Palette,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { BrandIconography } from '@/types/brand';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
 
-// Import sub-components (to be embedded, not opened as separate dialogs)
+// Import sub-components
 import { IconStudioLibrary } from './studio/IconStudioLibrary';
 import { IconStudioAIGenerator } from './studio/IconStudioAIGenerator';
-import { IconStudioAppIcons } from './studio/IconStudioAppIcons';
-import { IconStudioCreator } from './studio/IconStudioCreator';
 import { IconStylizer } from './studio/IconStylizer';
 import { IconStudioColorizer } from './studio/IconStudioColorizer';
 import { IconBrandHierarchy } from './studio/IconBrandHierarchy';
-import { iconKitHelpSections } from '@/components/help/IconKitTooltip';
+import { IconStudioAppIcons } from './studio/IconStudioAppIcons';
+import { IconStudioCreator } from './studio/IconStudioCreator';
+import { IconStudioExport } from './studio/IconStudioExport';
+import { IconStudioStepper, WizardStep } from './studio/IconStudioStepper';
 
-export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'colorizer' | 'hierarchy' | 'app-icons' | 'creator';
+export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'colorizer' | 'hierarchy' | 'app-icons' | 'creator' | 'export';
 
 interface IconStudioProps {
   open: boolean;
@@ -63,56 +61,19 @@ interface IconStudioProps {
   onIconsCreated?: (icons: BrandIconography[], libraryId?: string) => void;
 }
 
-const TAB_CONFIG = [
-  {
-    id: 'library' as const,
-    label: 'Library',
-    icon: Library,
-    description: 'Manage icon libraries',
-    helpId: 'library-tab' as const,
-  },
-  {
-    id: 'ai-generator' as const,
-    label: 'AI Generator',
-    icon: Wand2,
-    description: 'Generate icon sets with AI',
-    helpId: 'ai-generator' as const,
-  },
-  {
-    id: 'stylizer' as const,
-    label: 'Stylizer',
-    icon: ImageIcon,
-    description: 'PNG to SVG conversion',
-    helpId: 'stylizer' as const,
-  },
-  {
-    id: 'colorizer' as const,
-    label: 'Colorizer',
-    icon: Paintbrush,
-    description: 'AI colors, gradients & duotone',
-    helpId: 'color-mapping' as const,
-  },
-  {
-    id: 'hierarchy' as const,
-    label: 'Hierarchy',
-    icon: GitBranch,
-    description: 'Brand inheritance & overrides',
-    helpId: 'brand-dna' as const,
-  },
-  {
-    id: 'app-icons' as const,
-    label: 'App Icons',
-    icon: Smartphone,
-    description: 'Android, iOS & PWA icons',
-    helpId: 'app-icons' as const,
-  },
-  {
-    id: 'creator' as const,
-    label: 'Creator',
-    icon: Palette,
-    description: 'Design custom icons',
-    helpId: 'icon-creator' as const,
-  },
+const WIZARD_STEPS: WizardStep[] = [
+  { id: 'library', label: 'Library', icon: Library, description: 'Manage icon collections' },
+  { id: 'ai-generator', label: 'Generate', icon: Wand2, description: 'AI icon generation' },
+  { id: 'stylizer', label: 'Stylize', icon: ImageIcon, description: 'PNG → SVG conversion' },
+  { id: 'colorizer', label: 'Colorize', icon: Paintbrush, description: 'Colors & gradients' },
+  { id: 'hierarchy', label: 'Organize', icon: GitBranch, description: 'Brand hierarchy' },
+  { id: 'export', label: 'Export', icon: Package, description: 'Batch export' },
+];
+
+// Additional tools accessible from a "More tools" area
+const EXTRA_TOOLS = [
+  { id: 'app-icons' as const, label: 'App Icons', icon: Smartphone, description: 'iOS, Android & PWA' },
+  { id: 'creator' as const, label: 'Creator', icon: Palette, description: 'Design custom icons' },
 ];
 
 export const IconStudio = ({
@@ -124,16 +85,26 @@ export const IconStudio = ({
   initialTab = 'library',
   onIconsCreated,
 }: IconStudioProps) => {
-  const [activeTab, setActiveTab] = useState<IconStudioTab>(initialTab);
-  const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
+  const initialStepIndex = useMemo(() => {
+    const idx = WIZARD_STEPS.findIndex(s => s.id === initialTab);
+    return idx >= 0 ? idx : 0;
+  }, [initialTab]);
 
-  // Sync activeTab when dialog opens with a different initialTab
+  const [currentStep, setCurrentStep] = useState(initialStepIndex);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
+  // Track if user navigated to a bonus tool
+  const [activeBonusTool, setActiveBonusTool] = useState<'app-icons' | 'creator' | null>(null);
+
+  // Sync when dialog opens
   useEffect(() => {
     if (open) {
-      setActiveTab(initialTab);
+      const idx = WIZARD_STEPS.findIndex(s => s.id === initialTab);
+      setCurrentStep(idx >= 0 ? idx : 0);
+      setActiveBonusTool(null);
     }
   }, [open, initialTab]);
-  
+
   // Shared icon library state
   const {
     libraries,
@@ -165,28 +136,22 @@ export const IconStudio = ({
     enabled: open && !!organizationId,
   });
 
-  // Handle icons being created/saved from any sub-component
+  // Handle icons being created/saved
   const handleSaveIcons = useCallback((icons: BrandIconography[], libraryId?: string) => {
     if (libraryId) {
       const targetLibrary = libraries.find(l => l.id === libraryId);
       if (targetLibrary) {
         updateLibrary.mutate({
           id: libraryId,
-          updates: {
-            icons: [...targetLibrary.icons, ...icons],
-          },
+          updates: { icons: [...targetLibrary.icons, ...icons] },
         });
       }
     } else if (coreLibraries.length > 0) {
-      // Default to first core library
       updateLibrary.mutate({
         id: coreLibraries[0].id,
-        updates: {
-          icons: [...coreLibraries[0].icons, ...icons],
-        },
+        updates: { icons: [...coreLibraries[0].icons, ...icons] },
       });
     } else {
-      // Create a new library
       createLibrary.mutate({
         organization_id: organizationId,
         name: 'Generated Icons',
@@ -195,9 +160,122 @@ export const IconStudio = ({
         icons: icons,
       });
     }
-    
     onIconsCreated?.(icons, libraryId);
   }, [libraries, coreLibraries, updateLibrary, createLibrary, organizationId, onIconsCreated]);
+
+  const markStepComplete = useCallback((stepIndex: number) => {
+    setCompletedSteps(prev => new Set([...prev, stepIndex]));
+  }, []);
+
+  const goNext = () => {
+    markStepComplete(currentStep);
+    setActiveBonusTool(null);
+    if (currentStep < WIZARD_STEPS.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const goBack = () => {
+    setActiveBonusTool(null);
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleNavigateToTab = useCallback((tab: IconStudioTab) => {
+    // Check if it's a bonus tool
+    if (tab === 'app-icons' || tab === 'creator') {
+      setActiveBonusTool(tab);
+      return;
+    }
+    const idx = WIZARD_STEPS.findIndex(s => s.id === tab);
+    if (idx >= 0) {
+      setActiveBonusTool(null);
+      setCurrentStep(idx);
+    }
+  }, []);
+
+  const currentStepId = activeBonusTool || WIZARD_STEPS[currentStep]?.id;
+  const currentStepConfig = WIZARD_STEPS[currentStep];
+
+  const renderStepContent = () => {
+    switch (currentStepId) {
+      case 'library':
+        return (
+          <IconStudioLibrary
+            organizationId={organizationId}
+            libraries={libraries}
+            coreLibraries={coreLibraries}
+            productLineLibraries={productLineLibraries}
+            brandLibraries={brandLibraries}
+            isLoading={librariesLoading}
+            createLibrary={createLibrary}
+            updateLibrary={updateLibrary}
+            deleteLibrary={deleteLibrary}
+            onNavigateToTab={handleNavigateToTab}
+          />
+        );
+      case 'ai-generator':
+        return (
+          <IconStudioAIGenerator
+            organizationId={organizationId}
+            organizationName={organizationName}
+            brandColors={brandColors}
+            libraries={libraries}
+            onSaveIcons={handleSaveIcons}
+          />
+        );
+      case 'stylizer':
+        return (
+          <IconStylizer
+            brandColors={brandColors.map(c => c.hex)}
+            onIconCreated={(icon) => {
+              handleSaveIcons([icon]);
+              setSelectedIcon(icon);
+            }}
+          />
+        );
+      case 'colorizer':
+        return (
+          <IconStudioColorizer
+            brandColors={brandColors}
+            libraries={libraries}
+            onSaveIcons={handleSaveIcons}
+          />
+        );
+      case 'hierarchy':
+        return (
+          <IconBrandHierarchy
+            organizationId={organizationId}
+            organizationName={organizationName}
+            brands={hierarchyBrands}
+            brandColors={brandColors}
+            icons={libraries.flatMap(l => l.icons)}
+            onExportCSS={(css) => { navigator.clipboard.writeText(css); }}
+          />
+        );
+      case 'export':
+        return (
+          <IconStudioExport
+            libraries={libraries}
+            brandColors={brandColors}
+            organizationName={organizationName}
+          />
+        );
+      case 'app-icons':
+        return <IconStudioAppIcons brandColors={brandColors} />;
+      case 'creator':
+        return (
+          <IconStudioCreator
+            brandColors={brandColors}
+            libraries={libraries}
+            onSaveIcons={handleSaveIcons}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -208,140 +286,80 @@ export const IconStudio = ({
             Icon Studio
           </DialogTitle>
           <DialogDescription>
-            Create, manage, and export icons for your organization
+            Create, manage, and export icons — step by step
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as IconStudioTab)}
-          className="flex-1 flex flex-col overflow-hidden"
-        >
-          {/* Tab Navigation */}
-          <div className="px-6 pt-4 pb-2 border-b bg-muted/30">
-            <TabsList className="grid grid-cols-7 w-full max-w-5xl">
-              {TAB_CONFIG.map((tab) => {
-                const Icon = tab.icon;
-                const helpSection = iconKitHelpSections[tab.helpId];
-                return (
-                  <Tooltip key={tab.id} delayDuration={400}>
-                    <TooltipTrigger asChild>
-                      <TabsTrigger
-                        value={tab.id}
-                        className="gap-2 data-[state=active]:bg-background text-xs"
-                      >
-                        <Icon className="h-4 w-4" />
-                        <span className="hidden lg:inline">{tab.label}</span>
-                      </TabsTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-xs">
-                      <p className="font-medium text-sm">{helpSection.title}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{helpSection.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </TabsList>
+        {/* Wizard Stepper */}
+        <div className="px-6 py-4 border-b bg-muted/30">
+          <IconStudioStepper
+            steps={WIZARD_STEPS}
+            currentStepIndex={currentStep}
+            onStepClick={(idx) => {
+              setActiveBonusTool(null);
+              setCurrentStep(idx);
+            }}
+            completedSteps={completedSteps}
+          />
+        </div>
+
+        {/* Step Content */}
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="p-6">
+              {renderStepContent()}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Navigation Footer */}
+        <div className="px-6 py-4 border-t bg-muted/20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goBack}
+              disabled={currentStep === 0 && !activeBonusTool}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              {activeBonusTool ? 'Back to steps' : 'Back'}
+            </Button>
+
+            {/* Bonus tools */}
+            {!activeBonusTool && (
+              <div className="flex items-center gap-1 ml-3">
+                {EXTRA_TOOLS.map(tool => {
+                  const Icon = tool.icon;
+                  return (
+                    <Button
+                      key={tool.id}
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-muted-foreground gap-1.5"
+                      onClick={() => setActiveBonusTool(tool.id)}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {tool.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Tab Content */}
-          <div className="flex-1 overflow-hidden">
-            <TabsContent value="library" className="h-full m-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full">
-                <div className="p-6">
-                  <IconStudioLibrary
-                    organizationId={organizationId}
-                    libraries={libraries}
-                    coreLibraries={coreLibraries}
-                    productLineLibraries={productLineLibraries}
-                    brandLibraries={brandLibraries}
-                    isLoading={librariesLoading}
-                    createLibrary={createLibrary}
-                    updateLibrary={updateLibrary}
-                    deleteLibrary={deleteLibrary}
-                    onNavigateToTab={setActiveTab}
-                  />
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="ai-generator" className="h-full m-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full">
-                <div className="p-6">
-                  <IconStudioAIGenerator
-                    organizationId={organizationId}
-                    organizationName={organizationName}
-                    brandColors={brandColors}
-                    libraries={libraries}
-                    onSaveIcons={handleSaveIcons}
-                  />
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="stylizer" className="h-full m-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full">
-                <div className="p-6">
-                  <IconStylizer
-                    brandColors={brandColors.map(c => c.hex)}
-                    onIconCreated={(icon) => {
-                      handleSaveIcons([icon]);
-                      setSelectedIcon(icon);
-                    }}
-                  />
-                </div>
-              </ScrollArea>
-            </TabsContent>
-            <TabsContent value="colorizer" className="h-full m-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full">
-                <div className="p-6">
-                  <IconStudioColorizer
-                    brandColors={brandColors}
-                    libraries={libraries}
-                    onSaveIcons={handleSaveIcons}
-                  />
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="hierarchy" className="h-full m-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full">
-                <div className="p-6">
-                  <IconBrandHierarchy
-                    organizationId={organizationId}
-                    organizationName={organizationName}
-                    brands={hierarchyBrands}
-                    brandColors={brandColors}
-                    icons={libraries.flatMap(l => l.icons)}
-                    onExportCSS={(css) => {
-                      navigator.clipboard.writeText(css);
-                    }}
-                  />
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="app-icons" className="h-full m-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full">
-                <div className="p-6">
-                  <IconStudioAppIcons brandColors={brandColors} />
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="creator" className="h-full m-0 data-[state=inactive]:hidden">
-              <ScrollArea className="h-full">
-                <div className="p-6">
-                  <IconStudioCreator
-                    brandColors={brandColors}
-                    libraries={libraries}
-                    onSaveIcons={handleSaveIcons}
-                  />
-                </div>
-              </ScrollArea>
-            </TabsContent>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">
+              Step {currentStep + 1} of {WIZARD_STEPS.length}
+              {activeBonusTool && ' (bonus tool)'}
+            </span>
+            {!activeBonusTool && currentStep < WIZARD_STEPS.length - 1 && (
+              <Button size="sm" onClick={goNext}>
+                {currentStep === WIZARD_STEPS.length - 2 ? 'Go to Export' : 'Next Step'}
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            )}
           </div>
-        </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );
