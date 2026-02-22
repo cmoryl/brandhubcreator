@@ -1111,7 +1111,7 @@ const ProductEditor = () => {
                   sectionOrder={sectionOrder}
                   hiddenSections={hiddenSections}
                   isAdmin={isGuideAdmin}
-                  canEdit={isGuideAdmin}
+                  canEdit={canEdit || false}
                   onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined}
                   entityType="product"
                 />

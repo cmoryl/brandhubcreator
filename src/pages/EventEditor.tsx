@@ -1206,7 +1206,7 @@ const EventEditor = () => {
                     }}
                     entityLightLogoUrl={pageSettings.cardViewLightLogo}
                     entityDarkLogoUrl={pageSettings.cardViewDarkLogo}
-                    onEntityLogoChange={isGuideAdmin ? (variant: 'light' | 'dark', url: string) => {
+                    onEntityLogoChange={canEdit ? (variant: 'light' | 'dark', url: string) => {
                       handlePageSettingsChange({
                         ...pageSettings,
                         ...(variant === 'light' ? { cardViewLightLogo: url } : { cardViewDarkLogo: url }),
