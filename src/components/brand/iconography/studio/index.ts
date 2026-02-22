@@ -8,3 +8,5 @@ export { IconAdvancedFeatures } from './IconAdvancedFeatures';
 export { IconBrandHierarchy } from './IconBrandHierarchy';
 export { IconStudioColorizer } from './IconStudioColorizer';
 export { BatchProcessingPanel } from './BatchProcessingPanel';
+export { IconStudioStepper } from './IconStudioStepper';
+export { IconStudioExport } from './IconStudioExport';
