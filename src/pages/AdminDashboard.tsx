@@ -631,7 +631,7 @@ export default function AdminDashboard() {
           <TabsContent value="organizations" className="space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <CardTitle>Organization Management</CardTitle>
                     <CardDescription>{organizations.length} organizations</CardDescription>
@@ -640,16 +640,16 @@ export default function AdminDashboard() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
                       placeholder="Search organizations..." 
-                      className="pl-9 w-[200px]"
+                      className="pl-9 w-full sm:w-[200px]"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-x-auto">
                 <ScrollArea className="h-[500px]">
-                  <Table>
+                  <Table className="min-w-[600px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
@@ -699,18 +699,18 @@ export default function AdminDashboard() {
           {/* Reports Tab */}
           <TabsContent value="reports" className="space-y-6">
             <Tabs defaultValue="brands" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="brands" className="gap-2">
+              <TabsList className="mb-4 w-full flex-wrap h-auto gap-1">
+                <TabsTrigger value="brands" className="gap-1.5 text-xs sm:text-sm">
                   <Palette className="h-4 w-4" />
-                  Brand Reports
+                  Brands
                 </TabsTrigger>
-                <TabsTrigger value="products" className="gap-2">
+                <TabsTrigger value="products" className="gap-1.5 text-xs sm:text-sm">
                   <Package className="h-4 w-4" />
-                  Product Reports
+                  Products
                 </TabsTrigger>
-                <TabsTrigger value="events" className="gap-2">
+                <TabsTrigger value="events" className="gap-1.5 text-xs sm:text-sm">
                   <CalendarDays className="h-4 w-4" />
-                  Event Reports
+                  Events
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="brands">
@@ -743,22 +743,22 @@ export default function AdminDashboard() {
           {/* Intelligence Hub Tab */}
           <TabsContent value="intelligence" className="space-y-6">
             <Tabs defaultValue="oracle" className="w-full">
-              <TabsList className="mb-4 flex-wrap">
-                <TabsTrigger value="oracle" className="gap-2">
+              <TabsList className="mb-4 flex-wrap h-auto gap-1 w-full">
+                <TabsTrigger value="oracle" className="gap-2 text-xs sm:text-sm">
                   <Brain className="h-4 w-4" />
-                  Oracle Brain
+                  Oracle
                 </TabsTrigger>
-                <TabsTrigger value="ai-analysis" className="gap-2">
+                <TabsTrigger value="ai-analysis" className="gap-2 text-xs sm:text-sm">
                   <BarChart3 className="h-4 w-4" />
                   AI Analysis
                 </TabsTrigger>
-                <TabsTrigger value="multicultural" className="gap-2">
+                <TabsTrigger value="multicultural" className="gap-2 text-xs sm:text-sm">
                   <Users className="h-4 w-4" />
-                  Multicultural Intel
+                  Multicultural
                 </TabsTrigger>
-                <TabsTrigger value="research" className="gap-2">
+                <TabsTrigger value="research" className="gap-2 text-xs sm:text-sm">
                   <Eye className="h-4 w-4" />
-                  Research Briefings
+                  Research
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="oracle">
@@ -827,16 +827,16 @@ export default function AdminDashboard() {
           {/* Unified Backups Tab */}
           <TabsContent value="backups" className="space-y-6">
             <Tabs defaultValue="org-backups" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="org-backups" className="gap-2">
+              <TabsList className="mb-4 w-full flex-wrap h-auto gap-1">
+                <TabsTrigger value="org-backups" className="gap-2 text-xs sm:text-sm">
                   <HardDrive className="h-4 w-4" />
                   Organization
                 </TabsTrigger>
-                <TabsTrigger value="universe-backups" className="gap-2">
+                <TabsTrigger value="universe-backups" className="gap-2 text-xs sm:text-sm">
                   <BarChart3 className="h-4 w-4" />
                   Universe
                 </TabsTrigger>
-                <TabsTrigger value="suite-backups" className="gap-2">
+                <TabsTrigger value="suite-backups" className="gap-2 text-xs sm:text-sm">
                   <Package className="h-4 w-4" />
                   Product Suite
                 </TabsTrigger>
