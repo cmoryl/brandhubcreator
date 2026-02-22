@@ -223,21 +223,30 @@ export const IconStudioLibrary = ({
 
   const renderIcon = (icon: BrandIconography, size: number = 20) => {
     const viewBox = icon.viewBox || '0 0 24 24';
-    const isFullSvg = icon.svgPath.includes('<');
+    const isFullSvg = icon.svgPath.trim().startsWith('<');
 
     if (isFullSvg) {
-      // Full SVG content - wrap in properly sized container
+      // Full SVG content - render directly via dangerouslySetInnerHTML
       const sanitized = DOMPurify.sanitize(icon.svgPath, {
         USE_PROFILES: { svg: true, svgFilters: true },
         FORBID_TAGS: ['script', 'foreignObject'],
       });
-      
+
+      // If it's a complete <svg> element, inject it directly (no wrapping SVG)
+      if (sanitized.trim().startsWith('<svg')) {
+        return (
+          <div 
+            className="flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
+            style={{ width: size, height: size }}
+            dangerouslySetInnerHTML={{ __html: sanitized }}
+          />
+        );
+      }
+
+      // It's inner SVG content (paths, groups, etc.) - wrap in an SVG
       return (
-        <div 
-          className="flex items-center justify-center"
-          style={{ width: size, height: size }}
-        >
-          <svg viewBox={viewBox} className="w-full h-full" fill="currentColor">
+        <div className="flex items-center justify-center" style={{ width: size, height: size }}>
+          <svg viewBox={viewBox} width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <g dangerouslySetInnerHTML={{ __html: sanitized }} />
           </svg>
         </div>
