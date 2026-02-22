@@ -126,6 +126,10 @@ export interface ExternalSectionCounts {
   insightSourceCount?: number;
   /** Count of PDF documents from pdf_documents table */
   pdfDocumentCount?: number;
+  /** Count of presentation templates from presentation_templates table */
+  presentationTemplatesCount?: number;
+  /** Count of social metrics snapshots from social_metrics_snapshots table */
+  socialMetricsCount?: number;
   /** Any additional section → count overrides */
   [sectionKey: string]: number | undefined;
 }
@@ -354,7 +358,6 @@ function calculateSectionCompleteness(
     case 'socialIcons':
     case 'templates':
     case 'templateSpecs':
-    case 'presentationTemplates':
     case 'brochures':
     case 'displayBanners':
     case 'caseStudies':
@@ -368,6 +371,17 @@ function calculateSectionCompleteness(
     case 'eventPatterns': {
       const arr = safeArray(guideData[section]);
       return scoreArray(arr);
+    }
+
+    // Presentation Templates: stored both in guide_data AND presentation_templates DB table
+    case 'presentationTemplates': {
+      const guideArr = safeArray(guideData.presentationTemplates);
+      const dbCount = externalCounts?.presentationTemplatesCount ?? 0;
+      const total = guideArr.length + dbCount;
+      if (total === 0) return 0;
+      if (total >= 3) return 1;
+      if (total >= 2) return 0.7;
+      return 0.4;
     }
 
     // ─── Insights & Updates (aggregates manual entries + automated external sources) ───
@@ -648,7 +662,9 @@ function calculateSectionCompleteness(
     case 'socialMetrics': {
       const metrics = guideData.socialMetrics as Record<string, unknown> | undefined;
       const snapshots = safeArray((metrics as any)?.snapshots || guideData.socialMetricsSnapshots);
-      return snapshots.length > 0 ? 1 : 0;
+      const dbCount = externalCounts?.socialMetricsCount ?? 0;
+      const total = snapshots.length + dbCount;
+      return total > 0 ? 1 : 0;
     }
 
     case 'brief': {

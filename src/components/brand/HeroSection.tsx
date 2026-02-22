@@ -90,7 +90,14 @@ export const HeroSection = ({
   });
 
   // Fetch external insight source counts for accurate health scoring
-  const externalCounts = useExternalSectionCounts(entityId, entityType);
+  // Use a counter that increments when guideData reference changes to trigger re-fetch
+  const refreshCounter = useRef(0);
+  const prevGuideRef = useRef(guideData);
+  if (guideData !== prevGuideRef.current) {
+    prevGuideRef.current = guideData;
+    refreshCounter.current += 1;
+  }
+  const externalCounts = useExternalSectionCounts(entityId, entityType, refreshCounter.current);
 
   // Calculate real health score from guide_data (excluding hidden sections)
   const calculatedHealth = useMemo(() => {

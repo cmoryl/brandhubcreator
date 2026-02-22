@@ -454,7 +454,8 @@ const ProductEditor = () => {
     return currentProduct?.pageSettings ?? DEFAULT_PAGE_SETTINGS;
   }, [currentProduct?.pageSettings]);
 
-  const externalCounts = useExternalSectionCounts(currentProduct?.id, 'product');
+  const productRefreshTrigger = currentProduct?.updatedAt ? new Date(String(currentProduct.updatedAt)).getTime() : 0;
+  const externalCounts = useExternalSectionCounts(currentProduct?.id, 'product', productRefreshTrigger);
 
   // Calculate health for card view
   const cardViewHealthScore = useMemo(() => {
