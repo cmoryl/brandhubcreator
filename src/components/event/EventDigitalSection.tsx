@@ -163,6 +163,7 @@ export const EventDigitalSection = ({
   const infographicFileInputRef = useRef<HTMLInputElement>(null);
   const applicationFileInputRef = useRef<HTMLInputElement>(null);
   const digitalAssetFileInputRef = useRef<HTMLInputElement>(null);
+  const templateThumbnailInputRef = useRef<HTMLInputElement>(null);
   const [bannerImageMode, setBannerImageMode] = useState<'upload' | 'url' | 'library'>('upload');
   const [printImageMode, setPrintImageMode] = useState<'upload' | 'url' | 'library'>('upload');
   const { uploadFile, isUploading } = useStorageUpload({ entityType: 'event', entityId: eventId });
@@ -771,6 +772,41 @@ export const EventDigitalSection = ({
                         placeholder="Brief description..."
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Thumbnail (optional)</Label>
+                      {newTemplate.thumbnailUrl && (
+                        <div className="relative w-full h-20 rounded-lg overflow-hidden border bg-muted">
+                          <img src={newTemplate.thumbnailUrl} alt="Thumbnail" className="w-full h-full object-cover" />
+                          <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-5 w-5"
+                            onClick={() => setNewTemplate({ ...newTemplate, thumbnailUrl: undefined })}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <input ref={templateThumbnailInputRef} type="file" accept="image/*" className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const result = await uploadFile(file, 'asset', `template-thumb-${Date.now()}`);
+                            if (result) setNewTemplate(prev => ({ ...prev, thumbnailUrl: result.url }));
+                            if (templateThumbnailInputRef.current) templateThumbnailInputRef.current.value = '';
+                          }}
+                        />
+                        <Button type="button" variant="outline" size="sm" className="flex-1 text-xs h-8"
+                          onClick={() => templateThumbnailInputRef.current?.click()} disabled={isUploading}>
+                          <Upload className="h-3 w-3 mr-1.5" />{isUploading ? 'Uploading...' : 'Upload'}
+                        </Button>
+                        <ImageLibraryPicker
+                          onSelect={(url) => setNewTemplate(prev => ({ ...prev, thumbnailUrl: url }))}
+                          trigger={
+                            <Button type="button" variant="outline" size="sm" className="flex-1 text-xs h-8 gap-1">
+                              <ImageIcon className="h-3 w-3" />Library
+                            </Button>
+                          }
+                        />
+                      </div>
+                    </div>
                   </div>
                   <div className="flex justify-end gap-2 mt-4">
                     <Button variant="outline" onClick={() => setIsAddingNew(false)}>
@@ -806,9 +842,15 @@ export const EventDigitalSection = ({
                   <Card key={template.id} className="group hover:border-primary/50 transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-muted rounded">
-                          <File className="h-6 w-6 text-muted-foreground" />
-                        </div>
+                        {template.thumbnailUrl ? (
+                          <div className="w-16 h-16 rounded overflow-hidden bg-muted shrink-0">
+                            <img src={template.thumbnailUrl} alt={template.name} className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="p-2 bg-muted rounded shrink-0">
+                            <File className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-sm truncate">{template.name}</h4>
                           <p className="text-xs text-muted-foreground">
