@@ -205,6 +205,7 @@ export const BrandAssistant = ({
   // Unique session ID to prevent stale onend handlers from restarting aborted instances
   const recognitionSessionRef = useRef(0);
   const sendMessageRef = useRef<(text: string) => void>(() => {});
+  const sendVoiceMessageRef = useRef<(text: string) => void>(() => {});
   const dictationEnabledRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -361,7 +362,7 @@ export const BrandAssistant = ({
         setInterimText('');
         const trimmed = finalTranscript.trim();
         if (voiceModeRef.current) {
-          sendVoiceMessage(trimmed);
+          sendVoiceMessageRef.current(trimmed);
         } else {
           // In dictation mode: auto-send the message directly
           setInput('');
@@ -631,6 +632,9 @@ export const BrandAssistant = ({
       }
     }
   }, [organization?.id, entityType, entityId, conversationId, language, conversationStyle, speakText, startListening, stopListening, processResponse]);
+
+  // Keep ref in sync so startListening (defined earlier) can call it
+  sendVoiceMessageRef.current = sendVoiceMessage;
 
   const sendMessage = async (overrideText?: string) => {
     const text = overrideText || input.trim();
