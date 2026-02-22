@@ -18,6 +18,7 @@ interface AssistantRequest {
   message: string;
   conversation_id?: string;
   language_code?: string;
+  conversation_style?: 'direct' | 'suggestive' | 'educational' | 'creative';
 }
 
 serve(async (req) => {
@@ -61,7 +62,8 @@ serve(async (req) => {
       entity_id, 
       message, 
       conversation_id,
-      language_code = 'en_US' 
+      language_code = 'en_US',
+      conversation_style = 'direct'
     } = body;
 
     if (!organization_id || !message) {
@@ -670,7 +672,20 @@ ${entityContext}${oracleContext}${crossEntityContext}${entityDirectory}${persona
 ${languageInstruction}
 
 Guidelines for responses:
-- Be concise but comprehensive
+${conversation_style === 'direct' ? `- Be concise and straight-to-the-point. Give brief, actionable answers without elaboration unless asked.
+- Use bullet points over paragraphs. Skip pleasantries.
+- Prioritize the most important information first.` :
+conversation_style === 'suggestive' ? `- Proactively offer alternatives and related suggestions the user may not have considered.
+- After answering, suggest 2-3 follow-up directions or complementary ideas.
+- Frame options with pros/cons to help decision-making.` :
+conversation_style === 'educational' ? `- Provide detailed explanations with context and reasoning behind recommendations.
+- Explain the "why" behind brand guidelines, not just the "what".
+- Include relevant best practices, industry standards, and design principles.
+- Use examples to illustrate concepts.` :
+`- Be exploratory and imaginative in your responses.
+- Suggest creative applications and unconventional uses of brand elements.
+- Draw connections between brand elements and broader design/cultural trends.
+- Encourage experimentation while respecting brand boundaries.`}
 - Reference specific brand elements when relevant
 - Provide practical, actionable advice
 - Maintain brand voice and tone

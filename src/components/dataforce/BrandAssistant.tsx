@@ -37,7 +37,17 @@ import {
   Volume2,
   VolumeX,
   RotateCcw,
+  Settings2,
+  Zap,
+  Lightbulb,
+  GraduationCap,
+  MessageSquare,
 } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -50,6 +60,15 @@ interface Message {
   content: string;
   timestamp: string;
 }
+
+type ConversationStyle = 'direct' | 'suggestive' | 'educational' | 'creative';
+
+const CONVERSATION_STYLES: { value: ConversationStyle; label: string; description: string; icon: typeof Zap }[] = [
+  { value: 'direct', label: 'Direct', description: 'Concise, straight-to-the-point answers', icon: Zap },
+  { value: 'suggestive', label: 'Suggestions', description: 'Offers ideas and alternatives', icon: Lightbulb },
+  { value: 'educational', label: 'Educational', description: 'Detailed explanations with context', icon: GraduationCap },
+  { value: 'creative', label: 'Creative', description: 'Exploratory and imaginative responses', icon: MessageSquare },
+];
 
 interface NavLink {
   type: 'brand' | 'product' | 'event';
@@ -131,6 +150,7 @@ export const BrandAssistant = ({
   const [language, setLanguage] = useState('en_US');
   const [hasPersona, setHasPersona] = useState(false);
   const [pastConversationCount, setPastConversationCount] = useState(0);
+  const [conversationStyle, setConversationStyle] = useState<ConversationStyle>('direct');
   
   // Voice state
   const [isListening, setIsListening] = useState(false);
@@ -429,6 +449,7 @@ export const BrandAssistant = ({
           message: text,
           conversation_id: conversationId,
           language_code: language,
+          conversation_style: conversationStyle,
         }
       });
 
@@ -492,6 +513,7 @@ export const BrandAssistant = ({
           message: userMessage.content,
           conversation_id: conversationId,
           language_code: language,
+          conversation_style: conversationStyle,
         }
       });
 
@@ -698,15 +720,62 @@ export const BrandAssistant = ({
             </Button>
           </div>
 
-          {/* Dictation toggle */}
-          <div className="flex items-center gap-2.5 mt-4 bg-muted/50 rounded-full px-4 py-2">
-            <Mic className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground">Live Dictation</span>
-            <Switch
-              checked={dictationEnabled}
-              onCheckedChange={toggleDictation}
-              className="scale-90"
-            />
+          {/* Dictation & Style Controls */}
+          <div className="flex items-center gap-3 mt-4">
+            <div className="flex items-center gap-2.5 bg-muted/50 rounded-full px-4 py-2">
+              <Mic className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">Live Dictation</span>
+              <Switch
+                checked={dictationEnabled}
+                onCheckedChange={toggleDictation}
+                className="scale-90"
+              />
+            </div>
+
+            {/* Conversation Style Picker */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full h-9 px-3 gap-1.5 border-border/60"
+                >
+                  {(() => {
+                    const style = CONVERSATION_STYLES.find(s => s.value === conversationStyle);
+                    const Icon = style?.icon || Zap;
+                    return <Icon className="h-3.5 w-3.5" />;
+                  })()}
+                  <span className="text-xs">{CONVERSATION_STYLES.find(s => s.value === conversationStyle)?.label}</span>
+                  <Settings2 className="h-3 w-3 text-muted-foreground" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2" align="center">
+                <p className="text-xs font-medium text-muted-foreground px-2 pb-2">Conversation Style</p>
+                <div className="space-y-1">
+                  {CONVERSATION_STYLES.map(style => {
+                    const Icon = style.icon;
+                    const isSelected = conversationStyle === style.value;
+                    return (
+                      <button
+                        key={style.value}
+                        onClick={() => setConversationStyle(style.value)}
+                        className={`w-full flex items-start gap-3 rounded-md px-3 py-2.5 text-left transition-colors ${
+                          isSelected
+                            ? 'bg-primary/10 border border-primary/20'
+                            : 'hover:bg-muted/80 border border-transparent'
+                        }`}
+                      >
+                        <Icon className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <div>
+                          <p className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-foreground'}`}>{style.label}</p>
+                          <p className="text-[11px] text-muted-foreground">{style.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {pastConversationCount > 1 && (
