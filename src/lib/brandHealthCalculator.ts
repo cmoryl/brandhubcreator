@@ -117,6 +117,20 @@ export interface HealthScoreResult {
 type GuideData = Record<string, unknown>;
 
 /**
+ * Supplementary counts from external data sources (DB tables).
+ * These boost section completeness for sections that aggregate data
+ * beyond what's stored in guide_data.
+ */
+export interface ExternalSectionCounts {
+  /** Total automated insight items from competitive reports, brand intelligence, compliance, bias, social, etc. */
+  insightSourceCount?: number;
+  /** Count of PDF documents from pdf_documents table */
+  pdfDocumentCount?: number;
+  /** Any additional section → count overrides */
+  [sectionKey: string]: number | undefined;
+}
+
+/**
  * Safely get an array from guide_data, returns [] if not an array
  */
 function safeArray(data: unknown): unknown[] {
@@ -151,7 +165,8 @@ function scoreArray(arr: unknown[], thresholds: [number, number] = [2, 3]): numb
  */
 function calculateSectionCompleteness(
   guideData: GuideData,
-  section: string
+  section: string,
+  externalCounts?: ExternalSectionCounts
 ): number {
   switch (section) {
     // ─── Core Identity ───
@@ -344,7 +359,6 @@ function calculateSectionCompleteness(
     case 'displayBanners':
     case 'caseStudies':
     case 'webinars':
-    case 'insights':
     case 'clientLogos':
     case 'sponsorLogos':
     case 'linkedGuides':
@@ -356,7 +370,16 @@ function calculateSectionCompleteness(
       return scoreArray(arr);
     }
 
-    // ─── Event Signage (depth: check previews + dimensions) ───
+    // ─── Insights & Updates (aggregates manual entries + automated external sources) ───
+    case 'insights': {
+      const manualInsights = safeArray(guideData.insights);
+      const externalCount = externalCounts?.insightSourceCount ?? 0;
+      const totalItems = manualInsights.length + externalCount;
+      if (totalItems === 0) return 0;
+      if (totalItems >= 3) return 1;
+      if (totalItems >= 2) return 0.7;
+      return 0.4;
+    }
     case 'eventSignage': {
       const signageArr = safeArray(guideData.eventSignage);
       const linkedBooths = safeArray(guideData.linkedBooths);
@@ -713,7 +736,8 @@ export function calculateBrandHealth(
   guideData: GuideData | null | undefined,
   hiddenSections?: string[] | null,
   entityType?: 'brand' | 'product' | 'event',
-  sectionOrder?: string[] | null
+  sectionOrder?: string[] | null,
+  externalCounts?: ExternalSectionCounts
 ): HealthScoreResult {
   // Build the set of WEIGHT keys that correspond to hidden SectionIds
   const hiddenWeightKeys = new Set(
@@ -761,7 +785,7 @@ export function calculateBrandHealth(
 
   // Calculate each section's score (skip hidden sections)
   for (const [section, config] of activeSections) {
-    const completeness = calculateSectionCompleteness(guideData, section);
+    const completeness = calculateSectionCompleteness(guideData, section, externalCounts);
     const earned = config.weight * completeness;
     const filled = completeness > 0;
 

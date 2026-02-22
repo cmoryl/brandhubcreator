@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { normalizeBrandGuide } from '@/lib/guideNormalization';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
+import { useExternalSectionCounts } from '@/hooks/useExternalSectionCounts';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { useBrands } from '@/contexts/BrandContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -471,12 +472,15 @@ const BrandEditor = () => {
   );
   const pageSettings = brand?.pageSettings || DEFAULT_PAGE_SETTINGS;
 
+  // External insight source counts for accurate health scoring
+  const externalCounts = useExternalSectionCounts(brand?.id, 'brand');
+
   // Calculate brand health for card view
   const cardViewHealthScore = useMemo(() => {
     if (!brand) return undefined;
-    const health = calculateBrandHealth(brand as unknown as Record<string, unknown>, hiddenSections, 'brand', sectionOrder);
+    const health = calculateBrandHealth(brand as unknown as Record<string, unknown>, hiddenSections, 'brand', sectionOrder, externalCounts);
     return health.overallScore;
-  }, [brand, hiddenSections, sectionOrder]);
+  }, [brand, hiddenSections, sectionOrder, externalCounts]);
 
   // Continuous bias monitoring — triggers scan on content changes
   // MUST be called before any early returns to respect Rules of Hooks

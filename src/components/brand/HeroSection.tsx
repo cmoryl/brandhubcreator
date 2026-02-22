@@ -16,6 +16,7 @@ import { GradientSpheresHero } from '@/components/backgrounds/GradientSpheresHer
 import { ImageOrbsHero } from '@/components/backgrounds/ImageOrbsHero';
 import { ImagePanelsHero } from '@/components/backgrounds/ImagePanelsHero';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
+import { useExternalSectionCounts } from '@/hooks/useExternalSectionCounts';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { cn } from '@/lib/utils';
 import { ComplianceScoreBadge } from '@/components/dataforce/ComplianceScoreBadge';
@@ -88,10 +89,13 @@ export const HeroSection = ({
     entityId: entityId || (guideData?.id as string) 
   });
 
+  // Fetch external insight source counts for accurate health scoring
+  const externalCounts = useExternalSectionCounts(entityId, entityType);
+
   // Calculate real health score from guide_data (excluding hidden sections)
   const calculatedHealth = useMemo(() => {
-    return calculateBrandHealth(guideData, hiddenSections, entityType, sectionOrder);
-  }, [guideData, hiddenSections, entityType, sectionOrder]);
+    return calculateBrandHealth(guideData, hiddenSections, entityType, sectionOrder, externalCounts);
+  }, [guideData, hiddenSections, entityType, sectionOrder, externalCounts]);
 
   // Use calculated health score if guideData provided, otherwise fall back to stats prop
   const displayStats: HeroStats = useMemo(() => {
