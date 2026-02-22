@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Languages, MapPin, Zap } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Lock, Shield, LogOut, Star, Brain, FileText, Building2, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Languages, MapPin, Zap, Bot } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { SectionId, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS, BrandPageSettings, BrandGuide } from '@/types/brand';
@@ -114,6 +114,7 @@ const BRAND_SLUG_ALIASES: Record<string, string> = {
 const CompetitiveReportCardLazy = lazy(() =>
   import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
 );
+const BrandAssistant = lazy(() => import('@/components/dataforce/BrandAssistant').then(m => ({ default: m.BrandAssistant })));
 
 const BrandEditor = () => {
   const { brandSlug } = useParams<{ brandSlug: string }>();
@@ -144,6 +145,8 @@ const BrandEditor = () => {
   const [parentBrand, setParentBrand] = useState<{ id: string; name: string; slug: string } | null>(null);
   // Favorites filter state
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  // Brand Assistant state
+  const [assistantOpen, setAssistantOpen] = useState(false);
 
   // Redirect unapproved users to pending approval page (admins are always allowed)
   useEffect(() => {
@@ -1347,6 +1350,28 @@ const BrandEditor = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Brand Assistant Floating Button */}
+      {canEdit && (
+        <>
+          <Button
+            onClick={() => setAssistantOpen(true)}
+            className="fixed bottom-6 left-6 z-50 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground p-0"
+            aria-label="Open Brand Assistant"
+          >
+            <Bot className="h-5 w-5" />
+          </Button>
+          <Suspense fallback={null}>
+            <BrandAssistant
+              open={assistantOpen}
+              onOpenChange={setAssistantOpen}
+              entityType="brand"
+              entityId={brand.id}
+              entityName={brand.hero.name}
+            />
+          </Suspense>
+        </>
+      )}
     </TooltipProvider>
   );
 };
