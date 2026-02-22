@@ -259,11 +259,22 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     onAssetsChange(assets.filter(a => a.id !== id));
   };
 
-  const downloadAsset = (asset: BrandAsset) => {
-    const link = document.createElement('a');
-    link.href = asset.url;
-    link.download = asset.name;
-    link.click();
+  const downloadAsset = async (asset: BrandAsset) => {
+    try {
+      const response = await fetch(asset.url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = asset.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      // Fallback: open in new tab if fetch fails
+      window.open(asset.url, '_blank');
+    }
   };
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
