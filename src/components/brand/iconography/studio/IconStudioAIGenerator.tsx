@@ -356,17 +356,25 @@ export const IconStudioAIGenerator = ({
         i === sectionIndex ? { ...s, status: 'generating' } : s
       ));
 
-      const response = await supabase.functions.invoke('generate-icon-set', {
-        body: { 
-          entityName, 
-          industry: industry || undefined, 
-          category: selectedCategory,
-          sectionIndex,
-          style: iconStyle,
-          preset: selectedPreset,
-          customCount: sections[sectionIndex]?.count,
-        },
-      });
+      // Add timeout to prevent hanging forever if edge function doesn't respond
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Generation timed out. Please try again with fewer icons.')), 120000)
+      );
+
+      const response = await Promise.race([
+        supabase.functions.invoke('generate-icon-set', {
+          body: { 
+            entityName, 
+            industry: industry || undefined, 
+            category: selectedCategory,
+            sectionIndex,
+            style: iconStyle,
+            preset: selectedPreset,
+            customCount: sections[sectionIndex]?.count,
+          },
+        }),
+        timeoutPromise,
+      ]);
 
       if (response.error) throw new Error(response.error.message);
 
@@ -381,8 +389,9 @@ export const IconStudioAIGenerator = ({
         return true;
       }
       return false;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error generating section ${sectionIndex}:`, error);
+      toast.error(error?.message || 'Failed to generate section');
       setGeneratedSections(prev => prev.map((s, i) => 
         i === sectionIndex ? { ...s, status: 'error' } : s
       ));
