@@ -395,6 +395,7 @@ export interface EventGuide {
   eventBanners: EventBanner[];
   eventDigitalMaterials: EventDigitalMaterial[];
   eventPrintMaterials: EventPrintMaterial[];
+  eventSponsorshipMaterials?: EventPrintMaterial[];
   eventInfographics?: EventInfographic[];
   eventApplications?: EventApplication[];
   eventDigitalAssets?: EventDigitalAsset[];
@@ -516,6 +517,7 @@ export const createDefaultEventGuideData = (name: string): Omit<EventGuide, 'id'
   eventBanners: [],
   eventDigitalMaterials: [],
   eventPrintMaterials: [],
+  eventSponsorshipMaterials: [],
   eventInfographics: [],
   eventApplications: [],
   eventDigitalAssets: [],
