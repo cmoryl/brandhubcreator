@@ -28,6 +28,7 @@ import { useEvents } from '@/contexts/EventContext';
 import { useSEO } from '@/hooks/useSEO';
 import { useStableLoading } from '@/hooks/useStableLoading';
 import { usePortalData, useFilteredPortalData } from '@/hooks/usePortalData';
+import { useRecentEntityViews } from '@/hooks/useRecentEntityViews';
 import { usePortalPagination } from '@/hooks/usePortalPagination';
 import { useLatestComplianceScores } from '@/hooks/dataforce/useLatestComplianceScores';
 import { DEFAULT_PORTAL_SETTINGS } from '@/lib/organization/types';
@@ -112,12 +113,16 @@ const OrganizationPortal = () => {
     searchQuery,
   ]);
 
-  // Use the filtering hook
+  // Get user's recently viewed entities for personalized ordering
+  const { recentEntityIds } = useRecentEntityViews(user?.id, organization?.id);
+
+  // Use the filtering hook with recency-based ordering
   const { filteredBrands, filteredProducts, filteredEvents, totalResults } = useFilteredPortalData(
     brands,
     products,
     events,
-    searchQuery
+    searchQuery,
+    recentEntityIds
   );
 
   // Pagination reset key - changes when search or tab changes
