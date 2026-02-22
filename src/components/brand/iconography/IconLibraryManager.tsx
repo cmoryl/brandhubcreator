@@ -429,37 +429,11 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
         brandColors={brandColors}
         initialTab={iconStudioInitialTab}
         onIconsCreated={(newIcons, libraryId) => {
-          // If a specific library was selected, add to it
-          if (libraryId) {
-            const targetLibrary = libraries.find(l => l.id === libraryId);
-            if (targetLibrary) {
-              updateLibrary.mutate({
-                id: libraryId,
-                updates: {
-                  icons: [...targetLibrary.icons, ...newIcons],
-                },
-              });
-            }
-          } else if (activeLibraryForIcons) {
-            // If there's an active library from the "Add Icons" action, add to it
+          // IconStudio's internal handleSaveIcons already persists to org libraries.
+          // Only handle the special case where "Add Icons" was clicked on a specific library
+          // and the IconStudio didn't have a libraryId target of its own.
+          if (!libraryId && activeLibraryForIcons) {
             handleSaveIcons(newIcons);
-          } else if (coreLibraries.length > 0) {
-            // Add to the first core library by default
-            updateLibrary.mutate({
-              id: coreLibraries[0].id,
-              updates: {
-                icons: [...coreLibraries[0].icons, ...newIcons],
-              },
-            });
-          } else {
-            // Create a new Core library with the generated icons
-            createLibrary.mutate({
-              organization_id: organizationId,
-              name: 'Generated Icons',
-              level: 'core',
-              description: 'AI-generated icon set',
-              icons: newIcons,
-            });
           }
           setActiveLibraryForIcons(null);
         }}

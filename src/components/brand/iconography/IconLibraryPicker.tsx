@@ -130,14 +130,28 @@ export const IconLibraryPicker = ({
     selectedIcons.forEach(iconId => {
       const found = allIcons.find(({ icon }) => icon.id === iconId);
       if (found) {
-        // Convert BrandIconography to BrandIcon format
+        // Build proper SVG content preserving full path data
+        const viewBox = found.icon.viewBox || '0 0 24 24';
+        const isFullSvg = found.icon.svgPath.includes('<');
+        
+        let svgContent: string;
+        if (isFullSvg) {
+          // Full SVG inner content - wrap in complete SVG
+          const sanitized = DOMPurify.sanitize(found.icon.svgPath, {
+            USE_PROFILES: { svg: true, svgFilters: true },
+            FORBID_TAGS: ['script', 'foreignObject'],
+          });
+          svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${sanitized}</svg>`;
+        } else {
+          // Path data only
+          svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="${found.icon.fillMode === 'fill' ? 'currentColor' : 'none'}" stroke="${found.icon.fillMode !== 'fill' ? 'currentColor' : 'none'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${found.icon.svgPath}"/></svg>`;
+        }
+        
         selectedIconData.push({
-          id: crypto.randomUUID(), // New ID for the brand icon
+          id: crypto.randomUUID(),
           name: found.icon.name,
-          url: `data:image/svg+xml,${encodeURIComponent(
-            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${found.icon.viewBox || '0 0 24 24'}" fill="${found.icon.fillMode === 'fill' ? 'currentColor' : 'none'}" stroke="${found.icon.fillMode !== 'fill' ? 'currentColor' : 'none'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${found.icon.svgPath}"/></svg>`
-          )}`,
-          settings: `From ${found.library.name} library`,
+          url: `data:image/svg+xml,${encodeURIComponent(svgContent)}`,
+          settings: `From ${found.library.name} library (${found.library.level})`,
           isPrimary: false,
           isVariation: false,
         });
@@ -149,10 +163,25 @@ export const IconLibraryPicker = ({
   };
 
   const renderIcon = (icon: BrandIconography) => {
+    const viewBox = icon.viewBox || '0 0 24 24';
+    const isFullSvg = icon.svgPath.includes('<');
+
+    if (isFullSvg) {
+      const sanitized = DOMPurify.sanitize(icon.svgPath, {
+        USE_PROFILES: { svg: true, svgFilters: true },
+        FORBID_TAGS: ['script', 'foreignObject'],
+      });
+      return (
+        <svg viewBox={viewBox} className="w-full h-full" fill="currentColor">
+          <g dangerouslySetInnerHTML={{ __html: sanitized }} />
+        </svg>
+      );
+    }
+
     const sanitizedPath = DOMPurify.sanitize(icon.svgPath);
     return (
       <svg
-        viewBox={icon.viewBox || '0 0 24 24'}
+        viewBox={viewBox}
         fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
         stroke={icon.fillMode !== 'fill' ? 'currentColor' : 'none'}
         strokeWidth="2"
