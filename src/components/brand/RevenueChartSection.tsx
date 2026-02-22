@@ -864,9 +864,13 @@ export const RevenueChartSection = ({
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Year Highlights</h3>
                 </div>
                 <ul className="divide-y divide-border">
-                  {selectedYearData.facts.map((fact, i) => (
-                    <li key={i} className="px-4 py-3 text-sm font-medium text-foreground">{fact}</li>
-                  ))}
+                  {(selectedYearData.facts ?? []).length > 0 ? (
+                    (selectedYearData.facts ?? []).map((fact, i) => (
+                      <li key={i} className="px-4 py-3 text-sm font-medium text-foreground">{fact}</li>
+                    ))
+                  ) : (
+                    <li className="px-4 py-3 text-sm text-muted-foreground italic">No highlights recorded</li>
+                  )}
                 </ul>
               </div>
 
