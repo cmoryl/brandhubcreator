@@ -79,7 +79,7 @@ const SECTION_WEIGHTS: Record<string, { weight: number; label: string }> = {
   eventVideos: { weight: 3, label: 'Event Videos' },
   eventLocation: { weight: 4, label: 'Venue & Location' },
   eventWebsites: { weight: 3, label: 'Event Website' },
-  eventBanners: { weight: 2, label: 'Digital Collateral' },
+  eventBanners: { weight: 2, label: 'Social Banners' },
   eventDigitalMaterials: { weight: 3, label: 'Digital Collateral' },
   eventPatterns: { weight: 2, label: 'Event Patterns' },
   subevents: { weight: 3, label: 'Regional Events' },
@@ -88,6 +88,7 @@ const SECTION_WEIGHTS: Record<string, { weight: number; label: string }> = {
   eventPrintMaterials: { weight: 4, label: 'Print Collateral' },
   eventInfographics: { weight: 2, label: 'Event Infographics' },
   eventApplications: { weight: 2, label: 'Event Applications' },
+  eventSponsorshipMaterials: { weight: 3, label: 'Sponsorship Materials' },
   brief: { weight: 3, label: 'Event Brief' },
 };
 
@@ -441,15 +442,22 @@ function calculateSectionCompleteness(
       return 0.4;
     }
 
-    // ─── Event Digital Materials (depth: check preview, template) ───
+    // ─── Event Digital Materials (aggregates all digital collateral sub-tabs) ───
     case 'eventDigitalMaterials': {
+      // The Digital Collateral section aggregates: eventDigitalMaterials, eventBanners,
+      // eventInfographics, eventApplications, eventSponsorshipMaterials
       const digital = safeArray(guideData.eventDigitalMaterials);
-      if (digital.length === 0) return 0;
-      const withPreview = digital.filter((d: any) => d?.previewUrl).length;
-      const withTemplate = digital.filter((d: any) => d?.templateUrl).length;
-      const depth = (withPreview / digital.length) * 0.5 + (withTemplate / digital.length) * 0.5;
-      if (digital.length >= 3 && depth >= 0.5) return 1;
-      if (digital.length >= 2) return 0.7;
+      const banners = safeArray(guideData.eventBanners);
+      const infographics = safeArray(guideData.eventInfographics);
+      const apps = safeArray(guideData.eventApplications);
+      const sponsorship = safeArray(guideData.eventSponsorshipMaterials);
+      const totalItems = digital.length + banners.length + infographics.length + apps.length + sponsorship.length;
+      if (totalItems === 0) return 0;
+      // Count how many sub-tabs have content (breadth)
+      const activeTabs = [digital, banners, infographics, apps, sponsorship].filter(a => a.length > 0).length;
+      if (totalItems >= 5 && activeTabs >= 3) return 1;
+      if (totalItems >= 3 && activeTabs >= 2) return 0.8;
+      if (totalItems >= 2) return 0.6;
       return 0.4;
     }
 
@@ -527,11 +535,69 @@ function calculateSectionCompleteness(
 
     // ─── Shared Assets & remaining simple arrays ───
     case 'sharedAssets':
-    case 'eventInfographics':
-    case 'eventApplications':
     case 'assets': {
       const arr = safeArray(guideData[section]);
       return scoreArray(arr);
+    }
+
+    // ─── Event Speakers (depth: check bio, role, photo) ───
+    case 'eventSpeakers': {
+      const speakers = safeArray(guideData.eventSpeakers);
+      if (speakers.length === 0) return 0;
+      const withPhoto = speakers.filter((s: any) => s?.imageUrl || s?.photoUrl).length;
+      const withBio = speakers.filter((s: any) => s?.bio).length;
+      const withRole = speakers.filter((s: any) => s?.role || s?.title || s?.company).length;
+      const depth = (withPhoto / speakers.length) * 0.3 + (withBio / speakers.length) * 0.3 + (withRole / speakers.length) * 0.4;
+      if (speakers.length >= 4 && depth >= 0.6) return 1;
+      if (speakers.length >= 2 && depth >= 0.3) return 0.7;
+      if (speakers.length >= 1) return 0.4;
+      return 0;
+    }
+
+    // ─── Event Location (depth: check venue, address, coordinates) ───
+    case 'eventLocation': {
+      const loc = guideData.eventLocation as Record<string, unknown> | undefined;
+      if (!loc) return 0;
+      const fields = ['venueName', 'address', 'city', 'country', 'latitude', 'longitude', 'description', 'mapUrl'];
+      const filled = countFilledFields(loc, fields);
+      if (filled >= 4) return 1;
+      if (filled >= 2) return 0.6;
+      if (filled >= 1) return 0.3;
+      return 0;
+    }
+
+    // ─── Event Sponsorship Materials (depth: check preview, file) ───
+    case 'eventSponsorshipMaterials': {
+      const mats = safeArray(guideData.eventSponsorshipMaterials);
+      if (mats.length === 0) return 0;
+      const withPreview = mats.filter((m: any) => m?.previewUrl).length;
+      const withFile = mats.filter((m: any) => m?.fileUrl || m?.liveFileUrl).length;
+      const depth = (withPreview / mats.length) * 0.5 + (withFile / mats.length) * 0.5;
+      if (mats.length >= 3 && depth >= 0.5) return 1;
+      if (mats.length >= 1) return 0.5;
+      return 0.3;
+    }
+
+    // ─── Event Infographics ───
+    case 'eventInfographics': {
+      const infos = safeArray(guideData.eventInfographics);
+      if (infos.length === 0) return 0;
+      const withPreview = infos.filter((i: any) => i?.previewUrl || i?.imageUrl).length;
+      const depth = infos.length > 0 ? withPreview / infos.length : 0;
+      if (infos.length >= 2 && depth >= 0.5) return 1;
+      if (infos.length >= 1) return 0.5;
+      return 0.3;
+    }
+
+    // ─── Event Applications ───
+    case 'eventApplications': {
+      const apps = safeArray(guideData.eventApplications);
+      if (apps.length === 0) return 0;
+      const withPreview = apps.filter((a: any) => a?.previewUrl || a?.screenshotUrl).length;
+      const depth = apps.length > 0 ? withPreview / apps.length : 0;
+      if (apps.length >= 2 && depth >= 0.5) return 1;
+      if (apps.length >= 1) return 0.5;
+      return 0.3;
     }
 
     // ─── Event Details (depth: check key fields) ───
@@ -623,7 +689,8 @@ const EVENT_ONLY_SECTIONS = new Set([
   'eventDetails', 'eventLogos', 'eventSchedule', 'eventSpeakers', 'eventSponsors',
   'eventHistory', 'eventVideos', 'eventLocation', 'eventWebsites', 'eventBanners',
   'eventDigitalMaterials', 'eventPatterns', 'subevents', 'sharedAssets', 'partnerBooths',
-  'eventSignage', 'eventPrintMaterials', 'eventInfographics', 'eventApplications', 'brief',
+  'eventSignage', 'eventPrintMaterials', 'eventInfographics', 'eventApplications',
+  'eventSponsorshipMaterials', 'brief',
 ]);
 
 // Sections that only apply to brands/products (excluded from event scoring)
@@ -631,7 +698,7 @@ const BRAND_ONLY_SECTIONS = new Set([
   'webinars', 'locations', 'revenueData', 'customShapes',
   'websites', 'signatures', 'qr', 'displayBanners', 'caseStudies',
   'emailBanners', 'statistics', 'iconography', 'socialIcons', 'brandIcons',
-  'templates', 'presentationTemplates', 'brochures',
+  'templates', 'brochures',
 ]);
 
 /**
@@ -725,7 +792,7 @@ export function calculateBrandHealth(
     // Event-specific categories (only score if sections exist in guide)
     { name: 'Event Core', sections: ['eventDetails', 'eventLocation', 'eventSchedule', 'eventSpeakers', 'subevents'] },
     { name: 'Event Branding', sections: ['eventLogos', 'eventBanners', 'eventDigitalMaterials', 'eventPrintMaterials', 'eventPatterns', 'eventVideos', 'eventWebsites', 'eventInfographics'] },
-    { name: 'Event Partners', sections: ['eventSponsors', 'partnerBooths', 'sharedAssets', 'eventHistory', 'eventApplications'] },
+    { name: 'Event Partners', sections: ['eventSponsors', 'partnerBooths', 'sharedAssets', 'eventHistory', 'eventApplications', 'eventSponsorshipMaterials'] },
     { name: 'Event Planning', sections: ['brief'] },
   ];
 
