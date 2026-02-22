@@ -350,44 +350,69 @@ export const IconStudioAIGenerator = ({
     });
   }, [iconOptimizer]);
 
+  const pollJobStatus = useCallback(async (jobId: string, sectionIndex: number): Promise<boolean> => {
+    const maxAttempts = 90; // 3 minutes max (2s intervals)
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-icon-set', {
+          body: { jobId },
+        });
+        
+        if (error) throw new Error(error.message);
+        
+        if (data?.status === 'completed' && data?.icons) {
+          const processedIcons = postProcessIcons(data.icons);
+          setGeneratedSections(prev => prev.map((s, i) => 
+            i === sectionIndex ? { ...s, icons: processedIcons, status: 'complete' } : s
+          ));
+          setExpandedSections(prev => new Set([...prev, sections[sectionIndex].name]));
+          return true;
+        }
+        
+        if (data?.status === 'failed') {
+          throw new Error(data.error || 'Generation failed');
+        }
+        
+        // Still processing — continue polling
+      } catch (pollError: any) {
+        console.error(`Polling error for job ${jobId}:`, pollError);
+        throw pollError;
+      }
+    }
+    throw new Error('Generation timed out after 3 minutes. Please try again.');
+  }, [postProcessIcons, sections]);
+
   const generateSection = useCallback(async (sectionIndex: number): Promise<boolean> => {
     try {
       setGeneratedSections(prev => prev.map((s, i) => 
         i === sectionIndex ? { ...s, status: 'generating' } : s
       ));
 
-      // Add timeout to prevent hanging forever if edge function doesn't respond
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Generation timed out. Please try again with fewer icons.')), 120000)
-      );
+      // Start generation job
+      const { data, error } = await supabase.functions.invoke('generate-icon-set', {
+        body: { 
+          entityName, 
+          industry: industry || undefined, 
+          category: selectedCategory,
+          sectionIndex,
+          style: iconStyle,
+          preset: selectedPreset,
+          customCount: sections[sectionIndex]?.count,
+        },
+      });
 
-      const response = await Promise.race([
-        supabase.functions.invoke('generate-icon-set', {
-          body: { 
-            entityName, 
-            industry: industry || undefined, 
-            category: selectedCategory,
-            sectionIndex,
-            style: iconStyle,
-            preset: selectedPreset,
-            customCount: sections[sectionIndex]?.count,
-          },
-        }),
-        timeoutPromise,
-      ]);
+      if (error) throw new Error(error.message);
 
-      if (response.error) throw new Error(response.error.message);
-
-      if (response.data?.icons) {
-        // Apply Layer 2 & 3 post-processing
-        const processedIcons = postProcessIcons(response.data.icons);
-        
-        setGeneratedSections(prev => prev.map((s, i) => 
-          i === sectionIndex ? { ...s, icons: processedIcons, status: 'complete' } : s
-        ));
-        setExpandedSections(prev => new Set([...prev, sections[sectionIndex].name]));
-        return true;
+      if (data?.jobId) {
+        // Poll for results
+        return await pollJobStatus(data.jobId, sectionIndex);
       }
+
+      // Direct response (e.g. "complete" signal when all sections done)
+      if (data?.complete) return true;
+      
       return false;
     } catch (error: any) {
       console.error(`Error generating section ${sectionIndex}:`, error);
@@ -397,7 +422,7 @@ export const IconStudioAIGenerator = ({
       ));
       return false;
     }
-  }, [entityName, industry, selectedCategory, iconStyle, selectedPreset, sections, postProcessIcons]);
+  }, [entityName, industry, selectedCategory, iconStyle, selectedPreset, sections, pollJobStatus]);
 
   const generateCategory = async () => {
     if (!entityName.trim()) {
