@@ -168,6 +168,12 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 }
 
 function OracleOverview({ intelligence }: { intelligence: OracleIntelligence | null }) {
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (key: string) => {
+    setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
   if (!intelligence?.org_summary) {
     return (
       <Card>
@@ -184,132 +190,305 @@ function OracleOverview({ intelligence }: { intelligence: OracleIntelligence | n
   const voice = intelligence.unified_voice_profile || {};
   const audience = intelligence.unified_audience_map || {};
   const competitive = intelligence.competitive_overview || {};
+  const cultural = intelligence.cultural_readiness || {};
+  const portfolio = intelligence.portfolio_analysis || {};
+  const market = intelligence.market_landscape || {};
+  const recs = Array.isArray(intelligence.strategic_recommendations) ? intelligence.strategic_recommendations : [];
+
+  const hasPatterns = Object.keys(patterns).length > 0;
+  const hasVoice = voice.primary_tone || voice.communication_style;
+  const hasAudience = audience.primary_segment;
+  const hasCompetitive = competitive.market_position;
+  const hasCultural = cultural.overall_score != null;
+  const hasPortfolio = portfolio.synergies || portfolio.gaps || portfolio.conflicts || portfolio.recommendations;
+  const hasMarket = market.overall_position;
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {/* Org Summary */}
-      <Card className="md:col-span-2">
+    <div className="space-y-4">
+      {/* Org Summary — Full Width Hero */}
+      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" /> Organization Summary
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-foreground leading-relaxed">{intelligence.org_summary}</p>
-          {intelligence.last_synthesis_at && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Last synthesized: {new Date(intelligence.last_synthesis_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        <CardContent className="space-y-3">
+          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{intelligence.org_summary}</p>
+          <div className="flex items-center justify-between pt-2 border-t border-border/50">
+            <p className="text-xs text-muted-foreground">
+              {intelligence.last_synthesis_at &&
+                `Last synthesized: ${new Date(intelligence.last_synthesis_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+              }
             </p>
-          )}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Badge variant="secondary" className="text-[10px]">{intelligence.synthesis_count} syntheses</Badge>
+              <Badge variant="secondary" className="text-[10px]">{intelligence.entity_brain_count} entity brains</Badge>
+              <Badge variant="secondary" className="text-[10px]">{intelligence.knowledge_entry_count} knowledge entries</Badge>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Cross-Entity Patterns */}
-      {Object.keys(patterns).length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" /> Cross-Entity Patterns
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {patterns.voice_consistency && (
-              <PatternRow label="Voice Consistency" value={patterns.voice_consistency} />
-            )}
-            {patterns.audience_overlap && (
-              <PatternRow label="Audience Overlap" value={patterns.audience_overlap} />
-            )}
-            {patterns.visual_coherence && (
-              <PatternRow label="Visual Coherence" value={patterns.visual_coherence} />
-            )}
-            {patterns.messaging_alignment && (
-              <PatternRow label="Messaging Alignment" value={patterns.messaging_alignment} />
-            )}
-          </CardContent>
-        </Card>
+      {/* Strategic Recommendations — Inline if available */}
+      {recs.length > 0 && (
+        <ExpandableSection
+          title="Strategic Recommendations"
+          icon={<Lightbulb className="h-4 w-4 text-primary" />}
+          badge={`${recs.length}`}
+          expanded={expandedSections['recs']}
+          onToggle={() => toggleSection('recs')}
+        >
+          <div className="space-y-2">
+            {recs.map((rec: any, i: number) => (
+              <div key={i} className="flex items-start gap-2 p-2.5 rounded-lg border bg-card/60">
+                <Badge className={cn(
+                  "text-[10px] shrink-0 mt-0.5",
+                  rec.priority === 'high' ? 'bg-red-500/10 text-red-500' :
+                  rec.priority === 'medium' ? 'bg-amber-500/10 text-amber-500' :
+                  'bg-emerald-500/10 text-emerald-500'
+                )}>
+                  {rec.priority}
+                </Badge>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{rec.recommendation}</p>
+                  {rec.rationale && <p className="text-xs text-muted-foreground mt-0.5">{rec.rationale}</p>}
+                  {rec.impact && <p className="text-xs text-primary mt-0.5">Impact: {rec.impact}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ExpandableSection>
       )}
 
-      {/* Unified Voice */}
-      {voice.primary_tone && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-primary" /> Unified Voice Profile
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-foreground mb-2">{voice.communication_style}</p>
-            <div className="flex flex-wrap gap-1.5">
-              <Badge variant="default" className="text-xs">{voice.primary_tone}</Badge>
-              {Array.isArray(voice.secondary_tones) && voice.secondary_tones.map((t: string, i: number) => (
-                <Badge key={i} variant="secondary" className="text-xs">{t}</Badge>
-              ))}
-              {Array.isArray(voice.personality_traits) && voice.personality_traits.map((t: string, i: number) => (
-                <Badge key={`p-${i}`} variant="outline" className="text-xs">{t}</Badge>
-              ))}
+      {/* Detail Grid */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Cultural Readiness — always show if score exists */}
+        <ExpandableSection
+          title="Cultural Readiness"
+          icon={<Globe2 className="h-4 w-4 text-primary" />}
+          badge={hasCultural ? `${cultural.overall_score}%` : undefined}
+          badgeColor={hasCultural ? (cultural.overall_score >= 70 ? 'text-emerald-500' : cultural.overall_score >= 40 ? 'text-amber-500' : 'text-red-500') : undefined}
+          expanded={expandedSections['cultural']}
+          onToggle={() => toggleSection('cultural')}
+          empty={!hasCultural}
+        >
+          {hasCultural && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Progress value={cultural.overall_score} className="flex-1" />
+                <span className={cn(
+                  "text-sm font-bold",
+                  cultural.overall_score >= 70 ? "text-emerald-500" :
+                  cultural.overall_score >= 40 ? "text-amber-500" : "text-red-500"
+                )}>
+                  {cultural.overall_score}%
+                </span>
+              </div>
+              {/* Sub-dimensions */}
+              {cultural.photography_strategy && Object.keys(cultural.photography_strategy).length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Photography Strategy</p>
+                  {Object.entries(cultural.photography_strategy).map(([key, val]: [string, any]) => (
+                    val && <p key={key} className="text-xs text-foreground ml-2">• {key.replace(/_/g, ' ')}: {typeof val === 'string' ? val : JSON.stringify(val)}</p>
+                  ))}
+                </div>
+              )}
+              {cultural.persona_design_maturity && Object.keys(cultural.persona_design_maturity).length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Persona Design Maturity</p>
+                  {Object.entries(cultural.persona_design_maturity).map(([key, val]: [string, any]) => (
+                    val && <p key={key} className="text-xs text-foreground ml-2">• {key.replace(/_/g, ' ')}: {typeof val === 'string' ? val : JSON.stringify(val)}</p>
+                  ))}
+                </div>
+              )}
+              <PortfolioList title="Strongest Markets" items={cultural.strongest_markets} color="text-emerald-500" />
+              <PortfolioList title="Expansion Opportunities" items={cultural.expansion_opportunities} color="text-primary" />
+              <PortfolioList title="Localization Gaps" items={cultural.localization_gaps} color="text-amber-500" />
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </ExpandableSection>
 
-      {/* Audience Map */}
-      {audience.primary_segment && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" /> Unified Audience Map
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm"><span className="font-medium">Primary:</span> {audience.primary_segment}</p>
-            {Array.isArray(audience.secondary_segments) && audience.secondary_segments.length > 0 && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Secondary Segments</p>
-                <div className="flex flex-wrap gap-1">
-                  {audience.secondary_segments.map((s: string, i: number) => (
-                    <Badge key={i} variant="secondary" className="text-xs">{s}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-            {Array.isArray(audience.underserved_segments) && audience.underserved_segments.length > 0 && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Underserved</p>
-                <div className="flex flex-wrap gap-1">
-                  {audience.underserved_segments.map((s: string, i: number) => (
-                    <Badge key={i} variant="outline" className="text-xs text-amber-500">{s}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+        {/* Cross-Entity Patterns */}
+        <ExpandableSection
+          title="Cross-Entity Patterns"
+          icon={<TrendingUp className="h-4 w-4 text-primary" />}
+          expanded={expandedSections['patterns']}
+          onToggle={() => toggleSection('patterns')}
+          empty={!hasPatterns}
+        >
+          {hasPatterns && (
+            <div className="space-y-2">
+              {patterns.voice_consistency && <PatternRow label="Voice Consistency" value={patterns.voice_consistency} />}
+              {patterns.audience_overlap && <PatternRow label="Audience Overlap" value={patterns.audience_overlap} />}
+              {patterns.visual_coherence && <PatternRow label="Visual Coherence" value={patterns.visual_coherence} />}
+              {patterns.messaging_alignment && <PatternRow label="Messaging Alignment" value={patterns.messaging_alignment} />}
+              {/* Render any additional keys */}
+              {Object.entries(patterns)
+                .filter(([k]) => !['voice_consistency', 'audience_overlap', 'visual_coherence', 'messaging_alignment'].includes(k))
+                .map(([k, v]) => (
+                  <PatternRow key={k} label={k.replace(/_/g, ' ')} value={String(v)} />
+                ))}
+            </div>
+          )}
+        </ExpandableSection>
 
-      {/* Competitive Overview */}
-      {competitive.market_position && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Target className="h-4 w-4 text-primary" /> Competitive Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm">{competitive.market_position}</p>
-            {competitive.competitive_moat && (
-              <p className="text-sm text-muted-foreground"><span className="font-medium text-foreground">Moat:</span> {competitive.competitive_moat}</p>
-            )}
-            {Array.isArray(competitive.key_competitors) && competitive.key_competitors.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {competitive.key_competitors.map((c: string, i: number) => (
-                  <Badge key={i} variant="outline" className="text-xs">{c}</Badge>
+        {/* Unified Voice */}
+        <ExpandableSection
+          title="Unified Voice Profile"
+          icon={<MessageSquare className="h-4 w-4 text-primary" />}
+          expanded={expandedSections['voice']}
+          onToggle={() => toggleSection('voice')}
+          empty={!hasVoice}
+        >
+          {hasVoice && (
+            <div className="space-y-2">
+              {voice.communication_style && <p className="text-sm text-foreground">{voice.communication_style}</p>}
+              <div className="flex flex-wrap gap-1.5">
+                {voice.primary_tone && <Badge variant="default" className="text-xs">{voice.primary_tone}</Badge>}
+                {Array.isArray(voice.secondary_tones) && voice.secondary_tones.map((t: string, i: number) => (
+                  <Badge key={i} variant="secondary" className="text-xs">{t}</Badge>
+                ))}
+                {Array.isArray(voice.personality_traits) && voice.personality_traits.map((t: string, i: number) => (
+                  <Badge key={`p-${i}`} variant="outline" className="text-xs">{t}</Badge>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+            </div>
+          )}
+        </ExpandableSection>
+
+        {/* Audience Map */}
+        <ExpandableSection
+          title="Unified Audience Map"
+          icon={<Users className="h-4 w-4 text-primary" />}
+          expanded={expandedSections['audience']}
+          onToggle={() => toggleSection('audience')}
+          empty={!hasAudience}
+        >
+          {hasAudience && (
+            <div className="space-y-2">
+              <p className="text-sm"><span className="font-medium">Primary:</span> {audience.primary_segment}</p>
+              {Array.isArray(audience.secondary_segments) && audience.secondary_segments.length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Secondary Segments</p>
+                  <div className="flex flex-wrap gap-1">{audience.secondary_segments.map((s: string, i: number) => (
+                    <Badge key={i} variant="secondary" className="text-xs">{s}</Badge>
+                  ))}</div>
+                </div>
+              )}
+              {Array.isArray(audience.underserved_segments) && audience.underserved_segments.length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Underserved</p>
+                  <div className="flex flex-wrap gap-1">{audience.underserved_segments.map((s: string, i: number) => (
+                    <Badge key={i} variant="outline" className="text-xs text-amber-500">{s}</Badge>
+                  ))}</div>
+                </div>
+              )}
+            </div>
+          )}
+        </ExpandableSection>
+
+        {/* Competitive Overview */}
+        <ExpandableSection
+          title="Competitive Overview"
+          icon={<Target className="h-4 w-4 text-primary" />}
+          expanded={expandedSections['competitive']}
+          onToggle={() => toggleSection('competitive')}
+          empty={!hasCompetitive}
+        >
+          {hasCompetitive && (
+            <div className="space-y-2">
+              <p className="text-sm">{competitive.market_position}</p>
+              {competitive.competitive_moat && (
+                <p className="text-sm text-muted-foreground"><span className="font-medium text-foreground">Moat:</span> {competitive.competitive_moat}</p>
+              )}
+              {Array.isArray(competitive.key_competitors) && competitive.key_competitors.length > 0 && (
+                <div className="flex flex-wrap gap-1">{competitive.key_competitors.map((c: string, i: number) => (
+                  <Badge key={i} variant="outline" className="text-xs">{c}</Badge>
+                ))}</div>
+              )}
+            </div>
+          )}
+        </ExpandableSection>
+
+        {/* Portfolio Analysis */}
+        <ExpandableSection
+          title="Portfolio Analysis"
+          icon={<BarChart3 className="h-4 w-4 text-primary" />}
+          expanded={expandedSections['portfolio']}
+          onToggle={() => toggleSection('portfolio')}
+          empty={!hasPortfolio}
+        >
+          {hasPortfolio && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <PortfolioList title="Synergies" items={portfolio.synergies} color="text-emerald-500" />
+              <PortfolioList title="Gaps" items={portfolio.gaps} color="text-amber-500" />
+              <PortfolioList title="Conflicts" items={portfolio.conflicts} color="text-red-500" />
+              <PortfolioList title="Recommendations" items={portfolio.recommendations} color="text-primary" />
+            </div>
+          )}
+        </ExpandableSection>
+
+        {/* Market Landscape */}
+        <ExpandableSection
+          title="Market Landscape"
+          icon={<TrendingUp className="h-4 w-4 text-primary" />}
+          expanded={expandedSections['market']}
+          onToggle={() => toggleSection('market')}
+          empty={!hasMarket}
+        >
+          {hasMarket && (
+            <div className="space-y-2">
+              <p className="text-sm">{market.overall_position}</p>
+              {market.differentiation && (
+                <p className="text-xs text-muted-foreground">{market.differentiation}</p>
+              )}
+              <PortfolioList title="Opportunities" items={market.market_opportunities} color="text-emerald-500" />
+              <PortfolioList title="Threats" items={market.threats} color="text-red-500" />
+            </div>
+          )}
+        </ExpandableSection>
+      </div>
     </div>
+  );
+}
+
+/** Expandable detail section card */
+function ExpandableSection({
+  title, icon, badge, badgeColor, expanded, onToggle, empty, children
+}: {
+  title: string;
+  icon: React.ReactNode;
+  badge?: string;
+  badgeColor?: string;
+  expanded?: boolean;
+  onToggle: () => void;
+  empty?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card className={cn("transition-all", empty && "opacity-60")}>
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 rounded-t-lg transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className="text-sm font-medium">{title}</span>
+          {badge && (
+            <span className={cn("text-xs font-bold ml-1", badgeColor || "text-primary")}>{badge}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {empty && <span className="text-[10px] text-muted-foreground">No data yet</span>}
+          <Eye className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", expanded && "rotate-180")} />
+        </div>
+      </button>
+      {expanded && !empty && (
+        <CardContent className="pt-0 pb-4">
+          {children}
+        </CardContent>
+      )}
+    </Card>
   );
 }
 
