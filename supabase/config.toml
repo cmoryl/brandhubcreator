@@ -88,3 +88,6 @@ verify_jwt = false
 
 [functions.health-snapshot]
 verify_jwt = false
+
+[functions.portfolio-insights-extractor]
+verify_jwt = false

@@ -3295,6 +3295,95 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_insights: {
+        Row: {
+          applicable_entity_ids: string[] | null
+          applicable_entity_types: string[] | null
+          confidence_score: number | null
+          created_at: string
+          created_by: string | null
+          curb_cut_category: string | null
+          description: string
+          dismissed_by: string | null
+          dismissed_reason: string | null
+          id: string
+          insight_type: string
+          organization_id: string | null
+          propagated_at: string | null
+          propagation_status: string
+          recommendations: Json | null
+          severity: string
+          source_entity_id: string
+          source_entity_name: string
+          source_entity_type: string
+          source_module: string
+          source_scan_id: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          applicable_entity_ids?: string[] | null
+          applicable_entity_types?: string[] | null
+          confidence_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          curb_cut_category?: string | null
+          description: string
+          dismissed_by?: string | null
+          dismissed_reason?: string | null
+          id?: string
+          insight_type?: string
+          organization_id?: string | null
+          propagated_at?: string | null
+          propagation_status?: string
+          recommendations?: Json | null
+          severity?: string
+          source_entity_id: string
+          source_entity_name: string
+          source_entity_type?: string
+          source_module: string
+          source_scan_id?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          applicable_entity_ids?: string[] | null
+          applicable_entity_types?: string[] | null
+          confidence_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          curb_cut_category?: string | null
+          description?: string
+          dismissed_by?: string | null
+          dismissed_reason?: string | null
+          id?: string
+          insight_type?: string
+          organization_id?: string | null
+          propagated_at?: string | null
+          propagation_status?: string
+          recommendations?: Json | null
+          severity?: string
+          source_entity_id?: string
+          source_entity_name?: string
+          source_entity_type?: string
+          source_module?: string
+          source_scan_id?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_insights_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       presentation_templates: {
         Row: {
           card_image_url: string | null

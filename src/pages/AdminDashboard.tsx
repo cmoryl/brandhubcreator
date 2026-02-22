@@ -66,6 +66,7 @@ import { OracleBrainPanel } from '@/components/admin/OracleBrainPanel';
 import { BiasAwarenessAdminPanel } from '@/components/admin/BiasAwarenessAdminPanel';
 import { AccessibilityStandardsPanel } from '@/components/admin/AccessibilityStandardsPanel';
 import { HealthTimelinePanel } from '@/components/admin/HealthTimelinePanel';
+import { PortfolioInsightsPanel } from '@/components/admin/PortfolioInsightsPanel';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -789,6 +790,11 @@ export default function AdminDashboard() {
           {/* Health Timeline Tab */}
           <TabsContent value="health-timeline" className="space-y-6">
             <HealthTimelinePanel />
+          </TabsContent>
+
+          {/* Portfolio Insights Tab */}
+          <TabsContent value="portfolio-insights" className="space-y-6">
+            <PortfolioInsightsPanel />
           </TabsContent>
 
           {/* Bot Management Tab */}
