@@ -313,128 +313,121 @@ export const BrandAssistant = ({
       return;
     }
 
-    // Invalidate any previous session's onend handler before aborting
+    // If already listening with an active instance, do nothing
+    if (recognitionRef.current && isListeningRef.current) {
+      console.log('[Dictation] Already listening, skipping restart');
+      return;
+    }
+
+    // Invalidate any previous session's onend handler
     recognitionSessionRef.current += 1;
     const currentSession = recognitionSessionRef.current;
 
-    // Abort previous instance and release mic
-    const hadPrevious = !!recognitionRef.current;
+    // Clean up previous instance without delay
     if (recognitionRef.current) {
       isListeningRef.current = false;
       try { recognitionRef.current.abort(); } catch {}
       recognitionRef.current = null;
     }
 
-    const createAndStart = () => {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-      recognition.lang = LANG_MAP[language] || 'en-US';
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.lang = LANG_MAP[language] || 'en-US';
 
-      recognition.onaudiostart = () => {
-        console.log('[Dictation] Audio capture started – microphone is active');
-      };
+    recognition.onaudiostart = () => {
+      console.log('[Dictation] Audio capture started – microphone is active');
+    };
 
-      recognition.onspeechstart = () => {
-        console.log('[Dictation] Speech detected');
-      };
+    recognition.onspeechstart = () => {
+      console.log('[Dictation] Speech detected');
+    };
 
-      recognition.onresult = (event: any) => {
-        if (recognitionSessionRef.current !== currentSession) return;
+    recognition.onresult = (event: any) => {
+      if (recognitionSessionRef.current !== currentSession) return;
 
-        let finalTranscript = '';
-        let interim = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interim += transcript;
-          }
-        }
-        
-        setInterimText(interim);
-        
-        if (finalTranscript) {
-          setInterimText('');
-          const trimmed = finalTranscript.trim();
-          if (voiceModeRef.current) {
-            sendVoiceMessage(trimmed);
-          } else {
-            // In dictation mode: auto-send the message directly
-            setInput('');
-            sendMessageRef.current(trimmed);
-          }
-        }
-      };
-
-      recognition.onerror = (event: any) => {
-        if (recognitionSessionRef.current !== currentSession) return;
-
-        console.error('[Dictation] Error:', event.error);
-        if (event.error === 'not-allowed') {
-          toast.error('Microphone permission denied. Please allow access in browser settings.');
-          setIsListening(false);
-          isListeningRef.current = false;
-          setIsVoiceMode(false);
-          voiceModeRef.current = false;
-          setDictationEnabled(false);
-        } else if (event.error === 'no-speech') {
-          // Normal timeout — will auto-restart via onend
-          console.log('[Dictation] No speech detected, will auto-restart');
-        } else if (event.error === 'audio-capture') {
-          toast.error('No microphone detected. Please connect a microphone.');
-          setIsListening(false);
-          isListeningRef.current = false;
-          setDictationEnabled(false);
-        } else if (event.error === 'network') {
-          console.warn('[Dictation] Network error, will retry');
-        } else if (event.error !== 'aborted') {
-          toast.error('Microphone error: ' + event.error);
-        }
-      };
-
-      recognition.onend = () => {
-        if (recognitionSessionRef.current !== currentSession) return;
-
-        if (isListeningRef.current) {
-          setTimeout(() => {
-            if (recognitionSessionRef.current !== currentSession) return;
-            if (!isListeningRef.current) return;
-            try {
-              recognition.start();
-            } catch {
-              setIsListening(false);
-              isListeningRef.current = false;
-            }
-          }, 250);
+      let finalTranscript = '';
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
         } else {
-          setIsListening(false);
+          interim += transcript;
         }
-      };
-
-      recognitionRef.current = recognition;
-      isListeningRef.current = true;
-      setIsListening(true);
-      setInterimText('');
+      }
       
-      try {
-        recognition.start();
-        console.log('[Dictation] Recognition started, lang:', recognition.lang);
-      } catch (e) {
-        console.error('[Dictation] Failed to start:', e);
-        toast.error('Could not start speech recognition. Please try again.');
-        setIsListening(false);
-        isListeningRef.current = false;
+      setInterimText(interim);
+      
+      if (finalTranscript) {
+        setInterimText('');
+        const trimmed = finalTranscript.trim();
+        if (voiceModeRef.current) {
+          sendVoiceMessage(trimmed);
+        } else {
+          // In dictation mode: auto-send the message directly
+          setInput('');
+          sendMessageRef.current(trimmed);
+        }
       }
     };
 
-    // If we had a previous instance, wait for mic release before starting new one
-    if (hadPrevious) {
-      setTimeout(createAndStart, 300);
-    } else {
-      createAndStart();
+    recognition.onerror = (event: any) => {
+      if (recognitionSessionRef.current !== currentSession) return;
+
+      console.error('[Dictation] Error:', event.error);
+      if (event.error === 'not-allowed') {
+        toast.error('Microphone permission denied. Please allow access in browser settings.');
+        setIsListening(false);
+        isListeningRef.current = false;
+        setIsVoiceMode(false);
+        voiceModeRef.current = false;
+        setDictationEnabled(false);
+      } else if (event.error === 'no-speech') {
+        console.log('[Dictation] No speech detected, will auto-restart');
+      } else if (event.error === 'audio-capture') {
+        toast.error('No microphone detected. Please connect a microphone.');
+        setIsListening(false);
+        isListeningRef.current = false;
+        setDictationEnabled(false);
+      } else if (event.error === 'network') {
+        console.warn('[Dictation] Network error, will retry');
+      } else if (event.error !== 'aborted') {
+        toast.error('Microphone error: ' + event.error);
+      }
+    };
+
+    recognition.onend = () => {
+      if (recognitionSessionRef.current !== currentSession) return;
+
+      if (isListeningRef.current) {
+        // Auto-restart: must call start() directly (no setTimeout) to keep gesture chain
+        try {
+          recognition.start();
+          console.log('[Dictation] Auto-restarted after onend');
+        } catch {
+          setIsListening(false);
+          isListeningRef.current = false;
+        }
+      } else {
+        setIsListening(false);
+      }
+    };
+
+    recognitionRef.current = recognition;
+    isListeningRef.current = true;
+    setIsListening(true);
+    setInterimText('');
+    
+    try {
+      recognition.start();
+      console.log('[Dictation] Recognition started, lang:', recognition.lang);
+    } catch (e) {
+      console.error('[Dictation] Failed to start:', e);
+      toast.error('Could not start speech recognition. Please try again.');
+      setIsListening(false);
+      isListeningRef.current = false;
     }
   }, [language]);
 
