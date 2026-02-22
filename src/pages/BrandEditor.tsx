@@ -473,7 +473,9 @@ const BrandEditor = () => {
   const pageSettings = brand?.pageSettings || DEFAULT_PAGE_SETTINGS;
 
   // External insight source counts for accurate health scoring
-  const externalCounts = useExternalSectionCounts(brand?.id, 'brand');
+  // Re-fetch when brand updates (updatedAt changes) for live health meter
+  const brandRefreshTrigger = brand?.updatedAt ? new Date(String(brand.updatedAt)).getTime() : 0;
+  const externalCounts = useExternalSectionCounts(brand?.id, 'brand', brandRefreshTrigger);
 
   // Calculate brand health for card view
   const cardViewHealthScore = useMemo(() => {

@@ -1,23 +1,25 @@
 /**
  * useExternalSectionCounts Hook
- * Fetches counts of automated insight sources from database tables
+ * Fetches counts of automated insight sources AND DB-backed section data
  * to supplement the health calculator's guide_data-only scoring.
  * 
- * Sources counted for Insights & Updates:
- *  - competitive_analysis_reports
- *  - brand_intelligence
- *  - dataforce_compliance_jobs (completed)
- *  - bias_awareness_scans (completed)
- *  - website_analysis_reports
+ * Sources counted:
+ *  - Insights: competitive_analysis_reports, brand_intelligence, compliance, bias, website
+ *  - Presentations: presentation_templates table
+ *  - Social Metrics: social_metrics_snapshots table
+ *  
+ * Accepts an optional `refreshTrigger` (e.g. a timestamp or counter) so that
+ * callers can force a re-fetch after mutations without a full page reload.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { ExternalSectionCounts } from '@/lib/brandHealthCalculator';
 
 export function useExternalSectionCounts(
   entityId: string | undefined,
-  entityType: string = 'brand'
+  entityType: string = 'brand',
+  refreshTrigger?: number
 ): ExternalSectionCounts {
   const [counts, setCounts] = useState<ExternalSectionCounts>({});
 
@@ -32,7 +34,7 @@ export function useExternalSectionCounts(
     (async () => {
       try {
         // Fetch all counts in parallel
-        const [competitive, intelligence, compliance, bias, website] = await Promise.all([
+        const [competitive, intelligence, compliance, bias, website, presentations, socialMetrics] = await Promise.all([
           supabase
             .from('competitive_analysis_reports')
             .select('id', { count: 'exact', head: true })
@@ -55,6 +57,16 @@ export function useExternalSectionCounts(
             .from('website_analysis_reports')
             .select('id', { count: 'exact', head: true })
             .eq('entity_id', entityId),
+          supabase
+            .from('presentation_templates')
+            .select('id', { count: 'exact', head: true })
+            .eq('entity_id', entityId)
+            .eq('entity_type', entityType),
+          supabase
+            .from('social_metrics_snapshots')
+            .select('id', { count: 'exact', head: true })
+            .eq('entity_id', entityId)
+            .eq('entity_type', entityType),
         ]);
 
         if (cancelled) return;
@@ -68,14 +80,18 @@ export function useExternalSectionCounts(
           (website.count ?? 0) > 0 ? 1 : 0,
         ].reduce((sum, v) => sum + v, 0);
 
-        setCounts({ insightSourceCount });
+        setCounts({
+          insightSourceCount,
+          presentationTemplatesCount: presentations.count ?? 0,
+          socialMetricsCount: socialMetrics.count ?? 0,
+        });
       } catch (err) {
         console.error('[useExternalSectionCounts] Error:', err);
       }
     })();
 
     return () => { cancelled = true; };
-  }, [entityId, entityType]);
+  }, [entityId, entityType, refreshTrigger]);
 
   return counts;
 }
