@@ -79,7 +79,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   
   // Resources
   assets: { label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
-  imageassets: { label: 'Image Assets', icon: ImageIcon, category: 'Resources' },
+  imageassets: { label: 'Image Assets', icon: ImageIcon, category: 'hidden' },
   misuse: { label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
   
   // Shared sections (hidden by default for events but available)
@@ -171,6 +171,8 @@ export const EventSidebar = ({
     if ((id === 'casestudies' || id === 'brochures') && sectionOrder.includes('eventdigital')) return false;
     // templates (Master Scaffolds) is deprecated in events - handled within eventdigital
     if (id === 'templates') return false;
+    // imageassets not used in events
+    if (id === 'imageassets') return false;
     return true;
   });
   const displayedSections = isAdmin 
