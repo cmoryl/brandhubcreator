@@ -235,7 +235,7 @@ ${industry ? `- Infuse ${industry} visual language where meaningful (domain-spec
 
 Return ONLY the raw JSON array — no markdown, no backticks, no explanation.`;
 
-    console.log(`[generate-icon-set] Generating ${iconCountForSection} icons: ${category}/${currentSection.name} via gemini-2.5-pro`);
+    console.log(`[generate-icon-set] Generating ${iconCountForSection} icons: ${category}/${currentSection.name} via gemini-2.5-flash`);
 
     // Use tool calling for structured output — far more reliable than freeform JSON
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -245,7 +245,7 @@ Return ONLY the raw JSON array — no markdown, no backticks, no explanation.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: SVG_ARCHITECT_PROMPT },
           { role: "user", content: contextPrompt },
