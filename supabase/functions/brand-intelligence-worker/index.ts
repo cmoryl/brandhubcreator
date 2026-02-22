@@ -258,8 +258,16 @@ ${personaDesignContext}
 ${inclusiveImageryContext}
 ${patientResearchContext}
 ${labToLaunchContext}
-Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''} Return ONLY valid JSON:
-{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[],"localization_priorities":[]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]${eventJsonExtra}${personaJsonExtra}${patientResearchJsonExtra}${labToLaunchJsonExtra}}`;
+Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''}
+
+IMPORTANT — IMAGERY & COLOR CULTURAL ANALYSIS:
+- Assess whether brand photography includes diverse representation across age, ethnicity, gender identity, body type, and disability
+- Provide specific imagery_guidelines for improving multicultural appeal and authentic representation
+- Analyze color choices for cultural sensitivity across target markets (e.g., white=mourning in East Asia, red=luck in China vs danger in Western markets)
+- Provide color_cultural_notes with specific observations about the brand's palette in cross-cultural contexts
+
+Return ONLY valid JSON:
+{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[{"region":"region name","considerations":["up to 3"],"design_adaptations":["up to 3"],"messaging_notes":"1 sentence"}],"localization_priorities":["up to 3"],"color_cultural_notes":["up to 3 notes on color symbolism across cultures"],"imagery_guidelines":["up to 5 specific guidelines for diverse, authentic brand photography"]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]${eventJsonExtra}${personaJsonExtra}${patientResearchJsonExtra}${labToLaunchJsonExtra}}`;
 
     // Text-only analysis — no multimodal to save memory on large brands
     let aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

@@ -1,6 +1,6 @@
 /**
  * CulturalIntelligenceSection - Displays AI-generated cultural awareness data
- * Includes regional considerations, GlobalLink recommendations, and localization readiness
+ * Includes regional considerations, GlobalLink recommendations, diversity & representation, and localization readiness
  */
 
 import React from 'react';
@@ -14,9 +14,12 @@ import {
   Zap,
   ChevronRight,
   AlertCircle,
+  Users,
+  Eye,
+  ShieldCheck,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -40,6 +43,16 @@ interface CulturalInsights {
   imagery_guidelines: string[];
 }
 
+interface InclusiveImagery {
+  diversity_score: number;
+  power_hierarchy_balance: string;
+  trope_risks: string[];
+  representation_gaps: string[];
+  authenticity_score: number;
+  stock_photo_dependency: string;
+  recommendations: string[];
+}
+
 interface GlobalLinkRecommendation {
   product: string;
   relevance: 'high' | 'medium' | 'low';
@@ -50,6 +63,7 @@ interface CulturalIntelligenceSectionProps {
   culturalInsights: CulturalInsights | null | undefined;
   globallinkRecommendations: GlobalLinkRecommendation[] | undefined;
   localizationReadinessScore: number | undefined;
+  inclusiveImagery?: InclusiveImagery | null;
 }
 
 const GLOBALLINK_PRODUCTS: Record<string, { icon: React.ReactNode; color: string; description: string }> = {
@@ -81,12 +95,28 @@ const RELEVANCE_COLORS = {
   low: 'bg-muted text-muted-foreground border-muted',
 };
 
+function getScoreColor(score: number): string {
+  if (score >= 80) return 'text-emerald-600';
+  if (score >= 60) return 'text-amber-600';
+  return 'text-destructive';
+}
+
+function getDependencyBadge(level: string) {
+  const map: Record<string, string> = {
+    low: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
+    medium: 'bg-amber-500/10 text-amber-600 border-amber-500/30',
+    high: 'bg-destructive/10 text-destructive border-destructive/30',
+  };
+  return map[level] || map.medium;
+}
+
 export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionProps> = ({
   culturalInsights,
   globallinkRecommendations,
   localizationReadinessScore,
+  inclusiveImagery,
 }) => {
-  if (!culturalInsights && !globallinkRecommendations?.length) {
+  if (!culturalInsights && !globallinkRecommendations?.length && !inclusiveImagery) {
     return (
       <div className="text-center py-6 text-muted-foreground">
         <Globe2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -104,6 +134,12 @@ export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionPr
   const imageryGuidelines = Array.isArray(culturalInsights?.imagery_guidelines) ? culturalInsights.imagery_guidelines : [];
   const localizationPriorities = Array.isArray(culturalInsights?.localization_priorities) ? culturalInsights.localization_priorities : [];
   const safeRecommendations = Array.isArray(globallinkRecommendations) ? globallinkRecommendations : [];
+
+  // Safe inclusive imagery data
+  const safeImagery = inclusiveImagery || null;
+  const tropeRisks = Array.isArray(safeImagery?.trope_risks) ? safeImagery.trope_risks : [];
+  const representationGaps = Array.isArray(safeImagery?.representation_gaps) ? safeImagery.representation_gaps : [];
+  const imageryRecs = Array.isArray(safeImagery?.recommendations) ? safeImagery.recommendations : [];
 
   return (
     <div className="space-y-4">
@@ -133,6 +169,100 @@ export const CulturalIntelligenceSection: React.FC<CulturalIntelligenceSectionPr
           </p>
         </CardContent>
       </Card>
+
+      {/* Diversity & Representation Card */}
+      {safeImagery && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              Diversity & Representation
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* Score row */}
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div>
+                <p className={`text-lg font-bold ${getScoreColor(safeImagery.diversity_score || 0)}`}>
+                  {safeImagery.diversity_score ?? '—'}
+                </p>
+                <p className="text-xs text-muted-foreground">Diversity</p>
+              </div>
+              <div>
+                <p className={`text-lg font-bold ${getScoreColor(safeImagery.authenticity_score || 0)}`}>
+                  {safeImagery.authenticity_score ?? '—'}
+                </p>
+                <p className="text-xs text-muted-foreground">Authenticity</p>
+              </div>
+              <div>
+                <Badge variant="outline" className={`text-xs capitalize ${getDependencyBadge(safeImagery.stock_photo_dependency || 'medium')}`}>
+                  {safeImagery.stock_photo_dependency || 'unknown'} stock
+                </Badge>
+                <p className="text-xs text-muted-foreground mt-1">Dependency</p>
+              </div>
+            </div>
+
+            {/* Power hierarchy */}
+            {safeImagery.power_hierarchy_balance && (
+              <div className="flex items-center gap-2 text-sm">
+                <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">Power hierarchy:</span>
+                <Badge variant="outline" className={`text-xs capitalize ${
+                  safeImagery.power_hierarchy_balance === 'equal' 
+                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' 
+                    : 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                }`}>
+                  {safeImagery.power_hierarchy_balance}
+                </Badge>
+              </div>
+            )}
+
+            {/* Trope risks */}
+            {tropeRisks.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Trope Risks</p>
+                <ul className="space-y-1">
+                  {tropeRisks.map((risk, i) => (
+                    <li key={i} className="text-sm flex items-start gap-2">
+                      <AlertCircle className="h-3 w-3 text-destructive mt-1 shrink-0" />
+                      {risk}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Representation gaps */}
+            {representationGaps.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Representation Gaps</p>
+                <div className="flex flex-wrap gap-1">
+                  {representationGaps.map((gap, i) => (
+                    <Badge key={i} variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/30">
+                      {gap}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recommendations from inclusive imagery */}
+            {imageryRecs.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Recommendations</p>
+                <ul className="space-y-1">
+                  {imageryRecs.map((rec, i) => (
+                    <li key={i} className="text-sm flex items-start gap-2 text-muted-foreground">
+                      <Eye className="h-3 w-3 mt-1 shrink-0 text-primary" />
+                      {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Primary Markets */}
       {primaryMarkets.length > 0 && (
