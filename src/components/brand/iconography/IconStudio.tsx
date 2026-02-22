@@ -64,6 +64,7 @@ interface IconStudioProps {
 const WIZARD_STEPS: WizardStep[] = [
   { id: 'library', label: 'Library', icon: Library, description: 'Manage icon collections' },
   { id: 'ai-generator', label: 'Generate', icon: Wand2, description: 'AI icon generation' },
+  { id: 'stylizer', label: 'Upload & Convert', icon: ImageIcon, description: 'PNG → SVG conversion' },
   { id: 'colorizer', label: 'Colorize', icon: Paintbrush, description: 'Colors & gradients' },
   { id: 'hierarchy', label: 'Organize', icon: GitBranch, description: 'Brand hierarchy' },
   { id: 'export', label: 'Export', icon: Package, description: 'Batch export' },
@@ -222,6 +223,16 @@ export const IconStudio = ({
             brandColors={brandColors}
             libraries={libraries}
             onSaveIcons={handleSaveIcons}
+          />
+        );
+      case 'stylizer':
+        return (
+          <IconStylizer
+            brandColors={brandColors.map(c => c.hex)}
+            onIconCreated={(icon) => {
+              handleSaveIcons([icon]);
+              setSelectedIcon(icon);
+            }}
           />
         );
       case 'colorizer':
