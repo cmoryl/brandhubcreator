@@ -23,9 +23,18 @@ function dbFetch(supabaseUrl: string, serviceKey: string) {
 
   return {
     async select(table: string, query: string): Promise<any[]> {
-      const res = await fetch(`${base}/${table}?${query}`, { headers });
-      if (!res.ok) throw new Error(`DB select ${table} failed: ${res.status}`);
-      return res.json();
+      try {
+        const res = await fetch(`${base}/${table}?${query}`, { headers });
+        if (!res.ok) {
+          const body = await res.text();
+          console.error(`DB select ${table} failed: ${res.status} ${body}`);
+          return [];
+        }
+        return res.json();
+      } catch (e) {
+        console.error(`DB select ${table} error:`, e);
+        return [];
+      }
     },
     async insert(table: string, body: Record<string, unknown>[]): Promise<any> {
       const res = await fetch(`${base}/${table}`, {
@@ -65,7 +74,7 @@ async function callAI(apiKey: string, systemPrompt: string, userPrompt: string):
         { role: "user", content: userPrompt },
       ],
       temperature: 0.3,
-      max_tokens: 3000,
+      max_tokens: 8000,
     }),
   });
 
@@ -80,17 +89,61 @@ async function callAI(apiKey: string, systemPrompt: string, userPrompt: string):
 
 function parseJsonFromAI(raw: string): any {
   // Strip markdown code fences
-  let cleaned = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+  let cleaned = raw.replace(/```(?:json)?\s*/g, "").replace(/```\s*$/g, "").trim();
+  
+  // Try direct parse
   try {
-    return JSON.parse(cleaned);
-  } catch {
-    // Try to find JSON array
-    const match = cleaned.match(/\[[\s\S]*\]/);
-    if (match) {
-      try { return JSON.parse(match[0]); } catch { /* ignore */ }
+    const parsed = JSON.parse(cleaned);
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && typeof parsed === 'object') {
+      for (const key of Object.keys(parsed)) {
+        if (Array.isArray(parsed[key])) return parsed[key];
+      }
     }
-    return [];
+    return [parsed];
+  } catch { /* continue */ }
+
+  // Extract JSON array
+  const match = cleaned.match(/\[[\s\S]*\]/);
+  if (match) {
+    try { 
+      const arr = JSON.parse(match[0]); 
+      if (Array.isArray(arr)) return arr;
+    } catch { /* continue */ }
   }
+
+  // Handle truncated JSON: find last complete object in array
+  const arrStart = cleaned.indexOf('[');
+  if (arrStart >= 0) {
+    let text = cleaned.substring(arrStart);
+    // Find all complete objects by matching closing braces followed by comma or end
+    const objects: string[] = [];
+    let depth = 0;
+    let objStart = -1;
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === '{') {
+        if (depth === 0) objStart = i;
+        depth++;
+      } else if (text[i] === '}') {
+        depth--;
+        if (depth === 0 && objStart >= 0) {
+          objects.push(text.substring(objStart, i + 1));
+          objStart = -1;
+        }
+      }
+    }
+    if (objects.length > 0) {
+      try {
+        const repaired = '[' + objects.join(',') + ']';
+        const arr = JSON.parse(repaired);
+        console.log(`Recovered ${arr.length} insights from truncated JSON`);
+        return arr;
+      } catch { /* ignore */ }
+    }
+  }
+
+  console.error("Failed to parse AI JSON. First 500 chars:", cleaned.substring(0, 500));
+  return [];
 }
 
 serve(async (req) => {
@@ -258,10 +311,31 @@ Generate 3-8 high-quality insights. Focus on patterns that create the most cross
 
     const userPrompt = `Analyze this organization's data and extract curb-cut insights:\n\n${JSON.stringify(sourceContext, null, 1)}`;
 
+    console.log("Source data counts:", {
+      biasScans: biasScans.length,
+      localization: localizationJobs.length,
+      research: researchBriefings.length,
+      competitive: competitiveReports.length,
+      websites: websiteReports.length,
+      booth: boothAnalyses.length,
+      entities: allEntities.length,
+      existingInsights: existingInsights.length,
+    });
+
+    // Need at least some source data to analyze
+    if (biasScans.length === 0 && researchBriefings.length === 0 && competitiveReports.length === 0 && websiteReports.length === 0) {
+      return new Response(JSON.stringify({ success: true, message: "No source data available for extraction", count: 0 }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const aiResponse = await callAI(lovableApiKey, systemPrompt, userPrompt);
+    console.log("AI response length:", aiResponse.length, "preview:", aiResponse.substring(0, 200));
     const insights = parseJsonFromAI(aiResponse);
+    console.log("Parsed insights count:", Array.isArray(insights) ? insights.length : "NOT_ARRAY", typeof insights);
 
     if (!Array.isArray(insights) || insights.length === 0) {
+      console.log("No insights parsed from AI response");
       return new Response(JSON.stringify({ success: true, message: "No new insights extracted", count: 0 }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -269,8 +343,15 @@ Generate 3-8 high-quality insights. Focus on patterns that create the most cross
 
     // Validate and insert insights
     const validEntityIds = new Set(allEntities.map(e => e.id));
+    console.log("Valid entity IDs count:", validEntityIds.size);
     const insightsToInsert = insights
-      .filter((i: any) => i.title && i.description && !existingTitles.has(i.title?.toLowerCase()))
+      .filter((i: any) => {
+        const hasTitleDesc = i.title && i.description;
+        const isDuplicate = existingTitles.has(i.title?.toLowerCase());
+        if (!hasTitleDesc) console.log("Filtered out insight (no title/desc):", JSON.stringify(i).substring(0, 100));
+        if (isDuplicate) console.log("Filtered out duplicate:", i.title);
+        return hasTitleDesc && !isDuplicate;
+      })
       .map((i: any) => ({
         organization_id: organizationId,
         source_entity_id: validEntityIds.has(i.source_entity_id) ? i.source_entity_id : allEntities[0]?.id,
