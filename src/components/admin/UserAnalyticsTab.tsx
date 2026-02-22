@@ -7,8 +7,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   Users, Eye, Clock, TrendingUp, Activity, BarChart3,
   Download, RefreshCw, Filter, Calendar, ArrowUpRight,
-  Smartphone, Monitor, Tablet, Globe, UserX
+  Smartphone, Monitor, Tablet, Globe, UserX, ExternalLink
 } from 'lucide-react';
+import { UserActivityReportDialog } from './UserActivityReportDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -98,6 +99,7 @@ export function UserAnalyticsTab() {
   const [isLoading, setIsLoading] = useState(false);
   const [externalOnly, setExternalOnly] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState('overview');
+  const [selectedUser, setSelectedUser] = useState<{ userId: string; email: string } | null>(null);
   
   // Use persisted data hook
   const { 
@@ -286,6 +288,7 @@ export function UserAnalyticsTab() {
   }
 
   return (
+    <>
     <div className="space-y-6">
       {/* Header Controls */}
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -573,9 +576,16 @@ export function UserAnalyticsTab() {
                   <TableBody>
                     {userActivity.length > 0 ? (
                       userActivity.map((user) => (
-                        <TableRow key={user.userId}>
+                        <TableRow
+                          key={user.userId}
+                          className="cursor-pointer hover:bg-muted/60 transition-colors"
+                          onClick={() => setSelectedUser({ userId: user.userId, email: user.userEmail })}
+                        >
                           <TableCell>
-                            <div className="font-medium">{user.userEmail}</div>
+                            <div className="font-medium flex items-center gap-1.5">
+                              {user.userEmail}
+                              <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                            </div>
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge variant="secondary">{user.pageViews}</Badge>
@@ -707,5 +717,14 @@ export function UserAnalyticsTab() {
         </TabsContent>
       </Tabs>
     </div>
+
+      {/* Per-User Activity Report Dialog */}
+      <UserActivityReportDialog
+        open={!!selectedUser}
+        onOpenChange={(open) => { if (!open) setSelectedUser(null); }}
+        userId={selectedUser?.userId || ''}
+        userEmail={selectedUser?.email || ''}
+      />
+    </>
   );
 }
