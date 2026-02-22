@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { exportSchedule, ExportFormat } from '@/lib/scheduleExport';
 import { exportScheduleToPdf } from '@/lib/scheduleExportPdf';
+import { PdfTemplateDialog, PdfTemplateConfig } from '@/components/event/PdfTemplateDialog';
 import { importScheduleFromFile, generateSampleCSV, generateSampleExcel, isSupportedImportFile, ImportResult } from '@/lib/scheduleImport';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -211,6 +212,11 @@ export const EventScheduleSection = ({
   const [editingItem, setEditingItem] = useState<EventScheduleItem | null>(null);
   const [expandedDays, setExpandedDays] = useState<string[]>([]);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isPdfTemplateOpen, setIsPdfTemplateOpen] = useState(false);
+  const [pdfTemplate, setPdfTemplate] = useState<PdfTemplateConfig>({
+    useTemplate: false,
+    backgroundOpacity: 0.1,
+  });
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -240,15 +246,21 @@ export const EventScheduleSection = ({
     }
   };
 
-  // PDF Export handler
-  const handlePdfExport = async () => {
+  // PDF Export handler - opens template dialog
+  const handlePdfExportClick = () => {
+    setIsPdfTemplateOpen(true);
+  };
+
+  const handlePdfExportWithTemplate = async (template: PdfTemplateConfig) => {
     setIsExportingPdf(true);
+    setIsPdfTemplateOpen(false);
     try {
       await exportScheduleToPdf(schedule, {
         eventName,
         eventDates,
         eventLocation,
         speakers,
+        template: template.useTemplate ? template : undefined,
       });
       toast.success('Schedule exported as PDF');
     } catch (error) {
@@ -552,7 +564,7 @@ export const EventScheduleSection = ({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
-                  onClick={handlePdfExport} 
+                  onClick={handlePdfExportClick} 
                   className="gap-2 cursor-pointer"
                   disabled={isExportingPdf}
                 >
@@ -842,6 +854,16 @@ export const EventScheduleSection = ({
           </div>
         </div>
       )}
+
+      {/* PDF Template Dialog */}
+      <PdfTemplateDialog
+        open={isPdfTemplateOpen}
+        onOpenChange={setIsPdfTemplateOpen}
+        template={pdfTemplate}
+        onTemplateChange={setPdfTemplate}
+        onExport={handlePdfExportWithTemplate}
+        isExporting={isExportingPdf}
+      />
     </section>
   );
 };
