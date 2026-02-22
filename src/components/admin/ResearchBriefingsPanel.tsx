@@ -2,11 +2,12 @@
  * ResearchBriefingsPanel - Admin dashboard panel for viewing research briefings across all entities
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Microscope, Brain, RefreshCw, Search, Filter, Clock, 
-  TrendingUp, AlertTriangle, Sparkles, ChevronRight, Building2
+  TrendingUp, AlertTriangle, Sparkles, ChevronRight, Building2,
+  Loader2, Zap
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { BrandResearchBriefing } from './BrandResearchBriefing';
+import { ReportEntitySelector } from './ReportEntitySelector';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface BriefingSummary {
   id: string;
@@ -37,6 +40,59 @@ export function ResearchBriefingsPanel() {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedBriefing, setSelectedBriefing] = useState<BriefingSummary | null>(null);
+
+  // Generate briefing state
+  const [generateEntityType, setGenerateEntityType] = useState<'brands' | 'products' | 'events'>('brands');
+  const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
+  const [briefingType, setBriefingType] = useState<'daily' | 'weekly' | 'deep-dive'>('daily');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingEntityId, setGeneratingEntityId] = useState<string | null>(null);
+
+  const entityTypeMap: Record<string, 'brand' | 'product' | 'event'> = {
+    brands: 'brand',
+    products: 'product',
+    events: 'event',
+  };
+
+  const generateBriefingsForSelected = useCallback(async () => {
+    if (selectedEntityIds.length === 0) {
+      toast.error('Select at least one entity');
+      return;
+    }
+    setIsGenerating(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const entityId of selectedEntityIds) {
+      setGeneratingEntityId(entityId);
+      try {
+        const { error } = await supabase.functions.invoke('brand-research', {
+          body: {
+            entityId,
+            entityType: entityTypeMap[generateEntityType],
+            briefingType,
+            focusAreas: [],
+          },
+        });
+        if (error) throw error;
+        successCount++;
+      } catch (err) {
+        console.error(`Failed to generate briefing for ${entityId}:`, err);
+        failCount++;
+      }
+    }
+
+    setIsGenerating(false);
+    setGeneratingEntityId(null);
+
+    if (successCount > 0) {
+      toast.success(`Generated ${successCount} briefing${successCount > 1 ? 's' : ''}`);
+      refetch();
+    }
+    if (failCount > 0) {
+      toast.error(`${failCount} briefing${failCount > 1 ? 's' : ''} failed`);
+    }
+  }, [selectedEntityIds, generateEntityType, briefingType]);
 
   // Fetch all briefings across entities
   const { data: briefings, isLoading, refetch } = useQuery({
@@ -231,6 +287,75 @@ export function ResearchBriefingsPanel() {
         </Card>
       </div>
 
+      {/* Generate Briefing */}
+      <Card className="border-primary/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Zap className="h-4 w-4 text-primary" />
+            Generate Research Briefing
+          </CardTitle>
+          <CardDescription className="text-xs">Select specific entities to generate AI-powered research briefings</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground">Entity Type</label>
+              <Select value={generateEntityType} onValueChange={(v) => { setGenerateEntityType(v as any); setSelectedEntityIds([]); }}>
+                <SelectTrigger className="w-[130px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="brands">Brands</SelectItem>
+                  <SelectItem value="products">Products</SelectItem>
+                  <SelectItem value="events">Events</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground">Select Entities</label>
+              <ReportEntitySelector
+                entityType={generateEntityType}
+                selectedIds={selectedEntityIds}
+                onSelectionChange={setSelectedEntityIds}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground">Briefing Depth</label>
+              <Select value={briefingType} onValueChange={(v) => setBriefingType(v as any)}>
+                <SelectTrigger className="w-[130px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Quick Scan</SelectItem>
+                  <SelectItem value="weekly">Weekly Review</SelectItem>
+                  <SelectItem value="deep-dive">Deep Dive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              onClick={generateBriefingsForSelected}
+              disabled={isGenerating || selectedEntityIds.length === 0}
+              className="gap-2"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating ({selectedEntityIds.indexOf(generatingEntityId!) + 1}/{selectedEntityIds.length})...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4" />
+                  Generate {selectedEntityIds.length > 0 ? `(${selectedEntityIds.length})` : ''}
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Filters */}
       <Card>
         <CardHeader className="pb-3">
@@ -284,7 +409,7 @@ export function ResearchBriefingsPanel() {
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <Microscope className="h-12 w-12 mb-4 opacity-50" />
                 <p className="text-lg font-medium">No research briefings yet</p>
-                <p className="text-sm">Generate briefings from brand, product, or event pages</p>
+                <p className="text-sm">Use the generator above to create briefings for specific entities</p>
               </div>
             ) : (
               <div className="divide-y">
