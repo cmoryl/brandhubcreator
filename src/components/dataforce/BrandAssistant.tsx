@@ -313,19 +313,16 @@ export const BrandAssistant = ({
       return;
     }
 
-    // If already listening with an active instance, do nothing
-    if (recognitionRef.current && isListeningRef.current) {
-      console.log('[Dictation] Already listening, skipping restart');
-      return;
-    }
-
     // Invalidate any previous session's onend handler
     recognitionSessionRef.current += 1;
     const currentSession = recognitionSessionRef.current;
 
-    // Clean up previous instance without delay
+    // Tear down previous instance completely
     if (recognitionRef.current) {
       isListeningRef.current = false;
+      try { recognitionRef.current.onend = null; } catch {}
+      try { recognitionRef.current.onerror = null; } catch {}
+      try { recognitionRef.current.onresult = null; } catch {}
       try { recognitionRef.current.abort(); } catch {}
       recognitionRef.current = null;
     }
@@ -402,7 +399,7 @@ export const BrandAssistant = ({
       if (recognitionSessionRef.current !== currentSession) return;
 
       if (isListeningRef.current) {
-        // Auto-restart: must call start() directly (no setTimeout) to keep gesture chain
+        // Auto-restart directly to preserve gesture chain
         try {
           recognition.start();
           console.log('[Dictation] Auto-restarted after onend');
@@ -420,6 +417,7 @@ export const BrandAssistant = ({
     setIsListening(true);
     setInterimText('');
     
+    // CRITICAL: start() must be called synchronously from the user gesture
     try {
       recognition.start();
       console.log('[Dictation] Recognition started, lang:', recognition.lang);
