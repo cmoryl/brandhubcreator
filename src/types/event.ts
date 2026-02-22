@@ -150,6 +150,15 @@ export interface EventApplication {
   appUrl?: string;
 }
 
+export interface EventDigitalAsset {
+  id: string;
+  name: string;
+  imageUrl: string;
+  fileType?: string; // svg, png, jpg, webp, gif, etc.
+  description?: string;
+  category?: string;
+}
+
 export interface EventScheduleItem {
   id: string;
   time: string;
@@ -388,6 +397,7 @@ export interface EventGuide {
   eventPrintMaterials: EventPrintMaterial[];
   eventInfographics?: EventInfographic[];
   eventApplications?: EventApplication[];
+  eventDigitalAssets?: EventDigitalAsset[];
   eventSchedule: EventScheduleItem[];
   eventSpeakers: EventSpeaker[];
   eventSponsors: EventSponsor[];
@@ -508,6 +518,7 @@ export const createDefaultEventGuideData = (name: string): Omit<EventGuide, 'id'
   eventPrintMaterials: [],
   eventInfographics: [],
   eventApplications: [],
+  eventDigitalAssets: [],
   eventSchedule: [
     { id: '1', time: 'Day 1 - 8:00 AM', title: 'Registration & Welcome Coffee', description: 'Check in, grab your badge, and network over coffee before the main program begins.', speaker: '', location: 'Main Lobby', track: 'registration' },
     { id: '2', time: 'Day 1 - 9:00 AM', title: 'Opening Keynote', description: 'Welcome address and vision for the year ahead. Setting the stage for two days of innovation and collaboration.', speaker: '', location: 'Grand Ballroom', track: 'keynote' },
