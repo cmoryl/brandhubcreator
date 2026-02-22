@@ -204,6 +204,8 @@ export const BrandAssistant = ({
   const voiceModeRef = useRef(false);
   // Unique session ID to prevent stale onend handlers from restarting aborted instances
   const recognitionSessionRef = useRef(0);
+  const sendMessageRef = useRef<(text: string) => void>(() => {});
+  const dictationEnabledRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom of conversation
@@ -356,10 +358,13 @@ export const BrandAssistant = ({
         
         if (finalTranscript) {
           setInterimText('');
+          const trimmed = finalTranscript.trim();
           if (voiceModeRef.current) {
-            sendVoiceMessage(finalTranscript.trim());
+            sendVoiceMessage(trimmed);
           } else {
-            setInput(prev => (prev + ' ' + finalTranscript).trim());
+            // In dictation mode: auto-send the message directly
+            setInput('');
+            sendMessageRef.current(trimmed);
           }
         }
       };
@@ -517,8 +522,10 @@ export const BrandAssistant = ({
   // Dictation toggle
   const toggleDictation = useCallback((enabled: boolean) => {
     setDictationEnabled(enabled);
+    dictationEnabledRef.current = enabled;
     if (enabled) {
       startListening();
+      toast.success('Dictation active — speak and I\'ll respond with voice', { duration: 3000 });
     } else {
       stopListening();
     }
@@ -670,7 +677,12 @@ export const BrandAssistant = ({
       const data = response.data;
       if (!data.success) throw new Error(data.error || 'Failed to get response');
 
-      processResponse(data, userMessage.id, startTime);
+      const assistantMsg = processResponse(data, userMessage.id, startTime);
+      
+      // Auto-speak response when dictation is active
+      if (dictationEnabledRef.current && !isMuted) {
+        speakText(assistantMsg.content);
+      }
     } catch (error) {
       console.error('Assistant error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to get response');
@@ -681,6 +693,9 @@ export const BrandAssistant = ({
       setResponseStartTime(null);
     }
   };
+
+  // Keep ref in sync so dictation onresult can call sendMessage without stale closures
+  sendMessageRef.current = (text: string) => sendMessage(text);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
