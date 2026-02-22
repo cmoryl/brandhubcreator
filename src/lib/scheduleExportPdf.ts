@@ -8,11 +8,20 @@ import jsPDF from 'jspdf';
 import { EventScheduleItem, EventSpeaker } from '@/types/event';
 import { PDF_COLORS } from './pdfStyleConfig';
 
+export interface PdfTemplateImages {
+  headerImageUrl?: string;
+  footerImageUrl?: string;
+  backgroundImageUrl?: string;
+  backgroundOpacity?: number;
+  useTemplate: boolean;
+}
+
 interface PdfExportOptions {
   eventName: string;
   eventDates?: string;
   eventLocation?: string;
   speakers?: EventSpeaker[];
+  template?: PdfTemplateImages;
 }
 
 // Session type badge colors (RGB tuples)
@@ -81,44 +90,104 @@ export const exportScheduleToPdf = async (
   schedule: EventScheduleItem[],
   options: PdfExportOptions
 ): Promise<void> => {
-  const { eventName, eventDates, eventLocation, speakers } = options;
+  const { eventName, eventDates, eventLocation, speakers, template } = options;
   const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
   
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 15;
   const contentWidth = pageWidth - margin * 2;
-  let y = margin;
+
+  // Preload template images
+  const loadedImages: { header?: HTMLImageElement; footer?: HTMLImageElement; background?: HTMLImageElement } = {};
+  
+  const loadImage = (url: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = url;
+    });
+  };
+
+  if (template?.useTemplate) {
+    try {
+      if (template.headerImageUrl) loadedImages.header = await loadImage(template.headerImageUrl);
+      if (template.footerImageUrl) loadedImages.footer = await loadImage(template.footerImageUrl);
+      if (template.backgroundImageUrl) loadedImages.background = await loadImage(template.backgroundImageUrl);
+    } catch (e) {
+      console.warn('[PDF Template] Failed to load template image:', e);
+    }
+  }
+
+  // Calculate content area based on template images
+  const headerHeight = loadedImages.header ? 25 : 0;
+  const footerHeight = loadedImages.footer ? 18 : 0;
+  const contentTopStart = headerHeight > 0 ? headerHeight + 5 : 0;
+
+  const applyTemplateToPage = () => {
+    // Background image (watermark)
+    if (loadedImages.background) {
+      const opacity = template?.backgroundOpacity ?? 0.1;
+      doc.saveGraphicsState();
+      (doc as any).setGState(new (doc as any).GState({ opacity }));
+      doc.addImage(loadedImages.background, 'PNG', 0, 0, pageWidth, pageHeight);
+      doc.restoreGraphicsState();
+    }
+    // Header image
+    if (loadedImages.header) {
+      const imgRatio = loadedImages.header.naturalWidth / loadedImages.header.naturalHeight;
+      const hHeight = headerHeight;
+      const hWidth = Math.min(pageWidth, hHeight * imgRatio);
+      doc.addImage(loadedImages.header, 'PNG', (pageWidth - hWidth) / 2, 0, hWidth, hHeight);
+    }
+    // Footer image
+    if (loadedImages.footer) {
+      const imgRatio = loadedImages.footer.naturalWidth / loadedImages.footer.naturalHeight;
+      const fHeight = footerHeight;
+      const fWidth = Math.min(pageWidth, fHeight * imgRatio);
+      doc.addImage(loadedImages.footer, 'PNG', (pageWidth - fWidth) / 2, pageHeight - fHeight, fWidth, fHeight);
+    }
+  };
+
+  // Apply template to first page
+  applyTemplateToPage();
+
+  let y = margin + contentTopStart;
 
   const checkPageBreak = (neededHeight: number) => {
-    if (y + neededHeight > pageHeight - 20) {
+    const maxY = pageHeight - 20 - footerHeight;
+    if (y + neededHeight > maxY) {
       doc.addPage();
-      y = margin;
+      applyTemplateToPage();
+      y = margin + contentTopStart;
       return true;
     }
     return false;
   };
 
   // ── HEADER ──
+  const headerBarY = y;
   doc.setFillColor(17, 24, 39); // gray-900
-  doc.rect(0, 0, pageWidth, 42, 'F');
+  doc.rect(0, headerBarY, pageWidth, 42, 'F');
 
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text(eventName, margin, 18);
+  doc.text(eventName, margin, headerBarY + 18);
 
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
-  doc.text('Event Schedule', margin, 26);
+  doc.text('Event Schedule', margin, headerBarY + 26);
 
   if (eventDates || eventLocation) {
     doc.setFontSize(9);
     const meta = [eventDates, eventLocation].filter(Boolean).join(' • ');
-    doc.text(meta, margin, 34);
+    doc.text(meta, margin, headerBarY + 34);
   }
 
-  y = 50;
+  y = headerBarY + 50;
 
   // ── SCHEDULE BODY ──
   const groupedSchedule = groupByDay(schedule);
