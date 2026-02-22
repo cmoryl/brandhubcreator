@@ -128,7 +128,7 @@ export const IconBrandHierarchy: React.FC<IconBrandHierarchyProps> = ({
     });
     return (
       <div
-        className="flex items-center justify-center"
+        className="flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
         style={{ width: size, height: size }}
         dangerouslySetInnerHTML={{ __html: sanitized }}
       />
