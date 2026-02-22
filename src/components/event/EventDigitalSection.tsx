@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2, Handshake, DollarSign, Award, Heart, Star, BarChart3, Pencil, AppWindow } from 'lucide-react';
-import { EventDigitalMaterial, EventBanner, EventPrintMaterial, EventInfographic, EventApplication } from '@/types/event';
+import { EventDigitalMaterial, EventBanner, EventPrintMaterial, EventInfographic, EventApplication, EventDigitalAsset } from '@/types/event';
 import { BrandTemplate, BrandBrochure, BrandEmailBanner } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,8 @@ interface EventDigitalSectionProps {
   onInfographicsChange?: (infographics: EventInfographic[]) => void;
   applications?: EventApplication[];
   onApplicationsChange?: (apps: EventApplication[]) => void;
+  digitalAssets?: EventDigitalAsset[];
+  onDigitalAssetsChange?: (assets: EventDigitalAsset[]) => void;
   isEditable?: boolean;
   subtitle?: string;
   eventId?: string;
@@ -133,11 +135,13 @@ export const EventDigitalSection = ({
   onInfographicsChange,
   applications = [],
   onApplicationsChange,
+  digitalAssets = [],
+  onDigitalAssetsChange,
   isEditable = true,
   subtitle,
   eventId,
 }: EventDigitalSectionProps) => {
-  const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures' | 'sponsorship' | 'emailbanners' | 'infographics' | 'applications'>('banners');
+  const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures' | 'sponsorship' | 'emailbanners' | 'infographics' | 'applications' | 'assets'>('banners');
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<EventBanner | null>(null);
@@ -155,6 +159,7 @@ export const EventDigitalSection = ({
   const emailBannerFileInputRef = useRef<HTMLInputElement>(null);
   const infographicFileInputRef = useRef<HTMLInputElement>(null);
   const applicationFileInputRef = useRef<HTMLInputElement>(null);
+  const digitalAssetFileInputRef = useRef<HTMLInputElement>(null);
   const [bannerImageMode, setBannerImageMode] = useState<'upload' | 'url' | 'library'>('upload');
   const [printImageMode, setPrintImageMode] = useState<'upload' | 'url' | 'library'>('upload');
   const { uploadFile, isUploading } = useStorageUpload({ entityType: 'event', entityId: eventId });
@@ -388,12 +393,46 @@ export const EventDigitalSection = ({
     toast.success('Application asset removed');
   };
 
+  // Digital Assets handlers
+  const handleDigitalAssetUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!onDigitalAssetsChange || !e.target.files?.length) return;
+    const file = e.target.files[0];
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const allowedExts = ['svg', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'ico', 'bmp', 'tiff'];
+    if (!allowedExts.includes(ext)) {
+      toast.error(`Unsupported format: .${ext}. Use SVG, PNG, JPG, WebP, or GIF.`);
+      return;
+    }
+    try {
+      const result = await uploadFile(file, 'asset', `digital-asset-${crypto.randomUUID()}`);
+      if (!result) return;
+      const asset: EventDigitalAsset = {
+        id: crypto.randomUUID(),
+        name: file.name.replace(/\.[^/.]+$/, ''),
+        imageUrl: result.url,
+        fileType: ext,
+      };
+      onDigitalAssetsChange([...digitalAssets, asset]);
+      toast.success('Asset uploaded');
+    } catch {
+      toast.error('Failed to upload asset');
+    }
+    e.target.value = '';
+  };
+
+  const handleDeleteDigitalAsset = (id: string) => {
+    if (!onDigitalAssetsChange) return;
+    onDigitalAssetsChange(digitalAssets.filter(a => a.id !== id));
+    toast.success('Asset removed');
+  };
+
   const hasTemplatesSection = !!onTemplatesChange;
   const hasBrochuresSection = !!onBrochuresChange;
   const hasPrintSection = !!onPrintMaterialsChange;
   const hasEmailBannersSection = !!onEmailBannersChange;
   const hasInfographicsSection = !!onInfographicsChange;
   const hasApplicationsSection = !!onApplicationsChange;
+  const hasAssetsSection = !!onDigitalAssetsChange;
 
   return (
     <section id="eventdigital" className="scroll-mt-24">
@@ -464,6 +503,13 @@ export const EventDigitalSection = ({
               <AppWindow className="h-4 w-4" />
               Applications
               {applications.length > 0 && <span className="text-xs text-muted-foreground">({applications.length})</span>}
+            </TabsTrigger>
+          )}
+          {hasAssetsSection && (
+            <TabsTrigger value="assets" className="gap-1.5">
+              <FolderOpen className="h-4 w-4" />
+              Assets
+              {digitalAssets.length > 0 && <span className="text-xs text-muted-foreground">({digitalAssets.length})</span>}
             </TabsTrigger>
           )}
         </TabsList>
@@ -1314,6 +1360,87 @@ export const EventDigitalSection = ({
                 </div>
               </div>
             )}
+          </TabsContent>
+        )}
+
+        {/* Assets Tab */}
+        {hasAssetsSection && (
+          <TabsContent value="assets">
+            <div className="space-y-4">
+              {isEditable && (
+                <div className="flex items-center gap-3">
+                  <input
+                    ref={digitalAssetFileInputRef}
+                    type="file"
+                    accept=".svg,.png,.jpg,.jpeg,.webp,.gif,.ico,.bmp,.tiff"
+                    className="hidden"
+                    onChange={handleDigitalAssetUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => digitalAssetFileInputRef.current?.click()}
+                    disabled={isUploading}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {isUploading ? 'Uploading...' : 'Upload Asset'}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    SVG, PNG, JPG, WebP, GIF supported
+                  </p>
+                </div>
+              )}
+
+              {digitalAssets.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <FolderOpen className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p className="font-medium">No assets yet</p>
+                  <p className="text-sm mt-1">Upload SVGs, PNGs, and other image assets</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {digitalAssets.map((asset) => (
+                    <Card key={asset.id} className="group overflow-hidden">
+                      <div
+                        className={`relative cursor-pointer flex items-center justify-center p-4 min-h-[140px] ${
+                          asset.fileType === 'svg' ? 'bg-[repeating-conic-gradient(hsl(var(--muted))_0%_25%,hsl(var(--background))_0%_50%)] bg-[length:16px_16px]' : 'bg-muted/30'
+                        }`}
+                        onClick={() => openImagePreview(asset.imageUrl, asset.name)}
+                      >
+                        <img
+                          src={asset.imageUrl}
+                          alt={asset.name}
+                          className="max-w-full max-h-[200px] object-contain"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors">
+                          <Maximize2 className="h-6 w-6 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
+                        </div>
+                        {isEditable && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteDigitalAsset(asset.id); }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                      <CardContent className="p-3">
+                        <h4 className="font-medium text-sm truncate">{asset.name}</h4>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          {asset.fileType && (
+                            <Badge variant="outline" className="text-[10px] uppercase">{asset.fileType}</Badge>
+                          )}
+                          {asset.description && (
+                            <p className="text-xs text-muted-foreground truncate">{asset.description}</p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
         )}
       </Tabs>
