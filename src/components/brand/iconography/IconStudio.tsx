@@ -34,7 +34,7 @@ import {
   Palette,
   Sparkles,
   ImageIcon,
-  Zap,
+  Paintbrush,
   GitBranch,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -47,10 +47,11 @@ import { IconStudioAIGenerator } from './studio/IconStudioAIGenerator';
 import { IconStudioAppIcons } from './studio/IconStudioAppIcons';
 import { IconStudioCreator } from './studio/IconStudioCreator';
 import { IconStylizer } from './studio/IconStylizer';
+import { IconStudioColorizer } from './studio/IconStudioColorizer';
 import { IconBrandHierarchy } from './studio/IconBrandHierarchy';
 import { iconKitHelpSections } from '@/components/help/IconKitTooltip';
 
-export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'hierarchy' | 'app-icons' | 'creator';
+export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'colorizer' | 'hierarchy' | 'app-icons' | 'creator';
 
 interface IconStudioProps {
   open: boolean;
@@ -83,6 +84,13 @@ const TAB_CONFIG = [
     icon: ImageIcon,
     description: 'PNG to SVG conversion',
     helpId: 'stylizer' as const,
+  },
+  {
+    id: 'colorizer' as const,
+    label: 'Colorizer',
+    icon: Paintbrush,
+    description: 'AI colors, gradients & duotone',
+    helpId: 'color-mapping' as const,
   },
   {
     id: 'hierarchy' as const,
@@ -211,7 +219,7 @@ export const IconStudio = ({
         >
           {/* Tab Navigation */}
           <div className="px-6 pt-4 pb-2 border-b bg-muted/30">
-            <TabsList className="grid grid-cols-6 w-full max-w-5xl">
+            <TabsList className="grid grid-cols-7 w-full max-w-5xl">
               {TAB_CONFIG.map((tab) => {
                 const Icon = tab.icon;
                 const helpSection = iconKitHelpSections[tab.helpId];
@@ -284,9 +292,17 @@ export const IconStudio = ({
                 </div>
               </ScrollArea>
             </TabsContent>
-
-
-
+            <TabsContent value="colorizer" className="h-full m-0 data-[state=inactive]:hidden">
+              <ScrollArea className="h-full">
+                <div className="p-6">
+                  <IconStudioColorizer
+                    brandColors={brandColors}
+                    libraries={libraries}
+                    onSaveIcons={handleSaveIcons}
+                  />
+                </div>
+              </ScrollArea>
+            </TabsContent>
 
             <TabsContent value="hierarchy" className="h-full m-0 data-[state=inactive]:hidden">
               <ScrollArea className="h-full">

@@ -43,6 +43,7 @@ export {
   IconStudioCreator,
   IconAdvancedFeatures,
   IconBrandHierarchy,
+  IconStudioColorizer,
 } from './studio';
 
 // ============================================

@@ -6,4 +6,5 @@ export { IconStudioAppIcons } from './IconStudioAppIcons';
 export { IconStudioCreator } from './IconStudioCreator';
 export { IconAdvancedFeatures } from './IconAdvancedFeatures';
 export { IconBrandHierarchy } from './IconBrandHierarchy';
+export { IconStudioColorizer } from './IconStudioColorizer';
 export { BatchProcessingPanel } from './BatchProcessingPanel';
