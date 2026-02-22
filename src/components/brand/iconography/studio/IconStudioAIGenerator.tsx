@@ -226,6 +226,7 @@ export const IconStudioAIGenerator = ({
   const [selectedLibraryId, setSelectedLibraryId] = useState('');
   const [selectedPreset, setSelectedPreset] = useState('outlined');
   const [showAuditDetails, setShowAuditDetails] = useState(false);
+  const [iconCount, setIconCount] = useState<number>(0); // 0 = use defaults
   
   const [iconStyle, setIconStyle] = useState<IconStyle>({
     strokeWidth: 2,
@@ -258,9 +259,22 @@ export const IconStudioAIGenerator = ({
     iconPrefix: 'brand-icon',
   });
 
-  // Get current category info
+  // Get current category info — apply custom icon count if set
   const currentCategoryInfo = ICON_CATEGORIES.find(c => c.id === selectedCategory);
-  const sections = CATEGORY_SECTIONS[selectedCategory] || [];
+  const baseSections = CATEGORY_SECTIONS[selectedCategory] || [];
+  
+  // If user specified a custom count, distribute evenly across sections
+  const sections = useMemo(() => {
+    if (iconCount <= 0) return baseSections;
+    const sectionCount = baseSections.length;
+    const perSection = Math.max(1, Math.floor(iconCount / sectionCount));
+    const remainder = iconCount - perSection * sectionCount;
+    return baseSections.map((s, i) => ({
+      ...s,
+      count: perSection + (i < remainder ? 1 : 0),
+    }));
+  }, [baseSections, iconCount]);
+
   const totalIcons = sections.reduce((sum, s) => sum + s.count, 0);
   const completedSections = generatedSections.filter(s => s.status === 'complete').length;
   const progress = sections.length > 0 ? (completedSections / sections.length) * 100 : 0;
@@ -350,6 +364,7 @@ export const IconStudioAIGenerator = ({
           sectionIndex,
           style: iconStyle,
           preset: selectedPreset,
+          customCount: sections[sectionIndex]?.count,
         },
       });
 
@@ -549,8 +564,8 @@ export const IconStudioAIGenerator = ({
             </div>
           </div>
 
-          {/* Name & Industry */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Name, Industry & Icon Count */}
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2">
               <Label className="text-xs">Brand Name *</Label>
               <Input
@@ -572,6 +587,29 @@ export const IconStudioAIGenerator = ({
                   {INDUSTRIES.map((ind) => (
                     <SelectItem key={ind} value={ind}>{ind}</SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Icons to Generate</Label>
+              <Select 
+                value={iconCount === 0 ? 'default' : String(iconCount)} 
+                onValueChange={(v) => setIconCount(v === 'default' ? 0 : Number(v))} 
+                disabled={isGenerating}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Default ({baseSections.reduce((s, sec) => s + sec.count, 0)})</SelectItem>
+                  <SelectItem value="5">5 icons</SelectItem>
+                  <SelectItem value="10">10 icons</SelectItem>
+                  <SelectItem value="15">15 icons</SelectItem>
+                  <SelectItem value="20">20 icons</SelectItem>
+                  <SelectItem value="30">30 icons</SelectItem>
+                  <SelectItem value="50">50 icons</SelectItem>
+                  <SelectItem value="75">75 icons</SelectItem>
+                  <SelectItem value="100">100 icons</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -163,6 +163,7 @@ serve(async (req) => {
       sectionIndex = 0,
       style = { strokeWidth: 2, cornerRadius: 'rounded', fill: false },
       preset = 'outlined',
+      customCount,
     } = await req.json();
 
     if (!entityName) {
@@ -193,13 +194,14 @@ serve(async (req) => {
     }
 
     const currentSection = sections[sectionIndex];
+    const iconCountForSection = customCount && customCount > 0 ? customCount : currentSection.count;
     const strokeWidth = style?.strokeWidth || 2;
     const cornerStyle = style?.cornerRadius || 'rounded';
     const isFilled = style?.fill || preset === 'filled';
     const linecap = cornerStyle === 'sharp' ? 'square' : 'round';
     const linejoin = cornerStyle === 'sharp' ? 'miter' : 'round';
 
-    const contextPrompt = `Design exactly ${currentSection.count} premium, production-ready icons for the "${currentSection.name}" section.
+    const contextPrompt = `Design exactly ${iconCountForSection} premium, production-ready icons for the "${currentSection.name}" section.
 
 ## Context
 - Section: ${currentSection.name} — ${currentSection.description}
@@ -216,7 +218,7 @@ ${cornerStyle === 'sharp' ? '- SHARP corners — 0° and 90° joins, square term
 
 ## Design Direction
 - Study how Apple SF Symbols, Google Material Symbols, Phosphor, and Lucide handle "${currentSection.name.toLowerCase()}" icons — then EXCEED that quality
-- Each icon must be conceptually distinct — all ${currentSection.count} must be immediately distinguishable as filled silhouettes at 16px
+- Each icon must be conceptually distinct — all ${iconCountForSection} must be immediately distinguishable as filled silhouettes at 16px
 - Names: specific + evocative ("Beacon Alert" not "Notification 1", "Vault Shield" not "Security")
 ${industry ? `- Infuse ${industry} visual language where meaningful (domain-specific metaphors, not generic)` : ''}
 - These should feel like premium, cohesive icons designed specifically for "${entityName}"
@@ -233,7 +235,7 @@ ${industry ? `- Infuse ${industry} visual language where meaningful (domain-spec
 
 Return ONLY the raw JSON array — no markdown, no backticks, no explanation.`;
 
-    console.log(`[generate-icon-set] Generating ${currentSection.count} icons: ${category}/${currentSection.name} via gemini-2.5-pro`);
+    console.log(`[generate-icon-set] Generating ${iconCountForSection} icons: ${category}/${currentSection.name} via gemini-2.5-pro`);
 
     // Use tool calling for structured output — far more reliable than freeform JSON
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
