@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
+import { DigitalCollateralPreviewDialog, CollateralPreviewItem } from './DigitalCollateralPreviewDialog';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 
@@ -149,14 +150,12 @@ export const EventDigitalSection = ({
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<EventBanner | null>(null);
-  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
-  const [imagePreviewTitle, setImagePreviewTitle] = useState<string>('');
+  const [collateralPreviewOpen, setCollateralPreviewOpen] = useState(false);
+  const [collateralPreviewItem, setCollateralPreviewItem] = useState<CollateralPreviewItem | null>(null);
 
-  const openImagePreview = (url: string, title: string) => {
-    setImagePreviewUrl(url);
-    setImagePreviewTitle(title);
-    setImagePreviewOpen(true);
+  const openCollateralPreview = (item: CollateralPreviewItem) => {
+    setCollateralPreviewItem(item);
+    setCollateralPreviewOpen(true);
   };
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
   const printFileInputRef = useRef<HTMLInputElement>(null);
@@ -694,8 +693,9 @@ export const EventDigitalSection = ({
                     </div>
                     <div className="flex gap-2 mt-3">
                       {banner.previewUrl && (
-                        <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => { setPreviewItem(banner); setPreviewOpen(true); }}>
-                          <Eye className="h-3 w-3 mr-1.5" />Preview
+                        <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => openCollateralPreview({
+                          name: banner.name, imageUrl: banner.previewUrl, typeLabel: BANNER_TYPES.find(t => t.value === banner.type)?.label, dimensions: banner.dimensions, platform: banner.platform, templateUrl: banner.templateUrl,
+                        })}>
                         </Button>
                       )}
                       {banner.templateUrl && (
@@ -912,7 +912,7 @@ export const EventDigitalSection = ({
                     <CardContent className="p-0">
                       <div
                         className="aspect-[3/4] bg-muted/30 flex items-center justify-center relative cursor-pointer"
-                        onClick={() => brochure.previewUrl && openImagePreview(brochure.previewUrl, brochure.title)}
+                        onClick={() => brochure.previewUrl && openCollateralPreview({ name: brochure.title, imageUrl: brochure.previewUrl, category: brochure.category })}
                       >
                         {brochure.previewUrl ? (
                           <img 
@@ -1081,7 +1081,7 @@ export const EventDigitalSection = ({
                       {item.previewUrl ? (
                         <div
                           className="bg-muted/30 relative flex items-center justify-center p-2 cursor-pointer group/img"
-                          onClick={() => openImagePreview(item.previewUrl!, item.name)}
+                          onClick={() => openCollateralPreview({ name: item.name, imageUrl: item.previewUrl, typeLabel: SPONSORSHIP_TYPES.find(t => t.value === item.type)?.label, dimensions: item.dimensions, description: item.description, fileUrl: item.fileUrl, quantity: item.quantity })}
                         >
                           <img src={item.previewUrl} alt={item.name} className="w-full h-auto max-h-[180px] object-contain rounded" />
                           <Badge className="absolute top-1.5 left-1.5 text-[10px] bg-primary/10 text-primary">
@@ -1178,7 +1178,7 @@ export const EventDigitalSection = ({
                             style={{ aspectRatio: `${aspectRatio}` }}
                           >
                           {banner.imageUrl ? (
-                              <img src={banner.imageUrl} alt={banner.name} className="w-full h-full object-contain cursor-pointer" onClick={() => openImagePreview(banner.imageUrl, banner.name)} />
+                              <img src={banner.imageUrl} alt={banner.name} className="w-full h-full object-contain cursor-pointer" onClick={() => openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, externalUrl: banner.linkUrl })} />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <Mail className="h-8 w-8 text-muted-foreground/30" />
@@ -1187,7 +1187,7 @@ export const EventDigitalSection = ({
                             {banner.imageUrl && (
                               <div
                                 className="absolute inset-0 flex items-center justify-center bg-foreground/0 hover:bg-foreground/20 transition-colors cursor-pointer"
-                                onClick={() => openImagePreview(banner.imageUrl, banner.name)}
+                                onClick={() => openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, externalUrl: banner.linkUrl })}
                               >
                                 <Maximize2 className="h-5 w-5 text-background opacity-0 hover:opacity-80 transition-opacity drop-shadow-lg" />
                               </div>
@@ -1262,7 +1262,7 @@ export const EventDigitalSection = ({
                     <Card key={item.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
                       <div
                         className="bg-muted/30 relative cursor-pointer"
-                        onClick={() => openImagePreview(item.imageUrl, item.name)}
+                        onClick={() => openCollateralPreview({ name: item.name, imageUrl: item.imageUrl, description: item.description, category: item.category })}
                       >
                         <img src={item.imageUrl} alt={item.name} className="w-full h-auto max-h-[300px] object-contain" />
                         <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors">
@@ -1329,7 +1329,7 @@ export const EventDigitalSection = ({
                     <Card key={app.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
                       <div
                         className="bg-muted/30 relative cursor-pointer"
-                        onClick={() => openImagePreview(app.imageUrl, app.name)}
+                        onClick={() => openCollateralPreview({ name: app.name, imageUrl: app.imageUrl, description: app.description, platform: app.platform, externalUrl: app.appUrl })}
                       >
                         <img src={app.imageUrl} alt={app.name} className="w-full h-auto max-h-[300px] object-contain" />
                         <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors">
@@ -1408,7 +1408,7 @@ export const EventDigitalSection = ({
                         className={`relative cursor-pointer flex items-center justify-center p-4 min-h-[140px] ${
                           asset.fileType === 'svg' ? 'bg-[repeating-conic-gradient(hsl(var(--muted))_0%_25%,hsl(var(--background))_0%_50%)] bg-[length:16px_16px]' : 'bg-muted/30'
                         }`}
-                        onClick={() => openImagePreview(asset.imageUrl, asset.name)}
+                        onClick={() => openCollateralPreview({ name: asset.name, imageUrl: asset.imageUrl, fileType: asset.fileType, description: asset.description })}
                       >
                         <img
                           src={asset.imageUrl}
@@ -1459,13 +1459,11 @@ export const EventDigitalSection = ({
         />
       )}
 
-      {/* General Image Preview Dialog */}
-      <PreviewDialog
-        open={imagePreviewOpen}
-        onOpenChange={setImagePreviewOpen}
-        title={imagePreviewTitle}
-        previewUrl={imagePreviewUrl}
-        type="image"
+      {/* Enhanced Collateral Preview Dialog */}
+      <DigitalCollateralPreviewDialog
+        open={collateralPreviewOpen}
+        onOpenChange={setCollateralPreviewOpen}
+        item={collateralPreviewItem}
       />
     </section>
   );
