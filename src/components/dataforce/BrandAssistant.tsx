@@ -1,6 +1,8 @@
 /**
  * DataForce AI Brand Assistant Component
  * Multilingual chatbot with orb-style voice UI and live dictation
+ * Implements industry-standard chatbot UX: typing indicators, quick replies,
+ * follow-up suggestions, response timing, and robust speech recognition.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -27,7 +29,6 @@ import {
 import { 
   Bot, 
   Send,
-  Loader2,
   User,
   Sparkles,
   Globe,
@@ -42,6 +43,7 @@ import {
   Lightbulb,
   GraduationCap,
   MessageSquare,
+  Clock,
 } from 'lucide-react';
 import {
   Popover,
@@ -59,6 +61,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  responseTimeMs?: number;
 }
 
 type ConversationStyle = 'direct' | 'suggestive' | 'educational' | 'creative';
@@ -134,6 +137,40 @@ function stripMarkdown(text: string): string {
     .trim();
 }
 
+/** Format response time for display */
+function formatResponseTime(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+/** Animated typing indicator */
+const TypingIndicator = () => (
+  <div className="flex gap-3 justify-start">
+    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+      <Bot className="h-3.5 w-3.5 text-primary" />
+    </div>
+    <div className="bg-muted rounded-lg px-4 py-3 flex items-center gap-1.5">
+      <span className="w-2 h-2 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />
+      <span className="w-2 h-2 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:150ms]" />
+      <span className="w-2 h-2 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:300ms]" />
+    </div>
+  </div>
+);
+
+/** Pulsing dictation indicator */
+const DictationPulse = ({ isActive }: { isActive: boolean }) => {
+  if (!isActive) return null;
+  return (
+    <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
+      <span className="relative flex h-2.5 w-2.5">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/75" />
+        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
+      </span>
+      Listening...
+    </div>
+  );
+};
+
 export const BrandAssistant = ({
   open,
   onOpenChange,
@@ -151,6 +188,8 @@ export const BrandAssistant = ({
   const [hasPersona, setHasPersona] = useState(false);
   const [pastConversationCount, setPastConversationCount] = useState(0);
   const [conversationStyle, setConversationStyle] = useState<ConversationStyle>('direct');
+  const [followUpSuggestions, setFollowUpSuggestions] = useState<string[]>([]);
+  const [responseStartTime, setResponseStartTime] = useState<number | null>(null);
   
   // Voice state
   const [isListening, setIsListening] = useState(false);
@@ -163,6 +202,8 @@ export const BrandAssistant = ({
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
   const voiceModeRef = useRef(false);
+  // Unique session ID to prevent stale onend handlers from restarting aborted instances
+  const recognitionSessionRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom of conversation
@@ -175,7 +216,6 @@ export const BrandAssistant = ({
   // Scroll to end when sheet opens with existing messages
   useEffect(() => {
     if (open && messages.length > 0) {
-      // Small delay to let the sheet animation complete
       const timer = setTimeout(() => {
         if (scrollRef.current) {
           scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -262,7 +302,7 @@ export const BrandAssistant = ({
     }
   }, [open]);
 
-  // ───── Speech Recognition ─────
+  // ───── Speech Recognition (FIXED: session-based restart guard) ─────
 
   const startListening = useCallback(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -271,7 +311,13 @@ export const BrandAssistant = ({
       return;
     }
 
+    // Invalidate any previous session's onend handler before aborting
+    recognitionSessionRef.current += 1;
+    const currentSession = recognitionSessionRef.current;
+
+    // Abort previous instance
     if (recognitionRef.current) {
+      isListeningRef.current = false; // Prevent old onend from restarting
       try { recognitionRef.current.abort(); } catch {}
       recognitionRef.current = null;
     }
@@ -282,6 +328,9 @@ export const BrandAssistant = ({
     recognition.lang = LANG_MAP[language] || 'en-US';
 
     recognition.onresult = (event: any) => {
+      // Guard: only process if this session is still current
+      if (recognitionSessionRef.current !== currentSession) return;
+
       let finalTranscript = '';
       let interim = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -306,6 +355,9 @@ export const BrandAssistant = ({
     };
 
     recognition.onerror = (event: any) => {
+      // Guard: ignore errors from stale sessions
+      if (recognitionSessionRef.current !== currentSession) return;
+
       console.error('Speech recognition error:', event.error);
       if (event.error === 'not-allowed') {
         toast.error('Microphone permission denied. Please allow access in browser settings.');
@@ -315,20 +367,33 @@ export const BrandAssistant = ({
         voiceModeRef.current = false;
         setDictationEnabled(false);
       } else if (event.error === 'no-speech') {
-        // Normal timeout
+        // Normal timeout — will auto-restart via onend
+      } else if (event.error === 'audio-capture') {
+        toast.error('No microphone detected. Please connect a microphone.');
+        setIsListening(false);
+        isListeningRef.current = false;
+        setDictationEnabled(false);
       } else if (event.error !== 'aborted') {
         toast.error('Microphone error: ' + event.error);
       }
     };
 
     recognition.onend = () => {
+      // CRITICAL FIX: Only restart if THIS session is still the active one
+      if (recognitionSessionRef.current !== currentSession) return;
+
       if (isListeningRef.current) {
-        try {
-          recognition.start();
-        } catch {
-          setIsListening(false);
-          isListeningRef.current = false;
-        }
+        // Small delay before restart to prevent rapid restart loops
+        setTimeout(() => {
+          if (recognitionSessionRef.current !== currentSession) return;
+          if (!isListeningRef.current) return;
+          try {
+            recognition.start();
+          } catch {
+            setIsListening(false);
+            isListeningRef.current = false;
+          }
+        }, 100);
       } else {
         setIsListening(false);
       }
@@ -343,6 +408,7 @@ export const BrandAssistant = ({
       recognition.start();
     } catch (e) {
       console.error('Failed to start recognition:', e);
+      toast.error('Could not start speech recognition. Please try again.');
       setIsListening(false);
       isListeningRef.current = false;
     }
@@ -352,6 +418,8 @@ export const BrandAssistant = ({
     isListeningRef.current = false;
     setIsListening(false);
     setInterimText('');
+    // Bump session to invalidate any pending onend restarts
+    recognitionSessionRef.current += 1;
     if (recognitionRef.current) {
       try { recognitionRef.current.abort(); } catch {}
       recognitionRef.current = null;
@@ -437,7 +505,55 @@ export const BrandAssistant = ({
     }
   }, [startListening, stopListening]);
 
+  // ───── Follow-up Suggestions Generation ─────
+
+  const generateFollowUps = useCallback((assistantContent: string): string[] => {
+    const content = assistantContent.toLowerCase();
+    const suggestions: string[] = [];
+
+    if (content.includes('color') || content.includes('palette')) {
+      suggestions.push('How should I use these colors in digital?');
+      suggestions.push('What are the accessibility requirements?');
+    } else if (content.includes('logo') || content.includes('brand mark')) {
+      suggestions.push('What are the minimum size requirements?');
+      suggestions.push('Show me logo usage do\'s and don\'ts');
+    } else if (content.includes('typography') || content.includes('font')) {
+      suggestions.push('What font sizes should I use?');
+      suggestions.push('Are there web-safe alternatives?');
+    } else if (content.includes('voice') || content.includes('tone')) {
+      suggestions.push('Give me example copy in this voice');
+      suggestions.push('How does tone change for social media?');
+    }
+
+    // Always add generic follow-ups if we have less than 2
+    if (suggestions.length < 2) {
+      suggestions.push('Tell me more about this');
+      suggestions.push('What else should I know?');
+    }
+
+    return suggestions.slice(0, 3);
+  }, []);
+
   // ───── Message Sending ─────
+
+  const processResponse = useCallback((data: any, userMessageId: string, startTime: number) => {
+    const elapsed = Date.now() - startTime;
+
+    if (data.conversationId) setConversationId(data.conversationId);
+    if (data.hasPersona) setHasPersona(true);
+
+    const assistantMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      content: data.message,
+      timestamp: new Date().toISOString(),
+      responseTimeMs: elapsed,
+    };
+
+    setMessages(prev => [...prev, assistantMessage]);
+    setFollowUpSuggestions(generateFollowUps(data.message));
+    return assistantMessage;
+  }, [generateFollowUps]);
 
   const sendVoiceMessage = useCallback(async (text: string) => {
     if (!text || !organization?.id) return;
@@ -453,6 +569,9 @@ export const BrandAssistant = ({
 
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
+    setFollowUpSuggestions([]);
+    const startTime = Date.now();
+    setResponseStartTime(startTime);
 
     try {
       const response = await supabase.functions.invoke('dataforce-assistant', {
@@ -472,21 +591,12 @@ export const BrandAssistant = ({
       const data = response.data;
       if (!data.success) throw new Error(data.error || 'Failed to get response');
 
-      if (data.conversationId) setConversationId(data.conversationId);
-      if (data.hasPersona) setHasPersona(true);
-
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: data.message,
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      const assistantMsg = processResponse(data, userMessage.id, startTime);
       setIsLoading(false);
+      setResponseStartTime(null);
 
       if (voiceModeRef.current) {
-        speakText(data.message, () => {
+        speakText(assistantMsg.content, () => {
           if (voiceModeRef.current) {
             startListening();
           }
@@ -497,26 +607,31 @@ export const BrandAssistant = ({
       toast.error(error instanceof Error ? error.message : 'Failed to get response');
       setMessages(prev => prev.filter(m => m.id !== userMessage.id));
       setIsLoading(false);
+      setResponseStartTime(null);
       
       if (voiceModeRef.current) {
         startListening();
       }
     }
-  }, [organization?.id, entityType, entityId, conversationId, language, speakText, startListening, stopListening]);
+  }, [organization?.id, entityType, entityId, conversationId, language, conversationStyle, speakText, startListening, stopListening, processResponse]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || !organization?.id) return;
+  const sendMessage = async (overrideText?: string) => {
+    const text = overrideText || input.trim();
+    if (!text || !organization?.id) return;
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
-      content: input.trim(),
+      content: text,
       timestamp: new Date().toISOString(),
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setFollowUpSuggestions([]);
+    const startTime = Date.now();
+    setResponseStartTime(startTime);
 
     try {
       const response = await supabase.functions.invoke('dataforce-assistant', {
@@ -524,7 +639,7 @@ export const BrandAssistant = ({
           organization_id: organization.id,
           entity_type: entityType,
           entity_id: entityId,
-          message: userMessage.content,
+          message: text,
           conversation_id: conversationId,
           language_code: language,
           conversation_style: conversationStyle,
@@ -536,24 +651,15 @@ export const BrandAssistant = ({
       const data = response.data;
       if (!data.success) throw new Error(data.error || 'Failed to get response');
 
-      if (data.conversationId) setConversationId(data.conversationId);
-      if (data.hasPersona) setHasPersona(true);
-
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: data.message,
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      processResponse(data, userMessage.id, startTime);
     } catch (error) {
       console.error('Assistant error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to get response');
       setMessages(prev => prev.filter(m => m.id !== userMessage.id));
-      setInput(userMessage.content);
+      if (!overrideText) setInput(text);
     } finally {
       setIsLoading(false);
+      setResponseStartTime(null);
     }
   };
 
@@ -574,6 +680,7 @@ export const BrandAssistant = ({
   const handleReset = useCallback(() => {
     setMessages([]);
     setConversationId(null);
+    setFollowUpSuggestions([]);
     stopVoiceMode();
     toast.success('Conversation reset');
   }, [stopVoiceMode]);
@@ -632,7 +739,7 @@ export const BrandAssistant = ({
             ))}
           </div>
         )}
-        <div className="flex gap-1 pt-1">
+        <div className="flex items-center gap-2 pt-1">
           <Button
             variant="ghost"
             size="sm"
@@ -648,6 +755,12 @@ export const BrandAssistant = ({
             {isSpeaking ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
             {isSpeaking ? 'Stop' : 'Listen'}
           </Button>
+          {message.responseTimeMs && (
+            <span className="text-[10px] text-muted-foreground/60 flex items-center gap-0.5">
+              <Clock className="h-2.5 w-2.5" />
+              {formatResponseTime(message.responseTimeMs)}
+            </span>
+          )}
         </div>
       </div>
     );
@@ -737,7 +850,7 @@ export const BrandAssistant = ({
           {/* Dictation & Style Controls */}
           <div className="flex items-center gap-3 mt-4">
             <div className="flex items-center gap-2.5 bg-muted/50 rounded-full px-4 py-2">
-              <Mic className="h-3.5 w-3.5 text-muted-foreground" />
+              <Mic className={`h-3.5 w-3.5 ${dictationEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
               <span className="text-xs font-medium text-muted-foreground">Live Dictation</span>
               <Switch
                 checked={dictationEnabled}
@@ -803,15 +916,16 @@ export const BrandAssistant = ({
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           {messages.length === 0 ? (
             <div className="space-y-3 pt-2">
-              <p className="text-xs text-muted-foreground font-medium">Suggested questions:</p>
+              <p className="text-xs text-muted-foreground font-medium">Quick start — tap to ask:</p>
               {suggestedQuestions.map((question, i) => (
                 <Button
                   key={i}
                   variant="outline"
                   size="sm"
-                  className="w-full justify-start text-left h-auto py-2.5 px-3 text-xs"
-                  onClick={() => setInput(question)}
+                  className="w-full justify-start text-left h-auto py-2.5 px-3 text-xs hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                  onClick={() => sendMessage(question)}
                 >
+                  <Lightbulb className="h-3.5 w-3.5 mr-2 text-primary/60 flex-shrink-0" />
                   {question}
                 </Button>
               ))}
@@ -846,6 +960,7 @@ export const BrandAssistant = ({
                   )}
                 </div>
               ))}
+
               {/* Interim speech text */}
               {interimText && !isVoiceMode && (
                 <div className="flex gap-3 justify-end">
@@ -854,14 +969,24 @@ export const BrandAssistant = ({
                   </div>
                 </div>
               )}
-              {isLoading && (
-                <div className="flex gap-3 justify-start">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Bot className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  <div className="bg-muted rounded-lg px-3.5 py-3">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  </div>
+
+              {/* Animated typing indicator */}
+              {isLoading && <TypingIndicator />}
+
+              {/* Follow-up suggestions after response */}
+              {!isLoading && followUpSuggestions.length > 0 && messages.length > 0 && messages[messages.length - 1]?.role === 'assistant' && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {followUpSuggestions.map((suggestion, i) => (
+                    <Button
+                      key={i}
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[11px] rounded-full hover:bg-primary/5 hover:border-primary/30"
+                      onClick={() => sendMessage(suggestion)}
+                    >
+                      {suggestion}
+                    </Button>
+                  ))}
                 </div>
               )}
             </div>
@@ -871,14 +996,22 @@ export const BrandAssistant = ({
         {/* Input Area */}
         <div className="border-t p-3">
           <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={dictationEnabled ? 'Listening...' : 'Ask about brand guidelines...'}
-              disabled={isLoading || isVoiceMode}
-              className={`flex-1 h-9 text-sm ${dictationEnabled ? 'border-primary/40' : ''}`}
-            />
+            <div className="flex-1 relative">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={dictationEnabled ? 'Speak now...' : 'Ask about brand guidelines...'}
+                disabled={isLoading || isVoiceMode}
+                className={`h-9 text-sm pr-8 ${dictationEnabled ? 'border-primary/40 bg-primary/5' : ''}`}
+              />
+              {/* Inline dictation indicator */}
+              {dictationEnabled && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <DictationPulse isActive={isListening} />
+                </div>
+              )}
+            </div>
             {!isVoiceMode && !dictationEnabled && (
               <Button
                 onClick={() => toggleDictation(true)}
@@ -896,14 +1029,14 @@ export const BrandAssistant = ({
                 onClick={() => toggleDictation(false)}
                 variant="destructive"
                 size="icon"
-                className="h-9 w-9"
+                className="h-9 w-9 animate-pulse"
                 title="Stop dictation"
               >
                 <MicOff className="h-4 w-4" />
               </Button>
             )}
             <Button 
-              onClick={sendMessage} 
+              onClick={() => sendMessage()} 
               disabled={!input.trim() || isLoading || isVoiceMode}
               size="icon"
               className="h-9 w-9"
