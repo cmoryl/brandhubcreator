@@ -28,6 +28,8 @@ interface EventDigitalSectionProps {
   onBrochuresChange?: (brochures: BrandBrochure[]) => void;
   printMaterials?: EventPrintMaterial[];
   onPrintMaterialsChange?: (materials: EventPrintMaterial[]) => void;
+  sponsorshipMaterials?: EventPrintMaterial[];
+  onSponsorshipMaterialsChange?: (materials: EventPrintMaterial[]) => void;
   emailBanners?: BrandEmailBanner[];
   onEmailBannersChange?: (banners: BrandEmailBanner[]) => void;
   infographics?: EventInfographic[];
@@ -129,6 +131,8 @@ export const EventDigitalSection = ({
   onBrochuresChange,
   printMaterials = [],
   onPrintMaterialsChange,
+  sponsorshipMaterials = [],
+  onSponsorshipMaterialsChange,
   emailBanners = [],
   onEmailBannersChange,
   infographics = [],
@@ -300,7 +304,7 @@ export const EventDigitalSection = ({
 
   // Sponsorship material handlers
   const handleAddPrintMaterial = () => {
-    if (!newPrintMaterial.name || !onPrintMaterialsChange) return;
+    if (!newPrintMaterial.name || !onSponsorshipMaterialsChange) return;
     const item: EventPrintMaterial = {
       id: crypto.randomUUID(),
       name: newPrintMaterial.name,
@@ -311,15 +315,15 @@ export const EventDigitalSection = ({
       description: newPrintMaterial.description,
       quantity: newPrintMaterial.quantity,
     };
-    onPrintMaterialsChange([...printMaterials, item]);
+    onSponsorshipMaterialsChange([...sponsorshipMaterials, item]);
     setNewPrintMaterial({ name: '', type: 'prospectus', dimensions: '', description: '' });
     setIsAddingNew(false);
     toast.success('Sponsorship material added');
   };
 
   const handleDeletePrintMaterial = (id: string) => {
-    if (!onPrintMaterialsChange) return;
-    onPrintMaterialsChange(printMaterials.filter(p => p.id !== id));
+    if (!onSponsorshipMaterialsChange) return;
+    onSponsorshipMaterialsChange(sponsorshipMaterials.filter(p => p.id !== id));
     toast.success('Sponsorship material removed');
   };
 
@@ -428,7 +432,7 @@ export const EventDigitalSection = ({
 
   const hasTemplatesSection = !!onTemplatesChange;
   const hasBrochuresSection = !!onBrochuresChange;
-  const hasPrintSection = !!onPrintMaterialsChange;
+  const hasPrintSection = !!onSponsorshipMaterialsChange;
   const hasEmailBannersSection = !!onEmailBannersChange;
   const hasInfographicsSection = !!onInfographicsChange;
   const hasApplicationsSection = !!onApplicationsChange;
@@ -481,7 +485,7 @@ export const EventDigitalSection = ({
             <TabsTrigger value="sponsorship" className="gap-1.5">
               <Handshake className="h-4 w-4" />
               Sponsorship
-              {printMaterials.length > 0 && <span className="text-xs text-muted-foreground">({printMaterials.length})</span>}
+              {sponsorshipMaterials.length > 0 && <span className="text-xs text-muted-foreground">({sponsorshipMaterials.length})</span>}
             </TabsTrigger>
           )}
           {hasEmailBannersSection && (
@@ -1055,13 +1059,13 @@ export const EventDigitalSection = ({
               </Card>
             )}
 
-            {printMaterials.length === 0 && !isAddingNew ? (
+            {sponsorshipMaterials.length === 0 && !isAddingNew ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                   <Handshake className="h-12 w-12 text-muted-foreground/50 mb-4" />
                   <h3 className="font-semibold text-lg mb-2">No sponsorship materials yet</h3>
                   <p className="text-muted-foreground mb-4">Add sponsorship decks, prospectuses, and partnership collateral</p>
-                  {isEditable && onPrintMaterialsChange && (
+                  {isEditable && onSponsorshipMaterialsChange && (
                     <Button onClick={() => { setActiveTab('sponsorship'); setIsAddingNew(true); }}>
                       <Plus className="h-4 w-4 mr-2" />Add First Sponsorship Material
                     </Button>
@@ -1070,7 +1074,7 @@ export const EventDigitalSection = ({
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {printMaterials.map((item) => {
+                {sponsorshipMaterials.map((item) => {
                   const TypeIcon = SPONSORSHIP_TYPES.find(t => t.value === item.type)?.icon || FileText;
                   return (
                     <Card key={item.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
@@ -1106,7 +1110,7 @@ export const EventDigitalSection = ({
                             {item.quantity && <Badge variant="outline" className="mt-1.5 text-xs">Qty: {item.quantity}</Badge>}
                             {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
                           </div>
-                          {isEditable && onPrintMaterialsChange && (
+                          {isEditable && onSponsorshipMaterialsChange && (
                             <Button variant="ghost" size="icon"
                               className="h-7 w-7 text-destructive hover:text-destructive shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={() => handleDeletePrintMaterial(item.id)}>
