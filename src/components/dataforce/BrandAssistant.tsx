@@ -1,6 +1,6 @@
 /**
  * DataForce AI Brand Assistant Component
- * Multilingual chatbot for brand questions with entity navigation
+ * Multilingual chatbot with live voice conversation mode
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -33,6 +33,9 @@ import {
   ExternalLink,
   Mic,
   MicOff,
+  AudioLines,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -71,6 +74,11 @@ const LANGUAGES = [
   { code: 'pt_BR', label: 'Portuguese', flag: '🇧🇷' },
 ];
 
+const LANG_MAP: Record<string, string> = {
+  en_US: 'en-US', es_ES: 'es-ES', fr_FR: 'fr-FR',
+  de_DE: 'de-DE', ja_JP: 'ja-JP', zh_CN: 'zh-CN', pt_BR: 'pt-BR',
+};
+
 /** Parse [[nav:type:slug:section|label]] patterns from text */
 function parseNavLinks(text: string): { cleanText: string; links: NavLink[] } {
   const navRegex = /\[\[nav:(brand|product|event):([a-z0-9-]+)(?::([a-z0-9-]+))?\|([^\]]+)\]\]/g;
@@ -86,9 +94,23 @@ function parseNavLinks(text: string): { cleanText: string; links: NavLink[] } {
     });
   }
 
-  // Replace nav tokens with just the label text for markdown rendering
   const cleanText = text.replace(navRegex, '**$4**');
   return { cleanText, links };
+}
+
+/** Strip markdown for TTS */
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\[\[nav:[^\]]+\|([^\]]+)\]\]/g, '$1')
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[-*+]\s/g, '')
+    .replace(/\n{2,}/g, '. ')
+    .replace(/\n/g, ' ')
+    .trim();
 }
 
 export const BrandAssistant = ({
@@ -105,26 +127,37 @@ export const BrandAssistant = ({
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [language, setLanguage] = useState('en_US');
+  
+  // Voice state
   const [isListening, setIsListening] = useState(false);
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [interimText, setInterimText] = useState('');
+  
   const recognitionRef = useRef<any>(null);
+  const isListeningRef = useRef(false);
+  const voiceModeRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, interimText]);
 
-  // Load existing conversation scoped to org + user (not entity-scoped)
-  // This enables a cohesive bot across brands, products, and events
+  // Load voices on mount
   useEffect(() => {
-    if (!organization?.id) return;
+    const loadVoices = () => window.speechSynthesis.getVoices();
+    loadVoices();
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
+  }, []);
 
-    // Don't reset if we already have a conversation for this org
-    if (conversationId) return;
+  // Load existing conversation
+  useEffect(() => {
+    if (!organization?.id || conversationId) return;
 
     let cancelled = false;
-
     const loadExisting = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -140,7 +173,6 @@ export const BrandAssistant = ({
           .maybeSingle();
 
         if (cancelled) return;
-
         if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
           setConversationId(data.id);
           setMessages(data.messages as unknown as Message[]);
@@ -154,79 +186,260 @@ export const BrandAssistant = ({
     return () => { cancelled = true; };
   }, [organization?.id, conversationId]);
 
-  // Cleanup speech recognition on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.abort();
-        recognitionRef.current = null;
-      }
+      stopListening();
+      window.speechSynthesis.cancel();
     };
   }, []);
 
-  const toggleListening = useCallback(() => {
+  // Stop voice mode when sheet closes
+  useEffect(() => {
+    if (!open) {
+      stopVoiceMode();
+    }
+  }, [open]);
+
+  // ───── Speech Recognition ─────
+
+  const startListening = useCallback(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast.error('Speech recognition is not supported in this browser');
       return;
     }
 
-    if (isListening && recognitionRef.current) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-      return;
+    // Stop any existing instance
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch {}
+      recognitionRef.current = null;
     }
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    // Map language codes to BCP-47
-    const langMap: Record<string, string> = {
-      en_US: 'en-US', es_ES: 'es-ES', fr_FR: 'fr-FR',
-      de_DE: 'de-DE', ja_JP: 'ja-JP', zh_CN: 'zh-CN', pt_BR: 'pt-BR',
-    };
-    recognition.lang = langMap[language] || 'en-US';
+    recognition.lang = LANG_MAP[language] || 'en-US';
 
     recognition.onresult = (event: any) => {
       let finalTranscript = '';
-      let interimTranscript = '';
+      let interim = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
           finalTranscript += transcript;
         } else {
-          interimTranscript += transcript;
+          interim += transcript;
         }
       }
+      
+      setInterimText(interim);
+      
       if (finalTranscript) {
-        setInput(prev => (prev + ' ' + finalTranscript).trim());
+        setInterimText('');
+        if (voiceModeRef.current) {
+          // In voice mode, auto-send the message
+          sendVoiceMessage(finalTranscript.trim());
+        } else {
+          setInput(prev => (prev + ' ' + finalTranscript).trim());
+        }
       }
     };
 
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
-      if (event.error !== 'aborted') {
+      if (event.error === 'not-allowed') {
+        toast.error('Microphone permission denied. Please allow access in browser settings.');
+        setIsListening(false);
+        isListeningRef.current = false;
+        setIsVoiceMode(false);
+        voiceModeRef.current = false;
+      } else if (event.error === 'no-speech') {
+        // Normal timeout, will auto-restart via onend
+      } else if (event.error !== 'aborted') {
         toast.error('Microphone error: ' + event.error);
       }
-      setIsListening(false);
     };
 
     recognition.onend = () => {
-      setIsListening(false);
-      recognitionRef.current = null;
+      // Auto-restart if still in listening mode
+      if (isListeningRef.current) {
+        try {
+          recognition.start();
+        } catch {
+          setIsListening(false);
+          isListeningRef.current = false;
+        }
+      } else {
+        setIsListening(false);
+      }
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
+    isListeningRef.current = true;
     setIsListening(true);
-  }, [isListening, language]);
+    setInterimText('');
+    
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error('Failed to start recognition:', e);
+      setIsListening(false);
+      isListeningRef.current = false;
+    }
+  }, [language]);
 
-  const handleNavClick = useCallback((link: NavLink) => {
-    const path = `/${link.type}/${link.slug}`;
-    const hash = link.section ? `#${link.section}` : '';
-    onOpenChange(false);
-    setTimeout(() => navigate(`${path}${hash}`), 150);
-  }, [navigate, onOpenChange]);
+  const stopListening = useCallback(() => {
+    isListeningRef.current = false;
+    setIsListening(false);
+    setInterimText('');
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch {}
+      recognitionRef.current = null;
+    }
+  }, []);
+
+  // ───── Text-to-Speech ─────
+
+  const speakText = useCallback((text: string, onComplete?: () => void) => {
+    window.speechSynthesis.cancel();
+    
+    const plainText = stripMarkdown(text);
+    if (!plainText) {
+      onComplete?.();
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(plainText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    utterance.lang = LANG_MAP[language] || 'en-US';
+
+    const voices = window.speechSynthesis.getVoices();
+    const langPrefix = (LANG_MAP[language] || 'en-US').split('-')[0];
+    const preferredVoice = voices.find(v => v.name.includes('Natural') && v.lang.startsWith(langPrefix))
+      || voices.find(v => v.lang.startsWith(langPrefix))
+      || voices[0];
+    if (preferredVoice) utterance.voice = preferredVoice;
+
+    setIsSpeaking(true);
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      onComplete?.();
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      onComplete?.();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }, [language]);
+
+  const stopSpeaking = useCallback(() => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  }, []);
+
+  // ───── Voice Mode ─────
+
+  const startVoiceMode = useCallback(() => {
+    setIsVoiceMode(true);
+    voiceModeRef.current = true;
+    startListening();
+  }, [startListening]);
+
+  const stopVoiceMode = useCallback(() => {
+    setIsVoiceMode(false);
+    voiceModeRef.current = false;
+    stopListening();
+    stopSpeaking();
+  }, [stopListening, stopSpeaking]);
+
+  const toggleVoiceMode = useCallback(() => {
+    if (isVoiceMode) {
+      stopVoiceMode();
+    } else {
+      startVoiceMode();
+    }
+  }, [isVoiceMode, startVoiceMode, stopVoiceMode]);
+
+  // Simple mic toggle (dictation only, no TTS)
+  const toggleDictation = useCallback(() => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  }, [isListening, startListening, stopListening]);
+
+  // ───── Message Sending ─────
+
+  const sendVoiceMessage = useCallback(async (text: string) => {
+    if (!text || !organization?.id) return;
+
+    // Stop listening while processing
+    stopListening();
+
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: text,
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const response = await supabase.functions.invoke('dataforce-assistant', {
+        body: {
+          organization_id: organization.id,
+          entity_type: entityType,
+          entity_id: entityId,
+          message: text,
+          conversation_id: conversationId,
+          language_code: language,
+        }
+      });
+
+      if (response.error) throw new Error(response.error.message);
+
+      const data = response.data;
+      if (!data.success) throw new Error(data.error || 'Failed to get response');
+
+      if (data.conversationId) setConversationId(data.conversationId);
+
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: data.message,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsLoading(false);
+
+      // In voice mode, speak the response then resume listening
+      if (voiceModeRef.current) {
+        speakText(data.message, () => {
+          if (voiceModeRef.current) {
+            startListening();
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Assistant error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to get response');
+      setMessages(prev => prev.filter(m => m.id !== userMessage.id));
+      setIsLoading(false);
+      
+      // Resume listening in voice mode even on error
+      if (voiceModeRef.current) {
+        startListening();
+      }
+    }
+  }, [organization?.id, entityType, entityId, conversationId, language, speakText, startListening, stopListening]);
 
   const sendMessage = async () => {
     if (!input.trim() || !organization?.id) return;
@@ -254,18 +467,12 @@ export const BrandAssistant = ({
         }
       });
 
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
+      if (response.error) throw new Error(response.error.message);
 
       const data = response.data;
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to get response');
-      }
+      if (!data.success) throw new Error(data.error || 'Failed to get response');
 
-      if (data.conversationId) {
-        setConversationId(data.conversationId);
-      }
+      if (data.conversationId) setConversationId(data.conversationId);
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
@@ -278,7 +485,6 @@ export const BrandAssistant = ({
     } catch (error) {
       console.error('Assistant error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to get response');
-      
       setMessages(prev => prev.filter(m => m.id !== userMessage.id));
       setInput(userMessage.content);
     } finally {
@@ -292,6 +498,13 @@ export const BrandAssistant = ({
       sendMessage();
     }
   };
+
+  const handleNavClick = useCallback((link: NavLink) => {
+    const path = `/${link.type}/${link.slug}`;
+    const hash = link.section ? `#${link.section}` : '';
+    onOpenChange(false);
+    setTimeout(() => navigate(`${path}${hash}`), 150);
+  }, [navigate, onOpenChange]);
 
   const suggestedQuestions = entityName ? [
     `What are the core values of ${entityName}?`,
@@ -338,9 +551,38 @@ export const BrandAssistant = ({
             ))}
           </div>
         )}
+        {/* Speak button on assistant messages */}
+        <div className="flex gap-1 pt-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 text-xs gap-1 text-muted-foreground hover:text-foreground"
+            onClick={() => {
+              if (isSpeaking) {
+                stopSpeaking();
+              } else {
+                speakText(message.content);
+              }
+            }}
+          >
+            {isSpeaking ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+            {isSpeaking ? 'Stop' : 'Listen'}
+          </Button>
+        </div>
       </div>
     );
   };
+
+  // Voice mode visual state
+  const voiceStatus = isVoiceMode
+    ? isSpeaking
+      ? 'Bot speaking...'
+      : isLoading
+        ? 'Thinking...'
+        : isListening
+          ? 'Listening — speak now...'
+          : 'Starting...'
+    : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -351,19 +593,21 @@ export const BrandAssistant = ({
               <Bot className="h-5 w-5 text-green-500" />
               Brand Assistant
             </SheetTitle>
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-32">
-                <Globe className="h-4 w-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {LANGUAGES.map(lang => (
-                  <SelectItem key={lang.code} value={lang.code}>
-                    {lang.flag} {lang.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select value={language} onValueChange={setLanguage}>
+                <SelectTrigger className="w-32">
+                  <Globe className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LANGUAGES.map(lang => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.flag} {lang.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <SheetDescription>
             {entityName 
@@ -371,6 +615,34 @@ export const BrandAssistant = ({
               : 'Your AI-powered brand knowledge assistant'}
           </SheetDescription>
         </SheetHeader>
+
+        {/* Voice Mode Banner */}
+        {isVoiceMode && (
+          <div className="px-4 py-3 bg-primary/5 border-b flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                isSpeaking ? 'bg-amber-500 animate-pulse' 
+                : isListening ? 'bg-red-500 animate-pulse' 
+                : isLoading ? 'bg-blue-500 animate-pulse'
+                : 'bg-muted-foreground'
+              }`} />
+              <span className="text-sm font-medium truncate">{voiceStatus}</span>
+              {interimText && (
+                <span className="text-xs text-muted-foreground italic truncate">
+                  "{interimText}"
+                </span>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={stopVoiceMode}
+              className="flex-shrink-0 text-xs h-7"
+            >
+              End Voice Chat
+            </Button>
+          </div>
+        )}
 
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           {messages.length === 0 ? (
@@ -385,6 +657,19 @@ export const BrandAssistant = ({
                 </p>
               </div>
               
+              {/* Voice Mode CTA */}
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={startVoiceMode}
+                  className="gap-2"
+                  disabled={isVoiceMode}
+                >
+                  <AudioLines className="h-4 w-4" />
+                  Start Voice Conversation
+                </Button>
+              </div>
+
               <div className="space-y-2">
                 <p className="text-xs text-muted-foreground font-medium">Suggested questions:</p>
                 {suggestedQuestions.map((question, i) => (
@@ -430,6 +715,14 @@ export const BrandAssistant = ({
                   )}
                 </div>
               ))}
+              {/* Show interim speech text */}
+              {interimText && !isVoiceMode && (
+                <div className="flex gap-3 justify-end">
+                  <div className="max-w-[80%] rounded-lg px-4 py-2 bg-primary/20 text-foreground italic text-sm">
+                    {interimText}...
+                  </div>
+                </div>
+              )}
               {isLoading && (
                 <div className="flex gap-3 justify-start">
                   <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
@@ -451,21 +744,34 @@ export const BrandAssistant = ({
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={isListening ? 'Listening...' : 'Ask about brand guidelines...'}
-              disabled={isLoading}
-              className={`flex-1 ${isListening ? 'border-red-500/50 animate-pulse' : ''}`}
+              disabled={isLoading || isVoiceMode}
+              className={`flex-1 ${isListening && !isVoiceMode ? 'border-red-500/50 animate-pulse' : ''}`}
             />
+            {/* Voice Mode Toggle */}
             <Button
-              onClick={toggleListening}
-              variant={isListening ? 'destructive' : 'outline'}
+              onClick={toggleVoiceMode}
+              variant={isVoiceMode ? 'destructive' : 'secondary'}
               size="icon"
-              title={isListening ? 'Stop listening' : 'Voice input'}
-              disabled={isLoading}
+              title={isVoiceMode ? 'End voice chat' : 'Start voice chat'}
+              disabled={isLoading && !isVoiceMode}
             >
-              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              <AudioLines className="h-4 w-4" />
             </Button>
+            {/* Dictation mic (non-voice-mode only) */}
+            {!isVoiceMode && (
+              <Button
+                onClick={toggleDictation}
+                variant={isListening ? 'destructive' : 'outline'}
+                size="icon"
+                title={isListening ? 'Stop dictation' : 'Dictate'}
+                disabled={isLoading}
+              >
+                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+            )}
             <Button 
               onClick={sendMessage} 
-              disabled={!input.trim() || isLoading}
+              disabled={!input.trim() || isLoading || isVoiceMode}
               size="icon"
             >
               <Send className="h-4 w-4" />
