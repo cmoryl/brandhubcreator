@@ -26,14 +26,13 @@ import {
   Library,
   Wand2,
   Sparkles,
-  // ImageIcon moved to Creator
+  Palette,
   Paintbrush,
   GitBranch,
   Package,
   ChevronLeft,
   ChevronRight,
   Smartphone,
-  Palette,
 } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
@@ -64,6 +63,7 @@ interface IconStudioProps {
 const WIZARD_STEPS: WizardStep[] = [
   { id: 'library', label: 'Library', icon: Library, description: 'Manage icon collections' },
   { id: 'ai-generator', label: 'Generate', icon: Wand2, description: 'AI icon generation' },
+  { id: 'creator', label: 'Create', icon: Palette, description: 'Add & import icons' },
   { id: 'colorizer', label: 'Colorize', icon: Paintbrush, description: 'Colors & gradients' },
   { id: 'hierarchy', label: 'Organize', icon: GitBranch, description: 'Brand hierarchy' },
   { id: 'export', label: 'Export', icon: Package, description: 'Batch export' },
@@ -72,7 +72,6 @@ const WIZARD_STEPS: WizardStep[] = [
 // Additional tools accessible from a "More tools" area
 const EXTRA_TOOLS = [
   { id: 'app-icons' as const, label: 'App Icons', icon: Smartphone, description: 'iOS, Android & PWA' },
-  { id: 'creator' as const, label: 'Creator', icon: Palette, description: 'Design custom icons' },
 ];
 
 export const IconStudio = ({
@@ -91,9 +90,8 @@ export const IconStudio = ({
 
   const [currentStep, setCurrentStep] = useState(initialStepIndex);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
   // Track if user navigated to a bonus tool
-  const [activeBonusTool, setActiveBonusTool] = useState<'app-icons' | 'creator' | null>(null);
+  const [activeBonusTool, setActiveBonusTool] = useState<'app-icons' | null>(null);
 
   // Sync when dialog opens
   useEffect(() => {
@@ -183,7 +181,7 @@ export const IconStudio = ({
 
   const handleNavigateToTab = useCallback((tab: IconStudioTab) => {
     // Check if it's a bonus tool
-    if (tab === 'app-icons' || tab === 'creator') {
+    if (tab === 'app-icons') {
       setActiveBonusTool(tab);
       return;
     }
@@ -257,6 +255,7 @@ export const IconStudio = ({
       case 'creator':
         return (
           <IconStudioCreator
+            organizationId={organizationId}
             brandColors={brandColors}
             libraries={libraries}
             onSaveIcons={handleSaveIcons}
