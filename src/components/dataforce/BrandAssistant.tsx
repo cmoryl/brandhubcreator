@@ -165,11 +165,25 @@ export const BrandAssistant = ({
   const voiceModeRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll to bottom of conversation
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, interimText]);
+
+  // Scroll to end when sheet opens with existing messages
+  useEffect(() => {
+    if (open && messages.length > 0) {
+      // Small delay to let the sheet animation complete
+      const timer = setTimeout(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
   // Load voices on mount
   useEffect(() => {
