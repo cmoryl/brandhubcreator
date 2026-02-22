@@ -26,7 +26,7 @@ import {
   Library,
   Wand2,
   Sparkles,
-  ImageIcon,
+  // ImageIcon moved to Creator
   Paintbrush,
   GitBranch,
   Package,
@@ -41,7 +41,7 @@ import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
 // Import sub-components
 import { IconStudioLibrary } from './studio/IconStudioLibrary';
 import { IconStudioAIGenerator } from './studio/IconStudioAIGenerator';
-import { IconStylizer } from './studio/IconStylizer';
+// IconStylizer is now embedded inside IconStudioCreator
 import { IconStudioColorizer } from './studio/IconStudioColorizer';
 import { IconBrandHierarchy } from './studio/IconBrandHierarchy';
 import { IconStudioAppIcons } from './studio/IconStudioAppIcons';
@@ -49,7 +49,7 @@ import { IconStudioCreator } from './studio/IconStudioCreator';
 import { IconStudioExport } from './studio/IconStudioExport';
 import { IconStudioStepper, WizardStep } from './studio/IconStudioStepper';
 
-export type IconStudioTab = 'library' | 'ai-generator' | 'stylizer' | 'colorizer' | 'hierarchy' | 'app-icons' | 'creator' | 'export';
+export type IconStudioTab = 'library' | 'ai-generator' | 'colorizer' | 'hierarchy' | 'app-icons' | 'creator' | 'export';
 
 interface IconStudioProps {
   open: boolean;
@@ -64,7 +64,6 @@ interface IconStudioProps {
 const WIZARD_STEPS: WizardStep[] = [
   { id: 'library', label: 'Library', icon: Library, description: 'Manage icon collections' },
   { id: 'ai-generator', label: 'Generate', icon: Wand2, description: 'AI icon generation' },
-  { id: 'stylizer', label: 'Upload & Convert', icon: ImageIcon, description: 'PNG → SVG conversion' },
   { id: 'colorizer', label: 'Colorize', icon: Paintbrush, description: 'Colors & gradients' },
   { id: 'hierarchy', label: 'Organize', icon: GitBranch, description: 'Brand hierarchy' },
   { id: 'export', label: 'Export', icon: Package, description: 'Batch export' },
@@ -225,16 +224,7 @@ export const IconStudio = ({
             onSaveIcons={handleSaveIcons}
           />
         );
-      case 'stylizer':
-        return (
-          <IconStylizer
-            brandColors={brandColors.map(c => c.hex)}
-            onIconCreated={(icon) => {
-              handleSaveIcons([icon]);
-              setSelectedIcon(icon);
-            }}
-          />
-        );
+      
       case 'colorizer':
         return (
           <IconStudioColorizer
