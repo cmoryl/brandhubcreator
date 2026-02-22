@@ -63,7 +63,7 @@ export function ProductReportGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportData, setReportData] = useState<ProductReportData[] | null>(null);
   const [summary, setSummary] = useState<ReportSummary | null>(null);
-  const [dateRange, setDateRange] = useState('30d');
+  const [dateRange, setDateRange] = useState('all');
   const [reportType, setReportType] = useState<'all' | 'public' | 'private'>('all');
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
 
@@ -106,8 +106,11 @@ export function ProductReportGenerator() {
       let query = supabase
         .from('products')
         .select('id, name, created_at, updated_at, is_public, organization_id, parent_brand_id, is_suite_master, guide_data')
-        .gte('created_at', dateFilter.toISOString())
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false });
+
+      if (dateRange !== 'all') {
+        query = query.gte('updated_at', dateFilter.toISOString());
+      }
 
       if (reportType === 'public') {
         query = query.eq('is_public', true);
