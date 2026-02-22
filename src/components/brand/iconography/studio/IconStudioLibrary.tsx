@@ -468,7 +468,7 @@ export const IconStudioLibrary = ({
             </button>
 
             <button
-              onClick={() => onNavigateToTab('stylizer')}
+              onClick={() => onNavigateToTab('creator')}
               className="group flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-primary hover:bg-primary/5 transition-all"
             >
               <div className="w-10 h-10 rounded-lg bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">

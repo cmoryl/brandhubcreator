@@ -15,17 +15,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import * as LucideIcons from 'lucide-react';
-import { Search, Check, Code, Library, Plus } from 'lucide-react';
+import { Search, Check, Code, Library, Plus, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandIconography } from '@/types/brand';
 import { IconLibrary } from '@/hooks/useIconLibraries';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
+import { IconStylizer } from './IconStylizer';
 
 interface IconStudioCreatorProps {
   brandColors: Array<{ hex: string; name: string }>;
   libraries: IconLibrary[];
   onSaveIcons: (icons: BrandIconography[], libraryId?: string) => void;
+  onSingleIconCreated?: (icon: BrandIconography) => void;
 }
 
 // Get all Lucide icon names
@@ -46,6 +48,7 @@ export const IconStudioCreator = ({
   brandColors,
   libraries,
   onSaveIcons,
+  onSingleIconCreated,
 }: IconStudioCreatorProps) => {
   const [activeTab, setActiveTab] = useState('library');
   const [searchQuery, setSearchQuery] = useState('');
@@ -205,6 +208,10 @@ export const IconStudioCreator = ({
           <TabsTrigger value="custom" className="gap-2">
             <Code className="h-4 w-4" />
             Custom SVG
+          </TabsTrigger>
+          <TabsTrigger value="upload" className="gap-2">
+            <ImageIcon className="h-4 w-4" />
+            Upload & Convert
           </TabsTrigger>
         </TabsList>
 
@@ -378,6 +385,15 @@ export const IconStudioCreator = ({
               )}
             </div>
           </div>
+        </TabsContent>
+        <TabsContent value="upload" className="space-y-4">
+          <IconStylizer
+            brandColors={brandColors.map(c => c.hex)}
+            onIconCreated={(icon) => {
+              onSaveIcons([icon], selectedLibraryId || undefined);
+              onSingleIconCreated?.(icon);
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>
