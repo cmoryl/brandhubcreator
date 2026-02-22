@@ -364,12 +364,32 @@ const GrowthKPIPanel: React.FC<{ stats: DashboardStats | null }> = ({ stats }) =
 // ─── Backup Status Widget ───────────────────────────────────
 const BackupStatusWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ onTabChange }) => {
   const [data, setData] = useState<{ total: number; completed: number; failed: number; lastBackup: string | null; totalSize: number } | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
 
+  // Get user's organization
   useEffect(() => {
     (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: membership } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .limit(1)
+        .maybeSingle();
+      if (membership) setOrgId(membership.organization_id);
+    })();
+  }, []);
+
+  // Fetch backup jobs filtered by org + subscribe to realtime updates
+  useEffect(() => {
+    if (!orgId) return;
+
+    const fetchData = async () => {
       const { data: jobs } = await supabase
         .from('backup_jobs')
         .select('status, completed_at, file_size_bytes')
+        .eq('organization_id', orgId)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -386,8 +406,25 @@ const BackupStatusWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ 
         lastBackup: lastCompleted?.completed_at || null,
         totalSize,
       });
-    })();
-  }, []);
+    };
+
+    fetchData();
+
+    // Subscribe to realtime changes so widget stays in sync
+    const channel = supabase
+      .channel(`backup_widget_${orgId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'backup_jobs',
+        filter: `organization_id=eq.${orgId}`,
+      }, () => {
+        fetchData();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [orgId]);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
