@@ -304,8 +304,8 @@ export const IconStudio = ({
         </div>
 
         {/* Step Content */}
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full">
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ScrollArea className="h-full max-h-[calc(90vh-220px)]">
             <div className="p-6">
               {renderStepContent()}
             </div>
