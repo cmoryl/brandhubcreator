@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { format, subDays, subMonths } from 'date-fns';
 import { CustomPromptRunner } from './CustomPromptRunner';
 import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
+import { ReportEntitySelector } from './ReportEntitySelector';
 
 interface CachedProductReport {
   reportData: ProductReportData[];
@@ -64,6 +65,7 @@ export function ProductReportGenerator() {
   const [summary, setSummary] = useState<ReportSummary | null>(null);
   const [dateRange, setDateRange] = useState('30d');
   const [reportType, setReportType] = useState<'all' | 'public' | 'private'>('all');
+  const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
 
   const {
     data: cachedData,
@@ -111,6 +113,10 @@ export function ProductReportGenerator() {
         query = query.eq('is_public', true);
       } else if (reportType === 'private') {
         query = query.eq('is_public', false);
+      }
+
+      if (selectedEntityIds.length > 0) {
+        query = query.in('id', selectedEntityIds);
       }
 
       const { data: products, error } = await query;
@@ -307,6 +313,12 @@ export function ProductReportGenerator() {
               <SelectItem value="private">Private Only</SelectItem>
             </SelectContent>
           </Select>
+
+          <ReportEntitySelector
+            entityType="products"
+            selectedIds={selectedEntityIds}
+            onSelectionChange={setSelectedEntityIds}
+          />
 
           <Button onClick={generateReport} disabled={isGenerating}>
             {isGenerating ? (
