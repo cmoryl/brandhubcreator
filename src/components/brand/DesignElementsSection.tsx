@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
-import { Download, ChevronUp, Square, MessageCircle, Waves, Eye, Check, RectangleHorizontal, Layers, Shapes } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { Download, ChevronUp, Square, MessageCircle, Waves, Eye, Check, RectangleHorizontal, Layers, Shapes, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -482,11 +483,46 @@ export const DesignElementsSection = ({
                       <Badge variant="outline" className="text-xs shrink-0">AI</Badge>
                     )}
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4 gap-2">
                     <Button size="sm" variant="secondary" className="gap-1.5">
                       <Eye className="h-3.5 w-3.5" />
                       Preview
                     </Button>
+                    {canEdit && onCustomShapesChange && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            size="sm" 
+                            variant="destructive" 
+                            className="gap-1.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete "{shape.name}"?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This custom shape will be permanently removed from the Design Elements Library.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onCustomShapesChange(customShapes.filter(s => s.id !== shape.id));
+                                toast.success(`"${shape.name}" deleted`);
+                              }}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
                 </CardContent>
               </Card>
