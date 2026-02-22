@@ -22,6 +22,8 @@ import {
   CheckSquare,
   Square,
   Download,
+  Wand2,
+  ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -418,193 +420,216 @@ export const IconStudioLibrary = ({
     );
   };
 
+  // Empty state — no libraries and no icons at all
+  const isEmpty = libraries.length === 0 && totalIconCount === 0;
+
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h3 className="text-lg font-semibold">Icon Library</h3>
-          <p className="text-sm text-muted-foreground">
-            {totalIconCount} icons across {libraries.length} libraries
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => onNavigateToTab('ai-generator')}>
-            Generate with AI
-          </Button>
-          <Button size="sm" onClick={() => openCreateDialog()}>
-            <Plus className="h-4 w-4 mr-1" />
-            New Library
-          </Button>
-        </div>
-      </div>
+      {isEmpty ? (
+        /* ───── Friendly Empty-State Onboarding ───── */
+        <div className="flex flex-col items-center justify-center py-10 text-center space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Layers className="h-8 w-8 text-primary" />
+          </div>
+          <div className="space-y-2 max-w-md">
+            <h3 className="text-xl font-semibold">Start Your Icon Library</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Build a consistent icon system for your brand. Generate icons with AI, 
+              upload your own, or create them from scratch.
+            </p>
+          </div>
 
-      {/* Search & Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search icons by name, category, or library..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-8"
-          />
-          {searchQuery && (
+          {/* Quick-start action cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-xl">
             <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              onClick={() => onNavigateToTab('ai-generator')}
+              className="group flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 transition-all"
             >
-              <X className="h-4 w-4" />
+              <div className="w-10 h-10 rounded-lg bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+                <Wand2 className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">Generate with AI</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Create a full icon set instantly</p>
+              </div>
             </button>
-          )}
-        </div>
-        
-        <div className="flex gap-2">
-          <Select value={filterLevel} onValueChange={setFilterLevel}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Filter level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Levels</SelectItem>
-              <SelectItem value="core">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-3 w-3 text-primary" />
-                  Core
-                </div>
-              </SelectItem>
-              <SelectItem value="product_line">
-                <div className="flex items-center gap-2">
-                  <Package className="h-3 w-3 text-primary" />
-                  Product Line
-                </div>
-              </SelectItem>
-              <SelectItem value="brand">
-                <div className="flex items-center gap-2">
-                  <Layers className="h-3 w-3 text-primary" />
-                  Brand
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
 
-          <div className="flex border rounded-md">
-            <Button
-              variant={viewMode === 'hierarchy' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="rounded-r-none px-2"
-              onClick={() => setViewMode('hierarchy')}
+            <button
+              onClick={() => openCreateDialog('core')}
+              className="group flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-primary hover:bg-primary/5 transition-all"
             >
-              <LayoutList className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="rounded-l-none px-2"
-              onClick={() => setViewMode('grid')}
+              <div className="w-10 h-10 rounded-lg bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                <Plus className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">New Library</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Organize icons manually</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => onNavigateToTab('stylizer')}
+              className="group flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-primary hover:bg-primary/5 transition-all"
             >
-              <Grid3X3 className="h-4 w-4" />
-            </Button>
+              <div className="w-10 h-10 rounded-lg bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                <ImageIcon className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">Upload & Convert</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Turn PNGs into clean SVGs</p>
+              </div>
+            </button>
           </div>
         </div>
-      </div>
-
-      {/* Selection Actions Bar */}
-      {selectedIcons.size > 0 && (
-        <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20">
-          <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="gap-1">
-              <CheckSquare className="h-3 w-3" />
-              {selectedIcons.size} selected
-            </Badge>
-            <Button variant="ghost" size="sm" onClick={clearSelection}>
-              Clear
-            </Button>
-          </div>
-          <Button size="sm" onClick={exportSelectedIcons}>
-            <Download className="h-4 w-4 mr-1" />
-            Export SVG
-          </Button>
-        </div>
-      )}
-
-      {/* Grid View */}
-      {viewMode === 'grid' && (
-        <div className="space-y-3">
-          {filteredIcons.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Search className="h-8 w-8 mx-auto mb-3 opacity-50" />
-              <p>No icons found matching your search</p>
+      ) : (
+        /* ───── Populated Library View ───── */
+        <>
+          {/* Header */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="text-lg font-semibold">Icon Library</h3>
+              <p className="text-sm text-muted-foreground">
+                {totalIconCount} icon{totalIconCount !== 1 ? 's' : ''} across {libraries.length} librar{libraries.length !== 1 ? 'ies' : 'y'}
+              </p>
             </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">
-                  {filteredIcons.length} icon{filteredIcons.length !== 1 ? 's' : ''} 
-                  {searchQuery && ' matching search'}
-                </span>
-                <Button variant="ghost" size="sm" onClick={selectAllVisible}>
-                  <Square className="h-3 w-3 mr-1" />
-                  Select All
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => onNavigateToTab('ai-generator')}>
+                Generate with AI
+              </Button>
+              <Button size="sm" onClick={() => openCreateDialog()}>
+                <Plus className="h-4 w-4 mr-1" />
+                New Library
+              </Button>
+            </div>
+          </div>
+
+          {/* Search & Filter Toolbar — only show when there are icons to search */}
+          {totalIconCount > 0 && (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search icons by name, category, or library..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-8"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Select value={filterLevel} onValueChange={setFilterLevel}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Filter level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Levels</SelectItem>
+                    <SelectItem value="core">Core</SelectItem>
+                    <SelectItem value="product_line">Product Line</SelectItem>
+                    <SelectItem value="brand">Brand</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex border rounded-md">
+                  <Button
+                    variant={viewMode === 'hierarchy' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="rounded-r-none px-2"
+                    onClick={() => setViewMode('hierarchy')}
+                  >
+                    <LayoutList className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="rounded-l-none px-2"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Selection Actions Bar */}
+          {selectedIcons.size > 0 && (
+            <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="gap-1">
+                  <CheckSquare className="h-3 w-3" />
+                  {selectedIcons.size} selected
+                </Badge>
+                <Button variant="ghost" size="sm" onClick={clearSelection}>
+                  Clear
                 </Button>
               </div>
-              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                {filteredIcons.map(renderGridIcon)}
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Hierarchy View */}
-      {viewMode === 'hierarchy' && (
-        <>
-          {/* Hierarchy Visualization */}
-          <div className="p-4 rounded-lg bg-muted/30 border">
-            <div className="flex items-center gap-4 text-sm flex-wrap">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-primary" />
-                <span>Core</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-primary" />
-                <span>Product Line</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-primary" />
-                <span>Brand</span>
-              </div>
-              <span className="text-muted-foreground ml-auto hidden sm:inline">
-                Each level inherits icons from parent levels
-              </span>
+              <Button size="sm" onClick={exportSelectedIcons}>
+                <Download className="h-4 w-4 mr-1" />
+                Export SVG
+              </Button>
             </div>
-          </div>
+          )}
 
-          {/* Level Sections */}
-          <div className="space-y-3">
-            {renderLevelSection(
-              'core',
-              coreLibraries,
-              <Building2 className="h-4 w-4 text-primary" />,
-              'Core Libraries',
-              'bg-primary/10'
-            )}
-            {renderLevelSection(
-              'product_line',
-              productLineLibraries,
-              <Package className="h-4 w-4 text-primary" />,
-              'Product Line Libraries',
-              'bg-primary/10'
-            )}
-            {renderLevelSection(
-              'brand',
-              brandLibraries,
-              <Layers className="h-4 w-4 text-primary" />,
-              'Brand Libraries',
-              'bg-primary/10'
-            )}
-          </div>
+          {/* Grid View */}
+          {viewMode === 'grid' && totalIconCount > 0 && (
+            <div className="space-y-3">
+              {filteredIcons.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Search className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                  <p>No icons found matching your search</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {filteredIcons.length} icon{filteredIcons.length !== 1 ? 's' : ''} 
+                      {searchQuery && ' matching search'}
+                    </span>
+                    <Button variant="ghost" size="sm" onClick={selectAllVisible}>
+                      <Square className="h-3 w-3 mr-1" />
+                      Select All
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                    {filteredIcons.map(renderGridIcon)}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Hierarchy View */}
+          {viewMode === 'hierarchy' && (
+            <div className="space-y-3">
+              {renderLevelSection(
+                'core',
+                coreLibraries,
+                <Building2 className="h-4 w-4 text-primary" />,
+                'Core Libraries',
+                'bg-primary/10'
+              )}
+              {renderLevelSection(
+                'product_line',
+                productLineLibraries,
+                <Package className="h-4 w-4 text-primary" />,
+                'Product Line Libraries',
+                'bg-primary/10'
+              )}
+              {renderLevelSection(
+                'brand',
+                brandLibraries,
+                <Layers className="h-4 w-4 text-primary" />,
+                'Brand Libraries',
+                'bg-primary/10'
+              )}
+            </div>
+          )}
         </>
       )}
 
