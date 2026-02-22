@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { format, subDays, subMonths, isPast, isFuture, parseISO } from 'date-fns';
 import { EventCustomPromptRunner } from './EventCustomPromptRunner';
 import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
+import { ReportEntitySelector } from './ReportEntitySelector';
 
 interface CachedEventReport {
   reportData: EventReportData[];
@@ -83,6 +84,7 @@ export function EventReportGenerator() {
   const [dateRange, setDateRange] = useState('all');
   const [reportType, setReportType] = useState<'all' | 'public' | 'private'>('all');
   const [eventStatusFilter, setEventStatusFilter] = useState<'all' | 'upcoming' | 'past'>('all');
+  const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
 
   const {
     data: cachedData,
@@ -131,6 +133,10 @@ export function EventReportGenerator() {
         query = query.eq('is_public', true);
       } else if (reportType === 'private') {
         query = query.eq('is_public', false);
+      }
+
+      if (selectedEntityIds.length > 0) {
+        query = query.in('id', selectedEntityIds);
       }
 
       const { data: events, error } = await query;
@@ -442,6 +448,12 @@ export function EventReportGenerator() {
                 <SelectItem value="past">Past Events</SelectItem>
               </SelectContent>
             </Select>
+
+            <ReportEntitySelector
+              entityType="events"
+              selectedIds={selectedEntityIds}
+              onSelectionChange={setSelectedEntityIds}
+            />
 
             <Button onClick={generateReport} disabled={isGenerating}>
               {isGenerating ? (
