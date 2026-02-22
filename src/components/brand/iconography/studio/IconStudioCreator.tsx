@@ -30,7 +30,16 @@ interface IconStudioCreatorProps {
 
 // Get all Lucide icon names
 const LUCIDE_ICON_NAMES = Object.keys(LucideIcons).filter(
-  name => name !== 'createLucideIcon' && name !== 'default' && !name.startsWith('Lucide')
+  name => {
+    // Exclude non-component exports
+    if (['createLucideIcon', 'default', 'icons', 'Icon', 'createElement', 'dynamicIconImports'].includes(name)) return false;
+    if (name.startsWith('Lucide')) return false;
+    // Only keep PascalCase names (actual icon components)
+    if (!/^[A-Z]/.test(name)) return false;
+    // Verify it's actually a component (has $$typeof)
+    const val = (LucideIcons as any)[name];
+    return val && typeof val === 'object' && val.$$typeof;
+  }
 );
 
 export const IconStudioCreator = ({
@@ -72,7 +81,8 @@ export const IconStudioCreator = ({
       return;
     }
 
-    const icons: BrandIconography[] = Array.from(selectedIcons).map(iconName => {
+    const baseTs = Date.now();
+    const icons: BrandIconography[] = Array.from(selectedIcons).map((iconName, idx) => {
       // Extract SVG by temporarily rendering the Lucide icon to DOM
       const tempDiv = document.createElement('div');
       tempDiv.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
@@ -101,7 +111,7 @@ export const IconStudioCreator = ({
       document.body.removeChild(tempDiv);
       
       return {
-        id: `icon-${Date.now()}-${iconName}`,
+        id: `icon-${baseTs}-${idx}-${iconName}`,
         name: iconName.replace(/([A-Z])/g, ' $1').trim(),
         svgPath: svgString || `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`,
         category: 'lucide',
