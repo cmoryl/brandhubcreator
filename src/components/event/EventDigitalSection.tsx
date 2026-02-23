@@ -430,13 +430,13 @@ export const EventDigitalSection = ({
     toast.success('Asset removed');
   };
 
-  const hasTemplatesSection = !!onTemplatesChange;
-  const hasBrochuresSection = !!onBrochuresChange;
-  const hasPrintSection = !!onSponsorshipMaterialsChange;
-  const hasEmailBannersSection = !!onEmailBannersChange;
-  const hasInfographicsSection = !!onInfographicsChange;
-  const hasApplicationsSection = !!onApplicationsChange;
-  const hasAssetsSection = !!onDigitalAssetsChange;
+  const hasTemplatesSection = !!onTemplatesChange || templates.length > 0;
+  const hasBrochuresSection = !!onBrochuresChange || brochures.length > 0;
+  const hasPrintSection = !!onSponsorshipMaterialsChange || sponsorshipMaterials.length > 0;
+  const hasEmailBannersSection = !!onEmailBannersChange || emailBanners.length > 0;
+  const hasInfographicsSection = !!onInfographicsChange || infographics.length > 0;
+  const hasApplicationsSection = !!onApplicationsChange || applications.length > 0;
+  const hasAssetsSection = !!onDigitalAssetsChange || digitalAssets.length > 0;
 
   return (
     <section id="eventdigital" className="scroll-mt-24">
@@ -460,7 +460,7 @@ export const EventDigitalSection = ({
       {/* Tabs for different asset types */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
         <TabsList className="mb-4 flex-wrap h-auto gap-1">
-          {onBannersChange !== undefined && (
+          {(onBannersChange !== undefined || banners.length > 0) && (
             <TabsTrigger value="banners" className="gap-1.5">
               <ImageIcon className="h-4 w-4" />
               Banners
