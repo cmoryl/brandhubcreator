@@ -86,13 +86,16 @@ export const EventSponsorsSection = ({
 
   // Auto-backfill missing sponsor logos from global library
   // Converts base64 logos to cloud storage URLs so they survive stripBase64FromGuideData on save
-  const backfillRanRef = useRef(false);
+  const backfillRanRef = useRef<string | null>(null);
   useEffect(() => {
-    if (backfillRanRef.current) return;
+    // Wait until entityId is available so we can upload to storage
+    if (!entityId) return;
+    // Only run once per entityId
+    if (backfillRanRef.current === entityId) return;
     const sponsorsWithoutLogos = sponsors.filter(s => !s.logoUrl);
     if (sponsorsWithoutLogos.length === 0) return;
 
-    backfillRanRef.current = true;
+    backfillRanRef.current = entityId;
 
     const backfillLogos = async () => {
       const names = sponsorsWithoutLogos.map(s => s.name);
@@ -109,8 +112,8 @@ export const EventSponsorsSection = ({
         let url = getPreferredLogoUrl(gl.files);
         if (!url) continue;
 
-        // If the URL is base64 and we have storage, upload it to get a persistent URL
-        if (url.startsWith('data:') && entityId) {
+        // Upload base64 logos to cloud storage so they survive stripBase64FromGuideData
+        if (url.startsWith('data:')) {
           try {
             const res = await fetch(url);
             const blob = await res.blob();
@@ -122,7 +125,6 @@ export const EventSponsorsSection = ({
             }
           } catch (err) {
             console.warn(`[EventSponsors] Failed to upload base64 logo for ${gl.name}:`, err);
-            // Still use base64 as fallback for display, though it may get stripped on save
           }
         }
 
@@ -141,7 +143,7 @@ export const EventSponsorsSection = ({
     };
 
     backfillLogos();
-  }, [sponsors.length, entityId]); // Run on mount and when entity is ready
+  }, [sponsors.length, entityId]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
