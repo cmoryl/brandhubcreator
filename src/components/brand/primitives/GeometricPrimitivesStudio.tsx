@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Slider } from '@/components/ui/slider';
 import {
   Select,
@@ -346,8 +346,11 @@ export const GeometricPrimitivesStudio = ({
         toast.success(`Generated ${newPatterns.length} seamless patterns!`);
         setCompletedSteps(prev => new Set(prev).add('generate'));
         setPrompt('');
+        // Auto-navigate to preview step
+        setPreviewPatternId(newPatterns[0].id);
+        setCurrentStep('preview');
       } else {
-        toast.error('No patterns generated');
+        toast.error('No patterns generated. The AI may not have returned images — try a different description.');
       }
     } catch (error) {
       console.error('Pattern generation error:', error);
@@ -469,7 +472,7 @@ export const GeometricPrimitivesStudio = ({
         </div>
 
         {/* Step Content */}
-        <ScrollArea className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="p-6">
             {/* ─── TEMPLATES ─── */}
             {currentStep === 'library' && (
@@ -775,7 +778,7 @@ export const GeometricPrimitivesStudio = ({
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Navigation Footer */}
         <div className="px-6 py-3 border-t border-border flex items-center justify-between bg-muted/10">

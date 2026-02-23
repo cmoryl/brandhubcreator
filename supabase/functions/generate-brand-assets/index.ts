@@ -13,6 +13,9 @@ interface BrandContext {
   archetype?: string;
   toneOfVoice?: string[];
   industry?: string;
+  patternPrompt?: string;
+  patternStyle?: string;
+  seamless?: boolean;
 }
 
 interface GenerateRequest {
@@ -103,33 +106,49 @@ async function generatePatternImages(brandContext: BrandContext, count: number =
   }
   
   const patterns: Array<{ name: string; url: string }> = [];
-  const primaryColor = brandContext.colors.find(c => c.role === 'primary')?.hex || brandContext.colors[0]?.hex || '#667eea';
-  const secondaryColor = brandContext.colors.find(c => c.role === 'secondary')?.hex || brandContext.colors[1]?.hex || '#764ba2';
+  const colorDescription = brandContext.colors.slice(0, 4).map(c => c.name || c.hex).join(', ');
+  const styleHint = brandContext.patternStyle || 'geometric';
+  const userPrompt = brandContext.patternPrompt;
   
-  // Color names for prompts
-  const colorDescription = brandContext.colors.slice(0, 3).map(c => c.name || c.hex).join(', ');
+  // Build prompts - use custom prompt if provided, otherwise use defaults
+  const patternPrompts: Array<{ name: string; prompt: string }> = [];
   
-  const patternPrompts = [
-    {
-      name: "Tessellated Grid",
-      prompt: `Create a seamless tileable geometric pattern featuring tessellated hexagons and triangles. Use colors: ${colorDescription}. Style: modern, minimal, corporate. The pattern should be suitable for ${brandContext.name} brand. Clean lines, high contrast, professional. Ultra high resolution.`
-    },
-    {
-      name: "Wave Form",
-      prompt: `Create a seamless tileable pattern of flowing wave lines and curves. Use colors: ${colorDescription}. Style: elegant, dynamic, contemporary. Design for ${brandContext.name} brand identity. Smooth gradients between shapes. Ultra high resolution.`
-    },
-    {
-      name: "Circuit Matrix",
-      prompt: `Create a seamless tileable geometric pattern resembling circuit boards or data networks. Use colors: ${colorDescription}. Style: tech-forward, innovative, ${brandContext.archetype || 'professional'}. For ${brandContext.name} brand. Nodes and connecting lines. Ultra high resolution.`
-    },
-    {
-      name: "Dimensional Blocks",
-      prompt: `Create a seamless tileable isometric 3D cube pattern with depth and shadows. Use colors: ${colorDescription}. Style: bold, architectural, modern. Designed for ${brandContext.name}. Precise geometry, clean edges. Ultra high resolution.`
+  if (userPrompt) {
+    // User-provided prompt from the studio
+    for (let i = 0; i < count; i++) {
+      patternPrompts.push({
+        name: `${userPrompt.slice(0, 20)} ${i + 1}`,
+        prompt: `Create a seamless tileable pattern based on: "${userPrompt}". Style: ${styleHint}. Use these brand colors: ${colorDescription}. For ${brandContext.name} brand. The pattern MUST tile seamlessly in all directions. High contrast, professional quality. Ultra high resolution. Variation ${i + 1} of ${count}.`
+      });
     }
-  ];
+  } else {
+    // Default prompts
+    patternPrompts.push(
+      {
+        name: "Tessellated Grid",
+        prompt: `Create a seamless tileable geometric pattern featuring tessellated hexagons and triangles. Use colors: ${colorDescription}. Style: modern, minimal, corporate. For ${brandContext.name} brand. Clean lines, high contrast. Ultra high resolution.`
+      },
+      {
+        name: "Wave Form",
+        prompt: `Create a seamless tileable pattern of flowing wave lines and curves. Use colors: ${colorDescription}. Style: elegant, dynamic, contemporary. For ${brandContext.name} brand. Smooth gradients. Ultra high resolution.`
+      },
+      {
+        name: "Circuit Matrix",
+        prompt: `Create a seamless tileable geometric pattern resembling circuit boards or data networks. Use colors: ${colorDescription}. Style: tech-forward, innovative. For ${brandContext.name} brand. Nodes and connecting lines. Ultra high resolution.`
+      },
+      {
+        name: "Dimensional Blocks",
+        prompt: `Create a seamless tileable isometric 3D cube pattern with depth and shadows. Use colors: ${colorDescription}. Style: bold, architectural, modern. For ${brandContext.name}. Precise geometry. Ultra high resolution.`
+      }
+    );
+  }
   
-  for (let i = 0; i < Math.min(count, patternPrompts.length); i++) {
+  const actualCount = Math.min(count, patternPrompts.length);
+  console.log(`[generate-brand-assets] Generating ${actualCount} patterns, style: ${styleHint}, custom prompt: ${!!userPrompt}`);
+  
+  for (let i = 0; i < actualCount; i++) {
     try {
+      console.log(`[generate-brand-assets] Generating pattern ${i + 1}/${actualCount}: ${patternPrompts[i].name}`);
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -137,7 +156,7 @@ async function generatePatternImages(brandContext: BrandContext, count: number =
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
+          model: "google/gemini-3-pro-image-preview",
           messages: [
             {
               role: "user",
@@ -149,24 +168,34 @@ async function generatePatternImages(brandContext: BrandContext, count: number =
       });
       
       if (!response.ok) {
-        console.error(`Failed to generate pattern ${i + 1}:`, response.status);
+        const errBody = await response.text();
+        console.error(`Failed to generate pattern ${i + 1}: ${response.status} ${errBody}`);
         continue;
       }
       
       const data = await response.json();
-      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      console.log(`[generate-brand-assets] Pattern ${i + 1} response keys:`, Object.keys(data));
+      
+      // Try multiple response formats
+      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url 
+        || data.choices?.[0]?.message?.content?.find?.((c: any) => c.type === 'image')?.image_url?.url
+        || data.image_url;
       
       if (imageUrl) {
         patterns.push({
           name: patternPrompts[i].name,
           url: imageUrl
         });
+        console.log(`[generate-brand-assets] Pattern ${i + 1} generated successfully`);
+      } else {
+        console.error(`[generate-brand-assets] No image URL in response for pattern ${i + 1}. Response structure:`, JSON.stringify(data).slice(0, 500));
       }
     } catch (error) {
       console.error(`Error generating pattern ${i + 1}:`, error);
     }
   }
   
+  console.log(`[generate-brand-assets] Generated ${patterns.length}/${actualCount} patterns`);
   return patterns;
 }
 
