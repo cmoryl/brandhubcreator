@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { Shield, Scan, AlertTriangle, CheckCircle2, Info, Eye, MessageSquare, Accessibility, Brain, ChevronDown, ChevronRight, Loader2, Users, FileCheck, Palette, BarChart3, Zap } from 'lucide-react';
+import { Shield, Scan, AlertTriangle, CheckCircle2, Info, Eye, MessageSquare, Accessibility, Brain, ChevronDown, ChevronRight, Loader2, Users, FileCheck, Palette, BarChart3, Zap, BookOpen, Layers, ImageIcon, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -558,6 +558,256 @@ const SACMDashboardPanel = ({ scan }: { scan: any }) => {
   );
 };
 
+// ─── Curb-Cut Effect Dashboard Panel ─────────────────────────────────
+const READINESS_COLORS: Record<string, string> = {
+  accessible: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
+  partially_accessible: 'bg-amber-500/10 text-amber-600 border-amber-500/30',
+  not_accessible: 'bg-destructive/10 text-destructive border-destructive/30',
+};
+
+const CurbCutDashboardPanel = ({ scan }: { scan: any }) => {
+  const curbCut = scan.curb_cut_module as Record<string, any> | null;
+
+  if (!curbCut) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-6 text-center">
+          <BookOpen className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+          <p className="text-xs text-muted-foreground">Curb-Cut Effect analysis will appear after a re-scan with the upgraded engine.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const safeArr = (v: unknown): any[] => Array.isArray(v) ? v : [];
+  const overallScore = Number(curbCut.overall_score || 0);
+  const plainLanguageScore = Number(curbCut.plain_language_score || 0);
+  const multiModalCoverage = Number(curbCut.multi_modal_coverage || 0);
+  const altTextQuality = Number(curbCut.alt_text_quality || 0);
+  const fleschGrade = Number(curbCut.flesch_kincaid_grade || 0);
+  const altStats = curbCut.alt_text_stats || {};
+
+  return (
+    <div className="overflow-y-auto max-h-[700px] space-y-3">
+      {/* Curb-Cut Header Score */}
+      <Card className={`border ${scoreBg(overallScore)}`}>
+        <CardContent className="py-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs font-semibold">Curb-Cut Effect Score</p>
+                <p className="text-[9px] text-muted-foreground">Plain Language · Multi-Modal · Alt-Text · Universal Design</p>
+              </div>
+            </div>
+            <span className={`text-2xl font-bold ${scoreColor(overallScore)}`}>
+              {Math.round(overallScore)}
+              <span className="text-xs font-normal text-muted-foreground">/100</span>
+            </span>
+          </div>
+          <Progress value={overallScore} className="h-1.5" />
+        </CardContent>
+      </Card>
+
+      {/* Key Metrics Grid */}
+      <div className="grid grid-cols-3 gap-2">
+        <Card>
+          <CardContent className="py-2.5 px-3 text-center">
+            <BookOpen className="h-3.5 w-3.5 mx-auto mb-1 text-blue-500" />
+            <p className="text-[9px] text-muted-foreground">Plain Language</p>
+            <p className={`text-lg font-bold ${scoreColor(plainLanguageScore)}`}>{Math.round(plainLanguageScore)}</p>
+            <p className="text-[8px] text-muted-foreground">
+              Grade {fleschGrade > 0 ? fleschGrade.toFixed(1) : 'N/A'}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-2.5 px-3 text-center">
+            <Layers className="h-3.5 w-3.5 mx-auto mb-1 text-purple-500" />
+            <p className="text-[9px] text-muted-foreground">Multi-Modal</p>
+            <p className={`text-lg font-bold ${scoreColor(multiModalCoverage)}`}>{Math.round(multiModalCoverage)}</p>
+            <p className="text-[8px] text-muted-foreground">Coverage</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-2.5 px-3 text-center">
+            <ImageIcon className="h-3.5 w-3.5 mx-auto mb-1 text-green-500" />
+            <p className="text-[9px] text-muted-foreground">Alt-Text</p>
+            <p className={`text-lg font-bold ${scoreColor(altTextQuality)}`}>{Math.round(altTextQuality)}</p>
+            <p className="text-[8px] text-muted-foreground">
+              {altStats.images_with_alt || 0}/{altStats.images_total || 0} images
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Jargon Terms */}
+      {safeArr(curbCut.jargon_terms).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+              Jargon Detected ({safeArr(curbCut.jargon_terms).length} terms)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {safeArr(curbCut.jargon_terms).slice(0, 10).map((term: any, i: number) => (
+              <div key={i} className="flex items-center gap-2 text-[10px] p-1.5 rounded bg-amber-500/5 border border-amber-500/10">
+                <span className="font-medium text-amber-700 dark:text-amber-400">"{term.term}"</span>
+                <ArrowRight className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">{term.plain_alternative}</span>
+                {term.frequency > 1 && (
+                  <Badge variant="outline" className="text-[8px] ml-auto">×{term.frequency}</Badge>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Content Format Gaps */}
+      {safeArr(curbCut.content_format_gaps).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <Layers className="h-3.5 w-3.5 text-purple-500" />
+              Multi-Modal Content Gaps
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {safeArr(curbCut.content_format_gaps).map((gap: any, i: number) => (
+              <div key={i} className="p-2 rounded-lg border text-[10px]">
+                <p className="font-medium mb-1">{gap.section}</p>
+                <div className="flex flex-wrap gap-1">
+                  {safeArr(gap.available_formats).map((f: string, j: number) => (
+                    <Badge key={`avail-${j}`} variant="outline" className="text-[8px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20">{f}</Badge>
+                  ))}
+                  {safeArr(gap.missing_formats).map((f: string, j: number) => (
+                    <Badge key={`miss-${j}`} variant="outline" className="text-[8px] bg-destructive/10 text-destructive border-destructive/20">⚠ {f}</Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Alt-Text Stats */}
+      {(altStats.images_total > 0 || safeArr(altStats.generic_alt_flags).length > 0) && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5 text-green-500" />
+              Alt-Text Quality Report
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-2 mb-2 text-center text-[10px]">
+              <div className="p-1.5 rounded bg-muted/30">
+                <p className="font-bold text-sm">{altStats.images_total || 0}</p>
+                <p className="text-muted-foreground">Total Images</p>
+              </div>
+              <div className="p-1.5 rounded bg-muted/30">
+                <p className="font-bold text-sm text-emerald-600">{altStats.images_with_alt || 0}</p>
+                <p className="text-muted-foreground">With Alt</p>
+              </div>
+              <div className="p-1.5 rounded bg-muted/30">
+                <p className="font-bold text-sm text-blue-600">{altStats.images_with_descriptive_alt || 0}</p>
+                <p className="text-muted-foreground">Descriptive</p>
+              </div>
+            </div>
+            {safeArr(altStats.generic_alt_flags).length > 0 && (
+              <div className="space-y-1">
+                <p className="text-[9px] font-medium text-amber-600">Generic alt-text flags:</p>
+                {safeArr(altStats.generic_alt_flags).map((flag: string, i: number) => (
+                  <div key={i} className="flex items-start gap-1 text-[9px] text-muted-foreground">
+                    <AlertTriangle className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" />
+                    <span>{flag}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Curb-Cut Benefit Mappings */}
+      {safeArr(curbCut.curb_cut_mappings).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5 text-primary" />
+              Universal Benefit Mappings
+            </CardTitle>
+            <p className="text-[9px] text-muted-foreground">How accessibility fixes benefit everyone</p>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {safeArr(curbCut.curb_cut_mappings).map((mapping: any, i: number) => (
+              <div key={i} className="p-2 rounded-lg border bg-primary/5 text-[10px]">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="outline" className="text-[8px] bg-primary/10 text-primary border-primary/20">{mapping.accommodation}</Badge>
+                  <ArrowRight className="h-2.5 w-2.5 text-muted-foreground" />
+                  <span className="text-muted-foreground">{mapping.target_audience}</span>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {safeArr(mapping.universal_benefits).map((benefit: string, j: number) => (
+                    <Badge key={j} variant="secondary" className="text-[8px]">✓ {benefit}</Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Content Readiness */}
+      {safeArr(curbCut.content_readiness).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+              Content Readiness
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {safeArr(curbCut.content_readiness).map((section: any, i: number) => (
+              <div key={i} className="flex items-center justify-between text-[10px] p-1.5 rounded border">
+                <span className="font-medium">{section.section}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-muted-foreground">{section.formats_available}/{section.formats_possible} formats</span>
+                  <Badge variant="outline" className={`text-[8px] ${READINESS_COLORS[section.readiness_level] || ''}`}>
+                    {section.readiness_level?.replace('_', ' ')}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recommendations */}
+      {safeArr(curbCut.recommendations).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+              Curb-Cut Recommendations
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {safeArr(curbCut.recommendations).map((rec: string, i: number) => (
+              <div key={i} className="flex items-start gap-1.5 text-[10px]">
+                <span className="text-primary shrink-0 mt-0.5">→</span>
+                <span className="text-muted-foreground">{rec}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
 export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizationId }: BiasAwarenessPanelProps) => {
   const { latestScan, isLoading, isScanning, startScan } = useBiasAwareness(entityId, entityType, entityName, organizationId);
 
@@ -654,8 +904,9 @@ export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizat
           </Card>
 
           <Tabs defaultValue="dimensions">
-            <TabsList className="grid grid-cols-5 w-full">
+            <TabsList className="grid grid-cols-6 w-full">
               <TabsTrigger value="dimensions" className="text-xs">Dimensions</TabsTrigger>
+              <TabsTrigger value="curb-cut" className="text-xs">Curb-Cut</TabsTrigger>
               <TabsTrigger value="sacm" className="text-xs">SACM</TabsTrigger>
               <TabsTrigger value="modules" className="text-xs">Modules</TabsTrigger>
               <TabsTrigger value="findings" className="text-xs">Findings</TabsTrigger>
@@ -687,6 +938,10 @@ export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizat
                 icon={<Brain className="h-4 w-4 text-orange-500" />}
                 analysis={(scan.ai_governance_analysis || {}) as Record<string, unknown>}
               />
+            </TabsContent>
+
+            <TabsContent value="curb-cut" className="mt-3">
+              <CurbCutDashboardPanel scan={scan} />
             </TabsContent>
 
             <TabsContent value="sacm" className="mt-3">
