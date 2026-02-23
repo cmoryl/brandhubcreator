@@ -300,17 +300,15 @@ export const PatternsSection = ({
       
       {/* Controls row - separate from header */}
       <div className="flex items-center gap-2 flex-wrap">
-          {onCustomShapesChange && (
-            <Button 
-              onClick={() => setShowPrimitivesStudio(true)} 
-              variant="secondary" 
-              size="sm" 
-              className="gap-2"
-            >
-              <Shapes className="h-4 w-4" />
-              Primitives Studio
-            </Button>
-          )}
+          <Button 
+            onClick={() => setShowPrimitivesStudio(true)} 
+            variant="secondary" 
+            size="sm" 
+            className="gap-2"
+          >
+            <Shapes className="h-4 w-4" />
+            Patterns Studio
+          </Button>
           {onLayoutChange && (
             <LayoutSelector
               value={layout}
@@ -493,17 +491,17 @@ export const PatternsSection = ({
         onOpenChange={(open) => !open && setPreviewPattern(null)}
       />
 
-      {/* Geometric Primitives Studio */}
-      {onCustomShapesChange && (
-        <GeometricPrimitivesStudio
-          open={showPrimitivesStudio}
-          onOpenChange={setShowPrimitivesStudio}
-          shapes={customShapes}
-          onShapesChange={onCustomShapesChange}
-          brandColors={brandColors || []}
-          brandName={brandName}
-        />
-      )}
+      {/* Seamless Patterns Studio */}
+      <GeometricPrimitivesStudio
+        open={showPrimitivesStudio}
+        onOpenChange={setShowPrimitivesStudio}
+        patterns={patterns}
+        onPatternsChange={onPatternsChange}
+        shapes={customShapes}
+        onShapesChange={onCustomShapesChange}
+        brandColors={brandColors || []}
+        brandName={brandName}
+      />
     </section>
   );
 };

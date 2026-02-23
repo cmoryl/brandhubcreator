@@ -1,12 +1,12 @@
 /**
- * GeometricPrimitivesStudio - Full-featured studio for geometric primitive creation & management
+ * SeamlessPatternsStudio - Studio for seamless pattern creation & management
  * 
  * Wizard steps:
- * 1. Library - Browse & add from curated shape library
- * 2. Create - Manual SVG entry + templates
- * 3. Generate - AI-powered shape generation
- * 4. Colorize - Apply brand colors & preview variants
- * 5. Export - Batch download SVG/PNG
+ * 1. Library - Browse curated seamless pattern templates
+ * 2. Create - Upload or paste SVG seamless tiles
+ * 3. Generate - AI-powered seamless pattern generation
+ * 4. Preview - Live tiling preview with zoom/scale controls
+ * 5. Export - Batch download tiled patterns at various resolutions
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -23,7 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { SyntaxTextarea } from '@/components/ui/syntax-textarea';
+import { Slider } from '@/components/ui/slider';
 import {
   Select,
   SelectContent,
@@ -33,9 +33,9 @@ import {
 } from '@/components/ui/select';
 import {
   Library,
-  Code,
+  Upload,
   Sparkles,
-  Palette,
+  Eye,
   Package,
   ChevronLeft,
   ChevronRight,
@@ -44,18 +44,17 @@ import {
   Check,
   Download,
   Trash2,
-  Eye,
   Loader2,
   Wand2,
-  Copy,
+  Grid,
+  ZoomIn,
+  ZoomOut,
   X,
-  Filter,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { CustomDesignShape, BrandColor } from '@/types/brand';
+import { BrandColor, BrandPattern } from '@/types/brand';
 import { supabase } from '@/integrations/supabase/client';
-import { SHAPE_LIBRARY, SHAPE_INDUSTRIES, SHAPE_CATEGORIES, type LibraryShape } from '@/data/shapeLibrary';
-import { getGeneratedShapes } from '@/data/shapeGenerator';
+import { useSaveToLibrary } from '@/hooks/useSaveToLibrary';
 
 // SVG sanitization config
 const SVG_SANITIZE_CONFIG = {
@@ -66,25 +65,94 @@ const SVG_SANITIZE_CONFIG = {
 
 const sanitizeSvg = (svg: string): string => DOMPurify.sanitize(svg, SVG_SANITIZE_CONFIG);
 
-// SVG templates for manual tab
-const SVG_TEMPLATES = [
-  { name: 'Circle', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="40" fill="#4F46E5"/></svg>` },
-  { name: 'Rectangle', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80"><defs><linearGradient id="rg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#A855F7"/></linearGradient></defs><rect x="10" y="10" width="100" height="60" rx="12" fill="url(#rg1)"/></svg>` },
-  { name: 'Star', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><polygon points="50,5 61,40 98,40 68,62 79,97 50,75 21,97 32,62 2,40 39,40" fill="#F59E0B"/></svg>` },
-  { name: 'Blob', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><path d="M50 10 C80 15, 95 35, 90 55 C85 75, 70 90, 45 88 C20 86, 8 70, 12 50 C16 30, 25 8, 50 10 Z" fill="#10B981"/></svg>` },
-  { name: 'Hexagon', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><polygon points="50,5 90,27.5 90,72.5 50,95 10,72.5 10,27.5" fill="#1E293B" stroke="#3B82F6" stroke-width="3"/></svg>` },
-  { name: 'Radial', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><defs><radialGradient id="rg2" cx="30%" cy="30%"><stop offset="0%" stop-color="#60A5FA"/><stop offset="100%" stop-color="#1E40AF"/></radialGradient></defs><circle cx="50" cy="50" r="40" fill="url(#rg2)"/></svg>` },
+// Built-in seamless pattern SVG templates
+const SEAMLESS_TEMPLATES = [
+  {
+    id: 'dots',
+    name: 'Polka Dots',
+    category: 'Classic',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#f8f9fa"/><circle cx="20" cy="20" r="6" fill="#6366F1" opacity="0.6"/><circle cx="0" cy="0" r="6" fill="#6366F1" opacity="0.6"/><circle cx="40" cy="0" r="6" fill="#6366F1" opacity="0.6"/><circle cx="0" cy="40" r="6" fill="#6366F1" opacity="0.6"/><circle cx="40" cy="40" r="6" fill="#6366F1" opacity="0.6"/></svg>`,
+  },
+  {
+    id: 'stripes-diagonal',
+    name: 'Diagonal Stripes',
+    category: 'Classic',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#f8f9fa"/><path d="M-10,10 l20,-20 M0,40 l40,-40 M30,50 l20,-20" stroke="#6366F1" stroke-width="4" opacity="0.3"/></svg>`,
+  },
+  {
+    id: 'chevron',
+    name: 'Chevron',
+    category: 'Geometric',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="60" height="30" viewBox="0 0 60 30"><rect width="60" height="30" fill="#f8f9fa"/><path d="M0,30 L30,0 L60,30" fill="none" stroke="#6366F1" stroke-width="3" opacity="0.5"/></svg>`,
+  },
+  {
+    id: 'hexagons',
+    name: 'Honeycomb',
+    category: 'Geometric',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="56" height="100" viewBox="0 0 56 100"><rect width="56" height="100" fill="#f8f9fa"/><path d="M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100" fill="none" stroke="#6366F1" stroke-width="2" opacity="0.3"/><path d="M28 0L28 34L0 50L0 84L28 100L56 84L56 50L28 34" fill="none" stroke="#6366F1" stroke-width="2" opacity="0.15"/></svg>`,
+  },
+  {
+    id: 'waves',
+    name: 'Waves',
+    category: 'Organic',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="40" viewBox="0 0 80 40"><rect width="80" height="40" fill="#f8f9fa"/><path d="M0,20 Q20,0 40,20 Q60,40 80,20" fill="none" stroke="#6366F1" stroke-width="2.5" opacity="0.4"/><path d="M0,30 Q20,10 40,30 Q60,50 80,30" fill="none" stroke="#6366F1" stroke-width="1.5" opacity="0.2"/></svg>`,
+  },
+  {
+    id: 'crosshatch',
+    name: 'Crosshatch',
+    category: 'Classic',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#f8f9fa"/><path d="M0,0 L40,40 M40,0 L0,40" stroke="#6366F1" stroke-width="1.5" opacity="0.25"/></svg>`,
+  },
+  {
+    id: 'triangles',
+    name: 'Triangles',
+    category: 'Geometric',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="60" height="52" viewBox="0 0 60 52"><rect width="60" height="52" fill="#f8f9fa"/><polygon points="30,0 60,52 0,52" fill="#6366F1" opacity="0.1" stroke="#6366F1" stroke-width="1.5" stroke-opacity="0.3"/></svg>`,
+  },
+  {
+    id: 'diamonds',
+    name: 'Diamonds',
+    category: 'Geometric',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" fill="#f8f9fa"/><polygon points="24,4 44,24 24,44 4,24" fill="none" stroke="#6366F1" stroke-width="2" opacity="0.3"/></svg>`,
+  },
+  {
+    id: 'circles-overlap',
+    name: 'Overlapping Circles',
+    category: 'Organic',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50"><rect width="50" height="50" fill="#f8f9fa"/><circle cx="25" cy="25" r="20" fill="none" stroke="#6366F1" stroke-width="1.5" opacity="0.3"/><circle cx="0" cy="0" r="20" fill="none" stroke="#6366F1" stroke-width="1.5" opacity="0.15"/><circle cx="50" cy="50" r="20" fill="none" stroke="#6366F1" stroke-width="1.5" opacity="0.15"/></svg>`,
+  },
+  {
+    id: 'grid-simple',
+    name: 'Simple Grid',
+    category: 'Classic',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#f8f9fa"/><path d="M40,0 L0,0 L0,40" fill="none" stroke="#6366F1" stroke-width="1.5" opacity="0.2"/></svg>`,
+  },
+  {
+    id: 'scales',
+    name: 'Fish Scales',
+    category: 'Organic',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="#f8f9fa"/><circle cx="0" cy="20" r="20" fill="none" stroke="#6366F1" stroke-width="1.5" opacity="0.25"/><circle cx="40" cy="20" r="20" fill="none" stroke="#6366F1" stroke-width="1.5" opacity="0.25"/><circle cx="20" cy="0" r="20" fill="none" stroke="#6366F1" stroke-width="1.5" opacity="0.15"/><circle cx="20" cy="40" r="20" fill="none" stroke="#6366F1" stroke-width="1.5" opacity="0.15"/></svg>`,
+  },
+  {
+    id: 'zigzag',
+    name: 'Zigzag',
+    category: 'Geometric',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20" viewBox="0 0 40 20"><rect width="40" height="20" fill="#f8f9fa"/><polyline points="0,20 10,0 20,20 30,0 40,20" fill="none" stroke="#6366F1" stroke-width="2.5" opacity="0.35"/></svg>`,
+  },
 ];
 
-const STYLE_OPTIONS = [
+const TEMPLATE_CATEGORIES = ['All', 'Classic', 'Geometric', 'Organic'];
+
+const PATTERN_STYLES = [
   { value: 'geometric', label: 'Geometric' },
   { value: 'organic', label: 'Organic' },
-  { value: 'minimal', label: 'Minimal' },
-  { value: 'layered', label: 'Layered' },
+  { value: 'minimalist', label: 'Minimalist' },
+  { value: 'art-deco', label: 'Art Deco' },
+  { value: 'textile', label: 'Textile' },
   { value: 'abstract', label: 'Abstract' },
 ];
 
-type StudioStep = 'library' | 'create' | 'generate' | 'colorize' | 'export';
+type StudioStep = 'library' | 'create' | 'generate' | 'preview' | 'export';
 
 interface StudioStepDef {
   id: StudioStep;
@@ -94,258 +162,271 @@ interface StudioStepDef {
 }
 
 const STEPS: StudioStepDef[] = [
-  { id: 'library', label: 'Library', icon: Library, description: 'Browse shape library' },
-  { id: 'create', label: 'Create', icon: Code, description: 'Manual SVG entry' },
-  { id: 'generate', label: 'Generate', icon: Wand2, description: 'AI shape generation' },
-  { id: 'colorize', label: 'Colorize', icon: Palette, description: 'Apply brand colors' },
-  { id: 'export', label: 'Export', icon: Package, description: 'Download shapes' },
+  { id: 'library', label: 'Templates', icon: Library, description: 'Browse pattern templates' },
+  { id: 'create', label: 'Create', icon: Upload, description: 'Upload or paste SVG tiles' },
+  { id: 'generate', label: 'AI Generate', icon: Wand2, description: 'AI seamless patterns' },
+  { id: 'preview', label: 'Tile Preview', icon: Eye, description: 'Preview tiling result' },
+  { id: 'export', label: 'Export', icon: Package, description: 'Download patterns' },
 ];
 
 interface GeometricPrimitivesStudioProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  shapes: CustomDesignShape[];
-  onShapesChange: (shapes: CustomDesignShape[]) => void;
+  patterns: BrandPattern[];
+  onPatternsChange: (patterns: BrandPattern[]) => void;
   brandColors: BrandColor[];
   brandName?: string;
+  // Legacy props (ignored, kept for compat)
+  shapes?: any[];
+  onShapesChange?: (shapes: any[]) => void;
 }
-
-// Helper to adjust color brightness
-const adjustBrightness = (hex: string, percent: number): string => {
-  const num = parseInt(hex.replace('#', ''), 16);
-  const amt = Math.round(2.55 * percent);
-  const R = Math.min(255, Math.max(0, (num >> 16) + amt));
-  const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amt));
-  const B = Math.min(255, Math.max(0, (num & 0x0000FF) + amt));
-  return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
-};
-
-// Apply a color to an SVG by replacing fill colors
-const applyColorToSvg = (svg: string, color: string): string => {
-  return svg.replace(/fill="(?!none|url)(#[0-9a-fA-F]{3,8}|[a-z]+)"/g, `fill="${color}"`);
-};
 
 export const GeometricPrimitivesStudio = ({
   open,
   onOpenChange,
-  shapes,
-  onShapesChange,
+  patterns = [],
+  onPatternsChange,
   brandColors,
   brandName,
 }: GeometricPrimitivesStudioProps) => {
   const [currentStep, setCurrentStep] = useState<StudioStep>('library');
   const [completedSteps, setCompletedSteps] = useState<Set<StudioStep>>(new Set());
+  const { saveToLibrary } = useSaveToLibrary();
 
   // Library state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [templateCategory, setTemplateCategory] = useState('All');
 
   // Create state
-  const [manualName, setManualName] = useState('');
+  const [uploadName, setUploadName] = useState('');
   const [manualSvg, setManualSvg] = useState('');
-  const [manualCategory, setManualCategory] = useState('custom');
   const [svgPreviewError, setSvgPreviewError] = useState<string | null>(null);
 
   // Generate state
   const [prompt, setPrompt] = useState('');
-  const [style, setStyle] = useState('geometric');
+  const [patternStyle, setPatternStyle] = useState('geometric');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Colorize state
-  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
-  const [editFill, setEditFill] = useState('#6366F1');
-  const [editStroke, setEditStroke] = useState('#000000');
-  const [editStrokeWidth, setEditStrokeWidth] = useState(0);
+  // Preview state
+  const [previewPatternId, setPreviewPatternId] = useState<string | null>(null);
+  const [tileScale, setTileScale] = useState(64);
 
   // Export state
-  const [exportSize, setExportSize] = useState('512');
+  const [exportSize, setExportSize] = useState('1024');
 
-  // Combined library
-  const COMBINED_LIBRARY = useMemo(() => [...SHAPE_LIBRARY, ...getGeneratedShapes()], []);
+  const filteredTemplates = useMemo(() => {
+    if (templateCategory === 'All') return SEAMLESS_TEMPLATES;
+    return SEAMLESS_TEMPLATES.filter(t => t.category === templateCategory);
+  }, [templateCategory]);
 
-  const filteredShapes = useMemo(() => {
-    let results = COMBINED_LIBRARY;
-    if (selectedIndustry !== 'all') results = results.filter(s => s.industry === selectedIndustry);
-    if (selectedCategory !== 'all') results = results.filter(s => s.category === selectedCategory);
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      results = results.filter(s =>
-        s.name.toLowerCase().includes(q) ||
-        s.tags.some(t => t.includes(q)) ||
-        s.category.toLowerCase().includes(q)
-      );
-    }
-    return results;
-  }, [searchQuery, selectedIndustry, selectedCategory, COMBINED_LIBRARY]);
+  const previewPattern = useMemo(() => {
+    return patterns.find(p => p.id === previewPatternId) || patterns[0] || null;
+  }, [previewPatternId, patterns]);
 
-  const isShapeAdded = useCallback((libShape: LibraryShape) => {
-    return shapes.some(s => s.name === libShape.name);
-  }, [shapes]);
-
-  const addLibraryShape = useCallback((libShape: LibraryShape) => {
-    const newShape: CustomDesignShape = {
-      id: crypto.randomUUID(),
-      name: libShape.name,
-      type: 'custom',
-      category: libShape.category,
-      svg: libShape.svg,
+  // Add a template as a pattern (convert SVG to data URL)
+  const addTemplate = useCallback((template: typeof SEAMLESS_TEMPLATES[0]) => {
+    const svgBlob = new Blob([template.svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(svgBlob);
+    
+    // Convert to data URL for persistence
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      const savedResult = await saveToLibrary(dataUrl, `${brandName || 'Brand'} - ${template.name}`, 'Backgrounds');
+      
+      const newPattern: BrandPattern = {
+        id: crypto.randomUUID(),
+        name: template.name,
+        url: savedResult?.publicUrl || dataUrl,
+      };
+      onPatternsChange([...patterns, newPattern]);
+      toast.success(`Added "${template.name}" pattern`);
+      URL.revokeObjectURL(url);
     };
-    onShapesChange([...shapes, newShape]);
-    toast.success(`Added "${libShape.name}"`);
-  }, [shapes, onShapesChange]);
+    reader.readAsDataURL(svgBlob);
+  }, [patterns, onPatternsChange, saveToLibrary, brandName]);
 
-  const deleteShape = useCallback((id: string) => {
-    onShapesChange(shapes.filter(s => s.id !== id));
-    if (selectedShapeId === id) setSelectedShapeId(null);
-    toast.success('Shape removed');
-  }, [shapes, onShapesChange, selectedShapeId]);
+  const isTemplateAdded = useCallback((template: typeof SEAMLESS_TEMPLATES[0]) => {
+    return patterns.some(p => p.name === template.name);
+  }, [patterns]);
 
-  // Validate SVG
+  // Add SVG tile manually
   const validateSvg = (svg: string): boolean => {
     if (!svg.trim()) { setSvgPreviewError('Enter SVG code'); return false; }
     const t = svg.trim();
     if (!t.startsWith('<svg') || !t.includes('</svg>')) { setSvgPreviewError('Must be valid SVG'); return false; }
-    if (t.includes('<script') || t.includes('javascript:')) { setSvgPreviewError('Unsafe content detected'); return false; }
+    if (t.includes('<script') || t.includes('javascript:')) { setSvgPreviewError('Unsafe content'); return false; }
     setSvgPreviewError(null);
     return true;
   };
 
-  const addManualShape = () => {
-    if (!manualName.trim()) { toast.error('Enter a shape name'); return; }
+  const addManualTile = async () => {
+    if (!uploadName.trim()) { toast.error('Enter a pattern name'); return; }
     if (!validateSvg(manualSvg)) { toast.error(svgPreviewError || 'Invalid SVG'); return; }
-    const newShape: CustomDesignShape = {
-      id: crypto.randomUUID(),
-      name: manualName.trim(),
-      type: 'custom',
-      category: manualCategory,
-      svg: manualSvg.trim(),
+    
+    const svgBlob = new Blob([manualSvg.trim()], { type: 'image/svg+xml' });
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      const savedResult = await saveToLibrary(dataUrl, `${brandName || 'Brand'} - ${uploadName.trim()}`, 'Backgrounds');
+      
+      const newPattern: BrandPattern = {
+        id: crypto.randomUUID(),
+        name: uploadName.trim(),
+        url: savedResult?.publicUrl || dataUrl,
+      };
+      onPatternsChange([...patterns, newPattern]);
+      setUploadName('');
+      setManualSvg('');
+      setSvgPreviewError(null);
+      toast.success(`Added "${newPattern.name}"`);
+      setCompletedSteps(prev => new Set(prev).add('create'));
     };
-    onShapesChange([...shapes, newShape]);
-    setManualName('');
-    setManualSvg('');
-    setSvgPreviewError(null);
-    toast.success(`Added "${newShape.name}"`);
-    setCompletedSteps(prev => new Set(prev).add('create'));
+    reader.readAsDataURL(svgBlob);
   };
 
-  // AI Generate
-  const generateAIShape = async () => {
-    if (!prompt.trim()) { toast.error('Enter a description'); return; }
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fileName = file.name.replace(/\.[^/.]+$/, '');
+    
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      const savedResult = await saveToLibrary(dataUrl, `${brandName || 'Brand'} - ${fileName}`, 'Backgrounds');
+      
+      const newPattern: BrandPattern = {
+        id: crypto.randomUUID(),
+        name: fileName,
+        url: savedResult?.publicUrl || dataUrl,
+      };
+      onPatternsChange([...patterns, newPattern]);
+      toast.success(`Uploaded "${fileName}"`);
+      setCompletedSteps(prev => new Set(prev).add('create'));
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }, [patterns, onPatternsChange, saveToLibrary, brandName]);
+
+  // AI Generate seamless pattern
+  const generateSeamlessPattern = async () => {
+    if (!prompt.trim()) { toast.error('Enter a pattern description'); return; }
+    
     setIsGenerating(true);
+    toast.info('Generating seamless pattern...');
+
     try {
-      const { data, error } = await supabase.functions.invoke('generate-shape', {
+      const { data, error } = await supabase.functions.invoke('generate-brand-assets', {
         body: {
-          prompt: prompt.trim(),
-          brandColors: brandColors.map(c => ({ hex: c.hex, name: c.name })),
-          style,
+          type: 'patterns',
+          brandContext: {
+            name: brandName || 'Brand',
+            colors: brandColors.map(c => ({ hex: c.hex, name: c.name, role: c.role })),
+            patternPrompt: prompt.trim(),
+            patternStyle,
+            seamless: true,
+          },
+          count: 2,
         },
       });
+
       if (error) throw error;
-      if (data?.svg) {
-        const newShape: CustomDesignShape = {
-          id: crypto.randomUUID(),
-          name: prompt.trim().slice(0, 30),
-          type: 'custom',
-          category: style,
-          svg: data.svg,
-          aiGenerated: true,
-        };
-        onShapesChange([...shapes, newShape]);
-        setPrompt('');
-        toast.success('AI shape generated!');
+
+      if (data?.patterns && data.patterns.length > 0) {
+        const newPatterns: BrandPattern[] = [];
+        for (const p of data.patterns as Array<{ name: string; url: string }>) {
+          const patternName = `${prompt.trim().slice(0, 25)} - ${p.name}`;
+          const savedResult = await saveToLibrary(p.url, `${brandName || 'Brand'} - ${patternName}`, 'Backgrounds');
+          newPatterns.push({
+            id: crypto.randomUUID(),
+            name: patternName,
+            url: savedResult?.publicUrl || p.url,
+          });
+        }
+        onPatternsChange([...patterns, ...newPatterns]);
+        toast.success(`Generated ${newPatterns.length} seamless patterns!`);
         setCompletedSteps(prev => new Set(prev).add('generate'));
+        setPrompt('');
+      } else {
+        toast.error('No patterns generated');
       }
     } catch (error) {
-      console.error('Shape generation error:', error);
-      toast.error('Generation failed. Try again.');
+      console.error('Pattern generation error:', error);
+      toast.error('Failed to generate. Try again.');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // Colorize
-  const applyColor = () => {
-    if (!selectedShapeId) return;
-    const updated = shapes.map(s => {
-      if (s.id !== selectedShapeId) return s;
-      let svg = s.svg;
-      svg = svg.replace(/fill="(?!none|url)(#[0-9a-fA-F]{3,8}|[a-z]+)"/g, `fill="${editFill}"`);
-      if (editStrokeWidth > 0) {
-        if (svg.includes('stroke="')) {
-          svg = svg.replace(/stroke="(#[0-9a-fA-F]{3,8}|[a-z]+)"/g, `stroke="${editStroke}"`);
-          svg = svg.replace(/stroke-width="[^"]*"/g, `stroke-width="${editStrokeWidth}"`);
-        } else {
-          svg = svg.replace(/<(circle|rect|polygon|path|ellipse)(\s)/g, `<$1 stroke="${editStroke}" stroke-width="${editStrokeWidth}"$2`);
-        }
-      }
-      return { ...s, svg };
-    });
-    onShapesChange(updated);
-    toast.success('Color applied');
-    setCompletedSteps(prev => new Set(prev).add('colorize'));
-  };
+  // Export
+  const downloadPatternTiled = async (pattern: BrandPattern, resolution: number) => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = resolution;
+      canvas.height = resolution;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { toast.error('Canvas not supported'); return; }
 
-  // Export helpers
-  const downloadSVG = (shape: CustomDesignShape) => {
-    const blob = new Blob([shape.svg], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${shape.name.toLowerCase().replace(/\s+/g, '-')}.svg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success('SVG downloaded');
-  };
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          const pCanvas = document.createElement('canvas');
+          const pCtx = pCanvas.getContext('2d');
+          if (!pCtx) { reject(new Error('No ctx')); return; }
+          pCanvas.width = img.width;
+          pCanvas.height = img.height;
+          pCtx.drawImage(img, 0, 0);
+          const cp = ctx.createPattern(pCanvas, 'repeat');
+          if (cp) { ctx.fillStyle = cp; ctx.fillRect(0, 0, resolution, resolution); }
+          else { ctx.drawImage(img, 0, 0, resolution, resolution); }
+          resolve();
+        };
+        img.onerror = () => reject(new Error('Load failed'));
+        img.src = pattern.url;
+      });
 
-  const downloadPNG = async (shape: CustomDesignShape, size: number = 512) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const img = new Image();
-    const svgBlob = new Blob([shape.svg], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(svgBlob);
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, size, size);
-      const pngUrl = canvas.toDataURL('image/png');
+      const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, 'image/png', 1.0));
+      if (!blob) { toast.error('Export failed'); return; }
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = pngUrl;
-      a.download = `${shape.name.toLowerCase().replace(/\s+/g, '-')}-${size}px.png`;
+      a.href = url;
+      a.download = `${pattern.name}-${resolution}x${resolution}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success(`PNG downloaded (${size}px)`);
-    };
-    img.src = url;
+      toast.success(`Downloaded at ${resolution}×${resolution}`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Download failed');
+    }
   };
 
-  const downloadAllSVG = () => {
-    shapes.forEach(s => downloadSVG(s));
+  const downloadAll = async () => {
+    const size = parseInt(exportSize);
+    toast.info(`Exporting ${patterns.length} patterns...`);
+    for (const p of patterns) {
+      await downloadPatternTiled(p, size);
+      await new Promise(r => setTimeout(r, 400));
+    }
     setCompletedSteps(prev => new Set(prev).add('export'));
   };
 
-  const stepIndex = STEPS.findIndex(s => s.id === currentStep);
+  const deletePattern = (id: string) => {
+    onPatternsChange(patterns.filter(p => p.id !== id));
+    if (previewPatternId === id) setPreviewPatternId(null);
+    toast.success('Pattern removed');
+  };
 
+  const stepIndex = STEPS.findIndex(s => s.id === currentStep);
   const goNext = () => {
     if (stepIndex < STEPS.length - 1) {
       setCompletedSteps(prev => new Set(prev).add(currentStep));
       setCurrentStep(STEPS[stepIndex + 1].id);
     }
   };
-
   const goPrev = () => {
     if (stepIndex > 0) setCurrentStep(STEPS[stepIndex - 1].id);
-  };
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedIndustry('all');
-    setSelectedCategory('all');
   };
 
   return (
@@ -353,16 +434,16 @@ export const GeometricPrimitivesStudio = ({
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
         <DialogHeader className="px-6 pt-5 pb-3 border-b border-border">
           <DialogTitle className="flex items-center gap-2 text-lg">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Geometric Primitives Studio
+            <Grid className="h-5 w-5 text-primary" />
+            Seamless Patterns Studio
           </DialogTitle>
-          <p className="text-sm text-muted-foreground">Create, customize, and export brand geometric primitives</p>
+          <p className="text-sm text-muted-foreground">Create, preview, and export seamless tiling patterns for your brand</p>
         </DialogHeader>
 
         {/* Wizard Stepper */}
         <div className="px-6 py-3 border-b border-border bg-muted/20">
           <div className="flex items-center justify-between gap-1">
-            {STEPS.map((step, i) => {
+            {STEPS.map((step) => {
               const Icon = step.icon;
               const isActive = step.id === currentStep;
               const isComplete = completedSteps.has(step.id);
@@ -390,66 +471,45 @@ export const GeometricPrimitivesStudio = ({
         {/* Step Content */}
         <ScrollArea className="flex-1 min-h-0">
           <div className="p-6">
-            {/* ─── LIBRARY ─── */}
+            {/* ─── TEMPLATES ─── */}
             {currentStep === 'library' && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="relative flex-1 min-w-[200px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search shapes..."
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                  <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SHAPE_INDUSTRIES.map(i => (
-                        <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SHAPE_CATEGORIES.map(c => (
-                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {(searchQuery || selectedIndustry !== 'all' || selectedCategory !== 'all') && (
-                    <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
-                      <X className="h-3 w-3" /> Clear
+                <div className="flex items-center gap-2">
+                  {TEMPLATE_CATEGORIES.map(cat => (
+                    <Button
+                      key={cat}
+                      variant={templateCategory === cat ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTemplateCategory(cat)}
+                    >
+                      {cat}
                     </Button>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">{filteredShapes.length} shapes available</p>
-                  <Badge variant="outline">{shapes.length} added</Badge>
+                  ))}
+                  <div className="ml-auto">
+                    <Badge variant="outline">{patterns.length} patterns added</Badge>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                  {filteredShapes.slice(0, 60).map(libShape => {
-                    const added = isShapeAdded(libShape);
+                  {filteredTemplates.map(template => {
+                    const added = isTemplateAdded(template);
                     return (
                       <Card
-                        key={libShape.id}
+                        key={template.id}
                         className={`group cursor-pointer transition-all ${added ? 'border-primary/50 bg-primary/5' : 'hover:border-primary/30'}`}
-                        onClick={() => !added && addLibraryShape(libShape)}
+                        onClick={() => !added && addTemplate(template)}
                       >
                         <CardContent className="p-2">
                           <div
-                            className="aspect-square flex items-center justify-center bg-muted/30 rounded-md overflow-hidden p-1 [&>svg]:max-w-full [&>svg]:max-h-full"
-                            dangerouslySetInnerHTML={{ __html: sanitizeSvg(libShape.svg) }}
+                            className="aspect-square rounded-md overflow-hidden"
+                            style={{
+                              backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(template.svg)}")`,
+                              backgroundSize: '50%',
+                              backgroundRepeat: 'repeat',
+                            }}
                           />
-                          <p className="text-[10px] font-medium truncate mt-1 text-center">{libShape.name}</p>
+                          <p className="text-[10px] font-medium truncate mt-1.5 text-center">{template.name}</p>
+                          <p className="text-[9px] text-muted-foreground text-center">{template.category}</p>
                           {added && (
                             <div className="flex justify-center mt-0.5">
                               <Check className="h-3 w-3 text-primary" />
@@ -460,74 +520,62 @@ export const GeometricPrimitivesStudio = ({
                     );
                   })}
                 </div>
-                {filteredShapes.length > 60 && (
-                  <p className="text-xs text-muted-foreground text-center">Showing 60 of {filteredShapes.length} — refine filters to see more</p>
-                )}
               </div>
             )}
 
             {/* ─── CREATE ─── */}
             {currentStep === 'create' && (
               <div className="space-y-6">
+                {/* File upload */}
                 <div>
-                  <h3 className="text-sm font-semibold mb-3">Quick Templates</h3>
-                  <div className="grid grid-cols-6 gap-2">
-                    {SVG_TEMPLATES.map(t => (
-                      <button
-                        key={t.name}
-                        onClick={() => { setManualSvg(t.svg); setManualName(t.name); }}
-                        className="group aspect-square bg-muted/30 rounded-lg border border-border hover:border-primary/50 transition-all overflow-hidden p-2 flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full"
-                      >
-                        <div dangerouslySetInnerHTML={{ __html: sanitizeSvg(t.svg) }} className="w-full h-full flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full" />
-                      </button>
-                    ))}
-                  </div>
+                  <h3 className="text-sm font-semibold mb-3">Upload a Seamless Tile</h3>
+                  <label className="flex items-center justify-center h-32 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors">
+                    <div className="text-center">
+                      <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">Click to upload a pattern tile image</p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">PNG, SVG, JPG — must tile seamlessly</p>
+                    </div>
+                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                  </label>
                 </div>
 
+                {/* SVG paste */}
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-3">
+                    <h3 className="text-sm font-semibold">Paste SVG Tile</h3>
                     <div>
-                      <Label>Shape Name</Label>
-                      <Input value={manualName} onChange={e => setManualName(e.target.value)} placeholder="My Custom Shape" />
+                      <Label>Pattern Name</Label>
+                      <Input value={uploadName} onChange={e => setUploadName(e.target.value)} placeholder="My Seamless Pattern" />
                     </div>
                     <div>
-                      <Label>Category</Label>
-                      <Select value={manualCategory} onValueChange={setManualCategory}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="custom">Custom</SelectItem>
-                          <SelectItem value="geometric">Geometric</SelectItem>
-                          <SelectItem value="organic">Organic</SelectItem>
-                          <SelectItem value="abstract">Abstract</SelectItem>
-                          <SelectItem value="layered">Layered</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>SVG Code</Label>
-                      <SyntaxTextarea
+                      <Label>SVG Code (seamless tile)</Label>
+                      <textarea
                         value={manualSvg}
-                        onChange={v => { setManualSvg(v); if (v.trim()) validateSvg(v); else setSvgPreviewError(null); }}
-                        placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">...</svg>'
-                        className="h-40 font-mono text-xs"
+                        onChange={e => { setManualSvg(e.target.value); if (e.target.value.trim()) validateSvg(e.target.value); else setSvgPreviewError(null); }}
+                        placeholder='<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">...</svg>'
+                        className="w-full h-32 font-mono text-xs p-3 rounded-lg border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                       {svgPreviewError && <p className="text-xs text-destructive mt-1">{svgPreviewError}</p>}
                     </div>
-                    <Button onClick={addManualShape} className="w-full gap-2">
-                      <Plus className="h-4 w-4" /> Add Shape
+                    <Button onClick={addManualTile} className="w-full gap-2">
+                      <Plus className="h-4 w-4" /> Add Pattern Tile
                     </Button>
                   </div>
 
                   <div className="space-y-3">
-                    <Label>Live Preview</Label>
-                    <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border flex items-center justify-center overflow-hidden p-6">
-                      {manualSvg.trim() && !svgPreviewError ? (
-                        <div
-                          className="w-full h-full flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full"
-                          dangerouslySetInnerHTML={{ __html: sanitizeSvg(manualSvg) }}
-                        />
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Paste SVG or pick a template</p>
+                    <Label>Tiling Preview</Label>
+                    <div
+                      className="aspect-square rounded-xl border-2 border-dashed border-border overflow-hidden"
+                      style={manualSvg.trim() && !svgPreviewError ? {
+                        backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(manualSvg.trim())}")`,
+                        backgroundSize: '25%',
+                        backgroundRepeat: 'repeat',
+                      } : undefined}
+                    >
+                      {(!manualSvg.trim() || svgPreviewError) && (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <p className="text-sm text-muted-foreground">Paste SVG to preview tiling</p>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -535,35 +583,35 @@ export const GeometricPrimitivesStudio = ({
               </div>
             )}
 
-            {/* ─── GENERATE ─── */}
+            {/* ─── AI GENERATE ─── */}
             {currentStep === 'generate' && (
               <div className="space-y-6 max-w-xl mx-auto">
                 <div className="text-center">
                   <Wand2 className="h-10 w-10 text-primary mx-auto mb-2" />
-                  <h3 className="text-lg font-semibold">AI Shape Generator</h3>
-                  <p className="text-sm text-muted-foreground">Describe the geometric primitive you want to create</p>
+                  <h3 className="text-lg font-semibold">AI Seamless Pattern Generator</h3>
+                  <p className="text-sm text-muted-foreground">Describe the seamless pattern you want to create</p>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <Label>Description</Label>
+                    <Label>Pattern Description</Label>
                     <Input
                       value={prompt}
                       onChange={e => setPrompt(e.target.value)}
-                      placeholder="e.g., A modern DNA helix with gradient fill"
-                      onKeyDown={e => e.key === 'Enter' && generateAIShape()}
+                      placeholder="e.g., Subtle geometric tessellation with organic curves"
+                      onKeyDown={e => e.key === 'Enter' && !isGenerating && generateSeamlessPattern()}
                     />
                   </div>
 
                   <div>
-                    <Label>Style</Label>
-                    <div className="grid grid-cols-5 gap-2 mt-1">
-                      {STYLE_OPTIONS.map(opt => (
+                    <Label>Pattern Style</Label>
+                    <div className="grid grid-cols-3 gap-2 mt-1">
+                      {PATTERN_STYLES.map(opt => (
                         <Button
                           key={opt.value}
-                          variant={style === opt.value ? 'default' : 'outline'}
+                          variant={patternStyle === opt.value ? 'default' : 'outline'}
                           size="sm"
-                          onClick={() => setStyle(opt.value)}
+                          onClick={() => setPatternStyle(opt.value)}
                           className="text-xs"
                         >
                           {opt.label}
@@ -574,142 +622,79 @@ export const GeometricPrimitivesStudio = ({
 
                   {brandColors.length > 0 && (
                     <div>
-                      <Label className="text-xs text-muted-foreground">Brand colors will be applied:</Label>
+                      <Label className="text-xs text-muted-foreground">Brand colors will be used:</Label>
                       <div className="flex gap-1.5 mt-1">
-                        {brandColors.slice(0, 6).map(c => (
+                        {brandColors.slice(0, 8).map(c => (
                           <div key={c.hex} className="w-6 h-6 rounded-full border border-border shadow-sm" style={{ backgroundColor: c.hex }} title={c.name} />
                         ))}
                       </div>
                     </div>
                   )}
 
-                  <Button onClick={generateAIShape} disabled={isGenerating} className="w-full gap-2">
+                  <Button onClick={generateSeamlessPattern} disabled={isGenerating} className="w-full gap-2">
                     {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                    {isGenerating ? 'Generating...' : 'Generate Shape'}
+                    {isGenerating ? 'Generating...' : 'Generate Seamless Pattern'}
                   </Button>
                 </div>
-
-                {/* Recent AI shapes */}
-                {shapes.filter(s => s.aiGenerated).length > 0 && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Recently Generated</Label>
-                    <div className="grid grid-cols-4 gap-2 mt-2">
-                      {shapes.filter(s => s.aiGenerated).slice(-8).map(s => (
-                        <div key={s.id} className="aspect-square bg-muted/30 rounded-lg p-2 flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full">
-                          <div dangerouslySetInnerHTML={{ __html: sanitizeSvg(s.svg) }} className="w-full h-full flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* ─── COLORIZE ─── */}
-            {currentStep === 'colorize' && (
+            {/* ─── TILE PREVIEW ─── */}
+            {currentStep === 'preview' && (
               <div className="space-y-4">
-                {shapes.length === 0 ? (
+                {patterns.length === 0 ? (
                   <div className="text-center py-12">
-                    <Palette className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">Add shapes first from the Library or Create steps</p>
+                    <Eye className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-muted-foreground">Add patterns first from Templates, Create, or AI Generate steps</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-[1fr_300px] gap-6">
-                    {/* Shape grid */}
-                    <div>
-                      <Label className="text-sm mb-2 block">Select a shape to colorize</Label>
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                        {shapes.map(s => (
-                          <Card
-                            key={s.id}
-                            className={`cursor-pointer transition-all ${selectedShapeId === s.id ? 'ring-2 ring-primary' : 'hover:border-primary/30'}`}
-                            onClick={() => {
-                              setSelectedShapeId(s.id);
-                              const fillMatch = s.svg.match(/fill="(#[0-9a-fA-F]{6})"/);
-                              if (fillMatch) setEditFill(fillMatch[1]);
-                            }}
-                          >
-                            <CardContent className="p-2">
-                              <div
-                                className="aspect-square flex items-center justify-center bg-muted/20 rounded-md overflow-hidden p-1 [&>svg]:max-w-full [&>svg]:max-h-full"
-                                dangerouslySetInnerHTML={{ __html: sanitizeSvg(s.svg) }}
-                              />
-                              <p className="text-[10px] font-medium truncate mt-1 text-center">{s.name}</p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
+                  <div className="grid grid-cols-[200px_1fr] gap-6">
+                    {/* Pattern selector */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">Select Pattern</Label>
+                      {patterns.map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => setPreviewPatternId(p.id)}
+                          className={`w-full text-left p-2 rounded-lg border transition-all flex items-center gap-2 ${
+                            previewPattern?.id === p.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'
+                          }`}
+                        >
+                          <div
+                            className="w-10 h-10 rounded-md border border-border shrink-0"
+                            style={{ backgroundImage: `url(${p.url})`, backgroundSize: '20px', backgroundRepeat: 'repeat' }}
+                          />
+                          <span className="text-xs font-medium truncate">{p.name}</span>
+                        </button>
+                      ))}
                     </div>
 
-                    {/* Color controls */}
-                    <div className="space-y-4 border-l border-border pl-6">
-                      <h4 className="text-sm font-semibold">Color Controls</h4>
+                    {/* Tiling canvas */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-4">
+                        <Label className="text-sm shrink-0">Tile Size</Label>
+                        <ZoomOut className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <Slider
+                          value={[tileScale]}
+                          onValueChange={([v]) => setTileScale(v)}
+                          min={16}
+                          max={200}
+                          step={4}
+                          className="flex-1"
+                        />
+                        <ZoomIn className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-xs text-muted-foreground w-12 text-right">{tileScale}px</span>
+                      </div>
 
-                      {selectedShapeId ? (
-                        <>
-                          {/* Preview */}
-                          <div className="aspect-square bg-muted/20 rounded-xl border border-border flex items-center justify-center p-4">
-                            {(() => {
-                              const shape = shapes.find(s => s.id === selectedShapeId);
-                              if (!shape) return null;
-                              const previewSvg = applyColorToSvg(shape.svg, editFill);
-                              return (
-                                <div
-                                  className="w-full h-full flex items-center justify-center [&>svg]:max-w-full [&>svg]:max-h-full"
-                                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(previewSvg) }}
-                                />
-                              );
-                            })()}
-                          </div>
-
-                          <div>
-                            <Label className="text-xs">Fill Color</Label>
-                            <div className="flex items-center gap-2 mt-1">
-                              <input type="color" value={editFill} onChange={e => setEditFill(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" />
-                              <Input value={editFill} onChange={e => setEditFill(e.target.value)} className="font-mono text-xs flex-1" />
-                            </div>
-                          </div>
-
-                          {/* Brand color quick picks */}
-                          {brandColors.length > 0 && (
-                            <div>
-                              <Label className="text-xs">Brand Colors</Label>
-                              <div className="flex flex-wrap gap-1.5 mt-1">
-                                {brandColors.map(c => (
-                                  <button
-                                    key={c.hex}
-                                    onClick={() => setEditFill(c.hex)}
-                                    className={`w-7 h-7 rounded-full border-2 transition-all ${editFill === c.hex ? 'border-primary scale-110' : 'border-border hover:scale-105'}`}
-                                    style={{ backgroundColor: c.hex }}
-                                    title={c.name}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          <div>
-                            <Label className="text-xs">Stroke</Label>
-                            <div className="flex items-center gap-2 mt-1">
-                              <input type="color" value={editStroke} onChange={e => setEditStroke(e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0" />
-                              <Input
-                                type="number"
-                                min={0}
-                                max={10}
-                                value={editStrokeWidth}
-                                onChange={e => setEditStrokeWidth(Number(e.target.value))}
-                                className="w-20 text-xs"
-                                placeholder="Width"
-                              />
-                            </div>
-                          </div>
-
-                          <Button onClick={applyColor} className="w-full gap-2">
-                            <Palette className="h-4 w-4" /> Apply Color
-                          </Button>
-                        </>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Select a shape to customize</p>
+                      {previewPattern && (
+                        <div
+                          className="w-full h-[400px] rounded-xl border border-border overflow-hidden"
+                          style={{
+                            backgroundImage: `url(${previewPattern.url})`,
+                            backgroundSize: `${tileScale}px ${tileScale}px`,
+                            backgroundRepeat: 'repeat',
+                          }}
+                        />
                       )}
                     </div>
                   </div>
@@ -720,53 +705,64 @@ export const GeometricPrimitivesStudio = ({
             {/* ─── EXPORT ─── */}
             {currentStep === 'export' && (
               <div className="space-y-4">
-                {shapes.length === 0 ? (
+                {patterns.length === 0 ? (
                   <div className="text-center py-12">
                     <Package className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">No shapes to export. Add some from the Library or Create steps.</p>
+                    <p className="text-muted-foreground">No patterns to export yet.</p>
                   </div>
                 ) : (
                   <>
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-semibold">{shapes.length} Shape{shapes.length !== 1 ? 's' : ''} Ready</h3>
-                        <p className="text-sm text-muted-foreground">Download individually or batch export</p>
+                        <h3 className="font-semibold">{patterns.length} Pattern{patterns.length !== 1 ? 's' : ''} Ready</h3>
+                        <p className="text-sm text-muted-foreground">Download tiled patterns at high resolution</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Select value={exportSize} onValueChange={setExportSize}>
-                          <SelectTrigger className="w-[120px]">
+                          <SelectTrigger className="w-[140px]">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="256">256px</SelectItem>
-                            <SelectItem value="512">512px</SelectItem>
-                            <SelectItem value="1024">1024px</SelectItem>
-                            <SelectItem value="2048">2048px</SelectItem>
+                            <SelectItem value="512">512 × 512</SelectItem>
+                            <SelectItem value="1024">1024 × 1024</SelectItem>
+                            <SelectItem value="2048">2048 × 2048</SelectItem>
+                            <SelectItem value="4096">4096 × 4096</SelectItem>
                           </SelectContent>
                         </Select>
-                        <Button onClick={downloadAllSVG} variant="outline" className="gap-2">
-                          <Package className="h-4 w-4" /> Export All SVG
+                        <Button onClick={downloadAll} variant="outline" className="gap-2">
+                          <Package className="h-4 w-4" /> Export All
                         </Button>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {shapes.map(s => (
-                        <Card key={s.id} className="group relative">
+                      {patterns.map(p => (
+                        <Card key={p.id} className="group relative">
                           <CardContent className="p-3">
                             <div
-                              className="aspect-square flex items-center justify-center bg-muted/20 rounded-lg mb-2 overflow-hidden p-2 [&>svg]:max-w-full [&>svg]:max-h-full"
-                              dangerouslySetInnerHTML={{ __html: sanitizeSvg(s.svg) }}
+                              className="aspect-square rounded-lg mb-2 overflow-hidden border border-border"
+                              style={{
+                                backgroundImage: `url(${p.url})`,
+                                backgroundSize: '48px 48px',
+                                backgroundRepeat: 'repeat',
+                              }}
                             />
-                            <p className="text-xs font-medium truncate mb-2">{s.name}</p>
+                            <p className="text-xs font-medium truncate mb-2">{p.name}</p>
                             <div className="flex gap-1">
-                              <Button size="sm" variant="outline" onClick={() => downloadSVG(s)} className="flex-1 text-xs gap-1 h-7">
-                                <Download className="h-3 w-3" /> SVG
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => downloadPNG(s, parseInt(exportSize))} className="flex-1 text-xs gap-1 h-7">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => downloadPatternTiled(p, parseInt(exportSize))}
+                                className="flex-1 text-xs gap-1 h-7"
+                              >
                                 <Download className="h-3 w-3" /> PNG
                               </Button>
-                              <Button size="sm" variant="ghost" onClick={() => deleteShape(s.id)} className="h-7 w-7 p-0 text-destructive hover:text-destructive">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => deletePattern(p.id)}
+                                className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                              >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
                             </div>
@@ -781,29 +777,20 @@ export const GeometricPrimitivesStudio = ({
           </div>
         </ScrollArea>
 
-        {/* Footer navigation */}
-        <div className="px-6 py-3 border-t border-border flex items-center justify-between bg-muted/20">
-          <Button variant="outline" size="sm" onClick={goPrev} disabled={stepIndex === 0} className="gap-1">
+        {/* Navigation Footer */}
+        <div className="px-6 py-3 border-t border-border flex items-center justify-between bg-muted/10">
+          <Button variant="ghost" onClick={goPrev} disabled={stepIndex === 0} className="gap-1">
             <ChevronLeft className="h-4 w-4" /> Back
           </Button>
-          <div className="flex items-center gap-1.5">
-            {STEPS.map((s, i) => (
-              <div
-                key={s.id}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  i === stepIndex ? 'bg-primary w-4' : completedSteps.has(s.id) ? 'bg-primary/50' : 'bg-muted-foreground/30'
-                }`}
-              />
-            ))}
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Step {stepIndex + 1} of {STEPS.length}
+          </p>
           {stepIndex < STEPS.length - 1 ? (
-            <Button size="sm" onClick={goNext} className="gap-1">
+            <Button onClick={goNext} className="gap-1">
               Next <ChevronRight className="h-4 w-4" />
             </Button>
           ) : (
-            <Button size="sm" onClick={() => onOpenChange(false)} className="gap-1">
-              Done <Check className="h-4 w-4" />
-            </Button>
+            <Button onClick={() => onOpenChange(false)}>Done</Button>
           )}
         </div>
       </DialogContent>
