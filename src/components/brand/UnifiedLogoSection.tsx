@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, forwardRef } from 'react';
+import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
 import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2, FolderOpen, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -101,6 +101,42 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
   const [expandedLogo, setExpandedLogo] = useState<UnifiedLogo | null>(null);
   const { uploadFile } = useStorageUpload({ entityType, entityId });
 
+  // Auto-backfill: convert any base64 logos to storage URLs so they survive stripBase64FromGuideData
+  const backfillRanRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!entityId || !onLogosChange) return;
+    if (backfillRanRef.current === entityId) return;
+    const base64Logos = logos.filter(l => l.url?.startsWith('data:'));
+    if (base64Logos.length === 0) return;
+    backfillRanRef.current = entityId;
+
+    const migrateLogos = async () => {
+      let changed = false;
+      const updated = await Promise.all(
+        logos.map(async (logo) => {
+          if (!logo.url?.startsWith('data:')) return logo;
+          try {
+            const res = await fetch(logo.url);
+            const blob = await res.blob();
+            const result = await uploadFile(blob as unknown as File, 'logo', `logo-migrated-${logo.id}`);
+            if (result?.url) {
+              changed = true;
+              return { ...logo, url: result.url };
+            }
+          } catch (err) {
+            console.warn(`[UnifiedLogoSection] Failed to migrate base64 logo ${logo.name}:`, err);
+          }
+          return logo;
+        })
+      );
+      if (changed) {
+        onLogosChange(updated);
+        console.log(`[UnifiedLogoSection] Migrated ${base64Logos.length} base64 logos to storage`);
+      }
+    };
+    migrateLogos();
+  }, [entityId, logos.length]);
+
   // Default to false for public view; only editable if explicitly enabled AND handler exists
   const canEdit = (isEditable ?? false) && !!onLogosChange;
 
@@ -145,20 +181,35 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
     toast.success('Logo added from URL');
   }, [logos, onLogosChange, urlInput]);
 
-  const handleLibrarySelect = useCallback((url: string, variant: string) => {
+  const handleLibrarySelect = useCallback(async (url: string, variant: string) => {
     if (!onLogosChange) return;
     
-    const urlParts = url.split('/');
+    let finalUrl = url;
+    // If the library image is base64 and we have storage, upload it first
+    if (url.startsWith('data:') && entityId) {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const result = await uploadFile(blob as unknown as File, 'logo', `logo-lib-${crypto.randomUUID()}`);
+        if (result?.url) {
+          finalUrl = result.url;
+        }
+      } catch (err) {
+        console.warn('[UnifiedLogoSection] Failed to upload base64 library logo:', err);
+      }
+    }
+
+    const urlParts = finalUrl.split('/');
     const fileName = urlParts[urlParts.length - 1]?.split('.')[0] || 'Library Logo';
     const newLogo: UnifiedLogo = {
       id: crypto.randomUUID(),
       name: fileName,
-      url,
+      url: finalUrl,
       variant,
     };
     onLogosChange([...logos, newLogo]);
     toast.success('Logo added from library');
-  }, [logos, onLogosChange]);
+  }, [logos, onLogosChange, entityId, uploadFile]);
 
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: (file) => handleFileDrop(file, pendingVariant),

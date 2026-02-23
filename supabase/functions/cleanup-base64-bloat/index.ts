@@ -53,6 +53,12 @@ serve(async (req) => {
       "values", "insights", "colors", "social", "typography", "gradients",
       "videos", "webinars", "awards", "qrCodes", "caseStudies", "websites",
       "signage", "eventDetails", "schedule", "sponsors", "maps",
+      // Event-specific sections
+      "eventLogos", "eventSponsors", "eventSignage", "eventPrintMaterials",
+      "eventInfographics", "eventApplications", "eventSponsorshipMaterials",
+      "eventDigitalAssets", "presentationTemplates", "presentations",
+      "sharedAssets", "statistics", "locations", "locationStats",
+      "partnerBooths", "templateSpecs",
     ];
 
     const stats = {
@@ -234,8 +240,8 @@ async function processSection(
 }
 
 function isBase64DataUri(str: string): boolean {
-  // Match any data URI with base64 encoding that's substantial in size (>5KB)
-  return str.length > 5000 && /^data:[^;]+;base64,/.test(str);
+  // Match any data URI with base64 encoding that's substantial in size (>1KB)
+  return str.length > 1000 && /^data:[^;]+;base64,/.test(str);
 }
 
 /**
