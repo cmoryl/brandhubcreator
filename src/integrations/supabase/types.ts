@@ -214,6 +214,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
+          curb_cut_module: Json | null
           entity_id: string
           entity_name: string
           entity_type: string
@@ -249,6 +250,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          curb_cut_module?: Json | null
           entity_id: string
           entity_name: string
           entity_type?: string
@@ -284,6 +286,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          curb_cut_module?: Json | null
           entity_id?: string
           entity_name?: string
           entity_type?: string

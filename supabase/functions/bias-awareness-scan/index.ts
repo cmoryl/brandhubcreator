@@ -256,6 +256,40 @@ Apply SACM analysis to:
    - Professional content uses overly playful color schemes (credibility risk)
 Score sacm_overall 0-100. Include specific mappings_analysis with detected sentiment, expected vs actual colors, and bias flags.
 
+MODULE 10 - Curb-Cut Effect Analysis:
+The Curb-Cut Effect: designing for specific accessibility needs creates universal benefits (e.g., curb cuts designed for wheelchairs benefit everyone with strollers, luggage, bikes).
+Analyze the entity across these dimensions:
+
+1. PLAIN LANGUAGE ASSESSMENT:
+- Evaluate ALL text content for Flesch-Kincaid reading level (aim for Grade 8 or below for universal comprehension)
+- Detect jargon density, sentence complexity, passive voice overuse
+- Score plain_language_score 0-100 (100 = perfectly clear, universally accessible prose)
+- Provide flesch_kincaid_grade (estimated grade level of the content)
+- List specific jargon_terms found and their plain-language alternatives
+
+2. MULTI-MODAL CONTENT DELIVERY:
+- Assess whether key messages are available in multiple formats (text, visual, audio, video, interactive)
+- For EACH major content section, report which modalities are present vs missing
+- Score multi_modal_coverage 0-100
+- List content_format_gaps: sections that only have one modality
+
+3. ALT-TEXT QUALITY:
+- Evaluate all image references for: presence of alt text, descriptive quality, functional accuracy
+- Score alt_text_quality 0-100 (based on coverage × quality)
+- Report images_total, images_with_alt, images_with_descriptive_alt
+- Flag images with generic alt text (e.g., "image", "photo", "logo") as needing improvement
+
+4. UNIVERSAL BENEFIT MAPPING:
+- For EACH accessibility accommodation found, map the "curb-cut benefit" — how it helps ALL users
+- Examples: plain language → helps non-native speakers, busy execs, mobile readers
+  captions → helps in noisy environments, silent browsing, language learners
+  high contrast → helps in bright sunlight, aging eyes, tired users
+- Generate curb_cut_mappings: array of {accommodation, target_audience, universal_benefits: string[]}
+
+5. CONTENT READINESS INDICATORS:
+- For each content section, report a readiness_level: "accessible" | "partially_accessible" | "not_accessible"
+- Assess format_diversity: how many delivery formats are available per section
+
 RESPONSE FORMAT (strict JSON):
 {
   "inclusion_score": <0-100 weighted average>,
@@ -376,6 +410,19 @@ RESPONSE FORMAT (strict JSON):
     "sentiment_alignment": "aligned|partial|misaligned",
     "helmholtz_awareness": <bool>,
     "cultural_conflicts": [{"color": "...", "market": "...", "conflict": "...", "severity": "critical|warning"}],
+    "recommendations": ["..."]
+  },
+  "curb_cut_module": {
+    "overall_score": <0-100>,
+    "plain_language_score": <0-100>,
+    "flesch_kincaid_grade": <number>,
+    "jargon_terms": [{"term": "...", "plain_alternative": "...", "frequency": <number>}],
+    "multi_modal_coverage": <0-100>,
+    "content_format_gaps": [{"section": "...", "available_formats": ["text"|"visual"|"audio"|"video"|"interactive"], "missing_formats": ["..."]}],
+    "alt_text_quality": <0-100>,
+    "alt_text_stats": {"images_total": <number>, "images_with_alt": <number>, "images_with_descriptive_alt": <number>, "generic_alt_flags": ["..."]},
+    "curb_cut_mappings": [{"accommodation": "...", "target_audience": "...", "universal_benefits": ["..."]}],
+    "content_readiness": [{"section": "...", "readiness_level": "accessible|partially_accessible|not_accessible", "formats_available": <number>, "formats_possible": <number>}],
     "recommendations": ["..."]
   },
   "findings": [
@@ -518,6 +565,7 @@ RESPONSE FORMAT (strict JSON):
           color_accessibility_module: result.color_accessibility_module || null,
           color_strategy_module: result.color_strategy_module || null,
           sacm_module: result.sacm_module || null,
+          curb_cut_module: result.curb_cut_module || null,
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }).eq('id', scan.id);

@@ -279,13 +279,25 @@ serve(async (req) => {
       entities: allEntities.map(e => `${e.type}:${e.name}(${e.id})`),
     };
 
-    const systemPrompt = `You are an inclusive design strategist. Analyze cross-functional data from bias scans, localization, research, competitive intelligence, website analysis, and booth performance to extract CURB-CUT insights—where solving for specialized needs creates universal benefits.
+    const systemPrompt = `You are an inclusive design strategist specializing in the Curb-Cut Effect. Analyze cross-functional data from bias scans, localization, research, competitive intelligence, website analysis, and booth performance to extract CURB-CUT insights—where solving for specialized needs creates universal benefits.
+
+The Curb-Cut Effect: designing for specific accessibility needs (e.g., wheelchair curb cuts) creates universal benefits (benefits parents with strollers, delivery workers, cyclists). Apply this principle to brand/product/event content.
+
+PRIORITIZE these curb-cut categories:
+- PLAIN LANGUAGE: Content written at Grade 8 or below benefits non-native speakers, busy executives, mobile readers, and people with cognitive disabilities
+- MULTI-MODAL DELIVERY: Content available in text + visual + audio + video benefits deaf users, blind users, ESL learners, and people in noisy/quiet environments
+- ALT-TEXT QUALITY: Descriptive image alt-text helps screen reader users AND improves SEO, social sharing, and content indexing for everyone
+- READING LEVEL: Lower Flesch-Kincaid scores help people with dyslexia AND improve comprehension speed for all readers
+- CAPTIONS/TRANSCRIPTS: Benefits deaf/HoH users AND helps in noisy environments, silent browsing, language learning
+- HIGH CONTRAST: Benefits low-vision users AND helps in bright sunlight, aging eyes, screen glare
+- RESPONSIVE DESIGN: Benefits motor-impaired users AND helps one-handed mobile use, small screens
 
 Output a JSON array of insight objects. Each insight should:
 1. Identify a pattern or finding from ONE source that benefits OTHER entities
-2. Classify the curb-cut category (mobility, vision, hearing, cognitive, language, cultural, universal)
-3. Provide actionable recommendations for cross-pollination
-4. Assign applicable entity IDs from the portfolio
+2. Classify the curb-cut category (mobility, vision, hearing, cognitive, language, cultural, universal, plain_language, multi_modal, alt_text)
+3. Map the specific accessibility accommodation to its universal benefits
+4. Provide actionable recommendations for cross-pollination
+5. Assign applicable entity IDs from the portfolio
 
 IMPORTANT: Do NOT duplicate these existing insights: ${JSON.stringify(Array.from(existingTitles))}
 
@@ -293,8 +305,8 @@ JSON schema for each insight:
 {
   "title": "string (concise, max 80 chars)",
   "description": "string (2-3 sentences explaining the cross-cutting benefit)",
-  "insight_type": "accessibility|usability|localization|inclusive_design|performance|competitive",
-  "curb_cut_category": "mobility|vision|hearing|cognitive|language|cultural|universal",
+  "insight_type": "accessibility|usability|localization|inclusive_design|performance|competitive|plain_language|multi_modal",
+  "curb_cut_category": "mobility|vision|hearing|cognitive|language|cultural|universal|plain_language|multi_modal|alt_text",
   "severity": "low|medium|high|critical",
   "source_entity_id": "UUID of originating entity",
   "source_entity_name": "name",
@@ -302,12 +314,13 @@ JSON schema for each insight:
   "source_module": "bias_scan|localization|research|competitive|website|booth",
   "applicable_entity_ids": ["UUIDs of entities that would benefit"],
   "applicable_entity_types": ["brand|product|event"],
+  "curb_cut_benefit": {"accommodation": "specific accessibility fix", "target_audience": "primary beneficiary", "universal_benefits": ["benefit for all users"]},
   "recommendations": [{"action": "string", "priority": "high|medium|low", "effort": "low|medium|high"}],
   "confidence_score": 0.0-1.0,
   "tags": ["string"]
 }
 
-Generate 3-8 high-quality insights. Focus on patterns that create the most cross-portfolio value.`;
+Generate 3-8 high-quality insights. Focus on plain language, multi-modal content delivery, and alt-text quality patterns that create the most cross-portfolio value.`;
 
     const userPrompt = `Analyze this organization's data and extract curb-cut insights:\n\n${JSON.stringify(sourceContext, null, 1)}`;
 
