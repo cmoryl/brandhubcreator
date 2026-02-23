@@ -11,6 +11,7 @@ import customerFocusImg from '@/assets/pillars/customer-focus-pillar.jpg';
 import trustImg from '@/assets/pillars/trust-pillar.jpg';
 import sustainabilityImg from '@/assets/pillars/sustainability-pillar.jpg';
 import diversityImg from '@/assets/pillars/diversity-pillar.jpg';
+import urgencyImg from '@/assets/pillars/urgency-pillar.jpg';
 
 export const collaborationPillar = collaborationImg;
 export const integrityPillar = integrityImg;
@@ -20,6 +21,7 @@ export const customerFocusPillar = customerFocusImg;
 export const trustPillar = trustImg;
 export const sustainabilityPillar = sustainabilityImg;
 export const diversityPillar = diversityImg;
+export const urgencyPillar = urgencyImg;
 
 export const pillarImages: Record<string, string> = {
   // Collaboration / Teamwork
@@ -50,9 +52,11 @@ export const pillarImages: Record<string, string> = {
   creativity: innovationPillar,
   ideas: innovationPillar,
   growth: innovationPillar,
-  urgency: innovationPillar,
-  agility: innovationPillar,
-  speed: innovationPillar,
+  
+  // Urgency / Speed / Agility
+  urgency: urgencyPillar,
+  agility: urgencyPillar,
+  speed: urgencyPillar,
   
   // Customer Focus / Service
   customer: customerFocusPillar,
@@ -92,6 +96,7 @@ export const pillarImagesList = [
   integrityPillar,
   excellencePillar,
   innovationPillar,
+  urgencyPillar,
   customerFocusPillar,
   trustPillar,
   sustainabilityPillar,
@@ -103,6 +108,7 @@ export const pillarImagesWithLabels = [
   { url: integrityPillar, label: 'Integrity', keywords: ['honesty', 'transparency', 'ethics'] },
   { url: excellencePillar, label: 'Excellence', keywords: ['quality', 'success', 'achievement'] },
   { url: innovationPillar, label: 'Innovation', keywords: ['creativity', 'ideas', 'growth'] },
+  { url: urgencyPillar, label: 'Urgency', keywords: ['speed', 'agility', 'momentum'] },
   { url: customerFocusPillar, label: 'Customer Focus', keywords: ['service', 'care', 'empathy'] },
   { url: trustPillar, label: 'Trust', keywords: ['reliability', 'commitment', 'accountability'] },
   { url: sustainabilityPillar, label: 'Sustainability', keywords: ['environment', 'community', 'responsibility'] },
