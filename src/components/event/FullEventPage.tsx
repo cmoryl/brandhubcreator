@@ -200,6 +200,8 @@ export const FullEventPage = ({
             onPrintMaterialsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined}
             sponsorshipMaterials={event.eventSponsorshipMaterials || []}
             onSponsorshipMaterialsChange={canEdit ? (eventSponsorshipMaterials) => updateEvent({ eventSponsorshipMaterials }) : undefined}
+            emailBanners={event.emailBanners || []}
+            onEmailBannersChange={canEdit ? (emailBanners) => updateEvent({ emailBanners }) : undefined}
             digitalAssets={event.eventDigitalAssets || []}
             onDigitalAssetsChange={canEdit ? (eventDigitalAssets) => updateEvent({ eventDigitalAssets }) : undefined}
             infographics={event.eventInfographics || []}
