@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { 
   Plus, X, Pencil, Upload, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight, Loader2, FolderOpen,
   // Core values
@@ -38,6 +38,7 @@ import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { toast } from 'sonner';
 import type { LucideIcon } from 'lucide-react';
 import { getPillarImage, getStablePillarImage, pillarImagesList, pillarImagesWithLabels } from '@/assets/pillars';
+import { useSavePillarsToLibrary } from '@/hooks/useSavePillarsToLibrary';
 
 interface ValuesSectionProps {
   values: BrandValue[];
@@ -231,6 +232,14 @@ export const ValuesSection = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [presetImageIndex, setPresetImageIndex] = useState<Record<string, number>>({});
+
+  // Auto-save pillar images to org library on first render
+  const { savePillarsToLibrary } = useSavePillarsToLibrary();
+  useEffect(() => {
+    if (organizationId) {
+      savePillarsToLibrary(organizationId);
+    }
+  }, [organizationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Storage upload hook for persistent pillar images
   const { uploadFile, isUploading, uploadProgress } = useStorageUpload({
