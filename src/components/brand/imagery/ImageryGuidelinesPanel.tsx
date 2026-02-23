@@ -1,9 +1,10 @@
 /**
  * ImageryGuidelinesPanel - Diversity & representation guidelines with Stop/Go framework
+ * + Visible Identity Diversity, Observable Actions, and Cultural Context guidance
  */
 
 import { useState } from 'react';
-import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Users, Eye } from 'lucide-react';
+import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Users, Eye, Accessibility, Activity, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const GO_SIGNALS = [
@@ -22,6 +23,31 @@ const STOP_SIGNALS = [
   'Inspiration porn — disability used as motivational device',
   'Homogeneous groups presented as universal default',
   'AI-generated faces or bodies without disclosure',
+];
+
+const IDENTITY_DIVERSITY_GUIDELINES = [
+  { label: 'Age', detail: 'Include children, young adults, middle-aged, and older adults — avoid defaulting to 25–35 demographic' },
+  { label: 'Race & Ethnicity', detail: 'Ensure multi-ethnic representation across hero, supporting, and background imagery — not only in "diversity" sections' },
+  { label: 'Gender & Expression', detail: 'Represent women, men, non-binary, and gender-nonconforming individuals in leadership and everyday roles' },
+  { label: 'Body Size & Shape', detail: 'Feature a range of body types naturally — avoid only aspirational or athletic physiques' },
+  { label: 'Visible Disabilities', detail: 'Show people using wheelchairs, prosthetics, hearing aids, canes, or service animals as active participants — not passive subjects' },
+  { label: 'Invisible Disabilities', detail: 'Where relevant, acknowledge neurodiversity and non-visible conditions through contextual cues (e.g., sensory-friendly environments)' },
+];
+
+const OBSERVABLE_ACTIONS_GUIDELINES = [
+  'Describe what people are doing — "engineer testing a prototype" rather than "person standing near equipment"',
+  'Show decision-making and leadership across demographics — not only from one group',
+  'Depict collaboration as multi-directional (listening, debating, presenting) — not one person leading while others watch',
+  'Capture real work moments: writing, building, repairing, cooking, coding, caregiving — avoid vague "looking at laptop" imagery',
+  'Include physical and intellectual labor equally — both contribute to brand stories',
+];
+
+const CULTURAL_CONTEXT_GUIDELINES = [
+  'Research cultural dress, settings, and symbols before use — avoid decorative or out-of-context placement',
+  'Show cultural celebrations and traditions with informed, respectful framing — not as exotic spectacle',
+  'Include region-specific environments (markets, landscapes, architecture) that ground imagery in authentic place',
+  'When depicting food, crafts, or rituals, credit or contextualize the cultural origin',
+  'Avoid conflating distinct cultures — e.g., using East Asian motifs generically across all Asian representation',
 ];
 
 interface ImageryGuidelinesPanelProps {
@@ -83,6 +109,63 @@ export const ImageryGuidelinesPanel = ({ canEdit }: ImageryGuidelinesPanelProps)
                 ))}
               </ul>
             </div>
+          </div>
+
+          {/* Visible Identity Diversity */}
+          <div className="space-y-2 border-t border-border pt-3">
+            <div className="flex items-center gap-1.5">
+              <Accessibility className="h-4 w-4 text-primary" />
+              <h4 className="text-sm font-semibold text-foreground">Visible Identity Diversity Requirements</h4>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Every imagery brief and review must explicitly address the following identity dimensions. Default to representation — omission is a choice.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {IDENTITY_DIVERSITY_GUIDELINES.map((item, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs p-2 rounded-lg bg-muted/40">
+                  <span className="font-semibold text-foreground shrink-0 min-w-[90px]">{item.label}:</span>
+                  <span className="text-foreground/80">{item.detail}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Observable Actions */}
+          <div className="space-y-2 border-t border-border pt-3">
+            <div className="flex items-center gap-1.5">
+              <Activity className="h-4 w-4 text-primary" />
+              <h4 className="text-sm font-semibold text-foreground">Observable Actions in Imagery</h4>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Descriptions and briefs must specify what subjects are <strong className="text-foreground">doing</strong>, not just who they are. Action-oriented imagery builds credibility and avoids passive tokenism.
+            </p>
+            <ul className="space-y-1.5">
+              {OBSERVABLE_ACTIONS_GUIDELINES.map((item, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs text-foreground/80">
+                  <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Cultural Context */}
+          <div className="space-y-2 border-t border-border pt-3">
+            <div className="flex items-center gap-1.5">
+              <Globe className="h-4 w-4 text-primary" />
+              <h4 className="text-sm font-semibold text-foreground">Cultural Context Requirements</h4>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Imagery that references cultural identity must be grounded in research, not assumption. Context transforms representation from decorative to meaningful.
+            </p>
+            <ul className="space-y-1.5">
+              {CULTURAL_CONTEXT_GUIDELINES.map((item, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs text-foreground/80">
+                  <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/60 border border-border">
