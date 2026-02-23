@@ -392,9 +392,49 @@ export const ValuesSection = ({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
-        {values.map((value, index) => {
+        {(() => {
+          // Track used images to ensure uniqueness across all pillar cards
+          const usedImages = new Set<string>();
+          
+          const resolveUniqueImage = (value: BrandValue): string | null => {
+            if (!value.useImage) return null;
+            
+            // 1. Try keyword match first
+            const keywordMatch = getPillarImage(value.text);
+            if (keywordMatch && !usedImages.has(keywordMatch)) {
+              usedImages.add(keywordMatch);
+              return keywordMatch;
+            }
+            
+            // 2. Try custom uploaded image
+            if (value.imageUrl && !pillarImagesList.includes(value.imageUrl) && !usedImages.has(value.imageUrl)) {
+              usedImages.add(value.imageUrl);
+              return value.imageUrl;
+            }
+            
+            // 3. Try stable hash image
+            const stableImg = getStablePillarImage(value.text);
+            if (!usedImages.has(stableImg)) {
+              usedImages.add(stableImg);
+              return stableImg;
+            }
+            
+            // 4. Fallback: pick first unused pillar image
+            for (const img of pillarImagesList) {
+              if (!usedImages.has(img)) {
+                usedImages.add(img);
+                return img;
+              }
+            }
+            
+            // 5. All exhausted, allow reuse
+            return keywordMatch || stableImg;
+          };
+          
+          return values.map((value, index) => {
           const IconComponent = getIconComponent(value.icon);
           const isEditing = editingId === value.id;
+          const resolvedImage = resolveUniqueImage(value);
 
           return (
             <div
@@ -582,67 +622,60 @@ export const ValuesSection = ({
                 </div>
               ) : (
               <>
-                  {/* Full-width image at top for image mode - use custom or resolve from assets */}
-                  {(() => {
-                    // Always prefer fresh local keyword-matched assets over stale stored URLs
-                    const keywordMatch = getPillarImage(value.text);
-                    const resolvedImage = value.useImage 
-                      ? (keywordMatch || value.imageUrl || getStablePillarImage(value.text))
-                      : null;
-                    
-                    return resolvedImage && (
-                      <div className="absolute inset-x-0 top-0 h-20 sm:h-24 rounded-t-lg overflow-hidden">
-                        <img 
-                          src={resolvedImage} 
-                          alt={value.text} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card" />
-                      </div>
-                    );
-                  })()}
-                  
-                  {/* Adjust margin and show icon only if not in image mode */}
-                  <div className={`flex items-start justify-between ${value.useImage ? 'mt-14 sm:mt-16' : ''} mb-2`}>
-                    {!value.useImage ? (
-                      <div className="p-2 bg-accent/10 rounded-lg transition-all duration-300 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-accent/20">
-                        {IconComponent ? (
-                          <IconComponent className="h-5 w-5 text-accent transition-transform duration-300 group-hover:scale-110" />
-                        ) : (
-                          <Heart className="h-5 w-5 text-accent transition-transform duration-300 group-hover:scale-110" />
-                        )}
-                      </div>
-                    ) : <div />}
-                    {canEdit && (
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => setEditingId(value.id)}
-                          className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                        >
-                          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                        </button>
-                        <button
-                          onClick={() => deleteValue(value.id)}
-                          className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 transition-colors duration-300 group-hover:text-accent leading-tight">{value.text}</h3>
-                  <p className="text-xs text-muted-foreground transition-all duration-300 group-hover:text-foreground/80 line-clamp-2">{value.description}</p>
-                  
-                  {/* Hover glow effect */}
-                  <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-accent/5 via-transparent to-accent/10" />
-                  <div className="absolute -inset-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-r from-accent/20 via-transparent to-accent/20 blur-sm -z-10" />
-                </>
-              )}
-            </div>
-          );
-        })}
+                   {/* Full-width image at top for image mode - already resolved uniquely */}
+                   {resolvedImage && (
+                       <div className="absolute inset-x-0 top-0 h-20 sm:h-24 rounded-t-lg overflow-hidden">
+                         <img 
+                           src={resolvedImage} 
+                           alt={value.text} 
+                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                           loading="lazy"
+                           decoding="async"
+                         />
+                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card" />
+                       </div>
+                   )}
+                   
+                   {/* Adjust margin and show icon only if not in image mode */}
+                   <div className={`flex items-start justify-between ${value.useImage ? 'mt-14 sm:mt-16' : ''} mb-2`}>
+                     {!value.useImage ? (
+                       <div className="p-2 bg-accent/10 rounded-lg transition-all duration-300 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-accent/20">
+                         {IconComponent ? (
+                           <IconComponent className="h-5 w-5 text-accent transition-transform duration-300 group-hover:scale-110" />
+                         ) : (
+                           <Heart className="h-5 w-5 text-accent transition-transform duration-300 group-hover:scale-110" />
+                         )}
+                       </div>
+                     ) : <div />}
+                     {canEdit && (
+                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <button
+                           onClick={() => setEditingId(value.id)}
+                           className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                         >
+                           <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                         </button>
+                         <button
+                           onClick={() => deleteValue(value.id)}
+                           className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                         >
+                           <X className="h-3.5 w-3.5" />
+                         </button>
+                       </div>
+                     )}
+                   </div>
+                   <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 transition-colors duration-300 group-hover:text-accent leading-tight">{value.text}</h3>
+                   <p className="text-xs text-muted-foreground transition-all duration-300 group-hover:text-foreground/80 line-clamp-2">{value.description}</p>
+                   
+                   {/* Hover glow effect */}
+                   <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-accent/5 via-transparent to-accent/10" />
+                   <div className="absolute -inset-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-r from-accent/20 via-transparent to-accent/20 blur-sm -z-10" />
+                 </>
+               )}
+             </div>
+           );
+         });
+         })()}
 
         {values.length === 0 && canEdit && (
           <button
