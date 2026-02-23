@@ -29,7 +29,7 @@ interface ImageryGuidelinesPanelProps {
 }
 
 export const ImageryGuidelinesPanel = ({ canEdit }: ImageryGuidelinesPanelProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   return (
     <div className="border border-border rounded-xl overflow-hidden bg-card">
