@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink, Link as LinkIcon, ImagePlus, PenLine, ZoomIn } from 'lucide-react';
+import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink, Link as LinkIcon, ImagePlus, PenLine, ZoomIn, FileDown, FileText, Download } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -43,13 +43,14 @@ const BOOTH_DIVISIONS = [
 ];
 
 // Card that renders a linked booth in the brand guide — exported for inline use
-export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDetail, onUpdateLinks, onUpdateImage }: {
+export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDetail, onUpdateLinks, onUpdateImage, onUpdateFileUrls }: {
   booth: LinkedBoothCard;
   isEditable: boolean;
   onRemove: () => void;
   onOpenDetail: () => void;
   onUpdateLinks?: (links: BoothLink[]) => void;
   onUpdateImage?: (imageUrl: string | undefined) => void;
+  onUpdateFileUrls?: (liveFileUrl?: string, pdfFileUrl?: string) => void;
 }) => {
   const Icon = ICON_MAP[booth.iconName] || Building2;
   const { images, getVariantImage } = useBoothImages(booth.divisionId);
@@ -62,6 +63,9 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
   const [imageUrlInput, setImageUrlInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [showFileUrlEditor, setShowFileUrlEditor] = useState(false);
+  const [liveFileUrlInput, setLiveFileUrlInput] = useState(booth.liveFileUrl || '');
+  const [pdfFileUrlInput, setPdfFileUrlInput] = useState(booth.pdfFileUrl || '');
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const boothLinks = booth.links || [];
@@ -261,14 +265,114 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
             </button>
           )
         )}
+
+        {/* Live / PDF File Links */}
+        {(booth.liveFileUrl || booth.pdfFileUrl) && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {booth.liveFileUrl && (
+              <a href={booth.liveFileUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5">
+                  <Download className="h-3 w-3" /> Live Files
+                </Button>
+              </a>
+            )}
+            {booth.pdfFileUrl && (
+              <a href={booth.pdfFileUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5">
+                  <FileText className="h-3 w-3" /> PDF
+                </Button>
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Admin: Edit File URLs */}
+        {isEditable && (
+          showFileUrlEditor ? (
+            <div className="space-y-2 pt-1 border-t border-border/40 mt-2" onClick={(e) => e.stopPropagation()}>
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">File URLs</p>
+              <Input placeholder="Live files URL (Dropbox, Figma...)" value={liveFileUrlInput} onChange={(e) => setLiveFileUrlInput(e.target.value)} className="h-8 text-xs" />
+              <Input placeholder="PDF file URL" value={pdfFileUrlInput} onChange={(e) => setPdfFileUrlInput(e.target.value)} className="h-8 text-xs" />
+              <div className="flex gap-1.5">
+                <Button size="sm" variant="default" className="h-7 text-xs gap-1" onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateFileUrls?.(liveFileUrlInput.trim() || undefined, pdfFileUrlInput.trim() || undefined);
+                  setShowFileUrlEditor(false);
+                }}>
+                  <FileDown className="h-3 w-3" /> Save
+                </Button>
+                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setShowFileUrlEditor(false); }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowFileUrlEditor(true); }}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              <FileDown className="h-3 w-3" />
+              {booth.liveFileUrl || booth.pdfFileUrl ? 'Edit File URLs' : 'Add File URLs'}
+            </button>
+          )
+        )}
       </div>
-      <PreviewDialog
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        title={`${booth.divisionName} — Booth Preview`}
-        previewUrl={cardImage}
-        type="image"
-      />
+
+      {/* Preview Dialog with file links */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ backgroundColor: booth.color }}>
+                <Icon className="h-3.5 w-3.5 text-white" />
+              </div>
+              {booth.divisionName} — Booth Preview
+            </DialogTitle>
+          </DialogHeader>
+          {cardImage && (
+            <img src={cardImage} alt={`${booth.divisionName} booth`} className="w-full rounded-lg object-contain max-h-[50vh]" />
+          )}
+          <div className="space-y-3 pt-2">
+            {/* File download buttons */}
+            {(booth.liveFileUrl || booth.pdfFileUrl || boothLinks.length > 0) && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-foreground">Downloads & Links</p>
+                <div className="flex flex-wrap gap-2">
+                  {booth.liveFileUrl && (
+                    <a href={booth.liveFileUrl} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" variant="default" className="gap-2">
+                        <Download className="h-4 w-4" /> Live Files
+                      </Button>
+                    </a>
+                  )}
+                  {booth.pdfFileUrl && (
+                    <a href={booth.pdfFileUrl} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" variant="outline" className="gap-2">
+                        <FileText className="h-4 w-4" /> Download PDF
+                      </Button>
+                    </a>
+                  )}
+                </div>
+                {boothLinks.length > 0 && (
+                  <div className="space-y-1">
+                    {boothLinks.map((link) => (
+                      <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                        <LinkIcon className="h-3.5 w-3.5 shrink-0" />
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-1.5">
+              {booth.services.map((s) => (
+                <Badge key={s} variant="outline" className="text-xs">{s}</Badge>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
