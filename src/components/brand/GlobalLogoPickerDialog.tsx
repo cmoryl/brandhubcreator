@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Check, Loader2, Filter, Globe2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { ClientLogo, ClientLogoFile, ClientLogoVariant } from '@/types/brand';
+import { convertLogoFilesToStorage } from '@/lib/convertBase64LogosToStorage';
 
 interface GlobalLogoPickerDialogProps {
   /** Already-used logo IDs to show as "already added" */
@@ -18,6 +19,12 @@ interface GlobalLogoPickerDialogProps {
   /** Called when user confirms selection */
   onImport: (logos: ClientLogo[]) => void;
   trigger?: React.ReactNode;
+  /** Storage context for converting base64 logos to persistent URLs */
+  storageContext?: {
+    orgId: string;
+    entityType: string;
+    entityId: string;
+  };
 }
 
 interface GlobalClientLogo {
@@ -42,11 +49,12 @@ const getPreviewUrl = (files: ClientLogoFile[]): { url: string; isWhite: boolean
   return null;
 };
 
-export function GlobalLogoPickerDialog({ existingLogoNames = [], onImport, trigger }: GlobalLogoPickerDialogProps) {
+export function GlobalLogoPickerDialog({ existingLogoNames = [], onImport, trigger, storageContext }: GlobalLogoPickerDialogProps) {
   const { organization } = useOrganization();
   const [open, setOpen] = useState(false);
   const [logos, setLogos] = useState<GlobalClientLogo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -91,18 +99,42 @@ export function GlobalLogoPickerDialog({ existingLogoNames = [], onImport, trigg
     });
   };
 
-  const handleImport = () => {
+  const handleImport = async () => {
     const selected = logos.filter(l => selectedIds.has(l.id));
-    const clientLogos: ClientLogo[] = selected.map(l => ({
-      id: crypto.randomUUID(),
-      name: l.name,
-      description: l.description || undefined,
-      files: l.files,
-      websiteUrl: l.website_url || undefined,
-    }));
-    onImport(clientLogos);
-    toast.success(`Imported ${clientLogos.length} logo${clientLogos.length !== 1 ? 's' : ''} from global library`);
-    setOpen(false);
+    setIsImporting(true);
+
+    try {
+      const clientLogos: ClientLogo[] = [];
+      for (const l of selected) {
+        let files = l.files;
+        // Convert base64 logos to cloud storage URLs if storage context is provided
+        if (storageContext && files.some(f => f.url.startsWith('data:'))) {
+          files = await convertLogoFilesToStorage(
+            files,
+            storageContext.orgId,
+            storageContext.entityType,
+            storageContext.entityId,
+            l.name,
+          ) as ClientLogoFile[];
+        }
+        clientLogos.push({
+          id: crypto.randomUUID(),
+          name: l.name,
+          description: l.description || undefined,
+          files,
+          websiteUrl: l.website_url || undefined,
+        });
+      }
+
+      onImport(clientLogos);
+      toast.success(`Imported ${clientLogos.length} logo${clientLogos.length !== 1 ? 's' : ''} from global library`);
+      setOpen(false);
+    } catch (err) {
+      console.error('[GlobalLogoPickerDialog] Import failed:', err);
+      toast.error('Failed to import logos');
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const categories = Array.from(new Set(logos.map(l => l.category))).sort();
@@ -224,8 +256,8 @@ export function GlobalLogoPickerDialog({ existingLogoNames = [], onImport, trigg
           </span>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleImport} disabled={selectedIds.size === 0}>
-              Import {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
+            <Button onClick={handleImport} disabled={selectedIds.size === 0 || isImporting}>
+              {isImporting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...</> : `Import ${selectedIds.size > 0 ? `(${selectedIds.size})` : ''}`}
             </Button>
           </div>
         </div>

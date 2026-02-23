@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive, Globe2, ArrowUpDown, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { ClientLogo, ClientLogoFile, ClientLogoVariant, ClientLogoFormat } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -56,6 +57,7 @@ export const ClientLogosSection = ({
   entityType = 'brand',
 }: ClientLogosSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const { organization } = useOrganization();
   const [editingLogoId, setEditingLogoId] = useState<string | null>(null);
   const [previewLogo, setPreviewLogo] = useState<ClientLogo | null>(null);
   const [activeVariant, setActiveVariant] = useState<ClientLogoVariant>('color');
@@ -484,6 +486,7 @@ export const ClientLogosSection = ({
           {canEdit && (
             <>
               <GlobalLogoPickerDialog
+                storageContext={organization?.id && entityId ? { orgId: organization.id, entityType, entityId } : undefined}
                 existingLogoNames={clientLogos.map(l => l.name)}
                 onImport={(imported) => {
                   onClientLogosChange?.([...clientLogos, ...imported]);
