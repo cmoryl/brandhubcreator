@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { Trash2, Upload, Link2, ExternalLink, Crown, Award, Medal, Star, Handshake, Megaphone, Plus, Globe, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +50,7 @@ export const SponsorLogosSection = ({
   entityType = 'brand',
 }: SponsorLogosSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const { organization } = useOrganization();
   const [urlPopoverOpen, setUrlPopoverOpen] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState('');
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -176,6 +178,7 @@ export const SponsorLogosSection = ({
                   Add Sponsor
                 </Button>
                 <GlobalLogoPickerDialog
+                  storageContext={organization?.id && entityId ? { orgId: organization.id, entityType, entityId } : undefined}
                   existingLogoNames={sponsors.map(s => s.name)}
                   onImport={(imported) => {
                     if (!onSponsorsChange) return;
@@ -341,6 +344,7 @@ export const SponsorLogosSection = ({
                 Add Sponsor
               </Button>
               <GlobalLogoPickerDialog
+                storageContext={organization?.id && entityId ? { orgId: organization.id, entityType, entityId } : undefined}
                 existingLogoNames={sponsors.map(s => s.name)}
                 onImport={(imported) => {
                   if (!onSponsorsChange) return;

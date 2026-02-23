@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { Plus, Trash2, Check, X, Crown, Star, Medal, Award, Users, ExternalLink, Upload, Link, ChevronDown, ChevronUp, Image } from 'lucide-react';
 import { EventSponsor, SponsorLogoVariant } from '@/types/event';
 import { Input } from '@/components/ui/input';
@@ -70,6 +71,7 @@ export const EventSponsorsSection = ({
 }: EventSponsorsSectionProps) => {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [logoInputMode, setLogoInputMode] = useState<'upload' | 'url' | 'library'>('upload');
+  const { organization } = useOrganization();
   const [expandedSponsors, setExpandedSponsors] = useState<Set<string>>(new Set());
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -83,9 +85,14 @@ export const EventSponsorsSection = ({
   const { uploadFile } = useStorageUpload({ entityType, entityId });
 
   // Auto-backfill missing sponsor logos from global library
+  // Converts base64 logos to cloud storage URLs so they survive stripBase64FromGuideData on save
+  const backfillRanRef = useRef(false);
   useEffect(() => {
+    if (backfillRanRef.current) return;
     const sponsorsWithoutLogos = sponsors.filter(s => !s.logoUrl);
     if (sponsorsWithoutLogos.length === 0) return;
+
+    backfillRanRef.current = true;
 
     const backfillLogos = async () => {
       const names = sponsorsWithoutLogos.map(s => s.name);
@@ -97,10 +104,30 @@ export const EventSponsorsSection = ({
       if (!globalLogos || globalLogos.length === 0) return;
 
       const logoMap = new Map<string, string>();
-      globalLogos.forEach((gl) => {
-        const url = getPreferredLogoUrl(gl.files);
-        if (url) logoMap.set(gl.name, url);
-      });
+
+      for (const gl of globalLogos) {
+        let url = getPreferredLogoUrl(gl.files);
+        if (!url) continue;
+
+        // If the URL is base64 and we have storage, upload it to get a persistent URL
+        if (url.startsWith('data:') && entityId) {
+          try {
+            const res = await fetch(url);
+            const blob = await res.blob();
+            const ext = blob.type.includes('svg') ? 'svg' : blob.type.includes('png') ? 'png' : 'jpg';
+            const file = new File([blob], `sponsor-${gl.name.replace(/\s+/g, '-').toLowerCase()}.${ext}`, { type: blob.type });
+            const result = await uploadFile(file, 'asset', `sponsor-logo-${gl.name.replace(/\s+/g, '-').toLowerCase()}`);
+            if (result?.url) {
+              url = result.url;
+            }
+          } catch (err) {
+            console.warn(`[EventSponsors] Failed to upload base64 logo for ${gl.name}:`, err);
+            // Still use base64 as fallback for display, though it may get stripped on save
+          }
+        }
+
+        logoMap.set(gl.name, url);
+      }
 
       if (logoMap.size === 0) return;
 
@@ -114,7 +141,7 @@ export const EventSponsorsSection = ({
     };
 
     backfillLogos();
-  }, [sponsors.length]); // Only re-run when sponsor count changes
+  }, [sponsors.length, entityId]); // Run on mount and when entity is ready
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -236,6 +263,7 @@ export const EventSponsorsSection = ({
               Add Sponsor
             </Button>
             <GlobalLogoPickerDialog
+              storageContext={organization?.id && entityId ? { orgId: organization.id, entityType, entityId } : undefined}
               existingLogoNames={sponsors.map(s => s.name)}
               onImport={(imported) => {
                 const newSponsors: EventSponsor[] = imported.map(logo => {
@@ -412,6 +440,7 @@ export const EventSponsorsSection = ({
                   Add First Sponsor
                 </Button>
                 <GlobalLogoPickerDialog
+                  storageContext={organization?.id && entityId ? { orgId: organization.id, entityType, entityId } : undefined}
                   existingLogoNames={sponsors.map(s => s.name)}
                   onImport={(imported) => {
                     const newSponsors: EventSponsor[] = imported.map(logo => {
