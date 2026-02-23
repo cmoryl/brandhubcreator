@@ -5,6 +5,7 @@ import { SectionHeader } from './SectionHeader';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { BookOpen, FileText, Image, Video, Headphones } from 'lucide-react';
+import { InclusiveIntelligencePanel } from './identity/InclusiveIntelligencePanel';
 
 interface IdentitySectionProps {
   identity: BrandIdentity;
@@ -131,6 +132,8 @@ export const IdentitySection = ({ identity, onIdentityChange, customSubtitle, on
           </div>
         </div>
       </div>
+
+      <InclusiveIntelligencePanel />
     </section>
   );
 };
