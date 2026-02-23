@@ -657,7 +657,7 @@ const EventEditor = () => {
         // Handled in eventdigital unified section - no standalone render
         return null;
       case 'templatespecs':
-        return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))} />;
+        return <TemplateSpecsSection templateSpecs={event.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))} entityId={event.id} entityType="event" />;
       case 'subevents': {
         const linkedEvents: LinkedEventGuide[] = ((event as any).linkedGuides || [])
           .filter((g: any) => g.type === 'event')
