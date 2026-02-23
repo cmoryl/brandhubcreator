@@ -87,63 +87,83 @@ export const EventSponsorsSection = ({
   // Auto-backfill missing sponsor logos from global library
   // Converts base64 logos to cloud storage URLs so they survive stripBase64FromGuideData on save
   const backfillRanRef = useRef<string | null>(null);
+  const backfillInProgressRef = useRef(false);
   useEffect(() => {
-    // Wait until entityId is available so we can upload to storage
-    if (!entityId) return;
-    // Only run once per entityId
+    // Wait until entityId AND organization are available so uploads succeed
+    if (!entityId || !organization?.id) return;
+    // Only run once per entityId (after successful completion)
     if (backfillRanRef.current === entityId) return;
+    if (backfillInProgressRef.current) return;
     const sponsorsWithoutLogos = sponsors.filter(s => !s.logoUrl);
-    if (sponsorsWithoutLogos.length === 0) return;
+    if (sponsorsWithoutLogos.length === 0) {
+      backfillRanRef.current = entityId;
+      return;
+    }
 
-    backfillRanRef.current = entityId;
+    backfillInProgressRef.current = true;
 
     const backfillLogos = async () => {
-      const names = sponsorsWithoutLogos.map(s => s.name);
-      const { data: globalLogos } = await supabase
-        .from('global_client_logos')
-        .select('name, files')
-        .in('name', names);
+      try {
+        const names = sponsorsWithoutLogos.map(s => s.name);
+        const { data: globalLogos } = await supabase
+          .from('global_client_logos')
+          .select('name, files')
+          .in('name', names);
 
-      if (!globalLogos || globalLogos.length === 0) return;
+        if (!globalLogos || globalLogos.length === 0) {
+          backfillRanRef.current = entityId;
+          return;
+        }
 
-      const logoMap = new Map<string, string>();
+        const logoMap = new Map<string, string>();
 
-      for (const gl of globalLogos) {
-        let url = getPreferredLogoUrl(gl.files);
-        if (!url) continue;
+        for (const gl of globalLogos) {
+          let url = getPreferredLogoUrl(gl.files);
+          if (!url) continue;
 
-        // Upload base64 logos to cloud storage so they survive stripBase64FromGuideData
-        if (url.startsWith('data:')) {
-          try {
-            const res = await fetch(url);
-            const blob = await res.blob();
-            const ext = blob.type.includes('svg') ? 'svg' : blob.type.includes('png') ? 'png' : 'jpg';
-            const file = new File([blob], `sponsor-${gl.name.replace(/\s+/g, '-').toLowerCase()}.${ext}`, { type: blob.type });
-            const result = await uploadFile(file, 'asset', `sponsor-logo-${gl.name.replace(/\s+/g, '-').toLowerCase()}`);
-            if (result?.url) {
-              url = result.url;
+          // Upload base64 logos to cloud storage so they survive stripBase64FromGuideData
+          if (url.startsWith('data:')) {
+            try {
+              const res = await fetch(url);
+              const blob = await res.blob();
+              const ext = blob.type.includes('svg') ? 'svg' : blob.type.includes('png') ? 'png' : 'jpg';
+              const file = new File([blob], `sponsor-${gl.name.replace(/\s+/g, '-').toLowerCase()}.${ext}`, { type: blob.type });
+              const result = await uploadFile(file, 'asset', `sponsor-logo-${gl.name.replace(/\s+/g, '-').toLowerCase()}`);
+              if (result?.url) {
+                url = result.url;
+              } else {
+                // Upload failed — skip this logo rather than using base64 that will get stripped
+                continue;
+              }
+            } catch (err) {
+              console.warn(`[EventSponsors] Failed to upload base64 logo for ${gl.name}:`, err);
+              continue;
             }
-          } catch (err) {
-            console.warn(`[EventSponsors] Failed to upload base64 logo for ${gl.name}:`, err);
           }
+
+          logoMap.set(gl.name, url);
         }
 
-        logoMap.set(gl.name, url);
+        if (logoMap.size === 0) return;
+
+        const updated = sponsors.map(s => {
+          if (!s.logoUrl && logoMap.has(s.name)) {
+            return { ...s, logoUrl: logoMap.get(s.name)! };
+          }
+          return s;
+        });
+        onUpdate(updated);
+        // Mark as completed only after successful backfill
+        backfillRanRef.current = entityId;
+      } catch (err) {
+        console.error('[EventSponsors] Backfill failed:', err);
+      } finally {
+        backfillInProgressRef.current = false;
       }
-
-      if (logoMap.size === 0) return;
-
-      const updated = sponsors.map(s => {
-        if (!s.logoUrl && logoMap.has(s.name)) {
-          return { ...s, logoUrl: logoMap.get(s.name)! };
-        }
-        return s;
-      });
-      onUpdate(updated);
     };
 
     backfillLogos();
-  }, [sponsors.length, entityId]);
+  }, [sponsors.length, entityId, organization?.id]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
