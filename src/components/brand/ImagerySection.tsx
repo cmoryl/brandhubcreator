@@ -24,6 +24,7 @@ import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { SortableImageryCard } from './imagery/SortableImageryCard';
+import { ImageryGuidelinesPanel } from './imagery/ImageryGuidelinesPanel';
 
 interface ImagerySectionProps {
   imagery: BrandImagery[];
@@ -202,6 +203,8 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
             </ToggleGroupItem>
           </ToggleGroup>
       </div>
+
+      <ImageryGuidelinesPanel canEdit={canEdit} />
 
       <input
         ref={fileInputRef}
