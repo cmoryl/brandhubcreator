@@ -410,6 +410,29 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
     sponsorLogos: safeArray<SponsorLogo>(g.sponsorLogos),
     clientLogos: safeArray<ClientLogo>(g.clientLogos),
     
+    // Collateral & presentations
+    presentationTemplates: safeArray(g.presentationTemplates),
+    presentations: safeArray(g.presentations),
+    templateSpecs: safeArray(g.templateSpecs),
+    caseStudies: safeArray(g.caseStudies),
+    brochures: safeArray(g.brochures),
+    templates: safeArray(g.templates),
+    services: safeArray(g.services),
+    
+    // Insights & Updates
+    insights: safeArray(g.insights),
+    insightsLayout: g.insightsLayout || undefined,
+    insightsAccessCode: g.insightsAccessCode || undefined,
+    
+    // Locations
+    locations: safeArray(g.locations),
+    locationStats: safeArray(g.locationStats),
+    
+    // Data & Analytics
+    revenueData: safeArray(g.revenueData),
+    statistics: safeArray(g.statistics),
+    infographicLayout: g.infographicLayout || 'cards',
+    
     // Parent reference for sub-events
     parentBrandId: g.parentBrandId ?? g.parent_brand_id ?? undefined,
   } as EventGuide;
