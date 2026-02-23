@@ -260,6 +260,11 @@ ${patientResearchContext}
 ${labToLaunchContext}
 Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''}
 
+SACM (Sentiment Analysis & Computational Color Modeling):
+Evaluate whether the brand's color palette aligns with its messaging sentiment:
+- Positive/Trust → Cyan/Teal, Negative/Urgency → Magenta/Red, Neutral/Professional → Blue-Gray/Slate, Joy/Energy → Yellow/Orange, Calm/Wellness → Green/Sage
+Include a "sacm_analysis" object: {"sentiment_color_alignment":0-100,"dominant_sentiment":"...","bias_flags":["up to 3 misalignments"],"recommendations":["up to 3"]}
+
 IMPORTANT — IMAGERY & COLOR CULTURAL ANALYSIS:
 - Assess whether brand photography includes diverse representation across age, ethnicity, gender identity, body type, and disability
 - Provide specific imagery_guidelines for improving multicultural appeal and authentic representation
@@ -267,7 +272,7 @@ IMPORTANT — IMAGERY & COLOR CULTURAL ANALYSIS:
 - Provide color_cultural_notes with specific observations about the brand's palette in cross-cultural contexts
 
 Return ONLY valid JSON:
-{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[{"region":"region name","considerations":["up to 3"],"design_adaptations":["up to 3"],"messaging_notes":"1 sentence"}],"localization_priorities":["up to 3"],"color_cultural_notes":["up to 3 notes on color symbolism across cultures"],"imagery_guidelines":["up to 5 specific guidelines for diverse, authentic brand photography"]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}]${eventJsonExtra}${personaJsonExtra}${patientResearchJsonExtra}${labToLaunchJsonExtra}}`;
+{"summary":"2 sentences","position":"1 sentence","audience":"1 sentence","advantages":["up to 3"],"voice":{"tone":"1-2 words","style":"1-2 words"},"recommendation":"1 sentence","insight":"1 sentence","readiness":50,"cultural_insights":{"global_readiness_score":50,"primary_markets":["up to 3"],"cultural_considerations":[{"region":"region name","considerations":["up to 3"],"design_adaptations":["up to 3"],"messaging_notes":"1 sentence"}],"localization_priorities":["up to 3"],"color_cultural_notes":["up to 3 notes on color symbolism across cultures"],"imagery_guidelines":["up to 5 specific guidelines for diverse, authentic brand photography"]},"globallink_recommendations":[{"product":"Translation|AI|Connect","relevance":"high|medium|low","use_case":"1 sentence"}],"sacm_analysis":{"sentiment_color_alignment":50,"dominant_sentiment":"...","bias_flags":["up to 3"],"recommendations":["up to 3"]}${eventJsonExtra}${personaJsonExtra}${patientResearchJsonExtra}${labToLaunchJsonExtra}}`;
 
     // Text-only analysis — no multimodal to save memory on large brands
     let aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -434,6 +439,7 @@ Return ONLY valid JSON:
       ...(analysis.inclusive_imagery ? { inclusive_imagery: analysis.inclusive_imagery } : {}),
       ...(analysis.patient_research_integration ? { patient_research_integration: analysis.patient_research_integration } : {}),
       ...(analysis.lab_to_launch ? { lab_to_launch: analysis.lab_to_launch } : {}),
+      ...(analysis.sacm_analysis ? { sacm_analysis: analysis.sacm_analysis } : {}),
       last_updated: new Date().toISOString(),
     };
 

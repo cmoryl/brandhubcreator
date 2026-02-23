@@ -63,6 +63,7 @@ Return ONLY valid JSON (no markdown):
   "competitiveInsights": {"positioningGaps":["..."],"differentiationOpportunities":["..."],"threatAssessment":["..."]},
   "trendAnalysis": {"risingTrends":["..."],"decliningTrends":["..."],"futureProjections":["..."]},
   "sentimentSignals": {"positiveIndicators":["..."],"concernAreas":["..."],"neutralObservations":["..."]},
+  "sacmAnalysis": {"sentimentColorAlignment":50,"insightBiasFlags":[{"insight":"...","detectedSentiment":"...","colorUsed":"...","expectedColor":"...","biasRisk":"high|medium|low"}],"creativeRecommendations":["..."],"paletteProfile":{"dominantSentiment":"...","distribution":{"positive":0,"negative":0,"neutral":0,"joy":0,"calm":0}}},
   "multiculturalInsights": {"expansionOpportunities":[{"market":"...","readiness":"high|medium|low","culturalConsiderations":["..."],"priorityAdaptations":["..."]}],"culturalGaps":["..."],"localizationRecommendations":["..."],"colorImageryNotes":["..."]},
   "globallinkRecommendations": [{"product":"Translation|AI|Connect|Fluent","priority":"high|medium|low","useCase":"...","expectedBenefit":"..."}],
   "strategicRecommendations": [{"priority":"high|medium|low","action":"...","rationale":"...","timeframe":"..."}],
@@ -90,7 +91,7 @@ Return ONLY valid JSON (no markdown):
       body: JSON.stringify({
         model: brandImageUrls.length > 0 ? 'google/gemini-2.5-flash' : 'google/gemini-2.5-flash-lite',
         messages: [
-          { role: 'system', content: 'You are a brand strategy research analyst. Analyze both text data AND visual assets provided. Provide actionable insights with emphasis on multicultural opportunities, visual identity assessment, and GlobalLink product recommendations. Return ONLY valid JSON.' },
+          { role: 'system', content: 'You are a brand strategy research analyst. Analyze both text data AND visual assets provided. Provide actionable insights with emphasis on multicultural opportunities, visual identity assessment, GlobalLink product recommendations, and SACM (Sentiment Analysis & Computational Color Modeling) for bias detection in insight generation. Apply SACM mappings: Positive/Trust→Cyan/Teal, Negative/Urgency→Magenta/Red, Neutral/Professional→Blue-Gray/Slate, Joy/Energy→Yellow/Orange, Calm/Wellness→Green/Sage. Return ONLY valid JSON.' },
           { role: 'user', content: userContent }
         ],
         temperature: 0.4,
@@ -111,7 +112,7 @@ Return ONLY valid JSON (no markdown):
         body: JSON.stringify({
           model: 'google/gemini-2.5-flash-lite',
           messages: [
-            { role: 'system', content: 'You are a brand strategy research analyst. Provide actionable insights with emphasis on multicultural opportunities and GlobalLink product recommendations. Return ONLY valid JSON.' },
+            { role: 'system', content: 'You are a brand strategy research analyst. Provide actionable insights with emphasis on multicultural opportunities, GlobalLink product recommendations, and SACM (Sentiment Analysis & Computational Color Modeling) for bias detection. Return ONLY valid JSON.' },
             { role: 'user', content: prompt }
           ],
           temperature: 0.4,

@@ -231,6 +231,7 @@ export type Database = {
           pie_module: Json | null
           policy_as_code_module: Json | null
           recommendations: Json | null
+          sacm_module: Json | null
           status: string
           updated_at: string
           visual_analysis: Json | null
@@ -265,6 +266,7 @@ export type Database = {
           pie_module?: Json | null
           policy_as_code_module?: Json | null
           recommendations?: Json | null
+          sacm_module?: Json | null
           status?: string
           updated_at?: string
           visual_analysis?: Json | null
@@ -299,6 +301,7 @@ export type Database = {
           pie_module?: Json | null
           policy_as_code_module?: Json | null
           recommendations?: Json | null
+          sacm_module?: Json | null
           status?: string
           updated_at?: string
           visual_analysis?: Json | null
