@@ -371,6 +371,10 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
     eventBanners: safeArray(g.eventBanners),
     eventDigitalMaterials: safeArray(g.eventDigitalMaterials),
     eventPrintMaterials: safeArray(g.eventPrintMaterials),
+    eventSponsorshipMaterials: safeArray(g.eventSponsorshipMaterials),
+    eventInfographics: safeArray(g.eventInfographics),
+    eventApplications: safeArray(g.eventApplications),
+    eventDigitalAssets: safeArray(g.eventDigitalAssets),
     eventSchedule: safeArray(g.eventSchedule),
     eventSpeakers: safeArray(g.eventSpeakers),
     eventSponsors: safeArray(g.eventSponsors).map((s: any) => ({
@@ -380,6 +384,10 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
     eventHistory: safeArray(g.eventHistory),
     eventVideos: safeArray(g.eventVideos),
     eventLocation: safeObject(g.eventLocation, DEFAULT_EVENT_LOCATION),
+    
+    // Partner booths & shared assets (master events)
+    partnerBooths: safeArray(g.partnerBooths),
+    sharedAssets: safeArray(g.sharedAssets),
     
     // Partner assets (shared with brand guides)
     sponsorLogos: safeArray<SponsorLogo>(g.sponsorLogos),
