@@ -661,6 +661,7 @@ export interface TemplateSpec {
   previewImageUrl?: string;
   items: TemplateSpecItem[];
   notes?: string;
+  downloadUrl?: string;
 }
 
 // LINKED GUIDES - References to other brand/product/event guides

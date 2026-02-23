@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2, Move, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2, Move, Loader2, Download, ExternalLink, Pencil, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -277,6 +277,8 @@ export const TemplateSpecsSection = ({
   const [selectedSpecId, setSelectedSpecId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editSpecId, setEditSpecId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [isDragMode, setIsDragMode] = useState(false);
@@ -286,6 +288,12 @@ export const TemplateSpecsSection = ({
   const [newSpecForm, setNewSpecForm] = useState({
     name: '',
     category: 'case-study' as TemplateSpec['category'],
+  });
+
+  const [editSpecForm, setEditSpecForm] = useState({
+    name: '',
+    category: 'case-study' as TemplateSpec['category'],
+    downloadUrl: '',
   });
 
   // Get primary brand color
@@ -346,6 +354,21 @@ export const TemplateSpecsSection = ({
     if (selectedSpecId === id) {
       setSelectedSpecId(templateSpecs.length > 1 ? templateSpecs[0].id : null);
     }
+  };
+
+  // Open edit dialog for spec
+  const openEditDialog = (spec: TemplateSpec) => {
+    setEditSpecId(spec.id);
+    setEditSpecForm({ name: spec.name, category: spec.category, downloadUrl: spec.downloadUrl || '' });
+    setIsEditDialogOpen(true);
+  };
+
+  // Save edited spec
+  const handleSaveEditSpec = () => {
+    if (!editSpecId || !onTemplateSpecsChange || !editSpecForm.name.trim()) return;
+    onTemplateSpecsChange(templateSpecs.map(s => s.id === editSpecId ? { ...s, name: editSpecForm.name.trim(), category: editSpecForm.category, downloadUrl: editSpecForm.downloadUrl.trim() || undefined } : s));
+    setIsEditDialogOpen(false);
+    setEditSpecId(null);
   };
 
   // Add item to spec
@@ -528,16 +551,73 @@ export const TemplateSpecsSection = ({
         </DialogContent>
       </Dialog>
 
-      {/* Spec Selector Tabs */}
+      {/* Edit Template Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Template Specification</DialogTitle>
+            <DialogDescription>
+              Update name, category, and download link for this template.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Template Name</Label>
+              <Input
+                value={editSpecForm.name}
+                onChange={(e) => setEditSpecForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Client Case Study Template"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select
+                value={editSpecForm.category}
+                onValueChange={(v) => setEditSpecForm(prev => ({ ...prev, category: v as TemplateSpec['category'] }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <div className="flex items-center gap-2">
+                        <opt.icon className="h-4 w-4" />
+                        {opt.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Download / Asset URL (optional)</Label>
+              <div className="flex items-center gap-2">
+                <Link className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <Input
+                  value={editSpecForm.downloadUrl}
+                  onChange={(e) => setEditSpecForm(prev => ({ ...prev, downloadUrl: e.target.value }))}
+                  placeholder="https://dropbox.com/... or https://figma.com/..."
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">Link to the downloadable template file (Dropbox, Figma, Google Drive, etc.)</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveEditSpec} disabled={!editSpecForm.name.trim()}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {templateSpecs.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {templateSpecs.map(spec => {
             const CategoryIcon = CATEGORY_OPTIONS.find(o => o.value === spec.category)?.icon || File;
             const isSelected = selectedSpecId === spec.id;
             return (
-              <button
+              <div
                 key={spec.id}
-                onClick={() => setSelectedSpecId(spec.id)}
                 className={cn(
                   "group relative rounded-lg border-2 overflow-hidden transition-all text-left",
                   isSelected
@@ -545,31 +625,61 @@ export const TemplateSpecsSection = ({
                     : "border-border hover:border-primary/50"
                 )}
               >
-                {/* Card thumbnail */}
-                <div className="aspect-[16/10] bg-muted overflow-hidden">
-                  {spec.previewImageUrl ? (
-                    <img
-                      src={spec.previewImageUrl}
-                      alt={spec.name}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      draggable={false}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-1">
-                      <CategoryIcon className="h-8 w-8" />
-                      <span className="text-[10px]">No preview</span>
-                    </div>
-                  )}
-                </div>
-                {/* Card label */}
-                <div className={cn(
-                  "px-3 py-2 flex items-center gap-2 text-sm font-medium truncate",
-                  isSelected ? "bg-primary/10 text-primary" : "bg-card text-foreground"
-                )}>
-                  <CategoryIcon className="h-3.5 w-3.5 flex-shrink-0" />
-                  <span className="truncate">{spec.name}</span>
-                </div>
-              </button>
+                <button
+                  onClick={() => setSelectedSpecId(spec.id)}
+                  className="w-full text-left"
+                >
+                  {/* Card thumbnail */}
+                  <div className="aspect-[16/10] bg-muted overflow-hidden relative">
+                    {spec.previewImageUrl ? (
+                      <img
+                        src={spec.previewImageUrl}
+                        alt={spec.name}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        draggable={false}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-1">
+                        <CategoryIcon className="h-8 w-8" />
+                        <span className="text-[10px]">No preview</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Card label */}
+                  <div className={cn(
+                    "px-3 py-2 flex items-center gap-2 text-sm font-medium",
+                    isSelected ? "bg-primary/10 text-primary" : "bg-card text-foreground"
+                  )}>
+                    <CategoryIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="truncate flex-1">{spec.name}</span>
+                  </div>
+                </button>
+                {/* Admin actions overlay */}
+                {canEdit && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); openEditDialog(spec); }}
+                    className="absolute top-1.5 right-1.5 h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-background"
+                  >
+                    <Pencil className="h-3 w-3 text-foreground" />
+                  </button>
+                )}
+                {/* Download link */}
+                {spec.downloadUrl && (
+                  <a
+                    href={spec.downloadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className={cn(
+                      "absolute top-1.5 h-6 w-6 rounded-md bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-background",
+                      canEdit ? "right-9" : "right-1.5"
+                    )}
+                    title="Download template"
+                  >
+                    <Download className="h-3 w-3 text-foreground" />
+                  </a>
+                )}
+              </div>
             );
           })}
         </div>
@@ -585,6 +695,9 @@ export const TemplateSpecsSection = ({
                 <h3 className="font-semibold text-lg">Specification Items</h3>
                 {canEdit && (
                   <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => openEditDialog(selectedSpec)} className="gap-1">
+                      <Pencil className="h-3 w-3" /> Edit
+                    </Button>
                     <Button size="sm" variant="outline" onClick={handleAddItem} className="gap-1">
                       <Plus className="h-3 w-3" /> Add Item
                     </Button>
@@ -599,6 +712,21 @@ export const TemplateSpecsSection = ({
                   </div>
                 )}
               </div>
+
+              {/* Download link bar */}
+              {selectedSpec.downloadUrl && (
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50 border">
+                  <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <a href={selectedSpec.downloadUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate flex-1">
+                    {selectedSpec.downloadUrl}
+                  </a>
+                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1 flex-shrink-0" asChild>
+                    <a href={selectedSpec.downloadUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-3 w-3" />Open
+                    </a>
+                  </Button>
+                </div>
+              )}
 
               <DndContext
                 sensors={sensors}
