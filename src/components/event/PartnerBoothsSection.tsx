@@ -45,6 +45,11 @@ export const PartnerBoothsSection = ({
     onUpdate(partnerBooths.map(b => b.id === boothId ? { ...b, customImage } : b));
   };
 
+  const handleUpdateFileUrls = (boothId: string, liveFileUrl?: string, pdfFileUrl?: string) => {
+    if (!onUpdate) return;
+    onUpdate(partnerBooths.map(b => b.id === boothId ? { ...b, liveFileUrl, pdfFileUrl } : b));
+  };
+
   const handleOpenDetail = (booth: LinkedBoothCard) => {
     const resolved = resolveBoothDivision(booth, customDivisions);
     if (resolved) setSelectedDivision(resolved);
@@ -94,6 +99,7 @@ export const PartnerBoothsSection = ({
               onOpenDetail={() => handleOpenDetail(booth)}
               onUpdateLinks={(links) => handleUpdateLinks(booth.id, links)}
               onUpdateImage={(img) => handleUpdateImage(booth.id, img)}
+              onUpdateFileUrls={(liveFileUrl, pdfFileUrl) => handleUpdateFileUrls(booth.id, liveFileUrl, pdfFileUrl)}
             />
           ))}
         </div>

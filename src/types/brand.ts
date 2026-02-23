@@ -424,6 +424,8 @@ export interface LinkedBoothCard {
   linkedAt: string;
   links?: BoothLink[];
   customImage?: string;
+  liveFileUrl?: string;
+  pdfFileUrl?: string;
 }
 
 // IMAGE ASSETS - Downloadable Image Library
