@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Plus, X, Pencil, Download, ExternalLink } from 'lucide-react';
+import { Plus, X, Pencil, Download, ExternalLink, ShieldCheck, Eye, Type, AlertTriangle } from 'lucide-react';
 import { BrandTypography } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionHeader } from './SectionHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface TypographySectionProps {
   typography: BrandTypography[];
@@ -234,6 +235,128 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
           </button>
         )}
       </div>
+
+      {/* WCAG Contrast & Readability Compliance Panel */}
+      <WcagTypographyPanel />
     </section>
+  );
+};
+
+/* ── WCAG Typography Compliance Panel ── */
+
+const CONTRAST_REQUIREMENTS = [
+  {
+    level: 'AA',
+    label: 'WCAG 2.2 Level AA',
+    required: true,
+    rules: [
+      { context: 'Normal text (< 18pt / 14pt bold)', ratio: '4.5 : 1', icon: Type },
+      { context: 'Large text (≥ 18pt or ≥ 14pt bold)', ratio: '3 : 1', icon: Type },
+      { context: 'UI components & graphical objects', ratio: '3 : 1', icon: Eye },
+    ],
+  },
+  {
+    level: 'AAA',
+    label: 'WCAG 2.2 Level AAA (Recommended)',
+    required: false,
+    rules: [
+      { context: 'Normal text (< 18pt / 14pt bold)', ratio: '7 : 1', icon: Type },
+      { context: 'Large text (≥ 18pt or ≥ 14pt bold)', ratio: '4.5 : 1', icon: Type },
+    ],
+  },
+];
+
+const READABILITY_GUIDELINES = [
+  'Body text minimum 16px (1rem) on screen; never below 12px for any readable content',
+  'Line height 1.5× font size for body copy (WCAG 1.4.12 Text Spacing)',
+  'Paragraph spacing at least 2× font size; letter spacing ≥ 0.12em for body',
+  'Maximum line length 80 characters (40 for CJK) to maintain readability',
+  'Avoid full-justified text — use left-aligned (LTR) or right-aligned (RTL) for readability',
+  'Ensure text can be resized up to 200% without loss of content or functionality (WCAG 1.4.4)',
+  'Do not use text embedded in images as the sole means of conveying information',
+  'Maintain at least 4.5:1 contrast for placeholder text and form labels',
+];
+
+const WcagTypographyPanel = () => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <div className="border border-border rounded-xl overflow-hidden bg-card">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors text-left"
+      >
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+          <span className="text-sm font-semibold text-foreground">WCAG Contrast & Readability Compliance</span>
+          <span className="text-xs text-muted-foreground ml-1">WCAG 2.2</span>
+        </div>
+        {isExpanded ? (
+          <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+        ) : (
+          <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        )}
+      </button>
+
+      {isExpanded && (
+        <div className="px-4 pb-4 space-y-4 border-t border-border pt-3">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            All typographic choices must meet WCAG 2.2 contrast minimums. These ratios apply to every foreground/background pairing across light and dark modes.
+          </p>
+
+          {/* Contrast ratio tables */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {CONTRAST_REQUIREMENTS.map((level) => (
+              <div key={level.level} className="space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className={cn('h-4 w-4', level.required ? 'text-green-600' : 'text-amber-500')} />
+                  <h4 className={cn('text-sm font-semibold', level.required ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400')}>
+                    {level.label}
+                  </h4>
+                  {level.required && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded">Required</span>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  {level.rules.map((rule, i) => (
+                    <div key={i} className="flex items-center justify-between text-xs p-2 rounded-lg bg-muted/40">
+                      <div className="flex items-center gap-2">
+                        <rule.icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-foreground/80">{rule.context}</span>
+                      </div>
+                      <span className="font-mono font-semibold text-foreground shrink-0 ml-2">{rule.ratio}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Readability guidelines */}
+          <div className="space-y-2 border-t border-border pt-3">
+            <div className="flex items-center gap-1.5">
+              <Eye className="h-4 w-4 text-primary" />
+              <h4 className="text-sm font-semibold text-foreground">Readability & Spacing Standards</h4>
+            </div>
+            <ul className="space-y-1.5">
+              {READABILITY_GUIDELINES.map((item, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs text-foreground/80">
+                  <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Warning callout */}
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/60 border border-border">
+            <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <strong className="text-foreground">Validation reminder:</strong> Contrast ratios must be verified for every color/background combination — not just default pairings. Test against dark mode, hover states, disabled states, and any gradient or image backgrounds where text appears.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
