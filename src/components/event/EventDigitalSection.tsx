@@ -19,6 +19,7 @@ import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 import { LiveFilesLink } from './LiveFilesLink';
 
+
 interface EventDigitalSectionProps {
   materials: EventDigitalMaterial[];
   onUpdate: (materials: EventDigitalMaterial[]) => void;
@@ -265,7 +266,6 @@ export const EventDigitalSection = ({
 
   const updateMaterial = (id: string, updates: Partial<EventDigitalMaterial>) => {
     onUpdate(materials.map(m => m.id === id ? { ...m, ...updates } : m));
-  };
   };
 
   // Template handlers
@@ -1286,19 +1286,20 @@ export const EventDigitalSection = ({
                     </Button>
                   </div>
                 )}
-                <div className={cn("grid gap-4", cardSize === 'compact' ? "grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "grid-cols-1 lg:grid-cols-2")}>
+                <div className={cn("grid gap-3", cardSize === 'compact' ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4")}>
                   {emailBanners.map((banner) => {
                     const isEditing = editingBannerId === banner.id;
                     const displayUrl = isEditing ? (editBannerData.imageUrl || banner.imageUrl) : banner.imageUrl;
                     const displayWidth = isEditing ? (editBannerData.width || banner.width) : banner.width;
                     const displayHeight = isEditing ? (editBannerData.height || banner.height) : banner.height;
-                    const aspectRatio = displayWidth / displayHeight;
+                    const rawRatio = displayWidth / displayHeight;
+                    const aspectRatio = Math.min(Math.max(rawRatio, 0.75), 3);
                     return (
                       <Card key={banner.id} className={cn("group overflow-hidden transition-colors", isEditing ? "border-primary ring-1 ring-primary/30" : "hover:border-primary/50")}>
-                        <div className="bg-muted/30 p-3">
+                        <div className="bg-muted/30 p-2">
                           <div
                             className="relative w-full overflow-hidden rounded border border-border"
-                            style={{ aspectRatio: `${aspectRatio}` }}
+                            style={{ aspectRatio: `${aspectRatio}`, maxHeight: cardSize === 'compact' ? '120px' : '180px' }}
                           >
                           {displayUrl ? (
                               <img src={displayUrl} alt={banner.name} className="w-full h-full object-contain cursor-pointer" onClick={() => !isEditing && openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, fileUrl: banner.linkUrl, externalUrl: banner.linkUrl })} />
@@ -1346,7 +1347,7 @@ export const EventDigitalSection = ({
                             )}
                           </div>
                         </div>
-                        <CardContent className="p-3">
+                        <CardContent className="p-2.5">
                           {isEditing ? (
                             <div className="space-y-2">
                               <div className="space-y-1">
@@ -1671,3 +1672,4 @@ export const EventDigitalSection = ({
     </section>
   );
 };
+
