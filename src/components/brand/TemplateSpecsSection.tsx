@@ -530,22 +530,45 @@ export const TemplateSpecsSection = ({
 
       {/* Spec Selector Tabs */}
       {templateSpecs.length > 0 && (
-        <div className="flex gap-2 flex-wrap">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {templateSpecs.map(spec => {
             const CategoryIcon = CATEGORY_OPTIONS.find(o => o.value === spec.category)?.icon || File;
+            const isSelected = selectedSpecId === spec.id;
             return (
               <button
                 key={spec.id}
                 onClick={() => setSelectedSpecId(spec.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all",
-                  selectedSpecId === spec.id
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card hover:bg-muted border-border"
+                  "group relative rounded-lg border-2 overflow-hidden transition-all text-left",
+                  isSelected
+                    ? "border-primary ring-2 ring-primary/20"
+                    : "border-border hover:border-primary/50"
                 )}
               >
-                <CategoryIcon className="h-4 w-4" />
-                <span className="font-medium">{spec.name}</span>
+                {/* Card thumbnail */}
+                <div className="aspect-[16/10] bg-muted overflow-hidden">
+                  {spec.previewImageUrl ? (
+                    <img
+                      src={spec.previewImageUrl}
+                      alt={spec.name}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      draggable={false}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-1">
+                      <CategoryIcon className="h-8 w-8" />
+                      <span className="text-[10px]">No preview</span>
+                    </div>
+                  )}
+                </div>
+                {/* Card label */}
+                <div className={cn(
+                  "px-3 py-2 flex items-center gap-2 text-sm font-medium truncate",
+                  isSelected ? "bg-primary/10 text-primary" : "bg-card text-foreground"
+                )}>
+                  <CategoryIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="truncate">{spec.name}</span>
+                </div>
               </button>
             );
           })}
