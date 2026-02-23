@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { Shield, Scan, AlertTriangle, CheckCircle2, Info, Eye, MessageSquare, Accessibility, Brain, ChevronDown, ChevronRight, Loader2, Users, FileCheck } from 'lucide-react';
+import { Shield, Scan, AlertTriangle, CheckCircle2, Info, Eye, MessageSquare, Accessibility, Brain, ChevronDown, ChevronRight, Loader2, Users, FileCheck, Palette, BarChart3, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -338,6 +338,226 @@ const EntityAdvancedModules = ({ scan }: { scan: any }) => {
   );
 };
 
+// ─── SACM Dashboard Panel ─────────────────────────────────
+const SACM_SENTIMENT_COLORS: Record<string, string> = {
+  'positive_trust': 'bg-cyan-500',
+  'negative_urgency': 'bg-rose-500',
+  'neutral_professional': 'bg-slate-500',
+  'joy_energy': 'bg-amber-500',
+  'calm_wellness': 'bg-emerald-500',
+};
+
+const SACM_SENTIMENT_LABELS: Record<string, string> = {
+  'positive_trust': 'Positive / Trust',
+  'negative_urgency': 'Negative / Urgency',
+  'neutral_professional': 'Neutral / Professional',
+  'joy_energy': 'Joy / Energy',
+  'calm_wellness': 'Calm / Wellness',
+};
+
+const SACMDashboardPanel = ({ scan }: { scan: any }) => {
+  const sacm = scan.sacm_module as Record<string, any> | null;
+  
+  if (!sacm) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-6 text-center">
+          <Palette className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+          <p className="text-xs text-muted-foreground">SACM analysis will appear after a re-scan with the upgraded engine.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const safeArr = (v: unknown): any[] => Array.isArray(v) ? v : [];
+  const overallScore = Number(sacm.overall_score || 0);
+  const sentimentAlignment = Number(sacm.sentiment_color_alignment || 0);
+  const emotionalValence = Number(sacm.emotional_valence_score || 0);
+  const crossChannel = Number(sacm.cross_channel_consistency || 0);
+  const coherence = sacm.color_emotion_coherence || 'unknown';
+  const profile = sacm.brand_palette_sentiment_profile || {};
+  const distribution = profile.sentiment_distribution || {};
+
+  return (
+    <div className="overflow-y-auto max-h-[700px] space-y-3">
+      {/* SACM Header Score */}
+      <Card className={`border ${scoreBg(overallScore)}`}>
+        <CardContent className="py-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Palette className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs font-semibold">SACM Overall Score</p>
+                <p className="text-[9px] text-muted-foreground">Sentiment Analysis & Computational Color Modeling</p>
+              </div>
+            </div>
+            <span className={`text-2xl font-bold ${scoreColor(overallScore)}`}>
+              {Math.round(overallScore)}
+              <span className="text-xs font-normal text-muted-foreground">/100</span>
+            </span>
+          </div>
+          <Progress value={overallScore} className="h-1.5" />
+        </CardContent>
+      </Card>
+
+      {/* Key Metrics Grid */}
+      <div className="grid grid-cols-3 gap-2">
+        <Card>
+          <CardContent className="py-2.5 px-3 text-center">
+            <p className="text-[9px] text-muted-foreground">Sentiment-Color</p>
+            <p className={`text-lg font-bold ${scoreColor(sentimentAlignment)}`}>{Math.round(sentimentAlignment)}</p>
+            <p className="text-[8px] text-muted-foreground">Alignment</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-2.5 px-3 text-center">
+            <p className="text-[9px] text-muted-foreground">Emotional</p>
+            <p className={`text-lg font-bold ${scoreColor(emotionalValence)}`}>{Math.round(emotionalValence)}</p>
+            <p className="text-[8px] text-muted-foreground">Valence</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-2.5 px-3 text-center">
+            <p className="text-[9px] text-muted-foreground">Cross-Channel</p>
+            <p className={`text-lg font-bold ${scoreColor(crossChannel)}`}>{Math.round(crossChannel)}</p>
+            <p className="text-[8px] text-muted-foreground">Consistency</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Color-Emotion Coherence */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs flex items-center gap-1.5">
+            <BarChart3 className="h-3.5 w-3.5 text-primary" />
+            Color-Emotion Coherence
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 mb-3">
+            <Badge variant="outline" className={`text-[9px] ${
+              coherence === 'strong' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' :
+              coherence === 'moderate' ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' :
+              coherence === 'weak' ? 'bg-orange-500/10 text-orange-600 border-orange-500/30' :
+              'bg-destructive/10 text-destructive border-destructive/30'
+            }`}>
+              {coherence}
+            </Badge>
+            {profile.dominant_sentiment && (
+              <span className="text-[9px] text-muted-foreground">Dominant: <span className="font-medium">{profile.dominant_sentiment}</span></span>
+            )}
+          </div>
+
+          {/* Sentiment Distribution Bars */}
+          {Object.keys(distribution).length > 0 && (
+            <div className="space-y-1.5">
+              {Object.entries(SACM_SENTIMENT_LABELS).map(([key, label]) => {
+                const value = Number(distribution[key] || 0);
+                return (
+                  <div key={key} className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${SACM_SENTIMENT_COLORS[key]} shrink-0`} />
+                    <span className="text-[9px] w-28 text-muted-foreground truncate">{label}</span>
+                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full ${SACM_SENTIMENT_COLORS[key]} rounded-full transition-all`} style={{ width: `${Math.min(value, 100)}%` }} />
+                    </div>
+                    <span className="text-[9px] font-medium w-7 text-right">{Math.round(value)}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Mappings Analysis */}
+      {safeArr(sacm.mappings_analysis).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5 text-amber-500" />
+              Sentiment-Color Mapping Analysis
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {safeArr(sacm.mappings_analysis).map((mapping: any, i: number) => (
+              <div key={i} className={`p-2 rounded-lg border text-[10px] ${
+                mapping.alignment === 'aligned' ? 'bg-emerald-500/5 border-emerald-500/20' :
+                mapping.alignment === 'partial' ? 'bg-amber-500/5 border-amber-500/20' :
+                'bg-destructive/5 border-destructive/20'
+              }`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium">{mapping.content_sentiment}</span>
+                  <Badge variant="outline" className={`text-[8px] ${
+                    mapping.alignment === 'aligned' ? 'text-emerald-600' :
+                    mapping.alignment === 'partial' ? 'text-amber-600' : 'text-destructive'
+                  }`}>
+                    {mapping.alignment}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-1 text-[9px] text-muted-foreground">
+                  <span>Expected: <span className="font-medium">{mapping.expected_color_family}</span></span>
+                  <span>Actual: <span className="font-medium">{mapping.actual_brand_color}</span></span>
+                </div>
+                {mapping.recommendation && (
+                  <p className="text-[9px] text-muted-foreground mt-1 italic">→ {mapping.recommendation}</p>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Bias Flags */}
+      {safeArr(sacm.sacm_bias_flags).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+              SACM Bias Flags
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {safeArr(sacm.sacm_bias_flags).map((flag: any, i: number) => (
+              <div key={i} className="flex items-start gap-2 text-[10px]">
+                <Badge variant={flag.bias_risk === 'high' ? 'destructive' : 'outline'} className="text-[8px] shrink-0 mt-0.5">
+                  {flag.bias_risk}
+                </Badge>
+                <div>
+                  <p className="font-medium">{flag.area}</p>
+                  <p className="text-muted-foreground">{flag.description}</p>
+                  <p className="text-[9px] text-muted-foreground">
+                    Sentiment: {flag.detected_sentiment} · Used: {flag.color_used} · Expected: {flag.expected_color}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recommendations */}
+      {safeArr(sacm.recommendations).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+              SACM Recommendations
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {safeArr(sacm.recommendations).map((rec: string, i: number) => (
+              <div key={i} className="flex items-start gap-1.5 text-[10px]">
+                <span className="text-primary shrink-0 mt-0.5">→</span>
+                <span className="text-muted-foreground">{rec}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
 export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizationId }: BiasAwarenessPanelProps) => {
   const { latestScan, isLoading, isScanning, startScan } = useBiasAwareness(entityId, entityType, entityName, organizationId);
 
@@ -434,8 +654,9 @@ export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizat
           </Card>
 
           <Tabs defaultValue="dimensions">
-            <TabsList className="grid grid-cols-4 w-full">
+            <TabsList className="grid grid-cols-5 w-full">
               <TabsTrigger value="dimensions" className="text-xs">Dimensions</TabsTrigger>
+              <TabsTrigger value="sacm" className="text-xs">SACM</TabsTrigger>
               <TabsTrigger value="modules" className="text-xs">Modules</TabsTrigger>
               <TabsTrigger value="findings" className="text-xs">Findings</TabsTrigger>
               <TabsTrigger value="persona" className="text-xs">Persona</TabsTrigger>
@@ -466,6 +687,10 @@ export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizat
                 icon={<Brain className="h-4 w-4 text-orange-500" />}
                 analysis={(scan.ai_governance_analysis || {}) as Record<string, unknown>}
               />
+            </TabsContent>
+
+            <TabsContent value="sacm" className="mt-3">
+              <SACMDashboardPanel scan={scan} />
             </TabsContent>
 
             <TabsContent value="modules" className="mt-3">

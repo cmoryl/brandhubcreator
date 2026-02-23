@@ -240,6 +240,22 @@ MODULE 8 - Cultural Color Geometry:
 ${culturalColorContext}
 Evaluate color choices against target markets for cultural appropriateness. Flag conflicts (e.g., red for joy vs mourning depending on market). Score cultural_color_readiness 0-100.
 
+MODULE 9 - Sentiment Analysis & Computational Color Modeling (SACM):
+SACM is a systematic tool for detecting bias in insight generation, creative development, and research by mapping text sentiment to color palettes.
+SACM Reference Mappings: ${COLOR_PSYCHOLOGY_DBA.sentiment_color_mapping.mappings.map((m: any) => m.sentiment + ' → ' + m.color_family).join(', ')}
+
+Apply SACM analysis to:
+1. INSIGHT GENERATION BIAS: Analyze whether research insights, market data presentations, and strategic recommendations use color coding that matches their sentiment (e.g., positive findings in cyan/teal, risks in magenta/red). Flag misalignments that could subtly bias decision-making.
+2. CREATIVE DEVELOPMENT: Evaluate whether brand's creative assets (ads, presentations, reports) align color choices with intended emotional messaging. Detect where color-sentiment mismatches could create unintended bias or misleading emotional cues.
+3. CROSS-CHANNEL CONSISTENCY: Assess whether the brand maintains consistent sentiment-to-color mapping across digital, print, environmental, and social channels. Inconsistency creates cognitive dissonance.
+4. BRAND PALETTE PROFILING: Map the entity's entire color palette to sentiment categories. Identify if the palette is skewed toward certain sentiments (e.g., overly aggressive, overly passive) relative to brand positioning.
+5. BIAS DETECTION FLAGS: Specifically flag instances where:
+   - Calming wellness content uses high-saturation red (urgency mismatch)
+   - Trust-building content avoids cyan/teal family (missed alignment)
+   - Negative messaging hides behind warm/friendly colors (deceptive framing)
+   - Professional content uses overly playful color schemes (credibility risk)
+Score sacm_overall 0-100. Include specific mappings_analysis with detected sentiment, expected vs actual colors, and bias flags.
+
 RESPONSE FORMAT (strict JSON):
 {
   "inclusion_score": <0-100 weighted average>,
@@ -334,7 +350,25 @@ RESPONSE FORMAT (strict JSON):
     "issues": ["..."],
     "recommendations": ["..."]
   },
-  "color_strategy_module": {
+   "sacm_module": {
+    "overall_score": <0-100>,
+    "sentiment_color_alignment": <0-100>,
+    "mappings_analysis": [
+      {"content_sentiment": "detected sentiment", "expected_color_family": "from SACM model", "actual_brand_color": "what brand uses", "alignment": "aligned|partial|misaligned", "recommendation": "..."}
+    ],
+    "emotional_valence_score": <0-100>,
+    "color_emotion_coherence": "strong|moderate|weak|conflicting",
+    "cross_channel_consistency": <0-100>,
+    "sacm_bias_flags": [
+      {"area": "...", "detected_sentiment": "...", "color_used": "...", "expected_color": "...", "bias_risk": "high|medium|low", "description": "..."}
+    ],
+    "brand_palette_sentiment_profile": {
+      "dominant_sentiment": "...",
+      "sentiment_distribution": {"positive_trust": <0-100>, "negative_urgency": <0-100>, "neutral_professional": <0-100>, "joy_energy": <0-100>, "calm_wellness": <0-100>}
+    },
+    "recommendations": ["..."]
+  },
+   "color_strategy_module": {
     "overall_score": <0-100>,
     "dba_uniqueness": <0-100>,
     "dba_fame": <0-100>,
@@ -483,6 +517,7 @@ RESPONSE FORMAT (strict JSON):
           inclusion_checklist_module: result.inclusion_checklist_module || null,
           color_accessibility_module: result.color_accessibility_module || null,
           color_strategy_module: result.color_strategy_module || null,
+          sacm_module: result.sacm_module || null,
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }).eq('id', scan.id);
