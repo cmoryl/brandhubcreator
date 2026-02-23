@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { Shield, Scan, AlertTriangle, CheckCircle2, Info, Eye, MessageSquare, Accessibility, Brain, ChevronDown, ChevronRight, Loader2, Users, FileCheck, Palette, BarChart3, Zap, BookOpen, Layers, ImageIcon, ArrowRight } from 'lucide-react';
+import { Shield, Scan, AlertTriangle, CheckCircle2, Info, Eye, MessageSquare, Accessibility, Brain, ChevronDown, ChevronRight, Loader2, Users, FileCheck, Palette, BarChart3, Zap, BookOpen, Layers, ImageIcon, ArrowRight, ShieldCheck, XCircle, MinusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -808,6 +808,209 @@ const CurbCutDashboardPanel = ({ scan }: { scan: any }) => {
   );
 };
 
+// ─── WCAG Criterion Row (extracted for hooks compliance) ──────────────
+const WCAGCriterionRow = ({ criterion }: { criterion: any }) => {
+  const [isOpen, setIsOpen] = useState(criterion.status === 'fail');
+  const cfg = WCAG_STATUS_CONFIG[criterion.status] || WCAG_STATUS_CONFIG.not_applicable;
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger asChild>
+        <button className={`w-full flex items-center gap-2 p-2 rounded-lg border transition-all hover:bg-muted/30 ${cfg.bg}`}>
+          {cfg.icon}
+          <div className="flex-1 text-left">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono font-bold">{criterion.id}</span>
+              <span className="text-[10px] font-medium">{criterion.name}</span>
+            </div>
+          </div>
+          <Badge variant="outline" className={`text-[8px] ${LEVEL_BADGE[criterion.level] || ''}`}>
+            {criterion.level}
+          </Badge>
+          <Badge variant="outline" className={`text-[8px] capitalize ${cfg.bg}`}>
+            {criterion.status?.replace('_', ' ')}
+          </Badge>
+          {isOpen ? <ChevronDown className="h-3 w-3 text-muted-foreground" /> : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pl-8 pr-2 pb-1 space-y-1 mt-1">
+        {criterion.evidence && (
+          <div className="text-[9px]">
+            <span className="font-medium text-muted-foreground">Evidence: </span>
+            <span>{criterion.evidence}</span>
+          </div>
+        )}
+        {criterion.remediation && criterion.status !== 'pass' && (
+          <div className="text-[9px] p-1.5 rounded bg-primary/5">
+            <span className="font-medium">Remediation: </span>
+            <span className="text-muted-foreground">{criterion.remediation}</span>
+          </div>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+};
+
+// ─── WCAG 2.2 Compliance Dashboard Panel ─────────────────────────────────
+const WCAG_STATUS_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
+  pass: { icon: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />, color: 'text-emerald-600', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+  partial: { icon: <MinusCircle className="h-3.5 w-3.5 text-amber-500" />, color: 'text-amber-600', bg: 'bg-amber-500/10 border-amber-500/20' },
+  fail: { icon: <XCircle className="h-3.5 w-3.5 text-destructive" />, color: 'text-destructive', bg: 'bg-destructive/10 border-destructive/20' },
+  not_applicable: { icon: <MinusCircle className="h-3.5 w-3.5 text-muted-foreground" />, color: 'text-muted-foreground', bg: 'bg-muted/30 border-border' },
+};
+
+const LEVEL_BADGE: Record<string, string> = {
+  A: 'bg-blue-500/10 text-blue-600 border-blue-500/30',
+  AA: 'bg-purple-500/10 text-purple-600 border-purple-500/30',
+  AAA: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/30',
+};
+
+const WCAGCompliancePanel = ({ scan }: { scan: any }) => {
+  const wcag = scan.wcag_compliance as Record<string, any> | null;
+
+  if (!wcag) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-6 text-center">
+          <ShieldCheck className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+          <p className="text-xs text-muted-foreground">WCAG 2.2 compliance audit will appear after a re-scan with the upgraded engine.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const safeArr = (v: unknown): any[] => Array.isArray(v) ? v : [];
+  const criteria = safeArr(wcag.criteria);
+  const passCount = Number(wcag.pass_count || criteria.filter((c: any) => c.status === 'pass').length);
+  const failCount = Number(wcag.fail_count || criteria.filter((c: any) => c.status === 'fail').length);
+  const partialCount = Number(wcag.partial_count || criteria.filter((c: any) => c.status === 'partial').length);
+  const totalApplicable = criteria.filter((c: any) => c.status !== 'not_applicable').length;
+  const compliancePercent = totalApplicable > 0 ? Math.round((passCount / totalApplicable) * 100) : 0;
+
+  return (
+    <div className="overflow-y-auto max-h-[700px] space-y-3">
+      {/* Summary Card */}
+      <Card className={`border ${scoreBg(compliancePercent)}`}>
+        <CardContent className="py-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-xs font-semibold">WCAG 2.2 Compliance</p>
+                <p className="text-[9px] text-muted-foreground">9 New Success Criteria · EAA · Section 508</p>
+              </div>
+            </div>
+            <span className={`text-2xl font-bold ${scoreColor(compliancePercent)}`}>
+              {compliancePercent}%
+            </span>
+          </div>
+          <Progress value={compliancePercent} className="h-1.5" />
+        </CardContent>
+      </Card>
+
+      {/* Status Summary */}
+      <div className="grid grid-cols-3 gap-2">
+        <Card>
+          <CardContent className="py-2.5 px-3 text-center">
+            <CheckCircle2 className="h-3.5 w-3.5 mx-auto mb-1 text-emerald-500" />
+            <p className="text-lg font-bold text-emerald-600">{passCount}</p>
+            <p className="text-[9px] text-muted-foreground">Passing</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-2.5 px-3 text-center">
+            <MinusCircle className="h-3.5 w-3.5 mx-auto mb-1 text-amber-500" />
+            <p className="text-lg font-bold text-amber-600">{partialCount}</p>
+            <p className="text-[9px] text-muted-foreground">Partial</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-2.5 px-3 text-center">
+            <XCircle className="h-3.5 w-3.5 mx-auto mb-1 text-destructive" />
+            <p className="text-lg font-bold text-destructive">{failCount}</p>
+            <p className="text-[9px] text-muted-foreground">Failing</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Regulatory Readiness */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs flex items-center gap-1.5">
+            <Shield className="h-3.5 w-3.5 text-primary" />
+            Regulatory Readiness
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground">EAA 2025:</span>
+            <Badge variant="outline" className={`text-[9px] ${
+              wcag.eaa_readiness === 'compliant' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' :
+              wcag.eaa_readiness === 'partial' ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' :
+              'bg-destructive/10 text-destructive border-destructive/30'
+            }`}>
+              {wcag.eaa_readiness || 'Unknown'}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground">Section 508:</span>
+            <Badge variant="outline" className={`text-[9px] ${
+              wcag.section_508_readiness === 'compliant' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' :
+              wcag.section_508_readiness === 'partial' ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' :
+              'bg-destructive/10 text-destructive border-destructive/30'
+            }`}>
+              {wcag.section_508_readiness || 'Unknown'}
+            </Badge>
+          </div>
+          {wcag.overall_level && (
+            <div className="flex items-center gap-1.5 ml-auto">
+              <span className="text-[10px] text-muted-foreground">Level:</span>
+              <Badge variant="outline" className={`text-[9px] font-bold ${LEVEL_BADGE[wcag.overall_level] || ''}`}>
+                {wcag.overall_level}
+              </Badge>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Per-Criterion Breakdown */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs flex items-center gap-1.5">
+            <Accessibility className="h-3.5 w-3.5 text-primary" />
+            Criterion-by-Criterion Audit
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {criteria.map((criterion: any, i: number) => (
+              <WCAGCriterionRow key={i} criterion={criterion} />
+            ))}
+        </CardContent>
+      </Card>
+
+      {/* Priority Remediations */}
+      {safeArr(wcag.priority_remediations).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+              Priority Remediations
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {safeArr(wcag.priority_remediations).map((rec: string, i: number) => (
+              <div key={i} className="flex items-start gap-1.5 text-[10px]">
+                <span className="text-primary shrink-0 mt-0.5">→</span>
+                <span className="text-muted-foreground">{rec}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
 export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizationId }: BiasAwarenessPanelProps) => {
   const { latestScan, isLoading, isScanning, startScan } = useBiasAwareness(entityId, entityType, entityName, organizationId);
 
@@ -904,8 +1107,9 @@ export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizat
           </Card>
 
           <Tabs defaultValue="dimensions">
-            <TabsList className="grid grid-cols-6 w-full">
+            <TabsList className="grid grid-cols-7 w-full">
               <TabsTrigger value="dimensions" className="text-xs">Dimensions</TabsTrigger>
+              <TabsTrigger value="wcag" className="text-xs">WCAG 2.2</TabsTrigger>
               <TabsTrigger value="curb-cut" className="text-xs">Curb-Cut</TabsTrigger>
               <TabsTrigger value="sacm" className="text-xs">SACM</TabsTrigger>
               <TabsTrigger value="modules" className="text-xs">Modules</TabsTrigger>
@@ -938,6 +1142,10 @@ export const BiasAwarenessPanel = ({ entityType, entityId, entityName, organizat
                 icon={<Brain className="h-4 w-4 text-orange-500" />}
                 analysis={(scan.ai_governance_analysis || {}) as Record<string, unknown>}
               />
+            </TabsContent>
+
+            <TabsContent value="wcag" className="mt-3">
+              <WCAGCompliancePanel scan={scan} />
             </TabsContent>
 
             <TabsContent value="curb-cut" className="mt-3">

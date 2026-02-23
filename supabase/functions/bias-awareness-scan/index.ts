@@ -412,6 +412,26 @@ RESPONSE FORMAT (strict JSON):
     "cultural_conflicts": [{"color": "...", "market": "...", "conflict": "...", "severity": "critical|warning"}],
     "recommendations": ["..."]
   },
+  "wcag_compliance": {
+    "overall_level": "AAA|AA|A|none",
+    "criteria": [
+      {"id": "2.4.11", "name": "Focus Not Obscured (Minimum)", "level": "AA", "status": "pass|partial|fail|not_applicable", "evidence": "...", "remediation": "..."},
+      {"id": "2.4.12", "name": "Focus Not Obscured (Enhanced)", "level": "AAA", "status": "pass|partial|fail|not_applicable", "evidence": "...", "remediation": "..."},
+      {"id": "2.4.13", "name": "Focus Appearance", "level": "AAA", "status": "pass|partial|fail|not_applicable", "evidence": "...", "remediation": "..."},
+      {"id": "2.5.7", "name": "Dragging Movements", "level": "AA", "status": "pass|partial|fail|not_applicable", "evidence": "...", "remediation": "..."},
+      {"id": "2.5.8", "name": "Target Size (Minimum)", "level": "AA", "status": "pass|partial|fail|not_applicable", "evidence": "...", "remediation": "..."},
+      {"id": "3.2.6", "name": "Consistent Help", "level": "A", "status": "pass|partial|fail|not_applicable", "evidence": "...", "remediation": "..."},
+      {"id": "3.3.7", "name": "Redundant Entry", "level": "A", "status": "pass|partial|fail|not_applicable", "evidence": "...", "remediation": "..."},
+      {"id": "3.3.8", "name": "Accessible Authentication", "level": "AA", "status": "pass|partial|fail|not_applicable", "evidence": "...", "remediation": "..."},
+      {"id": "3.3.9", "name": "Accessible Authentication (Enhanced)", "level": "AAA", "status": "pass|partial|fail|not_applicable", "evidence": "...", "remediation": "..."}
+    ],
+    "pass_count": <number>,
+    "fail_count": <number>,
+    "partial_count": <number>,
+    "eaa_readiness": "compliant|partial|non_compliant",
+    "section_508_readiness": "compliant|partial|non_compliant",
+    "priority_remediations": ["..."]
+  },
   "curb_cut_module": {
     "overall_score": <0-100>,
     "plain_language_score": <0-100>,
@@ -566,6 +586,7 @@ RESPONSE FORMAT (strict JSON):
           color_strategy_module: result.color_strategy_module || null,
           sacm_module: result.sacm_module || null,
           curb_cut_module: result.curb_cut_module || null,
+          wcag_compliance: result.wcag_compliance || null,
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }).eq('id', scan.id);
