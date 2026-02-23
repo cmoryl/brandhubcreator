@@ -61,21 +61,22 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const downloadSVG = (icon: BrandSocialIcon) => {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="512" height="512"><path d="${icon.svgPath}"/></svg>`;
+  const downloadSVG = (icon: BrandSocialIcon, color: string = 'currentColor') => {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" width="512" height="512"><path d="${icon.svgPath}"/></svg>`;
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
+    const suffix = color === '#000000' ? '-black' : color === '#ffffff' ? '-white' : '';
     a.href = url;
-    a.download = `${icon.platform.toLowerCase().replace(/\s+/g, '-')}-icon.svg`;
+    a.download = `${icon.platform.toLowerCase().replace(/\s+/g, '-')}-icon${suffix}.svg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  const downloadPNG = (icon: BrandSocialIcon, size: number = 512) => {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black" width="${size}" height="${size}"><path d="${icon.svgPath}"/></svg>`;
+  const downloadPNG = (icon: BrandSocialIcon, size: number = 512, color: string = '#000000') => {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" width="${size}" height="${size}"><path d="${icon.svgPath}"/></svg>`;
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
@@ -88,7 +89,8 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
       URL.revokeObjectURL(url);
       const a = document.createElement('a');
       a.href = canvas.toDataURL('image/png');
-      a.download = `${icon.platform.toLowerCase().replace(/\s+/g, '-')}-icon-${size}px.png`;
+      const suffix = color === '#000000' ? '-black' : color === '#ffffff' ? '-white' : '';
+      a.download = `${icon.platform.toLowerCase().replace(/\s+/g, '-')}-icon${suffix}-${size}px.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -185,10 +187,20 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
                     className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-card border border-border rounded-lg shadow-lg p-1.5 min-w-[120px] z-20"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button onClick={() => { downloadSVG(icon); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent text-foreground">SVG</button>
-                    <button onClick={() => { downloadPNG(icon, 256); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent text-foreground">PNG 256px</button>
-                    <button onClick={() => { downloadPNG(icon, 512); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent text-foreground">PNG 512px</button>
-                    <button onClick={() => { downloadPNG(icon, 1024); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent text-foreground">PNG 1024px</button>
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-1">Original</p>
+                    <button onClick={() => { downloadSVG(icon); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent text-foreground">SVG</button>
+                    <button onClick={() => { downloadPNG(icon, 512); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent text-foreground">PNG 512px</button>
+                    <button onClick={() => { downloadPNG(icon, 1024); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent text-foreground">PNG 1024px</button>
+                    <div className="border-t border-border my-1" />
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-0.5">Black</p>
+                    <button onClick={() => { downloadSVG(icon, '#000000'); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent text-foreground">SVG</button>
+                    <button onClick={() => { downloadPNG(icon, 512, '#000000'); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent text-foreground">PNG 512px</button>
+                    <button onClick={() => { downloadPNG(icon, 1024, '#000000'); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent text-foreground">PNG 1024px</button>
+                    <div className="border-t border-border my-1" />
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 pt-0.5">White</p>
+                    <button onClick={() => { downloadSVG(icon, '#ffffff'); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent text-foreground">SVG</button>
+                    <button onClick={() => { downloadPNG(icon, 512, '#ffffff'); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent text-foreground">PNG 512px</button>
+                    <button onClick={() => { downloadPNG(icon, 1024, '#ffffff'); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1 rounded hover:bg-accent text-foreground">PNG 1024px</button>
                   </div>
                 )}
               </div>
