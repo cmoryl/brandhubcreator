@@ -13,6 +13,7 @@ interface TypographySectionProps {
   onTypographyChange?: (typography: BrandTypography[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  isAdmin?: boolean;
 }
 
 const fontOptions = [
@@ -46,7 +47,7 @@ const getGoogleFontsUrl = (fontFamily: string): string | null => {
 
 const DEFAULT_PREVIEW_TEXT = 'The quick brown fox jumps over the lazy dog';
 
-export const TypographySection = ({ typography, onTypographyChange, customSubtitle, onSubtitleChange }: TypographySectionProps) => {
+export const TypographySection = ({ typography, onTypographyChange, customSubtitle, onSubtitleChange, isAdmin = false }: TypographySectionProps) => {
   const canEdit = Boolean(onTypographyChange);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -236,8 +237,8 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
         )}
       </div>
 
-      {/* WCAG Contrast & Readability Compliance Panel */}
-      <WcagTypographyPanel />
+      {/* WCAG Contrast & Readability Compliance Panel - Admin only */}
+      {isAdmin && <WcagTypographyPanel />}
     </section>
   );
 };
