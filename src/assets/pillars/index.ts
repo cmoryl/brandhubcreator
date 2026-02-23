@@ -12,6 +12,8 @@ import trustImg from '@/assets/pillars/trust-pillar.jpg';
 import sustainabilityImg from '@/assets/pillars/sustainability-pillar.jpg';
 import diversityImg from '@/assets/pillars/diversity-pillar.jpg';
 import urgencyImg from '@/assets/pillars/urgency-pillar.jpg';
+import resultsImg from '@/assets/pillars/results-pillar.jpg';
+import transparencyImg from '@/assets/pillars/transparency-pillar.jpg';
 
 export const collaborationPillar = collaborationImg;
 export const integrityPillar = integrityImg;
@@ -22,6 +24,8 @@ export const trustPillar = trustImg;
 export const sustainabilityPillar = sustainabilityImg;
 export const diversityPillar = diversityImg;
 export const urgencyPillar = urgencyImg;
+export const resultsPillar = resultsImg;
+export const transparencyPillar = transparencyImg;
 
 export const pillarImages: Record<string, string> = {
   // Collaboration / Teamwork
@@ -34,18 +38,26 @@ export const pillarImages: Record<string, string> = {
   // Integrity / Ethics
   integrity: integrityPillar,
   honesty: integrityPillar,
-  transparency: integrityPillar,
   ethics: integrityPillar,
   authentic: integrityPillar,
+  
+  // Transparency / Openness
+  transparency: transparencyPillar,
+  openness: transparencyPillar,
+  candor: transparencyPillar,
   
   // Excellence / Quality
   excellence: excellencePillar,
   quality: excellencePillar,
   success: excellencePillar,
   achievement: excellencePillar,
-  results: excellencePillar,
-  performance: excellencePillar,
   award: excellencePillar,
+  
+  // Results / Performance
+  results: resultsPillar,
+  performance: resultsPillar,
+  outcomes: resultsPillar,
+  goals: resultsPillar,
   
   // Innovation / Growth
   innovation: innovationPillar,
@@ -94,7 +106,9 @@ export const pillarImages: Record<string, string> = {
 export const pillarImagesList = [
   collaborationPillar,
   integrityPillar,
+  transparencyPillar,
   excellencePillar,
+  resultsPillar,
   innovationPillar,
   urgencyPillar,
   customerFocusPillar,
@@ -105,8 +119,10 @@ export const pillarImagesList = [
 
 export const pillarImagesWithLabels = [
   { url: collaborationPillar, label: 'Collaboration', keywords: ['teamwork', 'partnership', 'unity'] },
-  { url: integrityPillar, label: 'Integrity', keywords: ['honesty', 'transparency', 'ethics'] },
+  { url: integrityPillar, label: 'Integrity', keywords: ['honesty', 'ethics', 'authentic'] },
+  { url: transparencyPillar, label: 'Transparency', keywords: ['openness', 'candor', 'clarity'] },
   { url: excellencePillar, label: 'Excellence', keywords: ['quality', 'success', 'achievement'] },
+  { url: resultsPillar, label: 'Results', keywords: ['performance', 'outcomes', 'goals'] },
   { url: innovationPillar, label: 'Innovation', keywords: ['creativity', 'ideas', 'growth'] },
   { url: urgencyPillar, label: 'Urgency', keywords: ['speed', 'agility', 'momentum'] },
   { url: customerFocusPillar, label: 'Customer Focus', keywords: ['service', 'care', 'empathy'] },
