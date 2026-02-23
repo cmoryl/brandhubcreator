@@ -33,11 +33,12 @@ interface ImagerySectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
+  isAdmin?: boolean;
 }
 
 type ViewMode = 'split' | 'grid-2' | 'grid-3' | 'grid-4';
 
-export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand' }: ImagerySectionProps) => {
+export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand', isAdmin = false }: ImagerySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingType, setPendingType] = useState<'do' | 'dont'>('do');
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -204,7 +205,7 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
           </ToggleGroup>
       </div>
 
-      <ImageryGuidelinesPanel canEdit={canEdit} />
+      {isAdmin && <ImageryGuidelinesPanel canEdit={canEdit} />}
 
       <input
         ref={fileInputRef}
