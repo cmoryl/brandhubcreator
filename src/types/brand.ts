@@ -311,6 +311,7 @@ export interface BrandEmailBanner {
   width: number;
   height: number;
   description?: string;
+  liveFilesUrl?: string; // Link to live design files (Figma, Dropbox, etc.)
 }
 
 // QR - QR Codes

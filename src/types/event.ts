@@ -103,12 +103,13 @@ export interface EventSignage {
 export interface EventBanner {
   id: string;
   name: string;
-  type: 'email-header' | 'social-cover' | 'website-hero' | 'landing-page' | 'countdown' | 'save-the-date' | 'thank-you' | 'promotional';
+  type: 'email-header' | 'social-cover' | 'social-banner' | 'website-hero' | 'landing-page' | 'countdown' | 'save-the-date' | 'thank-you' | 'promotional';
   dimensions: string;
   previewUrl?: string;
   templateUrl?: string;
   platform?: string; // e.g., "LinkedIn", "Twitter", "Email"
   notes?: string;
+  liveFilesUrl?: string; // Link to live design files (Figma, Dropbox, etc.)
 }
 
 export interface EventDigitalMaterial {
@@ -119,6 +120,7 @@ export interface EventDigitalMaterial {
   templateUrl?: string;
   fileType?: string;
   description?: string;
+  liveFilesUrl?: string; // Link to live design files (Figma, Dropbox, etc.)
 }
 
 export interface EventPrintMaterial {
@@ -139,6 +141,7 @@ export interface EventInfographic {
   imageUrl: string;
   description?: string;
   category?: string;
+  liveFilesUrl?: string; // Link to live design files (Figma, Dropbox, etc.)
 }
 
 export interface EventApplication {
@@ -148,6 +151,7 @@ export interface EventApplication {
   description?: string;
   platform?: 'ios' | 'android' | 'web' | 'desktop' | 'other';
   appUrl?: string;
+  liveFilesUrl?: string; // Link to live design files (Figma, Dropbox, etc.)
 }
 
 export interface EventDigitalAsset {
@@ -157,6 +161,7 @@ export interface EventDigitalAsset {
   fileType?: string; // svg, png, jpg, webp, gif, etc.
   description?: string;
   category?: string;
+  liveFilesUrl?: string; // Link to live design files (Figma, Dropbox, etc.)
 }
 
 export interface EventScheduleItem {
