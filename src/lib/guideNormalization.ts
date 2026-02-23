@@ -70,6 +70,14 @@ export type NormalizedLinkedGuide = {
   type?: string;
   name?: string;
   slug?: string;
+  coverImage?: string;
+  accentColor?: string;
+  region?: string;
+  location?: string;
+  dates?: string;
+  venue?: string;
+  attendees?: number;
+  cardImage?: string;
 };
 
 export const normalizeLinkedGuides = (linkedGuides: unknown): NormalizedLinkedGuide[] => {
@@ -92,12 +100,21 @@ export const normalizeLinkedGuides = (linkedGuides: unknown): NormalizedLinkedGu
       const name = safeString(g.name, undefined as any);
       const slug = safeString(g.slug, undefined as any);
 
-      return {
-        id,
-        ...(type ? { type } : {}),
-        ...(name ? { name } : {}),
-        ...(slug ? { slug } : {}),
-      };
+      // Preserve rich metadata for sub-event/sub-product card rendering
+      const result: NormalizedLinkedGuide = { id };
+      if (type) result.type = type;
+      if (name) result.name = name;
+      if (slug) result.slug = slug;
+      if (g.coverImage) result.coverImage = String(g.coverImage);
+      if (g.cardImage) result.cardImage = String(g.cardImage);
+      if (g.accentColor) result.accentColor = String(g.accentColor);
+      if (g.region) result.region = String(g.region);
+      if (g.location) result.location = String(g.location);
+      if (g.dates) result.dates = String(g.dates);
+      if (g.venue) result.venue = String(g.venue);
+      if (g.attendees != null) result.attendees = Number(g.attendees);
+
+      return result;
     })
     .filter((x): x is NormalizedLinkedGuide => Boolean(x));
 };
