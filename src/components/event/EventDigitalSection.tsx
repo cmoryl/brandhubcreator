@@ -166,6 +166,9 @@ export const EventDigitalSection = ({
   const templateThumbnailInputRef = useRef<HTMLInputElement>(null);
   const [bannerImageMode, setBannerImageMode] = useState<'upload' | 'url' | 'library'>('upload');
   const [printImageMode, setPrintImageMode] = useState<'upload' | 'url' | 'library'>('upload');
+  const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
+  const [editBannerData, setEditBannerData] = useState<Partial<BrandEmailBanner>>({});
+  const editBannerFileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile, isUploading } = useStorageUpload({ entityType: 'event', entityId: eventId });
   
   // Material form state
@@ -352,6 +355,30 @@ export const EventDigitalSection = ({
     if (!onEmailBannersChange) return;
     onEmailBannersChange(emailBanners.filter(b => b.id !== id));
     toast.success('Email banner removed');
+  };
+
+  const startEditBanner = (banner: BrandEmailBanner) => {
+    setEditingBannerId(banner.id);
+    setEditBannerData({ name: banner.name, description: banner.description || '', linkUrl: banner.linkUrl || '', imageUrl: banner.imageUrl, width: banner.width, height: banner.height });
+  };
+
+  const handleSaveEditBanner = () => {
+    if (!onEmailBannersChange || !editingBannerId) return;
+    onEmailBannersChange(emailBanners.map(b => b.id === editingBannerId ? { ...b, name: editBannerData.name || b.name, description: editBannerData.description || undefined, linkUrl: editBannerData.linkUrl || undefined, imageUrl: editBannerData.imageUrl || b.imageUrl, width: editBannerData.width || b.width, height: editBannerData.height || b.height } : b));
+    setEditingBannerId(null);
+    setEditBannerData({});
+    toast.success('Banner updated');
+  };
+
+  const handleEditBannerImageUpload = async (file: File) => {
+    const result = await uploadFile(file, 'asset', `social-banner-${Date.now()}`);
+    if (result) {
+      const img = new Image();
+      img.onload = () => {
+        setEditBannerData(prev => ({ ...prev, imageUrl: result.url, width: img.naturalWidth, height: img.naturalHeight }));
+      };
+      img.src = result.url;
+    }
   };
 
   // Infographic handlers
@@ -1211,22 +1238,26 @@ export const EventDigitalSection = ({
                 )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {emailBanners.map((banner) => {
-                    const aspectRatio = banner.width / banner.height;
+                    const isEditing = editingBannerId === banner.id;
+                    const displayUrl = isEditing ? (editBannerData.imageUrl || banner.imageUrl) : banner.imageUrl;
+                    const displayWidth = isEditing ? (editBannerData.width || banner.width) : banner.width;
+                    const displayHeight = isEditing ? (editBannerData.height || banner.height) : banner.height;
+                    const aspectRatio = displayWidth / displayHeight;
                     return (
-                      <Card key={banner.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
+                      <Card key={banner.id} className={cn("group overflow-hidden transition-colors", isEditing ? "border-primary ring-1 ring-primary/30" : "hover:border-primary/50")}>
                         <div className="bg-muted/30 p-3">
                           <div
                             className="relative w-full overflow-hidden rounded border border-border"
                             style={{ aspectRatio: `${aspectRatio}` }}
                           >
-                          {banner.imageUrl ? (
-                              <img src={banner.imageUrl} alt={banner.name} className="w-full h-full object-contain cursor-pointer" onClick={() => openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, fileUrl: banner.linkUrl, externalUrl: banner.linkUrl })} />
+                          {displayUrl ? (
+                              <img src={displayUrl} alt={banner.name} className="w-full h-full object-contain cursor-pointer" onClick={() => !isEditing && openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, fileUrl: banner.linkUrl, externalUrl: banner.linkUrl })} />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
                               </div>
                             )}
-                            {banner.imageUrl && (
+                            {!isEditing && banner.imageUrl && (
                               <div
                                 className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors cursor-pointer"
                                 onClick={() => openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, fileUrl: banner.linkUrl, externalUrl: banner.linkUrl })}
@@ -1234,27 +1265,74 @@ export const EventDigitalSection = ({
                                 <Maximize2 className="h-5 w-5 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
                               </div>
                             )}
-                            {isEditable && (
-                              <Button
-                                variant="ghost" size="icon"
-                                className="absolute top-1 right-1 h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                onClick={(e) => { e.stopPropagation(); handleDeleteEmailBanner(banner.id); }}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                            {isEditable && !isEditing && (
+                              <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                <Button
+                                  variant="ghost" size="icon"
+                                  className="h-6 w-6 bg-background/80 backdrop-blur-sm text-foreground hover:text-primary"
+                                  onClick={(e) => { e.stopPropagation(); startEditBanner(banner); }}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost" size="icon"
+                                  className="h-6 w-6 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteEmailBanner(banner.id); }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                            {isEditing && (
+                              <div className="absolute bottom-1 left-1 right-1 flex gap-1 z-10">
+                                <input ref={editBannerFileInputRef} type="file" accept="image/*" className="hidden"
+                                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleEditBannerImageUpload(f); if (editBannerFileInputRef.current) editBannerFileInputRef.current.value = ''; }}
+                                />
+                                <Button variant="secondary" size="sm" className="text-[10px] h-6 gap-1 bg-background/90 backdrop-blur-sm"
+                                  onClick={() => editBannerFileInputRef.current?.click()} disabled={isUploading}>
+                                  <Upload className="h-3 w-3" />{isUploading ? 'Uploading...' : 'Replace Image'}
+                                </Button>
+                              </div>
                             )}
                           </div>
                         </div>
                         <CardContent className="p-3">
-                          <h4 className="font-medium text-sm truncate">{banner.name}</h4>
-                          <p className="text-xs text-muted-foreground">{banner.width} × {banner.height}px</p>
-                          {banner.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{banner.description}</p>}
-                          {banner.linkUrl && (
-                            <Button variant="outline" size="sm" className="w-full mt-2 text-xs h-7" asChild>
-                              <a href={banner.linkUrl} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="h-3 w-3 mr-1.5" />View Link
-                              </a>
-                            </Button>
+                          {isEditing ? (
+                            <div className="space-y-2">
+                              <div className="space-y-1">
+                                <Label className="text-xs">Name</Label>
+                                <Input className="h-8 text-xs" value={editBannerData.name || ''} onChange={(e) => setEditBannerData(prev => ({ ...prev, name: e.target.value }))} />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">Description (optional)</Label>
+                                <Input className="h-8 text-xs" value={editBannerData.description || ''} onChange={(e) => setEditBannerData(prev => ({ ...prev, description: e.target.value }))} placeholder="Brief description..." />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">Link URL (optional)</Label>
+                                <Input className="h-8 text-xs" value={editBannerData.linkUrl || ''} onChange={(e) => setEditBannerData(prev => ({ ...prev, linkUrl: e.target.value }))} placeholder="https://..." />
+                              </div>
+                              <div className="flex gap-2 pt-1">
+                                <Button variant="outline" size="sm" className="flex-1 text-xs h-7" onClick={() => { setEditingBannerId(null); setEditBannerData({}); }}>
+                                  <X className="h-3 w-3 mr-1" />Cancel
+                                </Button>
+                                <Button size="sm" className="flex-1 text-xs h-7" onClick={handleSaveEditBanner}>
+                                  <Check className="h-3 w-3 mr-1" />Save
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <h4 className="font-medium text-sm truncate">{banner.name}</h4>
+                              <p className="text-xs text-muted-foreground">{banner.width} × {banner.height}px</p>
+                              {banner.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{banner.description}</p>}
+                              {banner.linkUrl && (
+                                <Button variant="outline" size="sm" className="w-full mt-2 text-xs h-7" asChild>
+                                  <a href={banner.linkUrl} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="h-3 w-3 mr-1.5" />View Link
+                                  </a>
+                                </Button>
+                              )}
+                            </>
                           )}
                         </CardContent>
                       </Card>
