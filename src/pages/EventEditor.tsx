@@ -600,7 +600,7 @@ const EventEditor = () => {
       case 'eventwebsites':
         return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={(websites) => updateEvent({ websites })} isEditable={canEdit || false} entityId={event.id} />;
       case 'eventlogos':
-        return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} />;
+        return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} entityId={event.id} entityType="event" />;
       case 'eventsignage':
         return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} brandName={event.hero?.name} brandColors={event.colors?.map(c => c.hex)} eventId={event.id} />;
       case 'eventprint':

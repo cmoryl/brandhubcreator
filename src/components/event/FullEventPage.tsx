@@ -162,6 +162,8 @@ export const FullEventPage = ({
             logos={event.eventLogos || []}
             onUpdate={canEdit ? (eventLogos) => updateEvent({ eventLogos }) : () => {}}
             isEditable={canEdit}
+            entityId={event.id}
+            entityType="event"
           />
         );
       case 'eventsignage':
