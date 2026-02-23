@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, X, Pencil, Copy, Check } from 'lucide-react';
+import { Plus, X, Pencil, Copy, Check, Download } from 'lucide-react';
 import { BrandSocialIcon } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,6 +61,43 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const downloadSVG = (icon: BrandSocialIcon) => {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="512" height="512"><path d="${icon.svgPath}"/></svg>`;
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${icon.platform.toLowerCase().replace(/\s+/g, '-')}-icon.svg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadPNG = (icon: BrandSocialIcon, size: number = 512) => {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black" width="${size}" height="${size}"><path d="${icon.svgPath}"/></svg>`;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    const img = new Image();
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `${icon.platform.toLowerCase().replace(/\s+/g, '-')}-icon-${size}px.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+    img.src = url;
+  };
+
+  const [downloadMenuId, setDownloadMenuId] = useState<string | null>(null);
+
   const unusedPlatforms = Object.keys(defaultIcons).filter(
     p => !socialIcons.some(i => i.platform === p)
   );
@@ -113,7 +150,6 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
             key={icon.id}
             className="group relative bg-card rounded-xl p-4 shadow-sm border border-border animate-scale-in flex flex-col items-center cursor-pointer"
             style={{ animationDelay: `${index * 50}ms` }}
-            onClick={() => copySVG(icon)}
           >
             <svg
               className="w-10 h-10 text-foreground mb-3"
@@ -124,12 +160,38 @@ export const SocialIconsSection = ({ socialIcons, onSocialIconsChange, customSub
             </svg>
             <p className="text-sm font-medium text-foreground text-center">{icon.platform}</p>
 
-            <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              {copiedId === icon.id ? (
-                <Check className="h-5 w-5 text-white" />
-              ) : (
-                <Copy className="h-5 w-5 text-white" />
-              )}
+            <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={(e) => { e.stopPropagation(); copySVG(icon); }}
+                className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                title="Copy SVG"
+              >
+                {copiedId === icon.id ? (
+                  <Check className="h-4 w-4 text-white" />
+                ) : (
+                  <Copy className="h-4 w-4 text-white" />
+                )}
+              </button>
+              <div className="relative">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDownloadMenuId(downloadMenuId === icon.id ? null : icon.id); }}
+                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                  title="Download"
+                >
+                  <Download className="h-4 w-4 text-white" />
+                </button>
+                {downloadMenuId === icon.id && (
+                  <div
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-card border border-border rounded-lg shadow-lg p-1.5 min-w-[120px] z-20"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button onClick={() => { downloadSVG(icon); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent text-foreground">SVG</button>
+                    <button onClick={() => { downloadPNG(icon, 256); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent text-foreground">PNG 256px</button>
+                    <button onClick={() => { downloadPNG(icon, 512); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent text-foreground">PNG 512px</button>
+                    <button onClick={() => { downloadPNG(icon, 1024); setDownloadMenuId(null); }} className="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-accent text-foreground">PNG 1024px</button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {canEdit && (
