@@ -3,10 +3,11 @@
  * 
  * Wizard steps:
  * 1. Library - Browse curated seamless pattern templates
- * 2. Create - Upload or paste SVG seamless tiles
- * 3. Generate - AI-powered seamless pattern generation
- * 4. Preview - Live tiling preview with zoom/scale controls
- * 5. Export - Batch download tiled patterns at various resolutions
+ * 2. Customize - Edit templates with colors, stroke, opacity
+ * 3. Create - Upload or paste SVG seamless tiles
+ * 4. Generate - AI-powered seamless pattern generation
+ * 5. Preview - Live tiling preview with zoom/scale controls
+ * 6. Export - Batch download tiled patterns at various resolutions
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -22,7 +23,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-
 import { Slider } from '@/components/ui/slider';
 import {
   Select,
@@ -39,7 +39,6 @@ import {
   Package,
   ChevronLeft,
   ChevronRight,
-  Search,
   Plus,
   Check,
   Download,
@@ -49,7 +48,9 @@ import {
   Grid,
   ZoomIn,
   ZoomOut,
-  X,
+  Paintbrush,
+  Save,
+  RotateCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandColor, BrandPattern } from '@/types/brand';
@@ -152,7 +153,7 @@ const PATTERN_STYLES = [
   { value: 'abstract', label: 'Abstract' },
 ];
 
-type StudioStep = 'library' | 'create' | 'generate' | 'preview' | 'export';
+type StudioStep = 'library' | 'customize' | 'create' | 'generate' | 'preview' | 'export';
 
 interface StudioStepDef {
   id: StudioStep;
@@ -163,11 +164,79 @@ interface StudioStepDef {
 
 const STEPS: StudioStepDef[] = [
   { id: 'library', label: 'Templates', icon: Library, description: 'Browse pattern templates' },
+  { id: 'customize', label: 'Customize', icon: Paintbrush, description: 'Edit colors & style' },
   { id: 'create', label: 'Create', icon: Upload, description: 'Upload or paste SVG tiles' },
   { id: 'generate', label: 'AI Generate', icon: Wand2, description: 'AI seamless patterns' },
   { id: 'preview', label: 'Tile Preview', icon: Eye, description: 'Preview tiling result' },
   { id: 'export', label: 'Export', icon: Package, description: 'Download patterns' },
 ];
+
+// Helper to apply color/style customizations to an SVG string
+const customizeSvg = (
+  svg: string,
+  fgColor: string,
+  bgColor: string,
+  strokeWidth: number,
+  opacity: number,
+  fillOpacity: number,
+): string => {
+  let result = svg;
+
+  // Replace background rect fill
+  result = result.replace(
+    /(<rect[^>]*width=["']\d+["'][^>]*height=["']\d+["'][^>]*fill=["'])[^"']+/g,
+    (match, prefix) => {
+      // Only the first full-size rect is background
+      return prefix + bgColor;
+    }
+  );
+
+  // Replace foreground colors (stroke and fill on non-rect elements)
+  // Replace stroke colors (not on first rect)
+  result = result.replace(
+    /(<(?:path|circle|polygon|polyline|line|ellipse)[^>]*stroke=["'])[^"']+/g,
+    (match, prefix) => prefix + fgColor
+  );
+
+  // Replace fill colors on shapes (not rect background)
+  result = result.replace(
+    /(<(?:circle|polygon|polyline|ellipse)[^>]*fill=["'])(?!none)[^"']+/g,
+    (match, prefix) => prefix + fgColor
+  );
+
+  // Replace stroke-width values
+  result = result.replace(
+    /(<(?:path|circle|polygon|polyline|line|ellipse)[^>]*stroke-width=["'])[^"']+/g,
+    (match, prefix) => prefix + strokeWidth.toString()
+  );
+
+  // Replace opacity values on shapes
+  result = result.replace(
+    /(<(?:path|circle|polygon|polyline|line|ellipse)[^>]*\b)opacity=["'][^"']+["']/g,
+    (match, prefix) => prefix + `opacity="${opacity}"`
+  );
+
+  // Replace stroke-opacity values
+  result = result.replace(
+    /stroke-opacity=["'][^"']+["']/g,
+    `stroke-opacity="${opacity}"`
+  );
+
+  // For fill opacity on shapes that have fill (not "none")
+  // We handle this by checking if fill != none and adding fill-opacity
+  // Actually simpler: adjust the fill-opacity attribute if present
+  result = result.replace(
+    /(<(?:circle|polygon|polyline|ellipse)[^>]*fill=["'](?!none)[^"']+["'][^>]*)(?:fill-opacity=["'][^"']+["'])?/g,
+    (match, prefix) => {
+      if (match.includes('fill-opacity')) {
+        return match.replace(/fill-opacity=["'][^"']+["']/, `fill-opacity="${fillOpacity}"`);
+      }
+      return match;
+    }
+  );
+
+  return result;
+};
 
 interface GeometricPrimitivesStudioProps {
   open: boolean;
@@ -176,7 +245,6 @@ interface GeometricPrimitivesStudioProps {
   onPatternsChange: (patterns: BrandPattern[]) => void;
   brandColors: BrandColor[];
   brandName?: string;
-  // Legacy props (ignored, kept for compat)
   shapes?: any[];
   onShapesChange?: (shapes: any[]) => void;
 }
@@ -195,6 +263,16 @@ export const GeometricPrimitivesStudio = ({
 
   // Library state
   const [templateCategory, setTemplateCategory] = useState('All');
+
+  // Customize state
+  const [editTemplateId, setEditTemplateId] = useState<string | null>(null);
+  const [editFgColor, setEditFgColor] = useState('#6366F1');
+  const [editBgColor, setEditBgColor] = useState('#f8f9fa');
+  const [editStrokeWidth, setEditStrokeWidth] = useState(2);
+  const [editOpacity, setEditOpacity] = useState(0.4);
+  const [editFillOpacity, setEditFillOpacity] = useState(0.15);
+  const [editTileSize, setEditTileSize] = useState(50);
+  const [editName, setEditName] = useState('');
 
   // Create state
   const [uploadName, setUploadName] = useState('');
@@ -222,17 +300,68 @@ export const GeometricPrimitivesStudio = ({
     return patterns.find(p => p.id === previewPatternId) || patterns[0] || null;
   }, [previewPatternId, patterns]);
 
-  // Add a template as a pattern (convert SVG to data URL)
+  // Customize: get the edited template
+  const editTemplate = useMemo(() => {
+    return SEAMLESS_TEMPLATES.find(t => t.id === editTemplateId) || null;
+  }, [editTemplateId]);
+
+  const customizedSvg = useMemo(() => {
+    if (!editTemplate) return '';
+    return customizeSvg(editTemplate.svg, editFgColor, editBgColor, editStrokeWidth, editOpacity, editFillOpacity);
+  }, [editTemplate, editFgColor, editBgColor, editStrokeWidth, editOpacity, editFillOpacity]);
+
+  // Select a template for customization
+  const selectForCustomize = useCallback((template: typeof SEAMLESS_TEMPLATES[0]) => {
+    setEditTemplateId(template.id);
+    setEditName(template.name);
+    // Reset to defaults
+    setEditFgColor('#6366F1');
+    setEditBgColor('#f8f9fa');
+    setEditStrokeWidth(2);
+    setEditOpacity(0.4);
+    setEditFillOpacity(0.15);
+    setEditTileSize(50);
+    setCurrentStep('customize');
+  }, []);
+
+  const resetCustomization = useCallback(() => {
+    setEditFgColor('#6366F1');
+    setEditBgColor('#f8f9fa');
+    setEditStrokeWidth(2);
+    setEditOpacity(0.4);
+    setEditFillOpacity(0.15);
+  }, []);
+
+  // Save customized pattern
+  const saveCustomizedPattern = useCallback(async () => {
+    if (!customizedSvg || !editName.trim()) {
+      toast.error('Enter a name for the pattern');
+      return;
+    }
+    const svgBlob = new Blob([customizedSvg], { type: 'image/svg+xml' });
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      const savedResult = await saveToLibrary(dataUrl, `${brandName || 'Brand'} - ${editName.trim()}`, 'Backgrounds');
+      const newPattern: BrandPattern = {
+        id: crypto.randomUUID(),
+        name: editName.trim(),
+        url: savedResult?.publicUrl || dataUrl,
+      };
+      onPatternsChange([...patterns, newPattern]);
+      toast.success(`Saved "${editName.trim()}" to brand patterns`);
+      setCompletedSteps(prev => new Set(prev).add('customize'));
+    };
+    reader.readAsDataURL(svgBlob);
+  }, [customizedSvg, editName, patterns, onPatternsChange, saveToLibrary, brandName]);
+
+  // Add a template directly
   const addTemplate = useCallback((template: typeof SEAMLESS_TEMPLATES[0]) => {
     const svgBlob = new Blob([template.svg], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(svgBlob);
-    
-    // Convert to data URL for persistence
     const reader = new FileReader();
     reader.onload = async () => {
       const dataUrl = reader.result as string;
       const savedResult = await saveToLibrary(dataUrl, `${brandName || 'Brand'} - ${template.name}`, 'Backgrounds');
-      
       const newPattern: BrandPattern = {
         id: crypto.randomUUID(),
         name: template.name,
@@ -240,7 +369,6 @@ export const GeometricPrimitivesStudio = ({
       };
       onPatternsChange([...patterns, newPattern]);
       toast.success(`Added "${template.name}" pattern`);
-      URL.revokeObjectURL(url);
     };
     reader.readAsDataURL(svgBlob);
   }, [patterns, onPatternsChange, saveToLibrary, brandName]);
@@ -249,7 +377,7 @@ export const GeometricPrimitivesStudio = ({
     return patterns.some(p => p.name === template.name);
   }, [patterns]);
 
-  // Add SVG tile manually
+  // SVG validation
   const validateSvg = (svg: string): boolean => {
     if (!svg.trim()) { setSvgPreviewError('Enter SVG code'); return false; }
     const t = svg.trim();
@@ -262,13 +390,11 @@ export const GeometricPrimitivesStudio = ({
   const addManualTile = async () => {
     if (!uploadName.trim()) { toast.error('Enter a pattern name'); return; }
     if (!validateSvg(manualSvg)) { toast.error(svgPreviewError || 'Invalid SVG'); return; }
-    
     const svgBlob = new Blob([manualSvg.trim()], { type: 'image/svg+xml' });
     const reader = new FileReader();
     reader.onload = async () => {
       const dataUrl = reader.result as string;
       const savedResult = await saveToLibrary(dataUrl, `${brandName || 'Brand'} - ${uploadName.trim()}`, 'Backgrounds');
-      
       const newPattern: BrandPattern = {
         id: crypto.randomUUID(),
         name: uploadName.trim(),
@@ -288,12 +414,10 @@ export const GeometricPrimitivesStudio = ({
     const file = e.target.files?.[0];
     if (!file) return;
     const fileName = file.name.replace(/\.[^/.]+$/, '');
-    
     const reader = new FileReader();
     reader.onload = async () => {
       const dataUrl = reader.result as string;
       const savedResult = await saveToLibrary(dataUrl, `${brandName || 'Brand'} - ${fileName}`, 'Backgrounds');
-      
       const newPattern: BrandPattern = {
         id: crypto.randomUUID(),
         name: fileName,
@@ -307,13 +431,11 @@ export const GeometricPrimitivesStudio = ({
     e.target.value = '';
   }, [patterns, onPatternsChange, saveToLibrary, brandName]);
 
-  // AI Generate seamless pattern
+  // AI Generate
   const generateSeamlessPattern = async () => {
     if (!prompt.trim()) { toast.error('Enter a pattern description'); return; }
-    
     setIsGenerating(true);
     toast.info('Generating seamless pattern...');
-
     try {
       const { data, error } = await supabase.functions.invoke('generate-brand-assets', {
         body: {
@@ -328,9 +450,7 @@ export const GeometricPrimitivesStudio = ({
           count: 2,
         },
       });
-
       if (error) throw error;
-
       if (data?.patterns && data.patterns.length > 0) {
         const newPatterns: BrandPattern[] = [];
         for (const p of data.patterns as Array<{ name: string; url: string }>) {
@@ -346,11 +466,10 @@ export const GeometricPrimitivesStudio = ({
         toast.success(`Generated ${newPatterns.length} seamless patterns!`);
         setCompletedSteps(prev => new Set(prev).add('generate'));
         setPrompt('');
-        // Auto-navigate to preview step
         setPreviewPatternId(newPatterns[0].id);
         setCurrentStep('preview');
       } else {
-        toast.error('No patterns generated. The AI may not have returned images — try a different description.');
+        toast.error('No patterns generated. Try a different description.');
       }
     } catch (error) {
       console.error('Pattern generation error:', error);
@@ -368,7 +487,6 @@ export const GeometricPrimitivesStudio = ({
       canvas.height = resolution;
       const ctx = canvas.getContext('2d');
       if (!ctx) { toast.error('Canvas not supported'); return; }
-
       const img = new Image();
       img.crossOrigin = 'anonymous';
       await new Promise<void>((resolve, reject) => {
@@ -387,7 +505,6 @@ export const GeometricPrimitivesStudio = ({
         img.onerror = () => reject(new Error('Load failed'));
         img.src = pattern.url;
       });
-
       const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, 'image/png', 1.0));
       if (!blob) { toast.error('Export failed'); return; }
       const url = URL.createObjectURL(blob);
@@ -440,7 +557,7 @@ export const GeometricPrimitivesStudio = ({
             <Grid className="h-5 w-5 text-primary" />
             Seamless Patterns Studio
           </DialogTitle>
-          <p className="text-sm text-muted-foreground">Create, preview, and export seamless tiling patterns for your brand</p>
+          <p className="text-sm text-muted-foreground">Create, customize, and export seamless tiling patterns for your brand</p>
         </DialogHeader>
 
         {/* Wizard Stepper */}
@@ -454,7 +571,7 @@ export const GeometricPrimitivesStudio = ({
                 <button
                   key={step.id}
                   onClick={() => setCurrentStep(step.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all flex-1 justify-center ${
+                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all flex-1 justify-center ${
                     isActive
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : isComplete
@@ -462,7 +579,7 @@ export const GeometricPrimitivesStudio = ({
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
                   <span className="hidden sm:inline">{step.label}</span>
                   {isComplete && !isActive && <Check className="h-3 w-3 shrink-0" />}
                 </button>
@@ -477,7 +594,7 @@ export const GeometricPrimitivesStudio = ({
             {/* ─── TEMPLATES ─── */}
             {currentStep === 'library' && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {TEMPLATE_CATEGORIES.map(cat => (
                     <Button
                       key={cat}
@@ -493,18 +610,20 @@ export const GeometricPrimitivesStudio = ({
                   </div>
                 </div>
 
+                <p className="text-xs text-muted-foreground">Click a template to add it directly, or click <Paintbrush className="inline h-3 w-3" /> to customize colors &amp; style first.</p>
+
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                   {filteredTemplates.map(template => {
                     const added = isTemplateAdded(template);
                     return (
                       <Card
                         key={template.id}
-                        className={`group cursor-pointer transition-all ${added ? 'border-primary/50 bg-primary/5' : 'hover:border-primary/30'}`}
-                        onClick={() => !added && addTemplate(template)}
+                        className={`group relative transition-all ${added ? 'border-primary/50 bg-primary/5' : 'hover:border-primary/30'}`}
                       >
                         <CardContent className="p-2">
                           <div
-                            className="aspect-square rounded-md overflow-hidden"
+                            className="aspect-square rounded-md overflow-hidden cursor-pointer"
+                            onClick={() => !added && addTemplate(template)}
                             style={{
                               backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(template.svg)}")`,
                               backgroundSize: '50%',
@@ -513,11 +632,23 @@ export const GeometricPrimitivesStudio = ({
                           />
                           <p className="text-[10px] font-medium truncate mt-1.5 text-center">{template.name}</p>
                           <p className="text-[9px] text-muted-foreground text-center">{template.category}</p>
-                          {added && (
-                            <div className="flex justify-center mt-0.5">
+                          <div className="flex items-center justify-center gap-1 mt-1">
+                            {added ? (
                               <Check className="h-3 w-3 text-primary" />
-                            </div>
-                          )}
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 px-2 text-[10px] gap-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  selectForCustomize(template);
+                                }}
+                              >
+                                <Paintbrush className="h-3 w-3" /> Edit
+                              </Button>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     );
@@ -526,10 +657,245 @@ export const GeometricPrimitivesStudio = ({
               </div>
             )}
 
+            {/* ─── CUSTOMIZE ─── */}
+            {currentStep === 'customize' && (
+              <div className="space-y-4">
+                {!editTemplate ? (
+                  <div className="text-center py-12 space-y-3">
+                    <Paintbrush className="h-10 w-10 text-muted-foreground mx-auto" />
+                    <p className="text-muted-foreground">Select a template to customize</p>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-w-lg mx-auto">
+                      {SEAMLESS_TEMPLATES.map(t => (
+                        <button
+                          key={t.id}
+                          onClick={() => selectForCustomize(t)}
+                          className="aspect-square rounded-lg border border-border hover:border-primary/50 overflow-hidden transition-all"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(t.svg)}")`,
+                            backgroundSize: '50%',
+                            backgroundRepeat: 'repeat',
+                          }}
+                          title={t.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-[280px_1fr] gap-6">
+                    {/* Controls panel */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold">Customize Pattern</h3>
+                        <Button size="sm" variant="ghost" onClick={resetCustomization} className="h-7 gap-1 text-xs">
+                          <RotateCcw className="h-3 w-3" /> Reset
+                        </Button>
+                      </div>
+
+                      {/* Template picker */}
+                      <div>
+                        <Label className="text-xs">Template</Label>
+                        <Select value={editTemplateId || ''} onValueChange={id => {
+                          const t = SEAMLESS_TEMPLATES.find(t => t.id === id);
+                          if (t) selectForCustomize(t);
+                        }}>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder="Select template" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SEAMLESS_TEMPLATES.map(t => (
+                              <SelectItem key={t.id} value={t.id} className="text-xs">{t.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Pattern name */}
+                      <div>
+                        <Label className="text-xs">Pattern Name</Label>
+                        <Input
+                          value={editName}
+                          onChange={e => setEditName(e.target.value)}
+                          placeholder="Custom Pattern"
+                          className="h-8 text-xs"
+                        />
+                      </div>
+
+                      {/* Foreground color */}
+                      <div>
+                        <Label className="text-xs">Foreground Color</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <input
+                            type="color"
+                            value={editFgColor}
+                            onChange={e => setEditFgColor(e.target.value)}
+                            className="w-8 h-8 rounded border border-input cursor-pointer"
+                          />
+                          <Input
+                            value={editFgColor}
+                            onChange={e => setEditFgColor(e.target.value)}
+                            className="h-8 text-xs font-mono flex-1"
+                          />
+                        </div>
+                        {brandColors.length > 0 && (
+                          <div className="flex gap-1 mt-1.5 flex-wrap">
+                            {brandColors.slice(0, 10).map(c => (
+                              <button
+                                key={c.hex}
+                                onClick={() => setEditFgColor(c.hex)}
+                                className={`w-6 h-6 rounded-full border-2 transition-all ${editFgColor === c.hex ? 'border-primary scale-110' : 'border-border'}`}
+                                style={{ backgroundColor: c.hex }}
+                                title={c.name}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Background color */}
+                      <div>
+                        <Label className="text-xs">Background Color</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <input
+                            type="color"
+                            value={editBgColor}
+                            onChange={e => setEditBgColor(e.target.value)}
+                            className="w-8 h-8 rounded border border-input cursor-pointer"
+                          />
+                          <Input
+                            value={editBgColor}
+                            onChange={e => setEditBgColor(e.target.value)}
+                            className="h-8 text-xs font-mono flex-1"
+                          />
+                        </div>
+                        {brandColors.length > 0 && (
+                          <div className="flex gap-1 mt-1.5 flex-wrap">
+                            {brandColors.slice(0, 10).map(c => (
+                              <button
+                                key={c.hex}
+                                onClick={() => setEditBgColor(c.hex)}
+                                className={`w-6 h-6 rounded-full border-2 transition-all ${editBgColor === c.hex ? 'border-primary scale-110' : 'border-border'}`}
+                                style={{ backgroundColor: c.hex }}
+                                title={c.name}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Stroke width */}
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Stroke Width</Label>
+                          <span className="text-[10px] text-muted-foreground">{editStrokeWidth}px</span>
+                        </div>
+                        <Slider
+                          value={[editStrokeWidth]}
+                          onValueChange={([v]) => setEditStrokeWidth(v)}
+                          min={0.5}
+                          max={8}
+                          step={0.5}
+                          className="mt-1"
+                        />
+                      </div>
+
+                      {/* Opacity */}
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Opacity</Label>
+                          <span className="text-[10px] text-muted-foreground">{Math.round(editOpacity * 100)}%</span>
+                        </div>
+                        <Slider
+                          value={[editOpacity]}
+                          onValueChange={([v]) => setEditOpacity(v)}
+                          min={0.05}
+                          max={1}
+                          step={0.05}
+                          className="mt-1"
+                        />
+                      </div>
+
+                      {/* Fill opacity */}
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Fill Opacity</Label>
+                          <span className="text-[10px] text-muted-foreground">{Math.round(editFillOpacity * 100)}%</span>
+                        </div>
+                        <Slider
+                          value={[editFillOpacity]}
+                          onValueChange={([v]) => setEditFillOpacity(v)}
+                          min={0}
+                          max={1}
+                          step={0.05}
+                          className="mt-1"
+                        />
+                      </div>
+
+                      {/* Save button */}
+                      <Button onClick={saveCustomizedPattern} className="w-full gap-2">
+                        <Save className="h-4 w-4" /> Save to Brand Patterns
+                      </Button>
+                    </div>
+
+                    {/* Live preview */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold">Live Tiling Preview</Label>
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs text-muted-foreground">Tile size</Label>
+                          <Slider
+                            value={[editTileSize]}
+                            onValueChange={([v]) => setEditTileSize(v)}
+                            min={20}
+                            max={150}
+                            step={5}
+                            className="w-32"
+                          />
+                          <span className="text-[10px] text-muted-foreground w-8">{editTileSize}%</span>
+                        </div>
+                      </div>
+
+                      <div
+                        className="w-full h-[420px] rounded-xl border border-border overflow-hidden"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(customizedSvg)}")`,
+                          backgroundSize: `${editTileSize}%`,
+                          backgroundRepeat: 'repeat',
+                        }}
+                      />
+
+                      {/* Single tile preview */}
+                      <div className="flex items-start gap-4">
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Single Tile</Label>
+                          <div
+                            className="w-24 h-24 rounded-lg border border-border mt-1"
+                            dangerouslySetInnerHTML={{ __html: sanitizeSvg(customizedSvg) }}
+                            style={{ padding: 4 }}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <Label className="text-xs text-muted-foreground">Pattern Colors</Label>
+                          <div className="flex items-center gap-3 mt-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-5 h-5 rounded border border-border" style={{ backgroundColor: editFgColor }} />
+                              <span className="text-xs font-mono">{editFgColor}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-5 h-5 rounded border border-border" style={{ backgroundColor: editBgColor }} />
+                              <span className="text-xs font-mono">{editBgColor}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* ─── CREATE ─── */}
             {currentStep === 'create' && (
               <div className="space-y-6">
-                {/* File upload */}
                 <div>
                   <h3 className="text-sm font-semibold mb-3">Upload a Seamless Tile</h3>
                   <label className="flex items-center justify-center h-32 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors">
@@ -542,7 +908,6 @@ export const GeometricPrimitivesStudio = ({
                   </label>
                 </div>
 
-                {/* SVG paste */}
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold">Paste SVG Tile</h3>
@@ -652,7 +1017,6 @@ export const GeometricPrimitivesStudio = ({
                   </div>
                 ) : (
                   <div className="grid grid-cols-[200px_1fr] gap-6">
-                    {/* Pattern selector */}
                     <div className="space-y-2">
                       <Label className="text-sm font-semibold">Select Pattern</Label>
                       {patterns.map(p => (
@@ -672,7 +1036,6 @@ export const GeometricPrimitivesStudio = ({
                       ))}
                     </div>
 
-                    {/* Tiling canvas */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-4">
                         <Label className="text-sm shrink-0">Tile Size</Label>
