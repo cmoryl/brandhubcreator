@@ -360,15 +360,15 @@ export const EventSignageSection = ({
                               Preview
                             </Button>
                           )}
-                          {item.templateUrl && (
+                          {(item.liveFilesUrl || item.templateUrl) && (
                             <Button variant="default" size="sm" className="flex-1" asChild>
-                              <a href={item.templateUrl} target="_blank" rel="noopener noreferrer">
+                              <a href={item.liveFilesUrl || item.templateUrl} target="_blank" rel="noopener noreferrer">
                                 <Download className="h-3.5 w-3.5 mr-1.5" />
-                                Download
+                                Live Files
                               </a>
                             </Button>
                           )}
-                          {isEditable && !item.previewUrl && !item.templateUrl && (
+                          {isEditable && !item.previewUrl && !item.liveFilesUrl && !item.templateUrl && (
                             <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditDialog(item)}>
                               <Pencil className="h-3.5 w-3.5 mr-1.5" />
                               Edit
@@ -411,7 +411,7 @@ export const EventSignageSection = ({
         onOpenChange={setPreviewOpen}
         title={previewItem?.name || 'Signage Preview'}
         previewUrl={previewItem?.previewUrl}
-        externalUrl={previewItem?.previewUrl}
+        externalUrl={previewItem?.liveFilesUrl || previewItem?.templateUrl || previewItem?.previewUrl}
         type="image"
       />
 
