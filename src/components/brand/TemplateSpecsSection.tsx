@@ -1,11 +1,12 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2, Move } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2, Move, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { SectionHeader } from './SectionHeader';
 import { TemplateSpec, TemplateSpecItem, BrandColor } from '@/types/brand';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
 import {
   Select,
   SelectContent,
@@ -118,6 +119,8 @@ interface TemplateSpecsSectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   brandColors?: BrandColor[];
+  entityId?: string;
+  entityType?: 'brand' | 'event' | 'product';
 }
 
 const CATEGORY_OPTIONS: { value: TemplateSpec['category']; label: string; icon: React.ElementType }[] = [
@@ -266,6 +269,8 @@ export const TemplateSpecsSection = ({
   customSubtitle,
   onSubtitleChange,
   brandColors = [],
+  entityId,
+  entityType = 'brand',
 }: TemplateSpecsSectionProps) => {
   // Defensive: ensure templateSpecs is always an array
   const templateSpecs = Array.isArray(templateSpecsProp) ? templateSpecsProp : [];
@@ -413,20 +418,32 @@ export const TemplateSpecsSection = ({
     onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
   };
 
-  // Handle preview image upload — uses FileReader (template previews are small UI images, not persisted blobs)
-  const handlePreviewImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Cloud storage upload for preview images — prevents base64 stripping on save
+  const { uploadFile, isUploading: isUploadingPreview } = useStorageUpload({ entityType, entityId });
+
+  const handlePreviewImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedSpec || !onTemplateSpecsChange) return;
     if (fileInputRef.current) fileInputRef.current.value = '';
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const url = event.target?.result as string;
-      const updatedSpec = { ...selectedSpec, previewImageUrl: url };
-      onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
-    };
-    reader.readAsDataURL(file);
-  };
+    // If we have entityId, upload to cloud storage for persistence
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `template-spec-${selectedSpec.id}`);
+      if (result) {
+        const updatedSpec = { ...selectedSpec, previewImageUrl: result.url };
+        onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+      }
+    } else {
+      // Fallback to base64 for unsaved entities (will be stripped on save — user should save entity first)
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const url = event.target?.result as string;
+        const updatedSpec = { ...selectedSpec, previewImageUrl: url };
+        onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+      };
+      reader.readAsDataURL(file);
+    }
+  }, [selectedSpec, templateSpecs, onTemplateSpecsChange, entityId, uploadFile]);
 
   // Handle callout position change from drag
   const handleCalloutPositionChange = useCallback((itemId: string, position: { x: number; y: number }) => {
@@ -625,8 +642,10 @@ export const TemplateSpecsSection = ({
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     className="gap-1"
+                    disabled={isUploadingPreview}
                   >
-                    <Upload className="h-3 w-3" /> Upload Preview
+                    {isUploadingPreview ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                    {isUploadingPreview ? 'Uploading…' : 'Upload Preview'}
                   </Button>
                 </div>
               </div>

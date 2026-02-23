@@ -359,6 +359,8 @@ export const FullEventPage = ({
           <TemplateSpecsSection
             templateSpecs={event.templateSpecs || []}
             onTemplateSpecsChange={editHandler((templateSpecs) => updateEvent({ templateSpecs }))}
+            entityId={event.id}
+            entityType="event"
           />
         );
       case 'subevents': {
