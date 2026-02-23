@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2, Handshake, DollarSign, Award, Heart, Star, BarChart3, Pencil, AppWindow } from 'lucide-react';
+import { Plus, Trash2, Check, X, FileText, Monitor, Smartphone, Presentation, IdCard, Map, Calendar, Download, ExternalLink, FolderOpen, BookOpen, File, Image as ImageIcon, Upload, Link, Mail, Globe, Share2, Eye, Maximize2, Handshake, DollarSign, Award, Heart, Star, BarChart3, Pencil, AppWindow, LayoutGrid, Grid3X3 } from 'lucide-react';
 import { EventDigitalMaterial, EventBanner, EventPrintMaterial, EventInfographic, EventApplication, EventDigitalAsset } from '@/types/event';
 import { BrandTemplate, BrandBrochure, BrandEmailBanner } from '@/types/brand';
 import { Input } from '@/components/ui/input';
@@ -146,6 +146,7 @@ export const EventDigitalSection = ({
   subtitle,
   eventId,
 }: EventDigitalSectionProps) => {
+  const [cardSize, setCardSize] = useState<'normal' | 'compact'>('normal');
   const [activeTab, setActiveTab] = useState<'banners' | 'materials' | 'templates' | 'brochures' | 'sponsorship' | 'emailbanners' | 'infographics' | 'applications' | 'assets'>('banners');
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -476,12 +477,30 @@ export const EventDigitalSection = ({
             <p className="text-muted-foreground mt-1">Digital banners, materials, templates, and downloadable assets</p>
           )}
         </div>
-        {isEditable && (
-          <Button onClick={() => setIsAddingNew(true)} disabled={isAddingNew}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Asset
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center border border-border rounded-md overflow-hidden">
+            <button
+              onClick={() => setCardSize('normal')}
+              className={cn("p-1.5 transition-colors", cardSize === 'normal' ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground")}
+              title="Normal size"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setCardSize('compact')}
+              className={cn("p-1.5 transition-colors", cardSize === 'compact' ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground")}
+              title="Compact size"
+            >
+              <Grid3X3 className="h-4 w-4" />
+            </button>
+          </div>
+          {isEditable && (
+            <Button onClick={() => setIsAddingNew(true)} disabled={isAddingNew}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Asset
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Tabs for different asset types */}
@@ -683,12 +702,12 @@ export const EventDigitalSection = ({
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className={cn("grid gap-3", cardSize === 'compact' ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
               {banners.map((banner) => (
                 <Card key={banner.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
                   {banner.previewUrl ? (
-                    <div className="bg-muted/30 relative flex items-center justify-center p-2">
-                      <img src={banner.previewUrl} alt={banner.name} className="w-full h-auto max-h-[180px] object-contain rounded" />
+                    <div className={cn("bg-muted/30 relative flex items-center justify-center p-2", cardSize === 'compact' ? "max-h-[120px]" : "")}>
+                      <img src={banner.previewUrl} alt={banner.name} className={cn("w-full h-auto object-contain rounded", cardSize === 'compact' ? "max-h-[110px]" : "max-h-[180px]")} />
                       <Badge className={cn("absolute top-1.5 left-1.5 text-[10px]", getTypeColor(banner.type))}>
                         {BANNER_TYPES.find(t => t.value === banner.type)?.label}
                       </Badge>
@@ -864,7 +883,7 @@ export const EventDigitalSection = ({
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className={cn("grid gap-4", cardSize === 'compact' ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4")}>
                 {templates.map((template) => (
                   <Card key={template.id} className="group hover:border-primary/50 transition-colors">
                     <CardContent className="p-4">
@@ -975,7 +994,7 @@ export const EventDigitalSection = ({
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className={cn("grid gap-4", cardSize === 'compact' ? "grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5")}>
                 {brochures.map((brochure) => (
                   <Card key={brochure.id} className="group hover:border-primary/50 transition-colors overflow-hidden">
                     <CardContent className="p-0">
@@ -1142,7 +1161,7 @@ export const EventDigitalSection = ({
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className={cn("grid gap-4", cardSize === 'compact' ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
                 {sponsorshipMaterials.map((item) => {
                   const TypeIcon = SPONSORSHIP_TYPES.find(t => t.value === item.type)?.icon || FileText;
                   return (
@@ -1236,7 +1255,7 @@ export const EventDigitalSection = ({
                     </Button>
                   </div>
                 )}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className={cn("grid gap-4", cardSize === 'compact' ? "grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "grid-cols-1 lg:grid-cols-2")}>
                   {emailBanners.map((banner) => {
                     const isEditing = editingBannerId === banner.id;
                     const displayUrl = isEditing ? (editBannerData.imageUrl || banner.imageUrl) : banner.imageUrl;
@@ -1377,14 +1396,14 @@ export const EventDigitalSection = ({
                     </Button>
                   </div>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className={cn("grid gap-4", cardSize === 'compact' ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
                   {infographics.map((item) => (
                     <Card key={item.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
                       <div
                         className="bg-muted/30 relative cursor-pointer"
                         onClick={() => openCollateralPreview({ name: item.name, imageUrl: item.imageUrl, description: item.description, category: item.category })}
                       >
-                        <img src={item.imageUrl} alt={item.name} className="w-full h-auto max-h-[300px] object-contain" />
+                        <img src={item.imageUrl} alt={item.name} className={cn("w-full h-auto object-contain", cardSize === 'compact' ? "max-h-[160px]" : "max-h-[300px]")} />
                         <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors">
                           <Maximize2 className="h-6 w-6 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
                         </div>
@@ -1444,14 +1463,14 @@ export const EventDigitalSection = ({
                     </Button>
                   </div>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className={cn("grid gap-4", cardSize === 'compact' ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3")}>
                   {applications.map((app) => (
                     <Card key={app.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
                       <div
                         className="bg-muted/30 relative cursor-pointer"
                         onClick={() => openCollateralPreview({ name: app.name, imageUrl: app.imageUrl, description: app.description, platform: app.platform, externalUrl: app.appUrl })}
                       >
-                        <img src={app.imageUrl} alt={app.name} className="w-full h-auto max-h-[300px] object-contain" />
+                        <img src={app.imageUrl} alt={app.name} className={cn("w-full h-auto object-contain", cardSize === 'compact' ? "max-h-[160px]" : "max-h-[300px]")} />
                         <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors">
                           <Maximize2 className="h-6 w-6 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
                         </div>
@@ -1521,19 +1540,21 @@ export const EventDigitalSection = ({
                   <p className="text-sm mt-1">Upload SVGs, PNGs, and other image assets</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className={cn("grid gap-4", cardSize === 'compact' ? "grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4")}>
                   {digitalAssets.map((asset) => (
                     <Card key={asset.id} className="group overflow-hidden">
                       <div
-                        className={`relative cursor-pointer flex items-center justify-center p-4 min-h-[140px] ${
+                        className={cn(
+                          `relative cursor-pointer flex items-center justify-center p-4`,
+                          cardSize === 'compact' ? 'min-h-[80px]' : 'min-h-[140px]',
                           asset.fileType === 'svg' ? 'bg-[repeating-conic-gradient(hsl(var(--muted))_0%_25%,hsl(var(--background))_0%_50%)] bg-[length:16px_16px]' : 'bg-muted/30'
-                        }`}
+                        )}
                         onClick={() => openCollateralPreview({ name: asset.name, imageUrl: asset.imageUrl, fileType: asset.fileType, description: asset.description })}
                       >
                         <img
                           src={asset.imageUrl}
                           alt={asset.name}
-                          className="max-w-full max-h-[200px] object-contain"
+                          className={cn("max-w-full object-contain", cardSize === 'compact' ? "max-h-[120px]" : "max-h-[200px]")}
                         />
                         <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors">
                           <Maximize2 className="h-6 w-6 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
