@@ -202,6 +202,10 @@ export const FullEventPage = ({
             onSponsorshipMaterialsChange={canEdit ? (eventSponsorshipMaterials) => updateEvent({ eventSponsorshipMaterials }) : undefined}
             digitalAssets={event.eventDigitalAssets || []}
             onDigitalAssetsChange={canEdit ? (eventDigitalAssets) => updateEvent({ eventDigitalAssets }) : undefined}
+            infographics={event.eventInfographics || []}
+            onInfographicsChange={canEdit ? (eventInfographics) => updateEvent({ eventInfographics }) : undefined}
+            applications={event.eventApplications || []}
+            onApplicationsChange={canEdit ? (eventApplications) => updateEvent({ eventApplications }) : undefined}
             isEditable={canEdit}
             eventId={event.id}
           />
@@ -438,8 +442,12 @@ export const FullEventPage = ({
           />
         );
       case 'sponsorlogos':
-        // Sponsor logos are now handled in eventsponsors section
-        return null;
+        return (
+          <SponsorLogosSection
+            sponsors={event.sponsorLogos || []}
+            onSponsorsChange={canEdit ? (sponsorLogos) => updateEvent({ sponsorLogos }) : undefined}
+          />
+        );
       case 'clientlogos':
         return (
           <ClientLogosSection
