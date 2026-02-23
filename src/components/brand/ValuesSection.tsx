@@ -398,21 +398,25 @@ export const ValuesSection = ({
           
           const resolveUniqueImage = (value: BrandValue): string | null => {
             if (!value.useImage) return null;
+
+            // Helper: check if a URL is a valid external/storage URL (not a broken local path)
+            const isValidExternalUrl = (url: string) =>
+              url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:'));
             
-            // 1. Try keyword match first
+            // 1. Try keyword match from bundled pillar assets first (always fresh)
             const keywordMatch = getPillarImage(value.text);
             if (keywordMatch && !usedImages.has(keywordMatch)) {
               usedImages.add(keywordMatch);
               return keywordMatch;
             }
             
-            // 2. Try custom uploaded image
-            if (value.imageUrl && !pillarImagesList.includes(value.imageUrl) && !usedImages.has(value.imageUrl)) {
+            // 2. Try custom uploaded image (only valid external URLs, skip broken local paths)
+            if (value.imageUrl && isValidExternalUrl(value.imageUrl) && !pillarImagesList.includes(value.imageUrl) && !usedImages.has(value.imageUrl)) {
               usedImages.add(value.imageUrl);
               return value.imageUrl;
             }
             
-            // 3. Try stable hash image
+            // 3. Try stable hash image from bundled assets
             const stableImg = getStablePillarImage(value.text);
             if (!usedImages.has(stableImg)) {
               usedImages.add(stableImg);
