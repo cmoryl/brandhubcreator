@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { X, Pencil, Upload, Download, Package, Maximize2, Sparkles, Loader2, FolderOpen } from 'lucide-react';
+import { X, Pencil, Upload, Download, Package, Maximize2, Sparkles, Loader2, FolderOpen, Shapes } from 'lucide-react';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { BrandPattern, BrandColor, LayoutPreset, CustomDesignShape } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { PatternPreviewModal } from './PatternPreviewModal';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { DesignElementsSection } from './DesignElementsSection';
 import { useSaveToLibrary } from '@/hooks/useSaveToLibrary';
+import { GeometricPrimitivesStudio } from './primitives/GeometricPrimitivesStudio';
 
 import {
   Select,
@@ -71,6 +72,7 @@ export const PatternsSection = ({
   const [previewPattern, setPreviewPattern] = useState<BrandPattern | null>(null);
   const [downloadResolution, setDownloadResolution] = useState('1024');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showPrimitivesStudio, setShowPrimitivesStudio] = useState(false);
   
   const { gridClass } = useLayoutClasses(layout);
   const { saveToLibrary } = useSaveToLibrary();
@@ -298,6 +300,17 @@ export const PatternsSection = ({
       
       {/* Controls row - separate from header */}
       <div className="flex items-center gap-2 flex-wrap">
+          {onCustomShapesChange && (
+            <Button 
+              onClick={() => setShowPrimitivesStudio(true)} 
+              variant="secondary" 
+              size="sm" 
+              className="gap-2"
+            >
+              <Shapes className="h-4 w-4" />
+              Primitives Studio
+            </Button>
+          )}
           {onLayoutChange && (
             <LayoutSelector
               value={layout}
@@ -479,6 +492,18 @@ export const PatternsSection = ({
         open={!!previewPattern}
         onOpenChange={(open) => !open && setPreviewPattern(null)}
       />
+
+      {/* Geometric Primitives Studio */}
+      {onCustomShapesChange && (
+        <GeometricPrimitivesStudio
+          open={showPrimitivesStudio}
+          onOpenChange={setShowPrimitivesStudio}
+          shapes={customShapes}
+          onShapesChange={onCustomShapesChange}
+          brandColors={brandColors || []}
+          brandName={brandName}
+        />
+      )}
     </section>
   );
 };
