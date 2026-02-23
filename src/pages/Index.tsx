@@ -210,8 +210,25 @@ const Index = () => {
                   products={orbitProducts}
                   events={orbitEvents}
                   onEntityClick={(entity) => {
+                    // Map non-existent demo slugs to existing ones
+                    const FALLBACK_SLUGS: Record<string, string> = {
+                      'demo-pulse-media': 'brandhub',
+                      'demo-horizon-finance': 'demo-nexus-tech',
+                      'demo-pulse-stream': 'demo-nexus-cloud',
+                      'demo-horizon-invest': 'demo-bloom-oils',
+                      'demo-pulse-live': 'demo-innovation-summit',
+                      'demo-finance-summit': 'demo-innovation-summit',
+                      'demo-bloom-retreat': 'demo-innovation-summit',
+                    };
+                    const slug = entity.slug || entity.id;
+                    const resolvedSlug = FALLBACK_SLUGS[slug] || slug;
                     const pathPrefix = entity.type === 'brand' ? '/demo/brand' : entity.type === 'product' ? '/demo/product' : '/demo/event';
-                    const path = `${pathPrefix}/${entity.slug || entity.id}`;
+                    // Use the fallback's correct type prefix
+                    const fallbackType = FALLBACK_SLUGS[slug]
+                      ? (['brandhub', 'demo-nexus-tech', 'demo-bloom-wellness'].includes(resolvedSlug) ? 'brand' : ['demo-nexus-cloud', 'demo-bloom-oils'].includes(resolvedSlug) ? 'product' : 'event')
+                      : entity.type;
+                    const prefix = fallbackType === 'brand' ? '/demo/brand' : fallbackType === 'product' ? '/demo/product' : '/demo/event';
+                    const path = `${prefix}/${resolvedSlug}`;
                     handleDemoClick(path, entity.name);
                   }}
                 />
