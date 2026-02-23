@@ -17,6 +17,7 @@ import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { DigitalCollateralPreviewDialog, CollateralPreviewItem } from './DigitalCollateralPreviewDialog';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
+import { LiveFilesLink } from './LiveFilesLink';
 
 interface EventDigitalSectionProps {
   materials: EventDigitalMaterial[];
@@ -232,6 +233,11 @@ export const EventDigitalSection = ({
     toast.success('Banner removed');
   };
 
+  const updateBanner = (id: string, updates: Partial<EventBanner>) => {
+    if (!onBannersChange) return;
+    onBannersChange(banners.map(b => b.id === id ? { ...b, ...updates } : b));
+  };
+
   // Material handlers
   const handleAddMaterial = () => {
     if (!newMaterial.name) return;
@@ -255,6 +261,11 @@ export const EventDigitalSection = ({
   const handleDeleteMaterial = (id: string) => {
     onUpdate(materials.filter(m => m.id !== id));
     toast.success('Material removed');
+  };
+
+  const updateMaterial = (id: string, updates: Partial<EventDigitalMaterial>) => {
+    onUpdate(materials.map(m => m.id === id ? { ...m, ...updates } : m));
+  };
   };
 
   // Template handlers
@@ -403,6 +414,11 @@ export const EventDigitalSection = ({
     toast.success('Infographic removed');
   };
 
+  const updateInfographic = (id: string, updates: Partial<EventInfographic>) => {
+    if (!onInfographicsChange) return;
+    onInfographicsChange(infographics.map(i => i.id === id ? { ...i, ...updates } : i));
+  };
+
   // Application handlers
   const handleAddApplication = async (file: File) => {
     if (!onApplicationsChange) return;
@@ -425,7 +441,11 @@ export const EventDigitalSection = ({
     toast.success('Application asset removed');
   };
 
-  // Digital Assets handlers
+  const updateApplication = (id: string, updates: Partial<EventApplication>) => {
+    if (!onApplicationsChange) return;
+    onApplicationsChange(applications.map(a => a.id === id ? { ...a, ...updates } : a));
+  };
+
   const handleDigitalAssetUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!onDigitalAssetsChange || !e.target.files?.length) return;
     const file = e.target.files[0];
@@ -456,6 +476,11 @@ export const EventDigitalSection = ({
     if (!onDigitalAssetsChange) return;
     onDigitalAssetsChange(digitalAssets.filter(a => a.id !== id));
     toast.success('Asset removed');
+  };
+
+  const updateDigitalAsset = (id: string, updates: Partial<EventDigitalAsset>) => {
+    if (!onDigitalAssetsChange) return;
+    onDigitalAssetsChange(digitalAssets.map(a => a.id === id ? { ...a, ...updates } : a));
   };
 
   const hasTemplatesSection = !!onTemplatesChange || templates.length > 0;
@@ -738,7 +763,7 @@ export const EventDigitalSection = ({
                         </Button>
                       )}
                     </div>
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex flex-wrap gap-2 mt-3">
                       {banner.previewUrl && (
                         <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => openCollateralPreview({
                           name: banner.name, imageUrl: banner.previewUrl, typeLabel: BANNER_TYPES.find(t => t.value === banner.type)?.label, dimensions: banner.dimensions, platform: banner.platform, templateUrl: banner.templateUrl,
@@ -752,6 +777,12 @@ export const EventDigitalSection = ({
                           </a>
                         </Button>
                       )}
+                      <LiveFilesLink
+                        url={banner.liveFilesUrl}
+                        onUrlChange={(url) => updateBanner(banner.id, { liveFilesUrl: url })}
+                        isEditable={isEditable && !!onBannersChange}
+                        compact={cardSize === 'compact'}
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -1351,6 +1382,16 @@ export const EventDigitalSection = ({
                                   </a>
                                 </Button>
                               )}
+                              <LiveFilesLink
+                                url={banner.liveFilesUrl}
+                                onUrlChange={(url) => {
+                                  if (!onEmailBannersChange) return;
+                                  onEmailBannersChange(emailBanners.map(b => b.id === banner.id ? { ...b, liveFilesUrl: url } : b));
+                                }}
+                                isEditable={isEditable && !!onEmailBannersChange}
+                                compact={cardSize === 'compact'}
+                                className="mt-2"
+                              />
                             </>
                           )}
                         </CardContent>
@@ -1421,6 +1462,13 @@ export const EventDigitalSection = ({
                         <h4 className="font-medium text-sm truncate">{item.name}</h4>
                         {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
                         {item.category && <Badge variant="outline" className="mt-1.5 text-xs">{item.category}</Badge>}
+                        <LiveFilesLink
+                          url={item.liveFilesUrl}
+                          onUrlChange={(url) => updateInfographic(item.id, { liveFilesUrl: url })}
+                          isEditable={isEditable && !!onInfographicsChange}
+                          compact={cardSize === 'compact'}
+                          className="mt-2"
+                        />
                       </CardContent>
                     </Card>
                   ))}
@@ -1497,6 +1545,13 @@ export const EventDigitalSection = ({
                             </a>
                           </Button>
                         )}
+                        <LiveFilesLink
+                          url={app.liveFilesUrl}
+                          onUrlChange={(url) => updateApplication(app.id, { liveFilesUrl: url })}
+                          isEditable={isEditable && !!onApplicationsChange}
+                          compact={cardSize === 'compact'}
+                          className="mt-2"
+                        />
                       </CardContent>
                     </Card>
                   ))}
@@ -1580,6 +1635,13 @@ export const EventDigitalSection = ({
                             <p className="text-xs text-muted-foreground truncate">{asset.description}</p>
                           )}
                         </div>
+                        <LiveFilesLink
+                          url={asset.liveFilesUrl}
+                          onUrlChange={(url) => updateDigitalAsset(asset.id, { liveFilesUrl: url })}
+                          isEditable={isEditable && !!onDigitalAssetsChange}
+                          compact={cardSize === 'compact'}
+                          className="mt-2"
+                        />
                       </CardContent>
                     </Card>
                   ))}
