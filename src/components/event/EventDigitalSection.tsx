@@ -490,7 +490,7 @@ export const EventDigitalSection = ({
           )}
           {hasEmailBannersSection && (
             <TabsTrigger value="emailbanners" className="gap-1.5">
-              <Mail className="h-4 w-4" />
+              <ImageIcon className="h-4 w-4" />
               Social Banners
               {emailBanners.length > 0 && <span className="text-xs text-muted-foreground">({emailBanners.length})</span>}
             </TabsTrigger>
@@ -1182,16 +1182,16 @@ export const EventDigitalSection = ({
             {emailBanners.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <Mail className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h3 className="font-semibold text-lg mb-2">No email banners yet</h3>
-                  <p className="text-muted-foreground mb-4">Add promotional banners for email campaigns and newsletters</p>
+                  <ImageIcon className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="font-semibold text-lg mb-2">No social banners yet</h3>
+                  <p className="text-muted-foreground mb-4">Add social media banner images for platforms like Facebook, LinkedIn, Instagram, and X</p>
                   {isEditable && (
                     <>
                       <input ref={emailBannerFileInputRef} type="file" accept="image/*" className="hidden"
                         onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAddEmailBanner(f); if (emailBannerFileInputRef.current) emailBannerFileInputRef.current.value = ''; }}
                       />
                       <Button onClick={() => emailBannerFileInputRef.current?.click()} disabled={isUploading}>
-                        <Upload className="h-4 w-4 mr-2" />{isUploading ? 'Uploading...' : 'Upload First Email Banner'}
+                        <Upload className="h-4 w-4 mr-2" />{isUploading ? 'Uploading...' : 'Upload First Social Banner'}
                       </Button>
                     </>
                   )}
@@ -1223,7 +1223,7 @@ export const EventDigitalSection = ({
                               <img src={banner.imageUrl} alt={banner.name} className="w-full h-full object-contain cursor-pointer" onClick={() => openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, externalUrl: banner.linkUrl })} />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <Mail className="h-8 w-8 text-muted-foreground/30" />
+                                <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
                               </div>
                             )}
                             {banner.imageUrl && (
