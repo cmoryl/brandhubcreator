@@ -1220,7 +1220,7 @@ export const EventDigitalSection = ({
                             style={{ aspectRatio: `${aspectRatio}` }}
                           >
                           {banner.imageUrl ? (
-                              <img src={banner.imageUrl} alt={banner.name} className="w-full h-full object-contain cursor-pointer" onClick={() => openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, externalUrl: banner.linkUrl })} />
+                              <img src={banner.imageUrl} alt={banner.name} className="w-full h-full object-contain cursor-pointer" onClick={() => openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, fileUrl: banner.linkUrl, externalUrl: banner.linkUrl })} />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
@@ -1228,10 +1228,10 @@ export const EventDigitalSection = ({
                             )}
                             {banner.imageUrl && (
                               <div
-                                className="absolute inset-0 flex items-center justify-center bg-foreground/0 hover:bg-foreground/20 transition-colors cursor-pointer"
-                                onClick={() => openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, externalUrl: banner.linkUrl })}
+                                className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/20 transition-colors cursor-pointer"
+                                onClick={() => openCollateralPreview({ name: banner.name, imageUrl: banner.imageUrl, width: banner.width, height: banner.height, description: banner.description, fileUrl: banner.linkUrl, externalUrl: banner.linkUrl })}
                               >
-                                <Maximize2 className="h-5 w-5 text-background opacity-0 hover:opacity-80 transition-opacity drop-shadow-lg" />
+                                <Maximize2 className="h-5 w-5 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
                               </div>
                             )}
                             {isEditable && (
