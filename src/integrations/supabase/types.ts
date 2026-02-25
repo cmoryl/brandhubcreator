@@ -3452,6 +3452,62 @@ export type Database = {
           },
         ]
       }
+      portfolio_relationships: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          organization_id: string
+          relationship_type: string
+          source_entity_id: string
+          source_entity_name: string
+          source_entity_type: string
+          strength_score: number | null
+          target_entity_id: string
+          target_entity_name: string
+          target_entity_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+          relationship_type?: string
+          source_entity_id: string
+          source_entity_name: string
+          source_entity_type: string
+          strength_score?: number | null
+          target_entity_id: string
+          target_entity_name: string
+          target_entity_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+          relationship_type?: string
+          source_entity_id?: string
+          source_entity_name?: string
+          source_entity_type?: string
+          strength_score?: number | null
+          target_entity_id?: string
+          target_entity_name?: string
+          target_entity_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_relationships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       presentation_templates: {
         Row: {
           card_image_url: string | null
