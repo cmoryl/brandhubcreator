@@ -7,6 +7,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export type IntelligenceCadence = 'daily' | 'weekly' | 'biweekly' | 'monthly';
+
 export interface IntelligenceAlert {
   id: string;
   organization_id: string;
@@ -28,6 +30,8 @@ export function useIntelligenceAlerts(organizationId: string | null | undefined)
   const [alerts, setAlerts] = useState<IntelligenceAlert[]>([]);
   const [unacknowledgedCount, setUnacknowledgedCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [cadence, setCadence] = useState<IntelligenceCadence>('monthly');
+  const [isCadenceLoading, setIsCadenceLoading] = useState(false);
 
   const fetchAlerts = useCallback(async (showAll = false) => {
     if (!organizationId) return;
@@ -141,6 +145,35 @@ export function useIntelligenceAlerts(organizationId: string | null | undefined)
     }
   }, [organizationId, fetchAlerts]);
 
+  const fetchCadence = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_intelligence_cadence');
+      if (error) throw error;
+      if (data) setCadence(data as IntelligenceCadence);
+    } catch (err) {
+      console.error('[IntelligenceAlerts] Cadence fetch error:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCadence();
+  }, [fetchCadence]);
+
+  const updateCadence = useCallback(async (newCadence: IntelligenceCadence) => {
+    setIsCadenceLoading(true);
+    try {
+      const { error } = await supabase.rpc('update_intelligence_cadence', { p_cadence: newCadence });
+      if (error) throw error;
+      setCadence(newCadence);
+      toast.success(`Intelligence cadence updated to ${newCadence}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to update cadence';
+      toast.error(msg);
+    } finally {
+      setIsCadenceLoading(false);
+    }
+  }, []);
+
   return {
     alerts,
     unacknowledgedCount,
@@ -150,5 +183,8 @@ export function useIntelligenceAlerts(organizationId: string | null | undefined)
     acknowledgeAll,
     deleteAlert,
     triggerScheduledRun,
+    cadence,
+    isCadenceLoading,
+    updateCadence,
   };
 }

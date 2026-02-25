@@ -4679,6 +4679,7 @@ export type Database = {
           website_score: number
         }[]
       }
+      get_intelligence_cadence: { Args: never; Returns: string }
       get_linked_products_card_data: {
         Args: { p_parent_brand_id: string }
         Returns: {
@@ -4923,6 +4924,10 @@ export type Database = {
           p_table: string
         }
         Returns: undefined
+      }
+      update_intelligence_cadence: {
+        Args: { p_cadence: string }
+        Returns: boolean
       }
       validate_and_accept_invite: {
         Args: { p_invite_token: string; p_user_id: string }
