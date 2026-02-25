@@ -49,19 +49,17 @@ The intelligence layer is already robust -- Oracle Brain, Brand Intelligence Wor
 
 ---
 
-## 4. Conversational Intelligence Memory (Assistant Context Window)
+## 4. ✅ Conversational Intelligence Memory (Assistant Context Window) — COMPLETED
 
-**Problem:** The Brand Assistant (DataForce) resets context per conversation. It doesn't learn from previous conversations or cross-reference past questions.
-
-**Solution:** Implement a lightweight retrieval layer that:
-- Stores conversation summaries and key decisions in `assistant_memory` table
-- On new conversations, retrieves the 5 most relevant past conversation summaries using keyword matching
-- Feeds these as "institutional memory" into the system prompt
-
-**Technical approach:**
-- New DB table: `assistant_memory` (org_id, entity_id, summary, key_decisions JSONB, topics TEXT[], created_at)
-- Update `dataforce-assistant` Edge Function to summarize completed conversations and store them
-- On new conversations, query `assistant_memory` by entity and inject relevant context
+**Implemented:**
+- `assistant_memory` table with RLS policies (org member view, org admin CRUD)
+- Indexes on organization_id, entity_id+entity_type, and GIN on topics array
+- Edge function `dataforce-assistant` updated to:
+  - Fetch relevant `assistant_memory` entries (entity-specific + org-wide) in parallel with other queries
+  - Inject institutional memory into system prompt as context
+  - Background task summarizes conversations every 10 messages using `gemini-2.5-flash-lite`
+  - Summaries include key decisions and topic keywords for future retrieval
+- Cumulative learning: memory entries persist across conversations and users
 
 ---
 
@@ -88,9 +86,9 @@ The intelligence layer is already robust -- Oracle Brain, Brand Intelligence Wor
 | Step | Impact | Effort | Recommendation |
 |------|--------|--------|---------------|
 | 1. Scheduled Automation | High | Medium | ✅ DONE |
-| 2. Digest Emails | High | Medium | Pairs with Step 1 for maximum reach |
-| 3. Relationship Graph | Medium | High | Differentiator but complex |
-| 4. Assistant Memory | Medium | Medium | Improves assistant quality over time |
+| 2. Digest Panel | High | Medium | ✅ DONE |
+| 3. Relationship Graph | Medium | High | ✅ DONE |
+| 4. Assistant Memory | Medium | Medium | ✅ DONE |
 | 5. Calibration Dashboard | Low | Low | Quick win for admin visibility |
 
 Steps 1 and 2 together create a "set it and forget it" intelligence pipeline that keeps the brain active without manual intervention. Step 4 makes the assistant smarter over time. Steps 3 and 5 add visibility and differentiation.
