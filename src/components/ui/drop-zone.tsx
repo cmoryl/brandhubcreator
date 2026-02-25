@@ -217,6 +217,11 @@ export const DropZone = ({
           <>
             {placeholderIcon || <Upload className={iconSize[variant]} />}
             <span className={cn('font-medium', textSize[variant])}>{placeholder}</span>
+            {isDragging && (
+              <span className="text-[10px] text-primary font-medium mt-1 animate-pulse">
+                Release to upload
+              </span>
+            )}
           </>
         )}
       </button>
