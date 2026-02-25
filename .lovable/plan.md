@@ -1,100 +1,102 @@
 
 
-# Build Optimization Audit -- Missing Includes and Improvements
+# Next Steps for the Brain of the Application
 
-After reviewing the full build configuration, here are the gaps and recommended additions across chunking, caching, PWA, and headers.
-
----
-
-## 1. Missing `manualChunks` for Heavy Libraries
-
-Several large dependencies are not grouped into dedicated chunks, meaning they get bundled into the main app chunk or scattered across route chunks, increasing initial load.
-
-| Library | Approx Size | Current Chunk | Recommended Chunk |
-|---|---|---|---|
-| Recharts | ~200KB | (none -- mixed into app) | `vendor-charts` |
-| jsPDF + html2pdf + html2canvas | ~150KB | (none) | `vendor-pdf` |
-| JSZip | ~90KB | (none) | `vendor-zip` |
-| xlsx | ~300KB+ | (none) | `vendor-xlsx` |
-| pdfjs-dist | ~400KB+ | (none) | `vendor-pdfjs` |
-| DOMPurify | ~30KB | (none) | `vendor-sanitize` |
-| qr-code-styling + qrcode | ~50KB | (none) | `vendor-qr` |
-| cmdk | ~20KB | (none) | `vendor-ui` (merge with Radix) |
-| zod | ~50KB | (none) | `vendor-utils` (merge with existing) |
-| embla-carousel-react | ~25KB | (none) | `vendor-ui` (merge with Radix) |
-
-**Action:** Add these groupings to the `manualChunks` function in `vite.config.ts`.
+The intelligence layer is already robust -- Oracle Brain, Brand Intelligence Workers, DataForce services, Portfolio Insights, Health Snapshots, and deep inclusive design analysis are all operational. Here are the highest-impact next steps, ordered by strategic value.
 
 ---
 
-## 2. Missing PWA Runtime Caching Rules
+## 1. Scheduled Intelligence Automation (Cron Jobs)
 
-The workbox config only caches Google Fonts and Supabase storage. These are missing:
+**Problem:** All intelligence runs are currently manual -- an admin must click "Synthesize" or "Analyze." Insights go stale between clicks.
 
-- **Backend API calls** -- Cache GET requests to the Supabase REST API with `NetworkFirst` strategy so offline reads work for previously-fetched data
-- **CDN-hosted PDF.js worker** -- The worker is loaded from `cdnjs.cloudflare.com`; should be cached with `CacheFirst`
-- **External favicon** -- The favicon is loaded from `storage.googleapis.com`; should be cached
+**Solution:** Add a `scheduled-intelligence` Edge Function triggered on a configurable cadence (weekly/monthly) that automatically:
+- Runs Oracle Brain synthesis for each organization
+- Triggers health snapshots for all entities
+- Extracts portfolio insights
+- Flags significant score drops via a new `intelligence_alerts` table
 
-**Action:** Add 2-3 additional `runtimeCaching` entries to the workbox config.
-
----
-
-## 3. Missing `_headers` Security and Performance Headers
-
-The `_headers` file only sets `Cache-Control`. Production sites should also include:
-
-- `X-Content-Type-Options: nosniff` -- Prevents MIME-type sniffing
-- `X-Frame-Options: DENY` -- Prevents clickjacking
-- `Referrer-Policy: strict-origin-when-cross-origin` -- Controls referrer leakage
-- `Permissions-Policy` -- Restricts browser features (camera, microphone, etc.)
-- `Content-Security-Policy` -- (basic, report-only initially)
-- Cache headers for `.woff`/`.woff2` font files (currently missing from `_headers`)
-- Cache headers for PWA manifest (`/manifest.webmanifest`)
-
-**Action:** Add a global `/*` block with security headers and font/manifest caching rules.
+**Technical approach:**
+- New Edge Function: `scheduled-intelligence/index.ts`
+- New DB table: `intelligence_alerts` (org_id, alert_type, severity, message, entity_id, acknowledged, created_at)
+- Admin Dashboard widget showing unacknowledged alerts
+- Config entry in `supabase/config.toml`
 
 ---
 
-## 4. Missing `optimizeDeps.include` Entries
+## 2. Intelligence Digest / Executive Summary Email
 
-The `optimizeDeps.include` list pre-bundles dependencies to prevent duplicate instances in dev. Missing entries that should be added:
+**Problem:** Insights are buried in the admin panel. Stakeholders who don't log in regularly miss critical intelligence.
 
-- `recharts` -- heavy chart library, benefits from pre-bundling
-- `zod` -- used with react-hook-form resolvers
-- `dompurify` -- used in multiple components
-- `@supabase/supabase-js` -- core dependency
+**Solution:** A `send-intelligence-digest` Edge Function that compiles the latest Oracle summary, health deltas, new portfolio insights, and compliance score changes into a formatted email digest sent to org admins.
 
----
-
-## 5. PWA `globPatterns` Missing File Types
-
-Current pattern: `**/*.{js,css,html,ico,png,svg,woff,woff2}`
-
-Missing extensions:
-- `.webp` -- used for optimized images
-- `.jpg` / `.jpeg` -- product/event imagery in public folder
-- `.json` -- for any public JSON data files
-- `.xml` -- sitemap.xml should be precached
-
-**Action:** Expand `globPatterns` to include these.
+**Technical approach:**
+- New Edge Function using Lovable AI to generate a natural-language executive summary from the latest oracle_intelligence, health_snapshots, and portfolio_insights
+- Leverage the existing `intelligence_alerts` from Step 1 as content source
+- Configurable frequency per organization (stored in org settings)
 
 ---
 
-## 6. Build Target and Minification
+## 3. Cross-Entity Intelligence Graph (Relationship Mapping)
 
-Current config does not specify:
-- `build.target` -- defaults to `modules`; can be set to `es2020` to match `tsconfig` for consistent output
-- `build.minify` -- defaults to `esbuild` which is fine, but `cssMinify: 'lightningcss'` could improve CSS output size (requires adding `lightningcss` dep)
-- `build.chunkSizeWarningLimit` -- not set; setting to `600` would flag oversized chunks during development
+**Problem:** Entity brains operate mostly independently. The Oracle synthesizes them into a flat summary, but there's no structured mapping of *how* brands, products, and events relate to each other strategically.
+
+**Solution:** Add a `portfolio_relationships` table and a visual relationship graph in the Oracle Brain panel showing:
+- Brand-to-product inheritance strength
+- Event-to-brand alignment scores
+- Cross-entity voice consistency scores
+- Audience overlap percentages
+
+**Technical approach:**
+- New DB table: `portfolio_relationships` (source_entity_id, target_entity_id, relationship_type, strength_score, metadata JSONB)
+- Oracle synthesis extended to populate relationship data
+- New `IntelligenceGraph` component using the existing Three.js/React Three Fiber dependency for an interactive 3D network visualization (or a simpler 2D force-directed graph)
 
 ---
 
-## Technical Implementation Summary
+## 4. Conversational Intelligence Memory (Assistant Context Window)
 
-All changes are confined to three files:
-1. **`vite.config.ts`** -- Add ~8 new `manualChunks` groups, expand `optimizeDeps.include`, add `globPatterns` extensions, add runtime caching rules, set build target
-2. **`public/_headers`** -- Add security headers block and font/manifest cache rules
-3. No new dependencies required (lightningcss is optional)
+**Problem:** The Brand Assistant (DataForce) resets context per conversation. It doesn't learn from previous conversations or cross-reference past questions.
 
-Estimated impact: 15-25% faster cold-load for editor pages by isolating heavy PDF/chart/spreadsheet libraries into lazy-loaded chunks instead of bundling them with route code.
+**Solution:** Implement a lightweight retrieval layer that:
+- Stores conversation summaries and key decisions in `assistant_memory` table
+- On new conversations, retrieves the 5 most relevant past conversation summaries using keyword matching
+- Feeds these as "institutional memory" into the system prompt
+
+**Technical approach:**
+- New DB table: `assistant_memory` (org_id, entity_id, summary, key_decisions JSONB, topics TEXT[], created_at)
+- Update `dataforce-assistant` Edge Function to summarize completed conversations and store them
+- On new conversations, query `assistant_memory` by entity and inject relevant context
+
+---
+
+## 5. Intelligence Confidence Calibration Dashboard
+
+**Problem:** The learning architecture (confidence_history, semantic_hashes, decay_config) exists in the data model but has no admin-facing visibility or tuning controls.
+
+**Solution:** Add an "AI Calibration" tab to the Oracle Brain panel showing:
+- Confidence trends over time (are insights getting more accurate?)
+- Feedback loop metrics (how many insights were approved vs rejected)
+- Decay curve visualization (how old insights are being weighted)
+- Calibration controls for decay half-life and confidence thresholds
+
+**Technical approach:**
+- New component: `AICalibrationPanel.tsx` in the Oracle Brain section
+- Recharts line/area charts for confidence trends
+- Admin controls to adjust `decay_config` parameters
+- Read from existing `brand_intelligence` JSONB fields (confidence_history, insight_actions)
+
+---
+
+## Priority Recommendation
+
+| Step | Impact | Effort | Recommendation |
+|------|--------|--------|---------------|
+| 1. Scheduled Automation | High | Medium | Start here -- eliminates manual overhead |
+| 2. Digest Emails | High | Medium | Pairs with Step 1 for maximum reach |
+| 3. Relationship Graph | Medium | High | Differentiator but complex |
+| 4. Assistant Memory | Medium | Medium | Improves assistant quality over time |
+| 5. Calibration Dashboard | Low | Low | Quick win for admin visibility |
+
+Steps 1 and 2 together create a "set it and forget it" intelligence pipeline that keeps the brain active without manual intervention. Step 4 makes the assistant smarter over time. Steps 3 and 5 add visibility and differentiation.
 
