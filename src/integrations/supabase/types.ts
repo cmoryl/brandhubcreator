@@ -2482,6 +2482,68 @@ export type Database = {
           },
         ]
       }
+      intelligence_alerts: {
+        Row: {
+          acknowledged: boolean
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string
+          entity_id: string | null
+          entity_name: string | null
+          entity_type: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          organization_id: string
+          severity: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          organization_id: string
+          severity?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          organization_id?: string
+          severity?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_alerts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_submissions: {
         Row: {
           admin_notes: string | null

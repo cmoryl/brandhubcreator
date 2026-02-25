@@ -8,7 +8,7 @@ import {
   Brain, Sparkles, Target, Users, TrendingUp, Globe2, 
   MessageSquare, Plus, Trash2, Loader2, RefreshCw,
   Lightbulb, BarChart3, BookOpen, Zap, Pencil, Eye,
-  Save, X
+  Save, X, Bell
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useOracleBrain, type OracleIntelligence } from '@/hooks/useOracleBrain';
+import { IntelligenceAlertsWidget } from './IntelligenceAlertsWidget';
 
 interface OracleBrainPanelProps {
   organizationId?: string;
@@ -118,6 +119,9 @@ export function OracleBrainPanel({ organizationId }: OracleBrainPanelProps) {
           </div>
         )}
       </div>
+
+      {/* Intelligence Alerts */}
+      <IntelligenceAlertsWidget organizationId={orgId} />
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>

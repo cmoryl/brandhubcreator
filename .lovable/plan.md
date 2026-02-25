@@ -6,20 +6,15 @@ The intelligence layer is already robust -- Oracle Brain, Brand Intelligence Wor
 
 ---
 
-## 1. Scheduled Intelligence Automation (Cron Jobs)
+## 1. ✅ Scheduled Intelligence Automation (Cron Jobs) — COMPLETED
 
-**Problem:** All intelligence runs are currently manual -- an admin must click "Synthesize" or "Analyze." Insights go stale between clicks.
-
-**Solution:** Add a `scheduled-intelligence` Edge Function triggered on a configurable cadence (weekly/monthly) that automatically:
-- Runs Oracle Brain synthesis for each organization
-- Triggers health snapshots for all entities
-- Extracts portfolio insights
-- Flags significant score drops via a new `intelligence_alerts` table
-
-**Technical approach:**
-- New Edge Function: `scheduled-intelligence/index.ts`
-- New DB table: `intelligence_alerts` (org_id, alert_type, severity, message, entity_id, acknowledged, created_at)
-- Admin Dashboard widget showing unacknowledged alerts
+**Implemented:**
+- `intelligence_alerts` table with RLS policies (org member view, org admin CRUD)
+- `scheduled-intelligence` Edge Function that orchestrates Oracle synthesis, health snapshots, portfolio insights, and generates alerts for significant score drops (≥5pt)
+- `IntelligenceAlertsWidget` component integrated into Oracle Brain panel with acknowledge/dismiss/run-now actions
+- `useIntelligenceAlerts` hook for managing alert state
+- Monthly cron job (1st of each month at 9 AM) via pg_cron + pg_net
+- Score drop severity levels: ≥15pt = critical, ≥10pt = warning, ≥5pt = info
 - Config entry in `supabase/config.toml`
 
 ---
@@ -92,11 +87,10 @@ The intelligence layer is already robust -- Oracle Brain, Brand Intelligence Wor
 
 | Step | Impact | Effort | Recommendation |
 |------|--------|--------|---------------|
-| 1. Scheduled Automation | High | Medium | Start here -- eliminates manual overhead |
+| 1. Scheduled Automation | High | Medium | ✅ DONE |
 | 2. Digest Emails | High | Medium | Pairs with Step 1 for maximum reach |
 | 3. Relationship Graph | Medium | High | Differentiator but complex |
 | 4. Assistant Memory | Medium | Medium | Improves assistant quality over time |
 | 5. Calibration Dashboard | Low | Low | Quick win for admin visibility |
 
 Steps 1 and 2 together create a "set it and forget it" intelligence pipeline that keeps the brain active without manual intervention. Step 4 makes the assistant smarter over time. Steps 3 and 5 add visibility and differentiation.
-
