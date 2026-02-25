@@ -113,10 +113,22 @@ serve(async (req) => {
       .order('updated_at', { ascending: false })
       .limit(6);
 
-    const [convResult, personaResult, pastConvsResult] = await Promise.all([
+    // Load institutional memory for this entity (or org-wide if no entity)
+    const memoryQuery = supabase
+      .from('assistant_memory')
+      .select('summary, key_decisions, topics, entity_type, entity_id, created_at')
+      .eq('organization_id', organization_id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    if (entity_id) {
+      // Fetch both entity-specific and org-wide memory
+    }
+
+    const [convResult, personaResult, pastConvsResult, memoryResult] = await Promise.all([
       conversationPromise,
       personaPromise,
       pastConvsPromise,
+      memoryQuery,
     ]);
 
     conversation = convResult.data;
@@ -666,9 +678,29 @@ serve(async (req) => {
       pastConversationContext = `\n\nPAST CONVERSATIONS WITH THIS USER (for continuity):\n${pastConversationSummaries.join('\n')}`;
     }
 
+    // Build institutional memory context from assistant_memory table
+    let institutionalMemoryContext = '';
+    if (memoryResult.data?.length) {
+      const memParts: string[] = [];
+      // Prioritize entity-specific memory, then org-wide
+      const entityMemory = entity_id ? memoryResult.data.filter((m: any) => m.entity_id === entity_id) : [];
+      const orgMemory = memoryResult.data.filter((m: any) => !entityMemory.includes(m));
+      const relevantMemory = [...entityMemory.slice(0, 5), ...orgMemory.slice(0, 3)];
+      for (const mem of relevantMemory) {
+        const entityLabel = mem.entity_type ? ` [${mem.entity_type}]` : '';
+        const decisions = Array.isArray(mem.key_decisions) && mem.key_decisions.length
+          ? ` | Decisions: ${mem.key_decisions.slice(0, 3).map((d: any) => typeof d === 'string' ? d : d.decision || d.text || '').filter(Boolean).join('; ')}`
+          : '';
+        memParts.push(`- ${new Date(mem.created_at).toLocaleDateString()}${entityLabel}: ${(mem.summary || '').slice(0, 250)}${decisions}`);
+      }
+      if (memParts.length > 0) {
+        institutionalMemoryContext = `\n\nINSTITUTIONAL MEMORY (key learnings from past conversations):\n${memParts.join('\n')}`;
+      }
+    }
+
     const systemPrompt = `${persona}${personalityBlock}${styleBlock}
 
-${entityContext}${oracleContext}${crossEntityContext}${entityDirectory}${personaContext}${pastConversationContext}
+${entityContext}${oracleContext}${crossEntityContext}${entityDirectory}${personaContext}${pastConversationContext}${institutionalMemoryContext}
 ${languageInstruction}
 
 Guidelines for responses:
@@ -868,6 +900,70 @@ Only use slugs that exist in the entity directory. Do not fabricate slugs. If no
 
     // Run persona update in background
     (globalThis as any).EdgeRuntime?.waitUntil?.(personaUpdateTask()) || personaUpdateTask();
+
+    // Background conversation memory: summarize when conversation reaches 10+ messages
+    const memorySaveTask = async () => {
+      try {
+        if (newMessages.length >= 10 && newMessages.length % 10 === 0 && LOVABLE_API_KEY) {
+          const recentMsgs = newMessages.slice(-20).map((m: any) => `${m.role}: ${(m.content || '').slice(0, 300)}`).join('\n');
+          const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash-lite',
+              temperature: 0.2,
+              max_tokens: 512,
+              messages: [
+                { role: "system", content: "Summarize this conversation into a concise institutional memory entry. Return ONLY valid JSON." },
+                { role: "user", content: `Summarize the key topics, decisions, and insights from this conversation:\n\n${recentMsgs}\n\nReturn JSON:\n- summary: string (2-3 sentences)\n- key_decisions: string[] (max 5 actionable decisions made)\n- topics: string[] (max 8 topic keywords)` }
+              ],
+              tools: [{
+                type: "function",
+                function: {
+                  name: "save_memory",
+                  description: "Save conversation memory",
+                  parameters: {
+                    type: "object",
+                    properties: {
+                      summary: { type: "string" },
+                      key_decisions: { type: "array", items: { type: "string" } },
+                      topics: { type: "array", items: { type: "string" } }
+                    },
+                    required: ["summary", "topics"],
+                    additionalProperties: false
+                  }
+                }
+              }],
+              tool_choice: { type: "function", function: { name: "save_memory" } }
+            }),
+          });
+
+          if (summaryResponse.ok) {
+            const sResult = await summaryResponse.json();
+            const toolCall = sResult.choices?.[0]?.message?.tool_calls?.[0];
+            if (toolCall?.function?.arguments) {
+              const extracted = JSON.parse(toolCall.function.arguments);
+              await supabase.from('assistant_memory').insert({
+                organization_id,
+                entity_type: entity_type || null,
+                entity_id: entity_id || null,
+                summary: extracted.summary || 'Conversation summary',
+                key_decisions: extracted.key_decisions || [],
+                topics: extracted.topics || [],
+                conversation_id: conversation.id,
+              });
+              console.log('[dataforce-assistant] Conversation memory saved');
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[dataforce-assistant] Memory save failed (non-critical):', e);
+      }
+    };
+    (globalThis as any).EdgeRuntime?.waitUntil?.(memorySaveTask()) || memorySaveTask();
 
     return new Response(
       JSON.stringify({

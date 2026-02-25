@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      assistant_memory: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          key_decisions: Json | null
+          organization_id: string
+          summary: string
+          topics: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          key_decisions?: Json | null
+          organization_id: string
+          summary: string
+          topics?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          key_decisions?: Json | null
+          organization_id?: string
+          summary?: string
+          topics?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_memory_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action_type: string
