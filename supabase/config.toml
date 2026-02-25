@@ -91,3 +91,6 @@ verify_jwt = false
 
 [functions.portfolio-insights-extractor]
 verify_jwt = false
+
+[functions.scheduled-intelligence]
+verify_jwt = false
