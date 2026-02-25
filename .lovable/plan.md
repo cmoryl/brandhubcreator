@@ -32,20 +32,22 @@ The intelligence layer is already robust -- Oracle Brain, Brand Intelligence Wor
 
 ---
 
-## 3. Cross-Entity Intelligence Graph (Relationship Mapping)
+## 3. ✅ Cross-Entity Intelligence Graph (Relationship Mapping) — ENRICHED
 
-**Problem:** Entity brains operate mostly independently. The Oracle synthesizes them into a flat summary, but there's no structured mapping of *how* brands, products, and events relate to each other strategically.
+**Implemented (Phase 1):**
+- `portfolio_relationships` table with force-directed 2D graph visualization
+- AI-powered relationship mapping via `generate-portfolio-relationships` edge function
+- 4 relationship types: alignment, voice_consistency, audience_overlap, parent_child
 
-**Solution:** Add a `portfolio_relationships` table and a visual relationship graph in the Oracle Brain panel showing:
-- Brand-to-product inheritance strength
-- Event-to-brand alignment scores
-- Cross-entity voice consistency scores
-- Audience overlap percentages
+**Implemented (Phase 2 — Portfolio Relationship Enrichment):**
+- **7 relationship types**: alignment, voice_consistency, audience_overlap, parent_child, visual_coherence, strategic_complement, competitive_tension
+- **Multi-dimensional scoring**: Each relationship scored on voice, visual, audience, and strategic dimensions
+- **Anomaly detection**: AI identifies voice_mismatch, audience_conflict, visual_inconsistency, strategic_misalignment, orphan_entity, over_coupling
+- **Portfolio coherence scoring**: `portfolio_coherence` table with org-level voice/visual/audience/strategic coherence scores and key insights
+- **Enriched graph UI**: Edge type filtering, dashed-line anomaly indicators, click-to-inspect detail panel with dimensional breakdowns, coherence score card with progress bars
+- **Anomalies panel**: Dedicated panel listing all detected anomalies with severity scores
+- Upgraded AI model to `gemini-2.5-flash` for deeper analysis with richer entity context (colors, values, fonts, voice tone)
 
-**Technical approach:**
-- New DB table: `portfolio_relationships` (source_entity_id, target_entity_id, relationship_type, strength_score, metadata JSONB)
-- Oracle synthesis extended to populate relationship data
-- New `IntelligenceGraph` component using the existing Three.js/React Three Fiber dependency for an interactive 3D network visualization (or a simpler 2D force-directed graph)
 
 ---
 
