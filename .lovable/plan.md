@@ -63,21 +63,16 @@ The intelligence layer is already robust -- Oracle Brain, Brand Intelligence Wor
 
 ---
 
-## 5. Intelligence Confidence Calibration Dashboard
+## 5. ✅ Intelligence Confidence Calibration Dashboard — COMPLETED
 
-**Problem:** The learning architecture (confidence_history, semantic_hashes, decay_config) exists in the data model but has no admin-facing visibility or tuning controls.
-
-**Solution:** Add an "AI Calibration" tab to the Oracle Brain panel showing:
-- Confidence trends over time (are insights getting more accurate?)
-- Feedback loop metrics (how many insights were approved vs rejected)
-- Decay curve visualization (how old insights are being weighted)
-- Calibration controls for decay half-life and confidence thresholds
-
-**Technical approach:**
-- New component: `AICalibrationPanel.tsx` in the Oracle Brain section
-- Recharts line/area charts for confidence trends
-- Admin controls to adjust `decay_config` parameters
-- Read from existing `brand_intelligence` JSONB fields (confidence_history, insight_actions)
+**Implemented:**
+- `AICalibrationPanel.tsx` component integrated as "AI Calibration" tab in Oracle Brain panel
+- Aggregates `confidence_history`, `insight_actions`, and `decay_config` from all `brand_intelligence` rows in the org
+- **Metrics**: AI Accuracy rate, approved/rejected insight counts, average feedback score
+- **Confidence Trends**: Recharts LineChart showing average confidence scores over time
+- **Decay Configuration**: Interactive sliders for half-life (7-90 days) and confidence threshold (20-95%), with live AreaChart preview of the decay curve
+- **Entity Breakdown**: Scrollable list showing per-entity analysis counts, feedback scores, and approval rates
+- Save button persists decay_config to all brand_intelligence rows in the organization
 
 ---
 
@@ -89,6 +84,8 @@ The intelligence layer is already robust -- Oracle Brain, Brand Intelligence Wor
 | 2. Digest Panel | High | Medium | ✅ DONE |
 | 3. Relationship Graph | Medium | High | ✅ DONE |
 | 4. Assistant Memory | Medium | Medium | ✅ DONE |
-| 5. Calibration Dashboard | Low | Low | Quick win for admin visibility |
+| 5. Calibration Dashboard | Low | Low | ✅ DONE |
+
+All 5 steps are now complete. The intelligence pipeline is fully operational with automated scheduling, executive digests, relationship mapping, conversational memory, and calibration controls.
 
 Steps 1 and 2 together create a "set it and forget it" intelligence pipeline that keeps the brain active without manual intervention. Step 4 makes the assistant smarter over time. Steps 3 and 5 add visibility and differentiation.

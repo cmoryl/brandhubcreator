@@ -8,7 +8,7 @@ import {
   Brain, Sparkles, Target, Users, TrendingUp, Globe2, 
   MessageSquare, Plus, Trash2, Loader2, RefreshCw,
   Lightbulb, BarChart3, BookOpen, Zap, Pencil, Eye,
-  Save, X, Bell, Network
+  Save, X, Bell, Network, Activity
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,7 @@ import { useOracleBrain, type OracleIntelligence } from '@/hooks/useOracleBrain'
 import { IntelligenceAlertsWidget } from './IntelligenceAlertsWidget';
 import { IntelligenceDigestPanel } from './IntelligenceDigestPanel';
 import { IntelligenceGraph } from './IntelligenceGraph';
+import { AICalibrationPanel } from './AICalibrationPanel';
 
 interface OracleBrainPanelProps {
   organizationId?: string;
@@ -142,6 +143,9 @@ export function OracleBrainPanel({ organizationId }: OracleBrainPanelProps) {
           <TabsTrigger value="graph" className="gap-1.5">
             <Network className="h-3.5 w-3.5" /> Relationships
           </TabsTrigger>
+          <TabsTrigger value="calibration" className="gap-1.5">
+            <Activity className="h-3.5 w-3.5" /> AI Calibration
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-4">
@@ -163,6 +167,10 @@ export function OracleBrainPanel({ organizationId }: OracleBrainPanelProps) {
 
         <TabsContent value="graph" className="space-y-4 mt-4">
           <IntelligenceGraph organizationId={orgId} />
+        </TabsContent>
+
+        <TabsContent value="calibration" className="space-y-4 mt-4">
+          <AICalibrationPanel organizationId={orgId} />
         </TabsContent>
       </Tabs>
     </div>
