@@ -11,12 +11,20 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Network, Loader2, Zap, AlertTriangle, TrendingUp, 
-  MessageSquare, Users, Eye, Palette, Target, Filter, X
+  MessageSquare, Users, Eye, Palette, Target, Filter, X, Info
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { usePortfolioRelationships, type GraphNode, type GraphEdge } from '@/hooks/usePortfolioRelationships';
 import { cn } from '@/lib/utils';
+
+const COHERENCE_TOOLTIPS: Record<string, string> = {
+  Voice: 'How consistently your entities communicate — tone, language style, and messaging alignment across the portfolio.',
+  Visual: 'Alignment of visual identity — colors, imagery style, and design language across brands, products, and events.',
+  Audience: 'How well your entities\' target audiences complement or overlap without creating conflicts.',
+  Strategic: 'Alignment of business objectives, market positioning, and growth direction across the portfolio.',
+};
 
 interface IntelligenceGraphProps {
   organizationId: string;
@@ -331,11 +339,66 @@ export function IntelligenceGraph({ organizationId }: IntelligenceGraphProps) {
       canvas.style.cursor = 'default';
     };
 
+    // Touch support
+    const getPos = (e: MouseEvent | Touch) => {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        mx: (e.clientX - rect.left) * (canvas.width / rect.width),
+        my: (e.clientY - rect.top) * (canvas.height / rect.height),
+      };
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const { mx, my } = getPos(touch);
+      for (const n of nodesRef.current) {
+        const r = NODE_RADIUS[n.type] || 16;
+        if (Math.hypot(mx - n.x, my - n.y) < r + 8) {
+          e.preventDefault();
+          dragRef.current = { nodeId: n.id, offsetX: mx - n.x, offsetY: my - n.y };
+          return;
+        }
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!dragRef.current.nodeId || e.touches.length !== 1) return;
+      e.preventDefault();
+      const { mx, my } = getPos(e.touches[0]);
+      const n = nodesRef.current.find(n => n.id === dragRef.current.nodeId);
+      if (n) { n.x = mx - dragRef.current.offsetX; n.y = my - dragRef.current.offsetY; n.vx = 0; n.vy = 0; }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (dragRef.current.nodeId) {
+        dragRef.current = { nodeId: null, offsetX: 0, offsetY: 0 };
+        return;
+      }
+      // Tap on edge
+      if (e.changedTouches.length === 1) {
+        const { mx, my } = getPos(e.changedTouches[0]);
+        for (const edge of edgesRef.current) {
+          const s = nodesRef.current.find(n => n.id === edge.source);
+          const t = nodesRef.current.find(n => n.id === edge.target);
+          if (!s || !t) continue;
+          const dist = Math.abs((t.y - s.y) * mx - (t.x - s.x) * my + t.x * s.y - s.x * t.y) / Math.max(Math.hypot(t.x - s.x, t.y - s.y), 1);
+          const withinBounds = mx >= Math.min(s.x, t.x) - 10 && mx <= Math.max(s.x, t.x) + 10
+            && my >= Math.min(s.y, t.y) - 10 && my <= Math.max(s.y, t.y) + 10;
+          if (dist < 12 && withinBounds) { setSelectedEdge(edge); return; }
+        }
+        setSelectedEdge(null);
+      }
+    };
+
     canvas.addEventListener('mousedown', onDown);
     canvas.addEventListener('mousemove', onMove);
     canvas.addEventListener('mouseup', onUp);
     canvas.addEventListener('mouseleave', onUp);
     canvas.addEventListener('click', onClick);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', onTouchEnd);
 
     return () => {
       canvas.removeEventListener('mousedown', onDown);
@@ -343,6 +406,9 @@ export function IntelligenceGraph({ organizationId }: IntelligenceGraphProps) {
       canvas.removeEventListener('mouseup', onUp);
       canvas.removeEventListener('mouseleave', onUp);
       canvas.removeEventListener('click', onClick);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchmove', onTouchMove);
+      canvas.removeEventListener('touchend', onTouchEnd);
     };
   }, []);
 
@@ -440,7 +506,7 @@ export function IntelligenceGraph({ organizationId }: IntelligenceGraphProps) {
                     onClick={() => setShowFilters(!showFilters)}
                   >
                     <Filter className="h-3 w-3" />
-                    Filter
+                    {activeFilters.size > 0 ? `${activeFilters.size} type${activeFilters.size > 1 ? 's' : ''}` : 'All Types'}
                     {activeFilters.size > 0 && (
                       <Badge variant="default" className="text-[9px] h-4 px-1 ml-0.5">
                         {activeFilters.size}
@@ -588,9 +654,15 @@ export function IntelligenceGraph({ organizationId }: IntelligenceGraphProps) {
                 </div>
               )}
 
-              <div className="absolute bottom-3 right-3 text-[10px] text-muted-foreground">
-                {nodes.length} entities · {filteredEdges.length} connections
-                {activeFilters.size > 0 && ` (filtered from ${edges.length})`}
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[10px] text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Click a connection line to see details · Drag nodes to reposition
+                </span>
+                <span>
+                  {nodes.length} entities · {filteredEdges.length} connections
+                  {activeFilters.size > 0 && ` (filtered from ${edges.length})`}
+                </span>
               </div>
             </div>
           )}
@@ -624,7 +696,10 @@ export function IntelligenceGraph({ organizationId }: IntelligenceGraphProps) {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-foreground/80">{anomaly.description || 'No description available'}</p>
+                      <p className="text-xs text-foreground/80">
+                        {anomaly.description || anomaly.rationale || 
+                          `${anomaly.source_entity_name || 'Entity'} ↔ ${anomaly.target_entity_name || 'Entity'}: ${(anomaly.anomaly_type || 'issue').replace(/_/g, ' ')} detected`}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -639,20 +714,32 @@ export function IntelligenceGraph({ organizationId }: IntelligenceGraphProps) {
 
 function CoherenceDimension({ icon, label, score }: { icon: React.ReactNode; label: string; score: number }) {
   const roundedScore = Math.round(score || 0);
+  const tooltip = COHERENCE_TOOLTIPS[label];
   return (
-    <div className="flex items-center gap-2 p-2 rounded-lg bg-background/60 border">
-      <div className="text-primary shrink-0">{icon}</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[10px] text-muted-foreground">{label}</p>
-        <div className="flex items-center gap-1.5">
-          <Progress value={roundedScore} className="flex-1 h-1.5" />
-          <span className={cn(
-            "text-xs font-semibold",
-            roundedScore >= 70 ? "text-emerald-500" :
-            roundedScore >= 40 ? "text-amber-500" : "text-destructive"
-          )}>{roundedScore}%</span>
-        </div>
-      </div>
-    </div>
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/60 border cursor-help">
+            <div className="text-primary shrink-0">{icon}</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-muted-foreground">{label}</p>
+              <div className="flex items-center gap-1.5">
+                <Progress value={roundedScore} className="flex-1 h-1.5" />
+                <span className={cn(
+                  "text-xs font-semibold",
+                  roundedScore >= 70 ? "text-emerald-500" :
+                  roundedScore >= 40 ? "text-amber-500" : "text-destructive"
+                )}>{roundedScore}%</span>
+              </div>
+            </div>
+          </div>
+        </TooltipTrigger>
+        {tooltip && (
+          <TooltipContent side="bottom" className="max-w-[220px] text-xs">
+            {tooltip}
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
   );
 }
