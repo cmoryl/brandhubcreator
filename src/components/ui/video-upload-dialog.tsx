@@ -154,12 +154,15 @@ export const VideoUploadDialog = ({
             Video Upload
           </DialogTitle>
           <DialogDescription>
-            {stage === 'analyzing' && 'Analyzing your video...'}
+            {stage === 'analyzing' && 'Analyzing your video…'}
             {stage === 'prompt' && 'Optimize video for web playback'}
-            {stage === 'compressing' && 'Compressing video...'}
+            {stage === 'compressing' && 'Compressing video…'}
             {stage === 'complete' && 'Compression complete!'}
             {stage === 'error' && 'Something went wrong'}
           </DialogDescription>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Supported: MP4, WebM, MOV · Max 120s · Max 15MB recommended
+          </p>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -247,7 +250,9 @@ export const VideoUploadDialog = ({
               <div className="text-center">
                 <p className="text-sm font-medium">{progress.message}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  This may take a moment...
+                  {progress.percent < 30 ? 'Estimated: ~30 seconds remaining' :
+                   progress.percent < 70 ? 'Estimated: ~15 seconds remaining' :
+                   'Almost done…'}
                 </p>
               </div>
             </div>

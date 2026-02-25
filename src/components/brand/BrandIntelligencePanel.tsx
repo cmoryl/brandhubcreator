@@ -26,6 +26,7 @@ import {
   Cable,
   Download,
   Shield,
+  Eye,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -494,7 +495,31 @@ export const BrandIntelligencePanel = ({
               </Button>
             </div>
             {isAnalyzing && (
-              <Progress value={analysisProgress} className="w-32 h-2" />
+              <div className="space-y-1.5 w-48">
+                <Progress value={analysisProgress} className="h-2" />
+                <div className="flex items-center gap-1.5">
+                  {analysisProgress < 30 && (
+                    <span className="text-[10px] text-muted-foreground animate-pulse flex items-center gap-1">
+                      <Eye className="h-3 w-3" /> Scanning visual assets…
+                    </span>
+                  )}
+                  {analysisProgress >= 30 && analysisProgress < 60 && (
+                    <span className="text-[10px] text-muted-foreground animate-pulse flex items-center gap-1">
+                      <FileText className="h-3 w-3" /> Analyzing documents…
+                    </span>
+                  )}
+                  {analysisProgress >= 60 && analysisProgress < 85 && (
+                    <span className="text-[10px] text-muted-foreground animate-pulse flex items-center gap-1">
+                      <Brain className="h-3 w-3" /> Generating insights…
+                    </span>
+                  )}
+                  {analysisProgress >= 85 && (
+                    <span className="text-[10px] text-muted-foreground animate-pulse flex items-center gap-1">
+                      <Sparkles className="h-3 w-3" /> Finalizing…
+                    </span>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -695,6 +720,53 @@ export const BrandIntelligencePanel = ({
               isExpanded={expandedSections.competitive}
               onToggle={() => toggleSection('competitive')}
             />
+          </>
+        )}
+
+        {/* Inclusive Imagery Summary - surfaced prominently */}
+        {(intelligence?.learning_context as any)?.inclusive_imagery && (
+          <>
+            <Separator />
+            <div className="p-3 rounded-lg border border-primary/20 bg-primary/5">
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold">Diversity & Representation</span>
+                {(() => {
+                  const img = (intelligence?.learning_context as any)?.inclusive_imagery;
+                  const score = img?.diversity_score ?? 0;
+                  return (
+                    <Badge variant="outline" className={`ml-auto text-xs ${score >= 70 ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' : score >= 40 ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' : 'bg-destructive/10 text-destructive border-destructive/30'}`}>
+                      {score}/100
+                    </Badge>
+                  );
+                })()}
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                <div className="p-1.5 bg-background/60 rounded">
+                  <p className="font-semibold">{(intelligence?.learning_context as any)?.inclusive_imagery?.diversity_score ?? '—'}</p>
+                  <p className="text-muted-foreground">Diversity</p>
+                </div>
+                <div className="p-1.5 bg-background/60 rounded">
+                  <p className="font-semibold">{(intelligence?.learning_context as any)?.inclusive_imagery?.authenticity_score ?? '—'}</p>
+                  <p className="text-muted-foreground">Authenticity</p>
+                </div>
+                <div className="p-1.5 bg-background/60 rounded">
+                  <p className="font-semibold capitalize">{(intelligence?.learning_context as any)?.inclusive_imagery?.stock_photo_dependency || '—'}</p>
+                  <p className="text-muted-foreground">Stock Dep.</p>
+                </div>
+              </div>
+              {(() => {
+                const gaps = (intelligence?.learning_context as any)?.inclusive_imagery?.representation_gaps;
+                if (!Array.isArray(gaps) || gaps.length === 0) return null;
+                return (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {gaps.slice(0, 4).map((gap: string, i: number) => (
+                      <Badge key={i} variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-500/30">{gap}</Badge>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
           </>
         )}
 
