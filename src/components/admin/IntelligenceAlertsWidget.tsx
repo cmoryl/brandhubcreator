@@ -1,19 +1,32 @@
 /**
  * Intelligence Alerts Widget
  * Shows unacknowledged intelligence alerts with acknowledge/dismiss actions
+ * and configurable automation cadence
  */
 
 import { useState } from 'react';
 import { 
   Bell, AlertTriangle, AlertCircle, Info, Check, CheckCheck, 
-  Trash2, Loader2, ChevronDown, ChevronUp, Zap, Eye
+  Trash2, Loader2, ChevronDown, ChevronUp, Zap, Eye, Clock, Settings2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { useIntelligenceAlerts, type IntelligenceAlert } from '@/hooks/useIntelligenceAlerts';
+import { useIntelligenceAlerts, type IntelligenceAlert, type IntelligenceCadence } from '@/hooks/useIntelligenceAlerts';
 import { formatDistanceToNow } from 'date-fns';
 
 interface IntelligenceAlertsWidgetProps {
@@ -49,6 +62,9 @@ export function IntelligenceAlertsWidget({ organizationId, compact = false }: In
     acknowledgeAll,
     deleteAlert,
     triggerScheduledRun,
+    cadence,
+    isCadenceLoading,
+    updateCadence,
   } = useIntelligenceAlerts(organizationId);
 
   if (!organizationId) return null;
@@ -84,6 +100,43 @@ export function IntelligenceAlertsWidget({ organizationId, compact = false }: In
             )}
           </div>
           <div className="flex items-center gap-1.5">
+            {/* Cadence Settings */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-xs h-7 gap-1">
+                  <Settings2 className="h-3 w-3" />
+                  <Clock className="h-3 w-3" />
+                  <span className="capitalize">{cadence}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-3" align="end">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-foreground">Automation Cadence</p>
+                  <p className="text-[11px] text-muted-foreground">How often the intelligence pipeline runs automatically.</p>
+                  <Select
+                    value={cadence}
+                    onValueChange={(val) => updateCadence(val as IntelligenceCadence)}
+                    disabled={isCadenceLoading}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Daily (9 AM UTC)</SelectItem>
+                      <SelectItem value="weekly">Weekly (Mondays)</SelectItem>
+                      <SelectItem value="biweekly">Bi-weekly (1st & 15th)</SelectItem>
+                      <SelectItem value="monthly">Monthly (1st)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {isCadenceLoading && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Updating...
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button
               variant="ghost"
               size="sm"
