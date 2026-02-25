@@ -8,9 +8,11 @@ import {
   colorblindLabels,
   wcagLevelColor,
   wcagBadgeBg,
+  suggestAccessibleColor,
   type ColorblindType,
   type PaletteAccessibilityReport,
 } from '@/lib/oklchAccessibility';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ColorAccessibilityPanelProps {
@@ -97,22 +99,49 @@ export const ColorAccessibilityPanel = ({ colors }: ColorAccessibilityPanelProps
           <div>
             <h4 className="text-sm font-medium text-foreground mb-2">Contrast Compliance</h4>
             <div className="space-y-1.5">
-              {report.wcagPairs.map((pair, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs">
-                  <div className="flex items-center gap-1 shrink-0">
-                    <div className="w-4 h-4 rounded-sm border border-border" style={{ backgroundColor: pair.color1.hex }} />
-                    <span className="text-muted-foreground">on</span>
-                    <div className="w-4 h-4 rounded-sm border border-border" style={{ backgroundColor: pair.color2.hex }} />
-                  </div>
-                  <span className="text-muted-foreground truncate">
-                    {pair.color1.name} on {pair.color2.name}
-                  </span>
-                  <span className="ml-auto text-muted-foreground shrink-0">{pair.ratio}:1</span>
-                  <span className={cn('font-bold text-[10px] px-1 py-0.5 rounded border shrink-0', wcagBadgeBg(pair.level), wcagLevelColor(pair.level))}>
-                    {pair.level}
-                  </span>
-                </div>
-              ))}
+              <TooltipProvider delayDuration={200}>
+                {report.wcagPairs.map((pair, i) => {
+                  const suggestion = pair.level === 'Fail' || pair.level === 'AA-large'
+                    ? suggestAccessibleColor(pair.color1.hex, pair.color2.hex)
+                    : null;
+                  return (
+                    <div key={i} className="flex items-center gap-2 text-xs">
+                      <div className="flex items-center gap-1 shrink-0">
+                        <div className="w-4 h-4 rounded-sm border border-border" style={{ backgroundColor: pair.color1.hex }} />
+                        <span className="text-muted-foreground">on</span>
+                        <div className="w-4 h-4 rounded-sm border border-border" style={{ backgroundColor: pair.color2.hex }} />
+                      </div>
+                      <span className="text-muted-foreground truncate">
+                        {pair.color1.name} on {pair.color2.name}
+                      </span>
+                      <span className="ml-auto text-muted-foreground shrink-0">{pair.ratio}:1</span>
+                      <span className={cn('font-bold text-[10px] px-1 py-0.5 rounded border shrink-0', wcagBadgeBg(pair.level), wcagLevelColor(pair.level))}>
+                        {pair.level}
+                      </span>
+                      {suggestion && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors shrink-0"
+                              onClick={() => {
+                                navigator.clipboard.writeText(suggestion);
+                              }}
+                            >
+                              <div className="w-3 h-3 rounded-sm border border-primary/30" style={{ backgroundColor: suggestion }} />
+                              Fix
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs max-w-[200px]">
+                            <p className="font-medium mb-1">Suggested: {suggestion}</p>
+                            <p className="text-muted-foreground">Click to copy. Adjusted lightness to meet WCAG AA (4.5:1).</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                  );
+                })}
+              </TooltipProvider>
             </div>
           </div>
 
