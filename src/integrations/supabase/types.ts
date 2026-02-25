@@ -3410,6 +3410,65 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_coherence: {
+        Row: {
+          anomalies: Json | null
+          anomaly_count: number | null
+          audience_coherence: number | null
+          created_at: string
+          entity_count: number | null
+          id: string
+          insights: Json | null
+          organization_id: string
+          overall_score: number | null
+          relationship_count: number | null
+          strategic_coherence: number | null
+          updated_at: string
+          visual_coherence: number | null
+          voice_coherence: number | null
+        }
+        Insert: {
+          anomalies?: Json | null
+          anomaly_count?: number | null
+          audience_coherence?: number | null
+          created_at?: string
+          entity_count?: number | null
+          id?: string
+          insights?: Json | null
+          organization_id: string
+          overall_score?: number | null
+          relationship_count?: number | null
+          strategic_coherence?: number | null
+          updated_at?: string
+          visual_coherence?: number | null
+          voice_coherence?: number | null
+        }
+        Update: {
+          anomalies?: Json | null
+          anomaly_count?: number | null
+          audience_coherence?: number | null
+          created_at?: string
+          entity_count?: number | null
+          id?: string
+          insights?: Json | null
+          organization_id?: string
+          overall_score?: number | null
+          relationship_count?: number | null
+          strategic_coherence?: number | null
+          updated_at?: string
+          visual_coherence?: number | null
+          voice_coherence?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_coherence_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portfolio_insights: {
         Row: {
           applicable_entity_ids: string[] | null
@@ -3501,10 +3560,14 @@ export type Database = {
       }
       portfolio_relationships: {
         Row: {
+          anomaly_score: number | null
+          anomaly_type: string | null
           created_at: string
+          dimensions: Json | null
           id: string
           metadata: Json | null
           organization_id: string
+          rationale: string | null
           relationship_type: string
           source_entity_id: string
           source_entity_name: string
@@ -3516,10 +3579,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          anomaly_score?: number | null
+          anomaly_type?: string | null
           created_at?: string
+          dimensions?: Json | null
           id?: string
           metadata?: Json | null
           organization_id: string
+          rationale?: string | null
           relationship_type?: string
           source_entity_id: string
           source_entity_name: string
@@ -3531,10 +3598,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          anomaly_score?: number | null
+          anomaly_type?: string | null
           created_at?: string
+          dimensions?: Json | null
           id?: string
           metadata?: Json | null
           organization_id?: string
+          rationale?: string | null
           relationship_type?: string
           source_entity_id?: string
           source_entity_name?: string
