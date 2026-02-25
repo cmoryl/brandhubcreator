@@ -15,14 +15,15 @@ export default defineConfig(({ mode }) => {
       port: 8080,
     },
     build: {
+      target: 'es2020',
       sourcemap: true,
-      cssCodeSplit: true, // Split CSS for better caching
+      cssCodeSplit: true,
+      chunkSizeWarningLimit: 600,
       modulePreload: {
-        polyfill: true, // Enables modulepreload polyfill for better browser support
+        polyfill: true,
       },
       rollupOptions: {
         output: {
-          // Reduce chunk fragmentation by grouping small modules
           manualChunks: (id) => {
             // Form libraries - deferred, not needed on landing page
             if (id.includes('node_modules/react-day-picker') ||
@@ -36,7 +37,40 @@ export default defineConfig(({ mode }) => {
                 id.includes('node_modules/react-reconciler')) {
               return 'vendor-three';
             }
-            // Core React libraries - use exact path segments to avoid matching react-day-picker etc.
+            // Chart libraries - heavy, lazy-loaded
+            if (id.includes('node_modules/recharts') ||
+                id.includes('node_modules/d3-') ||
+                id.includes('node_modules/victory-')) {
+              return 'vendor-charts';
+            }
+            // PDF generation - heavy, lazy-loaded
+            if (id.includes('node_modules/jspdf') ||
+                id.includes('node_modules/html2pdf') ||
+                id.includes('node_modules/html2canvas')) {
+              return 'vendor-pdf';
+            }
+            // PDF.js viewer - very heavy, lazy-loaded
+            if (id.includes('node_modules/pdfjs-dist')) {
+              return 'vendor-pdfjs';
+            }
+            // Spreadsheet library - heavy, lazy-loaded
+            if (id.includes('node_modules/xlsx')) {
+              return 'vendor-xlsx';
+            }
+            // ZIP library
+            if (id.includes('node_modules/jszip')) {
+              return 'vendor-zip';
+            }
+            // QR code libraries
+            if (id.includes('node_modules/qr-code-styling') ||
+                id.includes('node_modules/qrcode')) {
+              return 'vendor-qr';
+            }
+            // Sanitization
+            if (id.includes('node_modules/dompurify')) {
+              return 'vendor-sanitize';
+            }
+            // Core React libraries
             if (id.includes('node_modules/react/') || 
                 id.includes('node_modules/react-dom/') || 
                 id.includes('node_modules/react-router') ||
@@ -53,8 +87,10 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/@supabase')) {
               return 'vendor-supabase';
             }
-            // UI components - commonly used
-            if (id.includes('node_modules/@radix-ui')) {
+            // UI components - commonly used (Radix + cmdk + embla)
+            if (id.includes('node_modules/@radix-ui') ||
+                id.includes('node_modules/cmdk') ||
+                id.includes('node_modules/embla-carousel')) {
               return 'vendor-ui';
             }
             // Animation libraries - can be deferred
@@ -65,7 +101,8 @@ export default defineConfig(({ mode }) => {
             // Utility libraries
             if (id.includes('node_modules/date-fns') ||
                 id.includes('node_modules/clsx') ||
-                id.includes('node_modules/tailwind-merge')) {
+                id.includes('node_modules/tailwind-merge') ||
+                id.includes('node_modules/zod')) {
               return 'vendor-utils';
             }
           },
@@ -79,7 +116,7 @@ export default defineConfig(({ mode }) => {
         registerType: "autoUpdate",
         includeAssets: ["favicon.ico", "placeholder.svg", "robots.txt"],
         workbox: {
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
+          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2,webp,jpg,jpeg,json,xml}"],
           runtimeCaching: [
             {
               // Google Fonts stylesheets
@@ -98,6 +135,24 @@ export default defineConfig(({ mode }) => {
               urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
               handler: "StaleWhileRevalidate",
               options: { cacheName: "supabase-storage", expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 } },
+            },
+            {
+              // Supabase REST API GET requests - offline reads
+              urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+              handler: "NetworkFirst",
+              options: { cacheName: "supabase-api", expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 }, networkTimeoutSeconds: 10 },
+            },
+            {
+              // CDN-hosted PDF.js worker and other CDN assets
+              urlPattern: /^https:\/\/cdnjs\.cloudflare\.com\/.*/i,
+              handler: "CacheFirst",
+              options: { cacheName: "cdn-assets", expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 } },
+            },
+            {
+              // Google Storage (external favicon, etc.)
+              urlPattern: /^https:\/\/storage\.googleapis\.com\/.*/i,
+              handler: "StaleWhileRevalidate",
+              options: { cacheName: "google-storage", expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 } },
             },
           ],
           navigateFallbackDenylist: [/^\/~oauth/],
@@ -123,8 +178,6 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
-      // Prevent duplicate React instances that cause "render2 is not a function" errors
-      // Including @react-leaflet/core is critical for react-leaflet compatibility
       dedupe: [
         "react", 
         "react-dom", 
@@ -138,7 +191,6 @@ export default defineConfig(({ mode }) => {
         "@radix-ui/react-slot",
       ],
     },
-    // Pre-bundle dependencies to prevent duplicate React instances
     optimizeDeps: {
       include: [
         'leaflet', 
@@ -146,10 +198,13 @@ export default defineConfig(({ mode }) => {
         '@react-leaflet/core',
         '@tanstack/react-query',
         'framer-motion',
+        'recharts',
+        'zod',
+        'dompurify',
+        '@supabase/supabase-js',
       ],
     },
     define: {
-      // Ensure env variables are available
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
       'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(env.VITE_SUPABASE_PUBLISHABLE_KEY),
     },

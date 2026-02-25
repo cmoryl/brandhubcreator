@@ -1,3 +1,10 @@
+# Global security headers
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(self), payment=()
+
 # Cache static assets with content hashes for 1 year (immutable)
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
@@ -37,3 +44,14 @@
 # Cache WebP images
 /*.webp
   Cache-Control: public, max-age=31536000, immutable
+
+# Cache font files for 1 year
+/*.woff
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache PWA manifest for 1 day (may change)
+/manifest.webmanifest
+  Cache-Control: public, max-age=86400
