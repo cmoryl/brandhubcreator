@@ -29,6 +29,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useOracleBrain, type OracleIntelligence } from '@/hooks/useOracleBrain';
 import { IntelligenceAlertsWidget } from './IntelligenceAlertsWidget';
+import { IntelligenceDigestPanel } from './IntelligenceDigestPanel';
 
 interface OracleBrainPanelProps {
   organizationId?: string;
@@ -122,6 +123,9 @@ export function OracleBrainPanel({ organizationId }: OracleBrainPanelProps) {
 
       {/* Intelligence Alerts */}
       <IntelligenceAlertsWidget organizationId={orgId} />
+
+      {/* Executive Digest */}
+      <IntelligenceDigestPanel organizationId={orgId} />
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
