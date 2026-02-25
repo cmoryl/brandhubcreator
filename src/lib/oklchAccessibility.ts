@@ -115,6 +115,68 @@ export const formatOklch = (oklch: OklchColor): string => {
   return `oklch(${(oklch.L * 100).toFixed(1)}% ${oklch.C.toFixed(3)} ${oklch.H.toFixed(1)})`;
 };
 
+// ── Auto-fix: suggest accessible color ──────────────────────────────
+
+/**
+ * Attempt to adjust a foreground color's OKLCH lightness so it meets
+ * the target contrast ratio against a given background.
+ * Returns the suggested hex, or null if no fix is possible.
+ */
+export const suggestAccessibleColor = (
+  fgHex: string,
+  bgHex: string,
+  targetRatio: number = 4.5,
+): string | null => {
+  const bgLum = relativeLuminance(bgHex);
+  const fgOklch = hexToOklch(fgHex);
+
+  // Try darkening first (lower L), then lightening
+  for (const direction of ['darken', 'lighten'] as const) {
+    let lo = direction === 'darken' ? 0 : fgOklch.L;
+    let hi = direction === 'darken' ? fgOklch.L : 1;
+
+    // Binary search for the closest L that meets targetRatio
+    let bestHex: string | null = null;
+    for (let i = 0; i < 20; i++) {
+      const mid = (lo + hi) / 2;
+      const candidateHex = oklchToHex({ L: mid, C: fgOklch.C, H: fgOklch.H });
+      const ratio = contrastRatio(candidateHex, bgHex);
+      if (ratio >= targetRatio) {
+        bestHex = candidateHex;
+        if (direction === 'darken') lo = mid; else hi = mid;
+      } else {
+        if (direction === 'darken') hi = mid; else lo = mid;
+      }
+    }
+    if (bestHex) return bestHex;
+  }
+  return null;
+};
+
+// ── OKLCH → Hex (reverse conversion) ───────────────────────────────
+
+const oklchToHex = (oklch: OklchColor): string => {
+  const { L, C, H } = oklch;
+  const hRad = (H * Math.PI) / 180;
+  const a = C * Math.cos(hRad);
+  const b = C * Math.sin(hRad);
+
+  // Oklab → linear sRGB
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+
+  const l3 = l_ * l_ * l_;
+  const m3 = m_ * m_ * m_;
+  const s3 = s_ * s_ * s_;
+
+  const lr = +4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3;
+  const lg = -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3;
+  const lb = -0.0041960863 * l3 - 0.7034186147 * m3 + 1.7076147010 * s3;
+
+  return rgbToHex(linearToSrgb(lr), linearToSrgb(lg), linearToSrgb(lb));
+};
+
 // ── Colorblind Simulation (Brettel/Viénot matrices) ─────────────────
 
 export type ColorblindType = 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
