@@ -34,34 +34,58 @@ const setupGlobalErrorHandler = () => {
 
 setupGlobalErrorHandler();
 
+// Retry wrapper for lazy imports — if a chunk fails to load (e.g. stale cache),
+// reload the page once to fetch fresh assets.
+function lazyWithRetry(factory: () => Promise<{ default: React.ComponentType<any> }>) {
+  return lazy(() =>
+    factory().catch((err) => {
+      const reloadKey = 'bhub_chunk_reload';
+      if (!sessionStorage.getItem(reloadKey)) {
+        sessionStorage.setItem(reloadKey, '1');
+        window.location.reload();
+        // Return a never-resolving promise so React doesn't try to render while reloading
+        return new Promise(() => {});
+      }
+      // Already tried reloading once — throw the real error
+      sessionStorage.removeItem(reloadKey);
+      throw err;
+    })
+  );
+}
+
+// Clear the chunk reload flag on successful load
+if (typeof window !== 'undefined') {
+  sessionStorage.removeItem('bhub_chunk_reload');
+}
+
 // Lazy load pages for faster initial load
-const Index = lazy(() => import("./pages/Index"));
-const BrandsIndex = lazy(() => import("./pages/BrandsIndex"));
-const BrandEditor = lazy(() => import("./pages/BrandEditor"));
-const ProductEditor = lazy(() => import("./pages/ProductEditor"));
-const OrganizationPortal = lazy(() => import("./pages/OrganizationPortal"));
-const AuthPage = lazy(() => import("./pages/AuthPage"));
-const PendingApprovalPage = lazy(() => import("./pages/PendingApprovalPage"));
-const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
-const GettingStarted = lazy(() => import("./pages/GettingStarted"));
-const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
-const OrganizationSettings = lazy(() => import("./pages/OrganizationSettings"));
-const ContactUs = lazy(() => import("./pages/ContactUs"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const DemoBrandPreview = lazy(() => import("./pages/DemoBrandPreview"));
-const DemoGuideViewer = lazy(() => import("./pages/DemoGuideViewer"));
-const DemoBrandEditor = lazy(() => import("./pages/DemoBrandEditor"));
-const EventEditor = lazy(() => import("./pages/EventEditor"));
-const HelpCenter = lazy(() => import("./pages/HelpCenter"));
-const GlobalLinkUniversePage = lazy(() => import("./pages/GlobalLinkUniversePage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const AboutPage = lazy(() => import("./pages/AboutPage"));
-const SharedBrandPage = lazy(() => import("./pages/SharedBrandPage"));
-const BrandExportSchema = lazy(() => import("./pages/BrandExportSchema"));
-const HeroEffectsShowcase = lazy(() => import("./pages/HeroEffectsShowcase"));
-const Sitemap = lazy(() => import("./pages/Sitemap"));
-const SectionsShowcase = lazy(() => import("./pages/SectionsShowcase"));
-const BoothsCatalog = lazy(() => import("./pages/BoothsCatalog"));
+const Index = lazyWithRetry(() => import("./pages/Index"));
+const BrandsIndex = lazyWithRetry(() => import("./pages/BrandsIndex"));
+const BrandEditor = lazyWithRetry(() => import("./pages/BrandEditor"));
+const ProductEditor = lazyWithRetry(() => import("./pages/ProductEditor"));
+const OrganizationPortal = lazyWithRetry(() => import("./pages/OrganizationPortal"));
+const AuthPage = lazyWithRetry(() => import("./pages/AuthPage"));
+const PendingApprovalPage = lazyWithRetry(() => import("./pages/PendingApprovalPage"));
+const KnowledgeBase = lazyWithRetry(() => import("./pages/KnowledgeBase"));
+const GettingStarted = lazyWithRetry(() => import("./pages/GettingStarted"));
+const OnboardingPage = lazyWithRetry(() => import("./pages/OnboardingPage"));
+const OrganizationSettings = lazyWithRetry(() => import("./pages/OrganizationSettings"));
+const ContactUs = lazyWithRetry(() => import("./pages/ContactUs"));
+const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
+const DemoBrandPreview = lazyWithRetry(() => import("./pages/DemoBrandPreview"));
+const DemoGuideViewer = lazyWithRetry(() => import("./pages/DemoGuideViewer"));
+const DemoBrandEditor = lazyWithRetry(() => import("./pages/DemoBrandEditor"));
+const EventEditor = lazyWithRetry(() => import("./pages/EventEditor"));
+const HelpCenter = lazyWithRetry(() => import("./pages/HelpCenter"));
+const GlobalLinkUniversePage = lazyWithRetry(() => import("./pages/GlobalLinkUniversePage"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const AboutPage = lazyWithRetry(() => import("./pages/AboutPage"));
+const SharedBrandPage = lazyWithRetry(() => import("./pages/SharedBrandPage"));
+const BrandExportSchema = lazyWithRetry(() => import("./pages/BrandExportSchema"));
+const HeroEffectsShowcase = lazyWithRetry(() => import("./pages/HeroEffectsShowcase"));
+const Sitemap = lazyWithRetry(() => import("./pages/Sitemap"));
+const SectionsShowcase = lazyWithRetry(() => import("./pages/SectionsShowcase"));
+const BoothsCatalog = lazyWithRetry(() => import("./pages/BoothsCatalog"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
