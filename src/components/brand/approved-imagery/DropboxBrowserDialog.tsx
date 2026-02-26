@@ -43,6 +43,7 @@ export const DropboxBrowserDialog = ({
   const [hasMore, setHasMore] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [sharedLinkUrl, setSharedLinkUrl] = useState<string | null>(null);
 
   const fetchFolder = useCallback(async (path: string, continueCursor?: string) => {
     setLoading(true);
@@ -66,6 +67,7 @@ export const DropboxBrowserDialog = ({
       }
       setHasMore(data.hasMore || false);
       setCursor(data.cursor || null);
+      setSharedLinkUrl(data.sharedLinkUrl || null);
       setLoaded(true);
 
       // Save the folder path
@@ -121,7 +123,7 @@ export const DropboxBrowserDialog = ({
       for (const file of selected) {
         try {
           const { data, error } = await supabase.functions.invoke('dropbox-imagery', {
-            body: { action: 'download', filePath: file.path },
+            body: { action: 'download', filePath: file.path, sharedLinkUrl },
           });
 
           if (error || data?.error) {
