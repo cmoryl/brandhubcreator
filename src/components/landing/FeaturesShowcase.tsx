@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Palette, 
   Type, 
@@ -348,40 +348,44 @@ const adminFeatures: Feature[] = [
   },
 ];
 
-function FeatureCard({ feature, index, isVisible }: { feature: Feature; index: number; isVisible: boolean }) {
-  const Icon = feature.icon;
-  
-  return (
-    <Card 
-      className={`group relative overflow-hidden border-border/50 bg-card/50 hover:bg-card transition-all duration-500 hover:shadow-xl hover:-translate-y-1 ${
-        isVisible ? 'animate-fade-in opacity-100' : 'opacity-0'
-      }`}
-      style={{ animationDelay: `${index * 100}ms` }}
-    >
-      {/* Gradient background on hover */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-      
-      <CardContent className="relative p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="p-3 bg-accent/10 rounded-xl w-fit group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-            <Icon className="h-6 w-6 text-accent" />
+const FeatureCard = React.forwardRef<HTMLDivElement, { feature: Feature; index: number; isVisible: boolean }>(
+  ({ feature, index, isVisible }, ref) => {
+    const Icon = feature.icon;
+    
+    return (
+      <Card 
+        ref={ref}
+        className={`group relative overflow-hidden border-border/50 bg-card/50 hover:bg-card transition-all duration-500 hover:shadow-xl hover:-translate-y-1 ${
+          isVisible ? 'animate-fade-in opacity-100' : 'opacity-0'
+        }`}
+        style={{ animationDelay: `${index * 100}ms` }}
+      >
+        {/* Gradient background on hover */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+        
+        <CardContent className="relative p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="p-3 bg-accent/10 rounded-xl w-fit group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+              <Icon className="h-6 w-6 text-accent" />
+            </div>
+            {feature.badge && (
+              <Badge variant="secondary" className="text-xs">
+                {feature.badge}
+              </Badge>
+            )}
           </div>
-          {feature.badge && (
-            <Badge variant="secondary" className="text-xs">
-              {feature.badge}
-            </Badge>
-          )}
-        </div>
-        <h3 className="font-semibold text-foreground mb-2 group-hover:text-accent transition-colors">
-          {feature.title}
-        </h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {feature.description}
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
+          <h3 className="font-semibold text-foreground mb-2 group-hover:text-accent transition-colors">
+            {feature.title}
+          </h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {feature.description}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+);
+FeatureCard.displayName = 'FeatureCard';
 
 function FeatureCarousel({ features, isVisible }: { features: Feature[]; isVisible: boolean }) {
   return (
