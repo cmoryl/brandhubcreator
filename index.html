@@ -47,6 +47,16 @@
         <p>Loading BrandHub...</p>
       </div>
     </div>
+    <script>
+      // Force cleanup of stale service workers that may cache old broken builds
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          registrations.forEach(function(registration) {
+            registration.update();
+          });
+        });
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
