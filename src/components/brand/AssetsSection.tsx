@@ -396,12 +396,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        {assets?.length > 0 && (
-          <Button onClick={handleDownloadAll} variant="outline" size="sm" className="gap-2" disabled={isZipping}>
-            {isZipping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
-            {isZipping ? 'Zipping...' : 'Download All'}
-          </Button>
-        )}
+        {/* Download All button temporarily removed */}
         {canEdit && (
           <div className="flex items-center gap-2 shrink-0">
             <Button onClick={() => setIsScannerOpen(true)} variant="outline" size="sm" className="gap-2">
