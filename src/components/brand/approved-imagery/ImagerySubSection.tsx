@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, Trash2, Edit2, Check, X, ImageIcon } from 'lucide-react';
+import { Search, Trash2, Edit2, Check, X, ImageIcon, ZoomIn } from 'lucide-react';
+import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ export const ImagerySubSection = ({
 }: ImagerySubSectionProps) => {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(section.name);
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
 
   const handleSaveRename = () => {
     if (editName.trim()) {
@@ -106,18 +108,26 @@ export const ImagerySubSection = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {section.images.map((image) => (
               <div key={image.id} className="relative group rounded-lg overflow-hidden border border-border bg-muted/30">
-                <img
-                  src={image.thumbnailUrl || image.url}
-                  alt={image.title}
-                  className="w-full aspect-[4/3] object-cover"
-                  loading="lazy"
-                />
+                <div
+                  className="cursor-pointer relative"
+                  onClick={() => setPreviewImage({ url: image.url, title: image.title })}
+                >
+                  <img
+                    src={image.thumbnailUrl || image.url}
+                    alt={image.title}
+                    className="w-full aspect-[4/3] object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                  </div>
+                </div>
                 {canEdit && (
                   <Button
                     size="icon"
                     variant="destructive"
-                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => onRemoveImage(image.id)}
+                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    onClick={(e) => { e.stopPropagation(); onRemoveImage(image.id); }}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -129,6 +139,14 @@ export const ImagerySubSection = ({
             ))}
           </div>
         )}
+
+        <PreviewDialog
+          open={!!previewImage}
+          onOpenChange={(open) => !open && setPreviewImage(null)}
+          title={previewImage?.title || ''}
+          previewUrl={previewImage?.url}
+          type="image"
+        />
       </AccordionContent>
     </AccordionItem>
   );
