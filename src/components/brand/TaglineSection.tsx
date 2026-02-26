@@ -417,7 +417,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
           )}
           
           {/* Content */}
-          <div className={`relative z-10 overflow-hidden ${settings.backgroundStyle === 'floating' ? 'py-8 sm:py-12 px-4' : 'p-4 sm:p-8 md:p-12'}`}>
+          <div className={`relative z-10 overflow-hidden text-center ${settings.backgroundStyle === 'floating' ? 'py-8 sm:py-12 px-4' : 'p-4 sm:p-8 md:p-12'}`}>
             {settings.backgroundStyle !== 'floating' && (
               <div className="flex items-center gap-2 mb-4">
                 <div className={`h-px flex-1 bg-gradient-to-r from-transparent ${settings.backgroundStyle === 'glass' ? 'via-foreground/20' : 'via-white/30'} to-transparent`} />
@@ -440,7 +440,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                 }`}
               />
             ) : (
-              <div className={`flex flex-col items-${fontSettings.textAlign === 'left' ? 'start' : fontSettings.textAlign === 'right' ? 'end' : 'center'}`}>
+              <div className="flex flex-col items-center w-full">
                 {settings.backgroundStyle !== 'floating' && (
                   <Quote className={`h-10 w-10 ${settings.backgroundStyle === 'glass' ? 'text-primary/40' : 'text-white/40'} mb-4 rotate-180`} />
                 )}
@@ -449,7 +449,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                   animation={tagline.taglineAnimation || 'fade-slide'}
                   hoverEffect={tagline.taglineHoverEffect || 'none'}
                   environment="none"
-                  className={`${bgStyles.textColor} ${settings.backgroundStyle !== 'floating' ? 'drop-shadow-lg' : ''}`}
+                  className={`${bgStyles.textColor} ${settings.backgroundStyle !== 'floating' ? 'drop-shadow-lg' : ''} w-full`}
                   style={{
                     fontFamily: `"${fontSettings.fontFamily}", serif`,
                     fontWeight: fontSettings.fontWeight,
@@ -457,10 +457,11 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                     letterSpacing: `${fontSettings.letterSpacing}px`,
                     lineHeight: fontSettings.lineHeight,
                     textTransform: fontSettings.textTransform,
-                    textAlign: fontSettings.textAlign,
+                    textAlign: 'center',
                     fontStyle: fontSettings.fontStyle,
                     overflowWrap: 'break-word',
                     wordBreak: 'break-word',
+                    whiteSpace: 'pre-line',
                   }}
                 />
                 {settings.backgroundStyle !== 'floating' && (

@@ -352,7 +352,7 @@ export const AnimatedTagline = ({
   };
 
   return (
-    <div ref={ref} className={cn("relative inline-block max-w-full", className)} style={{ ...style, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+    <div ref={ref} className={cn("relative inline-block max-w-full", className)} style={{ ...style, overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: style?.whiteSpace || 'normal' }}>
       <EnvironmentOverlay effect={environment} color={effectColor} />
       <HoverEffectWrapper effect={hoverEffect} text={hoverEffect === 'letter-dance' ? text : undefined}>
         {hoverEffect !== 'letter-dance' && renderAnimatedText()}
