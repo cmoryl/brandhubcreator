@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Video, Plus, Trash2, ExternalLink, Play, Link2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Video, Plus, Trash2, ExternalLink, Play, Link2, ImagePlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { BrandVideo } from '@/types/brand';
 import { SectionHeader } from './SectionHeader';
+import { toast } from 'sonner';
 
 interface VideosSectionProps {
   videos: BrandVideo[];
@@ -60,6 +61,9 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
   const canEdit = Boolean(onVideosChange);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const targetVideoIdRef = useRef<string | null>(null);
   const [newVideo, setNewVideo] = useState<Partial<BrandVideo>>({
     title: '',
     url: '',
@@ -91,15 +95,62 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
   };
 
   const openVideo = (video: BrandVideo) => {
-    if (video.type === 'direct') {
-      window.open(video.url, '_blank');
-    } else {
-      window.open(video.url, '_blank');
+    window.open(video.url, '_blank');
+  };
+
+  const handleCardImageClick = (videoId: string) => {
+    targetVideoIdRef.current = videoId;
+    imageInputRef.current?.click();
+  };
+
+  const handleCardImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const videoId = targetVideoIdRef.current;
+    if (!file || !videoId || !onVideosChange) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
     }
+
+    setUploadingId(videoId);
+    try {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        const updated = videos.map(v =>
+          v.id === videoId ? { ...v, thumbnail: dataUrl } : v
+        );
+        onVideosChange(updated);
+        toast.success('Card image updated');
+        setUploadingId(null);
+      };
+      reader.onerror = () => {
+        toast.error('Failed to read image');
+        setUploadingId(null);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      toast.error('Failed to update card image');
+      setUploadingId(null);
+    }
+
+    // Reset input
+    e.target.value = '';
+    targetVideoIdRef.current = null;
   };
 
   return (
     <section className="space-y-6">
+      {/* Hidden file input for card image replacement */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleCardImageChange}
+      />
+
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 flex-1">
           <div className="p-2 rounded-lg bg-primary/10 shrink-0">
@@ -184,6 +235,7 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
           {videos.map((video) => {
             const embedUrl = getEmbedUrl(video.url, video.type);
             const thumbnail = video.thumbnail || getThumbnail(video.url, video.type);
+            const isUploading = uploadingId === video.id;
             
             return (
               <Card key={video.id} className="group overflow-hidden">
@@ -222,6 +274,22 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
                     >
                       <Link2 className="h-8 w-8 text-muted-foreground" />
                       <span className="text-xs text-muted-foreground">Click to open video</span>
+                    </button>
+                  )}
+
+                  {/* Card image swap button for admins */}
+                  {canEdit && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleCardImageClick(video.id); }}
+                      disabled={isUploading}
+                      className="absolute top-2 left-2 p-1.5 rounded-md bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      title="Change card image"
+                    >
+                      {isUploading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ImagePlus className="h-4 w-4" />
+                      )}
                     </button>
                   )}
                 </div>
