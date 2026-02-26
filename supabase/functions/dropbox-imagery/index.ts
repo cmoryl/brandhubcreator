@@ -47,7 +47,7 @@ function isSharedLink(input: string): boolean {
          cleaned.startsWith('https://www.dropbox.com/s/');
 }
 
-// Extract the clean shared link URL (remove leading slash, keep as-is)
+// Extract the clean shared link URL
 function extractSharedLink(input: string): string {
   return decodeURIComponent(input).trim().replace(/^\/+/, '');
 }
@@ -55,27 +55,25 @@ function extractSharedLink(input: string): string {
 // Normalize a Dropbox path — strip full URLs like https://www.dropbox.com/work/...
 function normalizeDropboxPath(input: string): string {
   let p = decodeURIComponent(input).trim();
-  // Remove leading slash before URL check (dialog may prepend /)
   p = p.replace(/^\/+/, '');
-  // Strip full Dropbox web URLs
   p = p.replace(/^https?:\/\/www\.dropbox\.com\/(home|work|personal)/, '');
-  // Ensure leading slash
   if (p && !p.startsWith('/')) p = '/' + p;
-  // Root folder should be empty string for Dropbox API
   return p === '/' ? '' : p;
 }
-// Cache root namespace ID
-let _cachedRootNs: string | null = null;
+
+// Get root namespace ID for team/business accounts
 async function getAccountRootNs(token: string): Promise<string | null> {
-  if (_cachedRootNs) return _cachedRootNs;
-  const res = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${token}` },
-  });
-  if (!res.ok) return null;
-  const account = await res.json();
-  _cachedRootNs = account?.root_info?.root_namespace_id || null;
-  return _cachedRootNs;
+  try {
+    const res = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const account = await res.json();
+    return account?.root_info?.root_namespace_id || null;
+  } catch {
+    return null;
+  }
 }
 
 // List image files in a Dropbox folder
@@ -84,7 +82,8 @@ async function handleListFolder(body: any) {
   const { cursor } = body;
   const rawPath = body.folderPath;
 
-  if (!rawPath && !cursor) throw new Error('folderPath is required');
+  // folderPath can be empty string (root) or a path — only reject if truly missing AND no cursor
+  if (rawPath === undefined && !cursor) throw new Error('folderPath is required');
 
   console.log('Raw folderPath input:', rawPath);
 
@@ -94,17 +93,18 @@ async function handleListFolder(body: any) {
   };
 
   let res: Response;
+  let usedSharedLink: string | null = null;
 
   if (cursor) {
-    // Continue pagination
     res = await fetch('https://api.dropboxapi.com/2/files/list_folder/continue', {
       method: 'POST',
       headers,
       body: JSON.stringify({ cursor }),
     });
   } else if (rawPath && isSharedLink(rawPath)) {
-    // Handle shared links — use the shared link API
+    // Handle shared links
     const sharedUrl = extractSharedLink(rawPath);
+    usedSharedLink = sharedUrl;
     console.log('Detected shared link, using sharing API:', sharedUrl);
 
     res = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
@@ -118,11 +118,10 @@ async function handleListFolder(body: any) {
       }),
     });
 
-    // If empty-string path doesn't work, try without path field
+    // Fallback: resolve shared link metadata and use absolute path + namespace
     if (res.status === 409) {
       const errBody = await res.text();
-      console.error('Shared link list_folder 409 with empty path:', errBody);
-      // Try with the shared link metadata to get the actual path
+      console.error('Shared link list_folder 409:', errBody);
       const metaRes = await fetch('https://api.dropboxapi.com/2/sharing/get_shared_link_metadata', {
         method: 'POST',
         headers,
@@ -130,40 +129,43 @@ async function handleListFolder(body: any) {
       });
       if (metaRes.ok) {
         const meta = await metaRes.json();
-        console.log('Shared link metadata:', JSON.stringify(meta));
+        console.log('Shared link metadata path:', meta.path_lower);
         const folderPath = meta.path_lower || '';
+        const rootNsId = await getAccountRootNs(token);
+        const extraHeaders = rootNsId 
+          ? { 'Dropbox-API-Path-Root': JSON.stringify({".tag": "root", "root": rootNsId}) }
+          : {};
         res = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
           method: 'POST',
-          headers: { ...headers, 'Dropbox-API-Path-Root': JSON.stringify({".tag": "root", "root": (await getAccountRootNs(token)) || ''}) },
+          headers: { ...headers, ...extraHeaders },
           body: JSON.stringify({ path: folderPath, recursive: false, limit: 100 }),
         });
+        // If this worked, we no longer need the shared link context for thumbnails/downloads
+        if (res.ok) usedSharedLink = null;
       }
     }
   } else {
     // Standard folder path
     const folderPath = rawPath ? normalizeDropboxPath(rawPath) : '';
     console.log('Normalized folderPath:', folderPath);
-
     const payload = { path: folderPath, recursive: false, limit: 100 };
 
-    const tryFetch = async (extraHeaders?: Record<string, string>) => {
-      return await fetch('https://api.dropboxapi.com/2/files/list_folder', {
-        method: 'POST',
-        headers: { ...headers, ...extraHeaders },
-        body: JSON.stringify(payload),
-      });
-    };
+    res = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
 
-    res = await tryFetch();
-
-    // If path not found (409), try getting the root namespace and retrying
     if (res.status === 409) {
       const errBody = await res.text();
-      console.error('Dropbox list_folder 409 (trying root namespace):', errBody);
+      console.error('list_folder 409 (trying root namespace):', errBody);
       const rootNsId = await getAccountRootNs(token);
       if (rootNsId) {
-        console.log('Retrying with root namespace:', rootNsId);
-        res = await tryFetch({ 'Dropbox-API-Path-Root': JSON.stringify({".tag": "root", "root": rootNsId}) });
+        res = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
+          method: 'POST',
+          headers: { ...headers, 'Dropbox-API-Path-Root': JSON.stringify({".tag": "root", "root": rootNsId}) },
+          body: JSON.stringify(payload),
+        });
       }
     }
   }
@@ -181,8 +183,8 @@ async function handleListFolder(body: any) {
     (e: any) => e['.tag'] === 'file' && isImageFile(e.name)
   );
 
-  // Get thumbnails in batch (max 25 per call)
-  const thumbnails = await getThumbnailsBatch(token, imageEntries);
+  // Get thumbnails — pass shared link context if needed
+  const thumbnails = await getThumbnailsBatch(token, imageEntries, usedSharedLink);
 
   const files = imageEntries.map((entry: any, idx: number) => ({
     id: entry.id,
@@ -197,22 +199,23 @@ async function handleListFolder(body: any) {
     files,
     hasMore: data.has_more,
     cursor: data.cursor,
+    // Pass the shared link URL back so the client can send it for downloads
+    sharedLinkUrl: usedSharedLink || undefined,
   };
 }
 
-async function getThumbnailsBatch(token: string, entries: any[]): Promise<(string | null)[]> {
+async function getThumbnailsBatch(token: string, entries: any[], sharedLinkUrl?: string | null): Promise<(string | null)[]> {
   if (entries.length === 0) return [];
 
-  // Process in chunks of 25 (Dropbox batch limit)
   const results: (string | null)[] = [];
 
   for (let i = 0; i < entries.length; i += 25) {
     const chunk = entries.slice(i, i + 25);
     const batchEntries = chunk.map((e: any) => ({
       path: e.path_lower || e.path_display,
-      format: 'jpeg',
-      size: 'w256h256',
-      mode: 'fitone_bestfit',
+      format: { '.tag': 'jpeg' },
+      size: { '.tag': 'w256h256' },
+      mode: { '.tag': 'fitone_bestfit' },
     }));
 
     try {
@@ -235,10 +238,12 @@ async function getThumbnailsBatch(token: string, entries: any[]): Promise<(strin
           }
         }
       } else {
-        // Fill with nulls on error
+        const errText = await res.text();
+        console.error('Thumbnail batch error:', res.status, errText);
         chunk.forEach(() => results.push(null));
       }
-    } catch {
+    } catch (e) {
+      console.error('Thumbnail batch exception:', e);
       chunk.forEach(() => results.push(null));
     }
   }
@@ -249,18 +254,78 @@ async function getThumbnailsBatch(token: string, entries: any[]): Promise<(strin
 // Get a temporary download link for a file
 async function handleGetDownloadLink(body: any) {
   const token = getDropboxToken();
-  const { filePath } = body;
+  const { filePath, sharedLinkUrl } = body;
 
   if (!filePath) throw new Error('filePath is required');
 
-  const res = await fetch('https://api.dropboxapi.com/2/files/get_temporary_link', {
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
+
+  // Try get_temporary_link first (works for absolute paths)
+  let res = await fetch('https://api.dropboxapi.com/2/files/get_temporary_link', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ path: filePath }),
   });
+
+  // If path not found and we have a shared link, use sharing/get_shared_link_file
+  if (!res.ok && sharedLinkUrl) {
+    console.log('get_temporary_link failed, trying with shared link for:', filePath);
+    
+    // For shared link files, use the content download endpoint with shared link header
+    const downloadRes = await fetch('https://content.dropboxapi.com/2/sharing/get_shared_link_file', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Dropbox-API-Arg': JSON.stringify({ url: sharedLinkUrl, path: filePath }),
+      },
+    });
+
+    if (downloadRes.ok) {
+      // Convert the binary response to a data URL
+      const blob = await downloadRes.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      let binary = '';
+      for (let i = 0; i < uint8Array.length; i++) {
+        binary += String.fromCharCode(uint8Array[i]);
+      }
+      const base64 = btoa(binary);
+      const mimeType = downloadRes.headers.get('content-type') || 'image/jpeg';
+      
+      // Parse the API result header for metadata
+      let metadata: any = {};
+      try {
+        const apiResult = downloadRes.headers.get('dropbox-api-result');
+        if (apiResult) metadata = JSON.parse(apiResult);
+      } catch {}
+
+      return {
+        downloadUrl: `data:${mimeType};base64,${base64}`,
+        metadata: {
+          name: metadata?.name || filePath.split('/').pop(),
+          size: metadata?.size || blob.size,
+        },
+      };
+    } else {
+      const errText = await downloadRes.text();
+      console.error('Shared link file download error:', downloadRes.status, errText);
+    }
+  }
+
+  // Also try with root namespace header
+  if (!res.ok) {
+    const rootNsId = await getAccountRootNs(token);
+    if (rootNsId) {
+      res = await fetch('https://api.dropboxapi.com/2/files/get_temporary_link', {
+        method: 'POST',
+        headers: { ...headers, 'Dropbox-API-Path-Root': JSON.stringify({".tag": "root", "root": rootNsId}) },
+        body: JSON.stringify({ path: filePath }),
+      });
+    }
+  }
 
   if (!res.ok) {
     const errText = await res.text();
