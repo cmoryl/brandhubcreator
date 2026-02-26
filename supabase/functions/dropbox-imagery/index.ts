@@ -68,14 +68,43 @@ async function handleListFolder(body: any) {
     ? { cursor }
     : { path: folderPath, recursive: false, limit: 100 };
 
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
+
+  // For team/business accounts, try with root namespace if path not found
+  const tryFetch = async (extraHeaders?: Record<string, string>) => {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { ...headers, ...extraHeaders },
+      body: JSON.stringify(payload),
+    });
+    return res;
+  };
+
+  let res = await tryFetch();
+
+  // If path not found (409), try getting the root namespace and retrying
+  if (res.status === 409 && !cursor) {
+    const errBody = await res.text();
+    console.error('Dropbox list_folder 409 (trying root namespace):', errBody);
+
+    // Get current account to find root namespace
+    const accountRes = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    if (accountRes.ok) {
+      const account = await accountRes.json();
+      const rootNsId = account?.root_info?.root_namespace_id;
+      if (rootNsId) {
+        console.log('Retrying with root namespace:', rootNsId);
+        res = await tryFetch({ 'Dropbox-API-Path-Root': JSON.stringify({".tag": "root", "root": rootNsId}) });
+      }
+    }
+  }
 
   if (!res.ok) {
     const errText = await res.text();
