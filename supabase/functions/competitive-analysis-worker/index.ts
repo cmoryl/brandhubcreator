@@ -151,6 +151,12 @@ Create one competitorProfile per competitor. Scores 1-10 integers. Be specific a
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
+      if (aiResponse.status === 429) {
+        throw new Error("Rate limit exceeded. Please try again in a few minutes.");
+      }
+      if (aiResponse.status === 402) {
+        throw new Error("AI credits exhausted. Please add credits to continue.");
+      }
       throw new Error(`AI Gateway error: ${aiResponse.status} - ${errText.slice(0, 200)}`);
     }
 

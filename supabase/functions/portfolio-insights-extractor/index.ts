@@ -80,6 +80,12 @@ async function callAI(apiKey: string, systemPrompt: string, userPrompt: string):
 
   if (!res.ok) {
     const err = await res.text();
+    if (res.status === 429) {
+      throw new Error("Rate limit exceeded. Please try again in a few minutes.");
+    }
+    if (res.status === 402) {
+      throw new Error("AI credits exhausted. Please add credits to continue.");
+    }
     throw new Error(`AI call failed: ${res.status} ${err}`);
   }
 
