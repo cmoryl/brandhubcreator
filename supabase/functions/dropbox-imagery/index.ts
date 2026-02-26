@@ -60,6 +60,9 @@ async function handleListFolder(body: any) {
 
   if (!folderPath && !cursor) throw new Error('folderPath is required');
 
+  console.log('Raw folderPath input:', body.folderPath);
+  console.log('Normalized folderPath:', folderPath);
+
   const endpoint = cursor
     ? 'https://api.dropboxapi.com/2/files/list_folder/continue'
     : 'https://api.dropboxapi.com/2/files/list_folder';
