@@ -121,7 +121,34 @@ async function handleDownload(body: any) {
     const errorText = await licenseResponse.text();
     console.error('Shutterstock license error:', licenseResponse.status, errorText);
 
-    // If licensing fails, try to get the download URL directly (for already-licensed images)
+    // 403 = subscription tier doesn't support licensing API
+    if (licenseResponse.status === 403) {
+      // Try to get download URL for already-licensed images first
+      const redownloadResponse = await fetch(`https://api.shutterstock.com/v2/images/licenses?image_id=${imageId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (redownloadResponse.ok) {
+        const redownloadData = await redownloadResponse.json();
+        const existing = redownloadData.data?.[0];
+        if (existing?.download?.url) {
+          return { downloadUrl: existing.download.url, alreadyLicensed: true };
+        }
+      }
+
+      // Return a structured response indicating the tier limitation
+      return {
+        downloadUrl: null,
+        requiresUpgrade: true,
+        shutterstockUrl: `https://www.shutterstock.com/image-photo/${imageId}`,
+        message: 'Your Shutterstock subscription does not support API-based licensing. You can download this image directly from Shutterstock.',
+      };
+    }
+
+    // For other errors, try re-download fallback
     const redownloadResponse = await fetch(`https://api.shutterstock.com/v2/images/licenses?image_id=${imageId}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -137,7 +164,7 @@ async function handleDownload(body: any) {
       }
     }
 
-    throw new Error(`Failed to license image. Status: ${licenseResponse.status}. Ensure your Shutterstock subscription is active.`);
+    throw new Error(`Failed to license image: ${licenseResponse.status}`);
   }
 
   const licenseData = await licenseResponse.json();
