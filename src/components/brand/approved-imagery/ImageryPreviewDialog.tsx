@@ -51,8 +51,10 @@ export const ImageryPreviewDialog = ({
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      if (data?.downloadUrl) {
-        // Open download URL in new tab
+      if (data?.requiresUpgrade) {
+        window.open(data.shutterstockUrl, '_blank');
+        toast.info(data.message || 'Opening image on Shutterstock for manual download');
+      } else if (data?.downloadUrl) {
         window.open(data.downloadUrl, '_blank');
         toast.success(data.alreadyLicensed ? 'Re-downloading licensed image' : 'Image licensed & downloading');
       }
