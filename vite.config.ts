@@ -114,11 +114,14 @@ export default defineConfig(({ mode }) => {
         registerType: "autoUpdate",
         includeAssets: ["favicon.ico", "placeholder.svg", "robots.txt"],
         workbox: {
-          skipWaiting: true,
-          clientsClaim: true,
-          cleanupOutdatedCaches: true,
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2,webp,jpg,jpeg,json,xml}"],
-          runtimeCaching: [
+      skipWaiting: true,
+      clientsClaim: true,
+      cleanupOutdatedCaches: true,
+      // CRITICAL: Do NOT cache html files — they must always be fresh from the server
+      globPatterns: ["**/*.{js,css,ico,png,svg,woff,woff2,webp,jpg,jpeg,json,xml}"],
+      // Do NOT use navigateFallback — it causes the SW to serve stale index.html
+      navigateFallback: undefined,
+      runtimeCaching: [
             {
               // Google Fonts stylesheets
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
