@@ -1,0 +1,135 @@
+import { useState } from 'react';
+import { Search, Trash2, Edit2, Check, X, ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ApprovedImagerySubSection } from '@/types/brand';
+
+interface ImagerySubSectionProps {
+  section: ApprovedImagerySubSection;
+  canEdit: boolean;
+  onSearchClick: () => void;
+  onRemoveImage: (imageId: string) => void;
+  onRemoveSection: () => void;
+  onRename: (newName: string) => void;
+}
+
+export const ImagerySubSection = ({
+  section,
+  canEdit,
+  onSearchClick,
+  onRemoveImage,
+  onRemoveSection,
+  onRename,
+}: ImagerySubSectionProps) => {
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(section.name);
+
+  const handleSaveRename = () => {
+    if (editName.trim()) {
+      onRename(editName.trim());
+    }
+    setEditing(false);
+  };
+
+  return (
+    <AccordionItem value={section.id} className="border rounded-lg bg-card">
+      <AccordionTrigger className="px-4 py-3 hover:no-underline">
+        <div className="flex items-center gap-3 flex-1 text-left">
+          {editing ? (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="h-7 w-48 text-sm"
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveRename(); if (e.key === 'Escape') setEditing(false); }}
+                autoFocus
+              />
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleSaveRename}>
+                <Check className="h-3 w-3" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditing(false)}>
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <>
+              <span className="font-medium text-foreground">{section.name}</span>
+              <Badge variant="secondary" className="text-xs">{section.images.length}</Badge>
+            </>
+          )}
+        </div>
+        {canEdit && !editing && (
+          <div className="flex items-center gap-1 mr-2" onClick={(e) => e.stopPropagation()}>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditName(section.name); setEditing(true); }}>
+              <Edit2 className="h-3 w-3" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onSearchClick}>
+              <Search className="h-3 w-3" />
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive">
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete "{section.name}"?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will remove the category and all {section.images.length} approved images within it.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onRemoveSection}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        )}
+      </AccordionTrigger>
+      <AccordionContent className="px-4 pb-4">
+        {section.images.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+            <ImageIcon className="h-8 w-8 opacity-30 mb-2" />
+            <p className="text-sm">No images in this category</p>
+            {canEdit && (
+              <Button variant="outline" size="sm" className="mt-3" onClick={onSearchClick}>
+                <Search className="h-3 w-3 mr-1" /> Search & Add Images
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {section.images.map((image) => (
+              <div key={image.id} className="relative group rounded-lg overflow-hidden border border-border bg-muted/30">
+                <img
+                  src={image.thumbnailUrl || image.url}
+                  alt={image.title}
+                  className="w-full aspect-[4/3] object-cover"
+                  loading="lazy"
+                />
+                {canEdit && (
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => onRemoveImage(image.id)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+                <div className="px-2 py-1.5">
+                  <p className="text-[11px] text-muted-foreground line-clamp-1">{image.title}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </AccordionContent>
+    </AccordionItem>
+  );
+};

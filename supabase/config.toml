@@ -100,3 +100,6 @@ verify_jwt = false
 
 [functions.generate-portfolio-relationships]
 verify_jwt = false
+
+[functions.shutterstock-search]
+verify_jwt = false

@@ -52,6 +52,7 @@ import {
   LocationStat,
   PresentationTemplate,
   LinkedBoothCard,
+  ApprovedImageryData,
 } from './brand';
 
 // Event-specific types
@@ -479,6 +480,9 @@ export interface EventGuide {
   // Locations
   locations?: BrandLocation[];
   locationStats?: LocationStat[];
+  
+  // Approved Imagery (Shutterstock curated sub-sections)
+  approvedImagery?: ApprovedImageryData;
   
   // Metadata
   createdAt: Date;
