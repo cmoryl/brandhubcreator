@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { X, Download, Folder, File, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical, Loader2, ExternalLink, Archive } from 'lucide-react';
 import JSZip from 'jszip';
+import { supabase } from '@/integrations/supabase/client';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { BrandAsset, ASSET_CATEGORIES, AssetCategory, PRINT_SIGNAGE_TYPES } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -293,6 +294,29 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     onAssetsChange(arrayMove(assets, oldIndex, newIndex));
   }, [assets, onAssetsChange]);
 
+  const fetchAssetBlob = useCallback(async (url: string): Promise<Blob | null> => {
+    // Try direct fetch first (works for same-origin / CORS-enabled URLs)
+    try {
+      const res = await fetch(url);
+      if (res.ok) return await res.blob();
+    } catch { /* CORS blocked — fall through to proxy */ }
+
+    // Proxy external URLs through edge function to bypass CORS
+    try {
+      const { data, error } = await supabase.functions.invoke('proxy-download', {
+        body: { url },
+      });
+      if (error) throw error;
+      if (data instanceof Blob) return data;
+      // If response is an ArrayBuffer
+      if (data instanceof ArrayBuffer) return new Blob([data]);
+      return null;
+    } catch (err) {
+      console.warn(`Proxy fetch also failed for: ${url}`, err);
+      return null;
+    }
+  }, []);
+
   const handleDownloadAll = useCallback(async () => {
     if (!assets?.length) return;
     setIsZipping(true);
@@ -303,21 +327,21 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
       await Promise.allSettled(
         assets.map(async (asset) => {
           try {
-            const res = await fetch(asset.url);
-            if (!res.ok) return;
-            const blob = await res.blob();
+            const blob = await fetchAssetBlob(asset.url);
+            if (!blob) return;
 
             // Organize into category folders, deduplicate filenames
             const folder = asset.category || 'Other';
             let fileName = asset.name || 'file';
-            if (nameCount[`${folder}/${fileName}`]) {
-              nameCount[`${folder}/${fileName}`]++;
+            const key = `${folder}/${fileName}`;
+            if (nameCount[key]) {
+              nameCount[key]++;
               const ext = fileName.lastIndexOf('.');
               fileName = ext > 0
-                ? `${fileName.slice(0, ext)}-${nameCount[`${folder}/${fileName}`]}${fileName.slice(ext)}`
-                : `${fileName}-${nameCount[`${folder}/${fileName}`]}`;
+                ? `${fileName.slice(0, ext)}-${nameCount[key]}${fileName.slice(ext)}`
+                : `${fileName}-${nameCount[key]}`;
             } else {
-              nameCount[`${folder}/${fileName}`] = 1;
+              nameCount[key] = 1;
             }
 
             zip.folder(folder)!.file(fileName, blob);
@@ -343,7 +367,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     } finally {
       setIsZipping(false);
     }
-  }, [assets]);
+  }, [assets, fetchAssetBlob]);
 
   // Group by category
   const filteredAssets = filterCategory === 'all'
