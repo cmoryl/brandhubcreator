@@ -2,73 +2,45 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Preconnect hints MUST be first for maximum effectiveness -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Supabase preconnect moved to runtime to avoid unused preconnect on landing page -->
-    <!-- Mobile viewport with safe area support - allows user zoom for accessibility -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- iOS specific meta tags for better mobile experience -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#1a1a2e">
-    <link rel="apple-touch-icon" href="/icons/pwa-192x192.png">
-    <link rel="manifest" href="/manifest.webmanifest">
-    <!-- Prevent telephone number detection on mobile -->
-    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="apple-touch-icon" href="/icons/pwa-192x192.png" />
     <title>BrandHub</title>
-    <meta name="description" content="Create and manage comprehensive brand guides">
+    <meta name="description" content="Create and manage comprehensive brand guides" />
     <meta name="author" content="BrandHub" />
-
-    
-    
     <meta property="og:type" content="website" />
+    <meta property="og:title" content="BrandHub" />
+    <meta property="og:description" content="Create and manage comprehensive brand guides" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Lovable" />
+    <meta name="twitter:title" content="BrandHub" />
+    <meta name="twitter:description" content="Create and manage comprehensive brand guides" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-    
-    <!-- Demo hero images are lazy-loaded since they appear below the fold -->
-    
-    <!-- Fonts with non-blocking load using media print trick -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@500;600&display=swap" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@500;600&display=swap" rel="stylesheet"></noscript>
-    <!-- Defer non-critical font weights -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;800&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    
-  
-  
-  
-  <link rel="icon" type="image/png" href="https://storage.googleapis.com/gpt-engineer-file-uploads/RdqHig7jc1NrJ53XJVb7DKdOfQY2/uploads/1770586585368-TP-Tonly-colorwhiteT.png">
-  
-  <!-- Critical inline CSS for faster FCP - minimal styles for initial paint -->
-  <style>
-    /* Critical base styles for immediate render */
-    *,*::before,*::after{box-sizing:border-box}
-    html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:Poppins,Montserrat,ui-sans-serif,system-ui,sans-serif}
-    body{margin:0;min-height:100vh}
-    :root{--background:40 20% 98%;--foreground:220 20% 10%;--primary:220 15% 20%}
-    .dark{--background:220 20% 8%;--foreground:40 20% 98%;--primary:40 20% 98%}
-    body{background-color:hsl(var(--background));color:hsl(var(--foreground))}
-    #root{min-height:100vh;display:flex;flex-direction:column}
-    /* Loading state for immediate FCP */
-    .initial-loader{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem}
-    .initial-loader svg{width:48px;height:48px;animation:spin 1s linear infinite}
-    .initial-loader p{font-size:0.875rem;color:hsl(var(--foreground)/0.6)}
-    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-  </style>
-  <meta property="og:title" content="BrandHub">
-  <meta name="twitter:title" content="BrandHub">
-  <meta property="og:description" content="Create and manage comprehensive brand guides">
-  <meta name="twitter:description" content="Create and manage comprehensive brand guides">
-</head>
-
+    <link rel="icon" type="image/png" href="https://storage.googleapis.com/gpt-engineer-file-uploads/RdqHig7jc1NrJ53XJVb7DKdOfQY2/uploads/1770586585368-TP-Tonly-colorwhiteT.png" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@500;600&display=swap" as="style" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;800&family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+      *,*::before,*::after{box-sizing:border-box}
+      html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:Poppins,Montserrat,ui-sans-serif,system-ui,sans-serif}
+      body{margin:0;min-height:100vh}
+      :root{--background:40 20% 98%;--foreground:220 20% 10%;--primary:220 15% 20%}
+      .dark{--background:220 20% 8%;--foreground:40 20% 98%;--primary:40 20% 98%}
+      body{background-color:hsl(var(--background));color:hsl(var(--foreground))}
+      #root{min-height:100vh;display:flex;flex-direction:column}
+      .initial-loader{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem}
+      .initial-loader svg{width:48px;height:48px;animation:spin 1s linear infinite}
+      .initial-loader p{font-size:0.875rem;color:hsl(var(--foreground)/0.6)}
+      @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    </style>
+  </head>
   <body>
     <div id="root">
-      <!-- Immediate visible content for FCP -->
       <div class="initial-loader" aria-label="Loading">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
