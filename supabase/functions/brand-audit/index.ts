@@ -50,6 +50,17 @@ serve(async (req) => {
       'Prefer': 'return=representation',
     };
 
+    // Clear any stale "processing" jobs for this entity (older than 3 minutes)
+    const staleThreshold = new Date(Date.now() - 3 * 60 * 1000).toISOString();
+    await fetch(
+      `${supabaseUrl}/rest/v1/brand_intelligence_jobs?entity_id=eq.${brandId}&entity_type=eq.${entityType}&status=eq.processing&created_at=lt.${staleThreshold}`,
+      {
+        method: 'PATCH',
+        headers: { ...svcHeaders, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ status: 'failed', error_message: 'Timed out (stale job cleared)', completed_at: new Date().toISOString() }),
+      }
+    );
+
     // Create a job record
     const jobRes = await fetch(`${supabaseUrl}/rest/v1/brand_intelligence_jobs`, {
       method: 'POST',

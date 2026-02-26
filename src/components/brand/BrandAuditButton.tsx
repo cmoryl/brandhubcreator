@@ -55,12 +55,12 @@ export const BrandAuditButton = ({ brand }: BrandAuditButtonProps) => {
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
 
   const pollJob = async (jobId: string): Promise<AuditResult> => {
-    const maxAttempts = 30;
+    const maxAttempts = 60;
     for (let i = 0; i < maxAttempts; i++) {
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise(r => setTimeout(r, 3000));
       const { data, error } = await supabase
         .from('brand_intelligence_jobs')
-        .select('status, result, error_message')
+        .select('status, result, error_message, progress')
         .eq('id', jobId)
         .single();
 
@@ -72,8 +72,12 @@ export const BrandAuditButton = ({ brand }: BrandAuditButtonProps) => {
       if (data.status === 'failed') {
         throw new Error(data.error_message || 'Audit failed');
       }
+      // If progress hasn't advanced past 60 for 90 seconds, the worker likely timed out
+      if (i > 30 && (data.progress ?? 0) <= 60) {
+        throw new Error('Audit worker appears stuck. Please try again.');
+      }
     }
-    throw new Error('Audit timed out');
+    throw new Error('Audit timed out — please try again');
   };
 
   const runAudit = async () => {
