@@ -39,6 +39,19 @@ function isImageFile(name: string): boolean {
   return IMAGE_EXTENSIONS.has(ext);
 }
 
+// Check if the input is a Dropbox shared link
+function isSharedLink(input: string): boolean {
+  const cleaned = input.replace(/^\/+/, '');
+  return cleaned.startsWith('https://www.dropbox.com/scl/') || 
+         cleaned.startsWith('https://www.dropbox.com/sh/') ||
+         cleaned.startsWith('https://www.dropbox.com/s/');
+}
+
+// Extract the clean shared link URL (remove leading slash, keep as-is)
+function extractSharedLink(input: string): string {
+  return decodeURIComponent(input).trim().replace(/^\/+/, '');
+}
+
 // Normalize a Dropbox path — strip full URLs like https://www.dropbox.com/work/...
 function normalizeDropboxPath(input: string): string {
   let p = decodeURIComponent(input).trim();
@@ -51,57 +64,103 @@ function normalizeDropboxPath(input: string): string {
   // Root folder should be empty string for Dropbox API
   return p === '/' ? '' : p;
 }
+// Cache root namespace ID
+let _cachedRootNs: string | null = null;
+async function getAccountRootNs(token: string): Promise<string | null> {
+  if (_cachedRootNs) return _cachedRootNs;
+  const res = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
+  const account = await res.json();
+  _cachedRootNs = account?.root_info?.root_namespace_id || null;
+  return _cachedRootNs;
+}
 
 // List image files in a Dropbox folder
 async function handleListFolder(body: any) {
   const token = getDropboxToken();
   const { cursor } = body;
-  const folderPath = body.folderPath ? normalizeDropboxPath(body.folderPath) : undefined;
+  const rawPath = body.folderPath;
 
-  if (!folderPath && !cursor) throw new Error('folderPath is required');
+  if (!rawPath && !cursor) throw new Error('folderPath is required');
 
-  console.log('Raw folderPath input:', body.folderPath);
-  console.log('Normalized folderPath:', folderPath);
-
-  const endpoint = cursor
-    ? 'https://api.dropboxapi.com/2/files/list_folder/continue'
-    : 'https://api.dropboxapi.com/2/files/list_folder';
-
-  const payload = cursor
-    ? { cursor }
-    : { path: folderPath, recursive: false, limit: 100 };
+  console.log('Raw folderPath input:', rawPath);
 
   const headers: Record<string, string> = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
 
-  // For team/business accounts, try with root namespace if path not found
-  const tryFetch = async (extraHeaders?: Record<string, string>) => {
-    const res = await fetch(endpoint, {
+  let res: Response;
+
+  if (cursor) {
+    // Continue pagination
+    res = await fetch('https://api.dropboxapi.com/2/files/list_folder/continue', {
       method: 'POST',
-      headers: { ...headers, ...extraHeaders },
-      body: JSON.stringify(payload),
+      headers,
+      body: JSON.stringify({ cursor }),
     });
-    return res;
-  };
+  } else if (rawPath && isSharedLink(rawPath)) {
+    // Handle shared links — use the shared link API
+    const sharedUrl = extractSharedLink(rawPath);
+    console.log('Detected shared link, using sharing API:', sharedUrl);
 
-  let res = await tryFetch();
-
-  // If path not found (409), try getting the root namespace and retrying
-  if (res.status === 409 && !cursor) {
-    const errBody = await res.text();
-    console.error('Dropbox list_folder 409 (trying root namespace):', errBody);
-
-    // Get current account to find root namespace
-    const accountRes = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
+    res = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers,
+      body: JSON.stringify({
+        path: '',
+        shared_link: { url: sharedUrl },
+        recursive: false,
+        limit: 100,
+      }),
     });
 
-    if (accountRes.ok) {
-      const account = await accountRes.json();
-      const rootNsId = account?.root_info?.root_namespace_id;
+    // If empty-string path doesn't work, try without path field
+    if (res.status === 409) {
+      const errBody = await res.text();
+      console.error('Shared link list_folder 409 with empty path:', errBody);
+      // Try with the shared link metadata to get the actual path
+      const metaRes = await fetch('https://api.dropboxapi.com/2/sharing/get_shared_link_metadata', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ url: sharedUrl }),
+      });
+      if (metaRes.ok) {
+        const meta = await metaRes.json();
+        console.log('Shared link metadata:', JSON.stringify(meta));
+        const folderPath = meta.path_lower || '';
+        res = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
+          method: 'POST',
+          headers: { ...headers, 'Dropbox-API-Path-Root': JSON.stringify({".tag": "root", "root": (await getAccountRootNs(token)) || ''}) },
+          body: JSON.stringify({ path: folderPath, recursive: false, limit: 100 }),
+        });
+      }
+    }
+  } else {
+    // Standard folder path
+    const folderPath = rawPath ? normalizeDropboxPath(rawPath) : '';
+    console.log('Normalized folderPath:', folderPath);
+
+    const payload = { path: folderPath, recursive: false, limit: 100 };
+
+    const tryFetch = async (extraHeaders?: Record<string, string>) => {
+      return await fetch('https://api.dropboxapi.com/2/files/list_folder', {
+        method: 'POST',
+        headers: { ...headers, ...extraHeaders },
+        body: JSON.stringify(payload),
+      });
+    };
+
+    res = await tryFetch();
+
+    // If path not found (409), try getting the root namespace and retrying
+    if (res.status === 409) {
+      const errBody = await res.text();
+      console.error('Dropbox list_folder 409 (trying root namespace):', errBody);
+      const rootNsId = await getAccountRootNs(token);
       if (rootNsId) {
         console.log('Retrying with root namespace:', rootNsId);
         res = await tryFetch({ 'Dropbox-API-Path-Root': JSON.stringify({".tag": "root", "root": rootNsId}) });
