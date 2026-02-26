@@ -333,8 +333,26 @@ async function handleGetDownloadLink(body: any) {
   }
 
   const data = await res.json();
+  const tempLink = data.link;
+
+  // Download the actual file content and convert to base64 data URL
+  // (temporary links expire in 4 hours, so we must not store them directly)
+  const fileRes = await fetch(tempLink);
+  if (!fileRes.ok) {
+    throw new Error(`Failed to download file from temporary link: ${fileRes.status}`);
+  }
+  const blob = await fileRes.blob();
+  const arrayBuffer = await blob.arrayBuffer();
+  const uint8Array = new Uint8Array(arrayBuffer);
+  let binary = '';
+  for (let i = 0; i < uint8Array.length; i++) {
+    binary += String.fromCharCode(uint8Array[i]);
+  }
+  const base64 = btoa(binary);
+  const mimeType = fileRes.headers.get('content-type') || 'application/octet-stream';
+
   return {
-    downloadUrl: data.link,
+    downloadUrl: `data:${mimeType};base64,${base64}`,
     metadata: {
       name: data.metadata?.name,
       size: data.metadata?.size,
