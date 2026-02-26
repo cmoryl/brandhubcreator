@@ -48,14 +48,28 @@
       </div>
     </div>
     <script>
-      // Force cleanup of stale service workers that may cache old broken builds
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          registrations.forEach(function(registration) {
-            registration.update();
+      // NUCLEAR: Unregister ALL stale service workers and clear caches.
+      // This breaks the cycle where an old SW serves broken cached HTML.
+      (function() {
+        if (!('serviceWorker' in navigator)) return;
+        // Check if we already did a cleanup reload to avoid infinite loops
+        var reloadKey = 'bhub_sw_cleanup_v3';
+        if (sessionStorage.getItem(reloadKey)) return;
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          if (regs.length === 0) return;
+          var tasks = regs.map(function(r) { return r.unregister(); });
+          Promise.all(tasks).then(function() {
+            // Also clear all caches
+            if ('caches' in window) {
+              caches.keys().then(function(names) {
+                names.forEach(function(n) { caches.delete(n); });
+              });
+            }
+            sessionStorage.setItem(reloadKey, '1');
+            window.location.reload();
           });
         });
-      }
+      })();
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
