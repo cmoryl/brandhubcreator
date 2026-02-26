@@ -548,6 +548,32 @@ export const COLOR_TRENDS_2026 = {
   },
 };
 
+// ── Module 17: Optical Geometry & Corner Radius Intelligence ──
+
+export const OPTICAL_GEOMETRY_INTELLIGENCE = {
+  id: 'optical_geometry',
+  title: 'Optical Geometry & Corner Radius System',
+  description: 'Corners are the subconscious body language of UI. Before users read content, the shape sets the tone: strict vs playful.',
+  mood_mapping: {
+    sharp: { radius: '0-4px', mood: 'Data. Trust. Stability.', use_cases: 'Data-heavy dashboards, fintech, dev tools', label: 'The Technical Look' },
+    modern: { radius: '16-24px', mood: 'Approachable. Touch-friendly.', use_cases: 'iOS apps, lifestyle products, social media', label: 'The Modern Look' },
+    full_round: { radius: '50%+', mood: 'Organic. Playful. Friendly.', use_cases: 'Consumer brands, children, wellness', label: 'The Organic Look' },
+  },
+  rules: [
+    { name: 'Unified System', description: 'Don\'t mix geometries. All interactive elements (buttons, cards, inputs) must use the same radius family. Inconsistent logic (mixed sharp/round) reads as a mistake, not a design choice.' },
+    { name: 'Avoid Visual Tension', description: 'The human eye perceives slight differences (like 4px vs 6px) as a mistake, not a design choice. If values are close, make them identical.' },
+    { name: 'Perfect Nesting', description: 'Outer radius and inner radius should represent concentric circles. Formula: Outer Radius = Inner Radius + Padding. This creates harmonious nested containers.' },
+    { name: 'From Chaos to Order', description: 'Consistent card layouts with uniform radii, aligned content blocks, and matching button shapes transform chaotic grids into ordered systems.' },
+  ],
+  scoring_criteria: [
+    'Radius consistency across all UI elements (buttons, cards, inputs, modals)',
+    'Mood alignment: radius tier matches brand personality (technical vs playful)',
+    'Nesting harmony: nested elements follow concentric circle formula',
+    'No mixed geometries within the same component family',
+    'Visual tension: no near-identical but different radius values',
+  ],
+};
+
 export const AI_POLICY_AS_CODE = {
   disparate_impact_rule: {
     name: 'U.S. 80% Rule (Four-Fifths Rule)',
@@ -629,6 +655,11 @@ export function buildDeepIntelligencePromptContext(): string {
   lines.push(`EAA Enforcement: ${EAA_COMPLIANCE_BASELINE.enforcement_start}. Penalties: up to €${(EAA_COMPLIANCE_BASELINE.penalties.max_fine_euros / 1_000_000).toFixed(0)}M + product removal.`);
   lines.push(`Scope: ${EAA_COMPLIANCE_BASELINE.mandatory_scope.slice(0, 5).join(', ')}.`);
   lines.push(`U.S. Section 508: WCAG 2.1 AA by ${EAA_COMPLIANCE_BASELINE.us_section_508.deadline_large} (large) / ${EAA_COMPLIANCE_BASELINE.us_section_508.deadline_small} (small).`);
+
+  lines.push('\n## Deep Intelligence: Optical Geometry & Corner Radius System');
+  lines.push(`Radius defines mood: corners are the subconscious body language of UI. Sharp edges = data, trust, stability. Rounded = organic, playful, friendly.`);
+  lines.push(`Tiers: Technical (0-4px) for dashboards/fintech/dev tools. Modern (16-24px) for iOS/lifestyle/social. Full-round for organic/playful brands.`);
+  lines.push(`Rules: 1) Don't mix geometries — use a unified radius system. 2) Avoid visual tension — if values are close (4px vs 6px), make them identical. 3) Perfect nesting — outer radius = inner radius + padding (concentric circles). 4) From chaos to order — consistent card layouts with uniform radii.`);
 
   return lines.join('\n');
 }
