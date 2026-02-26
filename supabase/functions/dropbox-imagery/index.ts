@@ -39,10 +39,21 @@ function isImageFile(name: string): boolean {
   return IMAGE_EXTENSIONS.has(ext);
 }
 
+// Normalize a Dropbox path — strip full URLs like https://www.dropbox.com/work/...
+function normalizeDropboxPath(input: string): string {
+  let p = decodeURIComponent(input).trim();
+  // Strip full Dropbox web URLs
+  p = p.replace(/^https?:\/\/www\.dropbox\.com\/(home|work|personal)/, '');
+  // Ensure leading slash
+  if (p && !p.startsWith('/')) p = '/' + p;
+  return p || '';
+}
+
 // List image files in a Dropbox folder
 async function handleListFolder(body: any) {
   const token = getDropboxToken();
-  const { folderPath, cursor } = body;
+  const { cursor } = body;
+  const folderPath = body.folderPath ? normalizeDropboxPath(body.folderPath) : undefined;
 
   if (!folderPath && !cursor) throw new Error('folderPath is required');
 
