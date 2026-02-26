@@ -123,7 +123,7 @@ export const DropboxBrowserDialog = ({
       for (const file of selected) {
         try {
           const { data, error } = await supabase.functions.invoke('dropbox-imagery', {
-            body: { action: 'download', filePath: file.path, sharedLinkUrl },
+            body: { action: 'download', filePath: file.path || `/${file.name}`, fileName: file.name, sharedLinkUrl },
           });
 
           if (error || data?.error) {

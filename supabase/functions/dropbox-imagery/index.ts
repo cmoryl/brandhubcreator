@@ -212,7 +212,7 @@ async function getThumbnailsBatch(token: string, entries: any[], sharedLinkUrl?:
   for (let i = 0; i < entries.length; i += 25) {
     const chunk = entries.slice(i, i + 25);
     const batchEntries = chunk.map((e: any) => ({
-      path: e.path_lower || e.path_display,
+      path: e.path_lower || e.path_display || `/${e.name}`,
       format: { '.tag': 'jpeg' },
       size: { '.tag': 'w256h256' },
       mode: { '.tag': 'fitone_bestfit' },
@@ -254,37 +254,30 @@ async function getThumbnailsBatch(token: string, entries: any[], sharedLinkUrl?:
 // Get a temporary download link for a file
 async function handleGetDownloadLink(body: any) {
   const token = getDropboxToken();
-  const { filePath, sharedLinkUrl } = body;
+  const filePath = body.filePath || (body.fileName ? `/${body.fileName}` : null);
+  const sharedLinkUrl = body.sharedLinkUrl;
 
   if (!filePath) throw new Error('filePath is required');
+
+  console.log('Download request - filePath:', filePath, 'sharedLinkUrl:', sharedLinkUrl ? 'yes' : 'no');
 
   const headers: Record<string, string> = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
 
-  // Try get_temporary_link first (works for absolute paths)
-  let res = await fetch('https://api.dropboxapi.com/2/files/get_temporary_link', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ path: filePath }),
-  });
-
-  // If path not found and we have a shared link, use sharing/get_shared_link_file
-  if (!res.ok && sharedLinkUrl) {
-    console.log('get_temporary_link failed, trying with shared link for:', filePath);
-    
-    // For shared link files, use the content download endpoint with shared link header
+  // If we have a shared link, try that FIRST (shared-link files won't have absolute paths)
+  if (sharedLinkUrl) {
+    console.log('Using shared link download for:', filePath);
     const downloadRes = await fetch('https://content.dropboxapi.com/2/sharing/get_shared_link_file', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Dropbox-API-Arg': JSON.stringify({ url: sharedLinkUrl, path: filePath }),
+        'Dropbox-API-Arg': JSON.stringify({ url: sharedLinkUrl, path: `/${filePath.replace(/^\/+/, '')}` }),
       },
     });
 
     if (downloadRes.ok) {
-      // Convert the binary response to a data URL
       const blob = await downloadRes.blob();
       const arrayBuffer = await blob.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
@@ -295,7 +288,6 @@ async function handleGetDownloadLink(body: any) {
       const base64 = btoa(binary);
       const mimeType = downloadRes.headers.get('content-type') || 'image/jpeg';
       
-      // Parse the API result header for metadata
       let metadata: any = {};
       try {
         const apiResult = downloadRes.headers.get('dropbox-api-result');
@@ -311,9 +303,16 @@ async function handleGetDownloadLink(body: any) {
       };
     } else {
       const errText = await downloadRes.text();
-      console.error('Shared link file download error:', downloadRes.status, errText);
+      console.error('Shared link download failed:', downloadRes.status, errText);
     }
   }
+
+  // Fallback: try get_temporary_link (works for absolute paths)
+  let res = await fetch('https://api.dropboxapi.com/2/files/get_temporary_link', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ path: filePath }),
+  });
 
   // Also try with root namespace header
   if (!res.ok) {
