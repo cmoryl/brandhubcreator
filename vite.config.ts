@@ -35,12 +35,10 @@ export default defineConfig(({ mode }) => {
                 id.includes('node_modules/react-reconciler')) {
               return 'vendor-three';
             }
-            // Chart libraries - heavy, lazy-loaded
-            // NOTE: d3-* modules are NOT included here to avoid circular init errors
-            if (id.includes('node_modules/recharts') ||
-                id.includes('node_modules/victory-')) {
-              return 'vendor-charts';
-            }
+            // Chart libraries (recharts, d3, victory) are intentionally NOT
+            // manually chunked — they have circular internal imports that cause
+            // ReferenceError TDZ crashes when forced into a single chunk.
+            // Vite/Rollup handles their splitting correctly on its own.
             // PDF generation - heavy, lazy-loaded
             if (id.includes('node_modules/jspdf') ||
                 id.includes('node_modules/html2pdf') ||
