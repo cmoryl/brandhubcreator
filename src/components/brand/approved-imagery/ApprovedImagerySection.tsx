@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
-import { Plus, Trash2, ImageIcon, Search, GripVertical, Edit2, Check, X } from 'lucide-react';
+import { Plus, ImageIcon, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Accordion } from '@/components/ui/accordion';
 import { ApprovedImage, ApprovedImagerySubSection } from '@/types/brand';
 import { ShutterstockSearchDialog } from './ShutterstockSearchDialog';
+import { DropboxBrowserDialog } from './DropboxBrowserDialog';
 import { ImagerySubSection } from './ImagerySubSection';
 
 interface ApprovedImagerySectionProps {
@@ -39,6 +39,7 @@ export const ApprovedImagerySection = ({
   entityType = 'brand',
 }: ApprovedImagerySectionProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [dropboxOpen, setDropboxOpen] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState<string | null>(null);
   const [newSectionName, setNewSectionName] = useState('');
   const [addingSectionMode, setAddingSectionMode] = useState(false);
@@ -75,15 +76,26 @@ export const ApprovedImagerySection = ({
     setSearchOpen(true);
   }, []);
 
+  const openDropboxForSection = useCallback((sectionId: string) => {
+    setTargetSectionId(sectionId);
+    setDropboxOpen(true);
+  }, []);
+
   const handleApproveImages = useCallback((images: ApprovedImage[]) => {
     if (!targetSectionId) return;
     updateSections(sections.map(s => {
       if (s.id !== targetSectionId) return s;
-      // Deduplicate by id
       const existingIds = new Set(s.images.map(img => img.id));
       const newImages = images.filter(img => !existingIds.has(img.id));
       return { ...s, images: [...s.images, ...newImages] };
     }));
+  }, [targetSectionId, sections, updateSections]);
+
+  const handleDropboxFolderPathChange = useCallback((path: string) => {
+    if (!targetSectionId) return;
+    updateSections(sections.map(s =>
+      s.id === targetSectionId ? { ...s, dropboxFolderPath: path } : s
+    ));
   }, [targetSectionId, sections, updateSections]);
 
   const handleRemoveImage = useCallback((sectionId: string, imageId: string) => {
@@ -94,6 +106,7 @@ export const ApprovedImagerySection = ({
   }, [sections, updateSections]);
 
   const totalImages = sections.reduce((sum, s) => sum + s.images.length, 0);
+  const targetSection = sections.find(s => s.id === targetSectionId);
 
   return (
     <div className="space-y-6">
@@ -141,7 +154,7 @@ export const ApprovedImagerySection = ({
             <ImageIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
             <p className="text-muted-foreground text-center">
               {canEdit 
-                ? 'No imagery categories yet. Click "Add Category" to create your first sub-section, then search Shutterstock to populate it.'
+                ? 'No imagery categories yet. Click "Add Category" to create your first sub-section, then search Shutterstock or import from Dropbox.'
                 : 'No approved imagery available yet.'}
             </p>
             {canEdit && (
@@ -159,6 +172,7 @@ export const ApprovedImagerySection = ({
               section={section}
               canEdit={canEdit}
               onSearchClick={() => openSearchForSection(section.id)}
+              onDropboxClick={() => openDropboxForSection(section.id)}
               onRemoveImage={(imageId) => handleRemoveImage(section.id, imageId)}
               onRemoveSection={() => removeSubSection(section.id)}
               onRename={(newName) => renameSubSection(section.id, newName)}
@@ -168,14 +182,24 @@ export const ApprovedImagerySection = ({
       )}
 
       {canEdit && (
-        <ShutterstockSearchDialog
-          open={searchOpen}
-          onOpenChange={setSearchOpen}
-          onApproveImages={handleApproveImages}
-          targetSectionName={sections.find(s => s.id === targetSectionId)?.name || ''}
-          entityId={entityId}
-          entityType={entityType}
-        />
+        <>
+          <ShutterstockSearchDialog
+            open={searchOpen}
+            onOpenChange={setSearchOpen}
+            onApproveImages={handleApproveImages}
+            targetSectionName={targetSection?.name || ''}
+            entityId={entityId}
+            entityType={entityType}
+          />
+          <DropboxBrowserDialog
+            open={dropboxOpen}
+            onOpenChange={setDropboxOpen}
+            folderPath={targetSection?.dropboxFolderPath || ''}
+            onFolderPathChange={handleDropboxFolderPathChange}
+            onImportImages={handleApproveImages}
+            sectionName={targetSection?.name || ''}
+          />
+        </>
       )}
     </div>
   );
