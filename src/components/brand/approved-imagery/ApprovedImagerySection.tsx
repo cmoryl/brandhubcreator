@@ -198,6 +198,8 @@ export const ApprovedImagerySection = ({
             onFolderPathChange={handleDropboxFolderPathChange}
             onImportImages={handleApproveImages}
             sectionName={targetSection?.name || ''}
+            entityId={entityId}
+            entityType={entityType}
           />
         </>
       )}

@@ -5,6 +5,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB limit
+
+function createSupabaseAdmin() {
+  return createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
+}
+
 async function verifyAuth(req: Request) {
   const authHeader = req.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) throw new Error('Unauthorized');
@@ -39,7 +48,6 @@ function isImageFile(name: string): boolean {
   return IMAGE_EXTENSIONS.has(ext);
 }
 
-// Check if the input is a Dropbox shared link
 function isSharedLink(input: string): boolean {
   const cleaned = input.replace(/^\/+/, '');
   return cleaned.startsWith('https://www.dropbox.com/scl/') || 
@@ -47,12 +55,10 @@ function isSharedLink(input: string): boolean {
          cleaned.startsWith('https://www.dropbox.com/s/');
 }
 
-// Extract the clean shared link URL
 function extractSharedLink(input: string): string {
   return decodeURIComponent(input).trim().replace(/^\/+/, '');
 }
 
-// Normalize a Dropbox path — strip full URLs like https://www.dropbox.com/work/...
 function normalizeDropboxPath(input: string): string {
   let p = decodeURIComponent(input).trim();
   p = p.replace(/^\/+/, '');
@@ -61,7 +67,6 @@ function normalizeDropboxPath(input: string): string {
   return p === '/' ? '' : p;
 }
 
-// Get root namespace ID for team/business accounts
 async function getAccountRootNs(token: string): Promise<string | null> {
   try {
     const res = await fetch('https://api.dropboxapi.com/2/users/get_current_account', {
@@ -76,13 +81,22 @@ async function getAccountRootNs(token: string): Promise<string | null> {
   }
 }
 
+function getMimeType(fileName: string): string {
+  const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+  const mimeMap: Record<string, string> = {
+    '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+    '.gif': 'image/gif', '.webp': 'image/webp', '.bmp': 'image/bmp',
+    '.tiff': 'image/tiff', '.svg': 'image/svg+xml',
+  };
+  return mimeMap[ext] || 'image/jpeg';
+}
+
 // List image files in a Dropbox folder
 async function handleListFolder(body: any) {
   const token = getDropboxToken();
   const { cursor } = body;
   const rawPath = body.folderPath;
 
-  // folderPath can be empty string (root) or a path — only reject if truly missing AND no cursor
   if (rawPath === undefined && !cursor) throw new Error('folderPath is required');
 
   console.log('Raw folderPath input:', rawPath);
@@ -102,7 +116,6 @@ async function handleListFolder(body: any) {
       body: JSON.stringify({ cursor }),
     });
   } else if (rawPath && isSharedLink(rawPath)) {
-    // Handle shared links
     const sharedUrl = extractSharedLink(rawPath);
     usedSharedLink = sharedUrl;
     console.log('Detected shared link, using sharing API:', sharedUrl);
@@ -118,7 +131,6 @@ async function handleListFolder(body: any) {
       }),
     });
 
-    // Fallback: resolve shared link metadata and use absolute path + namespace
     if (res.status === 409) {
       const errBody = await res.text();
       console.error('Shared link list_folder 409:', errBody);
@@ -140,12 +152,10 @@ async function handleListFolder(body: any) {
           headers: { ...headers, ...extraHeaders },
           body: JSON.stringify({ path: folderPath, recursive: false, limit: 100 }),
         });
-        // If this worked, we no longer need the shared link context for thumbnails/downloads
         if (res.ok) usedSharedLink = null;
       }
     }
   } else {
-    // Standard folder path
     const folderPath = rawPath ? normalizeDropboxPath(rawPath) : '';
     console.log('Normalized folderPath:', folderPath);
     const payload = { path: folderPath, recursive: false, limit: 100 };
@@ -178,12 +188,10 @@ async function handleListFolder(body: any) {
 
   const data = await res.json();
 
-  // Filter to image files only
   const imageEntries = (data.entries || []).filter(
     (e: any) => e['.tag'] === 'file' && isImageFile(e.name)
   );
 
-  // Get thumbnails — pass shared link context if needed
   const thumbnails = await getThumbnailsBatch(token, imageEntries, usedSharedLink);
 
   const files = imageEntries.map((entry: any, idx: number) => ({
@@ -199,7 +207,6 @@ async function handleListFolder(body: any) {
     files,
     hasMore: data.has_more,
     cursor: data.cursor,
-    // Pass the shared link URL back so the client can send it for downloads
     sharedLinkUrl: usedSharedLink || undefined,
   };
 }
@@ -251,13 +258,19 @@ async function getThumbnailsBatch(token: string, entries: any[], sharedLinkUrl?:
   return results;
 }
 
-// Get a temporary download link for a file
-async function handleGetDownloadLink(body: any) {
+// Download a file from Dropbox and upload it to Supabase Storage
+// Returns a permanent storage URL instead of base64
+async function handleDownloadAndStore(body: any) {
   const token = getDropboxToken();
   const filePath = body.filePath || (body.fileName ? `/${body.fileName}` : null);
   const sharedLinkUrl = body.sharedLinkUrl;
+  const orgId = body.organizationId;
+  const entityType = body.entityType || 'brand';
+  const entityId = body.entityId;
 
   if (!filePath) throw new Error('filePath is required');
+  if (!orgId) throw new Error('organizationId is required for storage upload');
+  if (!entityId) throw new Error('entityId is required for storage upload');
 
   console.log('Download request - filePath:', filePath, 'sharedLinkUrl:', sharedLinkUrl ? 'yes' : 'no');
 
@@ -266,7 +279,10 @@ async function handleGetDownloadLink(body: any) {
     'Content-Type': 'application/json',
   };
 
-  // If we have a shared link, try that FIRST (shared-link files won't have absolute paths)
+  let fileBlob: Blob | null = null;
+  let fileName = filePath.split('/').pop() || 'image.jpg';
+
+  // If we have a shared link, try that FIRST
   if (sharedLinkUrl) {
     console.log('Using shared link download for:', filePath);
     const downloadRes = await fetch('https://content.dropboxapi.com/2/sharing/get_shared_link_file', {
@@ -278,84 +294,94 @@ async function handleGetDownloadLink(body: any) {
     });
 
     if (downloadRes.ok) {
-      const blob = await downloadRes.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      let binary = '';
-      for (let i = 0; i < uint8Array.length; i++) {
-        binary += String.fromCharCode(uint8Array[i]);
-      }
-      const base64 = btoa(binary);
-      const mimeType = downloadRes.headers.get('content-type') || 'image/jpeg';
-      
-      let metadata: any = {};
+      fileBlob = await downloadRes.blob();
       try {
         const apiResult = downloadRes.headers.get('dropbox-api-result');
-        if (apiResult) metadata = JSON.parse(apiResult);
+        if (apiResult) {
+          const metadata = JSON.parse(apiResult);
+          if (metadata?.name) fileName = metadata.name;
+        }
       } catch {}
-
-      return {
-        downloadUrl: `data:${mimeType};base64,${base64}`,
-        metadata: {
-          name: metadata?.name || filePath.split('/').pop(),
-          size: metadata?.size || blob.size,
-        },
-      };
     } else {
       const errText = await downloadRes.text();
       console.error('Shared link download failed:', downloadRes.status, errText);
     }
   }
 
-  // Fallback: try get_temporary_link (works for absolute paths)
-  let res = await fetch('https://api.dropboxapi.com/2/files/get_temporary_link', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ path: filePath }),
-  });
+  // Fallback: try get_temporary_link
+  if (!fileBlob) {
+    let res = await fetch('https://api.dropboxapi.com/2/files/get_temporary_link', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ path: filePath }),
+    });
 
-  // Also try with root namespace header
-  if (!res.ok) {
-    const rootNsId = await getAccountRootNs(token);
-    if (rootNsId) {
-      res = await fetch('https://api.dropboxapi.com/2/files/get_temporary_link', {
-        method: 'POST',
-        headers: { ...headers, 'Dropbox-API-Path-Root': JSON.stringify({".tag": "root", "root": rootNsId}) },
-        body: JSON.stringify({ path: filePath }),
-      });
+    if (!res.ok) {
+      const rootNsId = await getAccountRootNs(token);
+      if (rootNsId) {
+        res = await fetch('https://api.dropboxapi.com/2/files/get_temporary_link', {
+          method: 'POST',
+          headers: { ...headers, 'Dropbox-API-Path-Root': JSON.stringify({".tag": "root", "root": rootNsId}) },
+          body: JSON.stringify({ path: filePath }),
+        });
+      }
     }
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('Dropbox get_temporary_link error:', res.status, errText);
+      throw new Error(`Dropbox API error: ${res.status}`);
+    }
+
+    const data = await res.json();
+    if (data.metadata?.name) fileName = data.metadata.name;
+
+    const fileRes = await fetch(data.link);
+    if (!fileRes.ok) {
+      throw new Error(`Failed to download file from temporary link: ${fileRes.status}`);
+    }
+    fileBlob = await fileRes.blob();
   }
 
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error('Dropbox get_temporary_link error:', res.status, errText);
-    throw new Error(`Dropbox API error: ${res.status}`);
+  // Check file size
+  if (fileBlob.size > MAX_FILE_SIZE) {
+    throw new Error(`File too large (${(fileBlob.size / 1024 / 1024).toFixed(1)}MB). Maximum is 20MB.`);
   }
 
-  const data = await res.json();
-  const tempLink = data.link;
+  // Upload to Supabase Storage
+  const supabaseAdmin = createSupabaseAdmin();
+  const timestamp = Date.now();
+  const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const storagePath = `${orgId}/${entityType}s/${entityId}/dropbox-${timestamp}-${sanitizedName}`;
+  const mimeType = getMimeType(fileName);
 
-  // Download the actual file content and convert to base64 data URL
-  // (temporary links expire in 4 hours, so we must not store them directly)
-  const fileRes = await fetch(tempLink);
-  if (!fileRes.ok) {
-    throw new Error(`Failed to download file from temporary link: ${fileRes.status}`);
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from('organization-assets')
+    .upload(storagePath, fileBlob, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType: mimeType,
+    });
+
+  if (uploadError) {
+    console.error('Storage upload error:', uploadError);
+    throw new Error(`Failed to upload to storage: ${uploadError.message}`);
   }
-  const blob = await fileRes.blob();
-  const arrayBuffer = await blob.arrayBuffer();
-  const uint8Array = new Uint8Array(arrayBuffer);
-  let binary = '';
-  for (let i = 0; i < uint8Array.length; i++) {
-    binary += String.fromCharCode(uint8Array[i]);
-  }
-  const base64 = btoa(binary);
-  const mimeType = fileRes.headers.get('content-type') || 'application/octet-stream';
+
+  const { data: urlData } = supabaseAdmin.storage
+    .from('organization-assets')
+    .getPublicUrl(storagePath);
+
+  const publicUrl = `${urlData.publicUrl}?t=${timestamp}`;
+
+  console.log('Successfully stored Dropbox file:', storagePath);
 
   return {
-    downloadUrl: `data:${mimeType};base64,${base64}`,
+    downloadUrl: publicUrl,
+    storagePath,
     metadata: {
-      name: data.metadata?.name,
-      size: data.metadata?.size,
+      name: fileName,
+      size: fileBlob.size,
     },
   };
 }
@@ -372,7 +398,7 @@ Deno.serve(async (req) => {
 
     let result;
     if (action === 'download') {
-      result = await handleGetDownloadLink(body);
+      result = await handleDownloadAndStore(body);
     } else {
       result = await handleListFolder(body);
     }

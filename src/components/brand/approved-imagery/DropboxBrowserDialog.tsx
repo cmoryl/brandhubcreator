@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react';
-import { FolderOpen, Download, Loader2, RefreshCw, ImageIcon, X, Check } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FolderOpen, Download, Loader2, RefreshCw, ImageIcon, Check } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { toast } from 'sonner';
 import { ApprovedImage } from '@/types/brand';
 
@@ -25,7 +27,12 @@ interface DropboxBrowserDialogProps {
   onFolderPathChange: (path: string) => void;
   onImportImages: (images: ApprovedImage[]) => void;
   sectionName: string;
+  entityId?: string;
+  entityType?: string;
 }
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+const PARALLEL_DOWNLOADS = 3;
 
 export const DropboxBrowserDialog = ({
   open,
@@ -34,12 +41,16 @@ export const DropboxBrowserDialog = ({
   onFolderPathChange,
   onImportImages,
   sectionName,
+  entityId,
+  entityType = 'brand',
 }: DropboxBrowserDialogProps) => {
+  const { organization } = useOrganization();
   const [editPath, setEditPath] = useState(folderPath || '');
   const [files, setFiles] = useState<DropboxFile[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -70,7 +81,6 @@ export const DropboxBrowserDialog = ({
       setSharedLinkUrl(data.sharedLinkUrl || null);
       setLoaded(true);
 
-      // Save the folder path
       if (!continueCursor) {
         onFolderPathChange(path);
       }
@@ -84,7 +94,6 @@ export const DropboxBrowserDialog = ({
 
   const handleConnect = () => {
     const path = editPath.trim() || '';
-    // Ensure path starts with / or is empty
     const normalizedPath = path && !path.startsWith('/') ? `/${path}` : path;
     setEditPath(normalizedPath);
     setSelectedIds(new Set());
@@ -115,33 +124,70 @@ export const DropboxBrowserDialog = ({
     const selected = files.filter(f => selectedIds.has(f.id));
     if (selected.length === 0) return;
 
+    // Filter out oversized files
+    const oversized = selected.filter(f => f.size > MAX_FILE_SIZE);
+    const eligible = selected.filter(f => f.size <= MAX_FILE_SIZE);
+
+    if (oversized.length > 0) {
+      toast.warning(`${oversized.length} file(s) skipped — exceeds 20MB limit`);
+    }
+    if (eligible.length === 0) {
+      toast.error('No eligible files to import');
+      return;
+    }
+
+    if (!organization?.id || !entityId) {
+      toast.error('Missing organization or entity context for storage upload');
+      return;
+    }
+
     setImporting(true);
+    setImportProgress(0);
+
     try {
-      // Get temporary download links for selected files to use as preview URLs
       const images: ApprovedImage[] = [];
+      let completed = 0;
 
-      for (const file of selected) {
-        try {
-          const { data, error } = await supabase.functions.invoke('dropbox-imagery', {
-            body: { action: 'download', filePath: file.path || `/${file.name}`, fileName: file.name, sharedLinkUrl },
-          });
+      // Process in parallel batches
+      for (let i = 0; i < eligible.length; i += PARALLEL_DOWNLOADS) {
+        const batch = eligible.slice(i, i + PARALLEL_DOWNLOADS);
+        const results = await Promise.allSettled(
+          batch.map(async (file) => {
+            const { data, error } = await supabase.functions.invoke('dropbox-imagery', {
+              body: {
+                action: 'download',
+                filePath: file.path || `/${file.name}`,
+                fileName: file.name,
+                sharedLinkUrl,
+                organizationId: organization.id,
+                entityType,
+                entityId,
+              },
+            });
 
-          if (error || data?.error) {
-            console.error('Failed to get link for', file.name);
-            continue;
+            if (error || data?.error) {
+              console.error('Failed to import', file.name, data?.error || error);
+              return null;
+            }
+
+            return {
+              id: `dbx-${file.id}`,
+              url: data.downloadUrl,
+              thumbnailUrl: file.thumbnailData || data.downloadUrl,
+              title: file.name.replace(/\.[^.]+$/, ''),
+              source: 'dropbox' as const,
+              category: sectionName,
+              approvedAt: new Date().toISOString(),
+            };
+          })
+        );
+
+        for (const result of results) {
+          if (result.status === 'fulfilled' && result.value) {
+            images.push(result.value);
           }
-
-          images.push({
-            id: `dbx-${file.id}`,
-            url: data.downloadUrl,
-            thumbnailUrl: file.thumbnailData || data.downloadUrl,
-            title: file.name.replace(/\.[^.]+$/, ''),
-            source: 'dropbox',
-            category: sectionName,
-            approvedAt: new Date().toISOString(),
-          });
-        } catch {
-          console.error('Failed to process', file.name);
+          completed++;
+          setImportProgress(Math.round((completed / eligible.length) * 100));
         }
       }
 
@@ -155,7 +201,14 @@ export const DropboxBrowserDialog = ({
       }
     } finally {
       setImporting(false);
+      setImportProgress(0);
     }
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes}B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
   };
 
   return (
@@ -166,6 +219,9 @@ export const DropboxBrowserDialog = ({
             <FolderOpen className="h-5 w-5 text-primary" />
             Dropbox — {sectionName}
           </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Browse and import images from Dropbox into your brand guide.
+          </DialogDescription>
         </DialogHeader>
 
         {/* Folder path input */}
@@ -200,12 +256,16 @@ export const DropboxBrowserDialog = ({
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                 {files.map((file) => {
                   const isSelected = selectedIds.has(file.id);
+                  const isOversized = file.size > MAX_FILE_SIZE;
                   return (
                     <button
                       key={file.id}
-                      onClick={() => toggleSelect(file.id)}
+                      onClick={() => !isOversized && toggleSelect(file.id)}
+                      disabled={isOversized}
                       className={`relative rounded-lg overflow-hidden border-2 transition-all text-left ${
-                        isSelected
+                        isOversized
+                          ? 'border-border opacity-50 cursor-not-allowed'
+                          : isSelected
                           ? 'border-primary ring-2 ring-primary/20'
                           : 'border-border hover:border-primary/40'
                       }`}
@@ -224,9 +284,15 @@ export const DropboxBrowserDialog = ({
                           </div>
                         )}
                       </div>
-                      <div className="px-1.5 py-1">
-                        <p className="text-[10px] text-muted-foreground line-clamp-1">{file.name}</p>
+                      <div className="px-1.5 py-1 flex items-center gap-1">
+                        <p className="text-[10px] text-muted-foreground line-clamp-1 flex-1">{file.name}</p>
+                        <span className="text-[9px] text-muted-foreground/60 shrink-0">{formatSize(file.size)}</span>
                       </div>
+                      {isOversized && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+                          <span className="text-[10px] font-medium text-destructive">Too large</span>
+                        </div>
+                      )}
                       {isSelected && (
                         <div className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
                           <Check className="h-3 w-3 text-primary-foreground" />
@@ -250,27 +316,32 @@ export const DropboxBrowserDialog = ({
 
         {/* Footer */}
         {files.length > 0 && (
-          <div className="px-5 py-3 border-t border-border flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={selectAll}>
-                {selectedIds.size === files.length ? 'Deselect All' : 'Select All'}
+          <div className="px-5 py-3 border-t border-border space-y-2">
+            {importing && (
+              <Progress value={importProgress} className="h-1.5" />
+            )}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm" onClick={selectAll}>
+                  {selectedIds.size === files.length ? 'Deselect All' : 'Select All'}
+                </Button>
+                {selectedIds.size > 0 && (
+                  <Badge variant="secondary">{selectedIds.size} selected</Badge>
+                )}
+              </div>
+              <Button
+                size="sm"
+                onClick={handleImport}
+                disabled={selectedIds.size === 0 || importing}
+              >
+                {importing ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                ) : (
+                  <Download className="h-4 w-4 mr-1.5" />
+                )}
+                Import Selected
               </Button>
-              {selectedIds.size > 0 && (
-                <Badge variant="secondary">{selectedIds.size} selected</Badge>
-              )}
             </div>
-            <Button
-              size="sm"
-              onClick={handleImport}
-              disabled={selectedIds.size === 0 || importing}
-            >
-              {importing ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
-              ) : (
-                <Download className="h-4 w-4 mr-1.5" />
-              )}
-              Import Selected
-            </Button>
           </div>
         )}
       </DialogContent>
