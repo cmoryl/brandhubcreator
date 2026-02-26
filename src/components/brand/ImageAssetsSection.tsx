@@ -88,57 +88,25 @@ export const ImageAssetsSection = ({
       return;
     }
 
-    const assetId = safeUUID();
-    
-    // Try to upload to storage first (preferred for large files)
-    if (entityId) {
-      const result = await uploadFile(file, 'asset', `asset-${assetId}`);
-      if (result) {
-        const newAsset: ImageAsset = {
-          id: assetId,
-          name: file.name.split('.')[0] || 'Image',
-          type: file.type,
-          url: result.url,
-          size: formatFileSize(file.size),
-          uploadedAt: new Date().toISOString(),
-        };
-        onImageAssetsChange?.([...imageAssets, newAsset]);
-        return;
-      }
-    }
-
-    // Fallback to base64 for small files or when storage isn't available
-    // Use chunked conversion to avoid stack overflow with large files
-    const arrayBuffer = await file.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    
-    // Check if file is too large for base64 storage (> 2MB)
-    if (bytes.length > 2 * 1024 * 1024) {
-      toast.error('File too large. Please save the entity first to enable large file uploads.');
+    // Require storage upload — base64 fallback causes data loss via stripBase64FromGuideData
+    if (!entityId) {
+      toast.error('Please save this guide first, then upload images.');
       return;
     }
-    
-    // Chunked base64 conversion to avoid stack overflow
-    const chunkSize = 8192;
-    let binary = '';
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
-      for (let j = 0; j < chunk.length; j++) {
-        binary += String.fromCharCode(chunk[j]);
-      }
+
+    const assetId = safeUUID();
+    const result = await uploadFile(file, 'asset', `asset-${assetId}`);
+    if (result) {
+      const newAsset: ImageAsset = {
+        id: assetId,
+        name: file.name.split('.')[0] || 'Image',
+        type: file.type,
+        url: result.url,
+        size: formatFileSize(file.size),
+        uploadedAt: new Date().toISOString(),
+      };
+      onImageAssetsChange?.([...imageAssets, newAsset]);
     }
-    const base64 = btoa(binary);
-    const dataUrl = `data:${file.type};base64,${base64}`;
-    
-    const newAsset: ImageAsset = {
-      id: assetId,
-      name: file.name.split('.')[0] || 'Image',
-      type: file.type,
-      url: dataUrl,
-      size: formatFileSize(file.size),
-      uploadedAt: new Date().toISOString(),
-    };
-    onImageAssetsChange?.([...imageAssets, newAsset]);
   }, [imageAssets, onImageAssetsChange, entityId, uploadFile]);
 
   const handleLibrarySelect = useCallback((url: string) => {
