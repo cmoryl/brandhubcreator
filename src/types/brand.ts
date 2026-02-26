@@ -493,6 +493,29 @@ export interface ChartThemeSettings {
   customTheme?: ChartTheme; // Only used when presetId is 'custom'
 }
 
+// APPROVED IMAGERY - Curated Stock Imagery
+export interface ApprovedImage {
+  id: string;
+  url: string;
+  thumbnailUrl: string;
+  title: string;
+  source: string; // e.g., 'shutterstock'
+  category?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+}
+
+export interface ApprovedImagerySubSection {
+  id: string;
+  name: string;
+  description?: string;
+  images: ApprovedImage[];
+}
+
+export interface ApprovedImageryData {
+  sections: ApprovedImagerySubSection[];
+}
+
 // MISUSE - Anti-Patterns
 export interface BrandMisuse {
   id: string;
@@ -1062,6 +1085,8 @@ export interface BaseGuide {
   linkedBooths?: LinkedBoothCard[];
   // Presentation Templates (PowerPoint slide galleries)
   presentationTemplates?: PresentationTemplate[];
+  // Approved Imagery (Shutterstock curated sub-sections)
+  approvedImagery?: ApprovedImageryData;
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -1075,7 +1100,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'iconography', 'socialicons', 'imagery', 
   'social', 'socialassets', 'socialmetrics', 'website', 'signatures', 'qr', 
   'videos', 'assets', 'imageassets', 'misuse',
-  'brochures', 'templatespecs', 'presentations', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage'
+  'brochures', 'templatespecs', 'presentations', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage', 'approvedimagery'
 ];
 
 // Section IDs for navigation
@@ -1133,7 +1158,8 @@ export type SectionId =
   | 'insights'
   | 'eventsignage'
   | 'presentations'
-  | 'socialmetrics';
+  | 'socialmetrics'
+  | 'approvedimagery';
 
 // Insight item for the Insights & Updates section
 export interface InsightItem {

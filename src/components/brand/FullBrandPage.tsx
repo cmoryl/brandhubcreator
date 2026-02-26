@@ -44,6 +44,7 @@ import { BrandEventSignageSection } from './BrandEventSignageSection';
 import { ClientLogosSection } from './ClientLogosSection';
 import { SponsorLogosSection } from './SponsorLogosSection';
 import { PresentationTemplatesSection } from './PresentationTemplatesSection';
+import { ApprovedImagerySection } from './approved-imagery/ApprovedImagerySection';
 import { Separator } from '@/components/ui/separator';
 
 // Framer motion variants for smooth section animations
@@ -418,6 +419,14 @@ export const FullBrandPage = ({
           customSubtitle={customSubtitle} 
           onSubtitleChange={onSubtitleChange}
           isEditable={canEdit}
+        />;
+      case 'approvedimagery':
+        return <ApprovedImagerySection
+          approvedImagery={brand.approvedImagery}
+          onApprovedImageryChange={editHandler((approvedImagery) => onBrandUpdate({ approvedImagery }))}
+          customSubtitle={customSubtitle}
+          onSubtitleChange={onSubtitleChange}
+          canEdit={canEdit}
         />;
       case 'brief':
       case 'socialmetrics':

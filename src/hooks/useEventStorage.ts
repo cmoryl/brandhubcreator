@@ -118,6 +118,7 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
     linkedGuides: asArray(guideData.linkedGuides, []) as EventGuide['linkedGuides'],
     templateSpecs: asArray(guideData.templateSpecs, []) as EventGuide['templateSpecs'],
     presentationTemplates: asArray(guideData.presentationTemplates, []) as EventGuide['presentationTemplates'],
+    approvedImagery: guideData.approvedImagery as EventGuide['approvedImagery'],
     presentations: asArray(guideData.presentations, []) as EventGuide['presentations'],
     
     // Data & Analytics
