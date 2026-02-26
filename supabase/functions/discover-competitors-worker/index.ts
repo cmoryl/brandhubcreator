@@ -69,6 +69,12 @@ Return ONLY a JSON object: {"competitors":[{"name":"string","reason":"string","t
 
     if (!response.ok) {
       const errorText = await response.text();
+      if (response.status === 429) {
+        throw new Error("Rate limit exceeded. Please try again in a few minutes.");
+      }
+      if (response.status === 402) {
+        throw new Error("AI credits exhausted. Please add credits to continue.");
+      }
       throw new Error(`AI Gateway error: ${response.status} - ${errorText.slice(0, 200)}`);
     }
 

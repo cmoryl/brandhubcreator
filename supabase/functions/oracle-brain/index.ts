@@ -303,6 +303,12 @@ Return ONLY valid JSON:
     });
 
     if (!aiRes.ok) {
+      if (aiRes.status === 429) {
+        throw new Error("Rate limit exceeded. Please try again in a few minutes.");
+      }
+      if (aiRes.status === 402) {
+        throw new Error("AI credits exhausted. Please add credits to continue.");
+      }
       throw new Error(`AI synthesis failed: ${aiRes.status}`);
     }
 
@@ -404,7 +410,11 @@ Extract and summarize the most important strategic insights, facts, frameworks, 
       }),
     });
 
-    if (!aiRes.ok) throw new Error(`AI extraction failed: ${aiRes.status}`);
+    if (!aiRes.ok) {
+      if (aiRes.status === 429) throw new Error("Rate limit exceeded. Please try again in a few minutes.");
+      if (aiRes.status === 402) throw new Error("AI credits exhausted. Please add credits to continue.");
+      throw new Error(`AI extraction failed: ${aiRes.status}`);
+    }
 
     await updateJob(jobId, { progress: 60 });
 

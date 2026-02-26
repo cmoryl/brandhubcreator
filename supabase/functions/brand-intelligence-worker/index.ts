@@ -292,6 +292,12 @@ Return ONLY valid JSON:
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
       console.error("[worker] AI error:", aiResponse.status, errText.slice(0, 200));
+      if (aiResponse.status === 429) {
+        throw new Error("Rate limit exceeded. Please try again in a few minutes.");
+      }
+      if (aiResponse.status === 402) {
+        throw new Error("AI credits exhausted. Please add credits to continue.");
+      }
       throw new Error(`AI failed: ${aiResponse.status}`);
     }
 
