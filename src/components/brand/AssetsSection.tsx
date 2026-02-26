@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { X, Download, Folder, File, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical, Loader2, ExternalLink } from 'lucide-react';
+import { X, Download, Folder, File, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical, Loader2, ExternalLink, Archive } from 'lucide-react';
+import JSZip from 'jszip';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { BrandAsset, ASSET_CATEGORIES, AssetCategory, PRINT_SIGNAGE_TYPES } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -141,6 +142,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
   const [pendingFile, setPendingFile] = useState<PendingFile | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isZipping, setIsZipping] = useState(false);
 
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
 
@@ -291,6 +293,58 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     onAssetsChange(arrayMove(assets, oldIndex, newIndex));
   }, [assets, onAssetsChange]);
 
+  const handleDownloadAll = useCallback(async () => {
+    if (!assets?.length) return;
+    setIsZipping(true);
+    try {
+      const zip = new JSZip();
+      const nameCount: Record<string, number> = {};
+
+      await Promise.allSettled(
+        assets.map(async (asset) => {
+          try {
+            const res = await fetch(asset.url);
+            if (!res.ok) return;
+            const blob = await res.blob();
+
+            // Organize into category folders, deduplicate filenames
+            const folder = asset.category || 'Other';
+            let fileName = asset.name || 'file';
+            if (nameCount[`${folder}/${fileName}`]) {
+              nameCount[`${folder}/${fileName}`]++;
+              const ext = fileName.lastIndexOf('.');
+              fileName = ext > 0
+                ? `${fileName.slice(0, ext)}-${nameCount[`${folder}/${fileName}`]}${fileName.slice(ext)}`
+                : `${fileName}-${nameCount[`${folder}/${fileName}`]}`;
+            } else {
+              nameCount[`${folder}/${fileName}`] = 1;
+            }
+
+            zip.folder(folder)!.file(fileName, blob);
+          } catch (err) {
+            console.warn(`Failed to fetch asset: ${asset.name}`, err);
+          }
+        })
+      );
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'operational-vault-assets.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('ZIP generation failed:', err);
+      const { toast } = await import('sonner');
+      toast.error('Failed to generate ZIP file');
+    } finally {
+      setIsZipping(false);
+    }
+  }, [assets]);
+
   // Group by category
   const filteredAssets = filterCategory === 'all'
     ? (assets || [])
@@ -318,6 +372,12 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
+        {assets?.length > 0 && (
+          <Button onClick={handleDownloadAll} variant="outline" size="sm" className="gap-2" disabled={isZipping}>
+            {isZipping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
+            {isZipping ? 'Zipping...' : 'Download All'}
+          </Button>
+        )}
         {canEdit && (
           <div className="flex items-center gap-2 shrink-0">
             <Button onClick={() => setIsScannerOpen(true)} variant="outline" size="sm" className="gap-2">
