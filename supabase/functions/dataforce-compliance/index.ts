@@ -150,6 +150,13 @@ Analyze the provided brand data and identify:
    - Design: Are Curb-Cut Effect opportunities being leveraged?
    - Testing: Is there evidence of diverse user testing panels?
    - Marketing: Are narratives intersectional and non-tokenistic?
+8. Optical Geometry & Corner Radius Compliance:
+   - Radius Consistency: All UI elements (buttons, cards, inputs, modals) should use the same radius family.
+   - Mood Alignment: Technical brands should use 0-4px (sharp), Modern brands 16-24px (rounded), Organic brands full-round. Does the radius tier match brand personality?
+   - No Mixed Geometries: Flag if some elements are sharp while others are rounded — this reads as inconsistent logic, not a design choice.
+   - Visual Tension: Near-identical but different radius values (e.g., 4px vs 6px) are perceived as mistakes. If close, make identical.
+   - Perfect Nesting: Nested containers should follow Outer Radius = Inner Radius + Padding (concentric circles).
+   - Report issues with type "layout" and reference specific UI elements.
 
 ${oracleCtx ? `ORGANIZATION STRATEGIC CONTEXT (Oracle Brain):\n${oracleCtx}\n\nUse this context to also evaluate whether the entity\'s brand assets align with the organization\'s overall strategic direction, voice, and positioning.` : ''}
 
@@ -158,7 +165,7 @@ Return your analysis as a JSON object with this structure:
   "complianceScore": 0-100,
   "issues": [
     {
-      "type": "color|typography|logo|imagery|messaging|layout|inclusion",
+      "type": "color|typography|logo|imagery|messaging|layout|inclusion|geometry",
       "severity": "critical|warning|info",
       "assetName": "string",
       "description": "string",
@@ -172,7 +179,8 @@ Return your analysis as a JSON object with this structure:
     "design": {"score": 0-100, "finding": "string"},
     "testing": {"score": 0-100, "finding": "string"},
     "marketing": {"score": 0-100, "finding": "string"}
-  }
+  },
+  "geometry_score": 0-100
 }`;
 
       // Build multimodal content for visual compliance analysis

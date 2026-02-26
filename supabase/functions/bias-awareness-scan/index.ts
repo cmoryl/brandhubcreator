@@ -9,7 +9,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { scanTextForInclusiveLanguage, buildDeepIntelligencePromptContext, WCAG_22_NEW_CRITERIA, WFA_12_AREAS, PIE_TOUCHPOINTS, PIE_RECRUITMENT_DIMENSIONS, IMAGERY_STOP_GO, EVENT_ACCESSIBILITY_CHECKLIST, AI_POLICY_AS_CODE, PERSONA_SPECTRUM_DIMENSIONS, OKLCH_COLOR_STANDARD, COLOR_PSYCHOLOGY_DBA, CULTURAL_COLOR_GEOMETRY, COLOR_TRENDS_2026 } from "../_shared/inclusive-language-patterns.ts";
+import { scanTextForInclusiveLanguage, buildDeepIntelligencePromptContext, WCAG_22_NEW_CRITERIA, WFA_12_AREAS, PIE_TOUCHPOINTS, PIE_RECRUITMENT_DIMENSIONS, IMAGERY_STOP_GO, EVENT_ACCESSIBILITY_CHECKLIST, AI_POLICY_AS_CODE, PERSONA_SPECTRUM_DIMENSIONS, OKLCH_COLOR_STANDARD, COLOR_PSYCHOLOGY_DBA, CULTURAL_COLOR_GEOMETRY, COLOR_TRENDS_2026, OPTICAL_GEOMETRY_INTELLIGENCE } from "../_shared/inclusive-language-patterns.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -170,6 +170,7 @@ CORE DIMENSIONS (0-100 each):
 - Diversity signals in imagery
 - Stereotyping risk detection using Stop/Go Imagery Framework:
 ${imageryContext}
+- Optical Geometry Assessment: Evaluate corner radius consistency. ${OPTICAL_GEOMETRY_INTELLIGENCE.description} Rules: ${OPTICAL_GEOMETRY_INTELLIGENCE.rules.map(r => r.name + ': ' + r.description).join('. ')}. Mood tiers: Technical=${OPTICAL_GEOMETRY_INTELLIGENCE.mood_mapping.sharp.radius}, Modern=${OPTICAL_GEOMETRY_INTELLIGENCE.mood_mapping.modern.radius}, Organic=${OPTICAL_GEOMETRY_INTELLIGENCE.mood_mapping.full_round.radius}.
 - Persona spectrum coverage across 5 dimensions:
 ${personaContext}
 

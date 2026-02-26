@@ -312,6 +312,14 @@ serve(async (req) => {
 
 Categories MUST include: Visual Consistency, Brand Identity, Digital Presence, Content Completeness, Marketing Materials, Best Practices.
 
+For Visual Consistency, apply Optical Geometry Intelligence:
+- Corner Radius System: Corners are the subconscious body language of UI. Check radius consistency across all elements.
+- Mood Alignment: Technical brands (0-4px sharp), Modern brands (16-24px rounded), Organic brands (full-round). Does the radius tier match brand personality?
+- Unified System: Flag mixed geometries (e.g., sharp buttons with rounded cards). All interactive elements must use the same radius family.
+- Visual Tension: Flag near-identical but different radius values (e.g., 4px vs 6px). If values are close, they should be identical.
+- Perfect Nesting: Nested containers should follow concentric circles — Outer Radius = Inner Radius + Padding.
+- From Chaos to Order: Evaluate card grid consistency — uniform radii, aligned content blocks, matching button shapes.
+
 For the biasReview section, apply Deep Intelligence modules:
 - Language Inclusivity: Flag non-inclusive terms (whitelist/blacklist, master/slave, grandfathered, ableist slang). Check for gendered language, cultural assumptions.
 - Visual Representation: Check if imagery guidelines specify visible identity diversity, observable actions, cultural context.
