@@ -17,6 +17,8 @@ interface ApprovedImagerySectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   canEdit?: boolean;
+  entityId?: string;
+  entityType?: string;
 }
 
 const DEFAULT_SUBSECTIONS = [
@@ -33,6 +35,8 @@ export const ApprovedImagerySection = ({
   customSubtitle,
   onSubtitleChange,
   canEdit = false,
+  entityId,
+  entityType = 'brand',
 }: ApprovedImagerySectionProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState<string | null>(null);
@@ -169,6 +173,8 @@ export const ApprovedImagerySection = ({
           onOpenChange={setSearchOpen}
           onApproveImages={handleApproveImages}
           targetSectionName={sections.find(s => s.id === targetSectionId)?.name || ''}
+          entityId={entityId}
+          entityType={entityType}
         />
       )}
     </div>
