@@ -42,11 +42,14 @@ function isImageFile(name: string): boolean {
 // Normalize a Dropbox path — strip full URLs like https://www.dropbox.com/work/...
 function normalizeDropboxPath(input: string): string {
   let p = decodeURIComponent(input).trim();
+  // Remove leading slash before URL check (dialog may prepend /)
+  p = p.replace(/^\/+/, '');
   // Strip full Dropbox web URLs
   p = p.replace(/^https?:\/\/www\.dropbox\.com\/(home|work|personal)/, '');
   // Ensure leading slash
   if (p && !p.startsWith('/')) p = '/' + p;
-  return p || '';
+  // Root folder should be empty string for Dropbox API
+  return p === '/' ? '' : p;
 }
 
 // List image files in a Dropbox folder
