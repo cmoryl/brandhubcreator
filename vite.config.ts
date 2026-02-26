@@ -204,9 +204,6 @@ export default defineConfig(({ mode }) => {
         '@supabase/supabase-js',
       ],
     },
-    define: {
-      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
-      'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(env.VITE_SUPABASE_PUBLISHABLE_KEY),
-    },
+    // VITE_ prefixed env vars are automatically handled by Vite - no manual define needed
   };
 });
