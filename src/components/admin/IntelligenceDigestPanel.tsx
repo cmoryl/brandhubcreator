@@ -1,9 +1,10 @@
 /**
  * Intelligence Digest Panel
  * AI-generated executive summary from Oracle data, health snapshots, and alerts.
+ * Persists digests to the database so they survive page reloads.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText, Loader2, RefreshCw, Clock, AlertTriangle, CheckCircle, Database } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
-import { cn } from '@/lib/utils';
 
 interface DigestData {
   digest: string;
@@ -33,6 +33,41 @@ interface IntelligenceDigestPanelProps {
 export function IntelligenceDigestPanel({ organizationId }: IntelligenceDigestPanelProps) {
   const [digestData, setDigestData] = useState<DigestData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load the latest persisted digest on mount
+  useEffect(() => {
+    if (!organizationId) return;
+    let cancelled = false;
+
+    const loadLatest = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('intelligence_digests')
+          .select('digest, generated_at, data_sources')
+          .eq('organization_id', organizationId)
+          .order('generated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (!cancelled && data && !error) {
+          setDigestData({
+            digest: data.digest,
+            generated_at: data.generated_at,
+            data_sources: data.data_sources as DigestData['data_sources'],
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load latest digest:', err);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    loadLatest();
+    return () => { cancelled = true; };
+  }, [organizationId]);
 
   const generateDigest = async () => {
     setIsGenerating(true);
@@ -53,7 +88,28 @@ export function IntelligenceDigestPanel({ organizationId }: IntelligenceDigestPa
         return;
       }
 
-      setDigestData(data);
+      // Persist the new digest
+      const newDigest: DigestData = {
+        digest: data.digest,
+        generated_at: data.generated_at,
+        data_sources: data.data_sources,
+      };
+
+      const { error: insertError } = await supabase
+        .from('intelligence_digests')
+        .insert({
+          organization_id: organizationId,
+          digest: newDigest.digest,
+          generated_at: newDigest.generated_at,
+          data_sources: newDigest.data_sources as any,
+        });
+
+      if (insertError) {
+        console.error('Failed to persist digest:', insertError);
+        // Still show it even if persistence fails
+      }
+
+      setDigestData(newDigest);
       toast.success('Executive digest generated');
     } catch (err: any) {
       console.error('Digest generation failed:', err);
@@ -97,7 +153,14 @@ export function IntelligenceDigestPanel({ organizationId }: IntelligenceDigestPa
         </div>
       </CardHeader>
       <CardContent>
-        {!digestData && !isGenerating && (
+        {isLoading && !digestData && !isGenerating && (
+          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+            <Loader2 className="h-6 w-6 mb-2 animate-spin text-primary/50" />
+            <p className="text-xs">Loading latest digest...</p>
+          </div>
+        )}
+
+        {!digestData && !isGenerating && !isLoading && (
           <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
             <FileText className="h-10 w-10 mb-3 opacity-40" />
             <p className="font-medium text-sm">No digest generated yet</p>

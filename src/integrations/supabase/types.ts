@@ -2591,6 +2591,44 @@ export type Database = {
           },
         ]
       }
+      intelligence_digests: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_sources: Json
+          digest: string
+          generated_at: string
+          id: string
+          organization_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_sources?: Json
+          digest: string
+          generated_at?: string
+          id?: string
+          organization_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_sources?: Json
+          digest?: string
+          generated_at?: string
+          id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_digests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_submissions: {
         Row: {
           admin_notes: string | null
