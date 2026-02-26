@@ -510,6 +510,7 @@ export interface ApprovedImagerySubSection {
   name: string;
   description?: string;
   images: ApprovedImage[];
+  dropboxFolderPath?: string;
 }
 
 export interface ApprovedImageryData {

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Search, Trash2, Edit2, Check, X, ImageIcon, ZoomIn } from 'lucide-react';
+import { Search, Trash2, Edit2, Check, X, ImageIcon, ZoomIn, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ApprovedImagerySubSection } from '@/types/brand';
 import { ImageryPreviewDialog } from './ImageryPreviewDialog';
 
@@ -12,6 +13,7 @@ interface ImagerySubSectionProps {
   section: ApprovedImagerySubSection;
   canEdit: boolean;
   onSearchClick: () => void;
+  onDropboxClick: () => void;
   onRemoveImage: (imageId: string) => void;
   onRemoveSection: () => void;
   onRename: (newName: string) => void;
@@ -21,6 +23,7 @@ export const ImagerySubSection = ({
   section,
   canEdit,
   onSearchClick,
+  onDropboxClick,
   onRemoveImage,
   onRemoveSection,
   onRename,
@@ -37,6 +40,9 @@ export const ImagerySubSection = ({
     }
     setEditing(false);
   };
+
+  const dropboxCount = section.images.filter(img => img.source === 'dropbox').length;
+  const shutterstockCount = section.images.filter(img => img.source === 'shutterstock').length;
 
   return (
     <AccordionItem value={section.id} className="border rounded-lg bg-card">
@@ -62,6 +68,19 @@ export const ImagerySubSection = ({
             <>
               <span className="font-medium text-foreground">{section.name}</span>
               <Badge variant="secondary" className="text-xs">{section.images.length}</Badge>
+              {section.dropboxFolderPath && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="text-[10px] gap-1">
+                      <FolderOpen className="h-2.5 w-2.5" />
+                      Dropbox
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {section.dropboxFolderPath}
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </>
           )}
         </div>
@@ -70,6 +89,14 @@ export const ImagerySubSection = ({
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditName(section.name); setEditing(true); }}>
               <Edit2 className="h-3 w-3" />
             </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onDropboxClick}>
+                  <FolderOpen className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">Import from Dropbox</TooltipContent>
+            </Tooltip>
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onSearchClick}>
               <Search className="h-3 w-3" />
             </Button>
@@ -101,9 +128,14 @@ export const ImagerySubSection = ({
             <ImageIcon className="h-8 w-8 opacity-30 mb-2" />
             <p className="text-sm">No images in this category</p>
             {canEdit && (
-              <Button variant="outline" size="sm" className="mt-3" onClick={onSearchClick}>
-                <Search className="h-3 w-3 mr-1" /> Search & Add Images
-              </Button>
+              <div className="flex items-center gap-2 mt-3">
+                <Button variant="outline" size="sm" onClick={onSearchClick}>
+                  <Search className="h-3 w-3 mr-1" /> Shutterstock
+                </Button>
+                <Button variant="outline" size="sm" onClick={onDropboxClick}>
+                  <FolderOpen className="h-3 w-3 mr-1" /> Dropbox
+                </Button>
+              </div>
             )}
           </div>
         ) : (
@@ -141,7 +173,10 @@ export const ImagerySubSection = ({
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 )}
-                <div className="px-2 py-1.5">
+                <div className="px-2 py-1.5 flex items-center gap-1">
+                  {image.source === 'dropbox' && (
+                    <FolderOpen className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
+                  )}
                   <p className="text-[11px] text-muted-foreground line-clamp-1">{image.title}</p>
                 </div>
               </div>

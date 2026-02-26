@@ -40,23 +40,32 @@ export const ImageryPreviewDialog = ({
     ? `https://www.shutterstock.com/image-photo/${image.id}`
     : null;
 
+  const isDropbox = image?.source === 'dropbox';
+
   const handleDownload = useCallback(async () => {
     if (!image?.id) return;
     setDownloading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('shutterstock-search', {
-        body: { action: 'download', imageId: image.id },
-      });
+      if (isDropbox) {
+        // For Dropbox images, the URL is already a temporary download link
+        window.open(image.url, '_blank');
+        toast.success('Opening Dropbox download');
+      } else {
+        // Shutterstock licensing flow
+        const { data, error } = await supabase.functions.invoke('shutterstock-search', {
+          body: { action: 'download', imageId: image.id },
+        });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
 
-      if (data?.requiresUpgrade) {
-        window.open(data.shutterstockUrl, '_blank');
-        toast.info(data.message || 'Opening image on Shutterstock for manual download');
-      } else if (data?.downloadUrl) {
-        window.open(data.downloadUrl, '_blank');
-        toast.success(data.alreadyLicensed ? 'Re-downloading licensed image' : 'Image licensed & downloading');
+        if (data?.requiresUpgrade) {
+          window.open(data.shutterstockUrl, '_blank');
+          toast.info(data.message || 'Opening image on Shutterstock for manual download');
+        } else if (data?.downloadUrl) {
+          window.open(data.downloadUrl, '_blank');
+          toast.success(data.alreadyLicensed ? 'Re-downloading licensed image' : 'Image licensed & downloading');
+        }
       }
     } catch (err: any) {
       console.error('Download error:', err);
@@ -64,7 +73,7 @@ export const ImageryPreviewDialog = ({
     } finally {
       setDownloading(false);
     }
-  }, [image]);
+  }, [image, isDropbox]);
 
   if (!image) return null;
 
@@ -81,6 +90,9 @@ export const ImageryPreviewDialog = ({
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                 {image.source === 'shutterstock' && (
                   <Badge variant="secondary" className="text-[10px] font-medium">Shutterstock</Badge>
+                )}
+                {image.source === 'dropbox' && (
+                  <Badge variant="secondary" className="text-[10px] font-medium">Dropbox</Badge>
                 )}
                 {image.category && (
                   <Badge variant="outline" className="text-[10px]">{image.category}</Badge>
@@ -139,14 +151,14 @@ export const ImageryPreviewDialog = ({
                 </a>
               </Button>
             )}
-            {canDownload && image.source === 'shutterstock' && (
+            {canDownload && (image.source === 'shutterstock' || image.source === 'dropbox') && (
               <Button size="sm" onClick={handleDownload} disabled={downloading}>
                 {downloading ? (
                   <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
                 ) : (
                   <Download className="h-3.5 w-3.5 mr-1.5" />
                 )}
-                Download Licensed
+                {image.source === 'dropbox' ? 'Download from Dropbox' : 'Download Licensed'}
               </Button>
             )}
           </div>
