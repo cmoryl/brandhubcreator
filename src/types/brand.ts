@@ -336,6 +336,7 @@ export const ASSET_CATEGORIES = [
   'Print Materials',
   'Digital Assets',
   'Photography',
+  'Product Screenshots',
   'Video',
   'Logos & Icons',
   'Templates',
