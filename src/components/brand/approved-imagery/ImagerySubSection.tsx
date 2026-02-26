@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Search, Trash2, Edit2, Check, X, ImageIcon, ZoomIn } from 'lucide-react';
-import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ApprovedImagerySubSection } from '@/types/brand';
+import { ImageryPreviewDialog } from './ImageryPreviewDialog';
 
 interface ImagerySubSectionProps {
   section: ApprovedImagerySubSection;
@@ -27,7 +27,9 @@ export const ImagerySubSection = ({
 }: ImagerySubSectionProps) => {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(section.name);
-  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+  const [previewImage, setPreviewImage] = useState<{
+    id: string; url: string; thumbnailUrl?: string; title: string; source?: string; category?: string;
+  } | null>(null);
 
   const handleSaveRename = () => {
     if (editName.trim()) {
@@ -110,7 +112,14 @@ export const ImagerySubSection = ({
               <div key={image.id} className="relative group rounded-lg overflow-hidden border border-border bg-muted/30">
                 <div
                   className="cursor-pointer relative"
-                  onClick={() => setPreviewImage({ url: image.url, title: image.title })}
+                  onClick={() => setPreviewImage({
+                    id: image.id,
+                    url: image.url,
+                    thumbnailUrl: image.thumbnailUrl,
+                    title: image.title,
+                    source: image.source,
+                    category: image.category,
+                  })}
                 >
                   <img
                     src={image.thumbnailUrl || image.url}
@@ -140,12 +149,11 @@ export const ImagerySubSection = ({
           </div>
         )}
 
-        <PreviewDialog
+        <ImageryPreviewDialog
           open={!!previewImage}
           onOpenChange={(open) => !open && setPreviewImage(null)}
-          title={previewImage?.title || ''}
-          previewUrl={previewImage?.url}
-          type="image"
+          image={previewImage}
+          canDownload={canEdit}
         />
       </AccordionContent>
     </AccordionItem>
