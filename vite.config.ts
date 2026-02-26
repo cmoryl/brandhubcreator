@@ -36,8 +36,8 @@ export default defineConfig(({ mode }) => {
               return 'vendor-three';
             }
             // Chart libraries - heavy, lazy-loaded
+            // NOTE: d3-* modules are NOT included here to avoid circular init errors
             if (id.includes('node_modules/recharts') ||
-                id.includes('node_modules/d3-') ||
                 id.includes('node_modules/victory-')) {
               return 'vendor-charts';
             }
