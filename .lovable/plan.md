@@ -1,93 +1,85 @@
 
+# Shutterstock Image Search + Approved Imagery Sections
 
-# Next Steps for the Brain of the Application
+## Overview
+Add a Shutterstock-powered image search capability (admin-only) that lets administrators search, preview, and approve stock images into organized sub-sections within the brand guide. Non-admin users see a curated, read-only gallery of approved imagery grouped by category.
 
-The intelligence layer is already robust -- Oracle Brain, Brand Intelligence Workers, DataForce services, Portfolio Insights, Health Snapshots, and deep inclusive design analysis are all operational. Here are the highest-impact next steps, ordered by strategic value.
+## Prerequisites
+- **Shutterstock API Key**: You'll need a Shutterstock API account. We'll securely store the API key as a backend secret. I'll walk you through obtaining one when we implement.
 
----
+## Architecture
 
-## 1. ✅ Scheduled Intelligence Automation (Cron Jobs) — COMPLETED
+### 1. Backend: Edge Function for Shutterstock Search
+Create a `shutterstock-search` edge function that:
+- Accepts search queries, filters (orientation, category, color)
+- Calls the Shutterstock API (`/v2/images/search`)
+- Returns preview thumbnails and metadata
+- Requires JWT verification + admin role check via `can_use_ai_features`
 
-**Implemented:**
-- `intelligence_alerts` table with RLS policies (org member view, org admin CRUD)
-- `scheduled-intelligence` Edge Function that orchestrates Oracle synthesis, health snapshots, portfolio insights, and generates alerts for significant score drops (≥5pt)
-- `IntelligenceAlertsWidget` component integrated into Oracle Brain panel with acknowledge/dismiss/run-now actions
-- `useIntelligenceAlerts` hook for managing alert state
-- Monthly cron job (1st of each month at 9 AM) via pg_cron + pg_net
-- Score drop severity levels: ≥15pt = critical, ≥10pt = warning, ≥5pt = info
-- Config entry in `supabase/config.toml`
+### 2. Data Model: Approved Imagery with Sub-Sections
+Extend the existing `guide_data` JSONB (no new database table needed) with an `approvedImagery` field:
 
----
+```text
+approvedImagery: {
+  sections: [
+    { id, name, description, images: [{ id, url, thumbnailUrl, title, source, category, approvedBy, approvedAt }] }
+  ]
+}
+```
 
-## 2. Intelligence Digest / Executive Summary Email
+Sub-sections are admin-configurable (e.g., "People", "Landscapes", "Product Shots", "Lifestyle", "Abstract/Textures").
 
-**Problem:** Insights are buried in the admin panel. Stakeholders who don't log in regularly miss critical intelligence.
+### 3. Frontend Components
 
-**Solution:** A `send-intelligence-digest` Edge Function that compiles the latest Oracle summary, health deltas, new portfolio insights, and compliance score changes into a formatted email digest sent to org admins.
+**ShutterstockSearchDialog** (admin-only)
+- Search bar with filters (orientation, category, color, keyword)
+- Results grid with preview thumbnails
+- "Approve" button per image that downloads the licensed image and saves it to storage + the selected sub-section
 
-**Technical approach:**
-- New Edge Function using Lovable AI to generate a natural-language executive summary from the latest oracle_intelligence, health_snapshots, and portfolio_insights
-- Leverage the existing `intelligence_alerts` from Step 1 as content source
-- Configurable frequency per organization (stored in org settings)
+**ApprovedImagerySection** (new brand guide section)
+- Tabs or collapsible sub-sections for each imagery category
+- Grid display with density controls (reusing existing pattern)
+- Admin controls: add/remove sub-sections, reorder images, remove approved images
+- Read-only view for non-admins showing the curated collection
 
----
+### 4. Integration Points
+- New sidebar entry: "Approved Imagery" under the Assets category
+- Added to `FullBrandPage.tsx` section renderer
+- Added to `BrandSidebar.tsx` / `ReorderableBrandSidebar.tsx`
+- Type additions in `src/types/brand.ts`
 
-## 3. ✅ Cross-Entity Intelligence Graph (Relationship Mapping) — ENRICHED
+## Technical Details
 
-**Implemented (Phase 1):**
-- `portfolio_relationships` table with force-directed 2D graph visualization
-- AI-powered relationship mapping via `generate-portfolio-relationships` edge function
-- 4 relationship types: alignment, voice_consistency, audience_overlap, parent_child
+### Files to Create
+- `supabase/functions/shutterstock-search/index.ts` -- Edge function proxying Shutterstock API
+- `src/components/brand/approved-imagery/ApprovedImagerySection.tsx` -- Main section component
+- `src/components/brand/approved-imagery/ShutterstockSearchDialog.tsx` -- Search modal
+- `src/components/brand/approved-imagery/ImagerySubSection.tsx` -- Sub-section with grid
 
-**Implemented (Phase 2 — Portfolio Relationship Enrichment):**
-- **7 relationship types**: alignment, voice_consistency, audience_overlap, parent_child, visual_coherence, strategic_complement, competitive_tension
-- **Multi-dimensional scoring**: Each relationship scored on voice, visual, audience, and strategic dimensions
-- **Anomaly detection**: AI identifies voice_mismatch, audience_conflict, visual_inconsistency, strategic_misalignment, orphan_entity, over_coupling
-- **Portfolio coherence scoring**: `portfolio_coherence` table with org-level voice/visual/audience/strategic coherence scores and key insights
-- **Enriched graph UI**: Edge type filtering, dashed-line anomaly indicators, click-to-inspect detail panel with dimensional breakdowns, coherence score card with progress bars
-- **Anomalies panel**: Dedicated panel listing all detected anomalies with severity scores
-- Upgraded AI model to `gemini-2.5-flash` for deeper analysis with richer entity context (colors, values, fonts, voice tone)
+### Files to Modify
+- `src/types/brand.ts` -- Add `ApprovedImagerySection`, `ApprovedImage` types, add field to `BrandGuideData`
+- `src/components/brand/FullBrandPage.tsx` -- Register new section
+- `src/components/brand/BrandSidebar.tsx` / `ReorderableBrandSidebar.tsx` -- Add sidebar entry
+- `supabase/config.toml` -- Register edge function with `verify_jwt = false`
 
+### Security
+- Shutterstock API key stored as a backend secret (never exposed to client)
+- Search endpoint gated by JWT + admin role check
+- Only admins can search, approve, or remove images
+- Non-admins see read-only approved gallery
 
----
+### Shutterstock API Flow
+1. Admin opens search dialog, enters query
+2. Frontend calls edge function with search params
+3. Edge function calls `https://api.shutterstock.com/v2/images/search` with API key
+4. Returns preview thumbnails (watermarked previews are free to display)
+5. On "Approve", the preview URL is saved to the sub-section (or optionally downloaded to storage for persistence)
 
-## 4. ✅ Conversational Intelligence Memory (Assistant Context Window) — COMPLETED
-
-**Implemented:**
-- `assistant_memory` table with RLS policies (org member view, org admin CRUD)
-- Indexes on organization_id, entity_id+entity_type, and GIN on topics array
-- Edge function `dataforce-assistant` updated to:
-  - Fetch relevant `assistant_memory` entries (entity-specific + org-wide) in parallel with other queries
-  - Inject institutional memory into system prompt as context
-  - Background task summarizes conversations every 10 messages using `gemini-2.5-flash-lite`
-  - Summaries include key decisions and topic keywords for future retrieval
-- Cumulative learning: memory entries persist across conversations and users
-
----
-
-## 5. ✅ Intelligence Confidence Calibration Dashboard — COMPLETED
-
-**Implemented:**
-- `AICalibrationPanel.tsx` component integrated as "AI Calibration" tab in Oracle Brain panel
-- Aggregates `confidence_history`, `insight_actions`, and `decay_config` from all `brand_intelligence` rows in the org
-- **Metrics**: AI Accuracy rate, approved/rejected insight counts, average feedback score
-- **Confidence Trends**: Recharts LineChart showing average confidence scores over time
-- **Decay Configuration**: Interactive sliders for half-life (7-90 days) and confidence threshold (20-95%), with live AreaChart preview of the decay curve
-- **Entity Breakdown**: Scrollable list showing per-entity analysis counts, feedback scores, and approval rates
-- Save button persists decay_config to all brand_intelligence rows in the organization
-
----
-
-## Priority Recommendation
-
-| Step | Impact | Effort | Recommendation |
-|------|--------|--------|---------------|
-| 1. Scheduled Automation | High | Medium | ✅ DONE |
-| 2. Digest Panel | High | Medium | ✅ DONE |
-| 3. Relationship Graph | Medium | High | ✅ DONE |
-| 4. Assistant Memory | Medium | Medium | ✅ DONE |
-| 5. Calibration Dashboard | Low | Low | ✅ DONE |
-
-All 5 steps are now complete. The intelligence pipeline is fully operational with automated scheduling, executive digests, relationship mapping, conversational memory, and calibration controls.
-
-Steps 1 and 2 together create a "set it and forget it" intelligence pipeline that keeps the brain active without manual intervention. Step 4 makes the assistant smarter over time. Steps 3 and 5 add visibility and differentiation.
+## Step-by-Step Implementation Order
+1. Request and store the Shutterstock API key as a secret
+2. Create the `shutterstock-search` edge function
+3. Add TypeScript types for approved imagery data
+4. Build the `ApprovedImagerySection` component with sub-sections
+5. Build the `ShutterstockSearchDialog` component
+6. Wire into the brand editor sidebar and section renderer
+7. Test end-to-end
