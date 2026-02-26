@@ -103,3 +103,6 @@ verify_jwt = false
 
 [functions.shutterstock-search]
 verify_jwt = false
+
+[functions.shutterstock-ai-suggest]
+verify_jwt = false

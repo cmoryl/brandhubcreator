@@ -427,6 +427,8 @@ export const FullBrandPage = ({
           customSubtitle={customSubtitle}
           onSubtitleChange={onSubtitleChange}
           canEdit={canEdit}
+          entityId={brandId}
+          entityType={entityType}
         />;
       case 'brief':
       case 'socialmetrics':
