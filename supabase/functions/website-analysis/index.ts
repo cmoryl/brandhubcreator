@@ -168,7 +168,7 @@ serve(async (req) => {
       );
     }
 
-    const { websiteUrl, entityName, industry, brandContext } = await req.json();
+    const { websiteUrl, entityName, industry, brandContext, entityId, entityType } = await req.json();
 
     if (!websiteUrl) {
       return new Response(
@@ -180,6 +180,31 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Fetch prior website report for longitudinal comparison
+    let priorReportContext = '';
+    if (entityId && entityType) {
+      try {
+        const serviceClient = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        );
+        const { data: priorReports } = await serviceClient
+          .from('website_analysis_reports')
+          .select('overall_score, grade, summary, created_at')
+          .eq('entity_id', entityId)
+          .eq('entity_type', entityType)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (priorReports && priorReports.length > 0) {
+          const pr = priorReports[0];
+          priorReportContext = `\n\nPRIOR WEBSITE ANALYSIS (${pr.created_at}):\nScore: ${pr.overall_score || 'N/A'}, Grade: ${pr.grade || 'N/A'}\nSummary: ${(pr.summary || '').slice(0, 300)}\nCompare your new analysis against these prior results. Note improvements, regressions, and persistent issues in each category.`;
+        }
+      } catch (e) {
+        console.warn('[website-analysis] Prior report fetch failed (non-critical):', e);
+      }
     }
 
     console.log(`[website-analysis] Analyzing: ${websiteUrl} for ${entityName || 'unknown entity'}`);
@@ -196,7 +221,8 @@ serve(async (req) => {
       if (brandContext.tagline) userPrompt += `\nTagline: ${brandContext.tagline}`;
       if (brandContext.competitors?.length) userPrompt += `\nKey Competitors: ${brandContext.competitors.join(', ')}`;
     }
-    userPrompt += `\n\nPerform a comprehensive website analysis. Be specific, cite real observations, and provide actionable recommendations. Score each category 0-100.`;
+    userPrompt += priorReportContext;
+    userPrompt += `\n\nPerform a comprehensive website analysis. Be specific, cite real observations, and provide actionable recommendations. Score each category 0-100.${priorReportContext ? ' Compare against prior results and note trends.' : ''}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
