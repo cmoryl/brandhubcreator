@@ -163,6 +163,14 @@ serve(async (req) => {
     // Documents are still analyzed during brand-audit and research briefings
     const documentCount = 0;
 
+    // Fetch content from external linked assets (Dropbox, GlobalLink, etc.)
+    const externalDocContent = await fetchExternalAssetContent(
+      supabaseUrl, supabaseServiceKey, textContext
+    );
+    if (externalDocContent) {
+      console.log(`[worker] Extracted ${externalDocContent.length} chars from external assets`);
+    }
+
     // Fetch Oracle context directly via REST (no SDK)
     const oracleContext = await fetchOracleContextRest(db, job.organization_id);
 
@@ -253,12 +261,13 @@ Include a "lab_to_launch" object: {"journey_clarity_score":0-100,"stages_covered
     const prompt = `Analyze "${entityName}" ${isEvent ? 'event' : isProduct ? 'product' : 'brand'}. Return compact JSON:
 ${brandContext}
 ${oracleContext ? `\nORACLE BRAIN CONTEXT:\n${oracleContext}` : ''}
+${externalDocContent ? `\nEXTERNAL LINKED DOCUMENTS (fetched from Dropbox/GlobalLink/external sources):\n${externalDocContent}` : ''}
 ${physicalAccessibilityContext}
 ${personaDesignContext}
 ${inclusiveImageryContext}
 ${patientResearchContext}
 ${labToLaunchContext}
-Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''}
+Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''}${externalDocContent ? ' Incorporate insights from external linked documents into your analysis.' : ''}
 
 SACM (Sentiment Analysis & Computational Color Modeling):
 Evaluate whether the brand's color palette aligns with its messaging sentiment:
@@ -721,5 +730,143 @@ function buildContextFromTextFields(ctx: any): string {
   if (ctx.icons_count > 0) counts.push(`icons: ${ctx.icons_count}`);
   if (counts.length > 0) parts.push(`Asset counts: ${counts.join(', ')}`);
 
+  // External linked assets (metadata)
+  const allExternal = [
+    ...(Array.isArray(ctx.external_assets) ? ctx.external_assets : []),
+    ...(Array.isArray(ctx.external_templates) ? ctx.external_templates : []),
+    ...(Array.isArray(ctx.external_presentations) ? ctx.external_presentations : []),
+  ];
+  if (allExternal.length > 0) {
+    const extDetails = allExternal.map((ea: any) => {
+      const d: string[] = [ea.title || 'Asset'];
+      if (ea.category) d.push(`[${ea.category}]`);
+      if (ea.url) d.push(`→ ${ea.url}`);
+      if (ea.source) d.push(`(${ea.source})`);
+      return d.join(' ');
+    });
+    parts.push(`External Linked Assets (${allExternal.length}): ${extDetails.join('; ')}`);
+  }
+
   return parts.join('\n');
+}
+
+/**
+ * Fetch text content from external linked assets (Dropbox, GlobalLink, etc.)
+ * Uses proxy-download to safely fetch external URLs, then extracts text
+ * Capped at 3 documents, 10KB each to stay within memory limits
+ */
+async function fetchExternalAssetContent(
+  supabaseUrl: string,
+  serviceKey: string,
+  textContext: any
+): Promise<string | null> {
+  // Collect all external URLs from context
+  const allExternal = [
+    ...(Array.isArray(textContext.external_assets) ? textContext.external_assets : []),
+    ...(Array.isArray(textContext.external_templates) ? textContext.external_templates : []),
+    ...(Array.isArray(textContext.external_presentations) ? textContext.external_presentations : []),
+  ].filter((e: any) => e?.url && typeof e.url === 'string');
+
+  if (allExternal.length === 0) return null;
+
+  // Limit to 3 docs to stay within memory/time constraints
+  const toFetch = allExternal.slice(0, 3);
+  const results: string[] = [];
+
+  for (const asset of toFetch) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/proxy-download`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${serviceKey}`,
+          'Content-Type': 'application/json',
+          'apikey': serviceKey,
+        },
+        body: JSON.stringify({ url: asset.url }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        console.warn(`[worker] External fetch failed for ${asset.title}: ${response.status}`);
+        results.push(`[${asset.title}] (${asset.source || 'external'}) — URL: ${asset.url} — Could not fetch content`);
+        continue;
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+
+      if (contentType.includes('application/pdf')) {
+        // Extract text from PDF bytes
+        const arrayBuffer = await response.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        const pdfText = extractTextFromPdfBytes(bytes);
+        const trimmed = pdfText.slice(0, 10000);
+        if (trimmed.length > 50) {
+          results.push(`[${asset.title}] (${asset.source || 'external'}):\n${trimmed}`);
+        } else {
+          results.push(`[${asset.title}] (${asset.source || 'external'}) — PDF with limited extractable text, ${bytes.length} bytes`);
+        }
+      } else if (contentType.includes('text/') || contentType.includes('application/json') || contentType.includes('markdown')) {
+        const text = await response.text();
+        const trimmed = text.slice(0, 10000);
+        results.push(`[${asset.title}] (${asset.source || 'external'}):\n${trimmed}`);
+      } else {
+        // Binary non-PDF — just note the asset exists
+        results.push(`[${asset.title}] (${asset.source || 'external'}) — Binary asset: ${contentType}, URL: ${asset.url}`);
+      }
+    } catch (err) {
+      console.warn(`[worker] External asset fetch error for ${asset.title}:`, err);
+      results.push(`[${asset.title}] (${asset.source || 'external'}) — URL: ${asset.url} — Fetch timed out or failed`);
+    }
+  }
+
+  if (results.length === 0) return null;
+
+  const totalExternal = allExternal.length;
+  const header = totalExternal > toFetch.length
+    ? `Fetched ${toFetch.length} of ${totalExternal} external documents:`
+    : `Fetched ${results.length} external document(s):`;
+
+  return `${header}\n\n${results.join('\n\n')}`;
+}
+
+/**
+ * Simple PDF text extraction from raw bytes
+ * Looks for text streams between BT/ET markers
+ */
+function extractTextFromPdfBytes(bytes: Uint8Array): string {
+  const text: string[] = [];
+  const str = new TextDecoder("latin1").decode(bytes);
+  
+  const streamRegex = /stream\r?\n([\s\S]*?)endstream/g;
+  let match;
+  while ((match = streamRegex.exec(str)) !== null) {
+    const streamContent = match[1];
+    const textRegex = /\(([^)]*)\)\s*Tj/g;
+    let textMatch;
+    while ((textMatch = textRegex.exec(streamContent)) !== null) {
+      const extracted = textMatch[1]
+        .replace(/\\n/g, "\n")
+        .replace(/\\r/g, "\r")
+        .replace(/\\t/g, "\t")
+        .replace(/\\\(/g, "(")
+        .replace(/\\\)/g, ")")
+        .replace(/\\\\/g, "\\");
+      if (extracted.trim()) text.push(extracted);
+    }
+    const tjArrayRegex = /\[(.*?)\]\s*TJ/g;
+    let tjMatch;
+    while ((tjMatch = tjArrayRegex.exec(streamContent)) !== null) {
+      const parts2 = tjMatch[1].match(/\(([^)]*)\)/g);
+      if (parts2) {
+        const combined = parts2.map(p => p.slice(1, -1)).join("");
+        if (combined.trim()) text.push(combined);
+      }
+    }
+  }
+  
+  return text.join(" ").replace(/\s+/g, " ").trim();
 }
