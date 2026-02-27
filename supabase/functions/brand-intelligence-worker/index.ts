@@ -157,6 +157,28 @@ serve(async (req) => {
     // Build lightweight brand context from the extracted text fields
     const brandContext = buildContextFromTextFields(textContext);
 
+    // Fetch prior analysis for longitudinal comparison
+    let priorAnalysisContext = '';
+    try {
+      const priorIntel = await db.selectSingle('brand_intelligence',
+        `entity_id=eq.${job.entity_id}&entity_type=eq.${job.entity_type}&select=brand_summary,market_position,localization_readiness_score,analysis_count,last_analyzed_at,competitive_advantages,cultural_insights`
+      );
+      if (priorIntel && priorIntel.last_analyzed_at) {
+        const parts: string[] = [];
+        parts.push(`Last analyzed: ${priorIntel.last_analyzed_at}`);
+        parts.push(`Analysis count: ${priorIntel.analysis_count || 0}`);
+        if (priorIntel.brand_summary) parts.push(`Prior summary: ${String(priorIntel.brand_summary).slice(0, 300)}`);
+        if (priorIntel.market_position) parts.push(`Prior position: ${String(priorIntel.market_position).slice(0, 150)}`);
+        if (priorIntel.localization_readiness_score != null) parts.push(`Prior readiness: ${priorIntel.localization_readiness_score}%`);
+        if (Array.isArray(priorIntel.competitive_advantages) && priorIntel.competitive_advantages.length) {
+          parts.push(`Prior advantages: ${priorIntel.competitive_advantages.slice(0, 3).join('; ')}`);
+        }
+        priorAnalysisContext = `\nPRIOR ANALYSIS HISTORY:\n${parts.join('\n')}\nCompare your new analysis against these prior findings. Note what changed, improved, or regressed.`;
+      }
+    } catch (e) {
+      console.warn('[worker] Prior analysis fetch failed (non-critical):', e);
+    }
+
     await db.update('brand_intelligence_jobs', `id=eq.${jobId}`, { progress: 30 });
 
     // Skip document context entirely — the SDK import causes memory crashes
@@ -262,12 +284,13 @@ Include a "lab_to_launch" object: {"journey_clarity_score":0-100,"stages_covered
 ${brandContext}
 ${oracleContext ? `\nORACLE BRAIN CONTEXT:\n${oracleContext}` : ''}
 ${externalDocContent ? `\nEXTERNAL LINKED DOCUMENTS (fetched from Dropbox/GlobalLink/external sources):\n${externalDocContent}` : ''}
+${priorAnalysisContext}
 ${physicalAccessibilityContext}
 ${personaDesignContext}
 ${inclusiveImageryContext}
 ${patientResearchContext}
 ${labToLaunchContext}
-Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''}${externalDocContent ? ' Incorporate insights from external linked documents into your analysis.' : ''}
+Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''}${externalDocContent ? ' Incorporate insights from external linked documents into your analysis.' : ''}${priorAnalysisContext ? ' Compare against prior analysis and note trends.' : ''}
 
 SACM (Sentiment Analysis & Computational Color Modeling):
 Evaluate whether the brand's color palette aligns with its messaging sentiment:

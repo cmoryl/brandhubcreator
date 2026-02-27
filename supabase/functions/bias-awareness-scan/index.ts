@@ -120,6 +120,33 @@ serve(async (req) => {
       .eq('entity_type', entity_type)
       .maybeSingle();
 
+    // Fetch prior bias scan for longitudinal comparison
+    let priorScanContext = '';
+    try {
+      const { data: priorScans } = await supabase
+        .from('bias_awareness_scans')
+        .select('inclusion_score, language_score, visual_score, accessibility_score, ai_governance_score, completed_at')
+        .eq('entity_id', entity_id)
+        .eq('entity_type', entity_type)
+        .eq('status', 'completed')
+        .order('completed_at', { ascending: false })
+        .limit(1);
+      
+      if (priorScans && priorScans.length > 0) {
+        const ps = priorScans[0];
+        const parts: string[] = [];
+        parts.push(`Prior scan date: ${ps.completed_at}`);
+        if (ps.inclusion_score != null) parts.push(`Prior inclusion: ${ps.inclusion_score}`);
+        if (ps.language_score != null) parts.push(`Prior language: ${ps.language_score}`);
+        if (ps.visual_score != null) parts.push(`Prior visual: ${ps.visual_score}`);
+        if (ps.accessibility_score != null) parts.push(`Prior accessibility: ${ps.accessibility_score}`);
+        if (ps.ai_governance_score != null) parts.push(`Prior AI governance: ${ps.ai_governance_score}`);
+        priorScanContext = `\n\nPRIOR BIAS SCAN RESULTS:\n${parts.join('\n')}\nCompare your new scores against these prior results. Note improvements, regressions, and persistent issues.`;
+      }
+    } catch (e) {
+      console.warn('[bias-scan] Prior scan fetch failed (non-critical):', e);
+    }
+
     // Run automated regex scan on entity text context
     const entityText = typeof entityContext === 'string' ? entityContext : JSON.stringify(entityContext || {});
     const regexFindings = scanTextForInclusiveLanguage(entityText);
@@ -137,7 +164,7 @@ serve(async (req) => {
         cultural: intelligence.cultural_insights,
         audience: intelligence.target_audience
       } : null
-    }) + regexSummary + '\n\n' + deepIntelCtx;
+    }) + regexSummary + priorScanContext + '\n\n' + deepIntelCtx;
 
     // Process in background
     // @ts-ignore - EdgeRuntime available in Supabase

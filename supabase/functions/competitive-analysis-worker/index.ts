@@ -30,11 +30,12 @@ serve(async (req) => {
     // Fetch entity name + intelligence context (skip guide_data to save memory)
     const tableName = entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events";
 
-    const [entityRes, intelRes, oracleRes, oracleKbRes] = await Promise.all([
+    const [entityRes, intelRes, oracleRes, oracleKbRes, priorReportsRes] = await Promise.all([
       fetch(`${supabaseUrl}/rest/v1/${tableName}?id=eq.${entityId}&select=id,name,organization_id&limit=1`, { headers }),
       fetch(`${supabaseUrl}/rest/v1/brand_intelligence?entity_id=eq.${entityId}&entity_type=eq.${entityType}&select=brand_summary,market_position,competitive_advantages,brand_voice_profile,target_audience&limit=1`, { headers }),
       organizationId ? fetch(`${supabaseUrl}/rest/v1/oracle_intelligence?organization_id=eq.${organizationId}&select=org_summary,strategic_recommendations,unified_voice_profile,competitive_overview,market_landscape&limit=1`, { headers }) : Promise.resolve(null),
       organizationId ? fetch(`${supabaseUrl}/rest/v1/oracle_knowledge_base?organization_id=eq.${organizationId}&is_active=eq.true&source_type=neq.entity_brain&order=updated_at.desc&limit=5&select=title,content`, { headers }) : Promise.resolve(null),
+      fetch(`${supabaseUrl}/rest/v1/competitive_analysis_reports?entity_id=eq.${entityId}&entity_type=eq.${entityType}&order=created_at.desc&limit=1&select=score,report_data,created_at`, { headers }),
     ]);
 
     const entityRows = await entityRes.json();
@@ -95,6 +96,26 @@ serve(async (req) => {
     const entityContext = contextParts.join(". ");
     const competitorList = competitors.slice(0, 5).map((c: string, i: number) => `${i + 1}. ${c}`).join("\n");
 
+    // Build prior report context for longitudinal comparison
+    let priorReportContext = "";
+    try {
+      const priorRows = await priorReportsRes.json();
+      const priorReport = Array.isArray(priorRows) && priorRows.length > 0 ? priorRows[0] : null;
+      if (priorReport) {
+        const parts: string[] = [];
+        parts.push(`Prior report date: ${priorReport.created_at}`);
+        parts.push(`Prior overall score: ${priorReport.score || 'N/A'}`);
+        const rd = priorReport.report_data;
+        if (rd?.executiveSummary?.overview) parts.push(`Prior overview: ${String(rd.executiveSummary.overview).slice(0, 300)}`);
+        if (rd?.executiveSummary?.currentPosition) parts.push(`Prior position: ${String(rd.executiveSummary.currentPosition).slice(0, 200)}`);
+        if (Array.isArray(rd?.swotAnalysis?.strengths)) parts.push(`Prior strengths: ${rd.swotAnalysis.strengths.slice(0, 3).join('; ')}`);
+        if (Array.isArray(rd?.swotAnalysis?.weaknesses)) parts.push(`Prior weaknesses: ${rd.swotAnalysis.weaknesses.slice(0, 3).join('; ')}`);
+        priorReportContext = `\nPRIOR COMPETITIVE REPORT:\n${parts.join('\n')}\nCompare your new analysis against these prior findings. Note score changes, new threats, resolved weaknesses, and emerging trends.`;
+      }
+    } catch (e) {
+      console.warn('[competitive-worker] Prior report fetch failed (non-critical):', e);
+    }
+
     const regionalNote = country || region
       ? `\nREGIONAL FOCUS: Tailor analysis for ${country || ""} ${region ? `(${region})` : ""} market.`
       : "";
@@ -105,7 +126,7 @@ serve(async (req) => {
 
     await updateJob({ progress: 40 });
 
-    const prompt = `Competitive analysis for ${entity.name} against competitors.${regionalNote}${oracleNote}
+    const prompt = `Competitive analysis for ${entity.name} against competitors.${regionalNote}${oracleNote}${priorReportContext}
 
 ENTITY: ${entityContext}
 

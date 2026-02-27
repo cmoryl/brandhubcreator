@@ -393,7 +393,7 @@ export const WebsiteAnalysisCard = ({
     setIsAnalyzing(true);
     try {
       const { data, error } = await supabase.functions.invoke('website-analysis', {
-        body: { websiteUrl, entityName, industry, brandContext },
+        body: { websiteUrl, entityName, industry, brandContext, entityId, entityType },
       });
 
       if (error) throw new Error(error.message);
