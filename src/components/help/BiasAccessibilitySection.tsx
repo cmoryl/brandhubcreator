@@ -1,166 +1,425 @@
 /**
- * BiasAccessibilitySection — In-depth reference guide for Bias Awareness & Accessibility standards.
+ * BiasAccessibilitySection — Comprehensive interactive-card-based reference for
+ * Bias Awareness, Accessibility Standards, and Regulatory Compliance.
  * Rendered as a dedicated tab in the Knowledge Base page.
  */
 
-import { 
-  Scale, Accessibility, Eye, Blend, Globe2, AudioLines, Brain, 
+import { useState } from 'react';
+import {
+  Scale, Accessibility, Eye, Blend, Globe2, AudioLines, Brain,
   ListChecks, Fingerprint, HeartHandshake, Type, ScanSearch,
   ChevronRight, Shield, Users, Palette, CheckCircle2, AlertTriangle,
-  Info
+  Info, Monitor, Smartphone, Building2, FileText, BookOpen,
+  Layers, Target, Zap, ArrowRight, ExternalLink, ChevronDown,
+  Landmark, GraduationCap, Languages, MapPin, Volume2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
-interface StandardItem {
+// ─── Category Definitions ───────────────────────────────────────────────────
+
+interface CategoryCard {
+  id: string;
   title: string;
-  description: string;
-  details: string[];
+  subtitle: string;
+  icon: React.ElementType;
+  color: string;
   badge?: string;
-  badgeVariant?: 'default' | 'secondary' | 'outline' | 'destructive';
+  sections: CategorySection[];
 }
 
-const biasStandards: StandardItem[] = [
+interface CategorySection {
+  heading: string;
+  content: string;
+  bullets?: string[];
+  table?: { headers: string[]; rows: string[][] };
+  platformTools?: string[];
+}
+
+const categories: CategoryCard[] = [
   {
-    title: 'Language Bias Analysis',
-    description: 'AI evaluates all textual content for inclusive terminology, gendered language, ableist phrases, and culturally insensitive expressions.',
-    badge: 'Dimension 1',
-    details: [
-      'Scans brand descriptions, taglines, messaging, and voice guidelines',
-      'Flags gendered terms (e.g., "manpower") and suggests neutral alternatives (e.g., "workforce")',
-      'Detects ableist language (e.g., "blind spot", "fall on deaf ears") with context-aware severity',
-      'Identifies cultural assumptions embedded in idioms and metaphors',
-      'Evaluates reading level using Flesch-Kincaid — targets Grade 8 or below for public-facing content',
-      'Checks for age-related bias and socioeconomic assumptions',
+    id: 'wcag',
+    title: 'WCAG 2.2 Compliance',
+    subtitle: 'Web Content Accessibility Guidelines — Levels A, AA & AAA',
+    icon: Monitor,
+    color: 'text-blue-500',
+    badge: 'Global Standard',
+    sections: [
+      {
+        heading: 'What is WCAG?',
+        content: 'The Web Content Accessibility Guidelines (WCAG) are the global standard for digital accessibility, published by the W3C. Version 2.2 (2023) introduces 9 new success criteria focused on cognitive accessibility, mobile interaction, and authentication simplicity.',
+      },
+      {
+        heading: 'Level A — Minimum Accessibility',
+        content: 'The baseline requirements every digital product must meet. Without Level A compliance, content is fundamentally inaccessible to many users.',
+        bullets: [
+          'All non-text content has text alternatives (alt text on images)',
+          'Content is adaptable — can be presented in different ways without losing meaning',
+          'No content relies solely on color to convey information',
+          'Keyboard accessibility — all functionality available via keyboard',
+          'No content flashes more than 3 times per second (seizure safety)',
+          'Pages have descriptive titles and logical heading structure',
+          'Link purpose is determinable from link text alone',
+        ],
+      },
+      {
+        heading: 'Level AA — Standard Compliance (Recommended)',
+        content: 'The target level for most organizations and the legal standard in many jurisdictions. Level AA is what BrandHub evaluates by default.',
+        bullets: [
+          'Color contrast: minimum 4.5:1 for normal text, 3:1 for large text (18px+)',
+          'Text can be resized up to 200% without loss of content or functionality',
+          'Images of text are avoided (use real text instead)',
+          'Multiple navigation methods available (search, sitemap, breadcrumbs)',
+          'Consistent navigation and identification patterns across pages',
+          'Error suggestions and prevention on forms',
+          'NEW in 2.2: Focus appearance — visible focus indicators with minimum area',
+          'NEW in 2.2: Dragging movements — single-pointer alternative required',
+          'NEW in 2.2: Target size minimum — 24×24px for interactive elements',
+        ],
+        platformTools: ['Color Accessibility Panel', 'OKLCH Contrast Checker', 'Typography WCAG Panel'],
+      },
+      {
+        heading: 'Level AAA — Enhanced Accessibility',
+        content: 'The highest level of conformance. Not required for legal compliance but demonstrates leadership in inclusive design.',
+        bullets: [
+          'Color contrast: minimum 7:1 for normal text, 4.5:1 for large text',
+          'Audio content has sign language interpretation',
+          'Reading level: content understandable at lower secondary education level',
+          'Pronunciation guidance for ambiguous words',
+          'Extended audio descriptions for video content',
+          'No timing constraints on user interactions',
+          'No interruptions — user controls all automatic updates',
+        ],
+        platformTools: ['Bias Scanner (Language Dimension)', 'Readability Grade Calculator'],
+      },
+      {
+        heading: 'WCAG 2.2 — New Success Criteria',
+        content: 'Nine new criteria added in 2.2, with emphasis on cognitive and mobile accessibility.',
+        table: {
+          headers: ['Criterion', 'Level', 'What It Requires'],
+          rows: [
+            ['2.4.11 Focus Not Obscured (Min)', 'AA', 'Focused element is at least partially visible'],
+            ['2.4.12 Focus Not Obscured (Enh)', 'AAA', 'Focused element is fully visible'],
+            ['2.4.13 Focus Appearance', 'AAA', 'Focus indicator meets contrast and area thresholds'],
+            ['2.5.7 Dragging Movements', 'AA', 'All drag interactions have single-pointer alternative'],
+            ['2.5.8 Target Size (Minimum)', 'AA', 'Interactive targets are at least 24×24px'],
+            ['3.2.6 Consistent Help', 'A', 'Help mechanisms appear in same relative location'],
+            ['3.3.7 Redundant Entry', 'A', 'Previously entered info is auto-populated or selectable'],
+            ['3.3.8 Accessible Auth (Min)', 'AA', 'Authentication doesn\'t require cognitive function tests'],
+            ['3.3.9 Accessible Auth (Enh)', 'AAA', 'No object or user-content recognition for auth'],
+          ],
+        },
+      },
     ],
   },
   {
-    title: 'Visual Representation Analysis',
-    description: 'Evaluates brand imagery for diversity, stereotypes, power dynamics, and authentic representation.',
-    badge: 'Dimension 2',
-    details: [
-      'Audits imagery using the PI&E "Who Else?" framework — asking who is represented and who is missing',
-      'Applies the WFA (World Federation of Advertisers) litmus test for stereotype detection',
-      'Evaluates power hierarchies — who is positioned as authority vs. subordinate in group imagery',
-      'Detects common tropes: tokenism, "inspiration porn", savior narratives, and exoticization',
-      'Assesses representation across age, gender, ethnicity, ability, and body type',
-      'Recommends photojournalistic style over staged corporate imagery for authenticity',
+    id: 'regulatory',
+    title: 'Regulatory Compliance',
+    subtitle: 'ADA Title III, EAA 2025, Section 508 & Beyond',
+    icon: Landmark,
+    color: 'text-amber-500',
+    badge: 'Legal Requirements',
+    sections: [
+      {
+        heading: 'ADA Title III (United States)',
+        content: 'The Americans with Disabilities Act Title III prohibits discrimination in public accommodations, increasingly interpreted to include websites and digital services.',
+        bullets: [
+          'Applies to businesses open to the public (including websites)',
+          'Courts have ruled websites are "places of public accommodation"',
+          'DOJ references WCAG 2.1 AA as the technical standard',
+          'Non-compliance can result in lawsuits and settlements ($10,000–$75,000+)',
+          'Physical venue standards: 32" min door width, 36" corridors, 5% ramp slope max',
+          'Event venues must provide accessible seating, assistive listening, and wayfinding',
+        ],
+        platformTools: ['Bias Scanner (Accessibility Dimension)', 'Event Venue Accessibility Checker'],
+      },
+      {
+        heading: 'European Accessibility Act (EAA 2025)',
+        content: 'Effective June 28, 2025 — the EAA requires products and services sold in the EU to meet accessibility standards. This affects any organization doing business in Europe.',
+        bullets: [
+          'Covers: e-commerce, banking, transport, e-books, and digital services',
+          'Mandates conformity with EN 301 549 (aligned with WCAG 2.1 AA)',
+          'Penalties vary by member state — up to 5% of annual revenue in some jurisdictions',
+          'Requires accessibility statements and feedback mechanisms',
+          'Applies to both B2C and B2B digital products',
+          'Microenterprises (<10 employees) may be exempt for services only',
+        ],
+      },
+      {
+        heading: 'Section 508 (US Federal)',
+        content: 'Section 508 of the Rehabilitation Act requires federal agencies and their contractors to make ICT accessible. Updated in 2018 to align with WCAG 2.0 AA.',
+        bullets: [
+          'Mandatory for all US federal agencies and contractors',
+          'Applies to websites, documents, software, and multimedia',
+          'Aligned with WCAG 2.0 Level AA (with additional functional requirements)',
+          'Procurement must include accessibility evaluation criteria',
+          'Voluntary Product Accessibility Template (VPAT) often required for vendors',
+        ],
+      },
+      {
+        heading: 'Other Regional Standards',
+        content: 'Accessibility legislation is expanding globally, with similar requirements in Canada (AODA), UK (Equality Act), Australia (DDA), and more.',
+        table: {
+          headers: ['Region', 'Legislation', 'Standard', 'Status'],
+          rows: [
+            ['Canada (Ontario)', 'AODA', 'WCAG 2.0 AA', 'Active'],
+            ['United Kingdom', 'Equality Act 2010', 'WCAG 2.1 AA', 'Active'],
+            ['Australia', 'DDA 1992', 'WCAG 2.1 AA', 'Active'],
+            ['Japan', 'JIS X 8341-3', 'WCAG 2.0 AA', 'Active'],
+            ['Israel', 'Standard 5568', 'WCAG 2.0 AA', 'Active'],
+            ['EU (Public Sector)', 'EN 301 549', 'WCAG 2.1 AA', 'Active'],
+          ],
+        },
+      },
     ],
   },
   {
-    title: 'Accessibility Compliance (WCAG 2.2)',
-    description: 'Automated checks against Web Content Accessibility Guidelines ensuring digital brand materials are usable by everyone.',
-    badge: 'Dimension 3',
-    details: [
-      'Color contrast verification: minimum 4.5:1 (AA) and 7:1 (AAA) ratios using OKLCH perceptual model',
-      'Focus state visibility and keyboard navigation support',
-      'Touch target sizing: minimum 44×44px for interactive elements',
-      'Text readability: font size, line height, letter spacing, and paragraph width recommendations',
-      'Alt-text presence and quality assessment for all imagery',
-      'Motion sensitivity: checks for `prefers-reduced-motion` support and animation controls',
-      'Form accessibility: label associations, error messaging, and input descriptions',
+    id: 'platform-tools',
+    title: 'BrandHub Platform Tools',
+    subtitle: 'How BrandHub enforces accessibility at every level',
+    icon: Zap,
+    color: 'text-emerald-500',
+    badge: 'Built-In',
+    sections: [
+      {
+        heading: 'Color Accessibility Panel',
+        content: 'Real-time contrast checking using the OKLCH perceptual color model for every color in your palette. Auto-Fix suggests the closest accessible alternative that preserves your brand hue.',
+        bullets: [
+          'OKLCH perceptual model for accurate contrast (not sRGB approximation)',
+          'Helmholtz-Kohlrausch (H-K) correction for perceived brightness of saturated colors',
+          'Auto-Fix binary search: finds closest lightness meeting 4.5:1 while preserving hue + chroma',
+          'Colorblind simulations: Protanopia, Deuteranopia, Tritanopia, Achromatopsia',
+          'Global Cultural Symbolism Map: color meaning across 7+ markets',
+          'Tonal Harmony Engine: palette relationship classification',
+        ],
+      },
+      {
+        heading: 'Bias Awareness Scanner (4 Dimensions)',
+        content: 'AI-powered governance that evaluates brand content across Language, Visual Representation, Accessibility, and AI Governance dimensions.',
+        bullets: [
+          'Dimension 1 — Language: inclusive terminology, gendered/ableist phrase detection, Flesch-Kincaid Grade 8 target',
+          'Dimension 2 — Visual: PI&E "Who Else?" framework, WFA litmus test, power hierarchy analysis, trope detection',
+          'Dimension 3 — Accessibility: WCAG 2.2 checks, touch targets, motion sensitivity, alt-text quality',
+          'Dimension 4 — AI Governance: disclosure, human oversight, data privacy, hallucination risk',
+        ],
+        platformTools: ['Brand Editor → Insights', 'Admin Dashboard → Bias Awareness'],
+      },
+      {
+        heading: 'Typography WCAG Panel',
+        content: 'Dedicated typography accessibility enforcement with real-time contrast ratios and readability metrics.',
+        bullets: [
+          'Level AA: 4.5:1 normal text, 3:1 large/UI components',
+          'Level AAA: 7:1 normal text, 4.5:1 large text',
+          'Minimum 16px font size recommendation',
+          '1.5x line height, 2x paragraph spacing',
+          '80-character maximum line length for readability',
+          'Font pairing accessibility warnings',
+        ],
+      },
+      {
+        heading: 'DataForce Compliance AI',
+        content: 'Automated compliance scanning that triggers on every brand guide save (5-second debounce). Scores appear as color-coded badges across the platform.',
+        bullets: [
+          'Auto-scan on save with useAutoCompliance hook',
+          '6 compliance dimensions including accessibility alignment',
+          'Color-coded scoring: Green (80+), Yellow (60–79), Red (<60)',
+          'Scores visible on Portal cards, Editor hero, Admin analytics',
+          'Oracle Brain alignment for organization-wide standards',
+        ],
+      },
+      {
+        heading: 'Persona Spectrum Coverage',
+        content: 'Based on Microsoft\'s Inclusive Design methodology, evaluating content against the full range of human diversity.',
+        table: {
+          headers: ['Dimension', 'Permanent', 'Temporary', 'Situational', 'Coverage Criteria'],
+          rows: [
+            ['Vision', 'Blind', 'Cataract recovery', 'Distracted driver', 'Alt-text, 7:1 contrast, scalable text, no color-only info'],
+            ['Mobility', 'Limb difference', 'Broken arm', 'Holding a child', 'Responsive layouts, 44px targets, keyboard nav, one-hand use'],
+            ['Hearing', 'Deaf', 'Ear infection', 'Noisy environment', 'Captions on video, visual audio cues, text alternatives'],
+            ['Speech', 'Non-verbal', 'Laryngitis', 'Heavy accent', 'Chat/text alternatives, no voice-only interfaces'],
+            ['Cognitive', 'Learning disability', 'Concussion', 'Information overload', 'Plain language (Grade 8), clear nav, consistent layout'],
+          ],
+        },
+      },
     ],
   },
   {
-    title: 'AI Governance & Responsible Usage',
-    description: 'Evaluates how AI-generated content is disclosed, monitored, and governed within brand materials.',
-    badge: 'Dimension 4',
-    details: [
-      'Checks for AI content disclosure and transparency statements',
-      'Evaluates human oversight mechanisms in AI-assisted workflows',
-      'Assesses data privacy considerations in AI training materials',
-      'Reviews bias mitigation strategies in AI-generated imagery and copy',
-      'Monitors for AI hallucination risks in brand facts and statistics',
-      'Validates that AI suggestions are reviewed before publication',
+    id: 'physical',
+    title: 'Physical & Event Accessibility',
+    subtitle: 'ADA/IBC venue standards for events and physical spaces',
+    icon: Building2,
+    color: 'text-purple-500',
+    badge: 'Events',
+    sections: [
+      {
+        heading: 'Venue Requirements (ADA/IBC)',
+        content: 'Physical accessibility standards for event venues, booth design, and signage — applicable to trade shows, conferences, and corporate events.',
+        bullets: [
+          'Doorway width: minimum 32" clear opening (36" recommended)',
+          'Corridor width: minimum 36" (44" for high-traffic areas)',
+          'Ramp slope: maximum 1:12 (8.33%) with handrails on both sides',
+          'Accessible seating: dispersed locations with companion seating',
+          'Assistive listening devices: required in venues with fixed seating',
+          'Tactile wayfinding: Braille signage at decision points',
+          'Accessible restrooms: within reasonable distance of all event areas',
+        ],
+      },
+      {
+        heading: 'Event Signage Standards',
+        content: 'Signage must be perceivable by people with varying abilities — covering text size, contrast, mounting height, and tactile elements.',
+        bullets: [
+          'Sign text: minimum 1" height for every 25 feet of viewing distance',
+          'High contrast: light text on dark background (or vice versa)',
+          'Non-glare finish on all signage materials',
+          'Braille and raised characters on room identification signs',
+          'Mounting height: 48"–60" from floor (centered at 60" AFF)',
+          'Digital signage: auto-captioning for video content',
+        ],
+      },
+      {
+        heading: 'Booth Design Accessibility',
+        content: 'Trade show and exhibition booth design guidelines to ensure all attendees can engage with your brand experience.',
+        bullets: [
+          'Counter height: 28"–34" to accommodate wheelchair users',
+          'Clear floor space: 30" × 48" approach at interactive stations',
+          'No raised platforms without ramp access',
+          'QR codes and digital alternatives to printed handouts',
+          'Staff trained in accessibility etiquette',
+          'Sensory-friendly zones for neurodivergent attendees',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'inclusive-content',
+    title: 'Inclusive Content & Language',
+    subtitle: 'Person-first language, readability standards, and representation',
+    icon: Languages,
+    color: 'text-rose-500',
+    badge: 'Content',
+    sections: [
+      {
+        heading: 'Person-First Language',
+        content: 'Language that puts the person before the disability or characteristic, respecting individual identity.',
+        table: {
+          headers: ['Avoid', 'Preferred'],
+          rows: [
+            ['Handicapped parking', 'Accessible parking'],
+            ['Wheelchair-bound', 'Wheelchair user / uses a wheelchair'],
+            ['Suffers from autism', 'Is autistic / has autism (ask preference)'],
+            ['The blind', 'People who are blind / blind people'],
+            ['Normal / able-bodied', 'Non-disabled'],
+            ['Manpower', 'Workforce / team'],
+            ['Blind spot', 'Oversight / gap / missed area'],
+            ['Falling on deaf ears', 'Being ignored / going unheard'],
+          ],
+        },
+      },
+      {
+        heading: 'Readability Standards',
+        content: 'Content readability directly impacts cognitive accessibility. BrandHub enforces Grade 8 readability for public-facing brand content.',
+        bullets: [
+          'Target: Flesch-Kincaid Grade Level ≤ 8 for public content',
+          'Short sentences: 15–20 words maximum',
+          'Active voice preferred over passive voice',
+          'One idea per paragraph',
+          'Use bullet points for complex information',
+          'Define technical terms on first use',
+          'Avoid jargon, idioms, and acronyms without explanation',
+        ],
+        platformTools: ['Bias Scanner (Language Dimension)', 'Brand Intelligence readability metrics'],
+      },
+      {
+        heading: 'Visual Representation',
+        content: 'Ensure brand imagery authentically represents diverse communities without relying on stereotypes or tokenism.',
+        bullets: [
+          'PI&E "Who Else?" framework: audit who is present and who is missing',
+          'WFA Creative Litmus Test: 12-step stereotype evaluation',
+          'Avoid power hierarchy tropes in group compositions',
+          'Representation across: age, gender, ethnicity, ability, body type',
+          'Photojournalistic style over staged corporate imagery',
+          'No tokenism — meaningful inclusion, not checkbox diversity',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'scoring',
+    title: 'Scoring & Monitoring',
+    subtitle: 'How BrandHub measures and tracks accessibility progress',
+    icon: Target,
+    color: 'text-cyan-500',
+    badge: 'Analytics',
+    sections: [
+      {
+        heading: 'Scoring Thresholds',
+        content: 'All accessibility and bias scores use a consistent 0–100 scale with three thresholds.',
+        table: {
+          headers: ['Range', 'Rating', 'Action Required'],
+          rows: [
+            ['80–100', 'Excellent (Green)', 'Strong inclusive practices. Minor refinements recommended.'],
+            ['60–79', 'Needs Attention (Yellow)', 'Gaps in accessibility or representation. Review findings.'],
+            ['Below 60', 'Critical (Red)', 'Significant issues detected. Immediate action recommended.'],
+          ],
+        },
+      },
+      {
+        heading: 'Where Scores Appear',
+        content: 'Accessibility and compliance scores are surfaced throughout the platform for continuous awareness.',
+        bullets: [
+          'Portal Brand Cards — compliance badge (shield icon) permanently visible',
+          'Brand Editor Hero — score badge next to entity name',
+          'Admin Analytics Table — color-coded scores per entity',
+          'Admin Dashboard → Bias Awareness — org-wide KPIs and dimension averages',
+          'Admin Dashboard → Accessibility Standards — WCAG/ADA/EAA readiness',
+          'Health Snapshots — longitudinal score tracking over 12+ months',
+        ],
+      },
+      {
+        heading: 'Automated Monitoring',
+        content: 'BrandHub provides continuous accessibility monitoring without manual intervention.',
+        bullets: [
+          'Auto-Compliance: scans trigger on every brand guide save (5s debounce)',
+          'Health Snapshots: periodic scores captured for trend analysis',
+          'Intelligence Alerts: notifications when scores drop below thresholds',
+          'Executive Digests: automated summary reports with accessibility trends',
+          'Scheduled Intelligence: configurable cadence (daily/weekly/monthly)',
+        ],
+      },
+      {
+        heading: 'Standards & Framework References',
+        content: 'The frameworks and standards underlying BrandHub\'s accessibility evaluation.',
+        table: {
+          headers: ['Framework', 'Organization', 'Purpose'],
+          rows: [
+            ['WCAG 2.2', 'W3C', 'Global digital accessibility standard (A/AA/AAA)'],
+            ['Microsoft Inclusive Design', 'Microsoft', 'Persona Spectrum for permanent/temporary/situational needs'],
+            ['PI&E "Who Else?"', 'PI&E', 'Representation audit for imagery and content'],
+            ['WFA Creative Litmus Test', 'World Federation of Advertisers', '12-step stereotype and authenticity checklist'],
+            ['ADA/IBC', 'US Dept. of Justice', 'Physical and digital public accommodation standards'],
+            ['Nayatani H-K Model', 'CIE', 'Perceived brightness correction for saturated colors'],
+            ['EN 301 549', 'ETSI', 'European ICT accessibility requirements'],
+          ],
+        },
+      },
     ],
   },
 ];
 
-const colorAccessibilityDetails = [
-  {
-    title: 'OKLCH Perceptual Color Model',
-    icon: Palette,
-    content: 'BrandHub uses the OKLCH (Oklab Lightness, Chroma, Hue) color space for perceptually uniform contrast calculations. Unlike sRGB-based checks, OKLCH accounts for how humans actually perceive brightness differences, providing more accurate contrast ratios — especially for saturated colors where traditional checks often fail.',
-  },
-  {
-    title: 'Colorblind Simulations',
-    icon: Eye,
-    content: 'Preview your brand palette under four types of color vision deficiency: Protanopia (red-blind, ~1% of males), Deuteranopia (green-blind, ~5% of males), Tritanopia (blue-blind, very rare), and Achromatopsia (complete color blindness). The platform flags palette combinations that become indistinguishable under any simulation.',
-  },
-  {
-    title: 'Helmholtz-Kohlrausch (H-K) Effect',
-    icon: Blend,
-    content: 'Highly saturated colors appear brighter than their measured luminance suggests — this is the H-K effect. BrandHub applies Nayatani model correction to account for perceived brightness, preventing false "pass" results on contrast checks for vivid brand colors like saturated reds, blues, and purples.',
-  },
-  {
-    title: 'Global Cultural Symbolism Map',
-    icon: Globe2,
-    content: 'Colors carry different cultural meanings worldwide. Red symbolizes luck in China but mourning in South Africa. White represents purity in Western markets but death in many East Asian cultures. The Cultural Symbolism Map covers 7+ major markets and flags conflicts before you launch regionally.',
-  },
-  {
-    title: 'Tonal Harmony Engine',
-    icon: ScanSearch,
-    content: 'A hue-based classification system that categorizes your palette as Analogous, Complementary, Triadic, Split-Complementary, or Custom. This helps ensure intentional color relationships and identifies when palettes drift into clashing combinations that reduce readability.',
-  },
-  {
-    title: 'Adaptive Motion Controls',
-    icon: AudioLines,
-    content: 'Some users experience vestibular disorders triggered by parallax scrolling, auto-playing animations, or rapid transitions. BrandHub evaluates whether brand materials include `prefers-reduced-motion` support and provides built-in pause/reduce controls for all animated elements.',
-  },
-];
-
-const personaSpectrumData = [
-  {
-    dimension: 'Vision',
-    permanent: 'Blind',
-    temporary: 'Cataract recovery',
-    situational: 'Distracted driver',
-    criteria: 'Alt-text on images, high contrast ratios (7:1), scalable text, no color-only information',
-  },
-  {
-    dimension: 'Mobility',
-    permanent: 'Limb difference',
-    temporary: 'Broken arm',
-    situational: 'Holding a child',
-    criteria: 'Responsive layouts, 44px touch targets, keyboard navigation, one-hand operation support',
-  },
-  {
-    dimension: 'Hearing',
-    permanent: 'Deaf',
-    temporary: 'Ear infection',
-    situational: 'Noisy environment',
-    criteria: 'Captions on video, visual indicators for audio cues, text alternatives for voice content',
-  },
-  {
-    dimension: 'Speech',
-    permanent: 'Non-verbal',
-    temporary: 'Laryngitis',
-    situational: 'Heavy accent',
-    criteria: 'Chat/text alternatives to voice, no voice-only interfaces, multiple input methods',
-  },
-  {
-    dimension: 'Cognitive',
-    permanent: 'Learning disability',
-    temporary: 'Concussion',
-    situational: 'Information overload',
-    criteria: 'Plain language (Grade 8), clear navigation, consistent layout, minimal cognitive load',
-  },
-];
-
-const frameworkReferences = [
-  { name: 'WCAG 2.2', org: 'W3C', description: 'Web Content Accessibility Guidelines — the global standard for digital accessibility with levels A, AA, and AAA.' },
-  { name: 'Microsoft Inclusive Design', org: 'Microsoft', description: 'Persona Spectrum methodology recognizing permanent, temporary, and situational disabilities for universal design.' },
-  { name: 'PI&E "Who Else?" Framework', org: 'PI&E', description: 'A representation audit asking who is present, who is missing, and how people are portrayed in brand imagery.' },
-  { name: 'WFA Creative Litmus Test', org: 'World Federation of Advertisers', description: '12-step checklist evaluating creative work for stereotypes, authenticity, and inclusive storytelling.' },
-  { name: 'ADA/IBC Physical Standards', org: 'ADA / International Building Code', description: 'Door widths, corridor clearances, and wayfinding standards for accessible event venues and physical spaces.' },
-  { name: 'Nayatani H-K Model', org: 'CIE', description: 'Mathematical model correcting for the Helmholtz-Kohlrausch effect — perceived brightness of saturated colors.' },
-];
+// ─── Component ──────────────────────────────────────────────────────────────
 
 interface BiasAccessibilitySectionProps {
   searchQuery?: string;
@@ -168,28 +427,21 @@ interface BiasAccessibilitySectionProps {
 
 export function BiasAccessibilitySection({ searchQuery = '' }: BiasAccessibilitySectionProps) {
   const q = searchQuery.toLowerCase();
-  
+  const [activeCard, setActiveCard] = useState<CategoryCard | null>(null);
+
   const matchesSearch = (text: string) => !q || text.toLowerCase().includes(q);
-  
-  const filteredBiasStandards = biasStandards.filter(s => 
-    matchesSearch(s.title) || matchesSearch(s.description) || s.details.some(d => matchesSearch(d))
+
+  const filteredCategories = categories.filter(cat =>
+    matchesSearch(cat.title) ||
+    matchesSearch(cat.subtitle) ||
+    cat.sections.some(s =>
+      matchesSearch(s.heading) ||
+      matchesSearch(s.content) ||
+      (s.bullets || []).some(b => matchesSearch(b))
+    )
   );
 
-  const filteredColorDetails = colorAccessibilityDetails.filter(d =>
-    matchesSearch(d.title) || matchesSearch(d.content)
-  );
-
-  const filteredPersona = personaSpectrumData.filter(p =>
-    matchesSearch(p.dimension) || matchesSearch(p.criteria) || matchesSearch(p.permanent) || matchesSearch(p.temporary) || matchesSearch(p.situational)
-  );
-
-  const filteredFrameworks = frameworkReferences.filter(f =>
-    matchesSearch(f.name) || matchesSearch(f.org) || matchesSearch(f.description)
-  );
-
-  const hasResults = filteredBiasStandards.length > 0 || filteredColorDetails.length > 0 || filteredPersona.length > 0 || filteredFrameworks.length > 0;
-
-  if (!hasResults) {
+  if (filteredCategories.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         <p>No results found for "{searchQuery}"</p>
@@ -203,236 +455,227 @@ export function BiasAccessibilitySection({ searchQuery = '' }: BiasAccessibility
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Scale className="h-6 w-6 text-accent" />
-          <h2 className="text-2xl font-bold text-foreground">Bias Awareness & Accessibility</h2>
+          <h2 className="text-2xl font-bold text-foreground">Accessibility & Inclusive Design</h2>
           <Badge variant="secondary" className="ml-2">2026 Standards</Badge>
         </div>
         <p className="text-muted-foreground leading-relaxed max-w-3xl">
-          BrandHub evaluates your brand content against modern inclusive governance standards. 
-          Every scan produces scores across four dimensions, a Persona Spectrum coverage grid, 
-          and actionable findings — ensuring your brands are accessible, representative, and culturally aware.
+          BrandHub provides end-to-end accessibility governance — from WCAG 2.2 digital compliance to ADA physical venue standards, 
+          inclusive language enforcement, and AI-powered bias detection. Explore each area below to understand what's covered, 
+          what's required, and which platform tools enforce each standard.
         </p>
       </div>
 
-      {/* Four Dimensions of Bias Scanning */}
-      {filteredBiasStandards.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <ScanSearch className="h-5 w-5 text-accent" />
-            Four Dimensions of Bias Scanning
-          </h3>
-          <Accordion type="multiple" className="space-y-2">
-            {filteredBiasStandards.map((standard, idx) => (
-              <AccordionItem
-                key={idx}
-                value={`bias-${idx}`}
-                className="border border-border/50 rounded-lg px-4 bg-card/50"
-              >
-                <AccordionTrigger className="text-left hover:no-underline">
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium text-foreground">{standard.title}</span>
-                    {standard.badge && (
-                      <Badge variant="outline" className="text-xs">{standard.badge}</Badge>
-                    )}
+      {/* Interactive Category Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredCategories.map((cat) => {
+          const Icon = cat.icon;
+          return (
+            <Card
+              key={cat.id}
+              className="border-border/50 bg-card/50 hover:bg-card/80 hover:shadow-lg transition-all cursor-pointer group"
+              onClick={() => setActiveCard(cat)}
+            >
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className={`p-2.5 rounded-xl bg-muted/50 ${cat.color}`}>
+                    <Icon className="h-6 w-6" />
                   </div>
-                </AccordionTrigger>
-                <AccordionContent className="space-y-3">
-                  <p className="text-muted-foreground">{standard.description}</p>
-                  <ul className="space-y-2">
-                    {standard.details.map((detail, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <CheckCircle2 className="h-4 w-4 text-accent shrink-0 mt-0.5" />
-                        <span>{detail}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      )}
+                  {cat.badge && (
+                    <Badge variant="outline" className="text-xs">{cat.badge}</Badge>
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground group-hover:text-accent transition-colors">
+                    {cat.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{cat.subtitle}</p>
+                </div>
+                <div className="flex items-center text-xs text-muted-foreground group-hover:text-accent transition-colors">
+                  <span>{cat.sections.length} sections</span>
+                  <ArrowRight className="h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-      {/* Color Accessibility Deep Dive */}
-      {filteredColorDetails.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <Blend className="h-5 w-5 text-accent" />
-            Color Accessibility Deep Dive
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredColorDetails.map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <Card key={idx} className="border-border/50 bg-card/50">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                      <Icon className="h-4 w-4 text-accent" />
-                      {item.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.content}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+      {/* Quick Reference: Compliance Levels */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <Layers className="h-5 w-5 text-accent" />
+          Quick Reference: Compliance Levels
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card className="border-border/50 bg-card/50">
+            <CardContent className="p-4 space-y-2">
+              <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20">Level A</Badge>
+              <p className="font-medium text-sm text-foreground">Minimum</p>
+              <p className="text-xs text-muted-foreground">
+                Baseline requirements. Text alternatives, keyboard access, no seizure-inducing content, page titles.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-accent/5 ring-1 ring-accent/20">
+            <CardContent className="p-4 space-y-2">
+              <Badge className="bg-accent/10 text-accent hover:bg-accent/20">Level AA ★</Badge>
+              <p className="font-medium text-sm text-foreground">Recommended Standard</p>
+              <p className="text-xs text-muted-foreground">
+                4.5:1 contrast, text resizing, consistent navigation, error prevention. The legal standard in most jurisdictions.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50">
+            <CardContent className="p-4 space-y-2">
+              <Badge className="bg-purple-500/10 text-purple-500 hover:bg-purple-500/20">Level AAA</Badge>
+              <p className="font-medium text-sm text-foreground">Enhanced</p>
+              <p className="text-xs text-muted-foreground">
+                7:1 contrast, sign language, Grade 8 readability, no timing. Leadership in inclusive design.
+              </p>
+            </CardContent>
+          </Card>
         </div>
-      )}
+      </div>
 
-      {/* Persona Spectrum */}
-      {filteredPersona.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <Fingerprint className="h-5 w-5 text-accent" />
-            Microsoft Persona Spectrum
-          </h3>
-          <p className="text-sm text-muted-foreground max-w-3xl">
-            Based on Microsoft's Inclusive Design methodology. Rather than designing for a single "average" user, 
-            the Persona Spectrum considers the full range of human diversity — recognizing that disability is a 
-            mismatch between a person and their environment, not a personal attribute.
-          </p>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border border-border/50 rounded-lg overflow-hidden">
-              <thead>
-                <tr className="bg-muted/50">
-                  <th className="text-left p-3 font-semibold text-foreground">Dimension</th>
-                  <th className="text-left p-3 font-semibold text-foreground">Permanent</th>
-                  <th className="text-left p-3 font-semibold text-foreground">Temporary</th>
-                  <th className="text-left p-3 font-semibold text-foreground">Situational</th>
-                  <th className="text-left p-3 font-semibold text-foreground">Coverage Criteria</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPersona.map((row, idx) => (
-                  <tr key={idx} className="border-t border-border/30 hover:bg-muted/20 transition-colors">
-                    <td className="p-3 font-medium text-foreground">{row.dimension}</td>
-                    <td className="p-3 text-muted-foreground">{row.permanent}</td>
-                    <td className="p-3 text-muted-foreground">{row.temporary}</td>
-                    <td className="p-3 text-muted-foreground">{row.situational}</td>
-                    <td className="p-3 text-muted-foreground text-xs">{row.criteria}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Scoring & Thresholds */}
+      {/* Quick Reference: Regulatory Readiness */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Shield className="h-5 w-5 text-accent" />
-          Scoring & Thresholds
+          Regulatory Readiness
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'WCAG 2.2', region: 'Global', icon: Globe2 },
+            { label: 'ADA Title III', region: 'United States', icon: Landmark },
+            { label: 'EAA 2025', region: 'European Union', icon: MapPin },
+            { label: 'Section 508', region: 'US Federal', icon: FileText },
+          ].map(reg => (
+            <Card key={reg.label} className="border-border/50 bg-card/50">
+              <CardContent className="p-3 text-center space-y-1">
+                <reg.icon className="h-5 w-5 mx-auto text-accent" />
+                <p className="font-medium text-xs text-foreground">{reg.label}</p>
+                <p className="text-[10px] text-muted-foreground">{reg.region}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Scoring Thresholds */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <Target className="h-5 w-5 text-accent" />
+          Scoring Thresholds
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="border-border/50 bg-emerald-500/5">
             <CardContent className="p-4 text-center space-y-1">
               <div className="text-2xl font-bold text-emerald-500">80–100</div>
               <div className="text-sm font-medium text-foreground">Excellent</div>
-              <p className="text-xs text-muted-foreground">Strong inclusive practices across all dimensions. Minor refinements recommended.</p>
+              <p className="text-xs text-muted-foreground">Strong inclusive practices. Minor refinements recommended.</p>
             </CardContent>
           </Card>
           <Card className="border-border/50 bg-amber-500/5">
             <CardContent className="p-4 text-center space-y-1">
               <div className="text-2xl font-bold text-amber-500">60–79</div>
               <div className="text-sm font-medium text-foreground">Needs Attention</div>
-              <p className="text-xs text-muted-foreground">Some gaps in accessibility or representation. Review findings and address warnings.</p>
+              <p className="text-xs text-muted-foreground">Gaps in accessibility or representation. Review findings.</p>
             </CardContent>
           </Card>
           <Card className="border-border/50 bg-red-500/5">
             <CardContent className="p-4 text-center space-y-1">
               <div className="text-2xl font-bold text-red-500">Below 60</div>
               <div className="text-sm font-medium text-foreground">Critical</div>
-              <p className="text-xs text-muted-foreground">Significant accessibility or bias issues detected. Immediate action recommended.</p>
+              <p className="text-xs text-muted-foreground">Significant issues detected. Immediate action recommended.</p>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* WFA Creative Checklist */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-          <ListChecks className="h-5 w-5 text-accent" />
-          WFA Creative Checklist (12 Steps)
-        </h3>
-        <Card className="border-border/50 bg-card/50">
-          <CardContent className="p-4">
-            <ol className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground list-decimal list-inside">
-              <li>Does the creative reflect real people, not stereotypes?</li>
-              <li>Are diverse identities represented authentically?</li>
-              <li>Is anyone portrayed in a limiting or diminishing role?</li>
-              <li>Would the subject of the creative feel respected?</li>
-              <li>Does the narrative avoid savior or victim tropes?</li>
-              <li>Are cultural references accurate and respectful?</li>
-              <li>Is the creative accessible to people with disabilities?</li>
-              <li>Does imagery avoid tokenism or superficial inclusion?</li>
-              <li>Are power dynamics balanced in group compositions?</li>
-              <li>Is language free of gendered, ableist, or exclusionary terms?</li>
-              <li>Does the creative work across cultural contexts?</li>
-              <li>Has the work been reviewed by people from represented communities?</li>
-            </ol>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Framework References */}
-      {filteredFrameworks.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <Info className="h-5 w-5 text-accent" />
-            Standards & Framework References
-          </h3>
-          <div className="space-y-2">
-            {filteredFrameworks.map((fw, idx) => (
-              <Card key={idx} className="border-border/50 bg-card/50">
-                <CardContent className="p-4 flex items-start gap-3">
-                  <Badge variant="outline" className="shrink-0 mt-0.5 text-xs">{fw.org}</Badge>
-                  <div>
-                    <p className="font-medium text-sm text-foreground">{fw.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{fw.description}</p>
+      {/* Detail Dialog */}
+      <Dialog open={!!activeCard} onOpenChange={() => setActiveCard(null)}>
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
+          {activeCard && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg bg-muted/50 ${activeCard.color}`}>
+                    <activeCard.icon className="h-5 w-5" />
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+                  <div>
+                    <DialogTitle className="text-lg">{activeCard.title}</DialogTitle>
+                    <p className="text-sm text-muted-foreground mt-0.5">{activeCard.subtitle}</p>
+                  </div>
+                </div>
+              </DialogHeader>
 
-      {/* Where to Find Reports */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-          <Brain className="h-5 w-5 text-accent" />
-          Where to Find Reports
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="border-border/50 bg-card/50">
-            <CardContent className="p-4 space-y-2">
-              <p className="font-medium text-sm text-foreground">Admin Dashboard</p>
-              <p className="text-xs text-muted-foreground">
-                "Bias Awareness" tab with org-wide KPIs, dimension averages, and an entity scores table with expandable detail rows.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-border/50 bg-card/50">
-            <CardContent className="p-4 space-y-2">
-              <p className="font-medium text-sm text-foreground">Insights & Updates</p>
-              <p className="text-xs text-muted-foreground">
-                Bias scan results appear as insight cards with deep-dive dialogs showing full findings, scores, and recommendations.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-border/50 bg-card/50">
-            <CardContent className="p-4 space-y-2">
-              <p className="font-medium text-sm text-foreground">Entity Editors</p>
-              <p className="text-xs text-muted-foreground">
-                Trigger scans directly from brand, product, or event editors. Results persist in the database for historical tracking.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              <div className="space-y-6 mt-4">
+                <Accordion type="multiple" defaultValue={activeCard.sections.map((_, i) => `section-${i}`)} className="space-y-2">
+                  {activeCard.sections.map((section, idx) => (
+                    <AccordionItem
+                      key={idx}
+                      value={`section-${idx}`}
+                      className="border border-border/50 rounded-lg px-4 bg-card/30"
+                    >
+                      <AccordionTrigger className="text-left hover:no-underline">
+                        <span className="font-medium text-foreground text-sm">{section.heading}</span>
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground leading-relaxed">{section.content}</p>
+
+                        {section.bullets && (
+                          <ul className="space-y-1.5">
+                            {section.bullets.map((bullet, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" />
+                                <span>{bullet}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+
+                        {section.table && (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs border border-border/50 rounded-lg overflow-hidden">
+                              <thead>
+                                <tr className="bg-muted/50">
+                                  {section.table.headers.map((h, i) => (
+                                    <th key={i} className="text-left p-2 font-semibold text-foreground">{h}</th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {section.table.rows.map((row, i) => (
+                                  <tr key={i} className="border-t border-border/30 hover:bg-muted/20 transition-colors">
+                                    {row.map((cell, j) => (
+                                      <td key={j} className={`p-2 ${j === 0 ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+                                        {cell}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+
+                        {section.platformTools && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            <span className="text-xs text-muted-foreground font-medium">BrandHub tools:</span>
+                            {section.platformTools.map((tool, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">{tool}</Badge>
+                            ))}
+                          </div>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
