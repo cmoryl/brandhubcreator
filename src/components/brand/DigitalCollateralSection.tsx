@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink } from 'lucide-react';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { LayoutSelector, useLayoutClasses, LayoutPreset } from './LayoutSelector';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import {
   DndContext,
@@ -126,7 +127,13 @@ const SortableCollateralItem = ({
       {/* Preview Area - Compact */}
       <div 
         className="aspect-[4/3] bg-muted relative flex items-center justify-center overflow-hidden cursor-pointer"
-        onClick={onPreview}
+        onClick={() => {
+          if (item.thumbnailUrl || item.previewUrl) {
+            onPreview();
+          } else if (item.externalUrl) {
+            window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
+          }
+        }}
       >
         {item.thumbnailUrl ? (
           <OptimizedImage 
@@ -145,10 +152,14 @@ const SortableCollateralItem = ({
         ) : (
           <div className="flex flex-col items-center gap-2 p-3">
             <div className="p-2 rounded-lg bg-primary/10">
-              <FileText className="h-8 w-8 text-primary" />
+              {item.externalUrl ? (
+                <ExternalLink className="h-8 w-8 text-primary" />
+              ) : (
+                <FileText className="h-8 w-8 text-primary" />
+              )}
             </div>
             <span className="text-xs text-muted-foreground text-center">
-              Preview
+              {item.externalUrl ? 'External Link' : 'Preview'}
             </span>
           </div>
         )}
@@ -225,6 +236,12 @@ const SortableCollateralItem = ({
                 ))}
               </SelectContent>
             </Select>
+            <Input
+              value={item.externalUrl || ''}
+              onChange={(e) => onUpdate({ externalUrl: e.target.value || undefined })}
+              placeholder="External URL (Dropbox, GlobalLink...)"
+              className="h-8 text-xs"
+            />
             <Button size="sm" variant="secondary" onClick={onDoneEditing} className="w-full">
               Done
             </Button>
@@ -233,7 +250,22 @@ const SortableCollateralItem = ({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <h3 className="font-medium text-foreground truncate">{item.title}</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">{item.category}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="text-xs text-muted-foreground">{item.category}</p>
+                {item.externalUrl && (
+                  <a
+                    href={item.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
+                    title={item.externalUrl}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    <span>Link</span>
+                  </a>
+                )}
+              </div>
             </div>
             <button
               onClick={onEdit}
@@ -290,6 +322,8 @@ export const DigitalCollateralSection = ({
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [uploadingThumbnailFor, setUploadingThumbnailFor] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [newLink, setNewLink] = useState({ title: '', url: '', category: 'Other' });
   
   const { gridClass } = useLayoutClasses(layout);
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
@@ -398,6 +432,10 @@ export const DigitalCollateralSection = ({
   };
 
   const downloadItem = (item: BrandBrochure) => {
+    if (item.externalUrl && !item.previewUrl) {
+      window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
     const link = document.createElement('a');
     link.href = item.previewUrl;
     link.download = item.title;
@@ -407,6 +445,22 @@ export const DigitalCollateralSection = ({
   const removeThumbnail = (itemId: string) => {
     updateItem(itemId, { thumbnailUrl: undefined });
     toast.success('Thumbnail removed');
+  };
+
+  const handleAddLink = () => {
+    if (!newLink.url || !newLink.title || !onCollateralChange) return;
+    const newItem: BrandBrochure = {
+      id: crypto.randomUUID(),
+      title: newLink.title,
+      category: newLink.category,
+      previewUrl: '', // No file — external link only
+      externalUrl: newLink.url,
+    };
+    onCollateralChange([...collateral, newItem]);
+    setEditingId(newItem.id);
+    setShowLinkDialog(false);
+    setNewLink({ title: '', url: '', category: 'Other' });
+    toast.success('External link added — upload a preview thumbnail via the edit overlay');
   };
 
   const isPdf = (url: string) => {
@@ -490,6 +544,12 @@ export const DigitalCollateralSection = ({
               availableLayouts={['compact', 'grid-3', 'grid-4', 'list']}
               size="sm"
             />
+          )}
+          {canEdit && (
+            <Button onClick={() => setShowLinkDialog(true)} size="sm" variant="outline" className="gap-2 shrink-0">
+              <Link className="h-4 w-4" />
+              Add Link
+            </Button>
           )}
           {canEdit && (
             <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0" disabled={isUploading}>
@@ -632,6 +692,52 @@ export const DigitalCollateralSection = ({
         type={isPdf(previewItem?.previewUrl || '') ? 'iframe' : 'image'}
         aspectRatio="portrait"
       />
+
+      {/* Add External Link Dialog */}
+      <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add External Link</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Input
+              value={newLink.title}
+              onChange={(e) => setNewLink(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="Asset title"
+            />
+            <Input
+              value={newLink.url}
+              onChange={(e) => setNewLink(prev => ({ ...prev, url: e.target.value }))}
+              placeholder="https://dropbox.com/... or external URL"
+            />
+            <Select
+              value={newLink.category}
+              onValueChange={(category) => setNewLink(prev => ({ ...prev, category }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORY_OPTIONS.map(cat => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    <span className="flex items-center gap-2">
+                      <span>{cat.icon}</span>
+                      <span>{cat.label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowLinkDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddLink} disabled={!newLink.title || !newLink.url}>
+              <Link className="h-4 w-4 mr-2" />
+              Add Link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
