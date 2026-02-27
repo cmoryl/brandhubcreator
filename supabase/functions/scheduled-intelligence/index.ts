@@ -104,13 +104,42 @@ Deno.serve(async (req) => {
         orgResult.steps.portfolio_insights = { success: false, error: String(err) };
       }
 
-      // Step 4: Create a synthesis-complete alert
+      // Step 4: Auto-generate and persist Executive Intelligence Digest
+      try {
+        const digestRes = await fetch(`${supabaseUrl}/functions/v1/generate-intelligence-digest`, {
+          method: 'POST',
+          headers: { ...headers, 'Authorization': `Bearer ${serviceRoleKey}` },
+          body: JSON.stringify({ organization_id: orgId }),
+        });
+        const digestData = await digestRes.json();
+        
+        if (digestRes.ok && digestData?.digest) {
+          // Persist the digest to intelligence_digests table
+          await fetch(`${supabaseUrl}/rest/v1/intelligence_digests`, {
+            method: 'POST',
+            headers: { ...headers, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+              organization_id: orgId,
+              digest: digestData.digest,
+              generated_at: digestData.generated_at || new Date().toISOString(),
+              data_sources: digestData.data_sources || {},
+            }),
+          });
+          orgResult.steps.digest = { success: true, persisted: true };
+        } else {
+          orgResult.steps.digest = { success: false, error: digestData?.error || 'No digest generated' };
+        }
+      } catch (err) {
+        orgResult.steps.digest = { success: false, error: String(err) };
+      }
+
+      // Step 5: Create a synthesis-complete alert
       await insertAlert(supabaseUrl, headers, {
         organization_id: orgId,
         alert_type: 'synthesis_complete',
         severity: 'info',
         title: 'Scheduled Intelligence Run Complete',
-        message: `Automated intelligence pipeline completed: Oracle synthesis, health snapshots, and portfolio insights extracted.`,
+        message: `Automated intelligence pipeline completed: Oracle synthesis, health snapshots, portfolio insights, and executive digest generated.`,
         metadata: { triggered_by, steps: orgResult.steps },
       });
 

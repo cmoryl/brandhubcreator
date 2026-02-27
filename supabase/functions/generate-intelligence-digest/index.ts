@@ -72,16 +72,17 @@ Deno.serve(async (req) => {
       'apikey': serviceRoleKey,
     };
 
-    // Fetch data in parallel: oracle intelligence, recent alerts, recent health snapshots, org info
-    const [oracleRes, alertsRes, snapshotsRes, orgRes] = await Promise.all([
-      fetch(`${supabaseUrl}/rest/v1/oracle_intelligence?organization_id=eq.${organization_id}&select=org_summary,strategic_recommendations,cross_entity_patterns,cultural_readiness,portfolio_analysis,competitive_overview,unified_voice_profile,last_synthesis_at,entity_brain_count,synthesis_count&limit=1`, { headers: svcHeaders }),
+    // Fetch data in parallel: oracle intelligence, recent alerts, recent health snapshots, org info, prior digests
+    const [oracleRes, alertsRes, snapshotsRes, orgRes, priorDigestsRes] = await Promise.all([
+      fetch(`${supabaseUrl}/rest/v1/oracle_intelligence?organization_id=eq.${organization_id}&select=org_summary,strategic_recommendations,cross_entity_patterns,cultural_readiness,portfolio_analysis,competitive_overview,unified_voice_profile,longitudinal_trends,last_synthesis_at,entity_brain_count,synthesis_count&limit=1`, { headers: svcHeaders }),
       fetch(`${supabaseUrl}/rest/v1/intelligence_alerts?organization_id=eq.${organization_id}&order=created_at.desc&limit=15&select=alert_type,severity,title,message,entity_name,entity_type,created_at`, { headers: svcHeaders }),
       fetch(`${supabaseUrl}/rest/v1/health_snapshots?organization_id=eq.${organization_id}&order=snapshot_date.desc&limit=20&select=entity_name,entity_type,brand_health_score,compliance_score,bias_inclusion_score,score_deltas,snapshot_date`, { headers: svcHeaders }),
       fetch(`${supabaseUrl}/rest/v1/organizations?id=eq.${organization_id}&select=name&limit=1`, { headers: svcHeaders }),
+      fetch(`${supabaseUrl}/rest/v1/intelligence_digests?organization_id=eq.${organization_id}&order=generated_at.desc&limit=3&select=digest,generated_at`, { headers: svcHeaders }),
     ]);
 
-    const [oracleData, alerts, snapshots, orgData] = await Promise.all([
-      oracleRes.json(), alertsRes.json(), snapshotsRes.json(), orgRes.json(),
+    const [oracleData, alerts, snapshots, orgData, priorDigests] = await Promise.all([
+      oracleRes.json(), alertsRes.json(), snapshotsRes.json(), orgRes.json(), priorDigestsRes.json(),
     ]);
 
     const oracle = Array.isArray(oracleData) ? oracleData[0] : null;
@@ -152,15 +153,36 @@ Deno.serve(async (req) => {
       contextParts.push(`\nCompetitive Position: ${oracle.competitive_overview.market_position}`);
     }
 
-    const systemPrompt = `You are an executive intelligence analyst for a brand management platform. Generate a concise, actionable executive digest based on the data provided. Structure it as:
+    // Longitudinal trends from Oracle synthesis
+    if (oracle?.longitudinal_trends) {
+      const lt = oracle.longitudinal_trends;
+      contextParts.push(`\nLongitudinal Trends (from Oracle synthesis):`);
+      if (Array.isArray(lt.improvements) && lt.improvements.length) contextParts.push(`Improvements: ${lt.improvements.join('; ')}`);
+      if (Array.isArray(lt.regressions) && lt.regressions.length) contextParts.push(`Regressions: ${lt.regressions.join('; ')}`);
+      if (Array.isArray(lt.stagnant_areas) && lt.stagnant_areas.length) contextParts.push(`Stagnant: ${lt.stagnant_areas.join('; ')}`);
+      if (lt.cycle_over_cycle_insight) contextParts.push(`Cycle Insight: ${lt.cycle_over_cycle_insight}`);
+    }
 
-1. **Executive Summary** (2-3 sentences capturing the big picture)
+    // Prior digests for historical continuity
+    const priorDigestList = Array.isArray(priorDigests) ? priorDigests : [];
+    if (priorDigestList.length > 0) {
+      contextParts.push(`\nPrior Executive Digests (${priorDigestList.length} most recent):`);
+      priorDigestList.forEach((d: any, i: number) => {
+        const date = d.generated_at ? new Date(d.generated_at).toLocaleDateString() : 'Unknown';
+        contextParts.push(`--- Digest ${i + 1} (${date}) ---\n${(d.digest || '').slice(0, 400)}\n`);
+      });
+    }
+
+    const systemPrompt = `You are an executive intelligence analyst for a brand management platform. Generate a concise, actionable executive digest based on the data provided. You have access to prior digests — use them to highlight what CHANGED, what IMPROVED, and what REGRESSED since the last cycle. Structure it as:
+
+1. **Executive Summary** (2-3 sentences capturing the big picture and key changes since last cycle)
 2. **Key Highlights** (3-5 bullet points of positive developments)
-3. **Attention Required** (2-4 bullet points of concerns or declining metrics)
-4. **Strategic Priorities** (2-3 actionable next steps)
-5. **Health Pulse** (one-line summary of overall portfolio health)
+3. **Trend Analysis** (2-3 bullet points comparing this cycle to prior cycles — what improved, what declined)
+4. **Attention Required** (2-4 bullet points of concerns or declining metrics)
+5. **Strategic Priorities** (2-3 actionable next steps)
+6. **Health Pulse** (one-line summary of overall portfolio health)
 
-Use markdown formatting. Be specific with numbers and entity names. Keep the total under 600 words. Tone: professional, direct, insight-driven.`;
+Use markdown formatting. Be specific with numbers and entity names. Reference prior digest data when noting trends. Keep the total under 700 words. Tone: professional, direct, insight-driven.`;
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
