@@ -707,6 +707,8 @@ const OrganizationPortal = () => {
           <div className="flex items-center gap-4">
             <a href="/help#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQs</a>
             <span className="text-border">·</span>
+            <a href="/knowledge" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Knowledge Base</a>
+            <span className="text-border">·</span>
             <a href="/help" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Help Center</a>
           </div>
         </div>
