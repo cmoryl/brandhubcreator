@@ -220,12 +220,13 @@ async function processOracleSynthesis(apiKey: string, jobId: string, organizatio
   try {
     await updateJob(jobId, { status: "processing", started_at: new Date().toISOString(), progress: 10 });
 
-    const [brains, brands, products, events, knowledge] = await Promise.all([
+    const [brains, brands, products, events, knowledge, priorDigests] = await Promise.all([
       restQuery("brand_intelligence", `organization_id=eq.${organizationId}&select=entity_type,entity_id,brand_summary,market_position,competitive_advantages,brand_voice_profile,localization_readiness_score`),
       restQuery("brands", `organization_id=eq.${organizationId}&select=id,name`),
       restQuery("products", `organization_id=eq.${organizationId}&select=id,name`),
       restQuery("events", `organization_id=eq.${organizationId}&select=id,name`),
       restQuery("oracle_knowledge_base", `organization_id=eq.${organizationId}&is_active=eq.true&order=updated_at.desc&limit=30&select=title,content,content_type,tags`),
+      restQuery("intelligence_digests", `organization_id=eq.${organizationId}&order=generated_at.desc&limit=3&select=digest,generated_at,data_sources`),
     ]);
 
     const nameMap: Record<string, string> = {};
@@ -244,6 +245,13 @@ async function processOracleSynthesis(apiKey: string, jobId: string, organizatio
       `[${k.content_type}] ${k.title}: ${(k.content || "").slice(0, 300)}`
     ).join("\n");
 
+    // Build historical digest context for longitudinal awareness
+    const digestHistory = (priorDigests || []).map((d: any, i: number) => {
+      const date = d.generated_at ? new Date(d.generated_at).toLocaleDateString() : 'Unknown date';
+      const digestText = (d.digest || '').slice(0, 600);
+      return `--- Prior Digest ${i + 1} (${date}) ---\n${digestText}`;
+    }).join("\n\n");
+
     await updateJob(jobId, { progress: 40 });
 
     const prompt = `You are the Master Oracle Brain. Synthesize ALL entity intelligence into unified org-level strategic insights. You also have access to Deep Intelligence governance modules.
@@ -258,6 +266,10 @@ ${brainSummaries || "No entity brains yet."}
 
 KNOWLEDGE (${(knowledge||[]).length} entries):
 ${knowledgeCtx || "None."}
+
+HISTORICAL GOVERNANCE DIGESTS (${(priorDigests||[]).length} prior runs):
+${digestHistory || "No prior digests — this is the first governance cycle."}
+Use these prior digests to identify TRENDS, REGRESSIONS, and LONG-TERM PATTERNS. Note what improved, what declined, and what remained stagnant across cycles.
 
 PERSONA-BASED INCLUSIVE DESIGN (Microsoft Persona Spectrum):
 Evaluate the organization's portfolio through persona-based design thinking, explicitly considering permanent, temporary, and situational needs across ALL user groups:
@@ -290,7 +302,7 @@ Leverage insights from patient-focused research, user studies, and localization 
 Include a "patient_research_integration" object: {"research_utilization_score":0-100,"curb_cut_opportunities":["up to 3 features designed for specific needs that benefit everyone"],"localization_insights":["up to 3 insights from localization that improved universal design"],"feedback_loop_maturity":"nascent|developing|established|advanced","cross_entity_learning":["up to 3 insights shared across brands/products/events"],"recommendations":["up to 3"]}
 
 Return ONLY valid JSON:
-{"org_summary":"3-4 sentences","portfolio_analysis":{"synergies":["up to 4"],"gaps":["up to 3"],"conflicts":["risks"],"recommendations":["up to 3"]},"market_landscape":{"overall_position":"1-2 sentences","market_opportunities":["up to 3"],"threats":["up to 2"]},"strategic_recommendations":[{"priority":"high|medium|low","recommendation":"rec","rationale":"why","impact":"impact"}],"cross_entity_patterns":{"voice_consistency":"1 sentence","audience_overlap":"1 sentence","visual_coherence":"1 sentence"},"unified_voice_profile":{"primary_tone":"1-2 words","secondary_tones":["up to 3"],"communication_style":"1 sentence","personality_traits":["up to 4"]},"unified_audience_map":{"primary_segment":"1 sentence","secondary_segments":["up to 3"],"underserved_segments":["up to 2"]},"competitive_overview":{"market_position":"1 sentence","key_competitors":["up to 3"],"competitive_moat":"1 sentence"},"cultural_readiness":{"overall_score":50,"strongest_markets":["up to 3"],"expansion_opportunities":["up to 3"]},"governance_posture":{"eaa_readiness":"high|medium|low","inclusive_ai_maturity":"high|medium|low","recommended_sprint_activities":["up to 2 from: Computer Trust Exercise, Human-to-Computer Role-Play, Interaction Diary"],"regulatory_action_items":["up to 3"]},"persona_design_maturity":{"overall_score":50,"mobility_coverage":"1 sentence","vision_coverage":"1 sentence","hearing_coverage":"1 sentence","speech_coverage":"1 sentence","cognitive_coverage":"1 sentence","gaps":["up to 3"],"recommendations":["up to 3"]},"photography_strategy":{"authenticity_score":50,"current_style":"generic_corporate","credibility_gaps":["up to 3"],"evolution_recommendations":["up to 3"],"emotional_connection_score":50},"patient_research_integration":{"research_utilization_score":50,"curb_cut_opportunities":["up to 3"],"localization_insights":["up to 3"],"feedback_loop_maturity":"developing","cross_entity_learning":["up to 3"],"recommendations":["up to 3"]}}`;
+{"org_summary":"3-4 sentences","longitudinal_trends":{"improvements":["up to 3 positive trends vs prior cycles"],"regressions":["up to 3 declining trends"],"stagnant_areas":["up to 2 areas showing no progress"],"cycle_over_cycle_insight":"1-2 sentences comparing this cycle to the last"},"portfolio_analysis":{"synergies":["up to 4"],"gaps":["up to 3"],"conflicts":["risks"],"recommendations":["up to 3"]},"market_landscape":{"overall_position":"1-2 sentences","market_opportunities":["up to 3"],"threats":["up to 2"]},"strategic_recommendations":[{"priority":"high|medium|low","recommendation":"rec","rationale":"why","impact":"impact"}],"cross_entity_patterns":{"voice_consistency":"1 sentence","audience_overlap":"1 sentence","visual_coherence":"1 sentence"},"unified_voice_profile":{"primary_tone":"1-2 words","secondary_tones":["up to 3"],"communication_style":"1 sentence","personality_traits":["up to 4"]},"unified_audience_map":{"primary_segment":"1 sentence","secondary_segments":["up to 3"],"underserved_segments":["up to 2"]},"competitive_overview":{"market_position":"1 sentence","key_competitors":["up to 3"],"competitive_moat":"1 sentence"},"cultural_readiness":{"overall_score":50,"strongest_markets":["up to 3"],"expansion_opportunities":["up to 3"]},"governance_posture":{"eaa_readiness":"high|medium|low","inclusive_ai_maturity":"high|medium|low","recommended_sprint_activities":["up to 2 from: Computer Trust Exercise, Human-to-Computer Role-Play, Interaction Diary"],"regulatory_action_items":["up to 3"]},"persona_design_maturity":{"overall_score":50,"mobility_coverage":"1 sentence","vision_coverage":"1 sentence","hearing_coverage":"1 sentence","speech_coverage":"1 sentence","cognitive_coverage":"1 sentence","gaps":["up to 3"],"recommendations":["up to 3"]},"photography_strategy":{"authenticity_score":50,"current_style":"generic_corporate","credibility_gaps":["up to 3"],"evolution_recommendations":["up to 3"],"emotional_connection_score":50},"patient_research_integration":{"research_utilization_score":50,"curb_cut_opportunities":["up to 3"],"localization_insights":["up to 3"],"feedback_loop_maturity":"developing","cross_entity_learning":["up to 3"],"recommendations":["up to 3"]}}`;
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
