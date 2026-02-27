@@ -2919,6 +2919,7 @@ export type Database = {
           id: string
           knowledge_entry_count: number
           last_synthesis_at: string | null
+          longitudinal_trends: Json | null
           market_landscape: Json | null
           org_summary: string | null
           organization_id: string
@@ -2941,6 +2942,7 @@ export type Database = {
           id?: string
           knowledge_entry_count?: number
           last_synthesis_at?: string | null
+          longitudinal_trends?: Json | null
           market_landscape?: Json | null
           org_summary?: string | null
           organization_id: string
@@ -2963,6 +2965,7 @@ export type Database = {
           id?: string
           knowledge_entry_count?: number
           last_synthesis_at?: string | null
+          longitudinal_trends?: Json | null
           market_landscape?: Json | null
           org_summary?: string | null
           organization_id?: string

@@ -363,6 +363,7 @@ Return ONLY valid JSON:
         photography_strategy: synthesis.photography_strategy || {},
         patient_research_integration: synthesis.patient_research_integration || {},
       },
+      longitudinal_trends: synthesis.longitudinal_trends || null,
       knowledge_entry_count: (knowledge || []).length,
       entity_brain_count: (brains || []).length,
       last_synthesis_at: new Date().toISOString(),
