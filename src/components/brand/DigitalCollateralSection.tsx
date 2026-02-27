@@ -394,20 +394,15 @@ export const DigitalCollateralSection = ({
     const itemId = uploadingThumbnailFor;
     setUploadingThumbnailFor(null);
 
-    if (entityId) {
-      const result = await uploadFile(file, 'asset', `thumbnail-${itemId}`);
-      if (!result) return;
-      updateItem(itemId, { thumbnailUrl: result.url });
-      toast.success('Preview thumbnail added');
-    } else {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const thumbnailUrl = event.target?.result as string;
-        updateItem(itemId, { thumbnailUrl });
-        toast.success('Preview thumbnail added');
-      };
-      reader.readAsDataURL(file);
+    if (!entityId) {
+      toast.error('Please save this guide first, then upload thumbnails.');
+      return;
     }
+
+    const result = await uploadFile(file, 'asset', `thumbnail-${itemId}`);
+    if (!result) return;
+    updateItem(itemId, { thumbnailUrl: result.url });
+    toast.success('Preview thumbnail saved to storage');
   };
 
   const triggerThumbnailUpload = (itemId: string) => {
