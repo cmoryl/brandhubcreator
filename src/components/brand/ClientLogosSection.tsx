@@ -77,7 +77,7 @@ export const ClientLogosSection = ({
       case 'name-desc':
         return logos.sort((a, b) => b.name.localeCompare(a.name));
       case 'files-desc':
-        return logos.sort((a, b) => b.files.length - a.files.length);
+        return logos.sort((a, b) => (b.files?.length || 0) - (a.files?.length || 0));
       default:
         return logos;
     }
@@ -135,7 +135,7 @@ export const ClientLogosSection = ({
 
     const logo = clientLogos.find(l => l.id === logoId);
     if (!logo) return;
-    const filteredFiles = logo.files.filter(f => !(f.variant === variant && f.format === format));
+    const filteredFiles = (logo.files || []).filter(f => !(f.variant === variant && f.format === format));
     const newFile: ClientLogoFile = { variant, format, url };
     handleUpdateLogo(logoId, { files: [...filteredFiles, newFile] });
     toast.success(`${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} uploaded`);
@@ -173,7 +173,7 @@ export const ClientLogosSection = ({
   };
 
   const downloadAllForLogo = async (logo: ClientLogo) => {
-    for (const file of logo.files) {
+    for (const file of (logo.files || [])) {
       downloadFile(file, logo.name);
       await new Promise(resolve => setTimeout(resolve, 300));
     }
@@ -181,7 +181,7 @@ export const ClientLogosSection = ({
   };
 
   const downloadAllAsZip = async () => {
-    const allFiles = clientLogos.flatMap(logo => logo.files);
+    const allFiles = clientLogos.flatMap(logo => logo.files || []);
     if (allFiles.length === 0) {
       toast.error('No files to download');
       return;
@@ -193,12 +193,12 @@ export const ClientLogosSection = ({
       const zip = new JSZip();
       
       for (const logo of clientLogos) {
-        if (logo.files.length === 0) continue;
+        if ((logo.files || []).length === 0) continue;
         
         const folderName = logo.name.replace(/[^a-zA-Z0-9]/g, '_');
         const folder = zip.folder(folderName);
         
-        for (const file of logo.files) {
+        for (const file of (logo.files || [])) {
           const fileName = `${file.variant}.${file.format}`;
           
           // Handle base64 data URLs
@@ -237,10 +237,10 @@ export const ClientLogosSection = ({
 
   const getPreviewUrl = (logo: ClientLogo, variant: ClientLogoVariant): string | null => {
     // Prefer PNG, then SVG for preview
-    const pngFile = logo.files.find(f => f.variant === variant && f.format === 'png');
+    const pngFile = (logo.files || []).find(f => f.variant === variant && f.format === 'png');
     if (pngFile) return pngFile.url;
     
-    const svgFile = logo.files.find(f => f.variant === variant && f.format === 'svg');
+    const svgFile = (logo.files || []).find(f => f.variant === variant && f.format === 'svg');
     if (svgFile) return svgFile.url;
     
     return null;
@@ -429,7 +429,7 @@ export const ClientLogosSection = ({
                   </div>
                   <div className="space-y-1">
                     {(['png', 'svg', 'eps'] as ClientLogoFormat[]).map(format => {
-                      const file = logo.files.find(f => f.variant === variant && f.format === format);
+                      const file = (logo.files || []).find(f => f.variant === variant && f.format === format);
                       return (
                         <FileUploadCell
                           key={`${variant}-${format}`}
@@ -447,7 +447,7 @@ export const ClientLogosSection = ({
           </div>
           
           {/* Download All Button */}
-          {logo.files.length > 0 && (
+          {(logo.files || []).length > 0 && (
             <Button 
               variant="outline" 
               size="sm" 
@@ -455,7 +455,7 @@ export const ClientLogosSection = ({
               onClick={() => downloadAllForLogo(logo)}
             >
               <Package className="h-4 w-4" />
-              Download All ({logo.files.length} files)
+              Download All ({(logo.files || []).length} files)
             </Button>
           )}
         </CardContent>
@@ -477,7 +477,7 @@ export const ClientLogosSection = ({
           />
         </div>
         <div className="flex items-center gap-2">
-          {clientLogos.length > 0 && clientLogos.some(l => l.files.length > 0) && (
+          {clientLogos.length > 0 && clientLogos.some(l => (l.files || []).length > 0) && (
             <Button size="sm" variant="outline" className="gap-2" onClick={downloadAllAsZip}>
               <FolderArchive className="h-4 w-4" />
               Download All (ZIP)
@@ -664,7 +664,7 @@ export const ClientLogosSection = ({
                       </div>
                       <div className="flex gap-2 mt-4">
                         {(['png', 'svg', 'eps'] as ClientLogoFormat[]).map(format => {
-                          const file = previewLogo.files.find(f => f.variant === variant && f.format === format);
+                          const file = (previewLogo.files || []).find(f => f.variant === variant && f.format === format);
                           return file ? (
                             <Button
                               key={format}
