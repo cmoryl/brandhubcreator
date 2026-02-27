@@ -83,12 +83,15 @@ const createColoredIcon = (color: string) => {
   });
 };
 
-// Loading component
-const MapLoadingState: React.FC<{ message?: string }> = ({ message = 'Loading map...' }) => (
-  <div className="h-full w-full flex items-center justify-center bg-muted/20">
-    <div className="text-muted-foreground text-sm">{message}</div>
-  </div>
+// Loading component — uses forwardRef since it's passed where a ref may be attached
+const MapLoadingState = React.forwardRef<HTMLDivElement, { message?: string }>(
+  ({ message = 'Loading map...' }, ref) => (
+    <div ref={ref} className="h-full w-full flex items-center justify-center bg-muted/20">
+      <div className="text-muted-foreground text-sm">{message}</div>
+    </div>
+  )
 );
+MapLoadingState.displayName = 'MapLoadingState';
 
 // Region filter component (vanilla, no react-leaflet)
 interface RegionFilterProps {
