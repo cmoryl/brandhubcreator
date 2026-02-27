@@ -590,6 +590,7 @@ export interface BrandBrochure {
   category: string;
   previewUrl: string;
   thumbnailUrl?: string; // Optional image preview/screenshot
+  externalUrl?: string; // External link (Dropbox, GlobalLink Share, etc.)
 }
 
 // TEMPLATES - Master Scaffolds
