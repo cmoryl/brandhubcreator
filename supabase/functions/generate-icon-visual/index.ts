@@ -89,7 +89,7 @@ serve(async (req) => {
 
       const imageMessages: any[] = [];
       
-      let imagePrompt = `Create a single, professional vector-style icon design for: "${prompt}"
+      let imagePrompt = `Create a single, highly detailed professional vector-style icon design for: "${prompt}"
 
 Style: ${styleDesc}
 ${colorContext ? `\n${colorContext} Use these colors for the icon strokes/fills.` : "Use black (#000000) for the icon."}
@@ -97,11 +97,13 @@ ${colorContext ? `\n${colorContext} Use these colors for the icon strokes/fills.
 CRITICAL REQUIREMENTS:
 - Pure white (#FFFFFF) background, no gradients or textures
 - Single centered icon, no text or labels
+- HIGHLY DETAILED: Include fine interior details, secondary elements, and texture cues that make the icon rich and visually interesting
 - Clean geometric shapes with ${cornerStyle === "sharp" ? "sharp 90° corners" : "smooth rounded corners"}
 - The icon must be instantly recognizable as a ${count > 1 ? "set of " + count + " icons arranged in a grid" : "single icon"}
-- Professional quality matching Apple SF Symbols or Google Material Icons
-- Minimal detail — capture the essence, not photorealistic detail
-- High contrast, crisp edges, no anti-aliasing artifacts`;
+- Professional quality matching Apple SF Symbols or Google Material Icons at their most detailed variants
+- Include subtle interior lines, notches, ridges, or accent marks that add depth and craftsmanship
+- High contrast, crisp edges, pixel-perfect rendering at 512x512
+- Think of the most detailed, premium icon you've seen — match that level of refinement`;
 
       if (referenceImage) {
         imagePrompt += `\n\nIMPORTANT: Match the visual style, line weight, and aesthetic of the reference image provided. Generate new icons in the SAME visual language.`;
@@ -126,7 +128,7 @@ CRITICAL REQUIREMENTS:
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
+          model: "google/gemini-3-pro-image-preview",
           messages: imageMessages,
           modalities: ["image", "text"],
         }),
@@ -180,8 +182,8 @@ CRITICAL REQUIREMENTS:
 1. ViewBox: 0 0 24 24. Content within 2,2 → 22,22 safe zone.
 2. ONLY <path> elements. NO <circle>, <rect>, <line>, <polygon>, <g>, <use>, <defs>.
 3. All coordinates: whole integers or exactly .5 (e.g. 6, 12.5). NEVER 7.33 or 15.8.
-4. Maximum 3 <path> elements (prefer 1-2). Each path MUST close with Z.
-5. Remove all redundant points. Merge collinear segments.
+4. Maximum 6 <path> elements to preserve detail. Each path MUST close with Z.
+5. Remove only truly redundant points. Keep detail-carrying segments.
 6. Use arcs (A/a) for curves, not cubic Bézier chains for circles.
 
 ## Style
@@ -203,9 +205,9 @@ Return ONLY the complete <svg> element. No explanation.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: "You are an expert SVG vectorizer. Convert images to clean, optimized SVG icons." },
+          { role: "system", content: "You are an expert SVG vectorizer. Convert images to clean, highly detailed optimized SVG icons. Preserve ALL visual details from the source image." },
           {
             role: "user",
             content: [
