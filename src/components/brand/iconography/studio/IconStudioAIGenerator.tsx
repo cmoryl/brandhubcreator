@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -48,6 +49,7 @@ import {
   FileCheck,
   Eye,
   PlusCircle,
+  ImageIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
@@ -57,6 +59,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useIconOptimizer, IconAuditResult } from '@/hooks/useIconOptimizer';
 import { IconKitTooltip } from '@/components/help/IconKitTooltip';
+import { VisualIconGenerator } from './VisualIconGenerator';
 
 // 6-Category Taxonomy for 100-icon library
 const ICON_CATEGORIES = [
@@ -550,15 +553,37 @@ export const IconStudioAIGenerator = ({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          AI Icon Set Generator
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Generate professional icons using the 100-Icon Taxonomy
-        </p>
-      </div>
+      <Tabs defaultValue="visual" className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              AI Icon Generator
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Generate icons with visual AI or the 100-Icon Taxonomy
+            </p>
+          </div>
+          <TabsList>
+            <TabsTrigger value="visual" className="gap-1.5 text-xs">
+              <ImageIcon className="h-3.5 w-3.5" />
+              Visual Mode
+            </TabsTrigger>
+            <TabsTrigger value="taxonomy" className="gap-1.5 text-xs">
+              <Grid3X3 className="h-3.5 w-3.5" />
+              Taxonomy Mode
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="visual">
+          <VisualIconGenerator
+            brandColors={brandColors}
+            onSaveIcon={(icon) => onSaveIcons([icon], undefined)}
+          />
+        </TabsContent>
+
+        <TabsContent value="taxonomy">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Configuration */}
@@ -1237,6 +1262,8 @@ export const IconStudioAIGenerator = ({
           </DialogContent>
         </Dialog>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

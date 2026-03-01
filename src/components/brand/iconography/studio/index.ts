@@ -11,3 +11,4 @@ export { BatchProcessingPanel } from './BatchProcessingPanel';
 export { IconStudioStepper } from './IconStudioStepper';
 export { IconStudioExport } from './IconStudioExport';
 export { IconBrowser } from './IconBrowser';
+export { VisualIconGenerator } from './VisualIconGenerator';
