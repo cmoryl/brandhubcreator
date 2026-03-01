@@ -9,13 +9,14 @@ import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Library, Code, ImageIcon, Sparkles } from 'lucide-react';
+import { Library, Code, ImageIcon, Sparkles, Globe } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { IconLibrary } from '@/hooks/useIconLibraries';
 import { LucideIconPicker } from './creator/LucideIconPicker';
 import { CustomSvgImporter } from './creator/CustomSvgImporter';
 import { AiIconSuggestions } from './creator/AiIconSuggestions';
 import { IconStylizer } from './IconStylizer';
+import { IconBrowser } from './IconBrowser';
 
 interface IconStudioCreatorProps {
   organizationId: string;
@@ -30,7 +31,7 @@ export const IconStudioCreator = ({
   libraries,
   onSaveIcons,
 }: IconStudioCreatorProps) => {
-  const [activeTab, setActiveTab] = useState('library');
+  const [activeTab, setActiveTab] = useState('browse');
   const [selectedLibraryId, setSelectedLibraryId] = useState('');
 
   return (
@@ -63,7 +64,11 @@ export const IconStudioCreator = ({
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 w-full max-w-lg">
+        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+          <TabsTrigger value="browse" className="gap-1.5 text-xs">
+            <Globe className="h-3.5 w-3.5" />
+            Browse 50K+
+          </TabsTrigger>
           <TabsTrigger value="library" className="gap-1.5 text-xs">
             <Library className="h-3.5 w-3.5" />
             Lucide
@@ -81,6 +86,15 @@ export const IconStudioCreator = ({
             AI Suggest
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="browse" className="space-y-4">
+          <IconBrowser
+            brandColors={brandColors}
+            onAddIcon={(icon) => {
+              onSaveIcons([icon], selectedLibraryId || undefined);
+            }}
+          />
+        </TabsContent>
 
         <TabsContent value="library" className="space-y-4">
           <LucideIconPicker
