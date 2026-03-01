@@ -198,49 +198,82 @@ CRITICAL REQUIREMENTS:
 
 Return ONLY the complete <svg> element. No explanation.`;
 
-    const traceResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: "You are an expert SVG vectorizer. Convert images to clean, highly detailed optimized SVG icons. Preserve ALL visual details from the source image." },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: tracePrompt },
-              { type: "image_url", image_url: { url: iconImageUrl } },
-            ],
-          },
-        ],
-      }),
-    });
+    const traceModels = ["google/gemini-2.5-pro", "google/gemini-2.5-flash"];
+    let traceContent = "";
+    let lastTraceStatus: number | null = null;
 
-    if (!traceResponse.ok) {
-      if (traceResponse.status === 429) {
+    for (const traceModel of traceModels) {
+      const traceController = new AbortController();
+      const traceTimeout = setTimeout(() => traceController.abort(), 45000);
+
+      try {
+        const traceResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: traceModel,
+            messages: [
+              { role: "system", content: "You are an expert SVG vectorizer. Convert images to clean, highly detailed optimized SVG icons. Preserve ALL visual details from the source image." },
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: tracePrompt },
+                  { type: "image_url", image_url: { url: iconImageUrl } },
+                ],
+              },
+            ],
+          }),
+          signal: traceController.signal,
+        });
+
+        if (!traceResponse.ok) {
+          lastTraceStatus = traceResponse.status;
+          const errText = await traceResponse.text();
+          console.error(`[generate-icon-visual] Trace error (${traceModel}):`, traceResponse.status, errText);
+          continue;
+        }
+
+        const traceData = await traceResponse.json();
+        traceContent = traceData.choices?.[0]?.message?.content || "";
+
+        if (traceContent.includes("<svg")) {
+          break;
+        }
+
+        console.warn(`[generate-icon-visual] No SVG returned from ${traceModel}, trying fallback model`);
+      } catch (traceErr) {
+        console.error(`[generate-icon-visual] Trace request failed (${traceModel}):`, traceErr);
+      } finally {
+        clearTimeout(traceTimeout);
+      }
+    }
+
+    if (!traceContent) {
+      if (lastTraceStatus === 429) {
         return new Response(JSON.stringify({
           error: "Rate limit on trace step. Image was generated — try tracing again.",
           imageUrl: iconImageUrl,
           phase: "image",
         }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      if (traceResponse.status === 402) {
+
+      if (lastTraceStatus === 402) {
         return new Response(JSON.stringify({
           error: "AI credits exhausted on trace step.",
           imageUrl: iconImageUrl,
           phase: "image",
         }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      const errText = await traceResponse.text();
-      console.error("[generate-icon-visual] Trace error:", traceResponse.status, errText);
-      throw new Error("Failed to trace icon to SVG");
-    }
 
-    const traceData = await traceResponse.json();
-    const traceContent = traceData.choices?.[0]?.message?.content || "";
+      return new Response(JSON.stringify({
+        error: "SVG tracing failed. Image preview is available.",
+        imageUrl: iconImageUrl,
+        phase: "image",
+      }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const svgMatch = traceContent.match(/<svg[\s\S]*?<\/svg>/i);
     if (!svgMatch) {

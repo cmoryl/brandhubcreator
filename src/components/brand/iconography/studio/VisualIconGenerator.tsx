@@ -51,6 +51,7 @@ interface VisualIconGeneratorProps {
 }
 
 interface GeneratedResult {
+  id: string;
   imageUrl: string;
   svg?: string;
   prompt: string;
@@ -88,68 +89,141 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
     reader.readAsDataURL(file);
   };
 
+  const withTimeout = useCallback(async <T,>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    timeoutMessage: string
+  ): Promise<T> => {
+    return new Promise<T>((resolve, reject) => {
+      const timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+
+      promise
+        .then((value) => {
+          clearTimeout(timeoutId);
+          resolve(value);
+        })
+        .catch((error) => {
+          clearTimeout(timeoutId);
+          reject(error);
+        });
+    });
+  }, []);
+
+  const traceImageToSvg = useCallback(async ({
+    imageUrl,
+    styleValue,
+    strokeWidthValue,
+    cornerStyleValue,
+    brandColorsValue,
+  }: {
+    imageUrl: string;
+    styleValue: string;
+    strokeWidthValue: number;
+    cornerStyleValue: 'rounded' | 'sharp';
+    brandColorsValue: Array<{ hex: string; name: string }>;
+  }) => {
+    const { data, error } = await withTimeout(
+      supabase.functions.invoke('generate-icon-visual', {
+        body: {
+          phase: 'trace',
+          generatedImage: imageUrl,
+          style: styleValue,
+          strokeWidth: strokeWidthValue,
+          cornerStyle: cornerStyleValue,
+          brandColors: brandColorsValue,
+        },
+      }),
+      45000,
+      'Tracing timed out. You can retry with "Trace to SVG".'
+    );
+
+    if (error) throw new Error(error.message);
+    return data?.svg as string | undefined;
+  }, [withTimeout]);
+
   const generate = useCallback(async () => {
-    if (!prompt.trim()) {
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) {
       toast.error('Enter an icon description');
       return;
     }
 
+    const styleValue = style;
+    const strokeWidthValue = strokeWidth[0];
+    const cornerStyleValue = cornerStyle;
+    const brandColorsValue = [...brandColors];
+
     setIsGenerating(true);
     try {
-      // Phase 1: Generate image only (fast, avoids timeout)
-      const { data: imgData, error: imgError } = await supabase.functions.invoke('generate-icon-visual', {
-        body: {
-          prompt: prompt.trim(),
-          style,
-          strokeWidth: strokeWidth[0],
-          cornerStyle,
-          brandColors,
-          referenceImage,
-          phase: 'image',
-        },
-      });
+      // Phase 1: Generate image and return quickly
+      const { data: imgData, error: imgError } = await withTimeout(
+        supabase.functions.invoke('generate-icon-visual', {
+          body: {
+            prompt: trimmedPrompt,
+            style: styleValue,
+            strokeWidth: strokeWidthValue,
+            cornerStyle: cornerStyleValue,
+            brandColors: brandColorsValue,
+            referenceImage,
+            phase: 'image',
+          },
+        }),
+        90000,
+        'Image generation timed out. Please try again.'
+      );
 
       if (imgError) throw new Error(imgError.message);
       if (!imgData?.imageUrl) throw new Error('No image returned');
 
       const imageUrl = imgData.imageUrl;
-
-      // Phase 2: Trace to SVG separately (avoids single-request timeout)
-      let svg: string | undefined;
-      try {
-        const { data: traceData, error: traceError } = await supabase.functions.invoke('generate-icon-visual', {
-          body: {
-            phase: 'trace',
-            generatedImage: imageUrl,
-            style,
-            strokeWidth: strokeWidth[0],
-            cornerStyle,
-            brandColors,
-          },
-        });
-        if (!traceError && traceData?.svg) {
-          svg = traceData.svg;
-        }
-      } catch (traceErr) {
-        console.warn('Auto-trace failed, image still available:', traceErr);
-      }
+      const resultId = crypto.randomUUID();
 
       const result: GeneratedResult = {
+        id: resultId,
         imageUrl,
-        svg,
-        prompt: prompt.trim(),
-        phase: svg ? 'full' : 'image',
+        prompt: trimmedPrompt,
+        phase: 'image',
       };
+
       setResults(prev => [result, ...prev]);
       setSelectedResult(0);
-      toast.success(svg ? 'Icon generated & traced to SVG!' : 'Icon image generated — click "Trace to SVG" to vectorize');
+      toast.success('Visual generated! Tracing to SVG in background...');
+
+      // Phase 2: Auto-trace in background so UI never gets stuck on "Generating"
+      void (async () => {
+        setIsTracing(true);
+        try {
+          const svg = await traceImageToSvg({
+            imageUrl,
+            styleValue,
+            strokeWidthValue,
+            cornerStyleValue,
+            brandColorsValue,
+          });
+
+          if (!svg) {
+            toast.info('Image is ready — click "Trace to SVG" to vectorize.');
+            return;
+          }
+
+          setResults(prev =>
+            prev.map(r => (r.id === resultId ? { ...r, svg, phase: 'full' } : r))
+          );
+          toast.success('SVG trace complete!');
+        } catch (traceErr) {
+          console.warn('Auto-trace skipped:', traceErr);
+          toast.info(traceErr instanceof Error ? traceErr.message : 'Auto-trace skipped. Use "Trace to SVG".');
+        } finally {
+          setIsTracing(false);
+        }
+      })();
     } catch (err: any) {
       console.error('Visual generation error:', err);
       toast.error(err?.message || 'Generation failed');
     } finally {
       setIsGenerating(false);
     }
-  }, [prompt, style, strokeWidth, cornerStyle, brandColors, referenceImage]);
+  }, [prompt, style, strokeWidth, cornerStyle, brandColors, referenceImage, traceImageToSvg, withTimeout]);
 
   const retrace = useCallback(async (index: number) => {
     const result = results[index];
@@ -157,29 +231,24 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
 
     setIsTracing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-icon-visual', {
-        body: {
-          phase: 'trace',
-          generatedImage: result.imageUrl,
-          style,
-          strokeWidth: strokeWidth[0],
-          cornerStyle,
-          brandColors,
-        },
+      const svg = await traceImageToSvg({
+        imageUrl: result.imageUrl,
+        styleValue: style,
+        strokeWidthValue: strokeWidth[0],
+        cornerStyleValue: cornerStyle,
+        brandColorsValue: brandColors,
       });
 
-      if (error) throw new Error(error.message);
+      if (!svg) throw new Error('No SVG returned from trace');
 
-      if (data?.svg) {
-        setResults(prev => prev.map((r, i) => i === index ? { ...r, svg: data.svg, phase: 'full' } : r));
-        toast.success('SVG traced successfully!');
-      }
+      setResults(prev => prev.map((r, i) => (i === index ? { ...r, svg, phase: 'full' } : r)));
+      toast.success('SVG traced successfully!');
     } catch (err: any) {
       toast.error(err?.message || 'Trace failed');
     } finally {
       setIsTracing(false);
     }
-  }, [results, style, strokeWidth, cornerStyle, brandColors]);
+  }, [results, style, strokeWidth, cornerStyle, brandColors, traceImageToSvg]);
 
   const handleAddToLibrary = useCallback((index: number) => {
     const result = results[index];
@@ -336,7 +405,7 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
                     <span className="text-[10px] text-muted-foreground">AI Preview</span>
                   </div>
                   <Badge variant={selected.phase === 'full' ? 'default' : 'secondary'} className="text-[9px]">
-                    {selected.phase === 'full' ? '✓ SVG Ready' : 'Image Only'}
+                    {selected.phase === 'full' ? '✓ SVG Ready' : isTracing ? 'Tracing SVG…' : 'Image Only'}
                   </Badge>
                 </div>
                 <div className="grid grid-cols-2 divide-x">
@@ -363,8 +432,8 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
                         />
                       ) : (
                         <div className="text-center">
-                          <ArrowRight className="h-5 w-5 text-muted-foreground/40 mx-auto mb-1" />
-                          <p className="text-[9px] text-muted-foreground">Pending trace</p>
+                          {isTracing ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50 mx-auto mb-1" /> : <ArrowRight className="h-5 w-5 text-muted-foreground/40 mx-auto mb-1" />}
+                          <p className="text-[9px] text-muted-foreground">{isTracing ? 'Tracing in progress' : 'Pending trace'}</p>
                         </div>
                       )}
                     </div>
@@ -417,7 +486,7 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {results.map((r, i) => (
                   <button
-                    key={i}
+                    key={r.id}
                     onClick={() => setSelectedResult(i)}
                     className={cn(
                       'shrink-0 w-14 h-14 rounded-lg border overflow-hidden bg-white transition-all',
