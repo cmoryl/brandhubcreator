@@ -213,6 +213,13 @@ interface IconStudioAIGeneratorProps {
   brandColors: Array<{ hex: string; name: string }>;
   libraries: IconLibrary[];
   onSaveIcons: (icons: BrandIconography[], libraryId?: string) => void;
+  brandIdentity?: {
+    archetype?: string;
+    services?: Array<{ name: string }>;
+    values?: Array<{ text: string }>;
+    industry?: string;
+    missionStatement?: string;
+  };
 }
 
 export const IconStudioAIGenerator = ({
@@ -221,6 +228,7 @@ export const IconStudioAIGenerator = ({
   brandColors,
   libraries,
   onSaveIcons,
+  brandIdentity,
 }: IconStudioAIGeneratorProps) => {
   // Configuration state
   const [selectedCategory, setSelectedCategory] = useState('Foundation');
@@ -580,6 +588,7 @@ export const IconStudioAIGenerator = ({
           <VisualIconGenerator
             brandColors={brandColors}
             onSaveIcon={(icon) => onSaveIcons([icon], undefined)}
+            brandIdentity={brandIdentity}
           />
         </TabsContent>
 
