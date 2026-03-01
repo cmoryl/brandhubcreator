@@ -96,7 +96,8 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
 
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-icon-visual', {
+      // Phase 1: Generate image only (fast, avoids timeout)
+      const { data: imgData, error: imgError } = await supabase.functions.invoke('generate-icon-visual', {
         body: {
           prompt: prompt.trim(),
           style,
@@ -104,25 +105,44 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
           cornerStyle,
           brandColors,
           referenceImage,
-          phase: 'full',
+          phase: 'image',
         },
       });
 
-      if (error) throw new Error(error.message);
+      if (imgError) throw new Error(imgError.message);
+      if (!imgData?.imageUrl) throw new Error('No image returned');
 
-      if (data?.imageUrl) {
-        const result: GeneratedResult = {
-          imageUrl: data.imageUrl,
-          svg: data.svg || undefined,
-          prompt: prompt.trim(),
-          phase: data.phase || (data.svg ? 'full' : 'image'),
-        };
-        setResults(prev => [result, ...prev]);
-        setSelectedResult(0);
-        toast.success(data.svg ? 'Icon generated & traced to SVG!' : 'Icon image generated — trace to SVG when ready');
-      } else {
-        throw new Error('No image returned');
+      const imageUrl = imgData.imageUrl;
+
+      // Phase 2: Trace to SVG separately (avoids single-request timeout)
+      let svg: string | undefined;
+      try {
+        const { data: traceData, error: traceError } = await supabase.functions.invoke('generate-icon-visual', {
+          body: {
+            phase: 'trace',
+            generatedImage: imageUrl,
+            style,
+            strokeWidth: strokeWidth[0],
+            cornerStyle,
+            brandColors,
+          },
+        });
+        if (!traceError && traceData?.svg) {
+          svg = traceData.svg;
+        }
+      } catch (traceErr) {
+        console.warn('Auto-trace failed, image still available:', traceErr);
       }
+
+      const result: GeneratedResult = {
+        imageUrl,
+        svg,
+        prompt: prompt.trim(),
+        phase: svg ? 'full' : 'image',
+      };
+      setResults(prev => [result, ...prev]);
+      setSelectedResult(0);
+      toast.success(svg ? 'Icon generated & traced to SVG!' : 'Icon image generated — click "Trace to SVG" to vectorize');
     } catch (err: any) {
       console.error('Visual generation error:', err);
       toast.error(err?.message || 'Generation failed');
