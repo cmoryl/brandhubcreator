@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive, Globe2, ArrowUpDown, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Download, Upload, Plus, Trash2, ExternalLink, Pencil, Package, FolderArchive, Globe2, ArrowUpDown, ChevronDown, ChevronUp, Loader2, ImageIcon } from 'lucide-react';
+import { GuideEmptyState } from './GuideEmptyState';
 import { ClientLogo, ClientLogoFile, ClientLogoVariant, ClientLogoFormat } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -626,12 +627,15 @@ export const ClientLogosSection = ({
           )}
         </div>
       ) : (
-        <div className="text-center py-12 border-2 border-dashed rounded-xl">
-          <div className="text-muted-foreground">
-            <p className="font-medium">No client logos added yet</p>
-            {canEdit && <p className="text-sm">Click "Add Client Logo" to get started</p>}
-          </div>
-        </div>
+        <GuideEmptyState
+          icon={ImageIcon}
+          title="Build Social Proof"
+          description="Showcase the companies you've worked with. Client logos build instant credibility and trust with visitors."
+          actionLabel="Add Client Logo"
+          onAction={() => canEdit && setAddDialogOpen(true)}
+          canEdit={canEdit}
+          readOnlyHint="Client logos will appear here"
+        />
       )}
 
       {/* Preview Dialog */}

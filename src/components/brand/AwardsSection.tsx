@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { Award, Plus, Upload, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { GuideEmptyState } from './GuideEmptyState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -342,17 +343,15 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, ent
       )}
 
       {awards.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Award className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">No awards added yet</p>
-            {canEdit && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Click "Add Award" to showcase your achievements
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        <GuideEmptyState
+          icon={Award}
+          title="Showcase Your Achievements"
+          description="Awards and recognition build credibility. Add industry honors, certifications, and accolades your brand has earned."
+          actionLabel="Add First Award"
+          onAction={() => canEdit && setIsDialogOpen(true)}
+          canEdit={canEdit}
+          readOnlyHint="Awards will appear here once added"
+        />
       ) : (
         <div className="space-y-2">
           <AwardsSortControls

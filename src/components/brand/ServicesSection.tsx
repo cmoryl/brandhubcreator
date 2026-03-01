@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, X, Briefcase, Upload, Palette, FileText, Share2, Zap, Settings, Users, Globe, Shield, Heart, Star, Sparkles, Layers, Package, Target, Award, TrendingUp, MessageSquare, ChevronDown, ExternalLink, Loader2 } from 'lucide-react';
+import { GuideEmptyState } from './GuideEmptyState';
 import { BrandService } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -290,13 +291,15 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
 
       {/* Empty State */}
       {services.length === 0 && !isEditing && (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <Briefcase className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-            <p className="text-muted-foreground">No services added yet</p>
-            <p className="text-sm text-muted-foreground/70 mt-1">Click edit to add your services</p>
-          </CardContent>
-        </Card>
+        <GuideEmptyState
+          icon={Briefcase}
+          title="Define Your Services"
+          description="List core services or capabilities to give visitors a clear picture of what your brand offers."
+          actionLabel="Add First Service"
+          onAction={() => canEdit && setIsEditing(true)}
+          canEdit={canEdit}
+          readOnlyHint="Services will appear here once defined"
+        />
       )}
 
       {/* Add/Edit Dialog */}
