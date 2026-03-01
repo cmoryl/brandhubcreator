@@ -46,6 +46,7 @@ export {
   IconStudioColorizer,
   IconStudioStepper,
   IconStudioExport,
+  IconBrowser,
 } from './studio';
 
 // ============================================
