@@ -31,10 +31,29 @@
       .dark{--background:220 20% 8%;--foreground:40 20% 98%;--primary:40 20% 98%}
       body{background-color:hsl(var(--background));color:hsl(var(--foreground))}
       #root{min-height:100vh;display:flex;flex-direction:column}
-      .initial-loader{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem}
-      .initial-loader svg{width:48px;height:48px;animation:spin 1s linear infinite}
-      .initial-loader p{font-size:0.875rem;color:hsl(var(--foreground)/0.6)}
-      @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+      .initial-loader{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.5rem;padding:2rem}
+      .il-logo{width:64px;height:64px;position:relative}
+      .il-ring{position:absolute;inset:0;border-radius:16px;border:2px solid;opacity:0.2;animation:ilspin 8s linear infinite}
+      .il-ring-inner{position:absolute;inset:8px;border-radius:12px;border:2px solid;opacity:0.3;animation:ilspin 6s linear infinite reverse}
+      .il-center{position:absolute;inset:16px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+      .il-shimmer{width:200px;height:4px;border-radius:9999px;overflow:hidden;position:relative}
+      .il-shimmer::after{content:'';position:absolute;inset:0;animation:ilshimmer 2s ease-in-out infinite;background-size:200% 100%}
+      .il-text{font-size:1rem;font-weight:500;letter-spacing:-0.01em}
+      .il-sub{font-size:0.8rem;opacity:0.5;margin-top:-0.5rem}
+      /* Light mode initial loader */
+      .il-ring{border-color:hsl(220 15% 20%)}
+      .il-ring-inner{border-color:hsl(220 15% 20%)}
+      .il-center{background:linear-gradient(135deg,hsl(220 15% 20%/0.08),hsl(220 15% 20%/0.04))}
+      .il-shimmer{background:hsl(var(--foreground)/0.08)}
+      .il-shimmer::after{background:linear-gradient(90deg,transparent,hsl(220 15% 20%/0.3),transparent)}
+      /* Dark mode initial loader */
+      .dark .il-ring{border-color:hsl(195 90% 60%)}
+      .dark .il-ring-inner{border-color:hsl(195 90% 60%)}
+      .dark .il-center{background:linear-gradient(135deg,hsl(195 90% 60%/0.1),hsl(260 60% 65%/0.08))}
+      .dark .il-shimmer{background:hsl(var(--foreground)/0.06)}
+      .dark .il-shimmer::after{background:linear-gradient(90deg,transparent,hsl(195 90% 60%/0.4),transparent)}
+      @keyframes ilspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+      @keyframes ilshimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
       .recovery-ui{display:none;text-align:center;max-width:400px;margin:0 auto;padding:2rem}
       .recovery-ui h2{font-size:1.25rem;font-weight:600;margin-bottom:0.5rem}
       .recovery-ui p{font-size:0.875rem;color:hsl(var(--foreground)/0.6);margin-bottom:1.5rem}
@@ -47,10 +66,16 @@
     <div id="root">
       <!-- BrandHub v2.2 -->
       <div class="initial-loader" id="bhub-loader" aria-label="Loading">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        <p>Loading BrandHub...</p>
+        <div class="il-logo">
+          <div class="il-ring"></div>
+          <div class="il-ring-inner"></div>
+          <div class="il-center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+        </div>
+        <p class="il-text">BrandHub</p>
+        <p class="il-sub">Preparing your experience</p>
+        <div class="il-shimmer"></div>
       </div>
       <div class="recovery-ui" id="bhub-recovery">
         <h2>⚠️ BrandHub failed to load</h2>

@@ -95,51 +95,75 @@ const StandaloneProductCard = memo(forwardRef<HTMLDivElement, StandaloneProductC
   return (
     <Card 
       ref={ref}
-      className="group cursor-pointer hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-md"
+      className="group cursor-pointer hover:shadow-xl transition-all duration-500 overflow-hidden border-0 bg-card shadow-md hover:-translate-y-1"
       onClick={() => onNavigate(product.slug || product.id)}
     >
       <CardContent className="p-0">
-        <div className="relative h-32 sm:h-36 overflow-hidden">
+        <div className="relative h-40 sm:h-44 overflow-hidden">
           {hero.coverImage ? (
             <OptimizedImage 
               src={hero.coverImage} 
               alt={hero.name}
-              className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full transition-transform duration-700 group-hover:scale-110"
               objectFit="cover"
             />
           ) : (
-            <div className="w-full h-full flex">
+            <div className="w-full h-full relative">
               {colors && colors.length > 0 ? (
-                colors.slice(0, 4).map((color) => (
-                  <div 
-                    key={color.id} 
-                    className="flex-1"
-                    style={{ backgroundColor: color.hex }}
-                  />
-                ))
+                <div className="w-full h-full flex">
+                  {colors.slice(0, 4).map((color) => (
+                    <div 
+                      key={color.id} 
+                      className="flex-1 transition-all duration-500 group-hover:brightness-110"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                  ))}
+                </div>
               ) : (
-                <div className="flex-1" style={{ background: fallbackGradient }} />
+                <div className="flex-1 w-full h-full" style={{ background: fallbackGradient }} />
               )}
+              {/* Overlay with product initial for empty-image cards */}
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/40 to-transparent">
+                <span className="text-3xl font-bold text-white/80 drop-shadow-lg">
+                  {hero.name?.charAt(0)?.toUpperCase() || 'P'}
+                </span>
+              </div>
             </div>
           )}
-          <Badge className="absolute top-2 right-2 gap-1 bg-green-500/90 text-white text-[10px]">
+          <Badge className="absolute top-2.5 right-2.5 gap-1 bg-green-500/90 text-white text-[10px] shadow-lg">
             <Globe className="h-2.5 w-2.5" />
             Public
           </Badge>
+          {/* Gradient overlay for text readability */}
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card to-transparent" />
         </div>
-        <div className="p-4">
+        <div className="p-4 -mt-2 relative">
           <h3 className="font-semibold text-sm text-foreground mb-1 group-hover:text-accent transition-colors line-clamp-1">
             {hero.name}
           </h3>
           {hero.tagline && (
-            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+            <p className="text-xs text-muted-foreground line-clamp-2 mb-3 min-h-[2rem]">
               {hero.tagline}
             </p>
           )}
-          <Button variant="ghost" size="sm" className="gap-1.5 p-0 h-auto text-accent hover:text-primary hover:bg-transparent text-xs">
-            View
-            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="sm" className="gap-1.5 p-0 h-auto text-accent hover:text-primary hover:bg-transparent text-xs font-medium">
+              View Guide
+              <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+            </Button>
+            {colors && colors.length > 0 && (
+              <div className="flex -space-x-1">
+                {colors.slice(0, 4).map((color) => (
+                  <div
+                    key={color.id}
+                    className="w-3.5 h-3.5 rounded-full border-2 border-card shadow-sm"
+                    style={{ backgroundColor: color.hex }}
+                    title={color.hex}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
