@@ -3,9 +3,16 @@
  * 
  * Pipeline: AI generates pixel-perfect icon IMAGE → traces to clean SVG
  * Supports style reference images for consistency across sets.
+ * 
+ * UX Features:
+ * - Animated progress bar with ETA
+ * - 3 style variations per prompt
+ * - Auto-suggest prompts from brand identity
+ * - Scale-in reveal animation for results
+ * - Persistent history (saved to guide_data)
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   ImageIcon,
   Wand2,
@@ -19,6 +26,8 @@ import {
   Sparkles,
   ArrowRight,
   Eye,
+  Lightbulb,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,11 +37,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { BrandIconography } from '@/types/brand';
 import DOMPurify from 'dompurify';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const VISUAL_STYLES = [
   { id: 'outlined', label: 'Outlined', desc: 'Clean stroke icons' },
@@ -45,9 +56,25 @@ const VISUAL_STYLES = [
   { id: 'soft', label: 'Soft', desc: 'Rounded friendly' },
 ];
 
+// Variation suffixes to generate 3 different takes on the same prompt
+const VARIATION_SUFFIXES = [
+  '', // original
+  ', alternative perspective, slightly different proportions',
+  ', simplified version with bolder shapes',
+];
+
 interface VisualIconGeneratorProps {
   brandColors: Array<{ hex: string; name: string }>;
   onSaveIcon?: (icon: BrandIconography) => void;
+  brandIdentity?: {
+    archetype?: string;
+    services?: Array<{ name: string }>;
+    values?: Array<{ text: string }>;
+    industry?: string;
+    missionStatement?: string;
+  };
+  savedResults?: GeneratedResult[];
+  onResultsChange?: (results: GeneratedResult[]) => void;
 }
 
 interface GeneratedResult {
@@ -56,23 +83,155 @@ interface GeneratedResult {
   svg?: string;
   prompt: string;
   phase: 'image' | 'full';
+  variationIndex?: number;
+  createdAt?: string;
 }
 
-export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGeneratorProps) => {
+// Smart prompt suggestions based on brand identity
+function generatePromptSuggestions(identity?: VisualIconGeneratorProps['brandIdentity']): string[] {
+  const suggestions: string[] = [
+    'A compass with a glowing north arrow',
+    'A shield with a checkmark inside',
+    'A lightbulb with radiating lines',
+    'A handshake forming a heart shape',
+  ];
+
+  if (!identity) return suggestions;
+
+  const custom: string[] = [];
+
+  // Archetype-based suggestions
+  if (identity.archetype) {
+    const archetypeIcons: Record<string, string[]> = {
+      'The Hero': ['A rising phoenix with spread wings', 'A mountain peak with a flag'],
+      'The Sage': ['An open book with floating pages', 'An owl perched on a branch'],
+      'The Explorer': ['A compass rose with intricate details', 'A telescope pointed at stars'],
+      'The Creator': ['A paintbrush leaving a trail of color', 'A gear with creative sparks'],
+      'The Caregiver': ['A pair of hands cradling a heart', 'A protective umbrella'],
+      'The Ruler': ['A crown with precise geometric lines', 'A pillar with classical design'],
+      'The Magician': ['A wand with orbiting particles', 'A transformation butterfly'],
+      'The Rebel': ['A lightning bolt breaking through', 'A raised fist with flames'],
+      'The Lover': ['An intertwined infinity heart', 'A rose with flowing petals'],
+      'The Jester': ['A smiling star with bounce', 'A playful spinning top'],
+      'The Everyman': ['A welcoming open door', 'A community circle of people'],
+      'The Innocent': ['A dove carrying an olive branch', 'A sunrise over gentle hills'],
+    };
+    const match = Object.entries(archetypeIcons).find(([k]) => 
+      identity.archetype?.toLowerCase().includes(k.toLowerCase().replace('The ', ''))
+    );
+    if (match) custom.push(...match[1]);
+  }
+
+  // Service-based suggestions
+  if (identity.services?.length) {
+    const serviceNames = identity.services.slice(0, 3).map(s => s.name).filter(Boolean);
+    serviceNames.forEach(name => {
+      custom.push(`An icon representing ${name.toLowerCase()}`);
+    });
+  }
+
+  // Values-based suggestions
+  if (identity.values?.length) {
+    const valueTexts = identity.values.slice(0, 2).map(v => v.text).filter(Boolean);
+    valueTexts.forEach(val => {
+      custom.push(`A symbol embodying ${val.toLowerCase()}`);
+    });
+  }
+
+  // Industry-based
+  if (identity.industry) {
+    custom.push(`A modern ${identity.industry.toLowerCase()} industry icon`);
+  }
+
+  return custom.length > 0 ? custom.slice(0, 6) : suggestions;
+}
+
+// Progress simulation for generating phase
+function useProgressSimulation(isActive: boolean, estimatedMs: number) {
+  const [progress, setProgress] = useState(0);
+  const [eta, setEta] = useState(0);
+  const startTimeRef = useRef(0);
+
+  useEffect(() => {
+    if (!isActive) {
+      setProgress(0);
+      setEta(0);
+      return;
+    }
+
+    startTimeRef.current = Date.now();
+    setProgress(0);
+    setEta(Math.ceil(estimatedMs / 1000));
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTimeRef.current;
+      // Ease-out curve: fast at start, slows near 90%
+      const rawProgress = Math.min(elapsed / estimatedMs, 1);
+      const easedProgress = 1 - Math.pow(1 - rawProgress, 2);
+      const clamped = Math.min(easedProgress * 95, 95); // Never hit 100 until done
+      setProgress(clamped);
+
+      const remaining = Math.max(0, Math.ceil((estimatedMs - elapsed) / 1000));
+      setEta(remaining);
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [isActive, estimatedMs]);
+
+  const complete = useCallback(() => {
+    setProgress(100);
+    setEta(0);
+  }, []);
+
+  return { progress, eta, complete };
+}
+
+export const VisualIconGenerator = ({ 
+  brandColors, 
+  onSaveIcon, 
+  brandIdentity,
+  savedResults: initialResults,
+  onResultsChange,
+}: VisualIconGeneratorProps) => {
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('outlined');
   const [strokeWidth, setStrokeWidth] = useState([2]);
   const [cornerStyle, setCornerStyle] = useState<'rounded' | 'sharp'>('rounded');
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceFileName, setReferenceFileName] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isTracing, setIsTracing] = useState(false);
-  const [results, setResults] = useState<GeneratedResult[]>([]);
-  const [selectedResult, setSelectedResult] = useState<number | null>(null);
+  const [results, setResults] = useState<GeneratedResult[]>(initialResults || []);
+  const [selectedResult, setSelectedResult] = useState<number | null>(
+    initialResults?.length ? 0 : null
+  );
   const [copied, setCopied] = useState(false);
+  const [newResultIds, setNewResultIds] = useState<Set<string>>(new Set());
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Persist results when they change
+  useEffect(() => {
+    if (onResultsChange && results.length > 0) {
+      // Strip large base64 imageUrls for persistence - only keep storage URLs
+      const persistable = results.map(r => ({
+        ...r,
+        imageUrl: r.imageUrl.startsWith('data:') ? '' : r.imageUrl,
+      })).filter(r => r.imageUrl || r.svg);
+      onResultsChange(persistable);
+    }
+  }, [results, onResultsChange]);
+
+  const promptSuggestions = useMemo(
+    () => generatePromptSuggestions(brandIdentity),
+    [brandIdentity]
+  );
+
+  // Progress simulation
+  const { progress: genProgress, eta: genEta, complete: completeProgress } = 
+    useProgressSimulation(isGenerating, 25000); // ~25s estimated
 
   const handleReferenceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -154,68 +313,107 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
     const brandColorsValue = [...brandColors];
 
     setIsGenerating(true);
+    const generatedIds: string[] = [];
+
     try {
-      // Phase 1: Generate image and return quickly
-      const { data: imgData, error: imgError } = await withTimeout(
-        supabase.functions.invoke('generate-icon-visual', {
-          body: {
-            prompt: trimmedPrompt,
-            style: styleValue,
-            strokeWidth: strokeWidthValue,
-            cornerStyle: cornerStyleValue,
-            brandColors: brandColorsValue,
-            referenceImage,
-            phase: 'image',
-          },
-        }),
-        90000,
-        'Image generation timed out. Please try again.'
-      );
+      // Generate 3 variations in parallel
+      const variationPromises = VARIATION_SUFFIXES.map(async (suffix, varIndex) => {
+        const varPrompt = trimmedPrompt + suffix;
+        
+        const { data: imgData, error: imgError } = await withTimeout(
+          supabase.functions.invoke('generate-icon-visual', {
+            body: {
+              prompt: varPrompt,
+              style: styleValue,
+              strokeWidth: strokeWidthValue,
+              cornerStyle: cornerStyleValue,
+              brandColors: brandColorsValue,
+              referenceImage: varIndex === 0 ? referenceImage : undefined,
+              phase: 'image',
+            },
+          }),
+          90000,
+          'Image generation timed out. Please try again.'
+        );
 
-      if (imgError) throw new Error(imgError.message);
-      if (!imgData?.imageUrl) throw new Error('No image returned');
+        if (imgError) throw new Error(imgError.message);
+        if (!imgData?.imageUrl) throw new Error('No image returned');
 
-      const imageUrl = imgData.imageUrl;
-      const resultId = crypto.randomUUID();
+        return {
+          imageUrl: imgData.imageUrl,
+          varIndex,
+        };
+      });
 
-      const result: GeneratedResult = {
-        id: resultId,
-        imageUrl,
-        prompt: trimmedPrompt,
-        phase: 'image',
-      };
+      // Wait for all variations (at least the first one)
+      const settledResults = await Promise.allSettled(variationPromises);
+      const successfulResults = settledResults
+        .filter((r): r is PromiseFulfilledResult<{ imageUrl: string; varIndex: number }> => 
+          r.status === 'fulfilled'
+        )
+        .map(r => r.value);
 
-      setResults(prev => [result, ...prev]);
+      if (successfulResults.length === 0) {
+        throw new Error('All variations failed to generate');
+      }
+
+      completeProgress();
+
+      const newResults: GeneratedResult[] = successfulResults.map(sr => {
+        const resultId = crypto.randomUUID();
+        generatedIds.push(resultId);
+        return {
+          id: resultId,
+          imageUrl: sr.imageUrl,
+          prompt: trimmedPrompt,
+          phase: 'image' as const,
+          variationIndex: sr.varIndex,
+          createdAt: new Date().toISOString(),
+        };
+      });
+
+      setNewResultIds(new Set(newResults.map(r => r.id)));
+      setResults(prev => [...newResults, ...prev]);
       setSelectedResult(0);
-      toast.success('Visual generated! Tracing to SVG in background...');
 
-      // Phase 2: Auto-trace in background so UI never gets stuck on "Generating"
+      const count = newResults.length;
+      toast.success(`${count} variation${count > 1 ? 's' : ''} generated! Tracing to SVG...`);
+
+      // Clear animation flags after animation completes
+      setTimeout(() => setNewResultIds(new Set()), 800);
+
+      // Phase 2: Auto-trace all in background
       void (async () => {
         setIsTracing(true);
-        try {
-          const svg = await traceImageToSvg({
-            imageUrl,
-            styleValue,
-            strokeWidthValue,
-            cornerStyleValue,
-            brandColorsValue,
-          });
+        let tracedCount = 0;
+        
+        for (const nr of newResults) {
+          try {
+            const svg = await traceImageToSvg({
+              imageUrl: nr.imageUrl,
+              styleValue,
+              strokeWidthValue,
+              cornerStyleValue,
+              brandColorsValue,
+            });
 
-          if (!svg) {
-            toast.info('Image is ready — click "Trace to SVG" to vectorize.');
-            return;
+            if (svg) {
+              setResults(prev =>
+                prev.map(r => (r.id === nr.id ? { ...r, svg, phase: 'full' } : r))
+              );
+              tracedCount++;
+            }
+          } catch (traceErr) {
+            console.warn('Auto-trace skipped for variation:', traceErr);
           }
-
-          setResults(prev =>
-            prev.map(r => (r.id === resultId ? { ...r, svg, phase: 'full' } : r))
-          );
-          toast.success('SVG trace complete!');
-        } catch (traceErr) {
-          console.warn('Auto-trace skipped:', traceErr);
-          toast.info(traceErr instanceof Error ? traceErr.message : 'Auto-trace skipped. Use "Trace to SVG".');
-        } finally {
-          setIsTracing(false);
         }
+
+        if (tracedCount > 0) {
+          toast.success(`${tracedCount} SVG${tracedCount > 1 ? 's' : ''} traced successfully!`);
+        } else {
+          toast.info('Images ready — click "Trace to SVG" to vectorize.');
+        }
+        setIsTracing(false);
       })();
     } catch (err: any) {
       console.error('Visual generation error:', err);
@@ -223,7 +421,7 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
     } finally {
       setIsGenerating(false);
     }
-  }, [prompt, style, strokeWidth, cornerStyle, brandColors, referenceImage, traceImageToSvg, withTimeout]);
+  }, [prompt, style, strokeWidth, cornerStyle, brandColors, referenceImage, traceImageToSvg, withTimeout, completeProgress]);
 
   const retrace = useCallback(async (index: number) => {
     const result = results[index];
@@ -284,7 +482,7 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
         <div>
           <h4 className="text-sm font-semibold">Visual Icon Generator</h4>
           <p className="text-xs text-muted-foreground">
-            AI generates a pixel-perfect preview, then traces to clean SVG
+            AI generates 3 variations, then traces each to clean SVG
           </p>
         </div>
         <Badge variant="secondary" className="ml-auto text-[10px]">Image → SVG</Badge>
@@ -295,7 +493,52 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
         <div className="space-y-4">
           {/* Prompt */}
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Icon Description</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium">Icon Description</Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 gap-1 text-[10px] text-muted-foreground hover:text-primary"
+                onClick={() => setShowSuggestions(!showSuggestions)}
+              >
+                <Lightbulb className="h-3 w-3" />
+                {showSuggestions ? 'Hide ideas' : 'Suggest ideas'}
+              </Button>
+            </div>
+
+            {/* Smart Suggestions */}
+            <AnimatePresence>
+              {showSuggestions && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex flex-wrap gap-1.5 p-2.5 rounded-lg border border-dashed border-primary/30 bg-primary/5 mb-2">
+                    {promptSuggestions.map((suggestion, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setPrompt(suggestion);
+                          setShowSuggestions(false);
+                        }}
+                        className="text-[10px] px-2 py-1 rounded-full border border-primary/20 bg-background text-foreground hover:bg-primary/10 hover:border-primary/40 transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                    {brandIdentity?.archetype && (
+                      <p className="w-full text-[9px] text-muted-foreground mt-1">
+                        ✨ Tailored to your <span className="font-medium text-primary">{brandIdentity.archetype}</span> archetype
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <Textarea
               placeholder="e.g. A compass with a glowing north arrow, navigation theme..."
               value={prompt}
@@ -373,36 +616,73 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
 
           <Separator />
 
-          {/* Generate */}
-          <Button
-            className="w-full gap-2"
-            onClick={generate}
-            disabled={isGenerating || !prompt.trim()}
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Generating visual...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" />
-                Generate Visual Icon
-              </>
-            )}
-          </Button>
+          {/* Generate Button + Progress */}
+          <div className="space-y-2">
+            <Button
+              className="w-full gap-2"
+              onClick={generate}
+              disabled={isGenerating || !prompt.trim()}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating 3 variations...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Generate 3 Variations
+                </>
+              )}
+            </Button>
+
+            {/* Animated Progress Bar */}
+            <AnimatePresence>
+              {isGenerating && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-1.5 overflow-hidden"
+                >
+                  <Progress value={genProgress} className="h-1.5" />
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {genEta > 0 ? `~${genEta}s remaining` : 'Finishing up...'}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {Math.round(genProgress)}%
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Right: Preview */}
         <div className="space-y-4">
           {selected ? (
             <>
-              {/* Image Preview */}
-              <div className="rounded-xl border bg-card overflow-hidden">
+              {/* Image Preview with scale-in animation */}
+              <motion.div
+                key={selected.id}
+                initial={newResultIds.has(selected.id) ? { scale: 0.85, opacity: 0 } : false}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                className="rounded-xl border bg-card overflow-hidden"
+              >
                 <div className="p-1 border-b bg-muted/30 flex items-center justify-between">
                   <div className="flex items-center gap-1.5 px-2">
                     <ImageIcon className="h-3 w-3 text-muted-foreground" />
                     <span className="text-[10px] text-muted-foreground">AI Preview</span>
+                    {selected.variationIndex !== undefined && (
+                      <Badge variant="outline" className="text-[9px] ml-1">
+                        Var {selected.variationIndex + 1}
+                      </Badge>
+                    )}
                   </div>
                   <Badge variant={selected.phase === 'full' ? 'default' : 'secondary'} className="text-[9px]">
                     {selected.phase === 'full' ? '✓ SVG Ready' : isTracing ? 'Tracing SVG…' : 'Image Only'}
@@ -421,7 +701,10 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
                     <p className="text-[10px] text-muted-foreground font-medium">Traced SVG</p>
                     <div className="w-24 h-24 rounded-lg border bg-card flex items-center justify-center p-2">
                       {selected.svg ? (
-                        <div
+                        <motion.div
+                          initial={{ scale: 0.5, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                           className="w-16 h-16 [&>svg]:w-full [&>svg]:h-full"
                           dangerouslySetInnerHTML={{
                             __html: DOMPurify.sanitize(selected.svg, {
@@ -439,7 +722,7 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Actions */}
               <div className="flex flex-wrap gap-2">
@@ -473,28 +756,63 @@ export const VisualIconGenerator = ({ brandColors, onSaveIcon }: VisualIconGener
                 <Eye className="h-7 w-7 text-primary/50" />
               </div>
               <p className="text-sm text-muted-foreground">Generated icons will appear here</p>
-              <p className="text-xs text-muted-foreground/70 mt-1 max-w-[200px]">
-                Visual mode creates an image first for better quality, then converts to SVG
+              <p className="text-xs text-muted-foreground/70 mt-1 max-w-[220px]">
+                Visual mode creates 3 variations, then converts each to SVG
               </p>
+              {promptSuggestions.length > 0 && !prompt && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-3 gap-1.5 text-xs text-primary"
+                  onClick={() => setShowSuggestions(true)}
+                >
+                  <Lightbulb className="h-3.5 w-3.5" />
+                  Get prompt ideas
+                </Button>
+              )}
             </div>
           )}
 
-          {/* History */}
-          {results.length > 1 && (
+          {/* History with variation grouping */}
+          {results.length > 0 && (
             <div className="space-y-2">
               <Label className="text-xs font-medium">History ({results.length})</Label>
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {results.map((r, i) => (
-                  <button
+                  <motion.button
                     key={r.id}
+                    initial={newResultIds.has(r.id) ? { scale: 0, opacity: 0 } : false}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', delay: (r.variationIndex || 0) * 0.1 }}
                     onClick={() => setSelectedResult(i)}
                     className={cn(
-                      'shrink-0 w-14 h-14 rounded-lg border overflow-hidden bg-white transition-all',
+                      'shrink-0 w-14 h-14 rounded-lg border overflow-hidden bg-white transition-all relative',
                       selectedResult === i ? 'ring-2 ring-primary border-primary' : 'hover:border-primary/50'
                     )}
                   >
-                    <img src={r.imageUrl} alt={r.prompt} className="w-full h-full object-contain p-1" />
-                  </button>
+                    {r.imageUrl ? (
+                      <img src={r.imageUrl} alt={r.prompt} className="w-full h-full object-contain p-1" />
+                    ) : r.svg ? (
+                      <div
+                        className="w-full h-full p-1 [&>svg]:w-full [&>svg]:h-full"
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(r.svg, {
+                            USE_PROFILES: { svg: true, svgFilters: true },
+                            FORBID_TAGS: ['script', 'foreignObject'],
+                          }),
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    {r.phase === 'full' && (
+                      <div className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="h-2 w-2 text-primary-foreground" />
+                      </div>
+                    )}
+                  </motion.button>
                 ))}
               </div>
             </div>

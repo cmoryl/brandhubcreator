@@ -58,6 +58,13 @@ interface IconStudioProps {
   brandColors?: Array<{ hex: string; name: string }>;
   initialTab?: IconStudioTab;
   onIconsCreated?: (icons: BrandIconography[], libraryId?: string) => void;
+  brandIdentity?: {
+    archetype?: string;
+    services?: Array<{ name: string }>;
+    values?: Array<{ text: string }>;
+    industry?: string;
+    missionStatement?: string;
+  };
 }
 
 const WIZARD_STEPS: WizardStep[] = [
@@ -82,6 +89,7 @@ export const IconStudio = ({
   brandColors = [],
   initialTab = 'library',
   onIconsCreated,
+  brandIdentity,
 }: IconStudioProps) => {
   const initialStepIndex = useMemo(() => {
     const idx = WIZARD_STEPS.findIndex(s => s.id === initialTab);
@@ -220,6 +228,7 @@ export const IconStudio = ({
             brandColors={brandColors}
             libraries={libraries}
             onSaveIcons={handleSaveIcons}
+            brandIdentity={brandIdentity}
           />
         );
       
