@@ -31,13 +31,22 @@ function lazyWithRetry(factory: () => Promise<{ default: React.ComponentType<any
   return lazy(() =>
     factory().catch((err) => {
       const reloadKey = 'bhub_chunk_reload';
-      if (!sessionStorage.getItem(reloadKey)) {
-        sessionStorage.setItem(reloadKey, '1');
-        window.location.reload();
-        // Return a never-resolving promise so React doesn't try to render while reloading
-        return new Promise(() => {});
+      const reloadCount = parseInt(sessionStorage.getItem(reloadKey) || '0', 10);
+      if (reloadCount < 1) {
+        sessionStorage.setItem(reloadKey, String(reloadCount + 1));
+        // Small delay to let any in-flight requests settle
+        return new Promise<{ default: React.ComponentType<any> }>((resolve, reject) => {
+          setTimeout(() => {
+            // Try the import one more time before reloading
+            factory().then(resolve).catch(() => {
+              window.location.reload();
+              // Never-resolving promise while page reloads
+              return new Promise(() => {});
+            });
+          }, 1000);
+        });
       }
-      // Already tried reloading once — throw the real error
+      // Already tried — clear flag and throw so ErrorBoundary catches it
       sessionStorage.removeItem(reloadKey);
       throw err;
     })
