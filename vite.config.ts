@@ -139,12 +139,6 @@ export default defineConfig(({ mode }) => {
               options: { cacheName: "supabase-storage", expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 } },
             },
             {
-              // Supabase REST API GET requests - offline reads
-              urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-              handler: "NetworkFirst",
-              options: { cacheName: "supabase-api", expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 }, networkTimeoutSeconds: 10 },
-            },
-            {
               // CDN-hosted PDF.js worker and other CDN assets
               urlPattern: /^https:\/\/cdnjs\.cloudflare\.com\/.*/i,
               handler: "CacheFirst",
