@@ -197,8 +197,23 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
 
   const exportAsText = () => {
     if (!report) return;
+    const colorSpecs = enrichedColors.map(c => {
+      const r = parseInt(c.hex.slice(1, 3), 16);
+      const g = parseInt(c.hex.slice(3, 5), 16);
+      const b = parseInt(c.hex.slice(5, 7), 16);
+      return [
+        `### ${c.name}`,
+        `- **HEX:** ${c.hex.toUpperCase()}`,
+        `- **RGB:** rgb(${r}, ${g}, ${b})`,
+        `- **HSL:** hsl(${Math.round(c.hsl.h)}, ${Math.round(c.hsl.s)}%, ${Math.round(c.hsl.l)}%)`,
+        `- **CMYK:** C${c.cmyk.c} M${c.cmyk.m} Y${c.cmyk.y} K${c.cmyk.k}`,
+        `- **Pantone:** ${c.pantone || '—'}`,
+      ].join('\n');
+    }).join('\n\n');
+
     const text = [
       `# ${report.title}`, '',
+      '## Palette Colors', '', colorSpecs, '',
       '## Executive Summary', report.executiveSummary, '',
       '## Color Theory Analysis',
       `Harmony: ${report.colorTheory.harmonyType}`,
