@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback, useMemo, Suspense } from 'react';
+
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus, Trash2, Palette, Eye, Printer, Monitor, Copy, Check,
@@ -13,7 +14,7 @@ import {
   CheckCircle2, Info, Shield, Globe, FileText, Image as ImageIcon,
   Lock, LogIn, ArrowRight, ChevronRight, Wand2, Replace, Save,
   FolderOpen, Clock, X, Share2, Grid3X3, MonitorSmartphone, Sparkles, Link2,
-  Box, Zap, Layers,
+  Box, Zap, Layers, Filter,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -455,6 +456,7 @@ export default function ColorLab() {
   const [currentStep, setCurrentStep] = useState<StepId>('build');
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [paletteTitle, setPaletteTitle] = useState('');
+  const [contrastFilter, setContrastFilter] = useState<'all' | 'passing' | 'failing'>('all');
   const [savingPalette, setSavingPalette] = useState(false);
   const [savedPalettes, setSavedPalettes] = useState<SavedPalette[]>([]);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
@@ -913,7 +915,30 @@ export default function ColorLab() {
                   </div>
 
                   <TabsContent value="contrast" className="space-y-6">
-                    {failingPairs.length > 0 && (
+                    {/* Filter toggle */}
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4 text-muted-foreground" />
+                        <div className="inline-flex items-center rounded-lg border bg-card p-0.5 gap-0.5">
+                          {(['all', 'passing', 'failing'] as const).map(f => (
+                            <button
+                              key={f}
+                              onClick={() => setContrastFilter(f)}
+                              className={cn(
+                                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors capitalize",
+                                contrastFilter === f
+                                  ? "bg-primary text-primary-foreground shadow-sm"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                              )}
+                            >
+                              {f === 'all' ? `All (${contrastPairs.length})` : f === 'passing' ? `Passing (${passingPairs.length})` : `Failing (${failingPairs.length})`}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {contrastFilter !== 'passing' && failingPairs.length > 0 && (
                       <FixSuggestionsCard
                         colors={colors}
                         failingPairs={failingPairs}
@@ -930,7 +955,8 @@ export default function ColorLab() {
                         }}
                       />
                     )}
-                    {failingPairs.length > 0 && (
+
+                    {contrastFilter !== 'passing' && failingPairs.length > 0 && (
                       <div className="space-y-2">
                         <h3 className="text-xs font-semibold text-destructive flex items-center gap-1">
                           <AlertTriangle className="h-3.5 w-3.5" />
@@ -941,7 +967,8 @@ export default function ColorLab() {
                         </div>
                       </div>
                     )}
-                    {failingPairs.length === 0 && (
+
+                    {contrastFilter === 'passing' && failingPairs.length === 0 && passingPairs.length > 0 && (
                       <Card className="border-primary/30 bg-primary/5">
                         <CardContent className="p-4 flex items-center gap-3">
                           <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
@@ -952,15 +979,35 @@ export default function ColorLab() {
                         </CardContent>
                       </Card>
                     )}
-                    <div className="space-y-2">
-                      <h3 className="text-xs font-semibold text-primary flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Passing Pairs
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {passingPairs.map((p, i) => <ContrastPairCard key={i} {...p} />)}
+                    {contrastFilter === 'all' && failingPairs.length === 0 && (
+                      <Card className="border-primary/30 bg-primary/5">
+                        <CardContent className="p-4 flex items-center gap-3">
+                          <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium">All pairs pass WCAG contrast</p>
+                            <p className="text-xs text-muted-foreground">Every color combination meets AA requirements.</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {contrastFilter !== 'failing' && passingPairs.length > 0 && (
+                      <div className="space-y-2">
+                        <h3 className="text-xs font-semibold text-primary flex items-center gap-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Passing Pairs
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {passingPairs.map((p, i) => <ContrastPairCard key={i} {...p} />)}
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {((contrastFilter === 'failing' && failingPairs.length === 0) || (contrastFilter === 'passing' && passingPairs.length === 0)) && (
+                      <div className="text-center py-8 text-muted-foreground text-sm">
+                        No {contrastFilter} pairs found.
+                      </div>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="colorblind">
