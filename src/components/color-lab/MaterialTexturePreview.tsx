@@ -1,12 +1,13 @@
 /**
  * Material/Texture Preview — hyper-realistic surface simulations
- * using multi-layered CSS effects, SVG noise filters, and advanced lighting.
+ * with configurable light direction, SVG noise, and advanced lighting.
  */
 
-import { useState, useId } from 'react';
+import { useState, useId, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Layers } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Layers, Sun } from 'lucide-react';
 
 interface LabColor {
   id: string;
@@ -24,6 +25,28 @@ const MATERIALS: { type: MaterialType; label: string; emoji: string }[] = [
   { type: 'wood', label: 'Wood', emoji: '🪵' },
   { type: 'plastic', label: 'Plastic', emoji: '💎' },
 ];
+
+/** Light direction context — angle in degrees (0=top, 90=right, 180=bottom, 270=left) */
+interface LightCtx {
+  angle: number;        // degrees
+  /** Highlight position as percentage (x%, y%) */
+  hlX: number;
+  hlY: number;
+  /** CSS gradient angle that follows the light */
+  gradAngle: number;
+  /** Opposite gradient angle for shadows */
+  shadowAngle: number;
+}
+
+function angleTo(angle: number): LightCtx {
+  const rad = (angle * Math.PI) / 180;
+  // highlight moves toward light source
+  const hlX = 50 + Math.sin(rad) * 25;
+  const hlY = 50 - Math.cos(rad) * 25;
+  const gradAngle = angle + 180; // gradient flows away from light
+  const shadowAngle = angle;
+  return { angle, hlX, hlY, gradAngle, shadowAngle };
+}
 
 function hexToRgb(hex: string) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -53,7 +76,6 @@ function darkenHex(hex: string, amount: number): string {
   return `#${dr.toString(16).padStart(2, '0')}${dg.toString(16).padStart(2, '0')}${db.toString(16).padStart(2, '0')}`;
 }
 
-/** SVG noise filter rendered inline for texture realism */
 function NoiseSvg({ id, baseFrequency = 0.65, numOctaves = 4, opacity = 0.08 }: {
   id: string; baseFrequency?: number; numOctaves?: number; opacity?: number;
 }) {
@@ -67,12 +89,12 @@ function NoiseSvg({ id, baseFrequency = 0.65, numOctaves = 4, opacity = 0.08 }: 
   );
 }
 
-function FabricSwatch({ hex, filterId }: { hex: string; filterId: string }) {
+function FabricSwatch({ hex, filterId, light }: { hex: string; filterId: string; light: LightCtx }) {
   const dark = darkenHex(hex, 0.12);
   const vdark = darkenHex(hex, 0.2);
+  const light_ = lightenHex(hex, 0.08);
   return (
     <div className="relative rounded-xl h-32 overflow-hidden" style={{ backgroundColor: hex }}>
-      {/* Warp threads */}
       <div className="absolute inset-0" style={{
         backgroundImage: `
           repeating-linear-gradient(0deg, transparent, transparent 1.5px, ${dark}33 1.5px, ${dark}33 2.5px),
@@ -80,7 +102,6 @@ function FabricSwatch({ hex, filterId }: { hex: string; filterId: string }) {
         `,
         backgroundSize: '4px 4px',
       }} />
-      {/* Weave cross-hatch */}
       <div className="absolute inset-0" style={{
         backgroundImage: `
           repeating-linear-gradient(45deg, transparent, transparent 3px, ${vdark}0a 3px, ${vdark}0a 4px),
@@ -88,88 +109,92 @@ function FabricSwatch({ hex, filterId }: { hex: string; filterId: string }) {
         `,
         backgroundSize: '6px 6px',
       }} />
-      {/* Fabric fuzz noise */}
       <NoiseSvg id={filterId} baseFrequency={1.2} numOctaves={5} opacity={0.12} />
-      {/* Soft highlight fold */}
+      {/* Dynamic light fold */}
       <div className="absolute inset-0" style={{
-        background: `linear-gradient(135deg, ${lightenHex(hex, 0.08)}40 0%, transparent 30%, transparent 70%, ${darkenHex(hex, 0.06)}30 100%)`,
+        background: `linear-gradient(${light.gradAngle}deg, ${light_}45 0%, transparent 35%, transparent 65%, ${dark}35 100%)`,
+      }} />
+      {/* Directional soft highlight */}
+      <div className="absolute inset-0" style={{
+        background: `radial-gradient(ellipse 70% 50% at ${light.hlX}% ${light.hlY}%, ${light_}25 0%, transparent 60%)`,
       }} />
     </div>
   );
 }
 
-function MetalSwatch({ hex, filterId }: { hex: string; filterId: string }) {
-  const light = lightenHex(hex, 0.25);
-  const vlight = lightenHex(hex, 0.4);
+function MetalSwatch({ hex, filterId, light }: { hex: string; filterId: string; light: LightCtx }) {
+  const l1 = lightenHex(hex, 0.25);
+  const vl = lightenHex(hex, 0.4);
   const dark = darkenHex(hex, 0.18);
   const vdark = darkenHex(hex, 0.3);
   return (
     <div className="relative rounded-xl h-32 overflow-hidden" style={{
-      background: `linear-gradient(155deg, ${dark} 0%, ${hex} 20%, ${vlight} 42%, ${light} 48%, ${hex} 55%, ${dark} 75%, ${vdark} 100%)`,
+      background: `linear-gradient(${light.gradAngle}deg, ${vdark} 0%, ${dark} 15%, ${hex} 35%, ${vl} 48%, ${l1} 52%, ${hex} 65%, ${dark} 85%, ${vdark} 100%)`,
     }}>
-      {/* Brushed streaks */}
       <div className="absolute inset-0" style={{
         backgroundImage: `
-          repeating-linear-gradient(88deg, transparent, transparent 1px, ${vlight}12 1px, ${vlight}12 1.5px),
-          repeating-linear-gradient(92deg, transparent, transparent 3px, ${dark}0c 3px, ${dark}0c 3.5px)
+          repeating-linear-gradient(${light.angle + 88}deg, transparent, transparent 1px, ${vl}12 1px, ${vl}12 1.5px),
+          repeating-linear-gradient(${light.angle + 92}deg, transparent, transparent 3px, ${dark}0c 3px, ${dark}0c 3.5px)
         `,
       }} />
-      {/* Specular highlight */}
+      {/* Specular moves with light */}
       <div className="absolute inset-0" style={{
-        background: `radial-gradient(ellipse 60% 30% at 55% 35%, ${vlight}50 0%, transparent 70%)`,
+        background: `radial-gradient(ellipse 55% 30% at ${light.hlX}% ${light.hlY}%, ${vl}60 0%, transparent 65%)`,
       }} />
-      {/* Fine grain */}
       <NoiseSvg id={filterId} baseFrequency={2.5} numOctaves={3} opacity={0.06} />
-      {/* Edge shadow */}
       <div className="absolute inset-0 rounded-xl" style={{
-        boxShadow: `inset 0 1px 0 ${vlight}60, inset 0 -2px 4px ${vdark}50, inset 2px 0 4px ${dark}20, inset -2px 0 4px ${dark}20`,
+        boxShadow: `inset 0 1px 0 ${vl}60, inset 0 -2px 4px ${vdark}50, inset 2px 0 4px ${dark}20, inset -2px 0 4px ${dark}20`,
       }} />
     </div>
   );
 }
 
-function GlassSwatch({ hex, filterId }: { hex: string; filterId: string }) {
-  const light = lightenHex(hex, 0.3);
-  const vlight = lightenHex(hex, 0.45);
+function GlassSwatch({ hex, filterId, light }: { hex: string; filterId: string; light: LightCtx }) {
+  const l1 = lightenHex(hex, 0.3);
+  const vl = lightenHex(hex, 0.45);
   const dark = darkenHex(hex, 0.1);
+  // Glare line position based on light
+  const glareTop = Math.max(4, 50 - Math.cos((light.angle * Math.PI) / 180) * 40);
   return (
     <div className="relative rounded-xl h-32 overflow-hidden" style={{
-      background: `linear-gradient(145deg, ${hex}bb 0%, ${light}88 35%, ${hex}99 50%, ${vlight}55 75%, ${hex}aa 100%)`,
+      background: `linear-gradient(${light.gradAngle}deg, ${hex}bb 0%, ${l1}88 35%, ${hex}99 50%, ${vl}55 75%, ${hex}aa 100%)`,
     }}>
-      {/* Refraction band */}
       <div className="absolute inset-0" style={{
         background: `
-          linear-gradient(120deg, transparent 20%, ${vlight}30 35%, transparent 50%),
-          linear-gradient(200deg, transparent 50%, ${vlight}18 70%, transparent 85%)
+          linear-gradient(${light.angle + 120}deg, transparent 20%, ${vl}30 35%, transparent 50%),
+          linear-gradient(${light.angle + 200}deg, transparent 50%, ${vl}18 70%, transparent 85%)
         `,
       }} />
-      {/* Glass edge caustics */}
+      {/* Specular highlight follows light */}
+      <div className="absolute inset-0" style={{
+        background: `radial-gradient(ellipse 40% 25% at ${light.hlX}% ${light.hlY}%, ${vl}50 0%, transparent 55%)`,
+      }} />
       <div className="absolute inset-0 rounded-xl" style={{
         boxShadow: `
-          inset 0 1px 1px ${vlight}90,
+          inset 0 1px 1px ${vl}90,
           inset 0 -1px 2px ${dark}40,
-          inset 1px 0 1px ${vlight}30,
+          inset 1px 0 1px ${vl}30,
           0 4px 20px ${hex}25,
           0 1px 3px ${dark}20
         `,
       }} />
-      {/* Frosted noise */}
       <NoiseSvg id={filterId} baseFrequency={0.9} numOctaves={4} opacity={0.04} />
-      {/* Top glare line */}
-      <div className="absolute top-2 left-3 right-6 h-[1px] rounded-full" style={{
-        background: `linear-gradient(90deg, transparent, ${vlight}70 30%, ${vlight}90 50%, ${vlight}70 70%, transparent)`,
+      {/* Glare line */}
+      <div className="absolute left-3 right-6 h-[1px] rounded-full" style={{
+        top: `${glareTop}%`,
+        background: `linear-gradient(90deg, transparent, ${vl}70 30%, ${vl}90 50%, ${vl}70 70%, transparent)`,
+        transform: `rotate(${(light.angle - 135) * 0.15}deg)`,
       }} />
     </div>
   );
 }
 
-function PaperSwatch({ hex, filterId }: { hex: string; filterId: string }) {
+function PaperSwatch({ hex, filterId, light }: { hex: string; filterId: string; light: LightCtx }) {
   const dark = darkenHex(hex, 0.06);
   const vdark = darkenHex(hex, 0.12);
-  const light = lightenHex(hex, 0.06);
+  const l1 = lightenHex(hex, 0.06);
   return (
     <div className="relative rounded-xl h-32 overflow-hidden" style={{ backgroundColor: hex }}>
-      {/* Fiber texture dots */}
       <div className="absolute inset-0" style={{
         backgroundImage: `
           radial-gradient(${vdark}0c 0.8px, transparent 0.8px),
@@ -179,16 +204,15 @@ function PaperSwatch({ hex, filterId }: { hex: string; filterId: string }) {
         backgroundSize: '5px 5px, 8px 8px, 13px 13px',
         backgroundPosition: '0 0, 3px 3px, 6px 1px',
       }} />
-      {/* Heavy grain noise */}
       <NoiseSvg id={filterId} baseFrequency={0.85} numOctaves={6} opacity={0.14} />
-      {/* Subtle crease shadows */}
+      {/* Light-responsive shading */}
       <div className="absolute inset-0" style={{
-        background: `
-          linear-gradient(168deg, ${light}30 0%, transparent 25%, transparent 75%, ${dark}20 100%),
-          linear-gradient(72deg, transparent 40%, ${dark}08 50%, transparent 60%)
-        `,
+        background: `linear-gradient(${light.gradAngle}deg, ${l1}35 0%, transparent 30%, transparent 70%, ${dark}25 100%)`,
       }} />
-      {/* Soft edge vignette */}
+      {/* Crease that shifts with light */}
+      <div className="absolute inset-0" style={{
+        background: `linear-gradient(${light.angle + 72}deg, transparent 40%, ${dark}0a 50%, transparent 60%)`,
+      }} />
       <div className="absolute inset-0 rounded-xl" style={{
         boxShadow: `inset 0 0 12px ${dark}15`,
       }} />
@@ -196,13 +220,12 @@ function PaperSwatch({ hex, filterId }: { hex: string; filterId: string }) {
   );
 }
 
-function WoodSwatch({ hex, filterId }: { hex: string; filterId: string }) {
+function WoodSwatch({ hex, filterId, light }: { hex: string; filterId: string; light: LightCtx }) {
   const dark = darkenHex(hex, 0.14);
   const vdark = darkenHex(hex, 0.25);
-  const light = lightenHex(hex, 0.1);
+  const l1 = lightenHex(hex, 0.1);
   return (
     <div className="relative rounded-xl h-32 overflow-hidden" style={{ backgroundColor: hex }}>
-      {/* Wide grain lines */}
       <div className="absolute inset-0" style={{
         backgroundImage: `
           repeating-linear-gradient(85deg, transparent, transparent 6px, ${dark}18 6px, ${dark}18 7px, transparent 7px, transparent 14px, ${vdark}10 14px, ${vdark}10 14.5px),
@@ -210,7 +233,6 @@ function WoodSwatch({ hex, filterId }: { hex: string; filterId: string }) {
           repeating-linear-gradient(87deg, transparent, transparent 30px, ${dark}0a 30px, ${dark}0a 32px)
         `,
       }} />
-      {/* Knot / ring simulation */}
       <div className="absolute" style={{
         width: '50px', height: '35px', top: '40%', left: '60%',
         borderRadius: '50%',
@@ -218,43 +240,44 @@ function WoodSwatch({ hex, filterId }: { hex: string; filterId: string }) {
         border: `1px solid ${dark}12`,
         transform: 'rotate(-12deg)',
       }} />
-      {/* Wood grain noise */}
       <NoiseSvg id={filterId} baseFrequency={0.3} numOctaves={3} opacity={0.1} />
-      {/* Lacquer sheen */}
+      {/* Lacquer sheen follows light */}
       <div className="absolute inset-0" style={{
-        background: `linear-gradient(135deg, ${light}20 0%, transparent 35%, transparent 65%, ${dark}15 100%)`,
+        background: `linear-gradient(${light.gradAngle}deg, ${l1}28 0%, transparent 40%, transparent 60%, ${dark}1a 100%)`,
+      }} />
+      {/* Specular gloss */}
+      <div className="absolute inset-0" style={{
+        background: `radial-gradient(ellipse 60% 35% at ${light.hlX}% ${light.hlY}%, ${l1}18 0%, transparent 55%)`,
       }} />
       <div className="absolute inset-0 rounded-xl" style={{
-        boxShadow: `inset 0 1px 0 ${light}30, inset 0 -1px 3px ${vdark}20`,
+        boxShadow: `inset 0 1px 0 ${l1}30, inset 0 -1px 3px ${vdark}20`,
         filter: 'saturate(0.9)',
       }} />
     </div>
   );
 }
 
-function PlasticSwatch({ hex, filterId }: { hex: string; filterId: string }) {
-  const light = lightenHex(hex, 0.22);
-  const vlight = lightenHex(hex, 0.38);
+function PlasticSwatch({ hex, filterId, light }: { hex: string; filterId: string; light: LightCtx }) {
+  const l1 = lightenHex(hex, 0.22);
+  const vl = lightenHex(hex, 0.38);
   const dark = darkenHex(hex, 0.18);
   const vdark = darkenHex(hex, 0.28);
   return (
     <div className="relative rounded-xl h-32 overflow-hidden" style={{
-      background: `linear-gradient(150deg, ${light} 0%, ${hex} 40%, ${dark} 100%)`,
+      background: `linear-gradient(${light.gradAngle}deg, ${l1} 0%, ${hex} 40%, ${dark} 100%)`,
     }}>
-      {/* Glossy specular */}
+      {/* Primary specular — follows light */}
       <div className="absolute inset-0" style={{
-        background: `radial-gradient(ellipse 50% 40% at 40% 30%, ${vlight}55 0%, transparent 60%)`,
+        background: `radial-gradient(ellipse 45% 35% at ${light.hlX}% ${light.hlY}%, ${vl}60 0%, transparent 55%)`,
       }} />
-      {/* Secondary catch-light */}
+      {/* Secondary catch-light opposite */}
       <div className="absolute inset-0" style={{
-        background: `radial-gradient(ellipse 20% 15% at 70% 70%, ${light}20 0%, transparent 50%)`,
+        background: `radial-gradient(ellipse 20% 15% at ${100 - light.hlX}% ${100 - light.hlY}%, ${l1}20 0%, transparent 50%)`,
       }} />
-      {/* Micro-texture */}
       <NoiseSvg id={filterId} baseFrequency={3.0} numOctaves={2} opacity={0.03} />
-      {/* Rim lighting */}
       <div className="absolute inset-0 rounded-xl" style={{
         boxShadow: `
-          inset 0 1px 2px ${vlight}70,
+          inset 0 1px 2px ${vl}70,
           inset 0 -2px 6px ${vdark}50,
           inset 2px 0 4px ${dark}15,
           inset -2px 0 4px ${dark}15,
@@ -266,22 +289,41 @@ function PlasticSwatch({ hex, filterId }: { hex: string; filterId: string }) {
   );
 }
 
-function MaterialSwatch({ material, hex, index }: { material: MaterialType; hex: string; index: number }) {
+function MaterialSwatch({ material, hex, index, light }: { material: MaterialType; hex: string; index: number; light: LightCtx }) {
   const baseId = useId();
   const filterId = `noise-${baseId}-${index}`;
+  const props = { hex, filterId, light };
 
   switch (material) {
-    case 'fabric': return <FabricSwatch hex={hex} filterId={filterId} />;
-    case 'metal': return <MetalSwatch hex={hex} filterId={filterId} />;
-    case 'glass': return <GlassSwatch hex={hex} filterId={filterId} />;
-    case 'paper': return <PaperSwatch hex={hex} filterId={filterId} />;
-    case 'wood': return <WoodSwatch hex={hex} filterId={filterId} />;
-    case 'plastic': return <PlasticSwatch hex={hex} filterId={filterId} />;
+    case 'fabric': return <FabricSwatch {...props} />;
+    case 'metal': return <MetalSwatch {...props} />;
+    case 'glass': return <GlassSwatch {...props} />;
+    case 'paper': return <PaperSwatch {...props} />;
+    case 'wood': return <WoodSwatch {...props} />;
+    case 'plastic': return <PlasticSwatch {...props} />;
   }
+}
+
+/** Small visual dial showing light direction */
+function LightDial({ angle }: { angle: number }) {
+  const rad = (angle * Math.PI) / 180;
+  const cx = 12, cy = 12, r = 9;
+  const ex = cx + Math.sin(rad) * r;
+  const ey = cy - Math.cos(rad) * r;
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" className="shrink-0">
+      <circle cx={cx} cy={cy} r={r} fill="none" className="stroke-muted-foreground/30" strokeWidth="1.5" />
+      <circle cx={cx} cy={cy} r="2" className="fill-muted-foreground/40" />
+      <line x1={cx} y1={cy} x2={ex} y2={ey} className="stroke-primary" strokeWidth="2" strokeLinecap="round" />
+      <circle cx={ex} cy={ey} r="2.5" className="fill-primary" />
+    </svg>
+  );
 }
 
 export function MaterialTexturePreview({ colors }: { colors: LabColor[] }) {
   const [material, setMaterial] = useState<MaterialType>('metal');
+  const [lightAngle, setLightAngle] = useState(135);
+  const light = useMemo(() => angleTo(lightAngle), [lightAngle]);
 
   if (colors.length < 1) {
     return (
@@ -300,7 +342,7 @@ export function MaterialTexturePreview({ colors }: { colors: LabColor[] }) {
           Material & Texture Preview
         </CardTitle>
         <p className="text-[10px] text-muted-foreground">
-          Hyper-realistic surface simulations with lighting, grain & texture
+          Hyper-realistic surfaces with dynamic lighting, grain & texture
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -320,11 +362,27 @@ export function MaterialTexturePreview({ colors }: { colors: LabColor[] }) {
           ))}
         </div>
 
+        {/* Light direction control */}
+        <div className="flex items-center gap-3 px-1">
+          <Sun className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">Light</span>
+          <Slider
+            value={[lightAngle]}
+            onValueChange={([v]) => setLightAngle(v)}
+            min={0}
+            max={360}
+            step={5}
+            className="flex-1"
+          />
+          <LightDial angle={lightAngle} />
+          <span className="text-[10px] text-muted-foreground font-mono w-8 text-right">{lightAngle}°</span>
+        </div>
+
         {/* Material swatches */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {colors.map((c, i) => (
             <div key={c.id} className="space-y-1.5">
-              <MaterialSwatch material={material} hex={c.hex} index={i} />
+              <MaterialSwatch material={material} hex={c.hex} index={i} light={light} />
               <div className="flex items-center gap-1.5 px-1">
                 <div className="w-3 h-3 rounded border shrink-0" style={{ backgroundColor: c.hex }} />
                 <span className="text-[10px] font-medium truncate">{c.name}</span>
@@ -337,7 +395,7 @@ export function MaterialTexturePreview({ colors }: { colors: LabColor[] }) {
         <div className="space-y-1.5">
           <p className="text-[10px] text-muted-foreground font-medium">Product Surface Mockup</p>
           <div className="relative rounded-xl h-24 overflow-hidden">
-            <MaterialSwatch material={material} hex={colors[0].hex} index={999} />
+            <MaterialSwatch material={material} hex={colors[0].hex} index={999} light={light} />
             <div className="absolute inset-0 flex items-end">
               <div className="w-full px-4 py-2.5 flex items-center justify-between" style={{
                 background: `linear-gradient(to top, ${darkenHex(colors[0].hex, 0.35)}dd, ${darkenHex(colors[0].hex, 0.2)}88, transparent)`,
