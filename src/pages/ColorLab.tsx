@@ -11,7 +11,8 @@ import {
   Plus, Trash2, Palette, Eye, Printer, Monitor, Copy, Check,
   ArrowLeft, Droplets, Sun, Pipette, Import, AlertTriangle,
   CheckCircle2, Info, Shield, Globe, FileText, Image as ImageIcon,
-  Lock, LogIn, ArrowRight, ChevronRight, Wand2, Replace,
+  Lock, LogIn, ArrowRight, ChevronRight, Wand2, Replace, Save,
+  FolderOpen, Clock, X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 import {
   contrastRatio, wcagLevel, wcagLevelColor, wcagBadgeBg,
@@ -416,6 +418,15 @@ const FixSuggestionsCard = ({ colors, failingPairs, onApplyFix, onApplyAll }: {
   );
 };
 
+// ── Saved Palette Type ─────────────────────────────────────────────
+
+interface SavedPalette {
+  id: string;
+  title: string;
+  colors: LabColor[];
+  created_at: string;
+}
+
 // ── Default colors ─────────────────────────────────────────────────
 
 const DEFAULT_COLORS: LabColor[] = [
@@ -427,11 +438,79 @@ const DEFAULT_COLORS: LabColor[] = [
 // ── Main Page ──────────────────────────────────────────────────────
 
 export default function ColorLab() {
+  const { user } = useAuth();
   const [colors, setColors] = useState<LabColor[]>(DEFAULT_COLORS);
   const [newHex, setNewHex] = useState('#');
   const [newName, setNewName] = useState('');
   const [expandedColor, setExpandedColor] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<StepId>('build');
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [paletteTitle, setPaletteTitle] = useState('');
+  const [savingPalette, setSavingPalette] = useState(false);
+  const [savedPalettes, setSavedPalettes] = useState<SavedPalette[]>([]);
+  const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+  const [palettesLoaded, setPalettesLoaded] = useState(false);
+
+  const loadSavedPalettes = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('color_lab_reports')
+      .select('id, title, colors, created_at')
+      .eq('user_id', user.id)
+      .eq('report_type', 'palette')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (data) {
+      setSavedPalettes(data.map(d => ({
+        id: d.id,
+        title: d.title,
+        colors: (d.colors as any[]) || [],
+        created_at: d.created_at,
+      })));
+    }
+    setPalettesLoaded(true);
+  }, [user]);
+
+  const savePalette = useCallback(async () => {
+    if (!user || !paletteTitle.trim()) return;
+    setSavingPalette(true);
+    const { error } = await supabase
+      .from('color_lab_reports')
+      .insert({
+        user_id: user.id,
+        title: paletteTitle.trim(),
+        colors: colors.map(c => ({ hex: c.hex, name: c.name })) as any,
+        report_type: 'palette',
+        report_data: {} as any,
+      });
+    setSavingPalette(false);
+    if (error) {
+      toast.error('Failed to save palette');
+    } else {
+      toast.success('Palette saved');
+      setSaveDialogOpen(false);
+      setPaletteTitle('');
+      loadSavedPalettes();
+    }
+  }, [user, paletteTitle, colors, loadSavedPalettes]);
+
+  const loadPalette = useCallback((palette: SavedPalette) => {
+    const loaded: LabColor[] = palette.colors.map((c: any) => ({
+      id: crypto.randomUUID(),
+      hex: c.hex,
+      name: c.name || 'Unnamed',
+    }));
+    setColors(loaded);
+    setLoadDialogOpen(false);
+    setCurrentStep('build');
+    toast.success(`Loaded "${palette.title}"`);
+  }, []);
+
+  const deletePalette = useCallback(async (id: string) => {
+    await supabase.from('color_lab_reports').delete().eq('id', id);
+    setSavedPalettes(prev => prev.filter(p => p.id !== id));
+    toast.success('Palette deleted');
+  }, []);
 
   const addColor = useCallback(() => {
     const hex = newHex.trim().toUpperCase();
@@ -906,6 +985,95 @@ export default function ColorLab() {
           </Button>
 
           <div className="flex items-center gap-2">
+            {/* Load Palette */}
+            {user && (
+              <Dialog open={loadDialogOpen} onOpenChange={(open) => {
+                setLoadDialogOpen(open);
+                if (open && !palettesLoaded) loadSavedPalettes();
+              }}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                    <FolderOpen className="h-3.5 w-3.5" />
+                    Load
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <FolderOpen className="h-5 w-5 text-primary" />
+                      Saved Palettes
+                    </DialogTitle>
+                  </DialogHeader>
+                  {savedPalettes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">No saved palettes yet</p>
+                  ) : (
+                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                      {savedPalettes.map(p => (
+                        <div key={p.id} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
+                          <div className="flex rounded overflow-hidden h-6 w-16 border shrink-0">
+                            {p.colors.slice(0, 5).map((c: any, i: number) => (
+                              <div key={i} className="flex-1" style={{ backgroundColor: c.hex }} />
+                            ))}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{p.title}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {p.colors.length} colors · {new Date(p.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Button size="sm" variant="outline" className="text-xs shrink-0" onClick={() => loadPalette(p)}>
+                            Load
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => deletePalette(p.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            )}
+
+            {/* Save Palette */}
+            {user && colors.length >= 2 && (
+              <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                    <Save className="h-3.5 w-3.5" />
+                    Save Palette
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Save className="h-5 w-5 text-primary" />
+                      Save Palette
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div className="flex rounded-lg overflow-hidden h-8 border">
+                      {colors.map(c => (
+                        <div key={c.id} className="flex-1" style={{ backgroundColor: c.hex }} title={c.name} />
+                      ))}
+                    </div>
+                    <div>
+                      <Label className="text-xs">Palette Name</Label>
+                      <Input
+                        placeholder="e.g. Brand Primary v2"
+                        value={paletteTitle}
+                        onChange={e => setPaletteTitle(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && savePalette()}
+                      />
+                    </div>
+                    <Button onClick={savePalette} disabled={savingPalette || !paletteTitle.trim()} className="w-full gap-1.5">
+                      {savingPalette ? 'Saving...' : 'Save'}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+
             {currentStep === 'build' && !canAdvance && (
               <p className="text-xs text-muted-foreground">Add at least 2 colors to continue</p>
             )}
