@@ -1,4 +1,4 @@
-// BrandHub - Brand Guide Creator v2.3
+// BrandHub - Brand Guide Creator v2.4
 import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "next-themes";
 import App from "./App.tsx";
