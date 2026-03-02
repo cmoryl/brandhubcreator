@@ -42,11 +42,8 @@
   Cache-Control: public, max-age=604800
 
 # Cache JS and CSS with content hashes
-/*.js
-  Cache-Control: public, max-age=31536000, immutable
-
-/*.css
-  Cache-Control: public, max-age=31536000, immutable
+# NOTE: Do NOT use /*.js here — it would conflict with /sw.js no-cache rule.
+# Vite outputs all JS/CSS to /assets/* which is already covered above.
 
 # Cache JPG/PNG images
 /*.jpg
