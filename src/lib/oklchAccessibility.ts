@@ -155,7 +155,7 @@ export const suggestAccessibleColor = (
 
 // ── OKLCH → Hex (reverse conversion) ───────────────────────────────
 
-const oklchToHex = (oklch: OklchColor): string => {
+export const oklchToHex = (oklch: OklchColor): string => {
   const { L, C, H } = oklch;
   const hRad = (H * Math.PI) / 180;
   const a = C * Math.cos(hRad);
