@@ -1107,15 +1107,20 @@ function colorDetailsTableHtml(colors: ColorLabColor[]): string {
   const rows = colors.map(c => {
     const hsl = c.hsl ? `hsl(${Math.round(c.hsl.h)}, ${Math.round(c.hsl.s)}%, ${Math.round(c.hsl.l)}%)` : '—';
     const cmyk = c.cmyk ? `C${c.cmyk.c} M${c.cmyk.m} Y${c.cmyk.y} K${c.cmyk.k}` : '—';
+    const r = parseInt(c.hex.slice(1, 3), 16);
+    const g = parseInt(c.hex.slice(3, 5), 16);
+    const b = parseInt(c.hex.slice(5, 7), 16);
+    const rgb = `rgb(${r}, ${g}, ${b})`;
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:20px;height:20px;border-radius:4px;background:${c.hex};border:1px solid var(--border);"></div>${esc(c.name)}</div></td>
       <td style="font-family:monospace;font-size:12px;">${c.hex.toUpperCase()}</td>
+      <td style="font-size:12px;">${rgb}</td>
       <td style="font-size:12px;">${hsl}</td>
       <td style="font-size:12px;">${cmyk}</td>
       <td style="font-size:12px;">${esc(c.pantone || '—')}</td>
     </tr>`;
   }).join('');
-  return `<table><thead><tr><th>Name</th><th>HEX</th><th>HSL</th><th>CMYK</th><th>Pantone</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table><thead><tr><th>Name</th><th>HEX</th><th>RGB</th><th>HSL</th><th>CMYK</th><th>Pantone</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 export function exportColorLabReportHtml(
@@ -1210,13 +1215,47 @@ export async function exportColorLabReportPdf(
   const colorRows = colors.map(c => {
     const hsl = c.hsl ? `hsl(${Math.round(c.hsl.h)}, ${Math.round(c.hsl.s)}%, ${Math.round(c.hsl.l)}%)` : '—';
     const cmyk = c.cmyk ? `C${c.cmyk.c} M${c.cmyk.m} Y${c.cmyk.y} K${c.cmyk.k}` : '—';
+    const r = parseInt(c.hex.slice(1, 3), 16);
+    const g = parseInt(c.hex.slice(3, 5), 16);
+    const b = parseInt(c.hex.slice(5, 7), 16);
+    const rgb = `rgb(${r}, ${g}, ${b})`;
     return `<tr>
       <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;"><div style="display:flex;align-items:center;gap:6px;"><div style="width:16px;height:16px;border-radius:3px;background:${c.hex};border:1px solid #e5e7eb;"></div>${c.name}</div></td>
       <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-family:monospace;font-size:11px;">${c.hex.toUpperCase()}</td>
+      <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:11px;">${rgb}</td>
       <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:11px;">${hsl}</td>
       <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:11px;">${cmyk}</td>
       <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:11px;">${c.pantone || '—'}</td>
     </tr>`;
+  }).join('');
+
+  // Individual color detail cards with all codes
+  const colorDetailCards = colors.map(c => {
+    const hsl = c.hsl ? `hsl(${Math.round(c.hsl.h)}, ${Math.round(c.hsl.s)}%, ${Math.round(c.hsl.l)}%)` : '—';
+    const cmyk = c.cmyk ? `C${c.cmyk.c} M${c.cmyk.m} Y${c.cmyk.y} K${c.cmyk.k}` : '—';
+    const r = parseInt(c.hex.slice(1, 3), 16);
+    const g = parseInt(c.hex.slice(3, 5), 16);
+    const b = parseInt(c.hex.slice(5, 7), 16);
+    const rgb = `rgb(${r}, ${g}, ${b})`;
+    const row = (label: string, val: string) => `
+      <tr>
+        <td style="padding:4px 8px;font-size:10px;color:#6b7280;font-weight:600;border:none;width:60px;">${label}</td>
+        <td style="padding:4px 8px;font-size:11px;font-family:monospace;border:none;">${val}</td>
+      </tr>`;
+    return `
+      <div style="page-break-inside:avoid;display:flex;gap:16px;align-items:flex-start;padding:16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:10px;">
+        <div style="width:60px;height:60px;border-radius:8px;background:${c.hex};border:1px solid #e5e7eb;flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;color:#111827;margin-bottom:4px;">${c.name}</div>
+          <table style="width:100%;border-collapse:collapse;">
+            ${row('HEX', c.hex.toUpperCase())}
+            ${row('RGB', rgb)}
+            ${row('HSL', hsl)}
+            ${row('CMYK', cmyk)}
+            ${row('Pantone', c.pantone || '—')}
+          </table>
+        </div>
+      </div>`;
   }).join('');
 
   const findings = report.accessibilityAudit.findings.map(f => `<li style="padding:4px 0;font-size:12px;color:#374151;">${f}</li>`).join('');
@@ -1272,6 +1311,7 @@ export async function exportColorLabReportPdf(
         <thead><tr>
           <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">Name</th>
           <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">HEX</th>
+          <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">RGB</th>
           <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">HSL</th>
           <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">CMYK</th>
           <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">Pantone</th>
@@ -1279,6 +1319,8 @@ export async function exportColorLabReportPdf(
         <tbody>${colorRows}</tbody>
       </table>
     `)}
+
+    ${section('Palette Color Details', colorDetailCards)}
 
     <div style="text-align:center;color:#9ca3af;font-size:10px;margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;">
       Generated by BrandHub Color Lab · ${now}
