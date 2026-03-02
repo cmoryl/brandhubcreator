@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, Loader2, Download, BarChart3, Palette, BookOpen, Save, Clock, Trash2, ChevronDown } from 'lucide-react';
+import { FileText, Loader2, Download, BarChart3, Palette, BookOpen, Save, Clock, Trash2, ChevronDown, FileDown, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { hexToHsl, hexToCmyk, nearestPantone } from '@/lib/colorConversions';
 import { contrastRatio, colorblindSafetyScore } from '@/lib/oklchAccessibility';
 import { apcaContrast, analyzeHarmony, colorPsychology } from '@/lib/apcaContrast';
+import { exportColorLabReportHtml, exportColorLabReportPdf } from '@/lib/exportHtml';
 import { format } from 'date-fns';
 
 interface LabColor {
@@ -186,6 +187,14 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
     }
   };
 
+  const enrichedColors = colors.map(c => ({
+    hex: c.hex,
+    name: c.name,
+    hsl: hexToHsl(c.hex),
+    cmyk: hexToCmyk(c.hex),
+    pantone: nearestPantone(c.hex).name,
+  }));
+
   const exportAsText = () => {
     if (!report) return;
     const text = [
@@ -215,6 +224,27 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
     a.click();
     URL.revokeObjectURL(url);
     toast.success('Report downloaded');
+  };
+
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  const handleExportPdf = async () => {
+    if (!report) return;
+    setExportingPdf(true);
+    try {
+      await exportColorLabReportPdf(report, enrichedColors);
+      toast.success('PDF downloaded');
+    } catch {
+      toast.error('PDF export failed');
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
+  const handleExportHtml = () => {
+    if (!report) return;
+    exportColorLabReportHtml(report, enrichedColors);
+    toast.success('HTML report downloaded');
   };
 
   // ── Empty state: no report yet ──
@@ -294,14 +324,22 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
         {/* Header */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <h2 className="text-lg font-bold">{report.title}</h2>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button size="sm" variant="outline" onClick={saveReport} disabled={saving} className="gap-1">
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
               Save
             </Button>
+            <Button size="sm" variant="outline" onClick={handleExportPdf} disabled={exportingPdf} className="gap-1">
+              {exportingPdf ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+              PDF
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleExportHtml} className="gap-1">
+              <Globe className="h-3.5 w-3.5" />
+              HTML
+            </Button>
             <Button size="sm" variant="outline" onClick={exportAsText} className="gap-1">
               <Download className="h-3.5 w-3.5" />
-              Export
+              Markdown
             </Button>
           </div>
         </div>

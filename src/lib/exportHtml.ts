@@ -1063,3 +1063,240 @@ export function exportBiasAwarenessHtml(
   const slug = options.entityName.replace(/\s+/g, '-').toLowerCase();
   downloadHtml(html, `bias-awareness-${slug}.html`);
 }
+
+// ─── Color Lab Research Report ──────────────────────────────
+interface ColorLabReportData {
+  title: string;
+  executiveSummary: string;
+  colorTheory: { harmonyType: string; analysis: string; emotionalImpact: string };
+  accessibilityAudit: { wcagScore: number; apcaScore: number; colorblindSafety: number; findings: string[] };
+  culturalAnalysis: string;
+  industryBenchmark: string;
+  productionNotes: string;
+  recommendations: string[];
+  conclusion: string;
+}
+
+interface ColorLabColor {
+  hex: string;
+  name: string;
+  hsl?: { h: number; s: number; l: number };
+  cmyk?: { c: number; m: number; y: number; k: number };
+  pantone?: string;
+}
+
+function colorSwatchesHtml(colors: ColorLabColor[]): string {
+  const swatches = colors.map(c => {
+    const textColor = isLightColor(c.hex) ? '#111827' : '#ffffff';
+    return `<div style="flex:1;min-width:80px;text-align:center;padding:16px 8px;background:${c.hex};color:${textColor};border-radius:var(--radius);font-size:11px;">
+      <div style="font-weight:600;margin-bottom:2px;">${esc(c.name)}</div>
+      <div style="font-family:monospace;font-size:10px;opacity:0.8;">${c.hex.toUpperCase()}</div>
+    </div>`;
+  }).join('');
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:16px 0;">${swatches}</div>`;
+}
+
+function isLightColor(hex: string): boolean {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+}
+
+function colorDetailsTableHtml(colors: ColorLabColor[]): string {
+  const rows = colors.map(c => {
+    const hsl = c.hsl ? `hsl(${Math.round(c.hsl.h)}, ${Math.round(c.hsl.s)}%, ${Math.round(c.hsl.l)}%)` : '—';
+    const cmyk = c.cmyk ? `C${c.cmyk.c} M${c.cmyk.m} Y${c.cmyk.y} K${c.cmyk.k}` : '—';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:20px;height:20px;border-radius:4px;background:${c.hex};border:1px solid var(--border);"></div>${esc(c.name)}</div></td>
+      <td style="font-family:monospace;font-size:12px;">${c.hex.toUpperCase()}</td>
+      <td style="font-size:12px;">${hsl}</td>
+      <td style="font-size:12px;">${cmyk}</td>
+      <td style="font-size:12px;">${esc(c.pantone || '—')}</td>
+    </tr>`;
+  }).join('');
+  return `<table><thead><tr><th>Name</th><th>HEX</th><th>HSL</th><th>CMYK</th><th>Pantone</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+export function exportColorLabReportHtml(
+  report: ColorLabReportData,
+  colors: ColorLabColor[]
+): void {
+  const body = `
+    ${colorSwatchesHtml(colors)}
+    
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value" style="color:${scoreColor(report.accessibilityAudit.wcagScore)}">${report.accessibilityAudit.wcagScore}%</div>
+        <div class="stat-label">WCAG Compliance</div>
+        ${scoreBar(report.accessibilityAudit.wcagScore)}
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:${scoreColor(report.accessibilityAudit.apcaScore)}">${report.accessibilityAudit.apcaScore}%</div>
+        <div class="stat-label">APCA Score</div>
+        ${scoreBar(report.accessibilityAudit.apcaScore)}
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:${scoreColor(report.accessibilityAudit.colorblindSafety)}">${report.accessibilityAudit.colorblindSafety}%</div>
+        <div class="stat-label">Colorblind Safety</div>
+        ${scoreBar(report.accessibilityAudit.colorblindSafety)}
+      </div>
+    </div>
+
+    <h2>📝 Executive Summary</h2>
+    <div class="card"><p>${esc(report.executiveSummary)}</p></div>
+
+    <h2>🎨 Color Theory Analysis</h2>
+    <div class="card">
+      <div class="card-header"><span class="badge badge-primary">${esc(report.colorTheory.harmonyType)}</span></div>
+      <p>${esc(report.colorTheory.analysis)}</p>
+      <h3>Emotional Impact</h3>
+      <p>${esc(report.colorTheory.emotionalImpact)}</p>
+    </div>
+
+    <h2>♿ Accessibility Findings</h2>
+    <div class="card">${listHtml(safeArr(report.accessibilityAudit.findings), 'list-warn')}</div>
+
+    <h2>🌍 Cultural Analysis</h2>
+    <div class="card"><p>${esc(report.culturalAnalysis)}</p></div>
+
+    <h2>📊 Industry Benchmark</h2>
+    <div class="card"><p>${esc(report.industryBenchmark)}</p></div>
+
+    <h2>🏭 Production Notes</h2>
+    <div class="card"><p>${esc(report.productionNotes)}</p></div>
+
+    <h2>💡 Strategic Recommendations</h2>
+    <div class="card">${listHtml(safeArr(report.recommendations), 'list-check')}</div>
+
+    <h2>🔚 Conclusion</h2>
+    <div class="card"><p>${esc(report.conclusion)}</p></div>
+
+    <h2>📋 Color Specifications</h2>
+    <div class="card">${colorDetailsTableHtml(colors)}</div>
+  `;
+
+  const html = wrapDocument(
+    report.title,
+    `${colors.length} Colors · Color Lab Research Report`,
+    body
+  );
+  downloadHtml(html, `color-lab-report-${Date.now()}.html`);
+}
+
+export async function exportColorLabReportPdf(
+  report: ColorLabReportData,
+  colors: ColorLabColor[]
+): Promise<void> {
+  const { default: html2pdf } = await import('html2pdf.js');
+
+  const container = document.createElement('div');
+  Object.assign(container.style, {
+    position: 'fixed', top: '0', left: '0', width: '750px',
+    zIndex: '-1', opacity: '0.01', pointerEvents: 'none',
+    background: '#ffffff', color: '#111827', fontFamily: "'Segoe UI', system-ui, sans-serif",
+    padding: '40px', lineHeight: '1.6',
+  });
+
+  const sc = (score: number) => score >= 80 ? '#22c55e' : score >= 60 ? '#eab308' : '#ef4444';
+  const textColor = (hex: string) => isLightColor(hex) ? '#111827' : '#ffffff';
+
+  const swatches = colors.map(c => `
+    <div style="flex:1;min-width:70px;text-align:center;padding:14px 6px;background:${c.hex};color:${textColor(c.hex)};border-radius:8px;font-size:10px;">
+      <div style="font-weight:600;">${c.name}</div>
+      <div style="font-family:monospace;font-size:9px;opacity:0.8;">${c.hex.toUpperCase()}</div>
+    </div>
+  `).join('');
+
+  const colorRows = colors.map(c => {
+    const hsl = c.hsl ? `hsl(${Math.round(c.hsl.h)}, ${Math.round(c.hsl.s)}%, ${Math.round(c.hsl.l)}%)` : '—';
+    const cmyk = c.cmyk ? `C${c.cmyk.c} M${c.cmyk.m} Y${c.cmyk.y} K${c.cmyk.k}` : '—';
+    return `<tr>
+      <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:12px;"><div style="display:flex;align-items:center;gap:6px;"><div style="width:16px;height:16px;border-radius:3px;background:${c.hex};border:1px solid #e5e7eb;"></div>${c.name}</div></td>
+      <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-family:monospace;font-size:11px;">${c.hex.toUpperCase()}</td>
+      <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:11px;">${hsl}</td>
+      <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:11px;">${cmyk}</td>
+      <td style="padding:8px;border-bottom:1px solid #e5e7eb;font-size:11px;">${c.pantone || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const findings = report.accessibilityAudit.findings.map(f => `<li style="padding:4px 0;font-size:12px;color:#374151;">${f}</li>`).join('');
+  const recs = report.recommendations.map((r, i) => `<li style="padding:4px 0;font-size:12px;color:#374151;"><strong>${i + 1}.</strong> ${r}</li>`).join('');
+
+  const statCard = (label: string, value: number) => `
+    <div style="flex:1;text-align:center;padding:16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+      <div style="font-size:28px;font-weight:700;color:${sc(value)};">${value}%</div>
+      <div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">${label}</div>
+    </div>`;
+
+  const section = (title: string, content: string) => `
+    <div style="page-break-inside:avoid;margin-top:24px;">
+      <h2 style="font-size:16px;font-weight:600;color:#111827;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:12px;">${title}</h2>
+      ${content}
+    </div>`;
+
+  const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  container.innerHTML = `
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin-bottom:4px;">${report.title}</h1>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:24px;">${colors.length} Colors · Generated ${now}</p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">${swatches}</div>
+
+    <div style="display:flex;gap:12px;margin-bottom:24px;">
+      ${statCard('WCAG', report.accessibilityAudit.wcagScore)}
+      ${statCard('APCA', report.accessibilityAudit.apcaScore)}
+      ${statCard('CB Safe', report.accessibilityAudit.colorblindSafety)}
+    </div>
+
+    ${section('Executive Summary', `<p style="font-size:13px;color:#374151;">${report.executiveSummary}</p>`)}
+
+    ${section('Color Theory — ' + report.colorTheory.harmonyType, `
+      <p style="font-size:13px;color:#374151;">${report.colorTheory.analysis}</p>
+      <p style="font-size:13px;color:#374151;margin-top:8px;"><strong>Emotional Impact:</strong> ${report.colorTheory.emotionalImpact}</p>
+    `)}
+
+    ${section('Accessibility Findings', `<ul style="list-style:none;padding:0;">${findings}</ul>`)}
+
+    ${section('Cultural Analysis', `<p style="font-size:13px;color:#374151;">${report.culturalAnalysis}</p>`)}
+
+    ${section('Industry Benchmark', `<p style="font-size:13px;color:#374151;">${report.industryBenchmark}</p>`)}
+
+    ${section('Production Notes', `<p style="font-size:13px;color:#374151;">${report.productionNotes}</p>`)}
+
+    ${section('Strategic Recommendations', `<ol style="list-style:none;padding:0;">${recs}</ol>`)}
+
+    ${section('Conclusion', `<p style="font-size:13px;color:#374151;">${report.conclusion}</p>`)}
+
+    ${section('Color Specifications', `
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr>
+          <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">Name</th>
+          <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">HEX</th>
+          <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">HSL</th>
+          <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">CMYK</th>
+          <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">Pantone</th>
+        </tr></thead>
+        <tbody>${colorRows}</tbody>
+      </table>
+    `)}
+
+    <div style="text-align:center;color:#9ca3af;font-size:10px;margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;">
+      Generated by BrandHub Color Lab · ${now}
+    </div>
+  `;
+
+  document.body.appendChild(container);
+
+  try {
+    await html2pdf().set({
+      margin: [10, 10, 10, 10],
+      filename: `color-lab-report-${Date.now()}.pdf`,
+      image: { type: 'jpeg', quality: 0.75 },
+      html2canvas: { scale: 1.5, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    } as any).from(container).save();
+  } finally {
+    document.body.removeChild(container);
+  }
+}
