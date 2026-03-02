@@ -1,17 +1,20 @@
-import { useState } from 'react';
-import { FileText, Loader2, Download, BarChart3, Palette, BookOpen } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FileText, Loader2, Download, BarChart3, Palette, BookOpen, Save, Clock, Trash2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { hexToHsl, hexToCmyk, nearestPantone } from '@/lib/colorConversions';
 import { contrastRatio, colorblindSafetyScore } from '@/lib/oklchAccessibility';
 import { apcaContrast, analyzeHarmony, colorPsychology } from '@/lib/apcaContrast';
+import { format } from 'date-fns';
 
 interface LabColor {
   id: string;
@@ -40,13 +43,96 @@ interface ResearchReport {
   conclusion: string;
 }
 
+interface SavedReport {
+  id: string;
+  title: string;
+  colors: any;
+  report_data: ResearchReport;
+  created_at: string;
+}
+
 interface ColorResearchReportProps {
   colors: LabColor[];
 }
 
 export function ColorResearchReport({ colors }: ColorResearchReportProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [report, setReport] = useState<ResearchReport | null>(null);
+  const [savedReports, setSavedReports] = useState<SavedReport[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  // Load saved reports on mount
+  useEffect(() => {
+    if (user) loadSavedReports();
+  }, [user]);
+
+  const loadSavedReports = async () => {
+    if (!user) return;
+    setLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from('color_lab_reports')
+        .select('id, title, colors, report_data, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      setSavedReports((data || []) as unknown as SavedReport[]);
+    } catch {
+      console.error('Failed to load saved reports');
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const saveReport = async () => {
+    if (!report || !user) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('color_lab_reports')
+        .insert({
+          user_id: user.id,
+          title: report.title,
+          colors: colors.map(c => ({ hex: c.hex, name: c.name })) as any,
+          report_data: report as any,
+          report_type: 'research',
+        });
+
+      if (error) throw error;
+      toast.success('Report saved');
+      loadSavedReports();
+    } catch {
+      toast.error('Failed to save report');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const loadReport = (saved: SavedReport) => {
+    setReport(saved.report_data);
+    toast.success(`Loaded "${saved.title}"`);
+  };
+
+  const deleteReport = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const { error } = await supabase
+        .from('color_lab_reports')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setSavedReports(prev => prev.filter(r => r.id !== id));
+      toast.success('Report deleted');
+    } catch {
+      toast.error('Failed to delete report');
+    }
+  };
 
   const generateReport = async () => {
     if (colors.length < 2) {
@@ -55,12 +141,10 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
     }
     setLoading(true);
     try {
-      // Gather local analysis data to send with the request
       const hues = colors.map(c => hexToHsl(c.hex).h);
       const harmony = analyzeHarmony(hues);
       const cbSafety = colorblindSafetyScore(colors.map(c => c.hex));
-      
-      // Calculate contrast stats
+
       let passingWcag = 0, totalPairs = 0;
       for (let i = 0; i < colors.length; i++) {
         for (let j = i + 1; j < colors.length; j++) {
@@ -105,36 +189,22 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
   const exportAsText = () => {
     if (!report) return;
     const text = [
-      `# ${report.title}`,
-      '',
-      '## Executive Summary',
-      report.executiveSummary,
-      '',
+      `# ${report.title}`, '',
+      '## Executive Summary', report.executiveSummary, '',
       '## Color Theory Analysis',
       `Harmony: ${report.colorTheory.harmonyType}`,
-      report.colorTheory.analysis,
-      report.colorTheory.emotionalImpact,
-      '',
+      report.colorTheory.analysis, report.colorTheory.emotionalImpact, '',
       '## Accessibility Audit',
       `WCAG Score: ${report.accessibilityAudit.wcagScore}%`,
       `APCA Score: ${report.accessibilityAudit.apcaScore}%`,
       `Colorblind Safety: ${report.accessibilityAudit.colorblindSafety}%`,
-      ...report.accessibilityAudit.findings.map(f => `- ${f}`),
-      '',
-      '## Cultural Analysis',
-      report.culturalAnalysis,
-      '',
-      '## Industry Benchmark',
-      report.industryBenchmark,
-      '',
-      '## Production Notes',
-      report.productionNotes,
-      '',
+      ...report.accessibilityAudit.findings.map(f => `- ${f}`), '',
+      '## Cultural Analysis', report.culturalAnalysis, '',
+      '## Industry Benchmark', report.industryBenchmark, '',
+      '## Production Notes', report.productionNotes, '',
       '## Recommendations',
-      ...report.recommendations.map((r, i) => `${i + 1}. ${r}`),
-      '',
-      '## Conclusion',
-      report.conclusion,
+      ...report.recommendations.map((r, i) => `${i + 1}. ${r}`), '',
+      '## Conclusion', report.conclusion,
     ].join('\n');
 
     const blob = new Blob([text], { type: 'text/markdown' });
@@ -147,35 +217,93 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
     toast.success('Report downloaded');
   };
 
+  // ── Empty state: no report yet ──
   if (!report) {
     return (
-      <div className="text-center py-12 space-y-4">
-        <FileText className="h-12 w-12 mx-auto text-muted-foreground opacity-30" />
-        <div>
-          <p className="text-sm font-medium">Color Research Report</p>
-          <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
-            Generate a comprehensive AI-powered research report covering color theory, 
-            accessibility audit, cultural analysis, industry benchmarks, and production recommendations.
-          </p>
+      <div className="space-y-6">
+        <div className="text-center py-10 space-y-4">
+          <FileText className="h-12 w-12 mx-auto text-muted-foreground opacity-30" />
+          <div>
+            <p className="text-sm font-medium">Color Research Report</p>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
+              Generate a comprehensive AI-powered research report covering color theory,
+              accessibility audit, cultural analysis, industry benchmarks, and production recommendations.
+            </p>
+          </div>
+          <Button onClick={generateReport} disabled={loading || colors.length < 2} className="gap-2">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+            {loading ? 'Generating...' : 'Generate Report'}
+          </Button>
         </div>
-        <Button onClick={generateReport} disabled={loading || colors.length < 2} className="gap-2">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-          {loading ? 'Generating...' : 'Generate Report'}
-        </Button>
+
+        {/* Past reports */}
+        {savedReports.length > 0 && (
+          <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" size="sm" className="w-full gap-2 justify-between">
+                <span className="flex items-center gap-2">
+                  <Clock className="h-3.5 w-3.5" />
+                  Past Reports ({savedReports.length})
+                </span>
+                <ChevronDown className={cn("h-4 w-4 transition-transform", historyOpen && "rotate-180")} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3">
+              <div className="space-y-2">
+                {savedReports.map(r => (
+                  <button
+                    key={r.id}
+                    onClick={() => loadReport(r)}
+                    className="w-full text-left rounded-lg border p-3 hover:bg-muted/50 transition-colors group flex items-center justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium truncate">{r.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] text-muted-foreground">
+                          {format(new Date(r.created_at), 'MMM d, yyyy · h:mm a')}
+                        </span>
+                        <div className="flex gap-0.5">
+                          {(Array.isArray(r.colors) ? r.colors : []).slice(0, 5).map((c: any, i: number) => (
+                            <div key={i} className="w-3 h-3 rounded-sm border" style={{ backgroundColor: c.hex }} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 shrink-0 hover:bg-destructive/10 hover:text-destructive"
+                      onClick={(e) => deleteReport(r.id, e)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </button>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
       </div>
     );
   }
 
+  // ── Report view ──
   return (
     <ScrollArea className="h-[600px]">
       <div className="space-y-6 pr-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <h2 className="text-lg font-bold">{report.title}</h2>
-          <Button size="sm" variant="outline" onClick={exportAsText} className="gap-1">
-            <Download className="h-3.5 w-3.5" />
-            Export
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={saveReport} disabled={saving} className="gap-1">
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              Save
+            </Button>
+            <Button size="sm" variant="outline" onClick={exportAsText} className="gap-1">
+              <Download className="h-3.5 w-3.5" />
+              Export
+            </Button>
+          </div>
         </div>
 
         {/* Score Cards */}
@@ -231,15 +359,12 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
             <p className="text-xs text-muted-foreground leading-relaxed">{report.colorTheory.analysis}</p>
             <p className="text-xs text-muted-foreground leading-relaxed">{report.colorTheory.emotionalImpact}</p>
           </TabsContent>
-
           <TabsContent value="cultural" className="pt-3">
             <p className="text-xs text-muted-foreground leading-relaxed">{report.culturalAnalysis}</p>
           </TabsContent>
-
           <TabsContent value="industry" className="pt-3">
             <p className="text-xs text-muted-foreground leading-relaxed">{report.industryBenchmark}</p>
           </TabsContent>
-
           <TabsContent value="production" className="pt-3">
             <p className="text-xs text-muted-foreground leading-relaxed">{report.productionNotes}</p>
           </TabsContent>
@@ -281,6 +406,14 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
         <div className="space-y-1">
           <h3 className="text-sm font-semibold">Conclusion</h3>
           <p className="text-xs text-muted-foreground leading-relaxed">{report.conclusion}</p>
+        </div>
+
+        {/* New report button */}
+        <div className="pt-4">
+          <Button variant="outline" size="sm" onClick={() => setReport(null)} className="gap-1.5">
+            <FileText className="h-3.5 w-3.5" />
+            Generate New Report
+          </Button>
         </div>
       </div>
     </ScrollArea>

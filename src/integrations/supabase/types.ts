@@ -1646,6 +1646,39 @@ export type Database = {
           },
         ]
       }
+      color_lab_reports: {
+        Row: {
+          colors: Json
+          created_at: string
+          id: string
+          report_data: Json
+          report_type: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          colors?: Json
+          created_at?: string
+          id?: string
+          report_data?: Json
+          report_type?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          colors?: Json
+          created_at?: string
+          id?: string
+          report_data?: Json
+          report_type?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       company_locations: {
         Row: {
           address: string | null
