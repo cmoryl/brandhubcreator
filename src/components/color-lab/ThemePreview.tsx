@@ -34,18 +34,22 @@ const darken = (hex: string, amount: number): string => {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 };
 
-function MiniUI({ primary, secondary, background, foreground, label, icon: Icon }: {
+function MiniUI({ primary, secondary, accent, background, foreground, surface, label, icon: Icon }: {
   primary: string;
   secondary: string;
+  accent: string;
   background: string;
   foreground: string;
+  surface: string;
   label: string;
   icon: typeof Sun;
 }) {
   const primaryText = getContrastText(primary);
+  const secondaryText = getContrastText(secondary);
   const mutedFg = foreground + '99';
-  const cardBg = label === 'Light' ? lighten(background, 0.03) : lighten(background, 0.05);
+  const cardBg = surface;
   const borderColor = foreground + '1a';
+  const accentBg = accent + '18';
 
   return (
     <div className="flex-1 min-w-[260px]">
@@ -58,7 +62,7 @@ function MiniUI({ primary, secondary, background, foreground, label, icon: Icon 
         style={{ backgroundColor: background, color: foreground, borderColor }}
       >
         {/* Nav */}
-        <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: `1px solid ${borderColor}` }}>
+        <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: `1px solid ${borderColor}`, backgroundColor: surface }}>
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded" style={{ backgroundColor: primary }} />
             <span className="text-xs font-bold">Brand</span>
@@ -94,13 +98,13 @@ function MiniUI({ primary, secondary, background, foreground, label, icon: Icon 
 
         {/* Cards */}
         <div className="px-4 py-3 grid grid-cols-2 gap-2">
-          {['Feature 1', 'Feature 2'].map(label => (
+          {['Feature 1', 'Feature 2'].map((label, i) => (
             <div
               key={label}
               className="rounded-lg p-2.5"
               style={{ backgroundColor: cardBg, border: `1px solid ${borderColor}` }}
             >
-              <div className="w-6 h-6 rounded-md mb-1.5 flex items-center justify-center text-[10px]" style={{ backgroundColor: secondary, color: getContrastText(secondary) }}>
+              <div className="w-6 h-6 rounded-md mb-1.5 flex items-center justify-center text-[10px]" style={{ backgroundColor: i === 0 ? secondary : accent, color: i === 0 ? secondaryText : getContrastText(accent) }}>
                 ✦
               </div>
               <p className="text-[10px] font-semibold">{label}</p>
@@ -109,8 +113,26 @@ function MiniUI({ primary, secondary, background, foreground, label, icon: Icon 
           ))}
         </div>
 
+        {/* Alert / Banner */}
+        <div className="px-4 py-2">
+          <div className="rounded-lg px-3 py-2 flex items-center gap-2" style={{ backgroundColor: accentBg, border: `1px solid ${accent}30` }}>
+            <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px]" style={{ backgroundColor: accent, color: getContrastText(accent) }}>i</div>
+            <p className="text-[9px]" style={{ color: foreground }}>Banner using accent background</p>
+          </div>
+        </div>
+
+        {/* Input + Secondary Button row */}
+        <div className="px-4 py-2 flex gap-2">
+          <div className="flex-1 rounded-md px-2 py-1 text-[9px]" style={{ backgroundColor: surface, border: `1px solid ${borderColor}`, color: mutedFg }}>
+            Input field…
+          </div>
+          <div className="px-3 py-1 rounded-md text-[9px] font-semibold" style={{ backgroundColor: secondary, color: secondaryText }}>
+            Submit
+          </div>
+        </div>
+
         {/* Footer */}
-        <div className="px-4 py-2 text-center" style={{ borderTop: `1px solid ${borderColor}` }}>
+        <div className="px-4 py-2 text-center" style={{ borderTop: `1px solid ${borderColor}`, backgroundColor: surface }}>
           <p className="text-[8px]" style={{ color: mutedFg }}>© 2026 Brand. All rights reserved.</p>
         </div>
       </div>
@@ -131,6 +153,7 @@ export function ThemePreview({ colors }: { colors: LabColor[] }) {
   // Pick roles: primary = first, secondary = second, rest as accents
   const primary = colors[0].hex;
   const secondary = colors.length > 1 ? colors[1].hex : primary;
+  const accent = colors.length > 2 ? colors[2].hex : secondary;
 
   return (
     <Card>
@@ -145,16 +168,20 @@ export function ThemePreview({ colors }: { colors: LabColor[] }) {
           <MiniUI
             primary={primary}
             secondary={secondary}
+            accent={accent}
             background="#FFFFFF"
             foreground="#1a1a1a"
+            surface="#f8f8f8"
             label="Light"
             icon={Sun}
           />
           <MiniUI
             primary={primary}
             secondary={secondary}
+            accent={accent}
             background="#0f1117"
             foreground="#e5e5e5"
+            surface="#1a1b23"
             label="Dark"
             icon={Moon}
           />
