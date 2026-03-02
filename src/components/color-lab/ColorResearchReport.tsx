@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { hexToHsl, hexToCmyk, nearestPantone } from '@/lib/colorConversions';
+import { hexToHsl, hexToCmyk, nearestPantone, analyzeMediumSuitability } from '@/lib/colorConversions';
 import { contrastRatio, colorblindSafetyScore } from '@/lib/oklchAccessibility';
 import { apcaContrast, analyzeHarmony, colorPsychology } from '@/lib/apcaContrast';
 import { exportColorLabReportHtml, exportColorLabReportPdf } from '@/lib/exportHtml';
@@ -187,13 +187,23 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
     }
   };
 
-  const enrichedColors = colors.map(c => ({
-    hex: c.hex,
-    name: c.name,
-    hsl: hexToHsl(c.hex),
-    cmyk: hexToCmyk(c.hex),
-    pantone: nearestPantone(c.hex).name,
-  }));
+  const enrichedColors = colors.map(c => {
+    const cmyk = hexToCmyk(c.hex);
+    const pantoneMatch = nearestPantone(c.hex);
+    const { print } = analyzeMediumSuitability(c.hex);
+    const totalInk = cmyk.c + cmyk.m + cmyk.y + cmyk.k;
+    return {
+      hex: c.hex,
+      name: c.name,
+      hsl: hexToHsl(c.hex),
+      cmyk,
+      pantone: pantoneMatch.name,
+      pantoneDistance: pantoneMatch.distance,
+      printScore: print.score,
+      printNotes: print.notes,
+      inkCoverage: totalInk,
+    };
+  });
 
   const exportAsText = () => {
     if (!report) return;
@@ -201,15 +211,24 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
       const r = parseInt(c.hex.slice(1, 3), 16);
       const g = parseInt(c.hex.slice(3, 5), 16);
       const b = parseInt(c.hex.slice(5, 7), 16);
+      const printStatus = c.printScore >= 80 ? '✅ Print-Ready' : c.printScore >= 50 ? '⚠️ Caution' : '❌ Not Recommended';
       return [
         `### ${c.name}`,
         `- **HEX:** ${c.hex.toUpperCase()}`,
         `- **RGB:** rgb(${r}, ${g}, ${b})`,
         `- **HSL:** hsl(${Math.round(c.hsl.h)}, ${Math.round(c.hsl.s)}%, ${Math.round(c.hsl.l)}%)`,
         `- **CMYK:** C${c.cmyk.c} M${c.cmyk.m} Y${c.cmyk.y} K${c.cmyk.k}`,
-        `- **Pantone:** ${c.pantone || '—'}`,
+        `- **Ink Coverage:** ${c.inkCoverage}%${c.inkCoverage > 300 ? ' ⚠️ EXCEEDS 300% LIMIT' : ''}`,
+        `- **Pantone:** ${c.pantone || '—'} (ΔE ≈ ${c.pantoneDistance})`,
+        `- **Print Readiness:** ${printStatus} (${c.printScore}/100)`,
+        ...(c.printNotes || []).map(n => `  - ${n}`),
       ].join('\n');
     }).join('\n\n');
+
+    const printSummary = enrichedColors.map(c => {
+      const status = c.printScore >= 80 ? '✅ Ready' : c.printScore >= 50 ? '⚠️ Caution' : '❌ Review';
+      return `| ${c.name} | ${c.inkCoverage}% | ${c.pantone} (ΔE≈${c.pantoneDistance}) | ${c.printScore}/100 | ${status} |`;
+    });
 
     const text = [
       `# ${report.title}`, '',
@@ -226,6 +245,10 @@ export function ColorResearchReport({ colors }: ColorResearchReportProps) {
       '## Cultural Analysis', report.culturalAnalysis, '',
       '## Industry Benchmark', report.industryBenchmark, '',
       '## Production Notes', report.productionNotes, '',
+      '## 🖨️ Print Production Analysis', '',
+      '| Color | Ink Coverage | Pantone (ΔE) | Print Score | Status |',
+      '|-------|-------------|--------------|-------------|--------|',
+      ...printSummary, '',
       '## Recommendations',
       ...report.recommendations.map((r, i) => `${i + 1}. ${r}`), '',
       '## Conclusion', report.conclusion,
