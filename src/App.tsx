@@ -16,23 +16,14 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { PageTracker } from "@/components/PageTracker";
 import { PageSkeleton, BrandEditorSkeleton, AuthPageSkeleton } from "@/components/PageSkeleton";
 import { checkAndClearExpiredCaches } from "@/lib/cacheManager";
-import { toast } from "sonner";
+
 
 // Check and clear expired caches on app initialization
 checkAndClearExpiredCaches();
 
-// Global handler for unhandled promise rejections to prevent white-screen crashes
-const setupGlobalErrorHandler = () => {
-  if (typeof window !== 'undefined') {
-    window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
-      console.error('[App] Unhandled rejection:', event.reason);
-      toast.error("An unexpected error occurred. Please refresh the page.");
-      event.preventDefault(); // Prevent crash
-    });
-  }
-};
-
-setupGlobalErrorHandler();
+// NOTE: Unhandled rejections are already captured by GlobalErrorLogger and
+// the inline script in index.html. We intentionally do NOT call preventDefault()
+// here so errors remain visible in the console for debugging.
 
 // Retry wrapper for lazy imports — if a chunk fails to load (e.g. stale cache),
 // reload the page once to fetch fresh assets.
