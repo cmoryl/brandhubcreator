@@ -969,6 +969,13 @@ export default function ColorLab() {
                 </Tabs>
               </div>
             )}
+
+            {/* ── STEP 3: REPORT & EXPORT ── */}
+            {currentStep === 'report' && (
+              <div className="space-y-6">
+                <ColorResearchReport colors={colors} />
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 
@@ -1041,6 +1048,13 @@ export default function ColorLab() {
                   )}
                 </DialogContent>
               </Dialog>
+            )}
+
+            {/* ── STEP 3: REPORT & EXPORT ── */}
+            {currentStep === 'report' && (
+              <div className="space-y-6">
+                <ColorResearchReport colors={colors} />
+              </div>
             )}
 
             {/* Save Palette */}
