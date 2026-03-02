@@ -109,7 +109,8 @@
         __bhubErrors.push('Unhandled rejection: ' + (e.reason && e.reason.message || e.reason || 'unknown'));
       });
 
-      // ---- LAYER 3: Timeout recovery — if React hasn't mounted in 20s, show recovery UI ----
+      // ---- LAYER 3: Timeout recovery — if React hasn't mounted in 45s, show recovery UI ----
+      // Increased from 20s to 45s to accommodate large apps with many lazy chunks
       setTimeout(function() {
         var root = document.getElementById('root');
         var loader = document.getElementById('bhub-loader');
@@ -127,7 +128,7 @@
             }
           }
         }
-      }, 20000);
+      }, 45000);
 
       // ---- Recovery function ----
       function bhubForceRecover() {
