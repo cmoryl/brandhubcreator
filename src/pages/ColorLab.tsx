@@ -1,5 +1,5 @@
 /**
- * Color Lab — Public standalone color accessibility & analysis tool
+ * Color Lab — Public standalone color accessibility & analysis tool v2
  * 
  * Features:
  * - Manual color input (hex picker + text)
