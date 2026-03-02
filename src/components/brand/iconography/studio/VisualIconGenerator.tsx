@@ -28,6 +28,7 @@ import {
   Eye,
   Lightbulb,
   Clock,
+  Maximize2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BrandIconography } from '@/types/brand';
 import DOMPurify from 'dompurify';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const VISUAL_STYLES = [
   { id: 'outlined', label: 'Outlined', desc: 'Clean stroke icons' },
@@ -209,6 +211,7 @@ export const VisualIconGenerator = ({
   );
   const [copied, setCopied] = useState(false);
   const [newResultIds, setNewResultIds] = useState<Set<string>>(new Set());
+  const [enlargedView, setEnlargedView] = useState<'image' | 'svg' | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -692,36 +695,85 @@ export const VisualIconGenerator = ({
                   {/* Generated Image */}
                   <div className="p-4 flex flex-col items-center gap-2">
                     <p className="text-[10px] text-muted-foreground font-medium">Generated Image</p>
-                    <div className="w-24 h-24 rounded-lg border bg-white flex items-center justify-center p-2">
+                    <button
+                      onClick={() => setEnlargedView('image')}
+                      className="group relative w-24 h-24 rounded-lg border bg-white flex items-center justify-center p-2 cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all"
+                    >
                       <img src={selected.imageUrl} alt="Generated icon" className="max-w-full max-h-full object-contain" />
-                    </div>
+                      <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/5 rounded-lg transition-colors flex items-center justify-center">
+                        <Maximize2 className="h-4 w-4 text-foreground/0 group-hover:text-foreground/60 transition-colors" />
+                      </div>
+                    </button>
                   </div>
                   {/* SVG Result */}
                   <div className="p-4 flex flex-col items-center gap-2">
                     <p className="text-[10px] text-muted-foreground font-medium">Traced SVG</p>
-                    <div className="w-24 h-24 rounded-lg border bg-card flex items-center justify-center p-2">
+                    <button
+                      onClick={() => selected.svg && setEnlargedView('svg')}
+                      className={cn(
+                        "group relative w-24 h-24 rounded-lg border bg-card flex items-center justify-center p-2 transition-all",
+                        selected.svg ? "cursor-pointer hover:ring-2 hover:ring-primary/40" : "cursor-default"
+                      )}
+                    >
                       {selected.svg ? (
-                        <motion.div
-                          initial={{ scale: 0.5, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                          className="w-16 h-16 [&>svg]:w-full [&>svg]:h-full"
-                          dangerouslySetInnerHTML={{
-                            __html: DOMPurify.sanitize(selected.svg, {
-                              USE_PROFILES: { svg: true, svgFilters: true },
-                              FORBID_TAGS: ['script', 'foreignObject'],
-                            }),
-                          }}
-                        />
+                        <>
+                          <motion.div
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                            className="w-16 h-16 [&>svg]:w-full [&>svg]:h-full"
+                            dangerouslySetInnerHTML={{
+                              __html: DOMPurify.sanitize(selected.svg, {
+                                USE_PROFILES: { svg: true, svgFilters: true },
+                                FORBID_TAGS: ['script', 'foreignObject'],
+                              }),
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/5 rounded-lg transition-colors flex items-center justify-center">
+                            <Maximize2 className="h-4 w-4 text-foreground/0 group-hover:text-foreground/60 transition-colors" />
+                          </div>
+                        </>
                       ) : (
                         <div className="text-center">
                           {isTracing ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50 mx-auto mb-1" /> : <ArrowRight className="h-5 w-5 text-muted-foreground/40 mx-auto mb-1" />}
                           <p className="text-[9px] text-muted-foreground">{isTracing ? 'Tracing in progress' : 'Pending trace'}</p>
                         </div>
                       )}
-                    </div>
+                    </button>
                   </div>
                 </div>
+
+                {/* Enlarged Preview Dialog */}
+                {enlargedView && (
+                  <Dialog open={!!enlargedView} onOpenChange={() => setEnlargedView(null)}>
+                    <DialogContent className="max-w-lg p-0 overflow-hidden">
+                      <div className="p-3 border-b flex items-center justify-between">
+                        <p className="text-sm font-medium">
+                          {enlargedView === 'image' ? 'Generated Image' : 'Traced SVG'} — {selected.prompt.slice(0, 40)}{selected.prompt.length > 40 ? '…' : ''}
+                        </p>
+                      </div>
+                      <div className="p-6 flex items-center justify-center min-h-[300px] bg-muted/20">
+                        {enlargedView === 'image' ? (
+                          <img
+                            src={selected.imageUrl}
+                            alt="Generated icon enlarged"
+                            className="max-w-full max-h-[60vh] object-contain rounded-lg"
+                          />
+                        ) : selected.svg ? (
+                          <div
+                            className="w-64 h-64 [&>svg]:w-full [&>svg]:h-full"
+                            dangerouslySetInnerHTML={{
+                              __html: DOMPurify.sanitize(selected.svg, {
+                                USE_PROFILES: { svg: true, svgFilters: true },
+                                FORBID_TAGS: ['script', 'foreignObject'],
+                              }),
+                            }}
+                          />
+                        ) : null}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </motion.div>
 
               {/* Actions */}
