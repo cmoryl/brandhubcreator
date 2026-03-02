@@ -1192,8 +1192,7 @@ export async function exportColorLabReportPdf(
 
   const container = document.createElement('div');
   Object.assign(container.style, {
-    position: 'fixed', top: '0', left: '0', width: '750px',
-    zIndex: '-1', opacity: '0.01', pointerEvents: 'none',
+    position: 'absolute', top: '0', left: '-9999px', width: '750px',
     background: '#ffffff', color: '#111827', fontFamily: "'Segoe UI', system-ui, sans-serif",
     padding: '40px', lineHeight: '1.6',
   });
@@ -1288,12 +1287,15 @@ export async function exportColorLabReportPdf(
 
   document.body.appendChild(container);
 
+  // Allow DOM to render before capturing
+  await new Promise(resolve => setTimeout(resolve, 300));
+
   try {
     await html2pdf().set({
       margin: [10, 10, 10, 10],
       filename: `color-lab-report-${Date.now()}.pdf`,
       image: { type: 'jpeg', quality: 0.75 },
-      html2canvas: { scale: 1.5, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+      html2canvas: { scale: 1.5, useCORS: true, logging: false, backgroundColor: '#ffffff', windowWidth: 750 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     } as any).from(container).save();
   } finally {
