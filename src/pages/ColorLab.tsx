@@ -12,7 +12,7 @@ import {
   ArrowLeft, Droplets, Sun, Pipette, Import, AlertTriangle,
   CheckCircle2, Info, Shield, Globe, FileText, Image as ImageIcon,
   Lock, LogIn, ArrowRight, ChevronRight, Wand2, Replace, Save,
-  FolderOpen, Clock, X,
+  FolderOpen, Clock, X, Share2, Grid3X3, MonitorSmartphone, Sparkles, Link2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,9 @@ import { ImageColorExtractor } from '@/components/color-lab/ImageColorExtractor'
 import { AdvancedAccessibilityPanel } from '@/components/color-lab/AdvancedAccessibilityPanel';
 import { CulturalBiasPanel } from '@/components/color-lab/CulturalBiasPanel';
 import { ColorResearchReport } from '@/components/color-lab/ColorResearchReport';
+import { PaletteGenerator } from '@/components/color-lab/PaletteGenerator';
+import { ContrastMatrix } from '@/components/color-lab/ContrastMatrix';
+import { ThemePreview } from '@/components/color-lab/ThemePreview';
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -512,6 +515,22 @@ export default function ColorLab() {
     toast.success('Palette deleted');
   }, []);
 
+  const sharePalette = useCallback(async (id: string) => {
+    const token = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+    const { error } = await supabase
+      .from('color_lab_reports')
+      .update({ share_token: token })
+      .eq('id', id);
+    if (error) {
+      toast.error('Failed to generate share link');
+      return;
+    }
+    const url = `${window.location.origin}/color-lab/share/${token}`;
+    await navigator.clipboard.writeText(url);
+    toast.success('Share link copied to clipboard!');
+    loadSavedPalettes();
+  }, [loadSavedPalettes]);
+
   const addColor = useCallback(() => {
     const hex = newHex.trim().toUpperCase();
     if (!/^#[0-9A-F]{6}$/.test(hex)) {
@@ -769,6 +788,9 @@ export default function ColorLab() {
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Palette Generator */}
+                <PaletteGenerator onAddColors={(generated) => setColors(prev => [...prev, ...generated])} />
               </div>
             )}
 
@@ -826,6 +848,14 @@ export default function ColorLab() {
                       <Globe className="h-3.5 w-3.5" />
                       Cultural & Bias
                       <Lock className="h-3 w-3 text-muted-foreground" />
+                    </TabsTrigger>
+                    <TabsTrigger value="matrix" className="gap-1.5 text-xs">
+                      <Grid3X3 className="h-3.5 w-3.5" />
+                      Matrix
+                    </TabsTrigger>
+                    <TabsTrigger value="preview" className="gap-1.5 text-xs">
+                      <MonitorSmartphone className="h-3.5 w-3.5" />
+                      Theme Preview
                     </TabsTrigger>
                   </TabsList>
 
@@ -887,6 +917,14 @@ export default function ColorLab() {
 
                   <TabsContent value="advanced">
                     <AdvancedAccessibilityPanel colors={colors} />
+                  </TabsContent>
+
+                  <TabsContent value="matrix">
+                    <ContrastMatrix colors={colors} />
+                  </TabsContent>
+
+                  <TabsContent value="preview">
+                    <ThemePreview colors={colors} />
                   </TabsContent>
 
                   <TabsContent value="cultural">
@@ -1024,6 +1062,14 @@ export default function ColorLab() {
                           <Button size="sm" variant="outline" className="text-xs shrink-0" onClick={() => loadPalette(p)}>
                             Load
                           </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-primary" onClick={() => sharePalette(p.id)}>
+                                <Share2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="text-xs">Share palette link</TooltipContent>
+                          </Tooltip>
                           <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => deletePalette(p.id)}>
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>

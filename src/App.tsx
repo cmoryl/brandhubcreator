@@ -87,6 +87,7 @@ const Sitemap = lazyWithRetry(() => import("./pages/Sitemap"));
 const SectionsShowcase = lazyWithRetry(() => import("./pages/SectionsShowcase"));
 const BoothsCatalog = lazyWithRetry(() => import("./pages/BoothsCatalog"));
 const ColorLab = lazyWithRetry(() => import("./pages/ColorLab"));
+const SharedPalette = lazyWithRetry(() => import("./pages/SharedPalette"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -202,6 +203,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <ColorLab />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="color-lab/share/:token"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <SharedPalette />
                         </Suspense>
                       }
                     />
