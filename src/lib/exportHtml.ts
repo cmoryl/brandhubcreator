@@ -1083,6 +1083,10 @@ interface ColorLabColor {
   hsl?: { h: number; s: number; l: number };
   cmyk?: { c: number; m: number; y: number; k: number };
   pantone?: string;
+  pantoneDistance?: number;
+  printScore?: number;
+  printNotes?: string[];
+  inkCoverage?: number;
 }
 
 function colorSwatchesHtml(colors: ColorLabColor[]): string {
@@ -1171,6 +1175,27 @@ export function exportColorLabReportHtml(
     <h2>🏭 Production Notes</h2>
     <div class="card"><p>${esc(report.productionNotes)}</p></div>
 
+    <h2>🖨️ Print Production Analysis</h2>
+    <div class="card">
+      <div class="stat-grid">
+        ${colors.map(c => {
+          const ink = c.inkCoverage ?? (c.cmyk ? c.cmyk.c + c.cmyk.m + c.cmyk.y + c.cmyk.k : 0);
+          const ps = c.printScore ?? 100;
+          const statusBadge = ps >= 80 ? 'badge-emerald' : ps >= 50 ? 'badge-amber' : 'badge-red';
+          const statusLabel = ps >= 80 ? 'Print-Ready' : ps >= 50 ? 'Caution' : 'Review';
+          return `<div class="stat-card" style="text-align:left;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <div style="width:24px;height:24px;border-radius:4px;background:${c.hex};border:1px solid var(--border);"></div>
+              <strong style="font-size:13px;">${esc(c.name)}</strong>
+              <span class="badge ${statusBadge}" style="margin-left:auto;">${statusLabel}</span>
+            </div>
+            <p style="font-size:12px;margin:4px 0;">Ink Coverage: <strong>${ink}%</strong>${ink > 300 ? ' ⚠️' : ''} · Pantone: ${esc(c.pantone || '—')} (ΔE ≈ ${c.pantoneDistance ?? '?'}) · Score: <strong>${ps}/100</strong></p>
+            ${(c.printNotes && c.printNotes.length > 0) ? `<p style="font-size:11px;color:var(--fg-muted);">${c.printNotes.map(n => `• ${esc(n)}`).join(' ')}</p>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
     <h2>💡 Strategic Recommendations</h2>
     <div class="card">${listHtml(safeArr(report.recommendations), 'list-check')}</div>
 
@@ -1229,7 +1254,7 @@ export async function exportColorLabReportPdf(
     </tr>`;
   }).join('');
 
-  // Individual color detail cards with all codes
+  // Individual color detail cards with all codes + print production
   const colorDetailCards = colors.map(c => {
     const hsl = c.hsl ? `hsl(${Math.round(c.hsl.h)}, ${Math.round(c.hsl.s)}%, ${Math.round(c.hsl.l)}%)` : '—';
     const cmyk = c.cmyk ? `C${c.cmyk.c} M${c.cmyk.m} Y${c.cmyk.y} K${c.cmyk.k}` : '—';
@@ -1237,11 +1262,18 @@ export async function exportColorLabReportPdf(
     const g = parseInt(c.hex.slice(3, 5), 16);
     const b = parseInt(c.hex.slice(5, 7), 16);
     const rgb = `rgb(${r}, ${g}, ${b})`;
-    const row = (label: string, val: string) => `
+    const inkCov = c.inkCoverage ?? (c.cmyk ? c.cmyk.c + c.cmyk.m + c.cmyk.y + c.cmyk.k : 0);
+    const printSc = c.printScore ?? 100;
+    const printColor = printSc >= 80 ? '#22c55e' : printSc >= 50 ? '#eab308' : '#ef4444';
+    const inkColor = inkCov > 300 ? '#ef4444' : inkCov > 280 ? '#eab308' : '#22c55e';
+    const row = (label: string, val: string, color?: string) => `
       <tr>
-        <td style="padding:4px 8px;font-size:10px;color:#6b7280;font-weight:600;border:none;width:60px;">${label}</td>
-        <td style="padding:4px 8px;font-size:11px;font-family:monospace;border:none;">${val}</td>
+        <td style="padding:4px 8px;font-size:10px;color:#6b7280;font-weight:600;border:none;width:80px;">${label}</td>
+        <td style="padding:4px 8px;font-size:11px;font-family:monospace;border:none;${color ? `color:${color};font-weight:600;` : ''}">${val}</td>
       </tr>`;
+    const printNotesHtml = (c.printNotes && c.printNotes.length > 0)
+      ? c.printNotes.map(n => `<div style="font-size:10px;color:#6b7280;padding:2px 0;">• ${n}</div>`).join('')
+      : '<div style="font-size:10px;color:#22c55e;padding:2px 0;">✓ No issues detected</div>';
     return `
       <div style="page-break-inside:avoid;display:flex;gap:16px;align-items:flex-start;padding:16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:10px;">
         <div style="width:60px;height:60px;border-radius:8px;background:${c.hex};border:1px solid #e5e7eb;flex-shrink:0;"></div>
@@ -1252,11 +1284,68 @@ export async function exportColorLabReportPdf(
             ${row('RGB', rgb)}
             ${row('HSL', hsl)}
             ${row('CMYK', cmyk)}
-            ${row('Pantone', c.pantone || '—')}
+            ${row('Ink %', `${inkCov}%${inkCov > 300 ? ' ⚠ OVER LIMIT' : ''}`, inkColor)}
+            ${row('Pantone', `${c.pantone || '—'} (ΔE ≈ ${c.pantoneDistance ?? '?'})`)}
+            ${row('Print', `${printSc}/100`, printColor)}
           </table>
+          <div style="margin-top:6px;border-top:1px solid #e5e7eb;padding-top:6px;">
+            <div style="font-size:9px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Print Notes</div>
+            ${printNotesHtml}
+          </div>
         </div>
       </div>`;
   }).join('');
+
+  // Print Production Summary
+  const avgPrintScore = colors.length > 0
+    ? Math.round(colors.reduce((sum, c) => sum + (c.printScore ?? 100), 0) / colors.length)
+    : 0;
+  const gamutWarnings = colors.filter(c => (c.inkCoverage ?? 0) > 300).length;
+  const lowPantoneAccuracy = colors.filter(c => (c.pantoneDistance ?? 0) > 15).length;
+  const printReadyCount = colors.filter(c => (c.printScore ?? 100) >= 80).length;
+
+  const printSummaryHtml = `
+    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:120px;text-align:center;padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+        <div style="font-size:24px;font-weight:700;color:${sc(avgPrintScore)};">${avgPrintScore}%</div>
+        <div style="font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">Avg Print Score</div>
+      </div>
+      <div style="flex:1;min-width:120px;text-align:center;padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+        <div style="font-size:24px;font-weight:700;color:${printReadyCount === colors.length ? '#22c55e' : '#eab308'};">${printReadyCount}/${colors.length}</div>
+        <div style="font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">Print-Ready</div>
+      </div>
+      <div style="flex:1;min-width:120px;text-align:center;padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+        <div style="font-size:24px;font-weight:700;color:${gamutWarnings > 0 ? '#ef4444' : '#22c55e'};">${gamutWarnings}</div>
+        <div style="font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">Gamut Warnings</div>
+      </div>
+      <div style="flex:1;min-width:120px;text-align:center;padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+        <div style="font-size:24px;font-weight:700;color:${lowPantoneAccuracy > 0 ? '#eab308' : '#22c55e'};">${lowPantoneAccuracy}</div>
+        <div style="font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">Low Pantone Match</div>
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead><tr>
+        <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">Color</th>
+        <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">Ink Coverage</th>
+        <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">Pantone (ΔE)</th>
+        <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">Print Score</th>
+        <th style="padding:8px;border-bottom:2px solid #e5e7eb;font-size:10px;color:#6b7280;text-transform:uppercase;text-align:left;">Status</th>
+      </tr></thead>
+      <tbody>${colors.map(c => {
+        const ink = c.inkCoverage ?? 0;
+        const ps = c.printScore ?? 100;
+        const status = ps >= 80 ? '✓ Ready' : ps >= 50 ? '⚠ Caution' : '✕ Review';
+        const statusColor = ps >= 80 ? '#22c55e' : ps >= 50 ? '#eab308' : '#ef4444';
+        return `<tr>
+          <td style="padding:8px;border-bottom:1px solid #e5e7eb;"><div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;border-radius:3px;background:${c.hex};border:1px solid #e5e7eb;"></div>${c.name}</div></td>
+          <td style="padding:8px;border-bottom:1px solid #e5e7eb;color:${ink > 300 ? '#ef4444' : '#374151'};font-weight:${ink > 300 ? '600' : '400'};">${ink}%</td>
+          <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${c.pantone || '—'} (${c.pantoneDistance ?? '?'})</td>
+          <td style="padding:8px;border-bottom:1px solid #e5e7eb;color:${statusColor};font-weight:600;">${ps}/100</td>
+          <td style="padding:8px;border-bottom:1px solid #e5e7eb;color:${statusColor};font-weight:600;">${status}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  `;
 
   const findings = report.accessibilityAudit.findings.map(f => `<li style="padding:4px 0;font-size:12px;color:#374151;">${f}</li>`).join('');
   const recs = report.recommendations.map((r, i) => `<li style="padding:4px 0;font-size:12px;color:#374151;"><strong>${i + 1}.</strong> ${r}</li>`).join('');
@@ -1301,6 +1390,8 @@ export async function exportColorLabReportPdf(
     ${section('Industry Benchmark', `<p style="font-size:13px;color:#374151;">${report.industryBenchmark}</p>`)}
 
     ${section('Production Notes', `<p style="font-size:13px;color:#374151;">${report.productionNotes}</p>`)}
+
+    ${section('🖨️ Print Production Analysis', printSummaryHtml)}
 
     ${section('Strategic Recommendations', `<ol style="list-style:none;padding:0;">${recs}</ol>`)}
 
