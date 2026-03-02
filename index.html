@@ -85,22 +85,15 @@
       </div>
     </div>
     <script>
-      // ---- LAYER 1: Unregister stale service workers ----
+      // ---- LAYER 1: Non-destructive service worker health check ----
       (function() {
         if (!('serviceWorker' in navigator)) return;
-        var reloadKey = 'bhub_sw_cleanup_v4';
-        if (sessionStorage.getItem(reloadKey)) return;
-        navigator.serviceWorker.getRegistrations().then(function(regs) {
-          if (regs.length === 0) return;
-          var tasks = regs.map(function(r) { return r.unregister(); });
-          Promise.all(tasks).then(function() {
-            if ('caches' in window) {
-              caches.keys().then(function(names) {
-                names.forEach(function(n) { caches.delete(n); });
-              });
-            }
-            sessionStorage.setItem(reloadKey, '1');
-            window.location.reload();
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.getRegistration().then(function(reg) {
+            if (!reg) return;
+            reg.update().catch(function() {
+              // Keep silent; manual recovery remains available.
+            });
           });
         });
       })();
@@ -114,13 +107,11 @@
         __bhubErrors.push('Unhandled rejection: ' + (e.reason && e.reason.message || e.reason || 'unknown'));
       });
 
-      // ---- LAYER 3: Timeout recovery — if React hasn't mounted in 12s, show recovery UI ----
+      // ---- LAYER 3: Timeout recovery — if React hasn't mounted in 20s, show recovery UI ----
       setTimeout(function() {
         var root = document.getElementById('root');
-        // React replaces the initial-loader content when it mounts
         var loader = document.getElementById('bhub-loader');
         if (loader && loader.parentNode === root) {
-          // React never mounted — show recovery
           loader.style.display = 'none';
           var recovery = document.getElementById('bhub-recovery');
           if (recovery) {
@@ -134,28 +125,24 @@
             }
           }
         }
-      }, 12000);
+      }, 20000);
 
       // ---- Recovery function ----
       function bhubForceRecover() {
-        // Unregister all SWs
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(function(regs) {
             regs.forEach(function(r) { r.unregister(); });
           });
         }
-        // Clear all caches
+
         if ('caches' in window) {
           caches.keys().then(function(names) {
             names.forEach(function(n) { caches.delete(n); });
           });
         }
-        // Clear storage
-        try { localStorage.clear(); } catch(e) {}
-        try { sessionStorage.clear(); } catch(e) {}
-        // Force reload bypassing cache
+
         setTimeout(function() {
-          window.location.href = window.location.origin + window.location.pathname + '?_bust=' + Date.now();
+          window.location.replace(window.location.origin + window.location.pathname + '?_bust=' + Date.now());
         }, 500);
       }
     </script>
