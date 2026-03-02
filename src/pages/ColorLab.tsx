@@ -637,23 +637,31 @@ export default function ColorLab() {
               <div className="space-y-6">
                 {/* Palette strip preview */}
                 {colors.length > 0 && (
-                  <div className="rounded-xl overflow-hidden border h-12 flex">
-                    {colors.map(c => (
-                      <Tooltip key={c.id}>
-                        <TooltipTrigger asChild>
-                          <div className="flex-1 cursor-pointer hover:flex-[2] transition-all" style={{ backgroundColor: c.hex }} />
-                        </TooltipTrigger>
-                        <TooltipContent className="text-xs">
-                          <p className="font-semibold">{c.name}</p>
-                          <p className="font-mono text-muted-foreground">{c.hex}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                  </div>
+                  <Card className="overflow-hidden">
+                    <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/30">
+                      <Palette className="h-4 w-4 text-primary" />
+                      <span className="text-xs font-semibold">Your Palette</span>
+                      <Badge variant="secondary" className="text-[10px]">{colors.length} colors</Badge>
+                    </div>
+                    <div className="h-14 flex">
+                      {colors.map(c => (
+                        <Tooltip key={c.id}>
+                          <TooltipTrigger asChild>
+                            <div className="flex-1 cursor-pointer hover:flex-[2] transition-all" style={{ backgroundColor: c.hex }} />
+                          </TooltipTrigger>
+                          <TooltipContent className="text-xs">
+                            <p className="font-semibold">{c.name}</p>
+                            <p className="font-mono text-muted-foreground">{c.hex}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </div>
+                  </Card>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Left: Add colors manually */}
+                {/* Three-column tools grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {/* Column 1: Add colors manually */}
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -698,11 +706,40 @@ export default function ColorLab() {
                       </div>
 
                       <BrandImportDialog onImport={handleImport} />
+                    </CardContent>
+                  </Card>
 
-                      <Separator />
+                  {/* Column 2: Palette Generator */}
+                  <PaletteGenerator onAddColors={(generated) => setColors(prev => [...prev, ...generated])} />
 
-                      {/* Color swatches */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {/* Column 3: Image extraction */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <ImageIcon className="h-4 w-4 text-primary" />
+                        Extract from Image
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ImageColorExtractor onAddColors={handleAddFromExtractor} />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Color swatches grid — separated into its own card */}
+                {colors.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Droplets className="h-4 w-4 text-primary" />
+                          Color Swatches
+                        </CardTitle>
+                        <span className="text-[10px] text-muted-foreground">Click to expand details</span>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                         <AnimatePresence mode="popLayout">
                           {colors.map(color => {
                             const analysis = analyses.get(color.id);
@@ -774,93 +811,90 @@ export default function ColorLab() {
                       </div>
                     </CardContent>
                   </Card>
-
-                  {/* Right: Image extraction */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <ImageIcon className="h-4 w-4 text-primary" />
-                        Extract from Image
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ImageColorExtractor onAddColors={handleAddFromExtractor} />
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Palette Generator */}
-                <PaletteGenerator onAddColors={(generated) => setColors(prev => [...prev, ...generated])} />
+                )}
               </div>
             )}
 
             {/* ── STEP 2: ANALYZE ── */}
             {currentStep === 'analyze' && (
               <div className="space-y-6">
-                {/* Quick stats bar */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <Card>
-                    <CardContent className="p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground uppercase">Colors</p>
-                      <p className="text-2xl font-bold text-primary">{colors.length}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground uppercase">Pairs</p>
-                      <p className="text-2xl font-bold">{contrastPairs.length}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground uppercase">Passing</p>
-                      <p className="text-2xl font-bold text-primary">{passingPairs.length}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground uppercase">Failing</p>
-                      <p className={cn("text-2xl font-bold", failingPairs.length > 0 ? "text-destructive" : "text-primary")}>
-                        {failingPairs.length}
-                      </p>
-                    </CardContent>
-                  </Card>
+                {/* Compact palette context + stats */}
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4">
+                  {/* Stats row */}
+                  <div className="grid grid-cols-4 gap-3">
+                    <Card>
+                      <CardContent className="p-3 text-center">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Colors</p>
+                        <p className="text-2xl font-bold text-primary">{colors.length}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-3 text-center">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pairs</p>
+                        <p className="text-2xl font-bold">{contrastPairs.length}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-3 text-center">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Passing</p>
+                        <p className="text-2xl font-bold text-primary">{passingPairs.length}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-3 text-center">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Failing</p>
+                        <p className={cn("text-2xl font-bold", failingPairs.length > 0 ? "text-destructive" : "text-primary")}>
+                          {failingPairs.length}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  {/* Mini palette strip */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex rounded-lg overflow-hidden h-10 w-40 border">
+                      {colors.map(c => (
+                        <div key={c.id} className="flex-1" style={{ backgroundColor: c.hex }} title={c.name} />
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
+                {/* Analysis tabs — grouped by category */}
                 <Tabs defaultValue="contrast" className="space-y-4">
-                  <TabsList className="w-full justify-start flex-wrap h-auto gap-1 p-1">
-                    <TabsTrigger value="contrast" className="gap-1.5 text-xs">
-                      <Sun className="h-3.5 w-3.5" />
-                      Contrast
-                      {failingPairs.length > 0 && (
-                        <Badge variant="destructive" className="text-[9px] ml-1 h-4 px-1">{failingPairs.length}</Badge>
-                      )}
-                    </TabsTrigger>
-                    <TabsTrigger value="colorblind" className="gap-1.5 text-xs">
-                      <Eye className="h-3.5 w-3.5" />
-                      Colorblind
-                    </TabsTrigger>
-                    <TabsTrigger value="advanced" className="gap-1.5 text-xs">
-                      <Shield className="h-3.5 w-3.5" />
-                      APCA / WCAG 2.2
-                    </TabsTrigger>
-                    <TabsTrigger value="cultural" className="gap-1.5 text-xs">
-                      <Globe className="h-3.5 w-3.5" />
-                      Cultural & Bias
-                      <Lock className="h-3 w-3 text-muted-foreground" />
-                    </TabsTrigger>
-                    <TabsTrigger value="matrix" className="gap-1.5 text-xs">
-                      <Grid3X3 className="h-3.5 w-3.5" />
-                      Matrix
-                    </TabsTrigger>
-                    <TabsTrigger value="preview" className="gap-1.5 text-xs">
-                      <MonitorSmartphone className="h-3.5 w-3.5" />
-                      Theme Preview
-                    </TabsTrigger>
-                  </TabsList>
+                  <div className="bg-card rounded-xl border p-1">
+                    <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-transparent">
+                      <TabsTrigger value="contrast" className="gap-1.5 text-xs data-[state=active]:bg-primary/10">
+                        <Sun className="h-3.5 w-3.5" />
+                        Contrast
+                        {failingPairs.length > 0 && (
+                          <Badge variant="destructive" className="text-[9px] ml-1 h-4 px-1">{failingPairs.length}</Badge>
+                        )}
+                      </TabsTrigger>
+                      <TabsTrigger value="matrix" className="gap-1.5 text-xs data-[state=active]:bg-primary/10">
+                        <Grid3X3 className="h-3.5 w-3.5" />
+                        Matrix
+                      </TabsTrigger>
+                      <TabsTrigger value="colorblind" className="gap-1.5 text-xs data-[state=active]:bg-primary/10">
+                        <Eye className="h-3.5 w-3.5" />
+                        Colorblind
+                      </TabsTrigger>
+                      <TabsTrigger value="advanced" className="gap-1.5 text-xs data-[state=active]:bg-primary/10">
+                        <Shield className="h-3.5 w-3.5" />
+                        APCA / WCAG 2.2
+                      </TabsTrigger>
+                      <TabsTrigger value="preview" className="gap-1.5 text-xs data-[state=active]:bg-primary/10">
+                        <MonitorSmartphone className="h-3.5 w-3.5" />
+                        Theme Preview
+                      </TabsTrigger>
+                      <TabsTrigger value="cultural" className="gap-1.5 text-xs data-[state=active]:bg-primary/10">
+                        <Globe className="h-3.5 w-3.5" />
+                        Cultural & Bias
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
 
                   <TabsContent value="contrast" className="space-y-6">
-                    {/* Smart Fix Suggestions */}
                     {failingPairs.length > 0 && (
                       <FixSuggestionsCard
                         colors={colors}
@@ -931,78 +965,6 @@ export default function ColorLab() {
                     <AuthGate label="Cultural & Bias Analysis">
                       <CulturalBiasPanel colors={colors} />
                     </AuthGate>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            )}
-
-            {/* ── STEP 3: REPORT & EXPORT ── */}
-            {currentStep === 'report' && (
-              <div className="space-y-6">
-                <Tabs defaultValue="research" className="space-y-4">
-                  <TabsList className="w-full justify-start h-auto gap-1 p-1">
-                    <TabsTrigger value="research" className="gap-1.5 text-xs">
-                      <FileText className="h-3.5 w-3.5" />
-                      AI Research Report
-                      <Lock className="h-3 w-3 text-muted-foreground" />
-                    </TabsTrigger>
-                    <TabsTrigger value="codes" className="gap-1.5 text-xs">
-                      <Pipette className="h-3.5 w-3.5" />
-                      All Color Codes
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="research">
-                    <AuthGate label="Color Research Report">
-                      <ColorResearchReport colors={colors} />
-                    </AuthGate>
-                  </TabsContent>
-
-                  <TabsContent value="codes">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {colors.map(color => {
-                        const a = analyses.get(color.id);
-                        if (!a) return null;
-                        const oklch = hexToOklch(color.hex);
-                        return (
-                          <Card key={color.id}>
-                            <CardHeader className="pb-2">
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg border" style={{ backgroundColor: color.hex }} />
-                                <div>
-                                  <CardTitle className="text-sm">{color.name}</CardTitle>
-                                  <p className="text-[10px] text-muted-foreground font-mono">{a.hex}</p>
-                                </div>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="space-y-0">
-                              <ColorCodeRow label="HEX" value={a.hex} mono />
-                              <ColorCodeRow label="RGB" value={`rgb(${a.rgb.r}, ${a.rgb.g}, ${a.rgb.b})`} mono />
-                              <ColorCodeRow label="HSL" value={`hsl(${a.hsl.h}, ${a.hsl.s}%, ${a.hsl.l}%)`} mono />
-                              <ColorCodeRow label="CMYK" value={`C${a.cmyk.c} M${a.cmyk.m} Y${a.cmyk.y} K${a.cmyk.k}`} mono />
-                              <ColorCodeRow label="OKLCH" value={formatOklch(oklch)} mono />
-                              <Separator className="my-2" />
-                              <div className="flex items-center gap-2 py-1">
-                                <span className="text-[10px] text-muted-foreground w-16">Pantone</span>
-                                <div className="w-4 h-4 rounded border" style={{ backgroundColor: a.pantone.hex }} />
-                                <span className="text-xs font-medium">{a.pantone.name}</span>
-                              </div>
-                              <Separator className="my-2" />
-                              <div className="space-y-1">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[10px] flex items-center gap-1"><Printer className="h-3 w-3" /> Print</span>
-                                  <MediumBadge score={a.printSuitability.score} medium="Print" />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[10px] flex items-center gap-1"><Monitor className="h-3 w-3" /> Digital</span>
-                                  <MediumBadge score={a.digitalSuitability.score} medium="Digital" />
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
                   </TabsContent>
                 </Tabs>
               </div>
