@@ -11,7 +11,7 @@ import {
   Plus, Trash2, Palette, Eye, Printer, Monitor, Copy, Check,
   ArrowLeft, Droplets, Sun, Pipette, Import, AlertTriangle,
   CheckCircle2, Info, Shield, Globe, FileText, Image as ImageIcon,
-  Lock, LogIn, ArrowRight, ChevronRight,
+  Lock, LogIn, ArrowRight, ChevronRight, Wand2, Replace,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -286,6 +286,133 @@ const WizardStepper = ({ currentStep, onStepClick, colorCount }: {
         );
       })}
     </div>
+  );
+};
+
+// ── Fix Suggestions Card ───────────────────────────────────────────
+
+interface ColorFix {
+  colorId: string;
+  colorName: string;
+  originalHex: string;
+  newHex: string;
+  improvedPairs: number;
+}
+
+const FixSuggestionsCard = ({ colors, failingPairs, onApplyFix, onApplyAll }: {
+  colors: LabColor[];
+  failingPairs: Array<{ fg: LabColor; bg: LabColor; ratio: number; level: WcagLevel }>;
+  onApplyFix: (colorId: string, newHex: string) => void;
+  onApplyAll: (fixes: ColorFix[]) => void;
+}) => {
+  const fixes = useMemo(() => {
+    // For each color that appears in failing pairs, compute the best single-color fix
+    const colorFailCounts = new Map<string, number>();
+    for (const p of failingPairs) {
+      colorFailCounts.set(p.fg.id, (colorFailCounts.get(p.fg.id) || 0) + 1);
+      colorFailCounts.set(p.bg.id, (colorFailCounts.get(p.bg.id) || 0) + 1);
+    }
+
+    // Sort by most failures — fix the worst offenders first
+    const sorted = [...colorFailCounts.entries()].sort((a, b) => b[1] - a[1]);
+    const result: ColorFix[] = [];
+    const alreadyFixed = new Set<string>();
+
+    for (const [colorId] of sorted) {
+      if (alreadyFixed.has(colorId)) continue;
+      const color = colors.find(c => c.id === colorId);
+      if (!color) continue;
+
+      // Find all partners this color fails with
+      const partners = failingPairs
+        .filter(p => p.fg.id === colorId || p.bg.id === colorId)
+        .map(p => p.fg.id === colorId ? p.bg : p.fg);
+
+      // Use suggestAccessibleColor against the first partner as primary target
+      const uniquePartners = [...new Map(partners.map(p => [p.id, p])).values()];
+      if (uniquePartners.length === 0) continue;
+
+      const suggested = suggestAccessibleColor(color.hex, uniquePartners[0].hex);
+      if (!suggested) continue;
+
+      // Count how many pairs this single fix resolves
+      let improved = 0;
+      for (const partner of uniquePartners) {
+        const newRatio = contrastRatio(suggested, partner.hex);
+        if (newRatio >= 4.5) improved++;
+      }
+
+      if (improved > 0) {
+        result.push({
+          colorId: color.id,
+          colorName: color.name,
+          originalHex: color.hex,
+          newHex: suggested,
+          improvedPairs: improved,
+        });
+        alreadyFixed.add(colorId);
+      }
+    }
+
+    return result;
+  }, [colors, failingPairs]);
+
+  if (fixes.length === 0) return null;
+
+  const totalFixable = fixes.reduce((s, f) => s + f.improvedPairs, 0);
+
+  return (
+    <Card className="border-amber-500/30 bg-amber-500/5">
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <Wand2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            Smart Fix Suggestions
+          </h3>
+          {fixes.length > 1 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 text-xs"
+              onClick={() => onApplyAll(fixes)}
+            >
+              <Replace className="h-3.5 w-3.5" />
+              Apply All ({totalFixable} fixes)
+            </Button>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Adjust these colors to make {totalFixable} failing pair{totalFixable !== 1 ? 's' : ''} pass WCAG AA (4.5:1). 
+          Hue and saturation are preserved — only lightness is shifted.
+        </p>
+        <div className="space-y-2">
+          {fixes.map(fix => (
+            <div key={fix.colorId} className="flex items-center gap-3 rounded-lg border bg-card p-2.5">
+              <div className="flex items-center gap-1.5">
+                <div className="w-6 h-6 rounded border" style={{ backgroundColor: fix.originalHex }} />
+                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                <div className="w-6 h-6 rounded border" style={{ backgroundColor: fix.newHex }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">{fix.colorName}</p>
+                <p className="text-[10px] text-muted-foreground font-mono">
+                  {fix.originalHex} → {fix.newHex}
+                  <span className="ml-2 text-primary">fixes {fix.improvedPairs} pair{fix.improvedPairs !== 1 ? 's' : ''}</span>
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="shrink-0 text-xs gap-1"
+                onClick={() => onApplyFix(fix.colorId, fix.newHex)}
+              >
+                Apply
+              </Button>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -624,6 +751,24 @@ export default function ColorLab() {
                   </TabsList>
 
                   <TabsContent value="contrast" className="space-y-6">
+                    {/* Smart Fix Suggestions */}
+                    {failingPairs.length > 0 && (
+                      <FixSuggestionsCard
+                        colors={colors}
+                        failingPairs={failingPairs}
+                        onApplyFix={(colorId, newHex) => {
+                          setColors(prev => prev.map(c =>
+                            c.id === colorId ? { ...c, hex: newHex } : c
+                          ));
+                        }}
+                        onApplyAll={(fixes) => {
+                          setColors(prev => prev.map(c => {
+                            const fix = fixes.find(f => f.colorId === c.id);
+                            return fix ? { ...c, hex: fix.newHex } : c;
+                          }));
+                        }}
+                      />
+                    )}
                     {failingPairs.length > 0 && (
                       <div className="space-y-2">
                         <h3 className="text-xs font-semibold text-destructive flex items-center gap-1">
@@ -634,6 +779,17 @@ export default function ColorLab() {
                           {failingPairs.map((p, i) => <ContrastPairCard key={i} {...p} />)}
                         </div>
                       </div>
+                    )}
+                    {failingPairs.length === 0 && (
+                      <Card className="border-primary/30 bg-primary/5">
+                        <CardContent className="p-4 flex items-center gap-3">
+                          <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium">All pairs pass WCAG contrast</p>
+                            <p className="text-xs text-muted-foreground">Every color combination meets AA requirements.</p>
+                          </div>
+                        </CardContent>
+                      </Card>
                     )}
                     <div className="space-y-2">
                       <h3 className="text-xs font-semibold text-primary flex items-center gap-1">
