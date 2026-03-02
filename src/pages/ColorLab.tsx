@@ -5,7 +5,7 @@
  * Step 3: Report & Export (research report, all color codes)
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus, Trash2, Palette, Eye, Printer, Monitor, Copy, Check,
@@ -13,6 +13,7 @@ import {
   CheckCircle2, Info, Shield, Globe, FileText, Image as ImageIcon,
   Lock, LogIn, ArrowRight, ChevronRight, Wand2, Replace, Save,
   FolderOpen, Clock, X, Share2, Grid3X3, MonitorSmartphone, Sparkles, Link2,
+  Box, Zap, Layers,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +49,11 @@ import { ColorResearchReport } from '@/components/color-lab/ColorResearchReport'
 import { PaletteGenerator } from '@/components/color-lab/PaletteGenerator';
 import { ContrastMatrix } from '@/components/color-lab/ContrastMatrix';
 import { ThemePreview } from '@/components/color-lab/ThemePreview';
+import { lazy } from 'react';
+
+const ColorSpaceExplorer = lazy(() => import('@/components/color-lab/ColorSpaceExplorer').then(m => ({ default: m.ColorSpaceExplorer })));
+const PaletteAnimationPreview = lazy(() => import('@/components/color-lab/PaletteAnimationPreview').then(m => ({ default: m.PaletteAnimationPreview })));
+const MaterialTexturePreview = lazy(() => import('@/components/color-lab/MaterialTexturePreview').then(m => ({ default: m.MaterialTexturePreview })));
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -891,6 +897,18 @@ export default function ColorLab() {
                         Cultural & Bias
                         <Lock className="h-3 w-3 text-muted-foreground" />
                       </TabsTrigger>
+                      <TabsTrigger value="3d" className="gap-1.5 text-xs data-[state=active]:bg-primary/10">
+                        <Box className="h-3.5 w-3.5" />
+                        3D Explorer
+                      </TabsTrigger>
+                      <TabsTrigger value="animation" className="gap-1.5 text-xs data-[state=active]:bg-primary/10">
+                        <Zap className="h-3.5 w-3.5" />
+                        Animation
+                      </TabsTrigger>
+                      <TabsTrigger value="materials" className="gap-1.5 text-xs data-[state=active]:bg-primary/10">
+                        <Layers className="h-3.5 w-3.5" />
+                        Materials
+                      </TabsTrigger>
                     </TabsList>
                   </div>
 
@@ -965,6 +983,24 @@ export default function ColorLab() {
                     <AuthGate label="Cultural & Bias Analysis">
                       <CulturalBiasPanel colors={colors} />
                     </AuthGate>
+                  </TabsContent>
+
+                  <TabsContent value="3d">
+                    <Suspense fallback={<div className="text-center py-12 text-muted-foreground text-sm">Loading 3D explorer…</div>}>
+                      <ColorSpaceExplorer colors={colors} />
+                    </Suspense>
+                  </TabsContent>
+
+                  <TabsContent value="animation">
+                    <Suspense fallback={<div className="text-center py-12 text-muted-foreground text-sm">Loading…</div>}>
+                      <PaletteAnimationPreview colors={colors} />
+                    </Suspense>
+                  </TabsContent>
+
+                  <TabsContent value="materials">
+                    <Suspense fallback={<div className="text-center py-12 text-muted-foreground text-sm">Loading…</div>}>
+                      <MaterialTexturePreview colors={colors} />
+                    </Suspense>
                   </TabsContent>
                 </Tabs>
               </div>
