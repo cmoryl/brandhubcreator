@@ -1222,9 +1222,10 @@ export async function exportColorLabReportPdf(
 
   const container = document.createElement('div');
   Object.assign(container.style, {
-    position: 'absolute', top: '0', left: '-9999px', width: '750px',
+    position: 'fixed', top: '0', left: '0', width: '750px',
+    zIndex: '-1', opacity: '0.01', pointerEvents: 'none',
     background: '#ffffff', color: '#111827', fontFamily: "'Segoe UI', system-ui, sans-serif",
-    padding: '40px', lineHeight: '1.6',
+    padding: '40px', lineHeight: '1.6', overflow: 'visible',
   });
 
   const sc = (score: number) => score >= 80 ? '#22c55e' : score >= 60 ? '#eab308' : '#ef4444';
