@@ -1089,6 +1089,13 @@ interface ColorLabColor {
   inkCoverage?: number;
 }
 
+function isLightColor(hex: string): boolean {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+}
+
 function colorSwatchesHtml(colors: ColorLabColor[]): string {
   const swatches = colors.map(c => {
     const textColor = isLightColor(c.hex) ? '#111827' : '#ffffff';
@@ -1098,13 +1105,6 @@ function colorSwatchesHtml(colors: ColorLabColor[]): string {
     </div>`;
   }).join('');
   return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:16px 0;">${swatches}</div>`;
-}
-
-function isLightColor(hex: string): boolean {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
 }
 
 function colorDetailsTableHtml(colors: ColorLabColor[]): string {
@@ -1127,41 +1127,202 @@ function colorDetailsTableHtml(colors: ColorLabColor[]): string {
   return `<table><thead><tr><th>Name</th><th>HEX</th><th>RGB</th><th>HSL</th><th>CMYK</th><th>Pantone</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
+interface ContrastPairData {
+  fg: { hex: string; name: string };
+  bg: { hex: string; name: string };
+  ratio: number;
+}
+
+interface HarmonyData {
+  label: string;
+  description: string;
+  score?: number;
+}
+
+function contrastPairsHtml(pairs: ContrastPairData[]): string {
+  if (!pairs.length) return '';
+  const cards = pairs.slice(0, 6).map(p => {
+    const grade = p.ratio >= 7 ? 'AAA' : p.ratio >= 4.5 ? 'AA' : p.ratio >= 3 ? 'AA Large' : 'Fail';
+    const gradeClass = p.ratio >= 4.5 ? 'badge-emerald' : p.ratio >= 3 ? 'badge-amber' : 'badge-red';
+    return `<div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+      <div style="padding:12px 16px;background:${p.bg.hex};color:${p.fg.hex};display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;font-weight:700;">Aa</span>
+        <span style="font-size:11px;opacity:0.8;">${esc(p.fg.name)} on ${esc(p.bg.name)}</span>
+      </div>
+      <div style="padding:8px 16px;display:flex;align-items:center;justify-content:space-between;background:var(--bg-muted);">
+        <span style="font-size:12px;color:var(--fg-muted);">${p.ratio.toFixed(2)}:1</span>
+        <span class="badge ${gradeClass}">${grade}</span>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">${cards}</div>`;
+}
+
+function psychologyHtml(colors: ColorLabColor[], psychologyMap: Map<string, string[]>): string {
+  const cards = colors.map(c => {
+    const traits = psychologyMap.get(c.hex) || [];
+    const textColor = isLightColor(c.hex) ? '#111827' : '#ffffff';
+    const badges = traits.map(t => `<span class="badge" style="background:var(--bg-muted);color:var(--fg-muted);font-size:10px;">${esc(t)}</span>`).join('');
+    return `<div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+      <div style="height:32px;background:${c.hex};display:flex;align-items:center;padding:0 12px;">
+        <span style="font-size:11px;font-weight:600;color:${textColor};">${esc(c.name)}</span>
+      </div>
+      <div style="padding:8px 12px;display:flex;flex-wrap:wrap;gap:4px;">${badges}</div>
+    </div>`;
+  }).join('');
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">${cards}</div>`;
+}
+
+function contrastMatrixHtml(colors: ColorLabColor[]): string {
+  if (colors.length < 2 || colors.length > 8) return '';
+  const header = colors.map(c => 
+    `<th style="padding:6px;text-align:center;"><div style="width:20px;height:20px;border-radius:4px;background:${c.hex};border:1px solid var(--border);margin:0 auto 4px;"></div><span style="font-size:9px;">${esc(c.name.slice(0,8))}</span></th>`
+  ).join('');
+  const rows = colors.map((row, i) => {
+    const cells = colors.map((col, j) => {
+      if (i === j) return `<td style="padding:6px;text-align:center;background:var(--bg);font-size:10px;color:var(--fg-muted);">—</td>`;
+      const r = parseInt(row.hex.slice(1, 3), 16) * 299 + parseInt(row.hex.slice(3, 5), 16) * 587 + parseInt(row.hex.slice(5, 7), 16) * 114;
+      const ratio = (() => {
+        const lum1 = [parseInt(row.hex.slice(1, 3), 16), parseInt(row.hex.slice(3, 5), 16), parseInt(row.hex.slice(5, 7), 16)].map(c => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4); });
+        const lum2 = [parseInt(col.hex.slice(1, 3), 16), parseInt(col.hex.slice(3, 5), 16), parseInt(col.hex.slice(5, 7), 16)].map(c => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4); });
+        const l1 = 0.2126 * lum1[0] + 0.7152 * lum1[1] + 0.0722 * lum1[2];
+        const l2 = 0.2126 * lum2[0] + 0.7152 * lum2[1] + 0.0722 * lum2[2];
+        const lighter = Math.max(l1, l2);
+        const darker = Math.min(l1, l2);
+        return (lighter + 0.05) / (darker + 0.05);
+      })();
+      const color = ratio >= 7 ? 'var(--emerald)' : ratio >= 4.5 ? 'var(--primary)' : ratio >= 3 ? 'var(--amber)' : 'var(--red)';
+      return `<td style="padding:6px;text-align:center;font-size:11px;font-weight:600;color:${color};">${ratio.toFixed(1)}</td>`;
+    }).join('');
+    return `<tr><td style="padding:6px;"><div style="display:flex;align-items:center;gap:6px;"><div style="width:16px;height:16px;border-radius:3px;background:${row.hex};border:1px solid var(--border);"></div><span style="font-size:10px;">${esc(row.name.slice(0,10))}</span></div></td>${cells}</tr>`;
+  }).join('');
+  return `<table style="width:100%;border-collapse:collapse;"><thead><tr><th></th>${header}</tr></thead><tbody>${rows}</tbody></table>
+  <div style="display:flex;gap:16px;margin-top:8px;font-size:10px;color:var(--fg-muted);">
+    <span><span style="color:var(--emerald);font-weight:600;">●</span> AAA ≥7:1</span>
+    <span><span style="color:var(--primary);font-weight:600;">●</span> AA ≥4.5:1</span>
+    <span><span style="color:var(--amber);font-weight:600;">●</span> AA Large ≥3:1</span>
+    <span><span style="color:var(--red);font-weight:600;">●</span> Fail</span>
+  </div>`;
+}
+
+function scoreRingSvg(score: number, label: string, size = 80): string {
+  const r = (size - 8) / 2;
+  const circumference = 2 * Math.PI * r;
+  const offset = circumference - (score / 100) * circumference;
+  const color = score >= 80 ? 'var(--emerald)' : score >= 60 ? 'var(--amber)' : 'var(--red)';
+  return `<div style="text-align:center;">
+    <svg width="${size}" height="${size}" style="transform:rotate(-90deg);">
+      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--bg-muted)" stroke-width="4"/>
+      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
+    </svg>
+    <div style="margin-top:-${size - 8}px;height:${size - 8}px;display:flex;align-items:center;justify-content:center;">
+      <span style="font-size:20px;font-weight:700;color:${color};">${score}%</span>
+    </div>
+    <div style="font-size:10px;color:var(--fg-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">${label}</div>
+  </div>`;
+}
+
 export function exportColorLabReportHtml(
   report: ColorLabReportData,
-  colors: ColorLabColor[]
+  colors: ColorLabColor[],
+  contrastPairs?: ContrastPairData[],
+  psychologyMap?: Map<string, string[]>,
+  harmony?: HarmonyData
 ): void {
+  // Palette strip (full-width gradient-like)
+  const paletteStrip = `<div style="display:flex;border-radius:12px;overflow:hidden;height:64px;margin:20px 0;border:1px solid var(--border);">
+    ${colors.map(c => {
+      const textColor = isLightColor(c.hex) ? '#111827' : '#ffffff';
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:${c.hex};color:${textColor};transition:flex 0.2s;">
+        <span style="font-size:10px;font-weight:600;">${esc(c.name)}</span>
+        <span style="font-size:9px;opacity:0.7;font-family:monospace;">${c.hex.toUpperCase()}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  // Score rings
+  const scoreSection = `<div class="three-col" style="margin:24px 0;">
+    ${scoreRingSvg(report.accessibilityAudit.wcagScore, 'WCAG 2.2', 88)}
+    ${scoreRingSvg(report.accessibilityAudit.apcaScore, 'APCA', 88)}
+    ${scoreRingSvg(report.accessibilityAudit.colorblindSafety, 'Colorblind Safety', 88)}
+  </div>`;
+
+  // Harmony badge
+  const harmonyBadge = harmony
+    ? `<div class="card" style="display:flex;align-items:center;gap:12px;padding:14px 20px;">
+        <span class="badge badge-violet">${esc(harmony.label)}</span>
+        <span style="font-size:12px;color:var(--fg-muted);">${esc(harmony.description)}</span>
+      </div>`
+    : '';
+
+  // Psychology section
+  const psychSection = psychologyMap && psychologyMap.size > 0
+    ? `<h2>🧠 Color Psychology</h2>${psychologyHtml(colors, psychologyMap)}`
+    : '';
+
+  // Contrast pairs
+  const contrastSection = contrastPairs && contrastPairs.length > 0
+    ? `<h2>🔤 Best Contrast Pairs</h2>${contrastPairsHtml(contrastPairs)}`
+    : '';
+
+  // Contrast matrix
+  const matrixSection = colors.length >= 2 && colors.length <= 8
+    ? `<h2>📊 Contrast Matrix</h2><div class="card">${contrastMatrixHtml(colors)}</div>`
+    : '';
+
+  // Print production analysis
+  const printCards = colors.map(c => {
+    const ink = c.inkCoverage ?? (c.cmyk ? c.cmyk.c + c.cmyk.m + c.cmyk.y + c.cmyk.k : 0);
+    const ps = c.printScore ?? 100;
+    const statusBadge = ps >= 80 ? 'badge-emerald' : ps >= 50 ? 'badge-amber' : 'badge-red';
+    const statusLabel = ps >= 80 ? 'Print-Ready' : ps >= 50 ? 'Caution' : 'Review';
+    return `<div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--bg-muted);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;">
+      <div style="width:40px;height:40px;border-radius:8px;background:${c.hex};border:1px solid var(--border);flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <strong style="font-size:13px;">${esc(c.name)}</strong>
+          <span class="badge ${statusBadge}">${statusLabel}</span>
+        </div>
+        <p style="font-size:11px;margin:2px 0;color:var(--fg-muted);">
+          Ink: <strong>${ink}%</strong>${ink > 300 ? ' ⚠️' : ''} · Pantone: ${esc(c.pantone || '—')} (ΔE≈${c.pantoneDistance ?? '?'}) · Score: <strong>${ps}/100</strong>
+        </p>
+        ${(c.printNotes && c.printNotes.length > 0) ? `<p style="font-size:10px;color:var(--fg-muted);margin-top:4px;">${c.printNotes.map(n => `• ${esc(n)}`).join(' ')}</p>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Recommendations as numbered cards
+  const recsHtml = safeArr(report.recommendations).map((r, i) => 
+    `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:var(--bg-muted);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="font-size:11px;font-weight:700;color:var(--primary);">${i + 1}</span>
+      </div>
+      <p style="font-size:13px;color:var(--fg-muted);margin:0;padding-top:4px;">${esc(r)}</p>
+    </div>`
+  ).join('');
+
   const body = `
-    ${colorSwatchesHtml(colors)}
-    
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-value" style="color:${scoreColor(report.accessibilityAudit.wcagScore)}">${report.accessibilityAudit.wcagScore}%</div>
-        <div class="stat-label">WCAG Compliance</div>
-        ${scoreBar(report.accessibilityAudit.wcagScore)}
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" style="color:${scoreColor(report.accessibilityAudit.apcaScore)}">${report.accessibilityAudit.apcaScore}%</div>
-        <div class="stat-label">APCA Score</div>
-        ${scoreBar(report.accessibilityAudit.apcaScore)}
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" style="color:${scoreColor(report.accessibilityAudit.colorblindSafety)}">${report.accessibilityAudit.colorblindSafety}%</div>
-        <div class="stat-label">Colorblind Safety</div>
-        ${scoreBar(report.accessibilityAudit.colorblindSafety)}
-      </div>
-    </div>
+    ${paletteStrip}
+    ${scoreSection}
+    ${harmonyBadge}
 
     <h2>📝 Executive Summary</h2>
-    <div class="card"><p>${esc(report.executiveSummary)}</p></div>
+    <div class="card" style="border-left:3px solid var(--primary);"><p>${esc(report.executiveSummary)}</p></div>
+
+    ${psychSection}
 
     <h2>🎨 Color Theory Analysis</h2>
     <div class="card">
       <div class="card-header"><span class="badge badge-primary">${esc(report.colorTheory.harmonyType)}</span></div>
       <p>${esc(report.colorTheory.analysis)}</p>
-      <h3>Emotional Impact</h3>
-      <p>${esc(report.colorTheory.emotionalImpact)}</p>
+      <div style="margin-top:12px;padding:12px;background:var(--bg-muted);border-radius:8px;">
+        <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--fg-muted);margin:0 0 6px;">Emotional Impact</h3>
+        <p style="margin:0;">${esc(report.colorTheory.emotionalImpact)}</p>
+      </div>
     </div>
+
+    ${contrastSection}
+    ${matrixSection}
 
     <h2>♿ Accessibility Findings</h2>
     <div class="card">${listHtml(safeArr(report.accessibilityAudit.findings), 'list-warn')}</div>
@@ -1176,31 +1337,13 @@ export function exportColorLabReportHtml(
     <div class="card"><p>${esc(report.productionNotes)}</p></div>
 
     <h2>🖨️ Print Production Analysis</h2>
-    <div class="card">
-      <div class="stat-grid">
-        ${colors.map(c => {
-          const ink = c.inkCoverage ?? (c.cmyk ? c.cmyk.c + c.cmyk.m + c.cmyk.y + c.cmyk.k : 0);
-          const ps = c.printScore ?? 100;
-          const statusBadge = ps >= 80 ? 'badge-emerald' : ps >= 50 ? 'badge-amber' : 'badge-red';
-          const statusLabel = ps >= 80 ? 'Print-Ready' : ps >= 50 ? 'Caution' : 'Review';
-          return `<div class="stat-card" style="text-align:left;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-              <div style="width:24px;height:24px;border-radius:4px;background:${c.hex};border:1px solid var(--border);"></div>
-              <strong style="font-size:13px;">${esc(c.name)}</strong>
-              <span class="badge ${statusBadge}" style="margin-left:auto;">${statusLabel}</span>
-            </div>
-            <p style="font-size:12px;margin:4px 0;">Ink Coverage: <strong>${ink}%</strong>${ink > 300 ? ' ⚠️' : ''} · Pantone: ${esc(c.pantone || '—')} (ΔE ≈ ${c.pantoneDistance ?? '?'}) · Score: <strong>${ps}/100</strong></p>
-            ${(c.printNotes && c.printNotes.length > 0) ? `<p style="font-size:11px;color:var(--fg-muted);">${c.printNotes.map(n => `• ${esc(n)}`).join(' ')}</p>` : ''}
-          </div>`;
-        }).join('')}
-      </div>
-    </div>
+    <div class="card">${printCards}</div>
 
     <h2>💡 Strategic Recommendations</h2>
-    <div class="card">${listHtml(safeArr(report.recommendations), 'list-check')}</div>
+    <div class="card">${recsHtml}</div>
 
     <h2>🔚 Conclusion</h2>
-    <div class="card"><p>${esc(report.conclusion)}</p></div>
+    <div class="card" style="border:1px dashed var(--border);"><p>${esc(report.conclusion)}</p></div>
 
     <h2>📋 Color Specifications</h2>
     <div class="card">${colorDetailsTableHtml(colors)}</div>
