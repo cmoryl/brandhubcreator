@@ -128,6 +128,10 @@ export interface BrandTagline {
   taglineHoverEffect?: 'none' | 'glow-pulse' | 'letter-dance' | 'color-shift' | 'underline-grow';
   /** Tagline environmental effect */
   taglineEnvironment?: 'none' | 'shimmer' | 'particle-dust' | 'aurora' | 'glitch';
+  /** Whether to show secondary tagline (defaults to true) */
+  showSecondary?: boolean;
+  /** Whether to show tagline variations (defaults to true) */
+  showVariations?: boolean;
 }
 
 // IDENTITY - Narrative Architecture

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, X, Quote, Sparkles, Palette, Type, Pencil, Check, ChevronDown } from 'lucide-react';
+import { Plus, X, Quote, Sparkles, Palette, Type, Pencil, Check, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { BrandTagline, TaglineFontSettings, TaglineVariation } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -78,6 +78,18 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
 
   // Check if editing is allowed
   const canEdit = !!onTaglineChange;
+
+  // Visibility flags (default to true)
+  const showSecondary = tagline.showSecondary !== false;
+  const showVariations = tagline.showVariations !== false;
+
+  const toggleSecondary = () => {
+    onTaglineChange?.({ ...tagline, showSecondary: !showSecondary });
+  };
+
+  const toggleVariations = () => {
+    onTaglineChange?.({ ...tagline, showVariations: !showVariations });
+  };
 
   const updateSettings = (newSettings: Partial<TaglineSettings>) => {
     if (!onTaglineChange) return;
@@ -350,6 +362,30 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                 </div>
               </PopoverContent>
             </Popover>
+
+            {/* Visibility toggles */}
+            <div className="flex items-center gap-1 border-l border-border pl-2 ml-1">
+              <Button
+                variant={showSecondary ? "outline" : "ghost"}
+                size="sm"
+                className={cn("gap-1.5 text-xs", !showSecondary && "text-muted-foreground/50")}
+                onClick={toggleSecondary}
+                title={showSecondary ? "Hide secondary tagline" : "Show secondary tagline"}
+              >
+                {showSecondary ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">Secondary</span>
+              </Button>
+              <Button
+                variant={showVariations ? "outline" : "ghost"}
+                size="sm"
+                className={cn("gap-1.5 text-xs", !showVariations && "text-muted-foreground/50")}
+                onClick={toggleVariations}
+                title={showVariations ? "Hide variations" : "Show variations"}
+              >
+                {showVariations ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">Variations</span>
+              </Button>
+            </div>
             
             {/* Done button */}
             <Button variant="default" size="sm" className="gap-2" onClick={() => setIsEditing(false)}>
@@ -478,8 +514,12 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
         </div>
 
         {/* Secondary Tagline */}
-        <div className="bg-card rounded-xl p-6 border border-border hover:border-primary/30 transition-colors">
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">Secondary Tagline</h3>
+        {(showSecondary || isEditing) && (
+        <div className={cn("bg-card rounded-xl p-6 border border-border hover:border-primary/30 transition-colors", !showSecondary && "opacity-40 border-dashed")}>
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
+            Secondary Tagline
+            {!showSecondary && <span className="ml-2 text-xs font-normal italic">(hidden from viewers)</span>}
+          </h3>
           {isEditing ? (
             <Input
               value={tagline.secondary || ''}
@@ -492,9 +532,11 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
             </p>
           )}
         </div>
+        )}
 
         {/* Tagline Variations - Creative Display */}
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-muted/30">
+        {(showVariations || isEditing) && (
+        <div className={cn("relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-muted/30", !showVariations && "opacity-40 border-dashed")}>
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-primary/5 blur-3xl" />
@@ -510,7 +552,10 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                   <Quote className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-foreground">Tagline Variations</h3>
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Tagline Variations
+                    {!showVariations && <span className="ml-2 text-xs font-normal italic text-muted-foreground">(hidden from viewers)</span>}
+                  </h3>
                   <p className="text-xs text-muted-foreground">Campaign & context-specific messaging</p>
                 </div>
               </div>
@@ -649,6 +694,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
             )}
           </div>
         </div>
+        )}
       </div>
     </section>
   );
