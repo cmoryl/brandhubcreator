@@ -14,14 +14,15 @@ import { ParallaxCard } from '@/components/ui/parallax-card';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 import { DEMO_GRADIENTS, DEMO_INDUSTRIES, DEMO_CARD_IMAGES, getOrbitBrands, getOrbitProducts, getOrbitEvents } from '@/data/demoGuides';
-import { ParticleEmbers } from '@/components/ParticleEmbers';
-import { InteractiveCTA } from '@/components/landing/InteractiveCTA';
 import { BrandHubLogo } from '@/components/BrandHubLogo';
-import { GetStartedSurveyModal } from '@/components/landing/GetStartedSurveyModal';
 import { DemoFirstTimeModal, useFirstTimeDemoPrompt } from '@/components/landing/DemoFirstTimeModal';
 import brandhubLogo from '@/assets/brandhub-logo.svg';
 
+// Lazy load below-fold and non-LCP-critical components to improve LCP
+const ParticleEmbers = lazy(() => import('@/components/ParticleEmbers').then(m => ({ default: m.ParticleEmbers })));
+const InteractiveCTA = lazy(() => import('@/components/landing/InteractiveCTA').then(m => ({ default: m.InteractiveCTA })));
 const FeaturesShowcase = lazy(() => import('@/components/landing/FeaturesShowcase').then(m => ({ default: m.FeaturesShowcase })));
+const GetStartedSurveyModal = lazy(() => import('@/components/landing/GetStartedSurveyModal').then(m => ({ default: m.GetStartedSurveyModal })));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -134,12 +135,14 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         
         {/* Blue Particle Embers Background - reduced on mobile */}
-        <ParticleEmbers 
-          count={20} 
-          color="hsl(199 89% 48%)" 
-          interactive={false}
-          className="z-[1]"
-        />
+        <Suspense fallback={null}>
+          <ParticleEmbers 
+            count={20} 
+            color="hsl(199 89% 48%)" 
+            interactive={false}
+            className="z-[1]"
+          />
+        </Suspense>
         
         {/* Animated background elements - hidden on mobile for performance */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none hidden sm:block">
@@ -329,7 +332,9 @@ const Index = () => {
       </Suspense>
 
       {/* Interactive CTA Section */}
-      <InteractiveCTA />
+      <Suspense fallback={<div className="min-h-[200px]" />}>
+        <InteractiveCTA />
+      </Suspense>
 
       {/* Footer */}
       <footer className="py-12 border-t border-border">
@@ -367,7 +372,9 @@ const Index = () => {
       </footer>
 
       {/* Get Started Survey Modal */}
-      <GetStartedSurveyModal open={showSurveyModal} onOpenChange={setShowSurveyModal} />
+      <Suspense fallback={null}>
+        <GetStartedSurveyModal open={showSurveyModal} onOpenChange={setShowSurveyModal} />
+      </Suspense>
 
       {/* Demo First Time Modal */}
       {pendingDemo && (
