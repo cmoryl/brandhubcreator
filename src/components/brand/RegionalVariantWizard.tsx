@@ -163,33 +163,39 @@ export const RegionalVariantWizard = ({
           organization_id: organizationId,
           entity_id: entityId,
           entity_type: entityType,
+          entity_name: entityName,
           target_region: formData.variantCode,
           target_country: formData.variantLevel === 'country' ? formData.variantCode : undefined,
+          variant_level: formData.variantLevel,
+          region_name: formData.regionName,
         }
       });
 
       if (error) throw error;
 
       if (data?.success && data?.suggestions?.length > 0) {
-        // Extract cultural notes from suggestions
-        const colorNotes = data.suggestions
-          .filter((s: { section: string }) => s.section === 'colors')
-          .map((s: { reason: string }) => s.reason)
-          .join('; ');
-        const imageryNotes = data.suggestions
-          .filter((s: { section: string }) => s.section === 'imagery')
-          .map((s: { suggested_value: string[] }) => Array.isArray(s.suggested_value) ? s.suggested_value.join(', ') : '')
-          .join('; ');
-        const messagingNotes = data.suggestions
-          .filter((s: { section: string }) => s.section === 'messaging')
-          .map((s: { reason: string }) => s.reason)
-          .join('; ');
+        // Extract cultural notes from all suggestion sections
+        const notesBySection = data.suggestions.reduce((acc: Record<string, string[]>, s: { section: string; reason: string; suggested_value: unknown }) => {
+          const section = s.section || 'general';
+          if (!acc[section]) acc[section] = [];
+          if (s.reason) acc[section].push(s.reason);
+          return acc;
+        }, {} as Record<string, string[]>);
+
+        const culturalNotes = Object.entries(notesBySection)
+          .map(([section, notes]) => {
+            const label = section.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            return `**${label}:**\n${(notes as string[]).join('\n')}`;
+          })
+          .join('\n\n');
         
-        const culturalNotes = [colorNotes, imageryNotes, messagingNotes].filter(Boolean).join('\n\n');
-        
+        const adaptationSummary = data.adaptation_summary 
+          ? data.adaptation_summary 
+          : `Target locale: ${data.locale_name || formData.variantCode}`;
+
         updateFormData({
           culturalNotes: culturalNotes || `Cultural insights for ${data.locale_name || formData.variantCode}`,
-          adaptationNotes: `Target locale: ${data.locale_name || formData.variantCode}`,
+          adaptationNotes: adaptationSummary,
         });
         toast.success('AI cultural insights generated');
       } else {
