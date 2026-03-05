@@ -14,7 +14,7 @@ import {
   CheckCircle2, Info, Shield, Globe, FileText, Image as ImageIcon,
   Lock, LogIn, ArrowRight, ChevronRight, Wand2, Replace, Save,
   FolderOpen, Clock, X, Share2, Grid3X3, MonitorSmartphone, Sparkles, Link2,
-  Box, Zap, Layers, Filter,
+  Box, Zap, Layers, Filter, User, LogOut, Settings, LayoutDashboard, HelpCircle, Building2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -448,7 +458,7 @@ const DEFAULT_COLORS: LabColor[] = [
 // ── Main Page ──────────────────────────────────────────────────────
 
 export default function ColorLab() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [colors, setColors] = useState<LabColor[]>(DEFAULT_COLORS);
   const [newHex, setNewHex] = useState('#');
   const [newName, setNewName] = useState('');
@@ -607,22 +617,70 @@ export default function ColorLab() {
 
   const canAdvance = colors.length >= 2;
 
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-3">
-          <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-primary/10">
-              <Droplets className="h-5 w-5 text-primary" />
+      {/* Header — matches portal nav style */}
+      <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                <Droplets className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold leading-none text-foreground">Color Lab</h1>
+                <p className="text-[10px] text-muted-foreground hidden sm:block mt-0.5">Accessibility · Bias · Research · Production</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-bold leading-none">Color Lab</h1>
-              <p className="text-[10px] text-muted-foreground hidden sm:block">Accessibility · Bias · Research · Production</p>
-            </div>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+            <Badge variant="outline" className="gap-1 hidden sm:flex text-xs">
+              <Droplets className="h-3 w-3" />
+              Color Tool
+            </Badge>
+            <ThemeToggle />
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-accent/10 text-accent text-sm font-medium">
+                        {user.email?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <p className="text-sm font-medium leading-none">{user.email}</p>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')} className="gap-2 cursor-pointer">
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/help')} className="gap-2 cursor-pointer">
+                    <HelpCircle className="h-4 w-4" />
+                    Help Center
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="gap-2">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign In</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
