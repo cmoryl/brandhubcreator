@@ -5,8 +5,8 @@
  */
 
 import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot, Droplets } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -704,12 +704,21 @@ const OrganizationPortal = () => {
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} {organization.name}. All rights reserved.
           </p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap justify-center">
             <a href="/help#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQs</a>
             <span className="text-border">·</span>
             <a href="/knowledge" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Knowledge Base</a>
             <span className="text-border">·</span>
             <a href="/help" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Help Center</a>
+            {user && (
+              <>
+                <span className="text-border">·</span>
+                <Link to="/color-lab" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <Droplets className="h-3.5 w-3.5" />
+                  Color Lab
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </footer>
