@@ -1,4 +1,4 @@
-import html2pdf from 'html2pdf.js';
+// html2pdf is dynamically imported at usage site to avoid pulling 416KB into synchronous bundles
 import { BaseGuide } from '@/types/brand';
 
 export type PdfTheme = 'light' | 'dark';
@@ -149,6 +149,7 @@ export const exportToPdf = async (
   onProgress?.('Generating PDF...');
   
   try {
+    const html2pdf = (await import('html2pdf.js')).default;
     await html2pdf().set(opt).from(element).save();
     onProgress?.('PDF exported successfully!');
   } catch (error) {
