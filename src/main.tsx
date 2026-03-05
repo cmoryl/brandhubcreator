@@ -18,3 +18,10 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </ThemeProvider>
 );
+
+// Register service worker after page load to avoid blocking FCP
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/registerSW.js', { scope: '/' }).catch(() => {});
+  });
+}
