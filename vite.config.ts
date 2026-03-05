@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
       cssCodeSplit: true,
       chunkSizeWarningLimit: 600,
       modulePreload: {
-        polyfill: true,
+        polyfill: false,
       },
       rollupOptions: {
         output: {

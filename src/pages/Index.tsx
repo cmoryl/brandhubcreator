@@ -3,7 +3,7 @@
  * Features an interactive orbit visualization showcasing demo brands, products, and events
  */
 
-import { useMemo, useEffect, useCallback, useState } from 'react';
+import { useMemo, useEffect, useCallback, useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, Building2, Package, Calendar, Rocket, Play, HelpCircle } from 'lucide-react';
 import { GlitchText } from '@/components/ui/GlitchText';
@@ -16,11 +16,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DEMO_GRADIENTS, DEMO_INDUSTRIES, DEMO_CARD_IMAGES, getOrbitBrands, getOrbitProducts, getOrbitEvents } from '@/data/demoGuides';
 import { ParticleEmbers } from '@/components/ParticleEmbers';
 import { InteractiveCTA } from '@/components/landing/InteractiveCTA';
-import { FeaturesShowcase } from '@/components/landing/FeaturesShowcase';
 import { BrandHubLogo } from '@/components/BrandHubLogo';
 import { GetStartedSurveyModal } from '@/components/landing/GetStartedSurveyModal';
 import { DemoFirstTimeModal, useFirstTimeDemoPrompt } from '@/components/landing/DemoFirstTimeModal';
 import brandhubLogo from '@/assets/brandhub-logo.svg';
+
+const FeaturesShowcase = lazy(() => import('@/components/landing/FeaturesShowcase').then(m => ({ default: m.FeaturesShowcase })));
 
 const Index = () => {
   const navigate = useNavigate();
@@ -322,8 +323,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Full Features Showcase */}
-      <FeaturesShowcase />
+      {/* Full Features Showcase - lazy loaded for faster TTI */}
+      <Suspense fallback={<div className="min-h-[400px]" />}>
+        <FeaturesShowcase />
+      </Suspense>
 
       {/* Interactive CTA Section */}
       <InteractiveCTA />
