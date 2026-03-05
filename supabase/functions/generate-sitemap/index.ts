@@ -159,22 +159,48 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fetch public organizations for portal pages
-    const { data: orgs } = await supabase
-      .from('organizations')
-      .select('slug, updated_at');
+    // Fetch organizations that have public content (derive from already-fetched data)
+    const orgSlugsFromPublicEntities = new Set<string>();
+    const orgUpdatedAtMap = new Map<string, string>();
 
-    if (orgs) {
-      for (const org of orgs) {
-        if (org.slug) {
-          sitemap += buildUrlEntry(
-            baseUrl,
-            `/org/${org.slug}`,
-            org.updated_at,
-            'weekly',
-            '0.7'
-          );
+    // Collect org slugs from public brands
+    if (brands) {
+      const { data: brandOrgs } = await supabase
+        .from('brands')
+        .select('organization_id')
+        .eq('is_public', true)
+        .not('organization_id', 'is', null);
+      if (brandOrgs) {
+        for (const bo of brandOrgs) {
+          if (bo.organization_id) {
+            const { data: org } = await supabase
+              .from('organizations')
+              .select('slug, updated_at')
+              .eq('id', bo.organization_id)
+              .maybeSingle();
+            if (org?.slug) {
+              orgSlugsFromPublicEntities.add(org.slug);
+              orgUpdatedAtMap.set(org.slug, org.updated_at);
+            }
+          }
         }
+      }
+    }
+
+    const orgs = Array.from(orgSlugsFromPublicEntities).map(slug => ({
+      slug,
+      updated_at: orgUpdatedAtMap.get(slug),
+    }));
+
+    for (const org of orgs) {
+      if (org.slug) {
+        sitemap += buildUrlEntry(
+          baseUrl,
+          `/org/${org.slug}`,
+          org.updated_at,
+          'weekly',
+          '0.7'
+        );
       }
     }
 
