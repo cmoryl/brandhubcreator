@@ -279,7 +279,7 @@ const READABILITY_GUIDELINES = [
 ];
 
 const WcagTypographyPanel = () => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className="border border-border rounded-xl overflow-hidden bg-card">

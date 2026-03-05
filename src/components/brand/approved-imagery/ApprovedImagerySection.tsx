@@ -165,7 +165,7 @@ export const ApprovedImagerySection = ({
           </CardContent>
         </Card>
       ) : (
-        <Accordion type="multiple" defaultValue={sections.map(s => s.id)} className="space-y-3">
+        <Accordion type="multiple" defaultValue={[]} className="space-y-3">
           {sections.map((section) => (
             <ImagerySubSection
               key={section.id}
