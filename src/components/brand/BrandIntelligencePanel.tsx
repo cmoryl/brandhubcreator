@@ -191,8 +191,8 @@ export const BrandIntelligencePanel = ({
   const [isAddingEntry, setIsAddingEntry] = useState(false);
   const [newEntry, setNewEntry] = useState({ type: 'note', content: '', category: '' });
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    knowledge: true,
-    analysis: true,
+    knowledge: false,
+    analysis: false,
     recommendations: false,
     competitive: false,
     cultural: false,
