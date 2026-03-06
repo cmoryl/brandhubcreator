@@ -364,6 +364,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'partnerbooths',       // Partner booth catalog
   'eventhistory',
   
+  'qr',
   'templatespecs',
   'presentations',
   'insights',

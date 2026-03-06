@@ -36,6 +36,7 @@ import { syncSharedAssetsToSubEvents } from '@/lib/syncSharedAssetsToSubEvents';
 import { EventPatternsSection } from './EventPatternsSection';
 import { EventSpeakersSection } from './EventSpeakersSection';
 import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
+import { QRSection } from '@/components/brand/QRSection';
 import { Separator } from '@/components/ui/separator';
 import { InsightsSection } from '@/components/brand/InsightsSection';
 
