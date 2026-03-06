@@ -42,9 +42,21 @@ export const ScrollToTop = () => {
     const raf = requestAnimationFrame(scrollToZero);
 
     // MutationObserver to catch late DOM changes that shift scroll
-    const observer = new MutationObserver(() => {
+    // Ignore portal elements (Radix UI dropdowns, dialogs, popovers)
+    const observer = new MutationObserver((mutations) => {
       if (window.scrollY > 0 && !hasScrolledRef.current) {
-        scrollToZero();
+        const isPortalMutation = mutations.some(m => 
+          Array.from(m.addedNodes).some(node => 
+            node instanceof HTMLElement && (
+              node.hasAttribute('data-radix-portal') ||
+              node.closest?.('[data-radix-portal]') ||
+              node.hasAttribute('data-radix-popper-content-wrapper')
+            )
+          )
+        );
+        if (!isPortalMutation) {
+          scrollToZero();
+        }
       }
     });
 
