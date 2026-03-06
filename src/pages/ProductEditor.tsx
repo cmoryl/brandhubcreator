@@ -166,11 +166,7 @@ const ProductEditor = () => {
   }, [user, isApproved, isAdmin, authLoading, navigate]);
 
   // Scroll to top when product changes (unless there's a hash anchor)
-  React.useEffect(() => {
-    if (!location.hash) {
-      window.scrollTo(0, 0);
-    }
-  }, [productSlug, location.hash]);
+  // Note: scroll-to-top on route change is handled by ScrollToTop component
 
   // Handle hash anchor scrolling on page load/navigation
   React.useEffect(() => {
