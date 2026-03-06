@@ -495,6 +495,16 @@ export const FullEventPage = ({
             eventData={event}
           />
         );
+      case 'qr':
+        return (
+          <QRSection
+            qr={event.qr}
+            onQRChange={editHandler((qr) => updateEvent({ qr }))}
+            entityType="event"
+            entityId={eventId}
+            logos={event.logos}
+          />
+        );
       default:
         return null;
     }
