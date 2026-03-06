@@ -157,11 +157,7 @@ const BrandEditor = () => {
   }, [user, isApproved, isAdmin, authLoading, navigate]);
 
   // Scroll to top when brand changes (unless there's a hash anchor)
-  useEffect(() => {
-    if (!location.hash) {
-      window.scrollTo(0, 0);
-    }
-  }, [brandSlug, location.hash]);
+  // Note: scroll-to-top on route change is handled by ScrollToTop component
 
   // Handle hash anchor scrolling on page load/navigation
   useEffect(() => {

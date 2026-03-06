@@ -153,10 +153,7 @@ const EventEditor = () => {
     }
   }, [user, isApproved, isAdmin, authLoading, navigate]);
 
-  // Scroll to top when event changes
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [eventSlug]);
+  // Note: scroll-to-top on route change is handled by ScrollToTop component
 
   // Scroll to section when sidebar nav is clicked, then flash highlight
   useEffect(() => {

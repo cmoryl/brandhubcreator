@@ -1,89 +1,26 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
 
+/**
+ * ScrollToTop - Scrolls to top on route changes (PUSH/REPLACE only).
+ * 
+ * - Skips POP (back/forward) to let the browser restore scroll position.
+ * - Skips hash navigations so anchor links work correctly.
+ * - Uses behavior: 'instant' to avoid competing with smooth-scroll animations.
+ * 
+ * Placed inside BrowserRouter in App.tsx.
+ */
 export const ScrollToTop = () => {
   const { pathname, hash } = useLocation();
   const navType = useNavigationType();
-  const hasScrolledRef = useRef(false);
-
-  // Disable browser's automatic scroll restoration globally
-  useEffect(() => {
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
-    }
-  }, []);
 
   useEffect(() => {
-    // Skip scroll on back/forward navigation to preserve position
+    // Skip back/forward navigation — let browser handle scroll restoration
     if (navType === 'POP') return;
-    // Skip if navigating to a hash anchor
+    // Skip hash anchors — editors handle their own section scrolling
     if (hash) return;
 
-    hasScrolledRef.current = false;
-
-    const scrollToZero = () => {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    };
-
-    // Immediate scroll
-    scrollToZero();
-
-    // Staggered fallbacks to catch async layout shifts
-    const timers = [0, 50, 150, 300, 600, 1000, 1500].map(delay =>
-      setTimeout(() => {
-        if (window.scrollY > 0 && !hasScrolledRef.current) {
-          scrollToZero();
-        }
-      }, delay)
-    );
-
-    const raf = requestAnimationFrame(scrollToZero);
-
-    // MutationObserver to catch late DOM changes that shift scroll
-    // Ignore portal elements (Radix UI dropdowns, dialogs, popovers)
-    const observer = new MutationObserver((mutations) => {
-      if (window.scrollY > 0 && !hasScrolledRef.current) {
-        const isPortalMutation = mutations.some(m => 
-          Array.from(m.addedNodes).some(node => 
-            node instanceof HTMLElement && (
-              node.hasAttribute('data-radix-portal') ||
-              node.closest?.('[data-radix-portal]') ||
-              node.hasAttribute('data-radix-popper-content-wrapper')
-            )
-          )
-        );
-        if (!isPortalMutation) {
-          scrollToZero();
-        }
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Stop forcing scroll after 2s to allow normal user interaction
-    const stopTimer = setTimeout(() => {
-      hasScrolledRef.current = true;
-      observer.disconnect();
-    }, 2000);
-
-    // If user manually scrolls, stop forcing top
-    const onUserScroll = () => {
-      hasScrolledRef.current = true;
-      observer.disconnect();
-    };
-    window.addEventListener('wheel', onUserScroll, { once: true, passive: true });
-    window.addEventListener('touchmove', onUserScroll, { once: true, passive: true });
-
-    return () => {
-      timers.forEach(clearTimeout);
-      clearTimeout(stopTimer);
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-      window.removeEventListener('wheel', onUserScroll);
-      window.removeEventListener('touchmove', onUserScroll);
-    };
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [pathname, navType, hash]);
 
   return null;
