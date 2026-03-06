@@ -36,6 +36,7 @@ import { syncSharedAssetsToSubEvents } from '@/lib/syncSharedAssetsToSubEvents';
 import { EventPatternsSection } from './EventPatternsSection';
 import { EventSpeakersSection } from './EventSpeakersSection';
 import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
+import { QRSection } from '@/components/brand/QRSection';
 import { Separator } from '@/components/ui/separator';
 import { InsightsSection } from '@/components/brand/InsightsSection';
 
@@ -492,6 +493,16 @@ export const FullEventPage = ({
             }}
             insightsAccessCode={(event as any).insightsAccessCode}
             eventData={event}
+          />
+        );
+      case 'qr':
+        return (
+          <QRSection
+            qr={event.qr}
+            onQRChange={editHandler((qr) => updateEvent({ qr }))}
+            entityType="event"
+            entityId={eventId}
+            logos={event.logos}
           />
         );
       default:
