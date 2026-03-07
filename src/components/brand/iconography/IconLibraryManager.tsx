@@ -23,10 +23,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
+import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { IconStudio, IconStudioTab } from './IconStudio';
 import { SortableLevelSection } from './SortableLevelSection';
 import { IconLibraryBrandLinker } from './IconLibraryBrandLinker';
 import { BrandIconography } from '@/types/brand';
+import { useBrands } from '@/contexts/BrandContext';
 
 interface IconLibraryManagerProps {
   organizationId: string;
@@ -45,6 +47,9 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
     updateLibrary,
     deleteLibrary,
   } = useIconLibraries(organizationId);
+
+  const { brands } = useBrands();
+  const { linkLibraryToBrand, unlinkLibraryFromBrand, getLinkedBrandIds } = useIconLibraryBrandLinks(organizationId);
 
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set(['core', 'product_line', 'brand']));
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -285,6 +290,10 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
           onToggleActive={handleToggleActive}
           onRemoveIcon={handleRemoveIcon}
           onReorder={handleReorder}
+          brands={brands}
+          getLinkedBrandIds={getLinkedBrandIds}
+          onLinkBrand={(libId, brandId) => linkLibraryToBrand.mutate({ libraryId: libId, brandId })}
+          onUnlinkBrand={(libId, brandId) => unlinkLibraryFromBrand.mutate({ libraryId: libId, brandId })}
         />
         <SortableLevelSection
           level="brand"
@@ -298,10 +307,14 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
           onToggleActive={handleToggleActive}
           onRemoveIcon={handleRemoveIcon}
           onReorder={handleReorder}
+          brands={brands}
+          getLinkedBrandIds={getLinkedBrandIds}
+          onLinkBrand={(libId, brandId) => linkLibraryToBrand.mutate({ libraryId: libId, brandId })}
+          onUnlinkBrand={(libId, brandId) => unlinkLibraryFromBrand.mutate({ libraryId: libId, brandId })}
         />
       </div>
 
-      {/* Brand Icon Assignments */}
+      {/* Brand Icon Assignments - summary view */}
       <Separator className="my-2" />
       <IconLibraryBrandLinker
         organizationId={organizationId}
