@@ -1,0 +1,1 @@
+ALTER TABLE public.booth_variant_info ADD COLUMN IF NOT EXISTS tagline text DEFAULT '';

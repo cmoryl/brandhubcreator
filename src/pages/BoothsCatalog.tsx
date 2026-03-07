@@ -1568,13 +1568,17 @@ const ProductionSpecsManager = ({ divisionId, isAdmin, color, variantLabel }: { 
   );
 };
 
-const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divisionId: string; variantLabel: string; isAdmin: boolean; color: string }) => {
+const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color, divisionTagline }: { divisionId: string; variantLabel: string; isAdmin: boolean; color: string; divisionTagline?: string }) => {
   const { info, loading, saveInfo } = useBoothVariantInfo(divisionId, variantLabel);
   const [editing, setEditing] = useState(false);
+  const [editTagline, setEditTagline] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editSections, setEditSections] = useState<{ heading: string; bullets: string[] }[]>([]);
 
+  const resolvedTagline = info?.tagline || divisionTagline || '';
+
   const startEditing = () => {
+    setEditTagline(info?.tagline || divisionTagline || "");
     setEditDesc(info?.description || "");
     setEditSections(info?.details?.length ? info.details : [{ heading: "", bullets: [""] }]);
     setEditing(true);
@@ -1584,7 +1588,7 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
     const cleanedSections = editSections
       .filter(s => s.heading.trim() || s.bullets.some(b => b.trim()))
       .map(s => ({ heading: s.heading.trim(), bullets: s.bullets.filter(b => b.trim()) }));
-    await saveInfo(editDesc.trim(), cleanedSections);
+    await saveInfo(editDesc.trim(), cleanedSections, editTagline.trim());
     setEditing(false);
   };
 
@@ -1615,7 +1619,26 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
 
   if (loading) return <div className="flex items-center gap-2 text-xs text-muted-foreground py-2"><Loader2 className="h-3 w-3 animate-spin" /> Loading variant info...</div>;
 
-  if (!info && !isAdmin) return null;
+  if (!info && !isAdmin) {
+    // Still show the tagline even in read-only if there's a division-level one
+    if (resolvedTagline) {
+      return (
+        <div className="mt-4">
+          <h4 className="text-sm font-semibold uppercase tracking-wider mb-2" style={{ color }}>
+            {variantLabel}
+          </h4>
+          <p className="text-2xl md:text-3xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{resolvedTagline}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            <span>Font: Poppins Regular 400</span>
+            <span>Booth: 48–72pt</span>
+            <span>Banner: 36–48pt</span>
+            <span>Safe Zone: 2" from edges</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
 
   if (editing && isAdmin) {
     return (
@@ -1623,6 +1646,10 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
         <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
           Edit: {variantLabel} Info
         </h4>
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Tagline for this variant</label>
+          <Textarea value={editTagline} onChange={e => setEditTagline(e.target.value)} className="text-sm min-h-[50px]" placeholder="Variant-specific tagline..." />
+        </div>
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">Description</label>
           <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} className="text-sm min-h-[60px]" placeholder="About this specific booth variant..." />
@@ -1672,32 +1699,38 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
           </Button>
         )}
       </div>
-      {info ? (
-        <div className="space-y-3">
-          {info.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed">{info.description}</p>
-          )}
-          {info.details && info.details.length > 0 && (
-            <div className="grid gap-3">
-              {info.details.map((section, i) => (
-                <div key={i} className="bg-muted/30 rounded-lg p-3 border border-border/40">
-                  <h5 className="text-xs font-semibold mb-1.5" style={{ color }}>{section.heading}</h5>
-                  <ul className="space-y-1">
-                    {section.bullets.map((bullet, j) => (
-                      <li key={j} className="text-xs text-muted-foreground flex items-start gap-2">
-                        <span className="mt-1.5 h-1 w-1 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
+      <div className="space-y-3">
+        {/* Variant Tagline */}
+        <div>
+          <p className="text-2xl md:text-3xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{resolvedTagline}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            <span>Font: Poppins Regular 400</span>
+            <span>Booth: 48–72pt</span>
+            <span>Banner: 36–48pt</span>
+            <span>Safe Zone: 2" from edges</span>
+          </div>
         </div>
-      ) : isAdmin ? (
-        <p className="text-xs text-muted-foreground italic">No info added for this variant yet. Click "Add Info" to add details.</p>
-      ) : null}
+        {info?.description && (
+          <p className="text-sm text-muted-foreground leading-relaxed">{info.description}</p>
+        )}
+        {info?.details && info.details.length > 0 && (
+          <div className="grid gap-3">
+            {info.details.map((section, i) => (
+              <div key={i} className="bg-muted/30 rounded-lg p-3 border border-border/40">
+                <h5 className="text-xs font-semibold mb-1.5" style={{ color }}>{section.heading}</h5>
+                <ul className="space-y-1">
+                  {section.bullets.map((bullet, j) => (
+                    <li key={j} className="text-xs text-muted-foreground flex items-start gap-2">
+                      <span className="mt-1.5 h-1 w-1 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -1771,11 +1804,8 @@ const ContactWebsiteEditor = ({ division, isAdmin }: { division: BoothDivision; 
   );
 };
 
-export const DivisionDetail = ({ division, onClose, isAdmin, onUpdateTagline }: { division: BoothDivision; onClose: () => void; isAdmin: boolean; onUpdateTagline?: (tagline: string) => Promise<void> }) => {
+export const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivision; onClose: () => void; isAdmin: boolean }) => {
   const [activeVariant, setActiveVariant] = useState(0);
-  const [editingTagline, setEditingTagline] = useState(false);
-  const [taglineValue, setTaglineValue] = useState(division.tagline);
-  const [savingTagline, setSavingTagline] = useState(false);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [addingVariant, setAddingVariant] = useState(false);
@@ -1856,7 +1886,6 @@ export const DivisionDetail = ({ division, onClose, isAdmin, onUpdateTagline }: 
             </div>
             <div>
               <h2 className="text-xl font-bold font-heading">{division.name}</h2>
-              <h3 className="text-base font-bold text-primary uppercase tracking-wider mt-1">{division.tagline}</h3>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
@@ -2028,6 +2057,7 @@ export const DivisionDetail = ({ division, onClose, isAdmin, onUpdateTagline }: 
                 variantLabel={currentVariant.label}
                 isAdmin={isAdmin}
                 color={division.color}
+                divisionTagline={division.tagline}
               />
             )}
 
@@ -2053,50 +2083,6 @@ export const DivisionDetail = ({ division, onClose, isAdmin, onUpdateTagline }: 
                           {/* Info Grid */}
                           <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-4">
-                              <div>
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Tagline</h3>
-                                  {isAdmin && !editingTagline && (
-                                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setTaglineValue(division.tagline); setEditingTagline(true); }}>
-                                      <Pencil className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </div>
-                                {editingTagline && isAdmin ? (
-                                  <div className="space-y-2">
-                                    <Textarea
-                                      value={taglineValue}
-                                      onChange={(e) => setTaglineValue(e.target.value)}
-                                      className="text-lg font-normal text-primary resize-none"
-                                      style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}
-                                      rows={2}
-                                    />
-                                    <div className="flex gap-2">
-                                      <Button size="sm" className="text-xs gap-1" disabled={savingTagline} onClick={async () => {
-                                        if (!onUpdateTagline || !taglineValue.trim()) return;
-                                        setSavingTagline(true);
-                                        await onUpdateTagline(taglineValue.trim());
-                                        setSavingTagline(false);
-                                        setEditingTagline(false);
-                                      }}>
-                                        {savingTagline ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />} Save
-                                      </Button>
-                                      <Button size="sm" variant="ghost" className="text-xs gap-1" onClick={() => setEditingTagline(false)}>
-                                        <X className="h-3 w-3" /> Cancel
-                                      </Button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <p className="text-2xl md:text-3xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{division.tagline}</p>
-                                )}
-                                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                                  <span>Font: Poppins Regular 400</span>
-                                  <span>Booth: 48–72pt</span>
-                                  <span>Banner: 36–48pt</span>
-                                  <span>Safe Zone: 2" from edges</span>
-                                </div>
-                              </div>
-
                                <ServicesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} />
 
                                <QRCodesManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} />
@@ -2750,11 +2736,7 @@ export default function BoothsCatalog() {
       {/* Detail Modal */}
       <AnimatePresence>
         {selected && (
-          <DivisionDetail division={selected} onClose={() => setSelected(null)} isAdmin={isAdmin} onUpdateTagline={async (tagline) => {
-            await updateDivision(selected.id, { tagline });
-            // Update local state so the UI reflects the change immediately
-            setSelected(prev => prev ? { ...prev, tagline } : prev);
-          }} />
+          <DivisionDetail division={selected} onClose={() => setSelected(null)} isAdmin={isAdmin} />
         )}
       </AnimatePresence>
     </div>
