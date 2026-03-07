@@ -5,7 +5,7 @@
  * follow-up suggestions, response timing, and robust speech recognition.
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { logger } from '@/lib/logger';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -159,7 +159,6 @@ const TypingIndicator = () => (
 );
 
 /** Pulsing dictation indicator */
-import React from 'react';
 const DictationPulse = React.forwardRef<HTMLDivElement, { isActive: boolean }>(
   ({ isActive }, ref) => {
     if (!isActive) return null;
