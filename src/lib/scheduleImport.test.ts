@@ -43,7 +43,6 @@ describe('Schedule Import', () => {
       expect(csv).toBeDefined();
       expect(csv.length).toBeGreaterThan(0);
       
-      // Check headers are present
       expect(csv).toContain('Time');
       expect(csv).toContain('Title');
       expect(csv).toContain('Description');
@@ -51,15 +50,14 @@ describe('Schedule Import', () => {
       expect(csv).toContain('Location');
       expect(csv).toContain('Session Type');
       
-      // Check sample data
       expect(csv).toContain('Opening Keynote');
       expect(csv).toContain('Coffee Break');
     });
   });
 
   describe('generateSampleExcel', () => {
-    it('should generate a valid Excel blob', () => {
-      const blob = generateSampleExcel();
+    it('should generate a valid Excel blob', async () => {
+      const blob = await generateSampleExcel();
       
       expect(blob).toBeInstanceOf(Blob);
       expect(blob.type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -80,13 +78,11 @@ describe('Schedule Import', () => {
       expect(result.errors.length).toBe(0);
       expect(result.fileType).toBe('csv');
       
-      // Check first item
       expect(result.items[0].title).toBe('Opening Keynote');
       expect(result.items[0].time).toBe('Day 1 - 9:00 AM');
       expect(result.items[0].track).toBe('keynote');
       expect(result.items[0].speaker).toBe('John Smith');
       
-      // Check second item
       expect(result.items[1].title).toBe('Coffee Break');
       expect(result.items[1].track).toBe('break');
     });
@@ -117,10 +113,10 @@ describe('Schedule Import', () => {
       
       expect(result.success).toBe(true);
       expect(result.items.length).toBe(4);
-      expect(result.items[0].track).toBe('break'); // coffee -> break
-      expect(result.items[1].track).toBe('networking'); // happy hour -> networking
-      expect(result.items[2].track).toBe('workshop'); // hands-on -> workshop
-      expect(result.items[3].track).toBe('panel'); // roundtable -> panel
+      expect(result.items[0].track).toBe('break');
+      expect(result.items[1].track).toBe('networking');
+      expect(result.items[2].track).toBe('workshop');
+      expect(result.items[3].track).toBe('panel');
     });
 
     it('should fail if required columns are missing', () => {
@@ -177,10 +173,9 @@ describe('Schedule Import', () => {
       const result = importScheduleFromCSV(template);
       
       expect(result.success).toBe(true);
-      expect(result.items.length).toBe(5); // Template has 5 sample rows
+      expect(result.items.length).toBe(5);
       expect(result.errors.length).toBe(0);
       
-      // Verify specific items
       const keynote = result.items.find(i => i.title === 'Opening Keynote');
       expect(keynote).toBeDefined();
       expect(keynote?.track).toBe('keynote');
@@ -192,9 +187,8 @@ describe('Schedule Import', () => {
   });
 
   describe('importScheduleFromExcel', () => {
-    it('should handle invalid Excel data gracefully', () => {
-      // Pass invalid data to trigger error handling
-      const result = importScheduleFromExcel(new ArrayBuffer(0));
+    it('should handle invalid Excel data gracefully', async () => {
+      const result = await importScheduleFromExcel(new ArrayBuffer(0));
       
       expect(result.success).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);

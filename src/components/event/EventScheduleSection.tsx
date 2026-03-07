@@ -303,9 +303,9 @@ export const EventScheduleSection = ({
     setImportResult(null);
   };
 
-  const handleDownloadTemplate = (format: 'csv' | 'xlsx') => {
+  const handleDownloadTemplate = async (format: 'csv' | 'xlsx') => {
     if (format === 'xlsx') {
-      const blob = generateSampleExcel();
+      const blob = await generateSampleExcel();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
