@@ -308,11 +308,11 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
                   .filter(b => linkedBrandIds.includes(b.id))
                   .map(b => b.hero?.name || 'Untitled');
                 const linkedProductNames = (products || [])
-                  .filter((p: any) => linkedProductIds.includes(p.id))
-                  .map((p: any) => p.guide_data?.hero?.name || p.name || 'Untitled');
+                  .filter(p => linkedProductIds.includes(p.id))
+                  .map(p => p.hero?.name || 'Untitled');
                 const linkedEventNames = (events || [])
-                  .filter((e: any) => linkedEventIds.includes(e.id))
-                  .map((e: any) => e.guide_data?.hero?.name || e.name || 'Untitled');
+                  .filter(e => linkedEventIds.includes(e.id))
+                  .map(e => e.hero?.name || 'Untitled');
                 const allLinkedNames = [...linkedBrandNames, ...linkedProductNames, ...linkedEventNames];
 
                 return (
