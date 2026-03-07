@@ -3,11 +3,12 @@
  */
 
 import { useState } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, Download, Copy, Check, X } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Download, Copy, Check, Image, FileCode } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
