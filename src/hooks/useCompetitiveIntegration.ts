@@ -6,6 +6,7 @@
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface CompetitiveLandscape {
   last_synced: string;
@@ -41,13 +42,13 @@ export function useCompetitiveIntegration(
 
       if (reportsError) throw reportsError;
       if (!reports || reports.length === 0) {
-        console.log('[CompetitiveIntegration] No reports to sync');
+        logger.sync('CompetitiveIntegration: No reports to sync');
         return null;
       }
 
       // Aggregate competitive landscape from reports
       const latestReport = reports[0];
-      const reportData = latestReport.report_data as any;
+      const reportData = latestReport.report_data as Record<string, any>;
       const allCompetitors = new Set<string>();
       
       reports.forEach(r => {
@@ -98,7 +99,7 @@ export function useCompetitiveIntegration(
         if (insertError) throw insertError;
       }
 
-      console.log('[CompetitiveIntegration] Synced competitive landscape', landscape);
+      logger.sync('CompetitiveIntegration: Synced competitive landscape', landscape);
       return landscape;
     } catch (err) {
       console.error('[CompetitiveIntegration] Sync failed:', err);
@@ -135,7 +136,7 @@ export function useCompetitiveIntegration(
 }
 
 // Helper functions to extract structured data from report
-function extractGaps(reportData: any): string[] {
+function extractGaps(reportData: Record<string, any>): string[] {
   const gaps: string[] = [];
   
   if (reportData?.competitive_gaps) {
@@ -155,7 +156,7 @@ function extractGaps(reportData: any): string[] {
   return [...new Set(gaps)].slice(0, 5);
 }
 
-function extractOpportunities(reportData: any): string[] {
+function extractOpportunities(reportData: Record<string, any>): string[] {
   const opps: string[] = [];
   
   if (reportData?.differentiation_opportunities) {
@@ -181,7 +182,7 @@ function extractOpportunities(reportData: any): string[] {
   return [...new Set(opps)].slice(0, 5);
 }
 
-function extractThreats(reportData: any): string {
+function extractThreats(reportData: Record<string, any>): string {
   if (reportData?.threat_assessment) {
     return typeof reportData.threat_assessment === 'string' 
       ? reportData.threat_assessment 

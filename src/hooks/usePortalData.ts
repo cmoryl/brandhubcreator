@@ -133,8 +133,8 @@ const PRODUCT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated
 const EVENT_CARD_SELECT = 'id, name, slug, is_public, parent_brand_id, updated_at, hero:guide_data->hero, colors:guide_data->colors, logos:guide_data->logos, eventDetails:guide_data->eventDetails, linkedGuides:guide_data->linkedGuides';
 
 // Cache for recently fetched data to prevent duplicate requests
-const dataCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 1000; // 1 second - fast to pick up changes quickly
+const dataCache = new Map<string, { data: { brands: PortalBrand[]; products: PortalProduct[]; events: PortalEvent[] }; timestamp: number }>();
+const CACHE_TTL = 1000;
 
 // Register cache with cacheManager for external clearing
 import { registerPortalCache } from '@/lib/cacheManager';
@@ -511,7 +511,7 @@ export const useFilteredPortalData = (
       // Check linkedGuides array - these are sub-events that belong to this parent
       const guides = event.linkedGuides;
       if (guides && Array.isArray(guides)) {
-        guides.forEach((linked: any) => {
+        guides.forEach((linked: PortalLinkedGuide) => {
           // linked could be PortalLinkedEvent with id property
           const linkedId = typeof linked === 'string' ? linked : linked?.id;
           if (linkedId) {

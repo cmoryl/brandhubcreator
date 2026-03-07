@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 export type AuditActionType = 
   | 'create' 
@@ -118,7 +119,7 @@ export const logActivity = async (entry: AuditLogEntry): Promise<void> => {
       // Silently fail for non-critical audit logging - don't break user flow
       console.error('[AUDIT] Failed to log activity:', error.message);
     } else {
-      console.log('[AUDIT] Activity logged:', entry.actionType, entry.entityType, entry.entityName);
+      logger.admin('Activity logged:', entry.actionType, entry.entityType, entry.entityName);
     }
   } catch (err) {
     console.error('[AUDIT] Error logging activity:', err);

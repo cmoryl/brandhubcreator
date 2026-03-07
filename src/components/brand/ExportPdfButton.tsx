@@ -31,6 +31,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 import { PageBreakIndicator, PrintPageSimulator, PrintPreviewContainer, PageBreakDivider, PrintPreviewHeader, useEstimatedPages } from '@/components/pdf-export';
 import '@/styles/pdf-export.css';
 
@@ -125,7 +126,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             });
           }
         } catch (err) {
-          console.log('No intelligence data found for guide');
+          logger.debug('No intelligence data found for guide');
         }
       };
       fetchIntelligence();
@@ -165,7 +166,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             snapshots: Array.from(latestByPlatform.values())
           });
         } catch (err) {
-          console.log('No social metrics data found for guide');
+          logger.debug('No social metrics data found for guide');
         }
       };
       fetchSocialMetrics();
@@ -281,7 +282,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
 
       try {
         await exportToPdf(exportRef.current, guide, pdfTheme, paperSize, (status) => {
-          console.log(status);
+          logger.debug('PDF export status:', status);
         });
         
         // Log the export to audit_logs for tracking

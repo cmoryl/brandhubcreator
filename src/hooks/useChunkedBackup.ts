@@ -69,7 +69,7 @@ export const useChunkedBackup = () => {
     });
   }, []);
 
-  const estimateItemSize = (item: any): number => {
+  const estimateItemSize = (item: unknown): number => {
     try {
       return JSON.stringify(item).length;
     } catch {
@@ -105,7 +105,7 @@ export const useChunkedBackup = () => {
 
   const uploadBackupChunk = async (
     path: string,
-    data: any,
+    data: unknown,
     retries = 3
   ): Promise<{ success: boolean; error?: string }> => {
     for (let attempt = 1; attempt <= retries; attempt++) {

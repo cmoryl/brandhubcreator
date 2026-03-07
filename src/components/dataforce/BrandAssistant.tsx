@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -318,11 +319,11 @@ export const BrandAssistant = ({
     // SpeechRecognition alone does NOT reliably trigger the browser permission prompt,
     // especially in iframes or certain browsers. getUserMedia forces the prompt.
     try {
-      console.log('[Dictation] Requesting microphone permission via getUserMedia...');
+      logger.debug('Dictation: Requesting microphone permission via getUserMedia...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       // Got permission — stop the stream immediately (SpeechRecognition manages its own)
       stream.getTracks().forEach(track => track.stop());
-      console.log('[Dictation] Microphone permission granted');
+      logger.debug('Dictation: Microphone permission granted');
     } catch (micErr: any) {
       console.error('[Dictation] Microphone permission denied:', micErr);
       if (micErr.name === 'NotAllowedError' || micErr.name === 'PermissionDeniedError') {
@@ -362,11 +363,11 @@ export const BrandAssistant = ({
     recognition.lang = LANG_MAP[language] || 'en-US';
 
     recognition.onaudiostart = () => {
-      console.log('[Dictation] Audio capture started – microphone is active');
+      logger.debug('Dictation: Audio capture started – microphone is active');
     };
 
     recognition.onspeechstart = () => {
-      console.log('[Dictation] Speech detected');
+      logger.debug('Dictation: Speech detected');
     };
 
     recognition.onresult = (event: any) => {
@@ -410,7 +411,7 @@ export const BrandAssistant = ({
         voiceModeRef.current = false;
         setDictationEnabled(false);
       } else if (event.error === 'no-speech') {
-        console.log('[Dictation] No speech detected, will auto-restart');
+        logger.debug('Dictation: No speech detected, will auto-restart');
       } else if (event.error === 'audio-capture') {
         toast.error('No microphone detected. Please connect a microphone.');
         setIsListening(false);
@@ -430,7 +431,7 @@ export const BrandAssistant = ({
         // Auto-restart directly to preserve gesture chain
         try {
           recognition.start();
-          console.log('[Dictation] Auto-restarted after onend');
+          logger.debug('Dictation: Auto-restarted after onend');
         } catch {
           setIsListening(false);
           isListeningRef.current = false;
@@ -448,7 +449,7 @@ export const BrandAssistant = ({
     // Start recognition — mic is already permitted from getUserMedia above
     try {
       recognition.start();
-      console.log('[Dictation] Recognition started, lang:', recognition.lang);
+      logger.debug('Dictation: Recognition started, lang:', recognition.lang);
     } catch (e) {
       console.error('[Dictation] Failed to start:', e);
       toast.error('Could not start speech recognition. Please try again.');

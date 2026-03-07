@@ -6,6 +6,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export interface AnalysisJob {
   id: string;
@@ -15,7 +16,7 @@ export interface AnalysisJob {
   user_id: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   progress: number;
-  result: any | null;
+  result: Record<string, unknown> | null;
   error_message: string | null;
   created_at: string;
   started_at: string | null;
@@ -23,7 +24,7 @@ export interface AnalysisJob {
 }
 
 interface UseAnalysisOptions {
-  onComplete?: (result: any) => void;
+  onComplete?: (result: Record<string, unknown> | null) => void;
   onError?: (error: string) => void;
   pollingInterval?: number;
 }
@@ -128,7 +129,7 @@ export function useBrandIntelligenceAnalysis(
         throw new Error('No job ID returned');
       }
 
-      console.log('[BrandIntelligenceAnalysis] Job started:', data.job_id);
+      logger.sync('BrandIntelligenceAnalysis: Job started:', data.job_id);
       toast.info('Analysis started...');
 
       // Start polling

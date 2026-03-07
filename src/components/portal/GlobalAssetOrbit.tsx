@@ -11,6 +11,7 @@ import React, { forwardRef, useState, useRef, useCallback, useEffect, useMemo } 
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 import transperfectLogoIcon from '@/assets/transperfect-logo-icon.png';
 
 interface LinkedEntity {
@@ -267,8 +268,7 @@ export const GlobalAssetOrbit = ({
 
   const handleFilterClick = (filter: 'brands' | 'products' | 'events') => {
     const newFilter = activeFilter === filter ? 'all' : filter;
-    // Debug: confirm legend clicks are firing (removed later once verified)
-    console.log('[GlobalAssetOrbit] filter click:', { filter, newFilter });
+    logger.debug('GlobalAssetOrbit: filter click:', { filter, newFilter });
     // Uncontrolled mode: maintain internal state.
     if (controlledFilter === undefined) {
       setInternalFilter(newFilter);

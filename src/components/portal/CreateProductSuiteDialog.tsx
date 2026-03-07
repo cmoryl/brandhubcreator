@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import { useNavigate } from 'react-router-dom';
 import { Layers, Plus, Package, Trash2, GripVertical, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -149,7 +150,7 @@ export const CreateProductSuiteDialog = ({
         throw new Error('Failed to create master product - no product returned');
       }
 
-      console.log('Master product created:', masterProduct.id);
+      logger.sync('Master product created:', masterProduct.id);
 
       // Step 2: Update the master product with tagline and initial setup
       const initialGuideData = {
@@ -172,7 +173,7 @@ export const CreateProductSuiteDialog = ({
         try {
           const createdSubProduct = await addProduct(subProduct.name);
           if (createdSubProduct) {
-            console.log('Sub-product created:', createdSubProduct.id);
+            logger.sync('Sub-product created:', createdSubProduct.id);
             
             // Update sub-product with tagline
             const { error: subUpdateError } = await supabase

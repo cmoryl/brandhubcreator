@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
+import { logger } from '@/lib/logger';
 import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2, FolderOpen, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -131,7 +132,7 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
       );
       if (changed) {
         onLogosChange(updated);
-        console.log(`[UnifiedLogoSection] Migrated ${base64Logos.length} base64 logos to storage`);
+        logger.storage(`UnifiedLogoSection: Migrated ${base64Logos.length} base64 logos to storage`);
       }
     };
     migrateLogos();
