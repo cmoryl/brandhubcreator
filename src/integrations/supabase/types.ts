@@ -2631,33 +2631,42 @@ export type Database = {
       icon_library_brand_links: {
         Row: {
           allow_overrides: boolean
-          brand_id: string
+          brand_id: string | null
           color_overrides: Json | null
           created_at: string
           created_by: string | null
+          entity_type: string
+          event_id: string | null
           id: string
           library_id: string
           organization_id: string
+          product_id: string | null
         }
         Insert: {
           allow_overrides?: boolean
-          brand_id: string
+          brand_id?: string | null
           color_overrides?: Json | null
           created_at?: string
           created_by?: string | null
+          entity_type?: string
+          event_id?: string | null
           id?: string
           library_id: string
           organization_id: string
+          product_id?: string | null
         }
         Update: {
           allow_overrides?: boolean
-          brand_id?: string
+          brand_id?: string | null
           color_overrides?: Json | null
           created_at?: string
           created_by?: string | null
+          entity_type?: string
+          event_id?: string | null
           id?: string
           library_id?: string
           organization_id?: string
+          product_id?: string | null
         }
         Relationships: [
           {
@@ -2665,6 +2674,13 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "icon_library_brand_links_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
           {
@@ -2679,6 +2695,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "icon_library_brand_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
