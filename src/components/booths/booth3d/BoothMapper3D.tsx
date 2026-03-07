@@ -16,7 +16,7 @@ import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
   Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search,
-  Users, Route, Building2
+  Users, Route, Building2, BookTemplate, Lightbulb
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +42,8 @@ import {
   type PanelConfig,
   type PanelAssignment,
 } from './boothConfigs';
+import { BoothPresetPicker } from './BoothPresetPicker';
+import type { BoothDesignPreset } from './boothPresets';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -84,6 +86,8 @@ export function BoothMapper3D({
   const [showEnvironment, setShowEnvironment] = useState(false);
   const [showPeople, setShowPeople] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
+  const [presetPickerOpen, setPresetPickerOpen] = useState(false);
+  const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Image library integration
@@ -223,6 +227,18 @@ export function BoothMapper3D({
     onAssignmentsChange?.([]);
     toast.success('All panels cleared');
   }, [onAssignmentsChange]);
+
+  // Apply a design preset
+  const handleApplyPreset = useCallback((preset: BoothDesignPreset) => {
+    setLayout(preset.layout);
+    setLightingPreset(preset.lighting);
+    setActivePreset(preset);
+    setShowEnvironment(true);
+    setShowPeople(true);
+    toast.success(`Applied "${preset.name}" preset — ${preset.industry}`, {
+      description: `${preset.panelGuides.length} panel guides loaded. Layout: ${preset.layout}`,
+    });
+  }, []);
 
   // Upload booth spec image/PDF
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -459,6 +475,12 @@ export function BoothMapper3D({
             )}
           </>
         )}
+
+        {/* Presets button (available to all) */}
+        <Button variant="outline" size="sm" onClick={() => setPresetPickerOpen(true)} className="gap-1.5">
+          <BookTemplate className="h-3.5 w-3.5" />
+          Presets
+        </Button>
 
         {/* Screenshot (available to all) */}
         <Button variant="outline" size="sm" onClick={handleScreenshot} className="gap-1.5">
@@ -764,6 +786,51 @@ export function BoothMapper3D({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Preset Picker Dialog */}
+      <BoothPresetPicker
+        open={presetPickerOpen}
+        onOpenChange={setPresetPickerOpen}
+        onApplyPreset={handleApplyPreset}
+      />
+
+      {/* Active Preset Info Banner */}
+      {activePreset && (
+        <Card className="p-3 border-primary/30 bg-primary/5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-3 w-3 rounded-full" style={{ background: activePreset.primaryColor }} />
+                <span className="text-sm font-semibold text-foreground">{activePreset.name}</span>
+                <Badge variant="secondary" className="text-[10px]">{activePreset.industry}</Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+                {activePreset.panelGuides.map((guide) => (
+                  <div key={guide.panelId} className="rounded border bg-background p-2">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 font-mono">{guide.panelId}</Badge>
+                      <span className="text-xs font-medium text-foreground truncate">{guide.title}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground line-clamp-2">{guide.description}</p>
+                    {guide.colorTreatment && (
+                      <p className="text-[9px] text-primary mt-0.5 italic">🎨 {guide.colorTreatment}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {activePreset.designTips.length > 0 && (
+                <div className="mt-2 flex items-start gap-1.5">
+                  <Lightbulb className="h-3 w-3 text-primary mt-0.5 shrink-0" />
+                  <p className="text-[10px] text-muted-foreground italic">{activePreset.designTips[0]}</p>
+                </div>
+              )}
+            </div>
+            <Button variant="ghost" size="sm" className="shrink-0 text-xs" onClick={() => setActivePreset(null)}>
+              Dismiss
+            </Button>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
