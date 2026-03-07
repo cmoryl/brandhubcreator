@@ -344,7 +344,7 @@ export const WebsiteAnalysisCard = ({
         })
         .eq('id', intel.id);
 
-      console.log('[WebsiteAnalysis] Fed comprehensive analysis into brand intelligence:', {
+      logger.sync('WebsiteAnalysis: Fed comprehensive analysis into brand intelligence:', {
         knowledgeEntries: 1 + sectionEntries.length + competitorEntries.length + benchmarkEntries.length,
         recommendations: newRecs.length,
         advantages: websiteAdvantages.length,
@@ -383,7 +383,7 @@ export const WebsiteAnalysisCard = ({
           created_by: user?.id || null,
         });
 
-      console.log('[WebsiteAnalysis] Report persisted to database');
+      logger.sync('WebsiteAnalysis: Report persisted to database');
     } catch (err) {
       console.error('[WebsiteAnalysis] Error persisting report to DB:', err);
     }

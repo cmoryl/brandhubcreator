@@ -91,7 +91,7 @@ export default function DemoGuideViewer() {
         }
       } catch (error) {
         // Silently fall back to static data
-        console.log('[DemoGuideViewer] No database entry, using static data');
+        logger.debug('DemoGuideViewer: No database entry, using static data');
       } finally {
         setIsLoadingDb(false);
       }

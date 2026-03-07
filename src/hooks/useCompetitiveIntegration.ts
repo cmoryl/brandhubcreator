@@ -6,6 +6,7 @@
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface CompetitiveLandscape {
   last_synced: string;
@@ -41,7 +42,7 @@ export function useCompetitiveIntegration(
 
       if (reportsError) throw reportsError;
       if (!reports || reports.length === 0) {
-        console.log('[CompetitiveIntegration] No reports to sync');
+        logger.sync('CompetitiveIntegration: No reports to sync');
         return null;
       }
 
@@ -98,7 +99,7 @@ export function useCompetitiveIntegration(
         if (insertError) throw insertError;
       }
 
-      console.log('[CompetitiveIntegration] Synced competitive landscape', landscape);
+      logger.sync('CompetitiveIntegration: Synced competitive landscape', landscape);
       return landscape;
     } catch (err) {
       console.error('[CompetitiveIntegration] Sync failed:', err);

@@ -211,7 +211,7 @@ export const EventExportPdfButton = ({ event }: EventExportPdfButtonProps) => {
 
       try {
         await exportToPdf(exportRef.current, event as any, pdfTheme, paperSize, (status) => {
-          console.log(status);
+          logger.debug('Event PDF export status:', status);
         });
         toast.success('Event PDF exported successfully!');
         setShowPreview(false);

@@ -4,6 +4,7 @@
  */
 
 import { QueryClient } from '@tanstack/react-query';
+import { logger } from '@/lib/logger';
 
 // Cache keys
 export const CACHE_KEYS = {
@@ -37,7 +38,7 @@ export const checkAndClearExpiredCaches = (): { brands: boolean; events: boolean
       if (parsed.savedAt && isCacheExpired(parsed.savedAt)) {
         localStorage.removeItem(CACHE_KEYS.BRANDS);
         brandsCleared = true;
-        console.log('[CACHE] Cleared expired brands cache (older than 7 days)');
+        logger.storage('Cleared expired brands cache (older than 7 days)');
       }
     }
   } catch {
@@ -52,7 +53,7 @@ export const checkAndClearExpiredCaches = (): { brands: boolean; events: boolean
       if (parsed.savedAt && isCacheExpired(parsed.savedAt)) {
         localStorage.removeItem(CACHE_KEYS.EVENTS);
         eventsCleared = true;
-        console.log('[CACHE] Cleared expired events cache (older than 7 days)');
+        logger.storage('Cleared expired events cache (older than 7 days)');
       }
     }
   } catch {

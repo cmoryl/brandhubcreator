@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { useShareBrand } from '@/hooks/useShareBrand';
+import { logger } from '@/lib/logger';
 
 interface ShareButtonProps {
   guideId: string;
@@ -290,7 +291,7 @@ export const ShareButton = ({
                 onClick={async (e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('[ShareButton] Generate Import Link clicked, guideId:', guideId);
+                  logger.debug('ShareButton: Generate Import Link clicked, guideId:', guideId);
                   const url = await generateShareLink(guideId);
                   if (url) {
                     setGeneratedImportLink(url);

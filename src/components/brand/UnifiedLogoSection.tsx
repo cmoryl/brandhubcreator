@@ -131,7 +131,7 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
       );
       if (changed) {
         onLogosChange(updated);
-        console.log(`[UnifiedLogoSection] Migrated ${base64Logos.length} base64 logos to storage`);
+        logger.storage(`UnifiedLogoSection: Migrated ${base64Logos.length} base64 logos to storage`);
       }
     };
     migrateLogos();

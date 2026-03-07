@@ -510,7 +510,7 @@ const EventEditor = () => {
         // Remove non-guide fields that shouldn't be in guide_data
         const { id, type, slug, organizationId, parentBrandId, isFavorite, isPublic, sectionOrder, hiddenSections, createdAt, updatedAt, ...cleanGuideData } = guideData as EventGuide & Record<string, unknown>;
         
-        console.log('[EventEditor] Syncing public event update to database for event:', event.id);
+        logger.sync('EventEditor: Syncing public event update to database for event:', event.id);
         
         const { error } = await supabase
           .from('events')
@@ -530,7 +530,7 @@ const EventEditor = () => {
           return;
         }
         
-        console.log('[EventEditor] Successfully synced public event update');
+        logger.sync('EventEditor: Successfully synced public event update');
       } catch (err) {
         console.error('[EventEditor] Failed to update event:', err);
         toast.error('Failed to save changes. Please check your connection.');
@@ -555,7 +555,7 @@ const EventEditor = () => {
     
     switch (sectionId) {
       case 'hero': 
-        console.log('[EventEditor] Rendering hero section with canEdit:', canEdit);
+        logger.events('EventEditor: Rendering hero section with canEdit:', canEdit);
         return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={event as unknown as Record<string, unknown>} entityType="event" entityId={event.id} hiddenSections={hiddenSections} sectionOrder={sectionOrder} />;
       case 'eventdetails':
         return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;

@@ -7,6 +7,7 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BrandGuide, ProductGuide } from '@/types/brand';
+import { logger } from '@/lib/logger';
 
 // Sections that indicate significant changes worth tracking
 const SIGNIFICANT_SECTIONS = [
@@ -171,11 +172,11 @@ export function useBrandLearningSignals(
         });
       }
       
-      console.log(`[LearningSignals] Flushed ${signalsToFlush.length} signals for ${entityType}:${entityId}`);
+      logger.sync(`LearningSignals: Flushed ${signalsToFlush.length} signals for ${entityType}:${entityId}`);
       
       // Check if we should trigger re-analysis
       if (signalsToFlush.length >= CHANGES_THRESHOLD_FOR_REANALYSIS) {
-        console.log(`[LearningSignals] Threshold reached, suggesting re-analysis`);
+        logger.sync('LearningSignals: Threshold reached, suggesting re-analysis');
         // Return true to indicate re-analysis should be suggested
         return true;
       }
@@ -217,7 +218,7 @@ export function useBrandLearningSignals(
           },
         },
       });
-      console.log(`[LearningSignals] Recorded milestone: ${summary}`);
+      logger.sync(`LearningSignals: Recorded milestone: ${summary}`);
     } catch (err) {
       console.error('[LearningSignals] Failed to record milestone:', err);
     }

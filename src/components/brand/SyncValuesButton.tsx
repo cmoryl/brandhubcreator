@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 import { BrandValue } from '@/types/brand';
 
 interface SyncValuesButtonProps {
@@ -46,8 +47,8 @@ export const SyncValuesButton = ({
     try {
       // Convert values to JSON-safe format
       const valuesJson = JSON.parse(JSON.stringify(values));
-      console.log('[SyncValues] Starting sync for brand:', brandName, 'with', values.length, 'values');
-      console.log('[SyncValues] Organization ID:', organizationId);
+      logger.sync('SyncValues: Starting sync for brand:', brandName, 'with', values.length, 'values');
+      logger.sync('SyncValues: Organization ID:', organizationId);
 
       // Fetch all entities in parallel
       const [productsRes, eventsRes, brandsRes] = await Promise.all([
@@ -83,7 +84,7 @@ export const SyncValuesButton = ({
       const events = eventsRes.data || [];
       const otherBrands = brandsRes.data || [];
 
-      console.log(`[SyncValues] Found ${products.length} products, ${events.length} events, ${otherBrands.length} other brands`);
+      logger.sync(`SyncValues: Found ${products.length} products, ${events.length} events, ${otherBrands.length} other brands`);
 
       let productsUpdated = 0;
       let eventsUpdated = 0;
@@ -156,7 +157,7 @@ export const SyncValuesButton = ({
       // Execute all updates in parallel
       await Promise.all(updatePromises);
 
-      console.log(`[SyncValues] Sync complete: ${brandsUpdated} brands, ${productsUpdated} products, ${eventsUpdated} events`);
+      logger.sync(`SyncValues: Sync complete: ${brandsUpdated} brands, ${productsUpdated} products, ${eventsUpdated} events`);
       if (errors.length > 0) {
         console.warn('[SyncValues] Errors:', errors);
       }
