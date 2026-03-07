@@ -990,6 +990,8 @@ export type Database = {
       }
       bot_conversations: {
         Row: {
+          bias_flagged_count: number | null
+          bias_flags: Json | null
           bot_type: string
           created_at: string
           entity_id: string | null
@@ -1007,6 +1009,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          bias_flagged_count?: number | null
+          bias_flags?: Json | null
           bot_type: string
           created_at?: string
           entity_id?: string | null
@@ -1024,6 +1028,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          bias_flagged_count?: number | null
+          bias_flags?: Json | null
           bot_type?: string
           created_at?: string
           entity_id?: string | null
@@ -1845,6 +1851,8 @@ export type Database = {
       }
       dataforce_assistant_conversations: {
         Row: {
+          bias_flagged_count: number | null
+          bias_flags: Json | null
           context_data: Json | null
           created_at: string
           entity_id: string | null
@@ -1857,6 +1865,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          bias_flagged_count?: number | null
+          bias_flags?: Json | null
           context_data?: Json | null
           created_at?: string
           entity_id?: string | null
@@ -1869,6 +1879,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          bias_flagged_count?: number | null
+          bias_flags?: Json | null
           context_data?: Json | null
           created_at?: string
           entity_id?: string | null
