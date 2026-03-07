@@ -141,5 +141,5 @@ export function useBoothColorAnalysis(divisionId: string, variantLabel?: string)
     [divisionId, variantLabel, fetchAnalysis]
   );
 
-  return { analysis, loading, analyzing, runAnalysis, refetch: fetchAnalysis };
+  return { analysis, loading, analyzing, runAnalysis, paletteColors, refetch: fetchAnalysis };
 }
