@@ -12,6 +12,7 @@
  * - Auto-fill from variant images
  */
 import { useState, useCallback, useRef, useEffect, Suspense, useMemo } from 'react';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
@@ -91,8 +92,18 @@ export function BoothMapper3D({
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Organization context for image library
+  const { organization } = useOrganization();
+
   // Image library integration
   const { images: libraryImages, isLoading: libraryLoading, fetchImages, uploadImage } = useImageLibrary();
+
+  // Eagerly fetch images when organization is available
+  useEffect(() => {
+    if (organization?.id) {
+      fetchImages(organization.id);
+    }
+  }, [organization?.id, fetchImages]);
 
   // Filtered library images based on search + category
   const filteredLibraryImages = useMemo(() => {
@@ -631,7 +642,7 @@ export function BoothMapper3D({
       </div>
 
       {/* Image Picker Dialog */}
-      <Dialog open={imagePickerOpen} onOpenChange={(open) => { setImagePickerOpen(open); if (open) fetchImages(); }}>
+      <Dialog open={imagePickerOpen} onOpenChange={(open) => { setImagePickerOpen(open); if (open) fetchImages(organization?.id); }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
