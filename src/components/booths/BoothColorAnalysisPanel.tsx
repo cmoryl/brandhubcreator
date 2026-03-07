@@ -92,9 +92,10 @@ const ProductionRow = ({ note }: { note: ProductionNote }) => (
   </div>
 );
 
-export const BoothColorAnalysisPanel = ({ divisionId, divisionName, variantLabel, colors, isAdmin, color }: BoothColorAnalysisPanelProps) => {
-  const { analysis, loading, analyzing, runAnalysis } = useBoothColorAnalysis(divisionId, variantLabel);
+export const BoothColorAnalysisPanel = ({ divisionId, divisionName, variantLabel, isAdmin, color }: Omit<BoothColorAnalysisPanelProps, 'colors'>) => {
+  const { analysis, loading, analyzing, runAnalysis, paletteColors } = useBoothColorAnalysis(divisionId, variantLabel);
   const [expanded, setExpanded] = useState(false);
+  const colors = paletteColors;
 
   if (loading) {
     return (
