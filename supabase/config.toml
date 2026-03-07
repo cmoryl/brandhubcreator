@@ -115,3 +115,6 @@ verify_jwt = false
 
 [functions.booth-color-analysis]
 verify_jwt = false
+
+[functions.booth-3d-ai-mapper]
+verify_jwt = false
