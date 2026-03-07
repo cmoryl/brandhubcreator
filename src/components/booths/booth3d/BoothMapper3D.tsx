@@ -474,6 +474,15 @@ export function BoothMapper3D({
             </TooltipTrigger>
             <TooltipContent>Traffic Flow</TooltipContent>
           </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Toggle pressed={showSafeZones} onPressedChange={setShowSafeZones} size="sm" aria-label="Toggle safe zones">
+                <ScanLine className="h-4 w-4" />
+              </Toggle>
+            </TooltipTrigger>
+            <TooltipContent>Safe Zones &amp; Bleed</TooltipContent>
+          </Tooltip>
         </TooltipProvider>
 
         <div className="h-6 w-px bg-border" />
