@@ -94,6 +94,18 @@ export function BoothMapper3D({
   // Image library integration
   const { images: libraryImages, isLoading: libraryLoading, fetchImages, uploadImage } = useImageLibrary();
 
+  // Filtered library images based on search + category
+  const filteredLibraryImages = useMemo(() => {
+    return libraryImages.filter((img) => {
+      if (selectedCategory && img.category !== selectedCategory) return false;
+      if (librarySearch) {
+        const s = librarySearch.toLowerCase();
+        return (img.name?.toLowerCase().includes(s)) || (img.category?.toLowerCase().includes(s));
+      }
+      return true;
+    });
+  }, [libraryImages, librarySearch, selectedCategory]);
+
   // Load saved mapping from database on mount
   useEffect(() => {
     if (!divisionId) { setIsLoaded(true); return; }
