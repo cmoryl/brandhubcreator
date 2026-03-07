@@ -250,8 +250,7 @@ serve(async (req) => {
         });
       }
 
-      // We need the color logo URL to edit it — check if it was passed
-      const { colorLogoUrl } = await req.json().catch(() => ({}));
+      // colorLogoUrl is already destructured from the request body above
 
       // Build conversion prompt
       const bgDesc = variant === "white"
