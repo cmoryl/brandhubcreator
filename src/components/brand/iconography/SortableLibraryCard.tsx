@@ -1,8 +1,9 @@
 /**
  * SortableLibraryCard - Draggable icon library card for reordering
+ * Now includes inline brand assignment for seamless linking
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { 
@@ -15,14 +16,17 @@ import {
   Package,
   Layers,
   Expand,
+  Link2,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { IconLibrary } from '@/hooks/useIconLibraries';
-import { BrandIconography } from '@/types/brand';
+import { BrandIconography, BrandGuide } from '@/types/brand';
 import { IconPreviewDialog } from './IconPreviewDialog';
 import { cn } from '@/lib/utils';
 
@@ -54,6 +58,11 @@ interface SortableLibraryCardProps {
   onAddIcons: (library: IconLibrary) => void;
   onToggleActive: (library: IconLibrary) => void;
   onRemoveIcon: (library: IconLibrary, iconId: string) => void;
+  // Brand linking
+  brands?: BrandGuide[];
+  linkedBrandIds?: string[];
+  onLinkBrand?: (libraryId: string, brandId: string) => void;
+  onUnlinkBrand?: (libraryId: string, brandId: string) => void;
 }
 
 export const SortableLibraryCard = ({
@@ -63,8 +72,13 @@ export const SortableLibraryCard = ({
   onAddIcons,
   onToggleActive,
   onRemoveIcon,
+  brands = [],
+  linkedBrandIds = [],
+  onLinkBrand,
+  onUnlinkBrand,
 }: SortableLibraryCardProps) => {
   const [previewIcon, setPreviewIcon] = useState<BrandIconography | null>(null);
+  const [brandPopoverOpen, setBrandPopoverOpen] = useState(false);
 
   const {
     attributes,
@@ -82,6 +96,19 @@ export const SortableLibraryCard = ({
 
   const config = LEVEL_CONFIG[library.level];
   const IconComponent = config.icon;
+
+  // Get brand names for linked brands
+  const linkedBrands = useMemo(() => 
+    brands.filter(b => linkedBrandIds.includes(b.id)),
+    [brands, linkedBrandIds]
+  );
+
+  const unlinkedBrands = useMemo(() => 
+    brands.filter(b => !linkedBrandIds.includes(b.id)),
+    [brands, linkedBrandIds]
+  );
+
+  const showBrandLinking = (library.level === 'brand' || library.level === 'product_line') && brands.length > 0;
 
   return (
     <Card 
@@ -127,6 +154,58 @@ export const SortableLibraryCard = ({
             />
           </div>
         </div>
+
+        {/* Inline Brand Assignment Chips */}
+        {showBrandLinking && (
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap pl-8">
+            {linkedBrands.length > 0 ? (
+              <>
+                <Link2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                {linkedBrands.map(brand => (
+                  <Badge 
+                    key={brand.id} 
+                    variant="secondary" 
+                    className="text-[10px] gap-1 pr-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    onClick={() => onUnlinkBrand?.(library.id, brand.id)}
+                  >
+                    {brand.hero?.name || 'Brand'}
+                    <X className="h-2.5 w-2.5" />
+                  </Badge>
+                ))}
+              </>
+            ) : (
+              <span className="text-[10px] text-muted-foreground italic">No brands assigned</span>
+            )}
+
+            {unlinkedBrands.length > 0 && (
+              <Popover open={brandPopoverOpen} onOpenChange={setBrandPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                    <Plus className="h-2.5 w-2.5" />
+                    Brand
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-1" align="start">
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-medium text-muted-foreground px-2 py-1">Assign to brand</p>
+                    {unlinkedBrands.map(brand => (
+                      <button
+                        key={brand.id}
+                        onClick={() => {
+                          onLinkBrand?.(library.id, brand.id);
+                          setBrandPopoverOpen(false);
+                        }}
+                        className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-muted transition-colors flex items-center gap-2"
+                      >
+                        <span className="truncate">{brand.hero?.name || 'Untitled'}</span>
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="pt-0">
         {/* Icon Preview Grid */}
