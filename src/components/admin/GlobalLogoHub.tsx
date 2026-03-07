@@ -459,10 +459,47 @@ export function GlobalLogoHub() {
               </div>
             </div>
             
+            {/* AI Generation */}
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <Label className="font-semibold">AI Logo Generator</Label>
+                </div>
+                <Badge variant="outline" className="text-[10px]">Generates all 3 variants</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Enter the company name above, then click generate to create Color, White, and Black logo variants using AI.
+              </p>
+              {isGenerating && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      Generating <span className="font-medium text-foreground">{generatingVariant}</span> variant...
+                    </span>
+                    <span className="font-medium">{generateProgress}%</span>
+                  </div>
+                  <Progress value={generateProgress} className="h-2" />
+                </div>
+              )}
+              <Button
+                variant="outline"
+                onClick={handleAIGenerate}
+                disabled={!formData.name.trim() || isGenerating}
+                className="w-full gap-2"
+              >
+                {isGenerating ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Generating...</>
+                ) : (
+                  <><Sparkles className="h-4 w-4" /> Generate Logos for "{formData.name || '...'}"</>
+                )}
+              </Button>
+            </div>
+
             {/* File uploads per variant */}
             <div className="space-y-2">
               <Label>Logo Files</Label>
-              <p className="text-xs text-muted-foreground">Upload files or pick from the image library for each variant</p>
+              <p className="text-xs text-muted-foreground">AI-generated files appear above, or upload/pick manually below</p>
               <div className="grid grid-cols-3 gap-4">
                 {(['color', 'white', 'black'] as ClientLogoVariant[]).map(variant => (
                   <div key={variant} className="space-y-2">
