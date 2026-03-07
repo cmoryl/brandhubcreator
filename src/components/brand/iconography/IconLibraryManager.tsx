@@ -61,9 +61,8 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
     deleteLibrary,
   } = useIconLibraries(organizationId);
 
-  const { brands } = useBrands();
-  const { products = [] } = useProducts(organizationId);
-  const { events = [] } = useEvents(organizationId);
+  const { brands, products } = useBrands();
+  const { events } = useEvents();
   const { 
     links, 
     linkLibraryToEntity, 
