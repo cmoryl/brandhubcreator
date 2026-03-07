@@ -18,12 +18,14 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
+import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
 
 interface HierarchicalIconDisplayProps {
   organizationId: string | undefined;
+  brandId?: string;
   brandIcons?: BrandIconography[];
   productLineId?: string;
   iconColor?: string;
