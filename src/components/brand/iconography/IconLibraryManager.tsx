@@ -48,6 +48,9 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
     deleteLibrary,
   } = useIconLibraries(organizationId);
 
+  const { brands } = useBrands();
+  const { linkLibraryToBrand, unlinkLibraryFromBrand, getLinkedBrandIds } = useIconLibraryBrandLinks(organizationId);
+
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set(['core', 'product_line', 'brand']));
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showIconStudio, setShowIconStudio] = useState(false);
