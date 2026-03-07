@@ -5,6 +5,7 @@ export interface BoothVariantInfo {
   id: string;
   division_id: string;
   variant_label: string;
+  tagline: string;
   description: string | null;
   details: { heading: string; bullets: string[] }[];
 }
@@ -17,14 +18,14 @@ export function useBoothVariantInfo(divisionId: string, variantLabel: string) {
     setLoading(true);
     const { data, error } = await supabase
       .from("booth_variant_info")
-      .select("id, division_id, variant_label, description, details")
+      .select("id, division_id, variant_label, tagline, description, details")
       .eq("division_id", divisionId)
       .eq("variant_label", variantLabel)
       .maybeSingle();
 
     if (!error && data) {
       const details = Array.isArray(data.details) ? data.details as { heading: string; bullets: string[] }[] : [];
-      setInfo({ ...data, details });
+      setInfo({ ...data, tagline: data.tagline || '', details });
     } else {
       setInfo(null);
     }
@@ -36,23 +37,24 @@ export function useBoothVariantInfo(divisionId: string, variantLabel: string) {
   }, [fetchInfo]);
 
   const saveInfo = useCallback(
-    async (description: string, details: { heading: string; bullets: string[] }[]) => {
+    async (description: string, details: { heading: string; bullets: string[] }[], tagline?: string) => {
       if (info) {
-        // Update
+        const updateData: Record<string, unknown> = { description, details: details as unknown };
+        if (tagline !== undefined) updateData.tagline = tagline;
         const { error } = await supabase
           .from("booth_variant_info")
-          .update({ description, details: details as any })
+          .update(updateData)
           .eq("id", info.id);
         if (!error) await fetchInfo();
       } else {
-        // Insert
         const { error } = await supabase
           .from("booth_variant_info")
           .insert({
             division_id: divisionId,
             variant_label: variantLabel,
+            tagline: tagline || '',
             description,
-            details: details as any,
+            details: details as unknown,
           });
         if (!error) await fetchInfo();
       }
