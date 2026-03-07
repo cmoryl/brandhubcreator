@@ -11,7 +11,7 @@
  * - Screenshot export
  * - Auto-fill from variant images
  */
-import { useState, useCallback, useRef, Suspense } from 'react';
+import { useState, useCallback, useRef, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
@@ -49,6 +49,8 @@ interface BoothMapper3DProps {
   galleryImages?: string[];
   /** Division name for display */
   divisionName?: string;
+  /** Division ID for persistence */
+  divisionId?: string;
   /** Callback when assignments change */
   onAssignmentsChange?: (assignments: PanelAssignment[]) => void;
 }
@@ -57,6 +59,7 @@ export function BoothMapper3D({
   variantImages,
   galleryImages = [],
   divisionName,
+  divisionId,
   onAssignmentsChange,
 }: BoothMapper3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -73,9 +76,68 @@ export function BoothMapper3D({
   const [isAiMapping, setIsAiMapping] = useState(false);
   const [librarySearch, setLibrarySearch] = useState('');
   const [pickerTab, setPickerTab] = useState<string>('sources');
+  const [isLoaded, setIsLoaded] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Image library integration
   const { images: libraryImages, isLoading: libraryLoading, fetchImages, uploadImage } = useImageLibrary();
+
+  // Load saved mapping from database on mount
+  useEffect(() => {
+    if (!divisionId) { setIsLoaded(true); return; }
+    const load = async () => {
+      try {
+        const { data } = await supabase
+          .from('booth_3d_mappings')
+          .select('*')
+          .eq('division_id', divisionId)
+          .maybeSingle();
+        if (data) {
+          setLayout((data.layout as BoothLayout) || 'u-shape');
+          setLightingPreset((data.lighting_preset as LightingPreset) || 'expo-bright');
+          setAssignments((data.assignments as Record<string, string>) || {});
+          setUploadedSpecs((data.uploaded_specs as { url: string; name: string }[]) || []);
+          setShowLabels(data.show_labels ?? true);
+          setShowDimensions(data.show_dimensions ?? true);
+        }
+      } catch (e) {
+        console.error('Failed to load 3D mapping:', e);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    load();
+  }, [divisionId]);
+
+  // Debounced save to database
+  const saveMapping = useCallback(() => {
+    if (!divisionId || !isLoaded) return;
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        await supabase.from('booth_3d_mappings').upsert({
+          division_id: divisionId,
+          layout,
+          lighting_preset: lightingPreset,
+          assignments,
+          uploaded_specs: uploadedSpecs,
+          show_labels: showLabels,
+          show_dimensions: showDimensions,
+          created_by: user.id,
+        }, { onConflict: 'division_id' });
+      } catch (e) {
+        console.error('Failed to save 3D mapping:', e);
+      }
+    }, 1000);
+  }, [divisionId, layout, lightingPreset, assignments, uploadedSpecs, showLabels, showDimensions, isLoaded]);
+
+  // Auto-save when state changes
+  useEffect(() => {
+    if (isLoaded) saveMapping();
+    return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
+  }, [saveMapping, isLoaded]);
 
   const boothConfig = getBoothPanels(layout);
 

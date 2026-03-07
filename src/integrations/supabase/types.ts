@@ -369,6 +369,48 @@ export type Database = {
           },
         ]
       }
+      booth_3d_mappings: {
+        Row: {
+          assignments: Json
+          created_at: string
+          created_by: string | null
+          division_id: string
+          id: string
+          layout: string
+          lighting_preset: string
+          show_dimensions: boolean
+          show_labels: boolean
+          updated_at: string
+          uploaded_specs: Json
+        }
+        Insert: {
+          assignments?: Json
+          created_at?: string
+          created_by?: string | null
+          division_id: string
+          id?: string
+          layout?: string
+          lighting_preset?: string
+          show_dimensions?: boolean
+          show_labels?: boolean
+          updated_at?: string
+          uploaded_specs?: Json
+        }
+        Update: {
+          assignments?: Json
+          created_at?: string
+          created_by?: string | null
+          division_id?: string
+          id?: string
+          layout?: string
+          lighting_preset?: string
+          show_dimensions?: boolean
+          show_labels?: boolean
+          updated_at?: string
+          uploaded_specs?: Json
+        }
+        Relationships: []
+      }
       booth_ai_analyses: {
         Row: {
           analysis_data: Json
