@@ -57,7 +57,7 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange }: IconPreviewDialo
     }
   };
 
-  const handleDownload = () => {
+  const handleDownloadSvg = () => {
     const svgString = generateSvgString();
     const blob = new Blob([svgString], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
@@ -69,6 +69,34 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange }: IconPreviewDialo
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success('SVG downloaded');
+  };
+
+  const handleDownloadPng = (size: number) => {
+    const svgString = generateSvgString();
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = new window.Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, size, size);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${icon.name.toLowerCase().replace(/\s+/g, '-')}-${size}x${size}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success(`PNG ${size}×${size} downloaded`);
+      }, 'image/png');
+    };
+    img.onerror = () => toast.error('Failed to generate PNG');
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
   };
 
   const renderPreviewIcon = () => {
