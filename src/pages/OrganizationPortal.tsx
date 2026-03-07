@@ -6,7 +6,7 @@
 
 import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot, Droplets } from 'lucide-react';
+import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot, Droplets, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -716,6 +716,11 @@ const OrganizationPortal = () => {
                 <Link to="/color-lab" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <Droplets className="h-3.5 w-3.5" />
                   Color Lab
+                </Link>
+                <span className="text-border">·</span>
+                <Link to="/booths" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  Booths
                 </Link>
               </>
             )}
