@@ -71,6 +71,11 @@ export function BoothMapper3D({
   const [uploadedSpecs, setUploadedSpecs] = useState<{ url: string; name: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isAiMapping, setIsAiMapping] = useState(false);
+  const [librarySearch, setLibrarySearch] = useState('');
+  const [pickerTab, setPickerTab] = useState<string>('sources');
+
+  // Image library integration
+  const { images: libraryImages, isLoading: libraryLoading, fetchImages, uploadImage } = useImageLibrary();
 
   const boothConfig = getBoothPanels(layout);
 
