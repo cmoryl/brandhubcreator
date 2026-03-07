@@ -104,9 +104,9 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange }: IconPreviewDialo
   };
 
   const bgClasses = {
-    light: 'bg-white text-gray-900',
-    dark: 'bg-gray-900 text-white',
-    checker: 'bg-[length:20px_20px] bg-[linear-gradient(45deg,#f0f0f0_25%,transparent_25%,transparent_75%,#f0f0f0_75%),linear-gradient(45deg,#f0f0f0_25%,transparent_25%,transparent_75%,#f0f0f0_75%)] bg-[position:0_0,10px_10px] bg-white text-gray-900',
+    light: 'bg-background text-foreground',
+    dark: 'bg-card text-card-foreground dark',
+    checker: 'bg-[length:20px_20px] bg-[linear-gradient(45deg,hsl(var(--muted))_25%,transparent_25%,transparent_75%,hsl(var(--muted))_75%),linear-gradient(45deg,hsl(var(--muted))_25%,transparent_25%,transparent_75%,hsl(var(--muted))_75%)] bg-[position:0_0,10px_10px] bg-background text-foreground',
   };
 
   return (

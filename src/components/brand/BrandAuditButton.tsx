@@ -200,7 +200,7 @@ export const BrandAuditButton = ({ brand }: BrandAuditButtonProps) => {
                             <span className="text-2xl text-muted-foreground">/100</span>
                           </div>
                         </div>
-                        <Badge className={`${getScoreBg(auditResult.overallScore)} text-white text-lg px-4 py-2`}>
+                        <Badge className={`${getScoreBg(auditResult.overallScore)} text-primary-foreground text-lg px-4 py-2`}>
                           {getScoreLabel(auditResult.overallScore)}
                         </Badge>
                       </div>
@@ -312,7 +312,7 @@ export const BrandAuditButton = ({ brand }: BrandAuditButtonProps) => {
                             <Scale className="h-4 w-4 text-violet-500" />
                             Bias & Inclusivity Review
                           </CardTitle>
-                          <Badge className={`${getScoreBg(auditResult.biasReview.score)} text-white`}>
+                          <Badge className={`${getScoreBg(auditResult.biasReview.score)} text-primary-foreground`}>
                             {auditResult.biasReview.score}/100
                           </Badge>
                         </div>

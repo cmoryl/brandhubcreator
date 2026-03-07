@@ -7,6 +7,7 @@ import { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { CACHE_KEYS } from '@/lib/cacheManager';
 import { stripBase64FromGuideData } from '@/lib/stripBase64FromGuideData';
+import { logger } from '@/lib/logger';
 
 const SYNC_DEBOUNCE_MS = 500;
 const CACHE_KEY = CACHE_KEYS.EVENTS;
@@ -298,7 +299,7 @@ export const useEventStorage = () => {
       // Fallback to cached data on fetch failure
       const cached = loadCache();
       if (cached && cached.length > 0) {
-        console.log('[EVENTS] Using cached data due to fetch failure');
+        logger.events('Using cached data due to fetch failure');
         setEvents(cached);
         setSyncStatus('offline');
         setLastSyncError('Using cached data. Changes will sync when connection recovers.');
@@ -396,7 +397,7 @@ export const useEventStorage = () => {
       
       // If event not in local state, fetch from DB and merge pending updates
       if (!currentEvent) {
-        console.log('[EVENTS SYNC] Event not in local state, fetching from DB:', id);
+        logger.events('Event not in local state, fetching from DB:', id);
         try {
           const { data: dbEvent, error: fetchError } = await supabase
             .from('events')
@@ -459,7 +460,7 @@ export const useEventStorage = () => {
       return;
     }
     
-    console.log('[EVENTS FLUSH] Flushing', pendingUpdatesRef.current.size, 'pending updates');
+    logger.events('Flushing', pendingUpdatesRef.current.size, 'pending updates');
     
     const updates = Array.from(pendingUpdatesRef.current.entries());
     pendingUpdatesRef.current.clear();

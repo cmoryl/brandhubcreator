@@ -15,6 +15,7 @@ import {
   normalizeGradients 
 } from '@/lib/guideNormalization';
 import { stripBase64FromGuideData } from '@/lib/stripBase64FromGuideData';
+import { logger } from '@/lib/logger';
 
 // Debounce delay for database syncing (ms)
 const SYNC_DEBOUNCE_MS = 500;
@@ -562,7 +563,7 @@ export const useBrandStorage = () => {
           if (cached && (cached.brands.length > 0 || cached.products.length > 0)) {
             setBrands(cached.brands);
             setProducts(cached.products);
-            console.log('[STORAGE] Loaded from cache during backend outage');
+            logger.storage('Loaded from cache during backend outage');
           }
         }
 
@@ -797,7 +798,7 @@ export const useBrandStorage = () => {
     }
 
     try {
-      console.log('[SYNC] syncBrandToDb: Starting sync for brand', id);
+      logger.sync('syncBrandToDb: Starting sync for brand', id);
       
       // Validate merged data before sending
       if (!merged || typeof merged !== 'object') {
@@ -813,7 +814,7 @@ export const useBrandStorage = () => {
       // otherwise we risk overwriting an existing org association with null.
       const dbData = brandGuideToDb(merged, user.id, organization?.id);
       
-      console.log('[SYNC] syncBrandToDb: Sending update', { id, name: dbData.name });
+      logger.sync('syncBrandToDb: Sending update', { id, name: dbData.name });
       
       const { error } = await supabase
         .from('brands')
@@ -825,7 +826,7 @@ export const useBrandStorage = () => {
         setSyncFailure(error, 'syncBrandToDb');
         toast.error('Failed to save changes. Please try again.');
       } else {
-        console.log('[SYNC] syncBrandToDb: Success for brand', id);
+        logger.sync('syncBrandToDb: Success for brand', id);
         setSyncStatus('idle');
         setLastSyncedAt(new Date());
         setLastSyncError(null);
@@ -845,7 +846,7 @@ export const useBrandStorage = () => {
     }
 
     try {
-      console.log('[SYNC] syncProductToDb: Starting sync for product', id);
+      logger.sync('syncProductToDb: Starting sync for product', id);
       
       // Validate merged data before sending
       if (!merged || typeof merged !== 'object') {
@@ -859,7 +860,7 @@ export const useBrandStorage = () => {
 
       const dbData = productGuideToDb(merged, user.id, organization?.id);
       
-      console.log('[SYNC] syncProductToDb: Sending update', { id, name: dbData.name });
+      logger.sync('syncProductToDb: Sending update', { id, name: dbData.name });
       
       const { error } = await supabase
         .from('products')
@@ -871,7 +872,7 @@ export const useBrandStorage = () => {
         setSyncFailure(error, 'syncProductToDb');
         toast.error('Failed to save changes. Please try again.');
       } else {
-        console.log('[SYNC] syncProductToDb: Success for product', id);
+        logger.sync('syncProductToDb: Success for product', id);
         setSyncStatus('idle');
         setLastSyncedAt(new Date());
         setLastSyncError(null);
@@ -891,11 +892,11 @@ export const useBrandStorage = () => {
       const accessToken = accessTokenRef.current;
       
       if (!currentUser || !accessToken) {
-        console.log('[SYNC] flushPendingUpdates: No user or token, skipping');
+        logger.sync('flushPendingUpdates: No user or token, skipping');
         return;
       }
 
-      console.log('[SYNC] flushPendingUpdates: Flushing', {
+      logger.sync('flushPendingUpdates: Flushing', {
         brands: brandSyncTimeouts.current.size,
         products: productSyncTimeouts.current.size,
       });
@@ -1001,7 +1002,7 @@ export const useBrandStorage = () => {
         return;
       }
 
-      console.log('[SYNC] updateBrand: Scheduling update for', id, 'keys:', Object.keys(updates));
+      logger.sync('updateBrand: Scheduling update for', id, 'keys:', Object.keys(updates));
 
       // Get current brand state using ref to avoid stale closure issues
       const currentBrand = brandsRef.current.find(b => b.id === id);
@@ -1033,19 +1034,19 @@ export const useBrandStorage = () => {
       // Set new debounced sync
       const timeout = setTimeout(async () => {
         try {
-          console.log('[SYNC] updateBrand: Debounce timer fired for', id);
+          logger.sync('updateBrand: Debounce timer fired for', id);
           
           // Get the LATEST brand state and pending updates at sync time
           const latestBrand = brandsRef.current.find(b => b.id === id);
           const finalUpdates = pendingBrandUpdates.current.get(id) || {};
           
-          console.log('[SYNC] updateBrand: latestBrand exists:', !!latestBrand, 'finalUpdates keys:', Object.keys(finalUpdates));
+          logger.sync('updateBrand: latestBrand exists:', !!latestBrand, 'finalUpdates keys:', Object.keys(finalUpdates));
           
           // If brand not in local state, fetch current data from DB first
           let baseData = latestBrand || currentBrand;
           
           if (!baseData) {
-            console.log('[SYNC] updateBrand: Brand not in local state, fetching from DB first:', id);
+            logger.sync('updateBrand: Brand not in local state, fetching from DB first:', id);
             const { data: dbBrand, error } = await supabase
               .from('brands')
               .select('*')
@@ -1069,7 +1070,7 @@ export const useBrandStorage = () => {
           // When fetched from DB, we must explicitly merge pending updates
           const mergedData = latestBrand ? baseData : { ...baseData, ...finalUpdates };
           
-          console.log('[SYNC] updateBrand: Syncing to DB for', id);
+          logger.sync('updateBrand: Syncing to DB for', id);
           await syncBrandToDb(id, mergedData as BrandGuide);
           
           brandSyncTimeouts.current.delete(id);
@@ -1105,7 +1106,7 @@ export const useBrandStorage = () => {
         return;
       }
 
-      console.log('[SYNC] updateProduct: Scheduling update for', id, 'keys:', Object.keys(updates));
+      logger.sync('updateProduct: Scheduling update for', id, 'keys:', Object.keys(updates));
 
       // Get current product state using ref to avoid stale closure issues
       const currentProduct = productsRef.current.find(p => p.id === id);
@@ -1135,19 +1136,19 @@ export const useBrandStorage = () => {
       // Set new debounced sync
       const timeout = setTimeout(async () => {
         try {
-          console.log('[SYNC] updateProduct: Debounce timer fired for', id);
+          logger.sync('updateProduct: Debounce timer fired for', id);
           
           // Get the LATEST product state at sync time
           const latestProduct = productsRef.current.find(p => p.id === id);
           const finalUpdates = pendingProductUpdates.current.get(id) || {};
           
-          console.log('[SYNC] updateProduct: latestProduct exists:', !!latestProduct, 'finalUpdates keys:', Object.keys(finalUpdates));
+          logger.sync('updateProduct: latestProduct exists:', !!latestProduct, 'finalUpdates keys:', Object.keys(finalUpdates));
           
           // If product not in local state, fetch current data from DB first
           let baseData = latestProduct || currentProduct;
           
           if (!baseData) {
-            console.log('[SYNC] updateProduct: Product not in local state, fetching from DB first:', id);
+            logger.sync('updateProduct: Product not in local state, fetching from DB first:', id);
             const { data: dbProduct, error } = await supabase
               .from('products')
               .select('*')
@@ -1171,7 +1172,7 @@ export const useBrandStorage = () => {
           // When fetched from DB, we must explicitly merge pending updates
           const mergedData = latestProduct ? baseData : { ...baseData, ...finalUpdates };
           
-          console.log('[SYNC] updateProduct: Syncing to DB for', id);
+          logger.sync('updateProduct: Syncing to DB for', id);
           await syncProductToDb(id, mergedData as ProductGuide);
           
           productSyncTimeouts.current.delete(id);
