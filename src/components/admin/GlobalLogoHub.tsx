@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Search, Trash2, Pencil, Upload, Download, ExternalLink, FolderArchive, Loader2, Filter } from 'lucide-react';
+import { Plus, Search, Trash2, Pencil, Upload, Download, ExternalLink, FolderArchive, Loader2, Filter, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
