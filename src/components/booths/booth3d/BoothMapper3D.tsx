@@ -780,8 +780,58 @@ export function BoothMapper3D({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Preset Picker Dialog */}
+      <BoothPresetPicker
+        open={presetPickerOpen}
+        onOpenChange={setPresetPickerOpen}
+        onApplyPreset={handleApplyPreset}
+      />
+
+      {/* Active Preset Info Banner */}
+      {activePreset && (
+        <Card className="p-3 border-primary/30 bg-primary/5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-3 w-3 rounded-full" style={{ background: activePreset.primaryColor }} />
+                <span className="text-sm font-semibold text-foreground">{activePreset.name}</span>
+                <Badge variant="secondary" className="text-[10px]">{activePreset.industry}</Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+                {activePreset.panelGuides.map((guide) => (
+                  <div key={guide.panelId} className="rounded border bg-background p-2">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 font-mono">{guide.panelId}</Badge>
+                      <span className="text-xs font-medium text-foreground truncate">{guide.title}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground line-clamp-2">{guide.description}</p>
+                    {guide.colorTreatment && (
+                      <p className="text-[9px] text-primary mt-0.5 italic">🎨 {guide.colorTreatment}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {activePreset.designTips.length > 0 && (
+                <div className="mt-2 flex items-start gap-1.5">
+                  <Lightbulb className="h-3 w-3 text-primary mt-0.5 shrink-0" />
+                  <p className="text-[10px] text-muted-foreground italic">{activePreset.designTips[0]}</p>
+                </div>
+              )}
+            </div>
+            <Button variant="ghost" size="sm" className="shrink-0 text-xs" onClick={() => setActivePreset(null)}>
+              Dismiss
+            </Button>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
 
+        {/* Presets button (available to all) */}
+        <Button variant="outline" size="sm" onClick={() => setPresetPickerOpen(true)} className="gap-1.5">
+          <BookTemplate className="h-3.5 w-3.5" />
+          Presets
+        </Button>
 
