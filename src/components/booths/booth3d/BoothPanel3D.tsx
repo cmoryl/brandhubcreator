@@ -1,7 +1,8 @@
 /**
  * BoothPanel3D - A single clickable panel in 3D space with image texture
+ * Includes optional safe zone overlay for print production guidelines
  */
-import { useRef, useState, Suspense } from 'react';
+import { useRef, useState, useMemo, Suspense } from 'react';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
 import { Html } from '@react-three/drei';
@@ -13,6 +14,7 @@ interface BoothPanel3DProps {
   onSelect: (panelId: string) => void;
   showLabels: boolean;
   showDimensions: boolean;
+  showSafeZones?: boolean;
 }
 
 /** Inner component that loads and displays the texture */
@@ -41,7 +43,167 @@ function EmptyPanel({ hovered, isSelected }: { hovered: boolean; isSelected: boo
   );
 }
 
-export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDimensions }: BoothPanel3DProps) {
+/**
+ * Safe zone overlay — dashed rectangle inset from panel edges
+ * Standard production safe zone: ~2 inches (≈0.05m) from each edge at 150 DPI
+ */
+function SafeZoneOverlay({ size }: { size: [number, number] }) {
+  const INSET = 0.06; // ~2.4 inches inset (production safe zone)
+  const innerW = size[0] - INSET * 2;
+  const innerH = size[1] - INSET * 2;
+
+  // Build dashed rectangle geometry
+  const lineGeometry = useMemo(() => {
+    const hw = innerW / 2;
+    const hh = innerH / 2;
+    const segments = 80;
+    const points: THREE.Vector3[] = [];
+
+    // Create the rectangle perimeter as a series of points
+    const corners = [
+      new THREE.Vector3(-hw, hh, 0),
+      new THREE.Vector3(hw, hh, 0),
+      new THREE.Vector3(hw, -hh, 0),
+      new THREE.Vector3(-hw, -hh, 0),
+      new THREE.Vector3(-hw, hh, 0), // close
+    ];
+
+    // Interpolate points along edges for dashing
+    for (let side = 0; side < 4; side++) {
+      const from = corners[side];
+      const to = corners[side + 1];
+      const perSide = Math.ceil(segments / 4);
+      for (let i = 0; i < perSide; i++) {
+        const t = i / perSide;
+        points.push(new THREE.Vector3(
+          from.x + (to.x - from.x) * t,
+          from.y + (to.y - from.y) * t,
+          0
+        ));
+      }
+    }
+
+    const geo = new THREE.BufferGeometry().setFromPoints(points);
+    return geo;
+  }, [innerW, innerH]);
+
+  // Corner bracket marks for visual emphasis
+  const bracketGeometry = useMemo(() => {
+    const hw = innerW / 2;
+    const hh = innerH / 2;
+    const bLen = Math.min(innerW, innerH) * 0.08; // bracket arm length
+    const points: THREE.Vector3[] = [];
+
+    // Top-left
+    points.push(new THREE.Vector3(-hw, hh - bLen, 0), new THREE.Vector3(-hw, hh, 0));
+    points.push(new THREE.Vector3(-hw, hh, 0), new THREE.Vector3(-hw + bLen, hh, 0));
+    // Top-right
+    points.push(new THREE.Vector3(hw - bLen, hh, 0), new THREE.Vector3(hw, hh, 0));
+    points.push(new THREE.Vector3(hw, hh, 0), new THREE.Vector3(hw, hh - bLen, 0));
+    // Bottom-right
+    points.push(new THREE.Vector3(hw, -hh + bLen, 0), new THREE.Vector3(hw, -hh, 0));
+    points.push(new THREE.Vector3(hw, -hh, 0), new THREE.Vector3(hw - bLen, -hh, 0));
+    // Bottom-left
+    points.push(new THREE.Vector3(-hw + bLen, -hh, 0), new THREE.Vector3(-hw, -hh, 0));
+    points.push(new THREE.Vector3(-hw, -hh, 0), new THREE.Vector3(-hw, -hh + bLen, 0));
+
+    const geo = new THREE.BufferGeometry().setFromPoints(points);
+    return geo;
+  }, [innerW, innerH]);
+
+  // Bleed zone (outer dashed line, very close to edge)
+  const bleedGeometry = useMemo(() => {
+    const bleedInset = 0.02; // ~0.8 inch from edge
+    const bw = size[0] - bleedInset * 2;
+    const bh = size[1] - bleedInset * 2;
+    const hw = bw / 2;
+    const hh = bh / 2;
+    const points = [
+      new THREE.Vector3(-hw, hh, 0),
+      new THREE.Vector3(hw, hh, 0),
+      new THREE.Vector3(hw, -hh, 0),
+      new THREE.Vector3(-hw, -hh, 0),
+      new THREE.Vector3(-hw, hh, 0),
+    ];
+    return new THREE.BufferGeometry().setFromPoints(points);
+  }, [size]);
+
+  // Inset in feet for label
+  const insetInches = (INSET / 0.0254).toFixed(1);
+
+  return (
+    <group position={[0, 0, 0.005]}>
+      {/* Bleed line (red, outer) */}
+      <line>
+        <primitive object={bleedGeometry} attach="geometry" />
+        <lineDashedMaterial
+          color="#ef4444"
+          dashSize={0.04}
+          gapSize={0.06}
+          linewidth={1}
+          opacity={0.5}
+          transparent
+        />
+      </line>
+
+      {/* Safe zone dashed line (green) */}
+      <line>
+        <primitive object={lineGeometry} attach="geometry" />
+        <lineDashedMaterial
+          color="#22c55e"
+          dashSize={0.06}
+          gapSize={0.04}
+          linewidth={1}
+          opacity={0.7}
+          transparent
+        />
+      </line>
+
+      {/* Corner brackets (bright green, solid) */}
+      <lineSegments>
+        <primitive object={bracketGeometry} attach="geometry" />
+        <lineBasicMaterial color="#22c55e" linewidth={2} opacity={0.9} transparent />
+      </lineSegments>
+
+      {/* Safe zone label */}
+      <Html
+        position={[0, innerH / 2 + 0.08, 0]}
+        center
+        distanceFactor={8}
+        style={{ pointerEvents: 'none' }}
+      >
+        <div className="flex items-center gap-1.5 text-[9px] font-mono whitespace-nowrap">
+          <span className="px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
+            Safe Zone ({insetInches}" inset)
+          </span>
+          <span className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
+            Bleed
+          </span>
+        </div>
+      </Html>
+
+      {/* Center crosshair */}
+      <lineSegments>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            count={4}
+            array={new Float32Array([
+              -0.05, 0, 0,
+              0.05, 0, 0,
+              0, -0.05, 0,
+              0, 0.05, 0,
+            ])}
+            itemSize={3}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial color="#22c55e" opacity={0.4} transparent />
+      </lineSegments>
+    </group>
+  );
+}
+
+export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDimensions, showSafeZones = false }: BoothPanel3DProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -83,6 +245,9 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
           <EmptyPanel hovered={hovered} isSelected={isSelected} />
         )}
       </mesh>
+
+      {/* Safe zone overlay */}
+      {showSafeZones && <SafeZoneOverlay size={panel.size} />}
 
       {/* Selection border */}
       <lineSegments>

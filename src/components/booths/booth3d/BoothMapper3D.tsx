@@ -17,7 +17,7 @@ import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
   Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search,
-  Users, Route, Building2, BookTemplate, Lightbulb
+  Users, Route, Building2, BookTemplate, Lightbulb, ScanLine
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -88,6 +88,7 @@ export function BoothMapper3D({
   const [showEnvironment, setShowEnvironment] = useState(false);
   const [showPeople, setShowPeople] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
+  const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -473,6 +474,15 @@ export function BoothMapper3D({
             </TooltipTrigger>
             <TooltipContent>Traffic Flow</TooltipContent>
           </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Toggle pressed={showSafeZones} onPressedChange={setShowSafeZones} size="sm" aria-label="Toggle safe zones">
+                <ScanLine className="h-4 w-4" />
+              </Toggle>
+            </TooltipTrigger>
+            <TooltipContent>Safe Zones &amp; Bleed</TooltipContent>
+          </Tooltip>
         </TooltipProvider>
 
         <div className="h-6 w-px bg-border" />
@@ -571,6 +581,7 @@ export function BoothMapper3D({
                 lightingPreset={lightingPreset}
                 showLabels={showLabels}
                 showDimensions={showDimensions}
+                showSafeZones={showSafeZones}
                 showEnvironment={showEnvironment}
                 showPeople={showPeople}
                 showTrafficFlow={showTrafficFlow}
