@@ -165,7 +165,7 @@ serve(async (req) => {
       });
     }
 
-    const { companyName, variant, organizationId, websiteUrl } = await req.json();
+    const { companyName, variant, organizationId, websiteUrl, colorLogoUrl } = await req.json();
     if (!companyName || !variant || !organizationId) {
       return new Response(JSON.stringify({ error: "Missing companyName, variant, or organizationId" }), {
         status: 400,
