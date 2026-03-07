@@ -476,6 +476,12 @@ export function BoothMapper3D({
           </>
         )}
 
+        {/* Presets button (available to all) */}
+        <Button variant="outline" size="sm" onClick={() => setPresetPickerOpen(true)} className="gap-1.5">
+          <BookTemplate className="h-3.5 w-3.5" />
+          Presets
+        </Button>
+
         {/* Screenshot (available to all) */}
         <Button variant="outline" size="sm" onClick={handleScreenshot} className="gap-1.5">
           <Camera className="h-3.5 w-3.5" />
