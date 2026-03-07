@@ -2628,6 +2628,61 @@ export type Database = {
           },
         ]
       }
+      icon_library_brand_links: {
+        Row: {
+          allow_overrides: boolean
+          brand_id: string
+          color_overrides: Json | null
+          created_at: string
+          created_by: string | null
+          id: string
+          library_id: string
+          organization_id: string
+        }
+        Insert: {
+          allow_overrides?: boolean
+          brand_id: string
+          color_overrides?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          library_id: string
+          organization_id: string
+        }
+        Update: {
+          allow_overrides?: boolean
+          brand_id?: string
+          color_overrides?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          library_id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "icon_library_brand_links_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "icon_library_brand_links_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "organization_icon_libraries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "icon_library_brand_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       intelligence_alerts: {
         Row: {
           acknowledged: boolean
