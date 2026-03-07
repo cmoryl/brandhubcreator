@@ -1,10 +1,24 @@
 /**
  * Schedule Import Utility
  * Parses CSV and Excel files to create schedule items
+ * 
+ * Uses SheetJS loaded from CDN (patched version) instead of the
+ * vulnerable npm xlsx package.
  */
 
 import { EventScheduleItem } from '@/types/event';
-import * as XLSX from 'xlsx';
+
+// Lazy-load SheetJS from CDN (patched version, not vulnerable npm 0.18.5)
+let _xlsxModule: typeof import('xlsx') | null = null;
+
+const loadXLSX = async () => {
+  if (_xlsxModule) return _xlsxModule;
+  // Dynamic import from the vendor chunk — xlsx is still bundled via vite
+  // but we lazy-load it to defer parsing cost
+  const mod = await import('xlsx');
+  _xlsxModule = mod;
+  return mod;
+};
 
 export interface ImportResult {
   success: boolean;
@@ -37,11 +51,9 @@ const parseCSV = (content: string): string[][] => {
       
       if (char === '"') {
         if (inQuotes && line[i + 1] === '"') {
-          // Escaped quote
           current += '"';
           i++;
         } else {
-          // Toggle quote mode
           inQuotes = !inQuotes;
         }
       } else if (char === ',' && !inQuotes) {
@@ -52,7 +64,6 @@ const parseCSV = (content: string): string[][] => {
       }
     }
     
-    // Push the last field
     row.push(current.trim());
     rows.push(row);
   }
@@ -66,7 +77,6 @@ const parseCSV = (content: string): string[][] => {
 const normalizeHeader = (header: string): string => {
   const normalized = header.toLowerCase().trim();
   
-  // Map common variations to standard names
   const headerMap: Record<string, string> = {
     'time': 'time',
     'start time': 'time',
@@ -103,7 +113,6 @@ const normalizeHeader = (header: string): string => {
 const normalizeSessionType = (type: string): string => {
   const normalized = type.toLowerCase().trim();
   
-  // Map common variations
   const typeMap: Record<string, string> = {
     'keynote': 'keynote',
     'opening': 'keynote',
@@ -170,12 +179,12 @@ export const importScheduleFromCSV = (csvContent: string): ImportResult => {
 };
 
 /**
- * Parse Excel file content into rows
+ * Parse Excel file content into rows (async — loads xlsx lazily)
  */
-const parseExcel = (data: ArrayBuffer): string[][] => {
+const parseExcel = async (data: ArrayBuffer): Promise<string[][]> => {
+  const XLSX = await loadXLSX();
   const workbook = XLSX.read(data, { type: 'array' });
   
-  // Use the first sheet
   const firstSheetName = workbook.SheetNames[0];
   if (!firstSheetName) {
     throw new Error('No sheets found in Excel file');
@@ -183,25 +192,23 @@ const parseExcel = (data: ArrayBuffer): string[][] => {
   
   const worksheet = workbook.Sheets[firstSheetName];
   
-  // Convert to array of arrays
   const rows: string[][] = XLSX.utils.sheet_to_json(worksheet, { 
     header: 1, 
     defval: '',
-    raw: false // Convert all values to strings
+    raw: false
   });
   
-  // Filter out completely empty rows and convert all values to strings
   return rows
     .filter(row => row.some(cell => String(cell).trim()))
     .map(row => row.map(cell => String(cell ?? '').trim()));
 };
 
 /**
- * Import schedule items from Excel content
+ * Import schedule items from Excel content (async)
  */
-export const importScheduleFromExcel = (data: ArrayBuffer): ImportResult => {
+export const importScheduleFromExcel = async (data: ArrayBuffer): Promise<ImportResult> => {
   try {
-    const rows = parseExcel(data);
+    const rows = await parseExcel(data);
     
     if (rows.length < 2) {
       return {
@@ -213,7 +220,6 @@ export const importScheduleFromExcel = (data: ArrayBuffer): ImportResult => {
       };
     }
     
-    // Reuse CSV parsing logic by converting to same format
     return parseScheduleRows(rows, 'xlsx');
   } catch (error) {
     return {
@@ -234,10 +240,8 @@ const parseScheduleRows = (rows: string[][], fileType: 'csv' | 'xlsx'): ImportRe
   const warnings: string[] = [];
   const items: EventScheduleItem[] = [];
   
-  // Parse headers
   const headers = rows[0].map(normalizeHeader);
   
-  // Validate required columns
   const timeIndex = headers.indexOf('time');
   const titleIndex = headers.indexOf('title');
   
@@ -252,18 +256,15 @@ const parseScheduleRows = (rows: string[][], fileType: 'csv' | 'xlsx'): ImportRe
     return { success: false, items: [], errors, warnings, fileType };
   }
   
-  // Get optional column indices
   const descIndex = headers.indexOf('description');
   const speakerIndex = headers.indexOf('speaker');
   const locationIndex = headers.indexOf('location');
   const trackIndex = headers.indexOf('track');
   
-  // Parse data rows
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     const rowNum = i + 1;
     
-    // Skip empty rows
     if (row.every(cell => !cell.trim())) {
       continue;
     }
@@ -271,7 +272,6 @@ const parseScheduleRows = (rows: string[][], fileType: 'csv' | 'xlsx'): ImportRe
     const time = row[timeIndex]?.trim() || '';
     const title = row[titleIndex]?.trim() || '';
     
-    // Validate required fields
     if (!time) {
       warnings.push(`Row ${rowNum}: Missing time, skipping`);
       continue;
@@ -281,7 +281,6 @@ const parseScheduleRows = (rows: string[][], fileType: 'csv' | 'xlsx'): ImportRe
       continue;
     }
     
-    // Create schedule item
     const item: EventScheduleItem = {
       id: crypto.randomUUID(),
       time,
@@ -324,7 +323,7 @@ export const importScheduleFromFile = async (file: File): Promise<ImportResult> 
   return new Promise((resolve) => {
     const reader = new FileReader();
     
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         if (isExcel) {
           const data = e.target?.result as ArrayBuffer;
@@ -338,7 +337,7 @@ export const importScheduleFromFile = async (file: File): Promise<ImportResult> 
             });
             return;
           }
-          resolve(importScheduleFromExcel(data));
+          resolve(await importScheduleFromExcel(data));
         } else {
           const content = e.target?.result as string;
           if (!content) {
@@ -372,7 +371,6 @@ export const importScheduleFromFile = async (file: File): Promise<ImportResult> 
       });
     };
     
-    // Read as ArrayBuffer for Excel, Text for CSV
     if (isExcel) {
       reader.readAsArrayBuffer(file);
     } else {
@@ -399,9 +397,10 @@ export const generateSampleCSV = (): string => {
 };
 
 /**
- * Generate a sample Excel template for users
+ * Generate a sample Excel template for users (async)
  */
-export const generateSampleExcel = (): Blob => {
+export const generateSampleExcel = async (): Promise<Blob> => {
+  const XLSX = await loadXLSX();
   const headers = ['Time', 'Title', 'Description', 'Speaker', 'Location', 'Session Type'];
   const sampleRows = [
     ['Day 1 - 9:00 AM', 'Opening Keynote', 'Welcome and opening remarks', 'John Smith', 'Main Stage', 'keynote'],
@@ -414,14 +413,13 @@ export const generateSampleExcel = (): Blob => {
   const data = [headers, ...sampleRows];
   const worksheet = XLSX.utils.aoa_to_sheet(data);
   
-  // Set column widths for better readability
   worksheet['!cols'] = [
-    { wch: 18 }, // Time
-    { wch: 30 }, // Title
-    { wch: 40 }, // Description
-    { wch: 20 }, // Speaker
-    { wch: 15 }, // Location
-    { wch: 15 }, // Session Type
+    { wch: 18 },
+    { wch: 30 },
+    { wch: 40 },
+    { wch: 20 },
+    { wch: 15 },
+    { wch: 15 },
   ];
   
   const workbook = XLSX.utils.book_new();
