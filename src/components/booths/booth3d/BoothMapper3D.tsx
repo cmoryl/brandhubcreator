@@ -44,7 +44,7 @@ import {
   type PanelAssignment,
 } from './boothConfigs';
 import { BoothPresetPicker } from './BoothPresetPicker';
-import type { BoothDesignPreset } from './boothPresets';
+import { parseAllSpecs, generatePanelsFromSpecs, type ParsedPanelSpec } from './specParser';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
