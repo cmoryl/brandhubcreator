@@ -62,9 +62,9 @@ export function useBoothColorAnalysis(divisionId: string, variantLabel?: string)
 
   const fetchAnalysis = useCallback(async () => {
     setLoading(true);
-    const query = supabase
+    const query = (supabase
       .from("booth_color_analyses" as any)
-      .select("*")
+      .select("*") as any)
       .eq("division_id", divisionId);
 
     if (variantLabel) {
