@@ -57,6 +57,7 @@ export interface BoothColorAnalysis {
 
 export function useBoothColorAnalysis(divisionId: string, variantLabel?: string) {
   const [analysis, setAnalysis] = useState<BoothColorAnalysis | null>(null);
+  const [paletteColors, setPaletteColors] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
 
