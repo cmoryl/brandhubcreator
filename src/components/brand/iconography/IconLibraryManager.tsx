@@ -37,8 +37,7 @@ import type { IconStudioTab } from './IconStudio';
 import { IconPreviewDialog } from './IconPreviewDialog';
 import { BrandIconography } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
-import { useProducts } from '@/hooks/useProducts';
-import { useEvents } from '@/hooks/useEvents';
+import { useEvents } from '@/contexts/EventContext';
 import { cn } from '@/lib/utils';
 
 const LEVEL_BADGES = {
