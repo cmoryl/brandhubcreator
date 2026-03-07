@@ -1804,11 +1804,8 @@ const ContactWebsiteEditor = ({ division, isAdmin }: { division: BoothDivision; 
   );
 };
 
-export const DivisionDetail = ({ division, onClose, isAdmin, onUpdateTagline }: { division: BoothDivision; onClose: () => void; isAdmin: boolean; onUpdateTagline?: (tagline: string) => Promise<void> }) => {
+export const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivision; onClose: () => void; isAdmin: boolean }) => {
   const [activeVariant, setActiveVariant] = useState(0);
-  const [editingTagline, setEditingTagline] = useState(false);
-  const [taglineValue, setTaglineValue] = useState(division.tagline);
-  const [savingTagline, setSavingTagline] = useState(false);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [addingVariant, setAddingVariant] = useState(false);
