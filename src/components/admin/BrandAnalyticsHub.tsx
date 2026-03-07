@@ -3,7 +3,7 @@ import {
   BarChart3, Heart, AlertTriangle, CheckCircle, XCircle, 
   RefreshCw, Download, TrendingUp, Palette, Type, Image,
   Target, Sparkles, FileText, Layers, Info, ChevronDown, ChevronRight,
-  Clock, Package, Calendar, Building2, Filter
+  Clock, Package, Calendar, Building2, Filter, Brain, Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
 import { ComplianceScoreBadge } from '@/components/dataforce/ComplianceScoreBadge';
+import { ExecutiveSummaryPanel, HealthDistributionChart, ContentPerformanceTab, AIMetricsTab } from './analytics';
 
 // Types for brand analysis
 type EntityType = 'brand' | 'product' | 'event';
@@ -92,7 +93,7 @@ interface CachedBrandAnalytics {
 
 export function BrandAnalyticsHub() {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('executive');
   const [expandedBrands, setExpandedBrands] = useState<Set<string>>(new Set());
   const [entityFilter, setEntityFilter] = useState<EntityFilter>('all');
   
@@ -700,24 +701,56 @@ export function BrandAnalyticsHub() {
         {/* Tabs for different views */}
         {brandsHealth.length > 0 && (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview" className="gap-1">
-                <Heart className="h-4 w-4" />
-                Health Scores
+            <TabsList className="grid w-full grid-cols-7">
+              <TabsTrigger value="executive" className="gap-1 text-xs">
+                <Target className="h-3.5 w-3.5" />
+                Executive
               </TabsTrigger>
-              <TabsTrigger value="gaps" className="gap-1">
-                <AlertTriangle className="h-4 w-4" />
-                Content Gaps
+              <TabsTrigger value="overview" className="gap-1 text-xs">
+                <Heart className="h-3.5 w-3.5" />
+                Health
               </TabsTrigger>
-              <TabsTrigger value="consistency" className="gap-1">
-                <CheckCircle className="h-4 w-4" />
-                Consistency
+              <TabsTrigger value="distribution" className="gap-1 text-xs">
+                <BarChart3 className="h-3.5 w-3.5" />
+                Distribution
               </TabsTrigger>
-              <TabsTrigger value="critical" className="gap-1">
-                <XCircle className="h-4 w-4" />
+              <TabsTrigger value="content" className="gap-1 text-xs">
+                <Eye className="h-3.5 w-3.5" />
+                Content
+              </TabsTrigger>
+              <TabsTrigger value="gaps" className="gap-1 text-xs">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Gaps
+              </TabsTrigger>
+              <TabsTrigger value="ai-metrics" className="gap-1 text-xs">
+                <Brain className="h-3.5 w-3.5" />
+                AI & Intel
+              </TabsTrigger>
+              <TabsTrigger value="critical" className="gap-1 text-xs">
+                <XCircle className="h-3.5 w-3.5" />
                 Critical ({criticalBrands.length})
               </TabsTrigger>
             </TabsList>
+
+            {/* Executive Summary Tab */}
+            <TabsContent value="executive" className="space-y-4">
+              <ExecutiveSummaryPanel onNavigate={(tab) => setActiveTab(tab)} />
+            </TabsContent>
+
+            {/* Distribution Tab */}
+            <TabsContent value="distribution" className="space-y-4">
+              <HealthDistributionChart data={brandsHealth} />
+            </TabsContent>
+
+            {/* Content Performance Tab */}
+            <TabsContent value="content" className="space-y-4">
+              <ContentPerformanceTab data={brandsHealth} />
+            </TabsContent>
+
+            {/* AI Metrics Tab */}
+            <TabsContent value="ai-metrics" className="space-y-4">
+              <AIMetricsTab />
+            </TabsContent>
 
             {/* Health Scores Tab */}
             <TabsContent value="overview" className="space-y-4">
