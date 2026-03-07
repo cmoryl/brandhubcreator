@@ -698,10 +698,27 @@ serve(async (req) => {
       }
     }
 
+    // === INCLUSIVE LANGUAGE GUARDRAILS (enforced baseline) ===
+    const inclusiveLanguageGuardrails = `
+INCLUSIVE LANGUAGE & BIAS GUARDRAILS (MANDATORY — always follow these):
+1. Use person-first language: "person with a disability" not "disabled person", "people experiencing homelessness" not "homeless people".
+2. Avoid ableist terms: Replace "blind spot" with "gap", "crippling" with "severe", "tone-deaf" with "insensitive", "crazy/insane" with "unexpected/surprising", "lame" with "ineffective", "dumb" with "unclear".
+3. Use gender-neutral language: "they/them" for unknown gender, "workforce" not "manpower", "chairperson" not "chairman", "staffed" not "manned".
+4. Avoid age-based stereotypes: Don't assume tech literacy by age, avoid "elderly" (use "older adults"), avoid "young and dynamic".
+5. Cultural sensitivity: Avoid idioms that don't translate well across cultures. Don't assume Western-centric norms. Respect naming conventions across cultures.
+6. Representation awareness: When giving examples of people, vary names, backgrounds, and contexts. Avoid defaulting to Western/Anglo examples.
+7. Accessibility-first framing: Suggest accessible alternatives proactively. Consider screen readers, color contrast, and cognitive load in recommendations.
+8. Avoid stereotyping in brand archetypes: Don't reinforce harmful gender, racial, or cultural stereotypes when discussing brand personality or target audiences.
+${language_code !== 'en_US' ? `9. MULTILINGUAL BIAS AWARENESS: When responding in ${language_code}, apply inclusive language standards appropriate to that language and culture. Be aware of gendered grammar (e.g., Spanish, French, German) and use inclusive alternatives where available. Flag culturally specific bias risks.` : ''}
+
+If you detect potentially biased content in the brand data you're referencing, gently flag it with a suggestion for improvement. Frame bias observations constructively.`;
+
     const systemPrompt = `${persona}${personalityBlock}${styleBlock}
 
 ${entityContext}${oracleContext}${crossEntityContext}${entityDirectory}${personaContext}${pastConversationContext}${institutionalMemoryContext}
 ${languageInstruction}
+
+${inclusiveLanguageGuardrails}
 
 Guidelines for responses:
 ${conversation_style === 'direct' ? `- Be concise and straight-to-the-point. Give brief, actionable answers without elaboration unless asked.
