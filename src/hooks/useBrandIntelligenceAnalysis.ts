@@ -16,7 +16,7 @@ export interface AnalysisJob {
   user_id: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   progress: number;
-  result: any | null;
+  result: Record<string, unknown> | null;
   error_message: string | null;
   created_at: string;
   started_at: string | null;
@@ -24,7 +24,7 @@ export interface AnalysisJob {
 }
 
 interface UseAnalysisOptions {
-  onComplete?: (result: any) => void;
+  onComplete?: (result: Record<string, unknown> | null) => void;
   onError?: (error: string) => void;
   pollingInterval?: number;
 }

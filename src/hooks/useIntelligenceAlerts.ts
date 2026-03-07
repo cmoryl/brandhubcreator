@@ -19,7 +19,7 @@ export interface IntelligenceAlert {
   severity: string;
   title: string;
   message: string;
-  metadata: any;
+  metadata: Record<string, unknown>;
   acknowledged: boolean;
   acknowledged_by: string | null;
   acknowledged_at: string | null;

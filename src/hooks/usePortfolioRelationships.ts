@@ -20,7 +20,7 @@ export interface PortfolioRelationship {
   dimensions: Record<string, number>;
   anomaly_type: string | null;
   anomaly_score: number | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   created_at: string;
 }
 
@@ -33,7 +33,7 @@ export interface PortfolioCoherence {
   audience_coherence: number;
   strategic_coherence: number;
   anomaly_count: number;
-  anomalies: any[];
+  anomalies: Array<{ type?: string; entity_id?: string; score?: number; [key: string]: unknown }>;
   insights: string[];
   entity_count: number;
   relationship_count: number;

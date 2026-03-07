@@ -48,7 +48,7 @@ export function useCompetitiveIntegration(
 
       // Aggregate competitive landscape from reports
       const latestReport = reports[0];
-      const reportData = latestReport.report_data as any;
+      const reportData = latestReport.report_data as Record<string, unknown>;
       const allCompetitors = new Set<string>();
       
       reports.forEach(r => {
@@ -78,7 +78,7 @@ export function useCompetitiveIntegration(
         const { error: updateError } = await supabase
           .from('brand_intelligence')
           .update({
-            competitive_landscape: landscape as any,
+            competitive_landscape: landscape as unknown as Record<string, unknown>,
           })
           .eq('entity_type', entityType)
           .eq('entity_id', entityId);
@@ -92,7 +92,7 @@ export function useCompetitiveIntegration(
             entity_type: entityType,
             entity_id: entityId,
             organization_id: organizationId,
-            competitive_landscape: landscape as any,
+            competitive_landscape: landscape as unknown as Record<string, unknown>,
             knowledge_entries: [],
           });
         
@@ -136,7 +136,7 @@ export function useCompetitiveIntegration(
 }
 
 // Helper functions to extract structured data from report
-function extractGaps(reportData: any): string[] {
+function extractGaps(reportData: Record<string, unknown>): string[] {
   const gaps: string[] = [];
   
   if (reportData?.competitive_gaps) {
@@ -156,7 +156,7 @@ function extractGaps(reportData: any): string[] {
   return [...new Set(gaps)].slice(0, 5);
 }
 
-function extractOpportunities(reportData: any): string[] {
+function extractOpportunities(reportData: Record<string, unknown>): string[] {
   const opps: string[] = [];
   
   if (reportData?.differentiation_opportunities) {
@@ -174,15 +174,15 @@ function extractOpportunities(reportData: any): string[] {
   }
   
   if (reportData?.recommendations && Array.isArray(reportData.recommendations)) {
-    opps.push(...reportData.recommendations.map((r: any) => 
-      typeof r === 'string' ? r : r.recommendation || r.title || ''
+    opps.push(...(reportData.recommendations as Array<string | Record<string, unknown>>).map((r) => 
+      typeof r === 'string' ? r : (r as Record<string, unknown>).recommendation as string || (r as Record<string, unknown>).title as string || ''
     ).filter(Boolean).slice(0, 3));
   }
   
   return [...new Set(opps)].slice(0, 5);
 }
 
-function extractThreats(reportData: any): string {
+function extractThreats(reportData: Record<string, unknown>): string {
   if (reportData?.threat_assessment) {
     return typeof reportData.threat_assessment === 'string' 
       ? reportData.threat_assessment 
