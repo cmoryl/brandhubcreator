@@ -141,7 +141,7 @@ export function usePortfolioRelationships(organizationId: string | null) {
         target: rel.target_entity_id,
         type: rel.relationship_type,
         strength: rel.strength_score || 50,
-        rationale: rel.rationale || rel.metadata?.rationale,
+        rationale: rel.rationale || (rel.metadata?.rationale as string | undefined),
         dimensions: rel.dimensions,
         anomalyType: rel.anomaly_type,
         anomalyScore: rel.anomaly_score,
