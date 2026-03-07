@@ -15,7 +15,8 @@ import { useState, useCallback, useRef, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
-  Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search
+  Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search,
+  Users, Route, Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
