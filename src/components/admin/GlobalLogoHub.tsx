@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Search, Trash2, Pencil, Upload, Download, ExternalLink, FolderArchive, Loader2, Filter } from 'lucide-react';
+import { Plus, Search, Trash2, Pencil, Upload, Download, ExternalLink, FolderArchive, Loader2, Filter, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
@@ -56,6 +57,9 @@ export function GlobalLogoHub() {
   const [editingLogo, setEditingLogo] = useState<GlobalClientLogo | null>(null);
   const [formData, setFormData] = useState({ name: '', description: '', category: 'General', websiteUrl: '', files: [] as ClientLogoFile[] });
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingVariant, setGeneratingVariant] = useState<string | null>(null);
+  const [generateProgress, setGenerateProgress] = useState(0);
 
   const fetchLogos = useCallback(async () => {
     if (!organization?.id) return;
@@ -170,6 +174,65 @@ export function GlobalLogoHub() {
       toast.success(`${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleAIGenerate = async () => {
+    if (!organization?.id || !formData.name.trim()) {
+      toast.error('Enter a company name first');
+      return;
+    }
+    setIsGenerating(true);
+    setGenerateProgress(0);
+
+    const variants: ClientLogoVariant[] = ['color', 'white', 'black'];
+    let completedCount = 0;
+
+    for (const variant of variants) {
+      setGeneratingVariant(variant);
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-client-logo', {
+          body: {
+            companyName: formData.name.trim(),
+            variant,
+            organizationId: organization.id,
+          },
+        });
+
+        if (error) throw error;
+        if (data?.error) {
+          // Handle specific status codes
+          if (data.error.includes('Rate limit')) {
+            toast.error(data.error);
+            break;
+          }
+          if (data.error.includes('credits')) {
+            toast.error(data.error);
+            break;
+          }
+          toast.error(`${variant}: ${data.error}`);
+          continue;
+        }
+
+        if (data?.url) {
+          const newFile: ClientLogoFile = { variant, format: 'png', url: data.url };
+          setFormData(prev => ({
+            ...prev,
+            files: [...prev.files.filter(f => !(f.variant === variant && f.format === 'png')), newFile],
+          }));
+        }
+      } catch (err) {
+        console.error(`[AI Generate] ${variant} failed:`, err);
+        toast.error(`Failed to generate ${variant} variant`);
+      }
+
+      completedCount++;
+      setGenerateProgress(Math.round((completedCount / variants.length) * 100));
+    }
+
+    setIsGenerating(false);
+    setGeneratingVariant(null);
+    setGenerateProgress(100);
+    toast.success(`AI logo generation complete for "${formData.name.trim()}"`);
   };
 
   const getPreviewUrl = (files: ClientLogoFile[], variant: ClientLogoVariant): string | null => {
@@ -396,10 +459,47 @@ export function GlobalLogoHub() {
               </div>
             </div>
             
+            {/* AI Generation */}
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <Label className="font-semibold">AI Logo Generator</Label>
+                </div>
+                <Badge variant="outline" className="text-[10px]">Generates all 3 variants</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Enter the company name above, then click generate to create Color, White, and Black logo variants using AI.
+              </p>
+              {isGenerating && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      Generating <span className="font-medium text-foreground">{generatingVariant}</span> variant...
+                    </span>
+                    <span className="font-medium">{generateProgress}%</span>
+                  </div>
+                  <Progress value={generateProgress} className="h-2" />
+                </div>
+              )}
+              <Button
+                variant="outline"
+                onClick={handleAIGenerate}
+                disabled={!formData.name.trim() || isGenerating}
+                className="w-full gap-2"
+              >
+                {isGenerating ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Generating...</>
+                ) : (
+                  <><Sparkles className="h-4 w-4" /> Generate Logos for "{formData.name || '...'}"</>
+                )}
+              </Button>
+            </div>
+
             {/* File uploads per variant */}
             <div className="space-y-2">
               <Label>Logo Files</Label>
-              <p className="text-xs text-muted-foreground">Upload files or pick from the image library for each variant</p>
+              <p className="text-xs text-muted-foreground">AI-generated files appear above, or upload/pick manually below</p>
               <div className="grid grid-cols-3 gap-4">
                 {(['color', 'white', 'black'] as ClientLogoVariant[]).map(variant => (
                   <div key={variant} className="space-y-2">
