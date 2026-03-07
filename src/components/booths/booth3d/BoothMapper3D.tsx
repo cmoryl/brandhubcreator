@@ -17,7 +17,7 @@ import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
   Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search,
-  Users, Route, Building2, BookTemplate, Lightbulb
+  Users, Route, Building2, BookTemplate, Lightbulb, ScanLine
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
