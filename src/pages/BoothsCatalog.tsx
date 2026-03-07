@@ -1889,7 +1889,6 @@ export const DivisionDetail = ({ division, onClose, isAdmin, onUpdateTagline }: 
             </div>
             <div>
               <h2 className="text-xl font-bold font-heading">{division.name}</h2>
-              <h3 className="text-base font-bold text-primary uppercase tracking-wider mt-1">{division.tagline}</h3>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
