@@ -116,7 +116,7 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
           style={{ pointerEvents: 'none' }}
         >
           <div className="text-[10px] text-muted-foreground font-mono whitespace-nowrap">
-            {widthFt}' × {heightFt}'
+            {panel.specLabel || `${widthFt}' × ${heightFt}'`}
           </div>
         </Html>
       )}

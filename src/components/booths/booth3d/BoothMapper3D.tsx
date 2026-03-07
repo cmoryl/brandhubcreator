@@ -226,7 +226,7 @@ export function BoothMapper3D({
 
         <div className="ml-auto flex items-center gap-2">
           <Badge variant="outline" className="text-xs">
-            {boothConfig.dimensions}
+            {boothConfig.dimensions} · {boothConfig.footprint}
           </Badge>
           <Badge variant={assignedCount === totalPanels ? 'default' : 'secondary'} className="text-xs">
             {assignedCount}/{totalPanels} panels
