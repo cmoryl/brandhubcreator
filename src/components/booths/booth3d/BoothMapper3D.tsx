@@ -16,7 +16,7 @@ import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
   Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search,
-  Users, Route, Building2
+  Users, Route, Building2, BookTemplate
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +42,8 @@ import {
   type PanelConfig,
   type PanelAssignment,
 } from './boothConfigs';
+import { BoothPresetPicker } from './BoothPresetPicker';
+import type { BoothDesignPreset } from './boothPresets';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
