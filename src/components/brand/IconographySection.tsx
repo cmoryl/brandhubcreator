@@ -73,6 +73,7 @@ export const IconographySection = ({
   onDefaultIconColorChange,
   brandColors = [],
   organizationId,
+  brandId,
   productLineId,
   entityType = 'brand',
   entityName = '',
