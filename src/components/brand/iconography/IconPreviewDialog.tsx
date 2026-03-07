@@ -3,11 +3,12 @@
  */
 
 import { useState } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, Download, Copy, Check, X } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Download, Copy, Check, Image, FileCode } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
@@ -56,7 +57,7 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange }: IconPreviewDialo
     }
   };
 
-  const handleDownload = () => {
+  const handleDownloadSvg = () => {
     const svgString = generateSvgString();
     const blob = new Blob([svgString], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
@@ -68,6 +69,34 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange }: IconPreviewDialo
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success('SVG downloaded');
+  };
+
+  const handleDownloadPng = (size: number) => {
+    const svgString = generateSvgString();
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const img = new window.Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, size, size);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${icon.name.toLowerCase().replace(/\s+/g, '-')}-${size}x${size}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success(`PNG ${size}×${size} downloaded`);
+      }, 'image/png');
+    };
+    img.onerror = () => toast.error('Failed to generate PNG');
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
   };
 
   const renderPreviewIcon = () => {
@@ -221,10 +250,29 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange }: IconPreviewDialo
                 )}
                 {copied ? 'Copied' : 'Copy SVG'}
               </Button>
-              <Button variant="outline" size="sm" onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-1" />
-                Download
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-1" />
+                    Download
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel className="text-xs">SVG</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={handleDownloadSvg}>
+                    <FileCode className="h-4 w-4 mr-2" />
+                    SVG (Vector)
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-xs">PNG</DropdownMenuLabel>
+                  {[24, 48, 64, 128, 256, 512].map(size => (
+                    <DropdownMenuItem key={size} onClick={() => handleDownloadPng(size)}>
+                      <Image className="h-4 w-4 mr-2" />
+                      PNG {size}×{size}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
