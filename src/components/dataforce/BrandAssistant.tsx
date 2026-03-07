@@ -595,6 +595,45 @@ export const BrandAssistant = ({
     return suggestions.slice(0, 3);
   }, []);
 
+  // ───── Bias Feedback ─────
+
+  const flagMessageForBias = useCallback(async (messageId: string) => {
+    if (!conversationId || !organization?.id) return;
+    
+    setFlaggedMessages(prev => new Set(prev).add(messageId));
+    
+    try {
+      const biasFlag = {
+        message_id: messageId,
+        flag_type: 'user_reported',
+        severity: 'medium',
+        flagged_at: new Date().toISOString(),
+        flagged_by: 'user',
+      };
+
+      // Update conversation bias flags
+      const { data: conv } = await supabase
+        .from('dataforce_assistant_conversations')
+        .select('bias_flags, bias_flagged_count')
+        .eq('id', conversationId)
+        .single();
+
+      const existingFlags = Array.isArray(conv?.bias_flags) ? conv.bias_flags : [];
+      await supabase
+        .from('dataforce_assistant_conversations')
+        .update({
+          bias_flags: [...existingFlags, biasFlag],
+          bias_flagged_count: (conv?.bias_flagged_count || 0) + 1,
+        })
+        .eq('id', conversationId);
+
+      toast.success('Thank you for flagging — this helps improve our AI responses', { duration: 3000 });
+    } catch (err) {
+      console.error('Failed to flag bias:', err);
+      toast.error('Failed to submit feedback');
+    }
+  }, [conversationId, organization?.id]);
+
   // ───── Message Sending ─────
 
   const processResponse = useCallback((data: any, userMessageId: string, startTime: number) => {
