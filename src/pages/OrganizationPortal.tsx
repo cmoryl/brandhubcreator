@@ -717,6 +717,11 @@ const OrganizationPortal = () => {
                   <Droplets className="h-3.5 w-3.5" />
                   Color Lab
                 </Link>
+                <span className="text-border">·</span>
+                <Link to="/booths" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  Booths
+                </Link>
               </>
             )}
           </div>
