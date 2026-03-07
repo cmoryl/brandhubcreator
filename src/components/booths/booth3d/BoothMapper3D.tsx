@@ -15,19 +15,22 @@ import { useState, useCallback, useRef, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
-  Loader2, Sparkles, Layout, Upload, Wand2
+  Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Toggle } from '@/components/ui/toggle';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useImageLibrary } from '@/hooks/useImageLibrary';
 import { BoothScene3D } from './BoothScene3D';
 import {
   getBoothPanels,
