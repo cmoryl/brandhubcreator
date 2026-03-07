@@ -57,6 +57,9 @@ export function GlobalLogoHub() {
   const [editingLogo, setEditingLogo] = useState<GlobalClientLogo | null>(null);
   const [formData, setFormData] = useState({ name: '', description: '', category: 'General', websiteUrl: '', files: [] as ClientLogoFile[] });
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingVariant, setGeneratingVariant] = useState<string | null>(null);
+  const [generateProgress, setGenerateProgress] = useState(0);
 
   const fetchLogos = useCallback(async () => {
     if (!organization?.id) return;
