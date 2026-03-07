@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Building2, Layers, Eye, FolderPlus } from 'lucide-react';
-import { BrandIconography } from '@/types/brand';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Building2, Layers, Eye, FolderPlus, Library } from 'lucide-react';
+import { BrandIconography, BrandIcon } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from '@/components/ui/label';
 import { SectionHeader } from './SectionHeader';
 import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './iconography';
+import { IconLibraryPicker } from './iconography/IconLibraryPicker';
 import { IconPreviewDialog } from './iconography/IconPreviewDialog';
 import type { IconStudioTab } from './iconography';
 import { toast } from 'sonner';
@@ -90,6 +91,7 @@ export const IconographySection = ({
   const [previewIcon, setPreviewIcon] = useState<BrandIconography | null>(null);
   const [showAddToLibrary, setShowAddToLibrary] = useState(false);
   const [addToLibraryTargetId, setAddToLibraryTargetId] = useState<string>('');
+  const [showLibraryPicker, setShowLibraryPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const ICONS_PREVIEW_LIMIT = 8;
