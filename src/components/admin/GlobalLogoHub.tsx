@@ -495,23 +495,27 @@ export function GlobalLogoHub() {
               </div>
             </div>
             
-            {/* AI Generation */}
+            {/* AI Logo Discovery */}
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  <Label className="font-semibold">AI Logo Generator</Label>
+                  <Label className="font-semibold">Logo Discovery</Label>
                 </div>
-                <Badge variant="outline" className="text-[10px]">Generates all 3 variants</Badge>
+                <Badge variant="outline" className="text-[10px]">Finds real logos</Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                Enter the company name above, then click generate to create Color, White, and Black logo variants using AI.
+                Searches the web for the company's actual logo, then creates White and Black variants automatically. 
+                Add the website URL above for best results.
               </p>
               {isGenerating && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">
-                      Generating <span className="font-medium text-foreground">{generatingVariant}</span> variant...
+                      {generatingVariant === 'color' 
+                        ? 'Searching the web for logo...' 
+                        : <>Creating <span className="font-medium text-foreground">{generatingVariant}</span> variant...</>
+                      }
                     </span>
                     <span className="font-medium">{generateProgress}%</span>
                   </div>
@@ -525,9 +529,9 @@ export function GlobalLogoHub() {
                 className="w-full gap-2"
               >
                 {isGenerating ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Generating...</>
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Finding logos...</>
                 ) : (
-                  <><Sparkles className="h-4 w-4" /> Generate Logos for "{formData.name || '...'}"</>
+                  <><Sparkles className="h-4 w-4" /> Find Logos for "{formData.name || '...'}"</>
                 )}
               </Button>
             </div>
@@ -535,7 +539,7 @@ export function GlobalLogoHub() {
             {/* File uploads per variant */}
             <div className="space-y-2">
               <Label>Logo Files</Label>
-              <p className="text-xs text-muted-foreground">AI-generated files appear above, or upload/pick manually below</p>
+              <p className="text-xs text-muted-foreground">Discovered logos appear above, or upload/pick manually below</p>
               <div className="grid grid-cols-3 gap-4">
                 {(['color', 'white', 'black'] as ClientLogoVariant[]).map(variant => (
                   <div key={variant} className="space-y-2">
