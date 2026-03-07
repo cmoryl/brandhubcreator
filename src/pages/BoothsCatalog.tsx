@@ -2131,6 +2131,7 @@ export const DivisionDetail = ({ division, onClose, isAdmin }: { division: Booth
                             divisionId={division.id}
                             divisionName={division.name}
                             variantLabel={currentVariant?.label}
+                            fallbackColors={division.boothColors}
                             isAdmin={isAdmin}
                             color={division.color}
                           />
