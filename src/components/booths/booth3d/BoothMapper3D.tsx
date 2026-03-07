@@ -81,7 +81,8 @@ export function BoothMapper3D({
   const [isUploading, setIsUploading] = useState(false);
   const [isAiMapping, setIsAiMapping] = useState(false);
   const [librarySearch, setLibrarySearch] = useState('');
-  const [pickerTab, setPickerTab] = useState<string>('sources');
+  const [pickerTab, setPickerTab] = useState<string>('library');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [showEnvironment, setShowEnvironment] = useState(false);
   const [showPeople, setShowPeople] = useState(false);
