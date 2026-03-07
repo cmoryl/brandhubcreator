@@ -49,6 +49,8 @@ import { FloatingOrbsHero } from "@/components/backgrounds/FloatingOrbsHero";
 import { GradientSpheresHero } from "@/components/backgrounds/GradientSpheresHero";
 import { ImageOrbsHero } from "@/components/backgrounds/ImageOrbsHero";
 import { ImagePanelsHero } from "@/components/backgrounds/ImagePanelsHero";
+
+const LazyBoothMapper3D = lazy(() => import("@/components/booths/booth3d/BoothMapper3D").then(m => ({ default: m.BoothMapper3D })));
 export interface BoothDivision {
   id: string;
   name: string;
