@@ -9,7 +9,7 @@ interface BoothColorAnalysisPanelProps {
   divisionId: string;
   divisionName?: string;
   variantLabel?: string;
-  colors: string[];
+  fallbackColors?: string[];
   isAdmin: boolean;
   color: string;
 }
@@ -92,10 +92,10 @@ const ProductionRow = ({ note }: { note: ProductionNote }) => (
   </div>
 );
 
-export const BoothColorAnalysisPanel = ({ divisionId, divisionName, variantLabel, isAdmin, color }: Omit<BoothColorAnalysisPanelProps, 'colors'>) => {
+export const BoothColorAnalysisPanel = ({ divisionId, divisionName, variantLabel, fallbackColors = [], isAdmin, color }: BoothColorAnalysisPanelProps) => {
   const { analysis, loading, analyzing, runAnalysis, paletteColors } = useBoothColorAnalysis(divisionId, variantLabel);
   const [expanded, setExpanded] = useState(false);
-  const colors = paletteColors;
+  const colors = paletteColors.length > 0 ? paletteColors : fallbackColors;
 
   if (loading) {
     return (
@@ -172,6 +172,11 @@ export const BoothColorAnalysisPanel = ({ divisionId, divisionName, variantLabel
                   <p className="text-sm text-muted-foreground mb-3">
                     No color analysis available for this booth variant yet.
                   </p>
+                  {isAdmin && colors.length === 0 && (
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Add or extract a palette first in <span className="font-medium">Booth Color Palette</span>.
+                    </p>
+                  )}
                   {isAdmin && (
                     <Button
                       size="sm"
