@@ -1568,13 +1568,17 @@ const ProductionSpecsManager = ({ divisionId, isAdmin, color, variantLabel }: { 
   );
 };
 
-const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divisionId: string; variantLabel: string; isAdmin: boolean; color: string }) => {
+const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color, divisionTagline }: { divisionId: string; variantLabel: string; isAdmin: boolean; color: string; divisionTagline?: string }) => {
   const { info, loading, saveInfo } = useBoothVariantInfo(divisionId, variantLabel);
   const [editing, setEditing] = useState(false);
+  const [editTagline, setEditTagline] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editSections, setEditSections] = useState<{ heading: string; bullets: string[] }[]>([]);
 
+  const resolvedTagline = info?.tagline || divisionTagline || '';
+
   const startEditing = () => {
+    setEditTagline(info?.tagline || divisionTagline || "");
     setEditDesc(info?.description || "");
     setEditSections(info?.details?.length ? info.details : [{ heading: "", bullets: [""] }]);
     setEditing(true);
@@ -1584,7 +1588,7 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
     const cleanedSections = editSections
       .filter(s => s.heading.trim() || s.bullets.some(b => b.trim()))
       .map(s => ({ heading: s.heading.trim(), bullets: s.bullets.filter(b => b.trim()) }));
-    await saveInfo(editDesc.trim(), cleanedSections);
+    await saveInfo(editDesc.trim(), cleanedSections, editTagline.trim());
     setEditing(false);
   };
 
@@ -1615,7 +1619,26 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
 
   if (loading) return <div className="flex items-center gap-2 text-xs text-muted-foreground py-2"><Loader2 className="h-3 w-3 animate-spin" /> Loading variant info...</div>;
 
-  if (!info && !isAdmin) return null;
+  if (!info && !isAdmin) {
+    // Still show the tagline even in read-only if there's a division-level one
+    if (resolvedTagline) {
+      return (
+        <div className="mt-4">
+          <h4 className="text-sm font-semibold uppercase tracking-wider mb-2" style={{ color }}>
+            {variantLabel}
+          </h4>
+          <p className="text-2xl md:text-3xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{resolvedTagline}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            <span>Font: Poppins Regular 400</span>
+            <span>Booth: 48–72pt</span>
+            <span>Banner: 36–48pt</span>
+            <span>Safe Zone: 2" from edges</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
 
   if (editing && isAdmin) {
     return (
@@ -1623,6 +1646,10 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
         <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
           Edit: {variantLabel} Info
         </h4>
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">Tagline for this variant</label>
+          <Textarea value={editTagline} onChange={e => setEditTagline(e.target.value)} className="text-sm min-h-[50px]" placeholder="Variant-specific tagline..." />
+        </div>
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">Description</label>
           <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} className="text-sm min-h-[60px]" placeholder="About this specific booth variant..." />
@@ -1672,32 +1699,38 @@ const VariantInfoSection = ({ divisionId, variantLabel, isAdmin, color }: { divi
           </Button>
         )}
       </div>
-      {info ? (
-        <div className="space-y-3">
-          {info.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed">{info.description}</p>
-          )}
-          {info.details && info.details.length > 0 && (
-            <div className="grid gap-3">
-              {info.details.map((section, i) => (
-                <div key={i} className="bg-muted/30 rounded-lg p-3 border border-border/40">
-                  <h5 className="text-xs font-semibold mb-1.5" style={{ color }}>{section.heading}</h5>
-                  <ul className="space-y-1">
-                    {section.bullets.map((bullet, j) => (
-                      <li key={j} className="text-xs text-muted-foreground flex items-start gap-2">
-                        <span className="mt-1.5 h-1 w-1 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
+      <div className="space-y-3">
+        {/* Variant Tagline */}
+        <div>
+          <p className="text-2xl md:text-3xl font-normal leading-relaxed text-primary" style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 400 }}>{resolvedTagline}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            <span>Font: Poppins Regular 400</span>
+            <span>Booth: 48–72pt</span>
+            <span>Banner: 36–48pt</span>
+            <span>Safe Zone: 2" from edges</span>
+          </div>
         </div>
-      ) : isAdmin ? (
-        <p className="text-xs text-muted-foreground italic">No info added for this variant yet. Click "Add Info" to add details.</p>
-      ) : null}
+        {info?.description && (
+          <p className="text-sm text-muted-foreground leading-relaxed">{info.description}</p>
+        )}
+        {info?.details && info.details.length > 0 && (
+          <div className="grid gap-3">
+            {info.details.map((section, i) => (
+              <div key={i} className="bg-muted/30 rounded-lg p-3 border border-border/40">
+                <h5 className="text-xs font-semibold mb-1.5" style={{ color }}>{section.heading}</h5>
+                <ul className="space-y-1">
+                  {section.bullets.map((bullet, j) => (
+                    <li key={j} className="text-xs text-muted-foreground flex items-start gap-2">
+                      <span className="mt-1.5 h-1 w-1 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
