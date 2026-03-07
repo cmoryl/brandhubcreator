@@ -107,8 +107,8 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
   // Entity lists for the right panel
   const entityList = useMemo(() => {
     if (assignTab === 'brand') return brands.map(b => ({ id: b.id, name: b.hero?.name || 'Untitled Brand' }));
-    if (assignTab === 'product') return (products || []).map((p: any) => ({ id: p.id, name: p.guide_data?.hero?.name || p.name || 'Untitled Product' }));
-    if (assignTab === 'event') return (events || []).map((e: any) => ({ id: e.id, name: e.guide_data?.hero?.name || e.name || 'Untitled Event' }));
+    if (assignTab === 'product') return (products || []).map(p => ({ id: p.id, name: p.hero?.name || 'Untitled Product' }));
+    if (assignTab === 'event') return (events || []).map(e => ({ id: e.id, name: e.hero?.name || 'Untitled Event' }));
     return [];
   }, [assignTab, brands, products, events]);
 
