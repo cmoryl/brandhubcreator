@@ -151,9 +151,10 @@ export function BoothMapper3D({
   }));
 
   const handleSelectPanel = useCallback((panelId: string) => {
+    if (!isAdmin) return; // View-only for non-admins
     setSelectedPanelId(panelId);
     setImagePickerOpen(true);
-  }, []);
+  }, [isAdmin]);
 
   const handleAssignImage = useCallback((imageUrl: string) => {
     if (!selectedPanelId) return;
