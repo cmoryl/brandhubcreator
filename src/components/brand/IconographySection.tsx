@@ -814,6 +814,7 @@ ${innerContent}
       {organizationId && (
         <HierarchicalIconDisplay
           organizationId={organizationId}
+          brandId={brandId}
           brandIcons={iconography}
           productLineId={productLineId}
           iconColor={iconColor}
