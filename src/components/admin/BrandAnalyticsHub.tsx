@@ -3,7 +3,7 @@ import {
   BarChart3, Heart, AlertTriangle, CheckCircle, XCircle, 
   RefreshCw, Download, TrendingUp, Palette, Type, Image,
   Target, Sparkles, FileText, Layers, Info, ChevronDown, ChevronRight,
-  Clock, Package, Calendar, Building2, Filter
+  Clock, Package, Calendar, Building2, Filter, Brain, Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { usePersistedAdminData, formatLastRunMessage } from '@/hooks/usePersistedAdminData';
 import { ComplianceScoreBadge } from '@/components/dataforce/ComplianceScoreBadge';
+import { ExecutiveSummaryPanel, HealthDistributionChart, ContentPerformanceTab, AIMetricsTab } from './analytics';
 
 // Types for brand analysis
 type EntityType = 'brand' | 'product' | 'event';
