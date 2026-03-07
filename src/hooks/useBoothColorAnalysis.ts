@@ -65,16 +65,28 @@ export function useBoothColorAnalysis(divisionId: string, variantLabel?: string)
     setLoading(true);
 
     // Fetch current palette colors for the run button
-    supabase.from('booth_color_palettes').select('colors, variant_label').eq('division_id', divisionId)
-      .then(({ data: palData }) => {
-        if (palData) {
-          const match = palData.find(d => d.variant_label === (variantLabel || null))
-            || palData.find(d => d.variant_label === null);
-          if (match?.colors && Array.isArray(match.colors)) {
-            setPaletteColors(match.colors as string[]);
-          }
-        }
-      });
+    const { data: palData } = await supabase
+      .from('booth_color_palettes')
+      .select('colors, variant_label')
+      .eq('division_id', divisionId);
+
+    if (palData && palData.length > 0) {
+      const normalizeVariant = (value: string | null | undefined) => (value ?? "").trim().toLowerCase();
+      const targetVariant = normalizeVariant(variantLabel ?? null);
+
+      const exactMatch = palData.find((d) => normalizeVariant(d.variant_label) === targetVariant);
+      const sharedMatch = palData.find((d) => d.variant_label === null);
+      const fallbackMatch = palData.find((d) => Array.isArray(d.colors) && d.colors.length > 0);
+      const match = exactMatch || sharedMatch || fallbackMatch;
+
+      if (match?.colors && Array.isArray(match.colors)) {
+        setPaletteColors(match.colors as string[]);
+      } else {
+        setPaletteColors([]);
+      }
+    } else {
+      setPaletteColors([]);
+    }
 
     const query = (supabase
       .from("booth_color_analyses" as any)
