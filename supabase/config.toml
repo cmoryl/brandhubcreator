@@ -112,3 +112,6 @@ verify_jwt = false
 
 [functions.color-lab-analysis]
 verify_jwt = false
+
+[functions.booth-color-analysis]
+verify_jwt = false
