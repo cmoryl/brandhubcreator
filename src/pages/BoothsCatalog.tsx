@@ -2143,6 +2143,28 @@ export const DivisionDetail = ({ division, onClose, isAdmin }: { division: Booth
                         </div>
                       </div>
 
+                      {/* 3D Booth Mapper */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Box className="h-5 w-5" style={{ color: division.color }} />
+                          <h3 className="text-lg font-semibold">3D Booth Mapper</h3>
+                          <Badge variant="outline" className="text-xs">Interactive</Badge>
+                        </div>
+                        <Suspense fallback={
+                          <div className="h-[400px] rounded-xl border flex items-center justify-center bg-muted/30">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                              <span>Loading 3D viewer...</span>
+                            </div>
+                          </div>
+                        }>
+                          <LazyBoothMapper3D
+                            variantImages={mergedVariants.map(v => ({ label: v.label, url: v.image }))}
+                            divisionName={division.name}
+                          />
+                        </Suspense>
+                      </div>
+
                       {/* Booth Content Details */}
                       <BoothContentManager divisionId={division.id} divisionName={division.name} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} variants={mergedVariants.map(v => v.label)} />
 
