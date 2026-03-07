@@ -2060,6 +2060,7 @@ export const DivisionDetail = ({ division, onClose, isAdmin, onUpdateTagline }: 
                 variantLabel={currentVariant.label}
                 isAdmin={isAdmin}
                 color={division.color}
+                divisionTagline={division.tagline}
               />
             )}
 
