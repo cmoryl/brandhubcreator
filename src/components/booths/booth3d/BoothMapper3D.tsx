@@ -21,7 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Toggle } from '@/components/ui/toggle';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
@@ -226,7 +226,7 @@ export function BoothMapper3D({
 
         <div className="ml-auto flex items-center gap-2">
           <Badge variant="outline" className="text-xs">
-            {boothConfig.dimensions}
+            {boothConfig.dimensions} · {boothConfig.footprint}
           </Badge>
           <Badge variant={assignedCount === totalPanels ? 'default' : 'secondary'} className="text-xs">
             {assignedCount}/{totalPanels} panels
@@ -313,6 +313,9 @@ export function BoothMapper3D({
               <ImageIcon className="h-5 w-5" />
               Assign Image to {boothConfig.panels.find((p) => p.id === selectedPanelId)?.label}
             </DialogTitle>
+            <DialogDescription>
+              Select an image from your booth variants or gallery to map onto this panel.
+            </DialogDescription>
           </DialogHeader>
 
           {allImages.length === 0 ? (

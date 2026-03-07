@@ -1,9 +1,9 @@
 /**
  * BoothPanel3D - A single clickable panel in 3D space with image texture
  */
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, Suspense } from 'react';
 import * as THREE from 'three';
-import { useLoader } from '@react-three/fiber';
+import { useTexture } from '@react-three/drei';
 import { Html } from '@react-three/drei';
 import type { PanelConfig } from './boothConfigs';
 
@@ -15,24 +15,45 @@ interface BoothPanel3DProps {
   showDimensions: boolean;
 }
 
+/** Inner component that loads and displays the texture */
+function TexturedPanel({ imageUrl, size, isSelected }: { imageUrl: string; size: [number, number]; isSelected: boolean }) {
+  const texture = useTexture(imageUrl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  return (
+    <meshStandardMaterial
+      map={texture}
+      side={THREE.DoubleSide}
+      emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
+      emissiveIntensity={isSelected ? 0.1 : 0}
+    />
+  );
+}
+
+function EmptyPanel({ hovered, isSelected }: { hovered: boolean; isSelected: boolean }) {
+  return (
+    <meshStandardMaterial
+      color={hovered ? '#1e293b' : '#0f172a'}
+      side={THREE.DoubleSide}
+      emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
+      emissiveIntensity={isSelected ? 0.2 : 0}
+    />
+  );
+}
+
 export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDimensions }: BoothPanel3DProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
-
-  // Load texture if image assigned
-  const texture = useMemo(() => {
-    if (!panel.imageUrl) return null;
-    const loader = new THREE.TextureLoader();
-    const tex = loader.load(panel.imageUrl);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    return tex;
-  }, [panel.imageUrl]);
 
   const borderColor = isSelected
     ? '#3b82f6'
     : hovered
     ? '#60a5fa'
     : '#374151';
+
+  // Convert meters to feet for display
+  const widthFt = (panel.size[0] * 3.28).toFixed(0);
+  const heightFt = (panel.size[1] * 3.28).toFixed(0);
 
   return (
     <group position={panel.position} rotation={panel.rotation}>
@@ -54,20 +75,12 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
         }}
       >
         <planeGeometry args={[panel.size[0], panel.size[1]]} />
-        {texture ? (
-          <meshStandardMaterial
-            map={texture}
-            side={THREE.DoubleSide}
-            emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
-            emissiveIntensity={isSelected ? 0.1 : 0}
-          />
+        {panel.imageUrl ? (
+          <Suspense fallback={<EmptyPanel hovered={hovered} isSelected={isSelected} />}>
+            <TexturedPanel imageUrl={panel.imageUrl} size={panel.size} isSelected={isSelected} />
+          </Suspense>
         ) : (
-          <meshStandardMaterial
-            color={hovered ? '#1e293b' : '#0f172a'}
-            side={THREE.DoubleSide}
-            emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
-            emissiveIntensity={isSelected ? 0.2 : 0}
-          />
+          <EmptyPanel hovered={hovered} isSelected={isSelected} />
         )}
       </mesh>
 
@@ -103,7 +116,7 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
           style={{ pointerEvents: 'none' }}
         >
           <div className="text-[10px] text-muted-foreground font-mono whitespace-nowrap">
-            {(panel.size[0] * 3.28).toFixed(0)}' × {(panel.size[1] * 3.28).toFixed(0)}'
+            {panel.specLabel || `${widthFt}' × ${heightFt}'`}
           </div>
         </Html>
       )}
