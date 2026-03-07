@@ -250,10 +250,29 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange }: IconPreviewDialo
                 )}
                 {copied ? 'Copied' : 'Copy SVG'}
               </Button>
-              <Button variant="outline" size="sm" onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-1" />
-                Download
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-1" />
+                    Download
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel className="text-xs">SVG</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={handleDownloadSvg}>
+                    <FileCode className="h-4 w-4 mr-2" />
+                    SVG (Vector)
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-xs">PNG</DropdownMenuLabel>
+                  {[24, 48, 64, 128, 256, 512].map(size => (
+                    <DropdownMenuItem key={size} onClick={() => handleDownloadPng(size)}>
+                      <Image className="h-4 w-4 mr-2" />
+                      PNG {size}×{size}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
