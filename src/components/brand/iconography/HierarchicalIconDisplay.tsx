@@ -52,7 +52,7 @@ export const HierarchicalIconDisplay = ({
   showEmptyGroups = false,
 }: HierarchicalIconDisplayProps) => {
   const { libraries, coreLibraries, productLineLibraries, isLoading } = useIconLibraries(organizationId);
-  const { links, getLinkedLibraryIds } = useIconLibraryBrandLinks(organizationId);
+  const { links, getLinkedLibraryIds, getLinkedLibraryIdsForEntity } = useIconLibraryBrandLinks(organizationId);
   const [activeFilter, setActiveFilter] = useState<SourceFilter>('all');
 
   // Organize all icons with source tags
