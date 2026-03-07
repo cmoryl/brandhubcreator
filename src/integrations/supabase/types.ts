@@ -848,6 +848,7 @@ export type Database = {
           display_order: number
           division_id: string
           id: string
+          tagline: string | null
           updated_at: string
           variant_label: string
         }
@@ -859,6 +860,7 @@ export type Database = {
           display_order?: number
           division_id: string
           id?: string
+          tagline?: string | null
           updated_at?: string
           variant_label: string
         }
@@ -870,6 +872,7 @@ export type Database = {
           display_order?: number
           division_id?: string
           id?: string
+          tagline?: string | null
           updated_at?: string
           variant_label?: string
         }
