@@ -81,6 +81,9 @@ export function BoothMapper3D({
   const [librarySearch, setLibrarySearch] = useState('');
   const [pickerTab, setPickerTab] = useState<string>('sources');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showEnvironment, setShowEnvironment] = useState(false);
+  const [showPeople, setShowPeople] = useState(false);
+  const [showTrafficFlow, setShowTrafficFlow] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Image library integration
