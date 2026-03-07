@@ -210,13 +210,13 @@ function OracleOverview({ intelligence }: { intelligence: OracleIntelligence | n
     );
   }
 
-  const patterns = intelligence.cross_entity_patterns || {};
-  const voice = intelligence.unified_voice_profile || {};
-  const audience = intelligence.unified_audience_map || {};
-  const competitive = intelligence.competitive_overview || {};
-  const cultural = intelligence.cultural_readiness || {};
-  const portfolio = intelligence.portfolio_analysis || {};
-  const market = intelligence.market_landscape || {};
+  const patterns = (intelligence.cross_entity_patterns || {}) as Record<string, string>;
+  const voice = (intelligence.unified_voice_profile || {}) as Record<string, any>;
+  const audience = (intelligence.unified_audience_map || {}) as Record<string, any>;
+  const competitive = (intelligence.competitive_overview || {}) as Record<string, any>;
+  const cultural = (intelligence.cultural_readiness || {}) as Record<string, any>;
+  const portfolio = (intelligence.portfolio_analysis || {}) as Record<string, any>;
+  const market = (intelligence.market_landscape || {}) as Record<string, any>;
   const recs = Array.isArray(intelligence.strategic_recommendations) ? intelligence.strategic_recommendations : [];
 
   const hasPatterns = Object.keys(patterns).length > 0;

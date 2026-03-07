@@ -42,14 +42,14 @@ export function usePageHeroSettings(pageSlug: string) {
 
   useEffect(() => {
     const fetchSettings = async () => {
-      const { data } = await supabase
-        .from('page_hero_settings' as unknown as 'brands')
+      const { data } = await (supabase as any)
+        .from('page_hero_settings')
         .select('*')
-        .eq('page_slug' as 'id', pageSlug)
+        .eq('page_slug', pageSlug)
         .maybeSingle();
 
       if (data) {
-        const row = data as unknown as PageHeroSettingsRow;
+        const row = data as PageHeroSettingsRow;
         setSettings({
           heroEffect: (row.hero_effect as HeroEffectType) || 'none',
           heroEffectIntensity: (row.hero_effect_intensity as PageHeroSettings['heroEffectIntensity']) || 'medium',
@@ -87,9 +87,9 @@ export function usePageHeroSettings(pageSlug: string) {
       updated_by: user.id,
     };
 
-    const { error } = await supabase
-      .from('page_hero_settings' as unknown as 'brands')
-      .upsert(dbRow as unknown as Record<string, unknown>, { onConflict: 'page_slug' as 'id' });
+    const { error } = await (supabase as any)
+      .from('page_hero_settings')
+      .upsert(dbRow, { onConflict: 'page_slug' });
 
     if (error) {
       console.error('Failed to save hero settings:', error);

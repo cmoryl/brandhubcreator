@@ -96,7 +96,7 @@ export function useUserPreferences(): UseUserPreferencesReturn {
         const merged = { ...cachedPrefs, ...updates };
         cachedPrefs = merged;
 
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('user_preferences')
           .upsert({
             user_id: user.id,
