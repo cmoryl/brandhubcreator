@@ -51,6 +51,8 @@ interface BoothMapper3DProps {
   divisionName?: string;
   /** Division ID for persistence */
   divisionId?: string;
+  /** Whether current user has admin edit permissions */
+  isAdmin?: boolean;
   /** Callback when assignments change */
   onAssignmentsChange?: (assignments: PanelAssignment[]) => void;
 }
@@ -60,6 +62,7 @@ export function BoothMapper3D({
   galleryImages = [],
   divisionName,
   divisionId,
+  isAdmin = false,
   onAssignmentsChange,
 }: BoothMapper3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
