@@ -39,11 +39,11 @@ export function useBoothVariantInfo(divisionId: string, variantLabel: string) {
   const saveInfo = useCallback(
     async (description: string, details: { heading: string; bullets: string[] }[], tagline?: string) => {
       if (info) {
-        const updateData: Record<string, unknown> = { description, details: details as unknown };
+        const updateData: Record<string, unknown> = { description, details };
         if (tagline !== undefined) updateData.tagline = tagline;
         const { error } = await supabase
           .from("booth_variant_info")
-          .update(updateData)
+          .update(updateData as any)
           .eq("id", info.id);
         if (!error) await fetchInfo();
       } else {
@@ -54,8 +54,8 @@ export function useBoothVariantInfo(divisionId: string, variantLabel: string) {
             variant_label: variantLabel,
             tagline: tagline || '',
             description,
-            details: details as unknown,
-          });
+            details: details as any,
+          } as any);
         if (!error) await fetchInfo();
       }
     },
