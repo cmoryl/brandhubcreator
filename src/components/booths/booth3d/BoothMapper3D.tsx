@@ -11,7 +11,7 @@
  * - Screenshot export
  * - Auto-fill from variant images
  */
-import { useState, useCallback, useRef, Suspense } from 'react';
+import { useState, useCallback, useRef, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
