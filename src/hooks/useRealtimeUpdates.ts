@@ -49,7 +49,7 @@ export const useRealtimeUpdates = ({
   const handleChange = useCallback(
     (payload: { eventType: string; table: string; new: unknown; old: unknown }) => {
       const event: RealtimeEvent = {
-        type: payload.eventType,
+        type: payload.eventType as RealtimeEvent['type'],
         table: payload.table,
         record: payload.new,
         oldRecord: payload.old,
