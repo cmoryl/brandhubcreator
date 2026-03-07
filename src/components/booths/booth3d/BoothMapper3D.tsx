@@ -595,17 +595,17 @@ export function BoothMapper3D({
                       .filter((img) => {
                         if (!librarySearch) return true;
                         const s = librarySearch.toLowerCase();
-                        return (img.file_name?.toLowerCase().includes(s)) || (img.alt_text?.toLowerCase().includes(s)) || (img.category?.toLowerCase().includes(s));
+                        return (img.name?.toLowerCase().includes(s)) || (img.category?.toLowerCase().includes(s));
                       })
                       .map((img) => (
                         <button
                           key={img.id}
-                          onClick={() => handleAssignImage(img.url)}
+                          onClick={() => handleAssignImage(img.public_url)}
                           className="group relative rounded-lg overflow-hidden border hover:border-primary transition-colors"
                         >
-                          <img src={img.url} alt={img.alt_text || img.file_name} className="w-full aspect-video object-cover" />
+                          <img src={img.public_url} alt={img.name} className="w-full aspect-video object-cover" />
                           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                            <span className="text-xs text-white font-medium truncate block">{img.file_name || img.alt_text || 'Image'}</span>
+                            <span className="text-xs text-white font-medium truncate block">{img.name || 'Image'}</span>
                           </div>
                           {img.category && (
                             <div className="absolute top-1 right-1">
