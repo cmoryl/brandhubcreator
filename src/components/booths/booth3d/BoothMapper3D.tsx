@@ -4,6 +4,7 @@
  * Features:
  * - 4 booth layouts (inline, L-shape, U-shape, island)
  * - Click panels to assign images
+ * - Upload booth spec images/PDFs for AI mapping
  * - Orbit & zoom controls
  * - Panel labels & dimensions
  * - Lighting presets
@@ -14,7 +15,7 @@ import { useState, useCallback, useRef, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
-  Loader2, Sparkles, Layout, ChevronDown
+  Loader2, Sparkles, Layout, Upload, Wand2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 import { BoothScene3D } from './BoothScene3D';
 import {
   getBoothPanels,
@@ -55,6 +57,7 @@ export function BoothMapper3D({
   onAssignmentsChange,
 }: BoothMapper3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [layout, setLayout] = useState<BoothLayout>('u-shape');
   const [lightingPreset, setLightingPreset] = useState<LightingPreset>('expo-bright');
   const [showLabels, setShowLabels] = useState(true);
@@ -62,6 +65,9 @@ export function BoothMapper3D({
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
   const [assignments, setAssignments] = useState<Record<string, string>>({});
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [uploadedSpecs, setUploadedSpecs] = useState<{ url: string; name: string }[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isAiMapping, setIsAiMapping] = useState(false);
 
   const boothConfig = getBoothPanels(layout);
 
@@ -140,7 +146,100 @@ export function BoothMapper3D({
     toast.success('All panels cleared');
   }, [onAssignmentsChange]);
 
+  // Upload booth spec image/PDF
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf';
+    if (!isImage && !isPdf) {
+      toast.error('Please upload an image (JPG, PNG) or PDF file');
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('File must be under 20MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const fileName = `booth-3d-specs/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('organization-assets')
+        .upload(fileName, file, { contentType: file.type, upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('organization-assets')
+        .getPublicUrl(fileName);
+
+      if (urlData?.publicUrl) {
+        setUploadedSpecs(prev => [...prev, { url: urlData.publicUrl, name: file.name }]);
+        toast.success(`Uploaded: ${file.name}`);
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      toast.error('Failed to upload file');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }, []);
+
+  // AI-powered spec mapping
+  const handleAiMapping = useCallback(async (specUrl: string) => {
+    setIsAiMapping(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('booth-3d-ai-mapper', {
+        body: {
+          imageUrl: specUrl,
+          layout,
+          panelIds: boothConfig.panels.map(p => p.id),
+          panelLabels: boothConfig.panels.map(p => p.label),
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.assignments?.length) {
+        const newAssignments: Record<string, string> = { ...assignments };
+        let mapped = 0;
+        for (const assignment of data.assignments) {
+          if (assignment.useFullImage && assignment.panelId) {
+            newAssignments[assignment.panelId] = specUrl;
+            mapped++;
+          }
+        }
+        setAssignments(newAssignments);
+        onAssignmentsChange?.(
+          Object.entries(newAssignments).map(([panelId, imageUrl]) => ({ panelId, imageUrl }))
+        );
+
+        const notes = [
+          data.boothDescription && `📋 ${data.boothDescription}`,
+          data.designNotes && `💡 ${data.designNotes}`,
+          data.suggestedLayout && data.suggestedLayout !== layout && `🔄 AI suggests "${data.suggestedLayout}" layout for this spec`,
+        ].filter(Boolean).join('\n');
+
+        toast.success(`AI mapped spec to ${mapped} panel(s)`, { description: notes, duration: 6000 });
+      } else {
+        toast.info('AI could not identify specific panels. Try assigning manually.');
+      }
+    } catch (err) {
+      console.error('AI mapping error:', err);
+      toast.error(err instanceof Error ? err.message : 'AI mapping failed');
+    } finally {
+      setIsAiMapping(false);
+    }
+  }, [layout, boothConfig.panels, assignments, onAssignmentsChange]);
+
   const allImages = [
+    ...uploadedSpecs.map((s) => ({ url: s.url, label: s.name, source: 'upload' as const })),
     ...variantImages.map((v) => ({ url: v.url, label: v.label, source: 'variant' as const })),
     ...galleryImages.map((url, i) => ({ url, label: `Gallery ${i + 1}`, source: 'gallery' as const })),
   ];
@@ -150,6 +249,15 @@ export function BoothMapper3D({
 
   return (
     <div className="space-y-4">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,.pdf"
+        className="hidden"
+        onChange={handleFileUpload}
+      />
+
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Layout picker */}
@@ -207,6 +315,18 @@ export function BoothMapper3D({
 
         <div className="h-6 w-px bg-border" />
 
+        {/* Upload Spec */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className="gap-1.5"
+        >
+          {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+          Upload Spec
+        </Button>
+
         {variantImages.length > 0 && (
           <Button variant="outline" size="sm" onClick={handleAutoFill} className="gap-1.5">
             <Sparkles className="h-3.5 w-3.5" />
@@ -234,6 +354,29 @@ export function BoothMapper3D({
         </div>
       </div>
 
+      {/* Uploaded Specs Row */}
+      {uploadedSpecs.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+          <span className="text-xs font-medium text-muted-foreground mr-1">Uploaded Specs:</span>
+          {uploadedSpecs.map((spec, i) => (
+            <div key={spec.url} className="flex items-center gap-1.5 bg-background rounded-md border px-2 py-1">
+              <img src={spec.url} alt={spec.name} className="h-8 w-12 object-cover rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <span className="text-xs truncate max-w-[120px]">{spec.name}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-1.5 gap-1 text-xs"
+                onClick={() => handleAiMapping(spec.url)}
+                disabled={isAiMapping}
+              >
+                {isAiMapping ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
+                AI Map
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* 3D Canvas */}
       <Card className="overflow-hidden border">
         <div className="relative h-[500px] md:h-[600px]">
@@ -255,6 +398,19 @@ export function BoothMapper3D({
               />
             </Suspense>
           </Canvas>
+
+          {/* AI Mapping overlay */}
+          {isAiMapping && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-10">
+              <div className="flex flex-col items-center gap-3 bg-background/90 rounded-xl px-6 py-4 border shadow-lg">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <div className="text-center">
+                  <p className="text-sm font-medium">AI Analyzing Booth Spec</p>
+                  <p className="text-xs text-muted-foreground mt-1">Identifying panels and mapping content...</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Loading overlay */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -298,7 +454,7 @@ export function BoothMapper3D({
             <div className="min-w-0">
               <p className="text-xs font-medium truncate">{panel.label}</p>
               <p className="text-[10px] text-muted-foreground">
-                {assignments[panel.id] ? 'Assigned' : 'Empty'}
+                {panel.specLabel || ''} {assignments[panel.id] ? '· Assigned' : '· Empty'}
               </p>
             </div>
           </button>
@@ -314,7 +470,7 @@ export function BoothMapper3D({
               Assign Image to {boothConfig.panels.find((p) => p.id === selectedPanelId)?.label}
             </DialogTitle>
             <DialogDescription>
-              Select an image from your booth variants or gallery to map onto this panel.
+              Select an image from your uploaded specs, booth variants, or gallery to map onto this panel.
             </DialogDescription>
           </DialogHeader>
 
@@ -322,10 +478,46 @@ export function BoothMapper3D({
             <div className="text-center py-12 text-muted-foreground">
               <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="font-medium">No images available</p>
-              <p className="text-sm mt-1">Upload booth variant images first</p>
+              <p className="text-sm mt-1">Upload a booth spec or add booth variant images first</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 gap-1.5"
+                onClick={() => { setImagePickerOpen(false); fileInputRef.current?.click(); }}
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Upload Spec Image
+              </Button>
             </div>
           ) : (
             <ScrollArea className="max-h-[60vh]">
+              {/* Uploaded spec images */}
+              {uploadedSpecs.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Upload className="h-3.5 w-3.5" />
+                    Uploaded Specs
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {uploadedSpecs.map((spec) => (
+                      <button
+                        key={spec.url}
+                        onClick={() => handleAssignImage(spec.url)}
+                        className="group relative rounded-lg overflow-hidden border hover:border-primary transition-colors"
+                      >
+                        <img src={spec.url} alt={spec.name} className="w-full aspect-video object-cover" />
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                          <span className="text-xs text-white font-medium truncate block">{spec.name}</span>
+                        </div>
+                        <div className="absolute top-1 right-1">
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Uploaded</Badge>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Variant images */}
               {variantImages.length > 0 && (
                 <div className="space-y-2 mb-4">
@@ -368,12 +560,23 @@ export function BoothMapper3D({
           )}
 
           <div className="flex justify-between pt-2 border-t">
-            {assignments[selectedPanelId || ''] && (
-              <Button variant="destructive" size="sm" onClick={handleClearPanel}>
-                Remove Image
+            <div className="flex gap-2">
+              {assignments[selectedPanelId || ''] && (
+                <Button variant="destructive" size="sm" onClick={handleClearPanel}>
+                  Remove Image
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => { setImagePickerOpen(false); fileInputRef.current?.click(); }}
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Upload New
               </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={() => setImagePickerOpen(false)} className="ml-auto">
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setImagePickerOpen(false)}>
               Cancel
             </Button>
           </div>
