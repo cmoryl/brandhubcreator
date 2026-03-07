@@ -301,6 +301,13 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
         />
       </div>
 
+      {/* Brand Icon Assignments */}
+      <Separator className="my-2" />
+      <IconLibraryBrandLinker
+        organizationId={organizationId}
+        libraries={libraries}
+      />
+
       {/* Create/Edit Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent>
