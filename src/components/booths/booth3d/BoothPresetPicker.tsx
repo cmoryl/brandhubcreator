@@ -276,9 +276,11 @@ export function BoothPresetPicker({ open, onOpenChange, onApplyPreset }: BoothPr
 
           {/* Right panel - preset detail */}
           {selectedPreset ? (
-            <div className="w-72 border-l bg-muted/20 shrink-0">
-              <ScrollArea className="h-full p-4">
-                <PresetDetail preset={selectedPreset} />
+            <div className="w-72 border-l bg-muted/20 shrink-0 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="p-4">
+                  <PresetDetail preset={selectedPreset} />
+                </div>
               </ScrollArea>
             </div>
           ) : (
