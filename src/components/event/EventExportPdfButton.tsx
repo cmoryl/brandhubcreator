@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 import { 
   FileDown, 
   Loader2, 

@@ -31,6 +31,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 import { PageBreakIndicator, PrintPageSimulator, PrintPreviewContainer, PageBreakDivider, PrintPreviewHeader, useEstimatedPages } from '@/components/pdf-export';
 import '@/styles/pdf-export.css';
 

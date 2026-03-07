@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Star, Building2, Package, Calendar, ExternalLink, Shield, Settings, History, Save } from 'lucide-react';

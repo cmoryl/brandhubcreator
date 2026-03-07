@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import { useNavigate } from 'react-router-dom';
 import { Layers, Plus, Package, Trash2, GripVertical, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';

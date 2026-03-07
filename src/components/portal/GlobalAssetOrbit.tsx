@@ -11,6 +11,7 @@ import React, { forwardRef, useState, useRef, useCallback, useEffect, useMemo } 
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 import transperfectLogoIcon from '@/assets/transperfect-logo-icon.png';
 
 interface LinkedEntity {

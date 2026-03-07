@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Lock, Shield, LogOut, Star, Calendar, Building2, Brain, Settings, Download, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Bot } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { EventSectionId, DEFAULT_EVENT_SECTION_ORDER, EventGuide } from '@/types/event';
