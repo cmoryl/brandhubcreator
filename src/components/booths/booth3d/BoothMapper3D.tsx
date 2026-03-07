@@ -228,6 +228,18 @@ export function BoothMapper3D({
     toast.success('All panels cleared');
   }, [onAssignmentsChange]);
 
+  // Apply a design preset
+  const handleApplyPreset = useCallback((preset: BoothDesignPreset) => {
+    setLayout(preset.layout);
+    setLightingPreset(preset.lighting);
+    setActivePreset(preset);
+    setShowEnvironment(true);
+    setShowPeople(true);
+    toast.success(`Applied "${preset.name}" preset — ${preset.industry}`, {
+      description: `${preset.panelGuides.length} panel guides loaded. Layout: ${preset.layout}`,
+    });
+  }, []);
+
   // Upload booth spec image/PDF
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
