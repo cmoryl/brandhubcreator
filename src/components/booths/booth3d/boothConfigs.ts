@@ -10,6 +10,8 @@
  * Conversion: 1 foot = 0.3048 meters
  */
 
+import type { PanelZones } from './specParser';
+
 export type BoothLayout = 'inline' | 'l-shape' | 'u-shape' | 'island';
 
 export interface PanelConfig {
@@ -25,6 +27,8 @@ export interface PanelConfig {
   specLabel?: string;
   /** Assigned image URL */
   imageUrl?: string;
+  /** Production spec zone data (visual/cut/bleed) for safe zone overlays */
+  zones?: PanelZones;
 }
 
 export interface BoothConfig {
