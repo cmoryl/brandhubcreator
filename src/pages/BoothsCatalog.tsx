@@ -2162,6 +2162,7 @@ export const DivisionDetail = ({ division, onClose, isAdmin }: { division: Booth
                             variantImages={mergedVariants.map(v => ({ label: v.label, url: v.image }))}
                             divisionName={division.name}
                             divisionId={division.id}
+                            isAdmin={isAdmin}
                           />
                         </Suspense>
                       </div>
