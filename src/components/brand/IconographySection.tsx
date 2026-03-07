@@ -47,6 +47,7 @@ interface IconographySectionProps {
   onDefaultIconColorChange?: (color: string) => void;
   brandColors?: Array<{ hex: string; name: string }>;
   organizationId?: string;
+  brandId?: string;
   productLineId?: string;
   entityType?: 'brand' | 'product' | 'event';
   entityName?: string;
@@ -72,6 +73,7 @@ export const IconographySection = ({
   onDefaultIconColorChange,
   brandColors = [],
   organizationId,
+  brandId,
   productLineId,
   entityType = 'brand',
   entityName = '',
@@ -812,6 +814,7 @@ ${innerContent}
       {organizationId && (
         <HierarchicalIconDisplay
           organizationId={organizationId}
+          brandId={brandId}
           brandIcons={iconography}
           productLineId={productLineId}
           iconColor={iconColor}

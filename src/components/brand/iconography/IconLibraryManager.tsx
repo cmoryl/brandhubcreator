@@ -7,6 +7,7 @@
  */
 
 import { useState } from 'react';
+import { Separator } from '@/components/ui/separator';
 import { 
   Plus, 
   ChevronRight,
@@ -24,6 +25,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
 import { IconStudio, IconStudioTab } from './IconStudio';
 import { SortableLevelSection } from './SortableLevelSection';
+import { IconLibraryBrandLinker } from './IconLibraryBrandLinker';
 import { BrandIconography } from '@/types/brand';
 
 interface IconLibraryManagerProps {
@@ -298,6 +300,13 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
           onReorder={handleReorder}
         />
       </div>
+
+      {/* Brand Icon Assignments */}
+      <Separator className="my-2" />
+      <IconLibraryBrandLinker
+        organizationId={organizationId}
+        libraries={libraries}
+      />
 
       {/* Create/Edit Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

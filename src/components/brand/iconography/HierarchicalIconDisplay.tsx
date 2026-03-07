@@ -12,18 +12,21 @@ import {
   Layers,
   Lock,
   Info,
+  Link2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
+import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
 
 interface HierarchicalIconDisplayProps {
   organizationId: string | undefined;
+  brandId?: string;
   brandIcons?: BrandIconography[];
   productLineId?: string;
   iconColor?: string;
@@ -60,6 +63,7 @@ const LEVEL_CONFIG = {
 
 export const HierarchicalIconDisplay = ({
   organizationId,
+  brandId,
   brandIcons = [],
   productLineId,
   iconColor = 'currentColor',
@@ -67,9 +71,10 @@ export const HierarchicalIconDisplay = ({
   showEmptyGroups = false,
 }: HierarchicalIconDisplayProps) => {
   const { libraries, coreLibraries, productLineLibraries, isLoading } = useIconLibraries(organizationId);
+  const { links, getLinkedLibraryIds } = useIconLibraryBrandLinks(organizationId);
   
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(['core', 'product_line', 'brand'])
+    new Set(['core', 'product_line', 'brand', 'linked'])
   );
 
   const toggleGroup = (group: string) => {
@@ -84,10 +89,17 @@ export const HierarchicalIconDisplay = ({
     });
   };
 
+  // Get libraries linked specifically to this brand
+  const linkedLibraryIds = useMemo(() => {
+    if (!brandId) return new Set<string>();
+    return new Set(getLinkedLibraryIds(brandId));
+  }, [brandId, links, getLinkedLibraryIds]);
+
   // Organize icons by level with library info
   const organizedIcons = useMemo(() => {
     const core: { library: IconLibrary; icons: BrandIconography[] }[] = [];
     const productLine: { library: IconLibrary; icons: BrandIconography[] }[] = [];
+    const linked: { library: IconLibrary; icons: BrandIconography[] }[] = [];
     
     // Add core library icons
     coreLibraries.forEach(lib => {
@@ -105,8 +117,22 @@ export const HierarchicalIconDisplay = ({
       }
     });
 
-    return { core, productLine };
-  }, [coreLibraries, productLineLibraries, productLineId]);
+    // Add explicitly linked libraries (that aren't already shown as core/product_line)
+    if (brandId && linkedLibraryIds.size > 0) {
+      libraries.forEach(lib => {
+        if (linkedLibraryIds.has(lib.id) && lib.icons.length > 0) {
+          // Don't duplicate if already shown as core
+          const alreadyInCore = core.some(c => c.library.id === lib.id);
+          const alreadyInPL = productLine.some(p => p.library.id === lib.id);
+          if (!alreadyInCore && !alreadyInPL) {
+            linked.push({ library: lib, icons: lib.icons });
+          }
+        }
+      });
+    }
+
+    return { core, productLine, linked };
+  }, [coreLibraries, productLineLibraries, productLineId, libraries, brandId, linkedLibraryIds]);
 
   const renderIcon = (icon: BrandIconography, size: number = 24) => {
     const viewBox = icon.viewBox || '0 0 24 24';
@@ -250,6 +276,7 @@ export const HierarchicalIconDisplay = ({
   const hasAnyIcons = 
     organizedIcons.core.length > 0 || 
     organizedIcons.productLine.length > 0 || 
+    organizedIcons.linked.length > 0 ||
     brandIcons.length > 0;
 
   if (!hasAnyIcons && !showEmptyGroups) {
@@ -269,8 +296,9 @@ export const HierarchicalIconDisplay = ({
         <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
         <div className="text-muted-foreground">
           Icons are organized in a hierarchy. <strong>Core</strong> icons are inherited by all brands, 
-          <strong> Product Line</strong> icons are shared within divisions, and 
-          <strong> Brand</strong> icons are specific to this guide.
+          <strong> Product Line</strong> icons are shared within divisions,
+          {organizedIcons.linked.length > 0 && <><strong> Assigned</strong> collections are linked from the org library,</>}
+          {' '}and <strong> Brand</strong> icons are specific to this guide.
         </div>
       </div>
 
@@ -279,6 +307,67 @@ export const HierarchicalIconDisplay = ({
 
       {/* Product Line Icons */}
       {renderIconGroup('product_line', organizedIcons.productLine, true)}
+
+      {/* Assigned/Linked Collection Icons */}
+      {organizedIcons.linked.length > 0 && (
+        <Collapsible
+          open={expandedGroups.has('linked')}
+          onOpenChange={() => toggleGroup('linked')}
+        >
+          <CollapsibleTrigger asChild>
+            <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-2">
+                <div className={cn('p-1.5 rounded-md bg-emerald-500/10')}>
+                  <Link2 className="h-4 w-4 text-emerald-500" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium">Assigned Collections</p>
+                  <p className="text-xs text-muted-foreground">Linked from organization library</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs">
+                  {organizedIcons.linked.reduce((sum, g) => sum + g.icons.length, 0)} icons
+                </Badge>
+                {expandedGroups.has('linked') ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                )}
+              </div>
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="p-3 pt-0 space-y-4">
+              {organizedIcons.linked.map((group) => (
+                <div key={group.library.id}>
+                  {organizedIcons.linked.length > 1 && (
+                    <p className="text-xs text-muted-foreground mb-2 font-medium">
+                      {group.library.name}
+                    </p>
+                  )}
+                  <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
+                    {group.icons.map((icon) => (
+                      <button
+                        key={icon.id}
+                        onClick={() => onIconClick?.(icon, group.library)}
+                        className={cn(
+                          'aspect-square rounded-lg border flex items-center justify-center',
+                          'bg-muted/30 hover:bg-muted hover:border-primary/50 transition-colors',
+                          'group relative'
+                        )}
+                        title={icon.name}
+                      >
+                        {renderIcon(icon, 20)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
 
       {/* Brand-Specific Icons */}
       {renderIconGroup('brand', [{ icons: brandIcons }], false)}
