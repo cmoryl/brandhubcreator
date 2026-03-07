@@ -582,6 +582,17 @@ ${innerContent}
                 <Upload className="h-4 w-4" />
                 Upload SVG
               </Button>
+              {organizationId && (
+                <Button 
+                  onClick={() => setShowLibraryPicker(true)} 
+                  size="sm" 
+                  className="gap-2" 
+                  variant="outline"
+                >
+                  <Library className="h-4 w-4" />
+                  From Library
+                </Button>
+              )}
               <Button onClick={addIcon} size="sm" className="gap-2" variant="outline">
                 <Plus className="h-4 w-4" />
                 Add Icon
@@ -903,6 +914,53 @@ ${innerContent}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Icon Library Picker - Quick add from org libraries */}
+      <IconLibraryPicker
+        organizationId={organizationId}
+        open={showLibraryPicker}
+        onOpenChange={setShowLibraryPicker}
+        existingIconIds={iconography.map(i => i.id)}
+        onIconsSelected={(brandIcons: BrandIcon[]) => {
+          if (!onIconographyChange) return;
+          // Convert BrandIcon (url-based) to BrandIconography (svgPath-based)
+          const newIcons: BrandIconography[] = brandIcons.map(bi => {
+            // Extract SVG path data from the data URI
+            let svgPath = '';
+            let viewBox = '0 0 24 24';
+            let fillMode: 'stroke' | 'fill' = 'stroke';
+            try {
+              const decoded = decodeURIComponent(bi.url.replace('data:image/svg+xml,', ''));
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(decoded, 'image/svg+xml');
+              const svg = doc.querySelector('svg');
+              if (svg) {
+                viewBox = svg.getAttribute('viewBox') || '0 0 24 24';
+                fillMode = svg.getAttribute('fill') === 'currentColor' ? 'fill' : 'stroke';
+                // Get inner content
+                const path = svg.querySelector('path');
+                if (path) {
+                  svgPath = path.getAttribute('d') || '';
+                } else {
+                  svgPath = svg.innerHTML;
+                }
+              }
+            } catch {
+              svgPath = 'M12 2L2 7l10 5 10-5-10-5z';
+            }
+            return {
+              id: bi.id,
+              name: bi.name,
+              svgPath,
+              category: 'Other',
+              viewBox,
+              fillMode,
+            };
+          });
+          onIconographyChange([...iconography, ...newIcons]);
+          toast.success(`Added ${newIcons.length} icon(s) from library`);
+        }}
+      />
     </section>
   );
 };
