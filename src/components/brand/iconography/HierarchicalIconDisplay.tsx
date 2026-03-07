@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { BrandIconography } from '@/types/brand';
+// Note: getLinkedLibraryIds is kept for backward compat but getLinkedLibraryIdsForEntity is used
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
 
@@ -52,7 +53,7 @@ export const HierarchicalIconDisplay = ({
   showEmptyGroups = false,
 }: HierarchicalIconDisplayProps) => {
   const { libraries, coreLibraries, productLineLibraries, isLoading } = useIconLibraries(organizationId);
-  const { links, getLinkedLibraryIds, getLinkedLibraryIdsForEntity } = useIconLibraryBrandLinks(organizationId);
+  const { links, getLinkedLibraryIdsForEntity } = useIconLibraryBrandLinks(organizationId);
   const [activeFilter, setActiveFilter] = useState<SourceFilter>('all');
 
   // Organize all icons with source tags
