@@ -538,10 +538,10 @@ function OracleStrategy({ intelligence }: { intelligence: OracleIntelligence | n
     );
   }
 
-  const portfolio = intelligence.portfolio_analysis || {};
+  const portfolio = (intelligence.portfolio_analysis || {}) as Record<string, any>;
   const recs = Array.isArray(intelligence.strategic_recommendations) ? intelligence.strategic_recommendations : [];
-  const cultural = intelligence.cultural_readiness || {};
-  const market = intelligence.market_landscape || {};
+  const cultural = (intelligence.cultural_readiness || {}) as Record<string, any>;
+  const market = (intelligence.market_landscape || {}) as Record<string, any>;
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
