@@ -775,14 +775,14 @@ export const useBrandStorage = () => {
       };
 
       // Keep only the most recent backups per guide
-      const otherGuideBackups = backups.filter((b: any) => b.guideId !== guide.id);
+      const otherGuideBackups = backups.filter((b: { guideId?: string }) => b.guideId !== guide.id);
       const thisGuideBackups = backups
-        .filter((b: any) => b.guideId === guide.id)
-        .sort((a: any, b: any) => b.timestamp - a.timestamp)
+        .filter((b: { guideId?: string }) => b.guideId === guide.id)
+        .sort((a: { timestamp?: number }, b: { timestamp?: number }) => (b.timestamp || 0) - (a.timestamp || 0))
         .slice(0, MAX_BACKUPS_PER_GUIDE - 1);
 
       const updatedBackups = [...otherGuideBackups, ...thisGuideBackups, newBackup]
-        .sort((a: any, b: any) => b.timestamp - a.timestamp)
+        .sort((a: { timestamp?: number }, b: { timestamp?: number }) => (b.timestamp || 0) - (a.timestamp || 0))
         .slice(0, MAX_BACKUPS_PER_GUIDE * 20); // Total cap
 
       localStorage.setItem(BACKUP_KEY, JSON.stringify(updatedBackups));

@@ -75,16 +75,16 @@ function detectChanges(
         let summary = `${section} was ${changeType}d`;
         
         // Add specific details based on section
-        if (section === 'values' && Array.isArray((guide as any).values)) {
-          const values = (guide as any).values;
-          summary = `Brand values ${changeType}d: ${values.map((v: any) => v.name || v).slice(0, 3).join(', ')}`;
+        if (section === 'values' && Array.isArray((guide as Record<string, unknown>).values)) {
+          const values = (guide as Record<string, unknown>).values as Array<{ name?: string }>;
+          summary = `Brand values ${changeType}d: ${values.map((v) => v.name || String(v)).slice(0, 3).join(', ')}`;
         } else if (section === 'identity') {
-          const identity = (guide as any).identity;
+          const identity = (guide as Record<string, unknown>).identity as Record<string, unknown> | undefined;
           if (identity?.missionStatement) {
             summary = `Mission statement ${changeType}d`;
           }
-        } else if (section === 'colors' && Array.isArray((guide as any).colors)) {
-          const colors = (guide as any).colors;
+        } else if (section === 'colors' && Array.isArray((guide as Record<string, unknown>).colors)) {
+          const colors = (guide as Record<string, unknown>).colors as unknown[];
           summary = `Color palette ${changeType}d: ${colors.length} colors defined`;
         }
         
