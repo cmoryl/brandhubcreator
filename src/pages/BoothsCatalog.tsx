@@ -37,6 +37,7 @@ import { usePageHeroSettings } from "@/hooks/usePageHeroSettings";
 import { BoothContentManager } from "@/components/booths/BoothContentManager";
 import { BoothGalleryManager } from "@/components/booths/BoothGalleryManager";
 import { BoothAIAnalysis } from "@/components/booths/BoothAIAnalysis";
+import { BoothColorAnalysisPanel } from "@/components/booths/BoothColorAnalysisPanel";
 import { GlitchText } from "@/components/ui/GlitchText";
 import { BrandHubLogo } from "@/components/BrandHubLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -2124,6 +2125,16 @@ export const DivisionDetail = ({ division, onClose, isAdmin }: { division: Booth
 
                           {/* Color Palette */}
                           <BoothColorPalette color={division.color} boothColors={division.boothColors} isAdmin={isAdmin} divisionId={division.id} variantLabel={currentVariant?.label} divisionName={division.name} imageUrls={images.map(img => img.image_url)} />
+
+                          {/* Color Analysis */}
+                          <BoothColorAnalysisPanel
+                            divisionId={division.id}
+                            divisionName={division.name}
+                            variantLabel={currentVariant?.label}
+                            colors={[]} 
+                            isAdmin={isAdmin}
+                            color={division.color}
+                          />
 
                           {/* Booth Gallery */}
                           <BoothGalleryManager divisionId={division.id} isAdmin={isAdmin} color={division.color} variantLabel={currentVariant?.label} />
