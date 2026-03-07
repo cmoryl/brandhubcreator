@@ -93,7 +93,7 @@ interface CachedBrandAnalytics {
 
 export function BrandAnalyticsHub() {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('executive');
   const [expandedBrands, setExpandedBrands] = useState<Set<string>>(new Set());
   const [entityFilter, setEntityFilter] = useState<EntityFilter>('all');
   
