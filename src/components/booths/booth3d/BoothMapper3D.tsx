@@ -323,50 +323,67 @@ export function BoothMapper3D({
 
   return (
     <div className="space-y-4">
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,.pdf"
-        className="hidden"
-        onChange={handleFileUpload}
-      />
+      {/* Hidden file input (admin only) */}
+      {isAdmin && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,.pdf"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+      )}
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Layout picker */}
-        <Select value={layout} onValueChange={(v) => { setLayout(v as BoothLayout); setAssignments({}); }}>
-          <SelectTrigger className="w-[160px] h-9">
-            <Layout className="h-4 w-4 mr-2" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {LAYOUT_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                <div>
-                  <span className="font-medium">{opt.label}</span>
-                  <span className="text-muted-foreground ml-1.5 text-xs">· {opt.desc}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Layout picker (admin only) */}
+        {isAdmin ? (
+          <Select value={layout} onValueChange={(v) => { setLayout(v as BoothLayout); setAssignments({}); }}>
+            <SelectTrigger className="w-[160px] h-9">
+              <Layout className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LAYOUT_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  <div>
+                    <span className="font-medium">{opt.label}</span>
+                    <span className="text-muted-foreground ml-1.5 text-xs">· {opt.desc}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <Badge variant="outline" className="h-9 px-3 flex items-center gap-1.5">
+            <Layout className="h-4 w-4" />
+            {LAYOUT_OPTIONS.find(o => o.value === layout)?.label || layout}
+          </Badge>
+        )}
 
-        {/* Lighting */}
-        <Select value={lightingPreset} onValueChange={(v) => setLightingPreset(v as LightingPreset)}>
-          <SelectTrigger className="w-[150px] h-9">
-            <Sun className="h-4 w-4 mr-2" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {LIGHTING_PRESETS.map((p) => (
-              <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Lighting (admin only) */}
+        {isAdmin ? (
+          <Select value={lightingPreset} onValueChange={(v) => setLightingPreset(v as LightingPreset)}>
+            <SelectTrigger className="w-[150px] h-9">
+              <Sun className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LIGHTING_PRESETS.map((p) => (
+                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <Badge variant="outline" className="h-9 px-3 flex items-center gap-1.5">
+            <Sun className="h-4 w-4" />
+            {LIGHTING_PRESETS.find(p => p.value === lightingPreset)?.label || lightingPreset}
+          </Badge>
+        )}
 
         <div className="h-6 w-px bg-border" />
 
+        {/* View toggles (available to all) */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -389,34 +406,42 @@ export function BoothMapper3D({
 
         <div className="h-6 w-px bg-border" />
 
-        {/* Upload Spec */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading}
-          className="gap-1.5"
-        >
-          {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-          Upload Spec
-        </Button>
+        {/* Admin-only editing controls */}
+        {isAdmin && (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="gap-1.5"
+            >
+              {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+              Upload Spec
+            </Button>
 
-        {variantImages.length > 0 && (
-          <Button variant="outline" size="sm" onClick={handleAutoFill} className="gap-1.5">
-            <Sparkles className="h-3.5 w-3.5" />
-            Auto-fill
-          </Button>
+            {variantImages.length > 0 && (
+              <Button variant="outline" size="sm" onClick={handleAutoFill} className="gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" />
+                Auto-fill
+              </Button>
+            )}
+          </>
         )}
 
+        {/* Screenshot (available to all) */}
         <Button variant="outline" size="sm" onClick={handleScreenshot} className="gap-1.5">
           <Camera className="h-3.5 w-3.5" />
           Screenshot
         </Button>
 
-        <Button variant="ghost" size="sm" onClick={handleResetView} className="gap-1.5 text-muted-foreground">
-          <RotateCcw className="h-3.5 w-3.5" />
-          Clear
-        </Button>
+        {/* Clear (admin only) */}
+        {isAdmin && (
+          <Button variant="ghost" size="sm" onClick={handleResetView} className="gap-1.5 text-muted-foreground">
+            <RotateCcw className="h-3.5 w-3.5" />
+            Clear
+          </Button>
+        )}
 
         <div className="ml-auto flex items-center gap-2">
           <Badge variant="outline" className="text-xs">
@@ -428,8 +453,8 @@ export function BoothMapper3D({
         </div>
       </div>
 
-      {/* Uploaded Specs Row */}
-      {uploadedSpecs.length > 0 && (
+      {/* Uploaded Specs Row (admin only) */}
+      {isAdmin && uploadedSpecs.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
           <span className="text-xs font-medium text-muted-foreground mr-1">Uploaded Specs:</span>
           {uploadedSpecs.map((spec, i) => (
