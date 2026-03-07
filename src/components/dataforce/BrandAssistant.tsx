@@ -159,18 +159,22 @@ const TypingIndicator = () => (
 );
 
 /** Pulsing dictation indicator */
-const DictationPulse = ({ isActive }: { isActive: boolean }) => {
-  if (!isActive) return null;
-  return (
-    <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
-      <span className="relative flex h-2.5 w-2.5">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/75" />
-        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
-      </span>
-      Listening...
-    </div>
-  );
-};
+import React from 'react';
+const DictationPulse = React.forwardRef<HTMLDivElement, { isActive: boolean }>(
+  ({ isActive }, ref) => {
+    if (!isActive) return null;
+    return (
+      <div ref={ref} className="flex items-center gap-1.5 text-xs text-primary font-medium">
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/75" />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
+        </span>
+        Listening...
+      </div>
+    );
+  }
+);
+DictationPulse.displayName = 'DictationPulse';
 
 export const BrandAssistant = ({
   open,
@@ -311,7 +315,13 @@ export const BrandAssistant = ({
   const startListening = useCallback(async () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast.error('Speech recognition is not supported in this browser');
+      toast.error('Speech recognition is not supported in this browser. Try Chrome or Edge for voice features.');
+      setIsListening(false);
+      isListeningRef.current = false;
+      setDictationEnabled(false);
+      dictationEnabledRef.current = false;
+      setIsVoiceMode(false);
+      voiceModeRef.current = false;
       return;
     }
 
