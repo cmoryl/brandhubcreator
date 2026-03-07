@@ -632,22 +632,106 @@ export function BoothMapper3D({
 
           <Tabs value={pickerTab} onValueChange={setPickerTab}>
             <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="library" className="gap-1.5">
+                <FolderOpen className="h-3.5 w-3.5" />
+                Image Library {libraryImages.length > 0 && `(${libraryImages.length})`}
+              </TabsTrigger>
               <TabsTrigger value="sources" className="gap-1.5">
                 <ImageIcon className="h-3.5 w-3.5" />
                 Booth Sources
               </TabsTrigger>
-              <TabsTrigger value="library" className="gap-1.5">
-                <FolderOpen className="h-3.5 w-3.5" />
-                Image Library
-              </TabsTrigger>
             </TabsList>
+
+            {/* Image Library Tab - Primary */}
+            <TabsContent value="library" className="mt-3">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name, category, or file type..."
+                    value={librarySearch}
+                    onChange={(e) => setLibrarySearch(e.target.value)}
+                    className="pl-9 h-9"
+                  />
+                </div>
+              </div>
+              {/* Category filter chips */}
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {['All', 'Logos', 'Backgrounds', 'Product Images', 'Icons', 'General'].map((cat) => {
+                  const count = cat === 'All' ? libraryImages.length : libraryImages.filter(i => i.category === cat).length;
+                  const isActive = cat === 'All' ? !selectedCategory : selectedCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      className={cn(
+                        "text-[11px] px-2.5 py-1 rounded-full border transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                      )}
+                      onClick={() => setSelectedCategory(cat === 'All' ? '' : cat)}
+                    >
+                      {cat} {count > 0 && <span className="ml-0.5 opacity-70">({count})</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {libraryLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-sm text-muted-foreground">Scanning image library...</span>
+                </div>
+              ) : filteredLibraryImages.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <FolderOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="font-medium">{libraryImages.length === 0 ? 'Image library is empty' : 'No images match your filters'}</p>
+                  <p className="text-sm mt-1">
+                    {libraryImages.length === 0
+                      ? 'Upload images to your organization\'s library first'
+                      : 'Try adjusting your search or category filter'}
+                  </p>
+                  {(librarySearch || selectedCategory) && (
+                    <Button variant="outline" size="sm" className="mt-3" onClick={() => { setLibrarySearch(''); setSelectedCategory(''); }}>
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <ScrollArea className="max-h-[50vh]">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {filteredLibraryImages.map((img) => (
+                      <button
+                        key={img.id}
+                        onClick={() => handleAssignImage(img.public_url)}
+                        className="group relative rounded-lg overflow-hidden border hover:border-primary hover:shadow-md transition-all"
+                      >
+                        <img src={img.public_url} alt={img.name} className="w-full aspect-video object-cover" loading="lazy" />
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5">
+                          <span className="text-[10px] text-white font-medium truncate block">{img.name || 'Image'}</span>
+                        </div>
+                        {img.category && img.category !== 'General' && (
+                          <div className="absolute top-1 right-1">
+                            <Badge variant="secondary" className="text-[9px] px-1 py-0">{img.category}</Badge>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {filteredLibraryImages.length < libraryImages.length && (
+                    <p className="text-center text-[10px] text-muted-foreground mt-2">
+                      Showing {filteredLibraryImages.length} of {libraryImages.length} images
+                    </p>
+                  )}
+                </ScrollArea>
+              )}
+            </TabsContent>
 
             {/* Booth Sources Tab */}
             <TabsContent value="sources" className="mt-3">
               {allImages.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="font-medium">No images available</p>
+                  <p className="font-medium">No booth-specific images</p>
                   <p className="text-sm mt-1">Use the Image Library tab, upload a spec, or add booth variant images</p>
                   <div className="flex gap-2 justify-center mt-4">
                     <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setPickerTab('library')}>
@@ -710,59 +794,6 @@ export function BoothMapper3D({
                       </div>
                     </div>
                   )}
-                </ScrollArea>
-              )}
-            </TabsContent>
-
-            {/* Image Library Tab */}
-            <TabsContent value="library" className="mt-3">
-              <div className="relative mb-3">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search image library..."
-                  value={librarySearch}
-                  onChange={(e) => setLibrarySearch(e.target.value)}
-                  className="pl-9 h-9"
-                />
-              </div>
-              {libraryLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  <span className="ml-2 text-sm text-muted-foreground">Loading library...</span>
-                </div>
-              ) : libraryImages.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <FolderOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="font-medium">Image library is empty</p>
-                  <p className="text-sm mt-1">Upload images to your organization's library first</p>
-                </div>
-              ) : (
-                <ScrollArea className="max-h-[50vh]">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {libraryImages
-                      .filter((img) => {
-                        if (!librarySearch) return true;
-                        const s = librarySearch.toLowerCase();
-                        return (img.name?.toLowerCase().includes(s)) || (img.category?.toLowerCase().includes(s));
-                      })
-                      .map((img) => (
-                        <button
-                          key={img.id}
-                          onClick={() => handleAssignImage(img.public_url)}
-                          className="group relative rounded-lg overflow-hidden border hover:border-primary transition-colors"
-                        >
-                          <img src={img.public_url} alt={img.name} className="w-full aspect-video object-cover" />
-                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                            <span className="text-xs text-white font-medium truncate block">{img.name || 'Image'}</span>
-                          </div>
-                          {img.category && (
-                            <div className="absolute top-1 right-1">
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{img.category}</Badge>
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                  </div>
                 </ScrollArea>
               )}
             </TabsContent>
