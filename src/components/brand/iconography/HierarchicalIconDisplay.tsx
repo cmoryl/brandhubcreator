@@ -21,6 +21,8 @@ import DOMPurify from 'dompurify';
 interface HierarchicalIconDisplayProps {
   organizationId: string | undefined;
   brandId?: string;
+  productId?: string;
+  eventId?: string;
   brandIcons?: BrandIconography[];
   productLineId?: string;
   iconColor?: string;
