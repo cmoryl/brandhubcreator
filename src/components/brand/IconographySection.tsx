@@ -47,6 +47,7 @@ interface IconographySectionProps {
   onDefaultIconColorChange?: (color: string) => void;
   brandColors?: Array<{ hex: string; name: string }>;
   organizationId?: string;
+  brandId?: string;
   productLineId?: string;
   entityType?: 'brand' | 'product' | 'event';
   entityName?: string;
