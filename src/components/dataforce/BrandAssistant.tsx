@@ -45,6 +45,8 @@ import {
   GraduationCap,
   MessageSquare,
   Clock,
+  Flag,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   Popover,
