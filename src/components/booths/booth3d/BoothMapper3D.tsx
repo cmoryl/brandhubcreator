@@ -88,6 +88,7 @@ export function BoothMapper3D({
   const [showEnvironment, setShowEnvironment] = useState(false);
   const [showPeople, setShowPeople] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
+  const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
