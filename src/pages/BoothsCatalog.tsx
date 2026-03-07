@@ -2161,6 +2161,7 @@ export const DivisionDetail = ({ division, onClose, isAdmin }: { division: Booth
                           <LazyBoothMapper3D
                             variantImages={mergedVariants.map(v => ({ label: v.label, url: v.image }))}
                             divisionName={division.name}
+                            divisionId={division.id}
                           />
                         </Suspense>
                       </div>
