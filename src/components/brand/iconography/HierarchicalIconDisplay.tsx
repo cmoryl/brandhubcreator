@@ -92,7 +92,7 @@ export const HierarchicalIconDisplay = ({
     brandIcons.forEach(icon => items.push({ icon, source: 'brand' }));
 
     return items;
-  }, [coreLibraries, productLineLibraries, productLineId, libraries, brandId, links, getLinkedLibraryIds, brandIcons]);
+  }, [coreLibraries, productLineLibraries, productLineId, libraries, brandId, productId, eventId, links, getLinkedLibraryIdsForEntity, brandIcons]);
 
   const filteredIcons = useMemo(() => {
     if (activeFilter === 'all') return allIcons;
