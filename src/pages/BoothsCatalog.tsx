@@ -2736,11 +2736,7 @@ export default function BoothsCatalog() {
       {/* Detail Modal */}
       <AnimatePresence>
         {selected && (
-          <DivisionDetail division={selected} onClose={() => setSelected(null)} isAdmin={isAdmin} onUpdateTagline={async (tagline) => {
-            await updateDivision(selected.id, { tagline });
-            // Update local state so the UI reflects the change immediately
-            setSelected(prev => prev ? { ...prev, tagline } : prev);
-          }} />
+          <DivisionDetail division={selected} onClose={() => setSelected(null)} isAdmin={isAdmin} />
         )}
       </AnimatePresence>
     </div>
