@@ -18,6 +18,7 @@ interface BoothScene3DProps {
   lightingPreset: LightingPreset;
   showLabels: boolean;
   showDimensions: boolean;
+  showSafeZones?: boolean;
   /** Advanced view options */
   showEnvironment?: boolean;
   showPeople?: boolean;
@@ -53,6 +54,7 @@ export function BoothScene3D({
   lightingPreset,
   showLabels,
   showDimensions,
+  showSafeZones = false,
   showEnvironment = false,
   showPeople = false,
   showTrafficFlow = false,
@@ -136,6 +138,7 @@ export function BoothScene3D({
           onSelect={onSelectPanel}
           showLabels={showLabels}
           showDimensions={showDimensions}
+          showSafeZones={showSafeZones}
         />
       ))}
     </>
