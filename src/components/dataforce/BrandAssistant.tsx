@@ -204,6 +204,7 @@ export const BrandAssistant = ({
   const [isMuted, setIsMuted] = useState(false);
   const [dictationEnabled, setDictationEnabled] = useState(false);
   const [interimText, setInterimText] = useState('');
+  const [flaggedMessages, setFlaggedMessages] = useState<Set<string>>(new Set());
   
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
