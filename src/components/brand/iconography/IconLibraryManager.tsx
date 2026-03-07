@@ -1,7 +1,7 @@
 /**
  * IconLibraryManager - Simplified 2-panel layout for icon collection management
  * Left: All collections (flat list with type badges)
- * Right: Brand assignment panel with drag-to-assign UX
+ * Right: Brand/Product/Event assignment panel with tabs
  */
 
 import { useState, useMemo } from 'react';
@@ -14,12 +14,10 @@ import {
   Layers,
   Link2,
   Check,
-  X,
   Pencil,
   Trash2,
-  GripVertical,
-  Expand,
   ChevronRight,
+  Calendar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,14 +28,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { IconStudio } from './IconStudio';
 import type { IconStudioTab } from './IconStudio';
 import { IconPreviewDialog } from './IconPreviewDialog';
-import { BrandIconography, BrandGuide } from '@/types/brand';
+import { BrandIconography } from '@/types/brand';
 import { useBrands } from '@/contexts/BrandContext';
+import { useEvents } from '@/contexts/EventContext';
 import { cn } from '@/lib/utils';
 
 const LEVEL_BADGES = {
@@ -55,20 +55,27 @@ interface IconLibraryManagerProps {
 export const IconLibraryManager = ({ organizationId, organizationName = '', brandColors = [] }: IconLibraryManagerProps) => {
   const {
     libraries,
-    coreLibraries,
-    productLineLibraries,
     isLoading,
     createLibrary,
     updateLibrary,
     deleteLibrary,
   } = useIconLibraries(organizationId);
 
-  const { brands } = useBrands();
-  const { links, linkLibraryToBrand, unlinkLibraryFromBrand, getLinkedBrandIds, getLinkedLibraryIds } = useIconLibraryBrandLinks(organizationId);
+  const { brands, products } = useBrands();
+  const { events } = useEvents();
+  const { 
+    links, 
+    linkLibraryToEntity, 
+    unlinkLibraryFromEntity, 
+    getLinkedBrandIds, 
+    getLinkedEntityIds,
+    getLinkedLibraryIdsForEntity,
+  } = useIconLibraryBrandLinks(organizationId);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLevel, setFilterLevel] = useState<string>('all');
-  const [selectedBrandId, setSelectedBrandId] = useState<string>('');
+  const [assignTab, setAssignTab] = useState<'brand' | 'product' | 'event'>('brand');
+  const [selectedEntityId, setSelectedEntityId] = useState<string>('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showIconStudio, setShowIconStudio] = useState(false);
   const [iconStudioInitialTab, setIconStudioInitialTab] = useState<IconStudioTab>('library');
@@ -97,12 +104,29 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
     return result;
   }, [libraries, filterLevel, searchQuery]);
 
-  // Brand assignment data
-  const selectedBrand = useMemo(() => brands.find(b => b.id === selectedBrandId), [brands, selectedBrandId]);
-  const selectedBrandLinkedLibIds = useMemo(() => {
-    if (!selectedBrandId) return new Set<string>();
-    return new Set(getLinkedLibraryIds(selectedBrandId));
-  }, [selectedBrandId, links, getLinkedLibraryIds]);
+  // Entity lists for the right panel
+  const entityList = useMemo(() => {
+    if (assignTab === 'brand') return brands.map(b => ({ id: b.id, name: b.hero?.name || 'Untitled Brand' }));
+    if (assignTab === 'product') return (products || []).map(p => ({ id: p.id, name: p.hero?.name || 'Untitled Product' }));
+    if (assignTab === 'event') return (events || []).map(e => ({ id: e.id, name: e.hero?.name || 'Untitled Event' }));
+    return [];
+  }, [assignTab, brands, products, events]);
+
+  // Linked library IDs for selected entity
+  const selectedEntityLinkedLibIds = useMemo(() => {
+    if (!selectedEntityId) return new Set<string>();
+    return new Set(getLinkedLibraryIdsForEntity(selectedEntityId, assignTab));
+  }, [selectedEntityId, assignTab, links, getLinkedLibraryIdsForEntity]);
+
+  const selectedEntityName = useMemo(() => {
+    return entityList.find(e => e.id === selectedEntityId)?.name || '';
+  }, [entityList, selectedEntityId]);
+
+  // Reset selected entity when switching tabs
+  const handleTabChange = (tab: string) => {
+    setAssignTab(tab as typeof assignTab);
+    setSelectedEntityId('');
+  };
 
   const resetForm = () => {
     setFormName('');
@@ -163,13 +187,6 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
     setActiveLibraryForIcons(null);
   };
 
-  const handleRemoveIcon = async (library: IconLibrary, iconId: string) => {
-    await updateLibrary.mutateAsync({
-      id: library.id,
-      updates: { icons: library.icons.filter(i => i.id !== iconId) },
-    });
-  };
-
   const handleToggleActive = async (library: IconLibrary) => {
     await updateLibrary.mutateAsync({
       id: library.id,
@@ -177,12 +194,12 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
     });
   };
 
-  const handleToggleBrandLink = (libraryId: string) => {
-    if (!selectedBrandId) return;
-    if (selectedBrandLinkedLibIds.has(libraryId)) {
-      unlinkLibraryFromBrand.mutate({ libraryId, brandId: selectedBrandId });
+  const handleToggleEntityLink = (libraryId: string) => {
+    if (!selectedEntityId) return;
+    if (selectedEntityLinkedLibIds.has(libraryId)) {
+      unlinkLibraryFromEntity.mutate({ libraryId, entityId: selectedEntityId, entityType: assignTab });
     } else {
-      linkLibraryToBrand.mutate({ libraryId, brandId: selectedBrandId });
+      linkLibraryToEntity.mutate({ libraryId, entityId: selectedEntityId, entityType: assignTab });
     }
   };
 
@@ -222,20 +239,17 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
       <div className="flex items-center gap-6 p-3 rounded-lg bg-muted/30 border text-sm">
         <div className="flex items-center gap-2">
           <Building2 className="h-4 w-4 text-blue-500" />
-          <span className="text-muted-foreground">Core = all brands</span>
+          <span className="text-muted-foreground">Core = all entities</span>
         </div>
         <ChevronRight className="h-3 w-3 text-muted-foreground" />
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4 text-purple-500" />
-          <span className="text-muted-foreground">Product = division</span>
+          <span className="text-muted-foreground">Product Line = division</span>
         </div>
         <ChevronRight className="h-3 w-3 text-muted-foreground" />
         <div className="flex items-center gap-2">
           <Layers className="h-4 w-4 text-sky-500" />
           <span className="text-muted-foreground">Brand = specific</span>
-        </div>
-        <div className="ml-auto text-xs text-muted-foreground">
-          Assign collections to brands using the panel below →
         </div>
       </div>
 
@@ -288,9 +302,18 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
                 const levelBadge = LEVEL_BADGES[library.level];
                 const LevelIcon = levelBadge.icon;
                 const linkedBrandIds = getLinkedBrandIds(library.id);
+                const linkedProductIds = getLinkedEntityIds(library.id, 'product');
+                const linkedEventIds = getLinkedEntityIds(library.id, 'event');
                 const linkedBrandNames = brands
                   .filter(b => linkedBrandIds.includes(b.id))
                   .map(b => b.hero?.name || 'Untitled');
+                const linkedProductNames = (products || [])
+                  .filter(p => linkedProductIds.includes(p.id))
+                  .map(p => p.hero?.name || 'Untitled');
+                const linkedEventNames = (events || [])
+                  .filter(e => linkedEventIds.includes(e.id))
+                  .map(e => e.hero?.name || 'Untitled');
+                const allLinkedNames = [...linkedBrandNames, ...linkedProductNames, ...linkedEventNames];
 
                 return (
                   <div
@@ -313,20 +336,20 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
                           {library.description && (
                             <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{library.description}</p>
                           )}
-                          {/* Linked brands inline */}
-                          {linkedBrandNames.length > 0 && (
+                          {/* Linked entities inline */}
+                          {allLinkedNames.length > 0 && (
                             <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                               <Link2 className="h-3 w-3 text-muted-foreground shrink-0" />
-                              {linkedBrandNames.slice(0, 3).map(name => (
-                                <Badge key={name} variant="secondary" className="text-[10px]">{name}</Badge>
+                              {allLinkedNames.slice(0, 3).map((name, i) => (
+                                <Badge key={`${name}-${i}`} variant="secondary" className="text-[10px]">{name}</Badge>
                               ))}
-                              {linkedBrandNames.length > 3 && (
-                                <span className="text-[10px] text-muted-foreground">+{linkedBrandNames.length - 3}</span>
+                              {allLinkedNames.length > 3 && (
+                                <span className="text-[10px] text-muted-foreground">+{allLinkedNames.length - 3}</span>
                               )}
                             </div>
                           )}
-                          {library.level === 'core' && linkedBrandNames.length === 0 && (
-                            <p className="text-[10px] text-blue-500/70 mt-1">Auto-inherited by all brands</p>
+                          {library.level === 'core' && allLinkedNames.length === 0 && (
+                            <p className="text-[10px] text-blue-500/70 mt-1">Auto-inherited by all entities</p>
                           )}
                         </div>
                       </div>
@@ -419,58 +442,81 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
           </div>
         </div>
 
-        {/* RIGHT PANEL: Brand Assignment */}
+        {/* RIGHT PANEL: Entity Assignment with Tabs */}
         <div className="lg:col-span-2 space-y-4">
           <div className="sticky top-4">
             <div className="rounded-lg border bg-card">
               <div className="p-4 border-b">
                 <h3 className="font-semibold text-sm flex items-center gap-2">
                   <Link2 className="h-4 w-4 text-primary" />
-                  Assign to Brand
+                  Assign Collections
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Select a brand, then toggle collections on/off
+                  Select a brand, product, or event to manage its icon assignments
                 </p>
               </div>
 
-              <div className="p-4">
-                <Select value={selectedBrandId || 'none'} onValueChange={(v) => setSelectedBrandId(v === 'none' ? '' : v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a brand..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Choose a brand...</SelectItem>
-                    {brands.map(brand => (
-                      <SelectItem key={brand.id} value={brand.id}>
-                        {brand.hero?.name || 'Untitled Brand'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Entity type tabs */}
+              <Tabs value={assignTab} onValueChange={handleTabChange} className="w-full">
+                <TabsList className="w-full rounded-none border-b bg-transparent h-auto p-0">
+                  <TabsTrigger value="brand" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1.5 text-xs py-2.5">
+                    <Layers className="h-3.5 w-3.5" />
+                    Brands
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1">{brands.length}</Badge>
+                  </TabsTrigger>
+                  <TabsTrigger value="product" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1.5 text-xs py-2.5">
+                    <Package className="h-3.5 w-3.5" />
+                    Products
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1">{(products || []).length}</Badge>
+                  </TabsTrigger>
+                  <TabsTrigger value="event" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent gap-1.5 text-xs py-2.5">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Events
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1">{(events || []).length}</Badge>
+                  </TabsTrigger>
+                </TabsList>
 
-              {selectedBrand && (
+                <div className="p-4">
+                  <Select value={selectedEntityId || 'none'} onValueChange={(v) => setSelectedEntityId(v === 'none' ? '' : v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={`Choose a ${assignTab}...`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Choose a {assignTab}...</SelectItem>
+                      {entityList.map(entity => (
+                        <SelectItem key={entity.id} value={entity.id}>
+                          {entity.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </Tabs>
+
+              {selectedEntityId && (
                 <div className="px-4 pb-4 space-y-2">
                   <Separator />
                   <div className="pt-2">
                     {/* Core notice */}
                     <div className="text-xs text-muted-foreground bg-blue-500/5 border border-blue-500/20 rounded-md px-3 py-2 mb-3 flex items-center gap-2">
                       <Building2 className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                      Core collections are auto-included for all brands
+                      Core collections are auto-included for all {assignTab}s
                     </div>
 
                     {/* Assignable collections (non-core) */}
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Toggle collections for {selectedBrand.hero?.name || 'brand'}:</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      Toggle collections for {selectedEntityName}:
+                    </p>
                     <div className="space-y-1">
                       {libraries.filter(lib => lib.level !== 'core' && lib.is_active && lib.icons.length > 0).map(library => {
-                        const isLinked = selectedBrandLinkedLibIds.has(library.id);
+                        const isLinked = selectedEntityLinkedLibIds.has(library.id);
                         const levelBadge = LEVEL_BADGES[library.level];
                         const LevelIcon = levelBadge.icon;
 
                         return (
                           <button
                             key={library.id}
-                            onClick={() => handleToggleBrandLink(library.id)}
+                            onClick={() => handleToggleEntityLink(library.id)}
                             className={cn(
                               'w-full flex items-center justify-between p-2.5 rounded-md text-left transition-colors',
                               isLinked 
@@ -500,21 +546,21 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
 
                       {libraries.filter(lib => lib.level !== 'core' && lib.is_active && lib.icons.length > 0).length === 0 && (
                         <p className="text-xs text-muted-foreground text-center py-4 italic">
-                          No product or brand collections to assign yet
+                          No collections available to assign
                         </p>
                       )}
                     </div>
 
                     {/* Summary */}
-                    {selectedBrandLinkedLibIds.size > 0 && (
+                    {selectedEntityLinkedLibIds.size > 0 && (
                       <div className="mt-3 pt-3 border-t">
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-muted-foreground">
-                            {selectedBrandLinkedLibIds.size} collection{selectedBrandLinkedLibIds.size !== 1 ? 's' : ''} assigned
+                            {selectedEntityLinkedLibIds.size} collection{selectedEntityLinkedLibIds.size !== 1 ? 's' : ''} assigned
                           </span>
                           <span className="font-medium">
                             {libraries
-                              .filter(lib => selectedBrandLinkedLibIds.has(lib.id))
+                              .filter(lib => selectedEntityLinkedLibIds.has(lib.id))
                               .reduce((sum, lib) => sum + lib.icons.length, 0)} icons
                           </span>
                         </div>
@@ -524,19 +570,19 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
                 </div>
               )}
 
-              {!selectedBrandId && brands.length > 0 && (
+              {!selectedEntityId && entityList.length > 0 && (
                 <div className="px-4 pb-4">
                   <div className="text-center py-6 text-muted-foreground">
                     <Link2 className="h-6 w-6 mx-auto mb-2 opacity-30" />
-                    <p className="text-xs">Select a brand to manage its icon assignments</p>
+                    <p className="text-xs">Select a {assignTab} to manage its icon assignments</p>
                   </div>
                 </div>
               )}
 
-              {brands.length === 0 && (
+              {entityList.length === 0 && (
                 <div className="px-4 pb-4">
                   <div className="text-center py-6 text-muted-foreground">
-                    <p className="text-xs">Create brands first to assign collections</p>
+                    <p className="text-xs">No {assignTab}s found. Create some first.</p>
                   </div>
                 </div>
               )}
@@ -594,7 +640,7 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
                         <Icon className={cn('h-5 w-5 mx-auto mb-1', formLevel === level ? 'text-primary' : 'text-muted-foreground')} />
                         <p className="text-xs font-medium">{badge.label}</p>
                         <p className="text-[10px] text-muted-foreground mt-0.5">
-                          {level === 'core' ? 'All brands' : level === 'product_line' ? 'By division' : 'Specific'}
+                          {level === 'core' ? 'All entities' : level === 'product_line' ? 'By division' : 'Specific'}
                         </p>
                       </button>
                     );

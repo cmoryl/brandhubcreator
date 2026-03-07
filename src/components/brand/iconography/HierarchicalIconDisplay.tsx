@@ -21,6 +21,8 @@ import DOMPurify from 'dompurify';
 interface HierarchicalIconDisplayProps {
   organizationId: string | undefined;
   brandId?: string;
+  productId?: string;
+  eventId?: string;
   brandIcons?: BrandIconography[];
   productLineId?: string;
   iconColor?: string;
@@ -41,6 +43,8 @@ const SOURCE_CHIPS: { key: SourceFilter; label: string; icon: typeof Building2; 
 export const HierarchicalIconDisplay = ({
   organizationId,
   brandId,
+  productId,
+  eventId,
   brandIcons = [],
   productLineId,
   iconColor = 'currentColor',
@@ -48,7 +52,7 @@ export const HierarchicalIconDisplay = ({
   showEmptyGroups = false,
 }: HierarchicalIconDisplayProps) => {
   const { libraries, coreLibraries, productLineLibraries, isLoading } = useIconLibraries(organizationId);
-  const { links, getLinkedLibraryIds } = useIconLibraryBrandLinks(organizationId);
+  const { links, getLinkedLibraryIds, getLinkedLibraryIdsForEntity } = useIconLibraryBrandLinks(organizationId);
   const [activeFilter, setActiveFilter] = useState<SourceFilter>('all');
 
   // Organize all icons with source tags
@@ -69,9 +73,11 @@ export const HierarchicalIconDisplay = ({
       }
     });
 
-    // Assigned/linked
-    if (brandId) {
-      const linkedIds = new Set(getLinkedLibraryIds(brandId));
+    // Assigned/linked - check all entity types
+    const entityId = brandId || productId || eventId;
+    const entityType = brandId ? 'brand' : productId ? 'product' : eventId ? 'event' : null;
+    if (entityId && entityType) {
+      const linkedIds = new Set(getLinkedLibraryIdsForEntity(entityId, entityType));
       libraries.forEach(lib => {
         if (linkedIds.has(lib.id) && lib.is_active) {
           const alreadyAdded = items.some(i => i.library?.id === lib.id);
@@ -86,7 +92,7 @@ export const HierarchicalIconDisplay = ({
     brandIcons.forEach(icon => items.push({ icon, source: 'brand' }));
 
     return items;
-  }, [coreLibraries, productLineLibraries, productLineId, libraries, brandId, links, getLinkedLibraryIds, brandIcons]);
+  }, [coreLibraries, productLineLibraries, productLineId, libraries, brandId, productId, eventId, links, getLinkedLibraryIdsForEntity, brandIcons]);
 
   const filteredIcons = useMemo(() => {
     if (activeFilter === 'all') return allIcons;
