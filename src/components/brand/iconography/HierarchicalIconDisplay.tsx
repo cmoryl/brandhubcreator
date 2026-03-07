@@ -43,6 +43,8 @@ const SOURCE_CHIPS: { key: SourceFilter; label: string; icon: typeof Building2; 
 export const HierarchicalIconDisplay = ({
   organizationId,
   brandId,
+  productId,
+  eventId,
   brandIcons = [],
   productLineId,
   iconColor = 'currentColor',
