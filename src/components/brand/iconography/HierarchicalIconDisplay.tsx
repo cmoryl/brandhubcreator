@@ -62,6 +62,7 @@ const LEVEL_CONFIG = {
 
 export const HierarchicalIconDisplay = ({
   organizationId,
+  brandId,
   brandIcons = [],
   productLineId,
   iconColor = 'currentColor',
@@ -69,9 +70,10 @@ export const HierarchicalIconDisplay = ({
   showEmptyGroups = false,
 }: HierarchicalIconDisplayProps) => {
   const { libraries, coreLibraries, productLineLibraries, isLoading } = useIconLibraries(organizationId);
+  const { links, getLinkedLibraryIds } = useIconLibraryBrandLinks(organizationId);
   
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(['core', 'product_line', 'brand'])
+    new Set(['core', 'product_line', 'brand', 'linked'])
   );
 
   const toggleGroup = (group: string) => {
@@ -86,10 +88,17 @@ export const HierarchicalIconDisplay = ({
     });
   };
 
+  // Get libraries linked specifically to this brand
+  const linkedLibraryIds = useMemo(() => {
+    if (!brandId) return new Set<string>();
+    return new Set(getLinkedLibraryIds(brandId));
+  }, [brandId, links, getLinkedLibraryIds]);
+
   // Organize icons by level with library info
   const organizedIcons = useMemo(() => {
     const core: { library: IconLibrary; icons: BrandIconography[] }[] = [];
     const productLine: { library: IconLibrary; icons: BrandIconography[] }[] = [];
+    const linked: { library: IconLibrary; icons: BrandIconography[] }[] = [];
     
     // Add core library icons
     coreLibraries.forEach(lib => {
@@ -107,8 +116,22 @@ export const HierarchicalIconDisplay = ({
       }
     });
 
-    return { core, productLine };
-  }, [coreLibraries, productLineLibraries, productLineId]);
+    // Add explicitly linked libraries (that aren't already shown as core/product_line)
+    if (brandId && linkedLibraryIds.size > 0) {
+      libraries.forEach(lib => {
+        if (linkedLibraryIds.has(lib.id) && lib.icons.length > 0) {
+          // Don't duplicate if already shown as core
+          const alreadyInCore = core.some(c => c.library.id === lib.id);
+          const alreadyInPL = productLine.some(p => p.library.id === lib.id);
+          if (!alreadyInCore && !alreadyInPL) {
+            linked.push({ library: lib, icons: lib.icons });
+          }
+        }
+      });
+    }
+
+    return { core, productLine, linked };
+  }, [coreLibraries, productLineLibraries, productLineId, libraries, brandId, linkedLibraryIds]);
 
   const renderIcon = (icon: BrandIconography, size: number = 24) => {
     const viewBox = icon.viewBox || '0 0 24 24';
