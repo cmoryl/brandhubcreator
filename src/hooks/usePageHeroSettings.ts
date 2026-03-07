@@ -3,6 +3,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { HeroEffectType } from '@/components/brand/HeroEditToolbar';
 
+/** DB row shape for page_hero_settings (not yet in generated types) */
+interface PageHeroSettingsRow {
+  page_slug: string;
+  hero_effect: string | null;
+  hero_effect_intensity: string | null;
+  hero_effect_color_scheme: string | null;
+  hero_effect_mode: string | null;
+  hero_effect_brightness: number | null;
+  hero_effect_density: string | null;
+  hero_effect_speed: string | null;
+  updated_by: string | null;
+}
+
 export interface PageHeroSettings {
   heroEffect: HeroEffectType;
   heroEffectIntensity: 'subtle' | 'medium' | 'bold';
@@ -28,27 +41,28 @@ export function usePageHeroSettings(pageSlug: string) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchSettings = async () => {
       const { data } = await supabase
-        .from('page_hero_settings' as any)
+        .from('page_hero_settings' as unknown as 'brands')
         .select('*')
-        .eq('page_slug', pageSlug)
+        .eq('page_slug' as 'id', pageSlug)
         .maybeSingle();
 
       if (data) {
+        const row = data as unknown as PageHeroSettingsRow;
         setSettings({
-          heroEffect: (data as any).hero_effect || 'none',
-          heroEffectIntensity: (data as any).hero_effect_intensity || 'medium',
-          heroEffectColorScheme: (data as any).hero_effect_color_scheme || 'cyan-purple',
-          heroEffectMode: (data as any).hero_effect_mode || 'dark',
-          heroEffectBrightness: (data as any).hero_effect_brightness ?? 50,
-          heroEffectDensity: (data as any).hero_effect_density || 'normal',
-          heroEffectSpeed: (data as any).hero_effect_speed || 'normal',
+          heroEffect: (row.hero_effect as HeroEffectType) || 'none',
+          heroEffectIntensity: (row.hero_effect_intensity as PageHeroSettings['heroEffectIntensity']) || 'medium',
+          heroEffectColorScheme: row.hero_effect_color_scheme || 'cyan-purple',
+          heroEffectMode: (row.hero_effect_mode as PageHeroSettings['heroEffectMode']) || 'dark',
+          heroEffectBrightness: row.hero_effect_brightness ?? 50,
+          heroEffectDensity: (row.hero_effect_density as PageHeroSettings['heroEffectDensity']) || 'normal',
+          heroEffectSpeed: (row.hero_effect_speed as PageHeroSettings['heroEffectSpeed']) || 'normal',
         });
       }
       setIsLoading(false);
     };
-    fetch();
+    fetchSettings();
   }, [pageSlug]);
 
   const updateSettings = useCallback(async (updates: Partial<PageHeroSettings>) => {
@@ -74,8 +88,8 @@ export function usePageHeroSettings(pageSlug: string) {
     };
 
     const { error } = await supabase
-      .from('page_hero_settings' as any)
-      .upsert(dbRow as any, { onConflict: 'page_slug' });
+      .from('page_hero_settings' as unknown as 'brands')
+      .upsert(dbRow as unknown as Record<string, unknown>, { onConflict: 'page_slug' as 'id' });
 
     if (error) {
       console.error('Failed to save hero settings:', error);

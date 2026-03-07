@@ -7,18 +7,62 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export interface PortfolioAnalysis {
+  entity_count?: number;
+  brand_count?: number;
+  product_count?: number;
+  event_count?: number;
+  themes?: string[];
+  gaps?: string[];
+  [key: string]: unknown;
+}
+
+export interface MarketLandscape {
+  industry?: string;
+  trends?: string[];
+  opportunities?: string[];
+  threats?: string[];
+  [key: string]: unknown;
+}
+
+export interface VoiceProfile {
+  tone?: string;
+  personality?: string[];
+  language_style?: string;
+  [key: string]: unknown;
+}
+
+export interface AudienceMap {
+  segments?: Array<{ name: string; description?: string }>;
+  demographics?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface CompetitiveOverview {
+  competitors?: Array<{ name: string; strengths?: string[]; weaknesses?: string[] }>;
+  market_position?: string;
+  [key: string]: unknown;
+}
+
+export interface CulturalReadiness {
+  overall_score?: number;
+  regions?: Array<{ code: string; readiness: number }>;
+  recommendations?: string[];
+  [key: string]: unknown;
+}
+
 export interface OracleIntelligence {
   id: string;
   organization_id: string;
   org_summary: string | null;
-  portfolio_analysis: any;
-  market_landscape: any;
-  strategic_recommendations: any[];
-  cross_entity_patterns: any;
-  unified_voice_profile: any;
-  unified_audience_map: any;
-  competitive_overview: any;
-  cultural_readiness: any;
+  portfolio_analysis: PortfolioAnalysis | null;
+  market_landscape: MarketLandscape | null;
+  strategic_recommendations: Array<{ title: string; description: string; priority?: string }>;
+  cross_entity_patterns: Record<string, unknown> | null;
+  unified_voice_profile: VoiceProfile | null;
+  unified_audience_map: AudienceMap | null;
+  competitive_overview: CompetitiveOverview | null;
+  cultural_readiness: CulturalReadiness | null;
   knowledge_entry_count: number;
   entity_brain_count: number;
   last_synthesis_at: string | null;
@@ -106,19 +150,20 @@ export function useOracleBrain(organizationId: string | null | undefined) {
           .maybeSingle();
 
         if (!job) return;
-        setSynthesisProgress((job as any).progress || 0);
+        const jobData = job as { status?: string; progress?: number; error_message?: string };
+        setSynthesisProgress(jobData.progress || 0);
 
-        if ((job as any).status === 'completed') {
+        if (jobData.status === 'completed') {
           clearInterval(pollingRef.current!);
           pollingRef.current = null;
           setIsSynthesizing(false);
           toast.success('Oracle synthesis complete!');
           fetchIntelligence();
-        } else if ((job as any).status === 'failed') {
+        } else if (jobData.status === 'failed') {
           clearInterval(pollingRef.current!);
           pollingRef.current = null;
           setIsSynthesizing(false);
-          toast.error((job as any).error_message || 'Synthesis failed');
+          toast.error(jobData.error_message || 'Synthesis failed');
         }
       }, 2000);
     } catch (err) {

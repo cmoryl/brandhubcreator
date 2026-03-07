@@ -7,6 +7,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { logger } from '@/lib/logger';
 
 interface RealtimeEvent<T = unknown> {
   type: 'INSERT' | 'UPDATE' | 'DELETE';
@@ -100,7 +101,7 @@ export const useRealtimeUpdates = ({
         if (status === 'SUBSCRIBED') {
           setIsConnected(true);
           setConnectionError(null);
-          console.log(`[Realtime] Subscribed to ${channelName}`);
+          logger.realtime(`Subscribed to ${channelName}`);
         } else if (status === 'CHANNEL_ERROR') {
           setIsConnected(false);
           setConnectionError('Failed to connect to realtime updates');
@@ -114,7 +115,7 @@ export const useRealtimeUpdates = ({
 
     return () => {
       if (channelRef.current) {
-        console.log(`[Realtime] Unsubscribing from ${channelName}`);
+        logger.realtime(`Unsubscribing from ${channelName}`);
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }

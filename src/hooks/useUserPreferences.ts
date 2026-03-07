@@ -13,16 +13,18 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+type PreferenceValue = string | number | boolean | null | Record<string, unknown> | unknown[];
+
 interface UserPreferences {
-  [key: string]: any;
+  [key: string]: PreferenceValue;
 }
 
 interface UseUserPreferencesReturn {
   preferences: UserPreferences;
   isLoaded: boolean;
-  getPreference: <T = any>(key: string, fallback?: T) => T;
-  setPreference: (key: string, value: any) => void;
-  setPreferences: (updates: Record<string, any>) => void;
+  getPreference: <T = PreferenceValue>(key: string, fallback?: T) => T;
+  setPreference: (key: string, value: PreferenceValue) => void;
+  setPreferences: (updates: Record<string, PreferenceValue>) => void;
 }
 
 // Module-level cache to avoid refetching on every hook mount
@@ -108,7 +110,7 @@ export function useUserPreferences(): UseUserPreferencesReturn {
     }, 1000); // 1s debounce
   }, [user?.id]);
 
-  const setPreference = useCallback((key: string, value: any) => {
+  const setPreference = useCallback((key: string, value: PreferenceValue) => {
     setPreferencesState(prev => {
       const next = { ...prev, [key]: value };
       cachedPrefs = next;
