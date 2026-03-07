@@ -125,7 +125,7 @@ export const IconLibraryBrandLinker = ({ organizationId, libraries }: IconLibrar
               const linkedBrands = getLinkedBrandIds(library.id);
               const linkedBrandNames = brands
                 .filter(b => linkedBrands.includes(b.id))
-                .map(b => b.name);
+                .map(b => b.hero?.name || 'Untitled');
 
               return (
                 <div key={library.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
@@ -199,7 +199,7 @@ export const IconLibraryBrandLinker = ({ organizationId, libraries }: IconLibrar
                         onCheckedChange={() => toggleBrand(brand.id)}
                       />
                       <div>
-                        <p className="text-sm font-medium">{brand.name}</p>
+                        <p className="text-sm font-medium">{brand.hero?.name || 'Untitled Brand'}</p>
                         {brand.hero?.tagline && (
                           <p className="text-xs text-muted-foreground truncate max-w-[200px]">{brand.hero.tagline}</p>
                         )}
