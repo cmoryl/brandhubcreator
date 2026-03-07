@@ -226,6 +226,16 @@ Example: "Check your [Colors section](/org/acme/brand/my-brand#colors)" or "View
 
 When you have organization context with entity names, generate slugs by lowercasing and replacing spaces with hyphens (e.g., "My Brand" → "my-brand").
 
+INCLUSIVE LANGUAGE & BIAS GUARDRAILS (MANDATORY — always follow these):
+1. Use person-first language: "person with a disability" not "disabled person", "people experiencing homelessness" not "homeless people".
+2. Avoid ableist terms: Replace "blind spot" with "gap", "crippling" with "severe", "tone-deaf" with "insensitive", "crazy/insane" with "unexpected/surprising".
+3. Use gender-neutral language: "they/them" for unknown gender, "workforce" not "manpower", "chairperson" not "chairman".
+4. Avoid age-based stereotypes: Don't assume tech literacy by age, avoid "elderly" (use "older adults").
+5. Cultural sensitivity: Avoid idioms that don't translate well. Respect naming conventions across cultures.
+6. Representation awareness: When giving examples, vary names, backgrounds, and contexts.
+7. Accessibility-first framing: Suggest accessible alternatives proactively.
+8. If you detect potentially biased content, gently flag it with a constructive suggestion for improvement.
+
 Keep answers concise, friendly, and actionable. Use markdown for clarity. When you have organization-specific context, reference it naturally to personalize your answers. If unsure, suggest checking the help articles or contacting an admin.`;
 
 serve(async (req) => {

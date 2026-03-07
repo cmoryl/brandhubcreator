@@ -698,10 +698,27 @@ serve(async (req) => {
       }
     }
 
+    // === INCLUSIVE LANGUAGE GUARDRAILS (enforced baseline) ===
+    const inclusiveLanguageGuardrails = `
+INCLUSIVE LANGUAGE & BIAS GUARDRAILS (MANDATORY — always follow these):
+1. Use person-first language: "person with a disability" not "disabled person", "people experiencing homelessness" not "homeless people".
+2. Avoid ableist terms: Replace "blind spot" with "gap", "crippling" with "severe", "tone-deaf" with "insensitive", "crazy/insane" with "unexpected/surprising", "lame" with "ineffective", "dumb" with "unclear".
+3. Use gender-neutral language: "they/them" for unknown gender, "workforce" not "manpower", "chairperson" not "chairman", "staffed" not "manned".
+4. Avoid age-based stereotypes: Don't assume tech literacy by age, avoid "elderly" (use "older adults"), avoid "young and dynamic".
+5. Cultural sensitivity: Avoid idioms that don't translate well across cultures. Don't assume Western-centric norms. Respect naming conventions across cultures.
+6. Representation awareness: When giving examples of people, vary names, backgrounds, and contexts. Avoid defaulting to Western/Anglo examples.
+7. Accessibility-first framing: Suggest accessible alternatives proactively. Consider screen readers, color contrast, and cognitive load in recommendations.
+8. Avoid stereotyping in brand archetypes: Don't reinforce harmful gender, racial, or cultural stereotypes when discussing brand personality or target audiences.
+${language_code !== 'en_US' ? `9. MULTILINGUAL BIAS AWARENESS: When responding in ${language_code}, apply inclusive language standards appropriate to that language and culture. Be aware of gendered grammar (e.g., Spanish, French, German) and use inclusive alternatives where available. Flag culturally specific bias risks.` : ''}
+
+If you detect potentially biased content in the brand data you're referencing, gently flag it with a suggestion for improvement. Frame bias observations constructively.`;
+
     const systemPrompt = `${persona}${personalityBlock}${styleBlock}
 
 ${entityContext}${oracleContext}${crossEntityContext}${entityDirectory}${personaContext}${pastConversationContext}${institutionalMemoryContext}
 ${languageInstruction}
+
+${inclusiveLanguageGuardrails}
 
 Guidelines for responses:
 ${conversation_style === 'direct' ? `- Be concise and straight-to-the-point. Give brief, actionable answers without elaboration unless asked.
@@ -964,6 +981,95 @@ Only use slugs that exist in the entity directory. Do not fabricate slugs. If no
       }
     };
     (globalThis as any).EdgeRuntime?.waitUntil?.(memorySaveTask()) || memorySaveTask();
+
+    // Background self-bias monitoring: lightweight check on assistant output
+    const biasCheckTask = async () => {
+      try {
+        if (!LOVABLE_API_KEY) return;
+        const biasCheckResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash-lite',
+            temperature: 0.1,
+            max_tokens: 512,
+            messages: [
+              { role: "system", content: "You are a bias detection system. Analyze the AI assistant response for bias issues." },
+              { role: "user", content: `Check this AI response for bias:\n\n"${assistantMessage.slice(0, 1500)}"\n\nLook for: ableist language, gender bias, cultural insensitivity, stereotyping, exclusionary framing, age-based assumptions.\n\nReturn ONLY valid JSON.` }
+            ],
+            tools: [{
+              type: "function",
+              function: {
+                name: "report_bias",
+                description: "Report bias findings in AI response",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    has_bias: { type: "boolean" },
+                    severity: { type: "string", enum: ["none", "low", "medium", "high"] },
+                    issues: { type: "array", items: { type: "object", properties: { type: { type: "string" }, description: { type: "string" }, suggestion: { type: "string" } }, required: ["type", "description"] } }
+                  },
+                  required: ["has_bias", "severity"],
+                  additionalProperties: false
+                }
+              }
+            }],
+            tool_choice: { type: "function", function: { name: "report_bias" } }
+          }),
+        });
+
+        if (biasCheckResponse.ok) {
+          const bResult = await biasCheckResponse.json();
+          const toolCall = bResult.choices?.[0]?.message?.tool_calls?.[0];
+          if (toolCall?.function?.arguments) {
+            const biasResult = JSON.parse(toolCall.function.arguments);
+            if (biasResult.has_bias && biasResult.severity !== 'none') {
+              // Log bias finding to conversation and audit
+              const biasFlag = {
+                message_id: newMessages[newMessages.length - 1]?.id,
+                flag_type: 'auto_detected',
+                severity: biasResult.severity,
+                issues: biasResult.issues || [],
+                flagged_at: new Date().toISOString(),
+                flagged_by: 'system',
+              };
+
+              // Update conversation with bias flag
+              const existingFlags = Array.isArray(conversation.bias_flags) ? conversation.bias_flags : [];
+              await supabase
+                .from('dataforce_assistant_conversations')
+                .update({ 
+                  bias_flags: [...existingFlags, biasFlag],
+                  bias_flagged_count: (conversation.bias_flagged_count || 0) + 1,
+                })
+                .eq('id', conversation.id);
+
+              // Audit log the bias detection
+              await supabase.rpc('insert_audit_log', {
+                p_entity_type: 'assistant_bias',
+                p_action_type: 'bias_auto_detected',
+                p_entity_name: entityName,
+                p_organization_id: organization_id,
+                p_details: { 
+                  conversation_id: conversation.id,
+                  severity: biasResult.severity,
+                  issues_count: (biasResult.issues || []).length,
+                  language: language_code,
+                },
+              }).catch(() => {}); // Non-critical
+
+              console.log(`[dataforce-assistant] Bias auto-detected (${biasResult.severity}): ${(biasResult.issues || []).length} issues`);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[dataforce-assistant] Bias check failed (non-critical):', e);
+      }
+    };
+    (globalThis as any).EdgeRuntime?.waitUntil?.(biasCheckTask()) || biasCheckTask();
 
     return new Response(
       JSON.stringify({

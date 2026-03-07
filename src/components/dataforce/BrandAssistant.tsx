@@ -45,6 +45,8 @@ import {
   GraduationCap,
   MessageSquare,
   Clock,
+  Flag,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   Popover,
@@ -202,6 +204,7 @@ export const BrandAssistant = ({
   const [isMuted, setIsMuted] = useState(false);
   const [dictationEnabled, setDictationEnabled] = useState(false);
   const [interimText, setInterimText] = useState('');
+  const [flaggedMessages, setFlaggedMessages] = useState<Set<string>>(new Set());
   
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
@@ -591,6 +594,45 @@ export const BrandAssistant = ({
 
     return suggestions.slice(0, 3);
   }, []);
+
+  // ───── Bias Feedback ─────
+
+  const flagMessageForBias = useCallback(async (messageId: string) => {
+    if (!conversationId || !organization?.id) return;
+    
+    setFlaggedMessages(prev => new Set(prev).add(messageId));
+    
+    try {
+      const biasFlag = {
+        message_id: messageId,
+        flag_type: 'user_reported',
+        severity: 'medium',
+        flagged_at: new Date().toISOString(),
+        flagged_by: 'user',
+      };
+
+      // Update conversation bias flags
+      const { data: conv } = await supabase
+        .from('dataforce_assistant_conversations')
+        .select('bias_flags, bias_flagged_count')
+        .eq('id', conversationId)
+        .single();
+
+      const existingFlags = Array.isArray(conv?.bias_flags) ? conv.bias_flags : [];
+      await supabase
+        .from('dataforce_assistant_conversations')
+        .update({
+          bias_flags: [...existingFlags, biasFlag],
+          bias_flagged_count: (conv?.bias_flagged_count || 0) + 1,
+        })
+        .eq('id', conversationId);
+
+      toast.success('Thank you for flagging — this helps improve our AI responses', { duration: 3000 });
+    } catch (err) {
+      console.error('Failed to flag bias:', err);
+      toast.error('Failed to submit feedback');
+    }
+  }, [conversationId, organization?.id]);
 
   // ───── Message Sending ─────
 
@@ -1013,14 +1055,42 @@ export const BrandAssistant = ({
                       <Bot className="h-3.5 w-3.5 text-primary" />
                     </div>
                   )}
-                  <div
-                    className={`max-w-[80%] rounded-lg px-3.5 py-2 ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    {renderMessageContent(message)}
+                  <div className="max-w-[80%]">
+                    <div
+                      className={`rounded-lg px-3.5 py-2 ${
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                      }`}
+                    >
+                      {renderMessageContent(message)}
+                    </div>
+                    {/* Bias flag button for assistant messages */}
+                    {message.role === 'assistant' && (
+                      <div className="flex items-center gap-1 mt-1">
+                        {flaggedMessages.has(message.id) ? (
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <ShieldAlert className="h-3 w-3 text-amber-500" />
+                            Flagged for review
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => flagMessageForBias(message.id)}
+                            className="text-[10px] text-muted-foreground/50 hover:text-destructive flex items-center gap-1 transition-colors"
+                            title="Flag for potential bias"
+                          >
+                            <Flag className="h-3 w-3" />
+                            Flag bias
+                          </button>
+                        )}
+                        {message.responseTimeMs && (
+                          <span className="text-[10px] text-muted-foreground/40 flex items-center gap-0.5 ml-2">
+                            <Clock className="h-2.5 w-2.5" />
+                            {formatResponseTime(message.responseTimeMs)}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   {message.role === 'user' && (
                     <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
