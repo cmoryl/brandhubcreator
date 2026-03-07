@@ -581,6 +581,7 @@ export function BoothMapper3D({
                 lightingPreset={lightingPreset}
                 showLabels={showLabels}
                 showDimensions={showDimensions}
+                showSafeZones={showSafeZones}
                 showEnvironment={showEnvironment}
                 showPeople={showPeople}
                 showTrafficFlow={showTrafficFlow}
