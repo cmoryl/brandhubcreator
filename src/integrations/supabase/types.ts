@@ -411,6 +411,54 @@ export type Database = {
         }
         Relationships: []
       }
+      booth_color_analyses: {
+        Row: {
+          accessibility_score: number | null
+          analysis_data: Json
+          colors: string[]
+          created_at: string
+          created_by: string | null
+          division_id: string
+          id: string
+          overall_score: number | null
+          production_score: number | null
+          psychology_data: Json | null
+          recommendations: Json | null
+          updated_at: string
+          variant_label: string | null
+        }
+        Insert: {
+          accessibility_score?: number | null
+          analysis_data?: Json
+          colors?: string[]
+          created_at?: string
+          created_by?: string | null
+          division_id: string
+          id?: string
+          overall_score?: number | null
+          production_score?: number | null
+          psychology_data?: Json | null
+          recommendations?: Json | null
+          updated_at?: string
+          variant_label?: string | null
+        }
+        Update: {
+          accessibility_score?: number | null
+          analysis_data?: Json
+          colors?: string[]
+          created_at?: string
+          created_by?: string | null
+          division_id?: string
+          id?: string
+          overall_score?: number | null
+          production_score?: number | null
+          psychology_data?: Json | null
+          recommendations?: Json | null
+          updated_at?: string
+          variant_label?: string | null
+        }
+        Relationships: []
+      }
       booth_color_palettes: {
         Row: {
           colors: string[]
