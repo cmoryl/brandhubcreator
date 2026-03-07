@@ -1,23 +1,17 @@
 /**
- * HierarchicalIconDisplay - Displays icons with collapsible groups showing hierarchy
- * Shows Core → Product Line → Brand icons in separate expandable sections
+ * HierarchicalIconDisplay - Unified flat grid showing all available icons for a brand
+ * Replaces multiple collapsible sections with a clean single view + source filter chips
  */
 
 import { useState, useMemo } from 'react';
 import { 
-  ChevronDown, 
-  ChevronRight, 
   Building2, 
   Package, 
   Layers,
-  Lock,
-  Info,
   Link2,
+  Filter,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { BrandIconography } from '@/types/brand';
@@ -34,32 +28,15 @@ interface HierarchicalIconDisplayProps {
   showEmptyGroups?: boolean;
 }
 
-const LEVEL_CONFIG = {
-  core: {
-    label: 'Core Icons',
-    description: 'Organization-wide icons',
-    icon: Building2,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-500/10',
-    badgeVariant: 'default' as const,
-  },
-  product_line: {
-    label: 'Product Line Icons',
-    description: 'Division-specific icons',
-    icon: Package,
-    color: 'text-purple-500',
-    bgColor: 'bg-purple-500/10',
-    badgeVariant: 'secondary' as const,
-  },
-  brand: {
-    label: 'Brand Icons',
-    description: 'Brand-specific icons',
-    icon: Layers,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10',
-    badgeVariant: 'outline' as const,
-  },
-};
+type SourceFilter = 'all' | 'core' | 'product_line' | 'assigned' | 'brand';
+
+const SOURCE_CHIPS: { key: SourceFilter; label: string; icon: typeof Building2; color: string }[] = [
+  { key: 'all', label: 'All', icon: Filter, color: 'text-foreground' },
+  { key: 'core', label: 'Core', icon: Building2, color: 'text-blue-500' },
+  { key: 'product_line', label: 'Product', icon: Package, color: 'text-purple-500' },
+  { key: 'assigned', label: 'Assigned', icon: Link2, color: 'text-emerald-500' },
+  { key: 'brand', label: 'This Brand', icon: Layers, color: 'text-sky-500' },
+];
 
 export const HierarchicalIconDisplay = ({
   organizationId,
@@ -72,69 +49,58 @@ export const HierarchicalIconDisplay = ({
 }: HierarchicalIconDisplayProps) => {
   const { libraries, coreLibraries, productLineLibraries, isLoading } = useIconLibraries(organizationId);
   const { links, getLinkedLibraryIds } = useIconLibraryBrandLinks(organizationId);
-  
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(['core', 'product_line', 'brand', 'linked'])
-  );
+  const [activeFilter, setActiveFilter] = useState<SourceFilter>('all');
 
-  const toggleGroup = (group: string) => {
-    setExpandedGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(group)) {
-        next.delete(group);
-      } else {
-        next.add(group);
-      }
-      return next;
-    });
-  };
+  // Organize all icons with source tags
+  const allIcons = useMemo(() => {
+    const items: { icon: BrandIconography; source: SourceFilter; libraryName?: string; library?: IconLibrary }[] = [];
 
-  // Get libraries linked specifically to this brand
-  const linkedLibraryIds = useMemo(() => {
-    if (!brandId) return new Set<string>();
-    return new Set(getLinkedLibraryIds(brandId));
-  }, [brandId, links, getLinkedLibraryIds]);
-
-  // Organize icons by level with library info
-  const organizedIcons = useMemo(() => {
-    const core: { library: IconLibrary; icons: BrandIconography[] }[] = [];
-    const productLine: { library: IconLibrary; icons: BrandIconography[] }[] = [];
-    const linked: { library: IconLibrary; icons: BrandIconography[] }[] = [];
-    
-    // Add core library icons
+    // Core
     coreLibraries.forEach(lib => {
-      if (lib.icons.length > 0) {
-        core.push({ library: lib, icons: lib.icons });
-      }
-    });
-    
-    // Add product line icons (filter by productLineId if provided)
-    productLineLibraries.forEach(lib => {
-      if (lib.icons.length > 0) {
-        if (!productLineId || lib.id === productLineId) {
-          productLine.push({ library: lib, icons: lib.icons });
-        }
+      if (lib.is_active) {
+        lib.icons.forEach(icon => items.push({ icon, source: 'core', libraryName: lib.name, library: lib }));
       }
     });
 
-    // Add explicitly linked libraries (that aren't already shown as core/product_line)
-    if (brandId && linkedLibraryIds.size > 0) {
+    // Product line
+    productLineLibraries.forEach(lib => {
+      if (lib.is_active && (!productLineId || lib.id === productLineId)) {
+        lib.icons.forEach(icon => items.push({ icon, source: 'product_line', libraryName: lib.name, library: lib }));
+      }
+    });
+
+    // Assigned/linked
+    if (brandId) {
+      const linkedIds = new Set(getLinkedLibraryIds(brandId));
       libraries.forEach(lib => {
-        if (linkedLibraryIds.has(lib.id) && lib.icons.length > 0) {
-          // Don't duplicate if already shown as core
-          const alreadyInCore = core.some(c => c.library.id === lib.id);
-          const alreadyInPL = productLine.some(p => p.library.id === lib.id);
-          if (!alreadyInCore && !alreadyInPL) {
-            linked.push({ library: lib, icons: lib.icons });
+        if (linkedIds.has(lib.id) && lib.is_active) {
+          const alreadyAdded = items.some(i => i.library?.id === lib.id);
+          if (!alreadyAdded) {
+            lib.icons.forEach(icon => items.push({ icon, source: 'assigned', libraryName: lib.name, library: lib }));
           }
         }
       });
     }
 
-    return { core, productLine, linked };
-  }, [coreLibraries, productLineLibraries, productLineId, libraries, brandId, linkedLibraryIds]);
+    // Brand-specific
+    brandIcons.forEach(icon => items.push({ icon, source: 'brand' }));
 
-  const renderIcon = (icon: BrandIconography, size: number = 24) => {
+    return items;
+  }, [coreLibraries, productLineLibraries, productLineId, libraries, brandId, links, getLinkedLibraryIds, brandIcons]);
+
+  const filteredIcons = useMemo(() => {
+    if (activeFilter === 'all') return allIcons;
+    return allIcons.filter(i => i.source === activeFilter);
+  }, [allIcons, activeFilter]);
+
+  // Count per source
+  const counts = useMemo(() => {
+    const c: Record<SourceFilter, number> = { all: allIcons.length, core: 0, product_line: 0, assigned: 0, brand: 0 };
+    allIcons.forEach(i => c[i.source]++);
+    return c;
+  }, [allIcons]);
+
+  const renderIcon = (icon: BrandIconography, size: number = 20) => {
     const viewBox = icon.viewBox || '0 0 24 24';
     const isFullContent = icon.svgPath.includes('<');
     const colorStyle = iconColor === 'currentColor' ? undefined : iconColor;
@@ -144,16 +110,8 @@ export const HierarchicalIconDisplay = ({
         USE_PROFILES: { svg: true, svgFilters: true },
       });
       return (
-        <div 
-          className="flex items-center justify-center"
-          style={{ width: size, height: size, color: colorStyle }}
-        >
-          <svg
-            viewBox={viewBox}
-            className="w-full h-full"
-            fill="currentColor"
-            dangerouslySetInnerHTML={{ __html: sanitized }}
-          />
+        <div className="flex items-center justify-center" style={{ width: size, height: size, color: colorStyle }}>
+          <svg viewBox={viewBox} className="w-full h-full" fill="currentColor" dangerouslySetInnerHTML={{ __html: sanitized }} />
         </div>
       );
     }
@@ -171,100 +129,6 @@ export const HierarchicalIconDisplay = ({
     );
   };
 
-  const renderIconGroup = (
-    level: 'core' | 'product_line' | 'brand',
-    groups: { library?: IconLibrary; icons: BrandIconography[] }[],
-    isInherited: boolean = false
-  ) => {
-    const config = LEVEL_CONFIG[level];
-    const IconComponent = config.icon;
-    const isExpanded = expandedGroups.has(level);
-    const totalIcons = groups.reduce((sum, g) => sum + g.icons.length, 0);
-
-    if (totalIcons === 0 && !showEmptyGroups) return null;
-
-    return (
-      <Collapsible 
-        key={level}
-        open={isExpanded} 
-        onOpenChange={() => toggleGroup(level)}
-        className="border rounded-lg overflow-hidden"
-      >
-        <CollapsibleTrigger asChild>
-          <button className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors bg-card">
-            <div className="flex items-center gap-2">
-              <div className={cn('p-1.5 rounded-md', config.bgColor)}>
-                <IconComponent className={cn('h-4 w-4', config.color)} />
-              </div>
-              <span className="font-medium text-sm">{config.label}</span>
-              {isInherited && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Lock className="h-3 w-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Inherited from organization</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={config.badgeVariant} className="text-xs">
-                {totalIcons} icons
-              </Badge>
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              )}
-            </div>
-          </button>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="p-3 pt-0 space-y-4">
-            {groups.map((group, idx) => (
-              <div key={group.library?.id || idx}>
-                {group.library && groups.length > 1 && (
-                  <p className="text-xs text-muted-foreground mb-2 font-medium">
-                    {group.library.name}
-                  </p>
-                )}
-                <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
-                  {group.icons.map((icon) => (
-                    <button
-                      key={icon.id}
-                      onClick={() => onIconClick?.(icon, group.library)}
-                      className={cn(
-                        'aspect-square rounded-lg border flex items-center justify-center',
-                        'bg-muted/30 hover:bg-muted hover:border-primary/50 transition-colors',
-                        'group relative'
-                      )}
-                      title={icon.name}
-                    >
-                      {renderIcon(icon, 20)}
-                      {isInherited && (
-                        <div className="absolute top-0.5 right-0.5">
-                          <Lock className="h-2.5 w-2.5 text-muted-foreground/50" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-            {totalIcons === 0 && (
-              <div className="text-center py-4 text-sm text-muted-foreground">
-                No {config.label.toLowerCase()} available
-              </div>
-            )}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -273,104 +137,84 @@ export const HierarchicalIconDisplay = ({
     );
   }
 
-  const hasAnyIcons = 
-    organizedIcons.core.length > 0 || 
-    organizedIcons.productLine.length > 0 || 
-    organizedIcons.linked.length > 0 ||
-    brandIcons.length > 0;
-
-  if (!hasAnyIcons && !showEmptyGroups) {
+  if (allIcons.length === 0 && !showEmptyGroups) {
     return (
       <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
         <Layers className="h-8 w-8 mx-auto mb-2 opacity-50" />
-        <p className="text-sm">No icons in the library</p>
-        <p className="text-xs">Add icons from Organization Settings or directly in the brand</p>
+        <p className="text-sm">No inherited icons available</p>
+        <p className="text-xs">Assign collections in Organization Settings</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      {/* Info banner */}
-      <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30 text-sm">
-        <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-        <div className="text-muted-foreground">
-          Icons are organized in a hierarchy. <strong>Core</strong> icons are inherited by all brands, 
-          <strong> Product Line</strong> icons are shared within divisions,
-          {organizedIcons.linked.length > 0 && <><strong> Assigned</strong> collections are linked from the org library,</>}
-          {' '}and <strong> Brand</strong> icons are specific to this guide.
-        </div>
+      {/* Header with count */}
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-medium text-muted-foreground">
+          Organization Icon Library
+          <span className="ml-2 text-xs font-normal">({allIcons.length} icons)</span>
+        </h4>
       </div>
 
-      {/* Core Icons */}
-      {renderIconGroup('core', organizedIcons.core, true)}
+      {/* Source filter chips */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {SOURCE_CHIPS.map(chip => {
+          const count = counts[chip.key];
+          if (count === 0 && chip.key !== 'all') return null;
+          const Icon = chip.icon;
+          const isActive = activeFilter === chip.key;
 
-      {/* Product Line Icons */}
-      {renderIconGroup('product_line', organizedIcons.productLine, true)}
-
-      {/* Assigned/Linked Collection Icons */}
-      {organizedIcons.linked.length > 0 && (
-        <Collapsible
-          open={expandedGroups.has('linked')}
-          onOpenChange={() => toggleGroup('linked')}
-        >
-          <CollapsibleTrigger asChild>
-            <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-2">
-                <div className={cn('p-1.5 rounded-md bg-emerald-500/10')}>
-                  <Link2 className="h-4 w-4 text-emerald-500" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-medium">Assigned Collections</p>
-                  <p className="text-xs text-muted-foreground">Linked from organization library</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-xs">
-                  {organizedIcons.linked.reduce((sum, g) => sum + g.icons.length, 0)} icons
-                </Badge>
-                {expandedGroups.has('linked') ? (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                )}
-              </div>
+          return (
+            <button
+              key={chip.key}
+              onClick={() => setActiveFilter(chip.key)}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors',
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              <Icon className={cn('h-3 w-3', !isActive && chip.color)} />
+              {chip.label}
+              <span className={cn('text-[10px]', isActive ? 'opacity-80' : 'opacity-60')}>{count}</span>
             </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="p-3 pt-0 space-y-4">
-              {organizedIcons.linked.map((group) => (
-                <div key={group.library.id}>
-                  {organizedIcons.linked.length > 1 && (
-                    <p className="text-xs text-muted-foreground mb-2 font-medium">
-                      {group.library.name}
-                    </p>
-                  )}
-                  <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
-                    {group.icons.map((icon) => (
-                      <button
-                        key={icon.id}
-                        onClick={() => onIconClick?.(icon, group.library)}
-                        className={cn(
-                          'aspect-square rounded-lg border flex items-center justify-center',
-                          'bg-muted/30 hover:bg-muted hover:border-primary/50 transition-colors',
-                          'group relative'
-                        )}
-                        title={icon.name}
-                      >
-                        {renderIcon(icon, 20)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
+          );
+        })}
+      </div>
 
-      {/* Brand-Specific Icons */}
-      {renderIconGroup('brand', [{ icons: brandIcons }], false)}
+      {/* Unified icon grid */}
+      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
+        {filteredIcons.map((item, idx) => {
+          const sourceColor = item.source === 'core' ? 'border-blue-500/30' 
+            : item.source === 'product_line' ? 'border-purple-500/30'
+            : item.source === 'assigned' ? 'border-emerald-500/30'
+            : 'border-sky-500/30';
+
+          return (
+            <button
+              key={`${item.icon.id}-${idx}`}
+              onClick={() => onIconClick?.(item.icon, item.library)}
+              className={cn(
+                'aspect-square rounded-lg border-2 flex items-center justify-center',
+                'bg-muted/30 hover:bg-muted hover:shadow-sm transition-all',
+                'group relative',
+                sourceColor
+              )}
+              title={`${item.icon.name}${item.libraryName ? ` (${item.libraryName})` : item.source === 'brand' ? ' (Brand)' : ''}`}
+            >
+              {renderIcon(item.icon)}
+            </button>
+          );
+        })}
+      </div>
+
+      {filteredIcons.length === 0 && (
+        <div className="text-center py-6 text-sm text-muted-foreground">
+          No icons in this category
+        </div>
+      )}
     </div>
   );
 };
