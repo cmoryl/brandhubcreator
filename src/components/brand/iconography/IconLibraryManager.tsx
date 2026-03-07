@@ -23,10 +23,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
+import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { IconStudio, IconStudioTab } from './IconStudio';
 import { SortableLevelSection } from './SortableLevelSection';
 import { IconLibraryBrandLinker } from './IconLibraryBrandLinker';
 import { BrandIconography } from '@/types/brand';
+import { useBrands } from '@/contexts/BrandContext';
 
 interface IconLibraryManagerProps {
   organizationId: string;
