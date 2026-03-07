@@ -73,9 +73,11 @@ export const HierarchicalIconDisplay = ({
       }
     });
 
-    // Assigned/linked
-    if (brandId) {
-      const linkedIds = new Set(getLinkedLibraryIds(brandId));
+    // Assigned/linked - check all entity types
+    const entityId = brandId || productId || eventId;
+    const entityType = brandId ? 'brand' : productId ? 'product' : eventId ? 'event' : null;
+    if (entityId && entityType) {
+      const linkedIds = new Set(getLinkedLibraryIdsForEntity(entityId, entityType));
       libraries.forEach(lib => {
         if (linkedIds.has(lib.id) && lib.is_active) {
           const alreadyAdded = items.some(i => i.library?.id === lib.id);
