@@ -290,6 +290,10 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
           onToggleActive={handleToggleActive}
           onRemoveIcon={handleRemoveIcon}
           onReorder={handleReorder}
+          brands={brands}
+          getLinkedBrandIds={getLinkedBrandIds}
+          onLinkBrand={(libId, brandId) => linkLibraryToBrand.mutate({ libraryId: libId, brandId })}
+          onUnlinkBrand={(libId, brandId) => unlinkLibraryFromBrand.mutate({ libraryId: libId, brandId })}
         />
         <SortableLevelSection
           level="brand"
@@ -303,10 +307,14 @@ export const IconLibraryManager = ({ organizationId, organizationName = '', bran
           onToggleActive={handleToggleActive}
           onRemoveIcon={handleRemoveIcon}
           onReorder={handleReorder}
+          brands={brands}
+          getLinkedBrandIds={getLinkedBrandIds}
+          onLinkBrand={(libId, brandId) => linkLibraryToBrand.mutate({ libraryId: libId, brandId })}
+          onUnlinkBrand={(libId, brandId) => unlinkLibraryFromBrand.mutate({ libraryId: libId, brandId })}
         />
       </div>
 
-      {/* Brand Icon Assignments */}
+      {/* Brand Icon Assignments - summary view */}
       <Separator className="my-2" />
       <IconLibraryBrandLinker
         organizationId={organizationId}
