@@ -184,10 +184,50 @@ export function GlobalLogoHub() {
     setIsGenerating(true);
     setGenerateProgress(0);
 
-    const variants: ClientLogoVariant[] = ['color', 'white', 'black'];
-    let completedCount = 0;
+    let colorLogoUrl: string | null = null;
 
-    for (const variant of variants) {
+    // Step 1: Fetch the real color logo from the web
+    setGeneratingVariant('color');
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-client-logo', {
+        body: {
+          companyName: formData.name.trim(),
+          variant: 'color',
+          organizationId: organization.id,
+          websiteUrl: formData.websiteUrl?.trim() || undefined,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) {
+        toast.error(data.error);
+        setIsGenerating(false);
+        setGeneratingVariant(null);
+        return;
+      }
+
+      if (data?.url) {
+        colorLogoUrl = data.url;
+        const newFile: ClientLogoFile = { variant: 'color', format: 'png', url: data.url };
+        setFormData(prev => ({
+          ...prev,
+          files: [...prev.files.filter(f => !(f.variant === 'color' && f.format === 'png')), newFile],
+        }));
+      }
+    } catch (err) {
+      console.error('[Logo Fetch] color failed:', err);
+      toast.error('Failed to find company logo. Try adding the website URL.');
+      setIsGenerating(false);
+      setGeneratingVariant(null);
+      return;
+    }
+    setGenerateProgress(33);
+
+    // Step 2 & 3: Create white and black variants using AI conversion
+    const monochromeVariants: ClientLogoVariant[] = ['white', 'black'];
+    let completedCount = 1;
+
+    for (const variant of monochromeVariants) {
       setGeneratingVariant(variant);
       try {
         const { data, error } = await supabase.functions.invoke('generate-client-logo', {
@@ -195,17 +235,13 @@ export function GlobalLogoHub() {
             companyName: formData.name.trim(),
             variant,
             organizationId: organization.id,
+            colorLogoUrl,
           },
         });
 
         if (error) throw error;
         if (data?.error) {
-          // Handle specific status codes
-          if (data.error.includes('Rate limit')) {
-            toast.error(data.error);
-            break;
-          }
-          if (data.error.includes('credits')) {
+          if (data.error.includes('Rate limit') || data.error.includes('credits')) {
             toast.error(data.error);
             break;
           }
@@ -221,18 +257,18 @@ export function GlobalLogoHub() {
           }));
         }
       } catch (err) {
-        console.error(`[AI Generate] ${variant} failed:`, err);
-        toast.error(`Failed to generate ${variant} variant`);
+        console.error(`[Logo Fetch] ${variant} failed:`, err);
+        toast.error(`Failed to create ${variant} variant`);
       }
 
       completedCount++;
-      setGenerateProgress(Math.round((completedCount / variants.length) * 100));
+      setGenerateProgress(Math.round((completedCount / 3) * 100));
     }
 
     setIsGenerating(false);
     setGeneratingVariant(null);
     setGenerateProgress(100);
-    toast.success(`AI logo generation complete for "${formData.name.trim()}"`);
+    toast.success(`Logo discovery complete for "${formData.name.trim()}"`);
   };
 
   const getPreviewUrl = (files: ClientLogoFile[], variant: ClientLogoVariant): string | null => {
