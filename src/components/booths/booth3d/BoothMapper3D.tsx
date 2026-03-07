@@ -406,6 +406,33 @@ export function BoothMapper3D({
             </TooltipTrigger>
             <TooltipContent>Dimensions</TooltipContent>
           </Tooltip>
+          {/* Advanced spatial view toggles */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Toggle pressed={showEnvironment} onPressedChange={setShowEnvironment} size="sm" aria-label="Toggle expo environment">
+                <Building2 className="h-4 w-4" />
+              </Toggle>
+            </TooltipTrigger>
+            <TooltipContent>Expo Environment</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Toggle pressed={showPeople} onPressedChange={setShowPeople} size="sm" aria-label="Toggle people">
+                <Users className="h-4 w-4" />
+              </Toggle>
+            </TooltipTrigger>
+            <TooltipContent>People &amp; Scale</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Toggle pressed={showTrafficFlow} onPressedChange={setShowTrafficFlow} size="sm" aria-label="Toggle traffic flow">
+                <Route className="h-4 w-4" />
+              </Toggle>
+            </TooltipTrigger>
+            <TooltipContent>Traffic Flow</TooltipContent>
+          </Tooltip>
         </TooltipProvider>
 
         <div className="h-6 w-px bg-border" />
@@ -498,6 +525,10 @@ export function BoothMapper3D({
                 lightingPreset={lightingPreset}
                 showLabels={showLabels}
                 showDimensions={showDimensions}
+                showEnvironment={showEnvironment}
+                showPeople={showPeople}
+                showTrafficFlow={showTrafficFlow}
+                layout={layout}
               />
             </Suspense>
           </Canvas>
