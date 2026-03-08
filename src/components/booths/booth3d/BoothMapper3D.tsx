@@ -1790,7 +1790,7 @@ export function BoothMapper3D({
           if (!panel) return [10, 8] as [number, number];
           return [Math.round(panel.size[0] / 0.3048), Math.round(panel.size[1] / 0.3048)] as [number, number];
         })()}
-        brandColors={brandColors}
+        brandColors={DEFAULT_BRAND_COLORS}
         imageLibrary={libraryImages.map(i => i.public_url).filter(Boolean)}
         onApply={(dataUrl) => {
           if (!panelDesignerTarget) return;
