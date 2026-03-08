@@ -2593,7 +2593,16 @@ export default function BoothsCatalog() {
               2026 Season
             </Badge>
           </div>
-          <div className="mt-4">
+          <div className="mt-4 flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white/10 border-white/30 text-white hover:bg-white/20 gap-2"
+              onClick={() => navigate('/booth-systems')}
+            >
+              <BookTemplate className="h-4 w-4" />
+              System Library
+            </Button>
             <Button
               variant="outline"
               size="sm"
