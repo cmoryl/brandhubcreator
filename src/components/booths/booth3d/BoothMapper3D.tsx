@@ -90,6 +90,8 @@ import { PanelDesigner } from './PanelDesigner';
 import { LogisticsPanel } from './LogisticsPanel';
 import { LogisticsOverlay3D } from './LogisticsMarker3D';
 import { type LogisticsMarker, type LogisticsCategory, createMarker, LOGISTICS_CATEGORIES } from './logisticsTypes';
+import { BoothAnalyticsDashboard } from './BoothAnalyticsDashboard';
+import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -199,6 +201,9 @@ export function BoothMapper3D({
   const [showLogistics, setShowLogistics] = useState(true);
   // Organization context for image library
   const { organization } = useOrganization();
+
+  // Booth analytics hook
+  const { analytics: boothAnalytics, saveAnalytics: saveBoothAnalytics } = useBoothAnalytics(divisionId, variantLabel);
 
   // Image library integration
   const { images: libraryImages, isLoading: libraryLoading, fetchImages, uploadImage } = useImageLibrary();
@@ -1168,7 +1173,22 @@ export function BoothMapper3D({
           />
         }
         canvas={canvasElement}
-        bottomContent={activeMode === 'graphics' ? panelThumbnails : undefined}
+        bottomContent={
+          activeMode === 'graphics' ? panelThumbnails :
+          activeMode === 'simulation' ? (
+            <BoothAnalyticsDashboard
+              analytics={boothAnalytics}
+              onSave={(data) => saveBoothAnalytics(data, organization?.id)}
+              isAdmin={isAdmin}
+              simulationPredictions={crowdSimulation ? {
+                traffic: crowdSimulation.peakCapacity * 8,
+                dwellTime: parseInt(crowdSimulation.overallDwellTime) || 120,
+                peakCapacity: crowdSimulation.peakCapacity,
+                visibilityScore: crowdSimulation.visibilityScore,
+              } : undefined}
+            />
+          ) : undefined
+        }
       />
 
       {/* Panel summary row */}
