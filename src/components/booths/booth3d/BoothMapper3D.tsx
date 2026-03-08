@@ -1778,6 +1778,31 @@ export function BoothMapper3D({
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Panel Designer */}
+      <PanelDesigner
+        open={panelDesignerOpen}
+        onClose={() => { setPanelDesignerOpen(false); setPanelDesignerTarget(null); }}
+        panelId={panelDesignerTarget || ''}
+        panelLabel={boothConfig.panels.find(p => p.id === panelDesignerTarget)?.label || 'Panel'}
+        panelSizeFt={(() => {
+          const panel = boothConfig.panels.find(p => p.id === panelDesignerTarget);
+          if (!panel) return [10, 8] as [number, number];
+          return [Math.round(panel.size[0] / 0.3048), Math.round(panel.size[1] / 0.3048)] as [number, number];
+        })()}
+        brandColors={brandColors}
+        imageLibrary={libraryImages.map(i => i.public_url).filter(Boolean)}
+        onApply={(dataUrl) => {
+          if (!panelDesignerTarget) return;
+          setAssignments(prev => {
+            const next = { ...prev, [panelDesignerTarget]: dataUrl };
+            onAssignmentsChange?.(
+              Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
+            );
+            return next;
+          });
+        }}
+      />
     </div>
   );
 }
