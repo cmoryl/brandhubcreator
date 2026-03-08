@@ -215,9 +215,9 @@ function PrintAnalysisCard({ result }: { result: PanelFileMappingResult }) {
           <div className="flex items-center gap-1.5">
             <span className="text-xs font-mono font-medium">{a.colorMode}</span>
             {a.colorModeOk ? (
-              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+              <CheckCircle2 className="h-3 w-3 text-primary" />
             ) : (
-              <AlertTriangle className="h-3 w-3 text-amber-600" />
+              <AlertTriangle className="h-3 w-3 text-muted-foreground" />
             )}
           </div>
         </div>
