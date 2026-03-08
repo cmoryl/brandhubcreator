@@ -272,6 +272,7 @@ export function BoothDesignToolbar(props: BoothDesignToolbarProps) {
   if (mode === 'graphics') {
     return (
       <div className="flex items-center gap-2">
+        {props.brandSwitcher}
         {isAdmin && (
           <>
             <Button variant="outline" size="sm" className="h-7 gap-1 text-[11px]" onClick={props.onUploadSpec} disabled={props.isUploading}>
