@@ -813,6 +813,12 @@ export function BoothMapper3D({
               if (v === '__generic') setUseProductionSpecs(false);
               else { setSpecConfigType(v); setUseProductionSpecs(true); }
             }}
+            brandSwitcher={
+              <DivisionBrandSwitcher
+                branding={divisionBranding}
+                isAdmin={isAdmin}
+              />
+            }
           />
         }
         leftPanel={
