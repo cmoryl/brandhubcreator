@@ -121,6 +121,7 @@ export function BoothScene3D({
   onAssetPositionChange,
   environmentRealism = 'standard',
   activeCameraPreset = null,
+  cameraVersion = 0,
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
