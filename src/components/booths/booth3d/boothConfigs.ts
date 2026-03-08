@@ -66,7 +66,7 @@ export interface BoothConfig {
   footprint: string;
 }
 
-export type LightingPreset = 'expo-bright' | 'showcase-dim' | 'warm-gallery' | 'cool-neutral';
+export type LightingPreset = 'expo-bright' | 'showcase-dim' | 'warm-gallery' | 'cool-neutral' | 'dark-hall' | 'stage-lighting';
 
 export interface PanelAssignment {
   panelId: string;
