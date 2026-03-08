@@ -609,7 +609,7 @@ export function BoothMapper3D({
       <div className="flex flex-wrap items-center gap-2">
         {/* Layout picker (admin only) */}
         {isAdmin ? (
-          <Select value={layout} onValueChange={(v) => { setLayout(v as BoothLayout); setAssignments({}); }}>
+          <Select value={layout} onValueChange={(v) => { setLayout(v as BoothLayout); setAssignments({}); setPanelPositionOverrides({}); setPlacedAssets([]); }}>
             <SelectTrigger className="w-[160px] h-9">
               <Layout className="h-4 w-4 mr-2" />
               <SelectValue />
