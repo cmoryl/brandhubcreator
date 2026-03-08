@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { ThreeEvent, useThree } from '@react-three/fiber';
 import { BoothPanel3D } from './BoothPanel3D';
 import type { PanelConfig } from './boothConfigs';
+import type { PrintStyle } from './boothLightingConfig';
 
 interface DraggablePanel3DProps {
   panel: PanelConfig;
@@ -16,6 +17,9 @@ interface DraggablePanel3DProps {
   showSafeZones?: boolean;
   isDragMode: boolean;
   onPositionChange: (panelId: string, position: [number, number, number]) => void;
+  printStyle?: PrintStyle;
+  edgeLightIntensity?: number;
+  edgeLightColor?: string;
 }
 
 export function DraggablePanel3D({
@@ -27,6 +31,9 @@ export function DraggablePanel3D({
   showSafeZones,
   isDragMode,
   onPositionChange,
+  printStyle,
+  edgeLightIntensity,
+  edgeLightColor,
 }: DraggablePanel3DProps) {
   const [isDragging, setIsDragging] = useState(false);
   const { raycaster } = useThree();
