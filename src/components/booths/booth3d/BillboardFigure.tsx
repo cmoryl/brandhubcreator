@@ -159,8 +159,8 @@ export function BillboardFigure({
           map={texture}
           threshold={0.9}
           despill={0.9}
+          transparent={true}
           side={THREE.DoubleSide}
-          depthWrite={true}
         />
       </mesh>
       {/* Realistic elliptical contact shadow on the ground */}
