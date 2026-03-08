@@ -1243,6 +1243,7 @@ export function BoothMapper3D({
             flat={false}
           >
             <Suspense fallback={null}>
+              <SceneBridge sceneRef={sceneRef} />
               <BoothScene3D
                 panels={panels}
                 selectedPanelId={selectedPanelId}
