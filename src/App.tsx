@@ -209,6 +209,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="expo-floor"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <ExpoFloorPlanner />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="color-lab"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
