@@ -186,6 +186,7 @@ export default defineConfig(({ mode }) => {
         "@radix-ui/react-context",
         "@radix-ui/react-primitive",
         "@radix-ui/react-slot",
+        "three",
       ],
     },
     optimizeDeps: {

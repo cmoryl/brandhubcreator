@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 const interestOptions = [
   { id: 'brand-guides', label: 'Brand Guide Creation', icon: Layers },
@@ -76,7 +77,7 @@ export function LearnMoreForm({ onClose }: LearnMoreFormProps) {
     // Simulate API call - in production, this would submit to your backend
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    console.log('Learn More submission:', formData);
+    logger.debug('Learn More submission:', formData);
     
     setIsSubmitting(false);
     setIsSubmitted(true);
