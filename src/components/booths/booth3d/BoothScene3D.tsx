@@ -521,6 +521,25 @@ export function BoothScene3D({
             </group>
           ));
         })}
+
+      {/* Crowd simulation heat map overlay */}
+      {showHeatMap && crowdSimulation && (
+        <CrowdHeatMap3D
+          simulationData={crowdSimulation}
+          boothSize={[
+            layout?.startsWith('island-40') ? 40 * 0.3048 :
+            layout?.startsWith('island-30') ? 30 * 0.3048 :
+            layout?.startsWith('island') || layout?.startsWith('peninsula') ? 20 * 0.3048 :
+            10 * 0.3048,
+            layout?.startsWith('island-40') ? 40 * 0.3048 :
+            layout?.startsWith('island-30') ? 30 * 0.3048 :
+            layout?.startsWith('island') || layout?.startsWith('peninsula') ? 20 * 0.3048 :
+            10 * 0.3048,
+          ]}
+          showLabels={showLabels}
+          showSightlines={true}
+        />
+      )}
     </>
   );
 }

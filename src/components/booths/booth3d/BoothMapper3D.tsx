@@ -155,7 +155,11 @@ export function BoothMapper3D({
   const [panelPositionOverrides, setPanelPositionOverrides] = useState<Record<string, [number, number, number]>>({});
   const [coverImagePickerOpen, setCoverImagePickerOpen] = useState(false);
   const [coverImageTargetAssetId, setCoverImageTargetAssetId] = useState<string | null>(null);
-
+  // Crowd simulation state
+  const [crowdSimulation, setCrowdSimulation] = useState<CrowdSimulationData | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [showHeatMap, setShowHeatMap] = useState(false);
+  const [showSimPanel, setShowSimPanel] = useState(false);
   // Organization context for image library
   const { organization } = useOrganization();
 
