@@ -456,6 +456,77 @@ export type Database = {
         }
         Relationships: []
       }
+      booth_brand_presets: {
+        Row: {
+          accent_color: string | null
+          brand_id: string | null
+          created_at: string
+          created_by: string | null
+          display_order: number
+          division_id: string
+          headline: string | null
+          id: string
+          logo_url: string | null
+          messaging: Json | null
+          overrides: Json | null
+          panel_graphics: Json | null
+          preset_name: string
+          primary_color: string | null
+          screen_content: Json | null
+          secondary_color: string | null
+          tagline: string | null
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          brand_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id: string
+          headline?: string | null
+          id?: string
+          logo_url?: string | null
+          messaging?: Json | null
+          overrides?: Json | null
+          panel_graphics?: Json | null
+          preset_name: string
+          primary_color?: string | null
+          screen_content?: Json | null
+          secondary_color?: string | null
+          tagline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          brand_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          division_id?: string
+          headline?: string | null
+          id?: string
+          logo_url?: string | null
+          messaging?: Json | null
+          overrides?: Json | null
+          panel_graphics?: Json | null
+          preset_name?: string
+          primary_color?: string | null
+          screen_content?: Json | null
+          secondary_color?: string | null
+          tagline?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booth_brand_presets_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booth_color_analyses: {
         Row: {
           accessibility_score: number | null
