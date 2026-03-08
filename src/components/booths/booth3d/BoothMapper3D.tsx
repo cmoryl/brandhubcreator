@@ -275,10 +275,12 @@ export function BoothMapper3D({
       flooringConfig,
       boothLighting,
       logisticsMarkers,
+      showDimensions,
+      showLabels,
     };
     await boothSystems.updateVariantSnapshot(variantId, snapshotData as any);
     setActiveSystemVariantId(variantId);
-  }, [layout, lightingPreset, assignments, placedAssets, flooringConfig, boothLighting, logisticsMarkers, boothSystems]);
+  }, [layout, lightingPreset, assignments, placedAssets, flooringConfig, boothLighting, logisticsMarkers, showDimensions, showLabels, boothSystems]);
 
   useEffect(() => {
     if (organization?.id) fetchImages(organization.id);
