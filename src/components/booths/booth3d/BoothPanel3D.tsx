@@ -26,17 +26,35 @@ interface BoothPanel3DProps {
   edgeLightColor?: string;
 }
 
-/** Inner component that loads and displays the texture with print material PBR */
-function TexturedPanel({ imageUrl, isSelected, mat }: { imageUrl: string; isSelected: boolean; mat: PrintMaterialConfig }) {
-  const texture = useTexture(imageUrl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 16;
+const TexturedPanel = forwardRef<THREE.MeshStandardMaterial, { imageUrl: string; isSelected: boolean; mat: PrintMaterialConfig }>(
+  function TexturedPanel({ imageUrl, isSelected, mat }, ref) {
+    const texture = useTexture(imageUrl);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = 16;
 
-  const usePhysical = mat.clearcoat > 0 || mat.transmission > 0;
+    const usePhysical = mat.clearcoat > 0 || mat.transmission > 0;
 
-  if (usePhysical) {
+    if (usePhysical) {
+      return (
+        <meshPhysicalMaterial
+          ref={ref as any}
+          map={texture}
+          side={THREE.DoubleSide}
+          emissive={isSelected ? new THREE.Color('#1e40af') : mat.emissive ? new THREE.Color('#ffffff') : undefined}
+          emissiveIntensity={isSelected ? 0.1 : mat.emissive ? mat.emissiveIntensity : 0}
+          roughness={mat.roughness}
+          metalness={mat.metalness}
+          envMapIntensity={mat.envMapIntensity}
+          clearcoat={mat.clearcoat}
+          clearcoatRoughness={mat.clearcoatRoughness}
+          transmission={mat.transmission}
+        />
+      );
+    }
+
     return (
-      <meshPhysicalMaterial
+      <meshStandardMaterial
+        ref={ref as any}
         map={texture}
         side={THREE.DoubleSide}
         emissive={isSelected ? new THREE.Color('#1e40af') : mat.emissive ? new THREE.Color('#ffffff') : undefined}
@@ -44,25 +62,10 @@ function TexturedPanel({ imageUrl, isSelected, mat }: { imageUrl: string; isSele
         roughness={mat.roughness}
         metalness={mat.metalness}
         envMapIntensity={mat.envMapIntensity}
-        clearcoat={mat.clearcoat}
-        clearcoatRoughness={mat.clearcoatRoughness}
-        transmission={mat.transmission}
       />
     );
   }
-
-  return (
-    <meshStandardMaterial
-      map={texture}
-      side={THREE.DoubleSide}
-      emissive={isSelected ? new THREE.Color('#1e40af') : mat.emissive ? new THREE.Color('#ffffff') : undefined}
-      emissiveIntensity={isSelected ? 0.1 : mat.emissive ? mat.emissiveIntensity : 0}
-      roughness={mat.roughness}
-      metalness={mat.metalness}
-      envMapIntensity={mat.envMapIntensity}
-    />
-  );
-}
+);
 
 function EmptyPanel({ hovered, isSelected, mat }: { hovered: boolean; isSelected: boolean; mat: PrintMaterialConfig }) {
   return (
