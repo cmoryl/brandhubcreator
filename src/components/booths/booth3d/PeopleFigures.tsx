@@ -10,6 +10,7 @@ import type { EnvironmentConfig } from './environmentPresets';
 import { getPeopleMultiplier } from './environmentPresets';
 import { getLayoutFamily } from './boothConfigs';
 import { BillboardFigure, BillboardConversationGroup, getCharacterBySeed } from './BillboardFigure';
+import { ProceduralFigure } from './ProceduralFigure';
 
 const HUMAN_HEIGHT = 1.75;
 
@@ -193,16 +194,29 @@ export function PeopleFigures({
       {safeFigures.map((fig, i) => {
         const character = getCharacterBySeed(fig.seed || i, fig.isStaff);
         const url = spriteUrls[character.id];
-        if (!url) return null; // Skip figures without sprites
+        const figHeight = 1.62 + ((fig.seed || 0) % 7) * 0.03;
+        if (url) {
+          return (
+            <BillboardFigure
+              key={i}
+              position={fig.position}
+              rotation={fig.rotation}
+              opacity={fig.opacity}
+              spriteUrl={url}
+              height={figHeight}
+              aspect={character.aspect}
+            />
+          );
+        }
+        // Procedural geometry fallback
         return (
-          <BillboardFigure
+          <ProceduralFigure
             key={i}
             position={fig.position}
             rotation={fig.rotation}
             opacity={fig.opacity}
-            spriteUrl={url}
-            height={1.62 + ((fig.seed || 0) % 7) * 0.03}
-            aspect={character.aspect}
+            height={figHeight}
+            isStaff={fig.isStaff}
           />
         );
       })}
@@ -212,14 +226,30 @@ export function PeopleFigures({
           return spriteUrls[char.id];
         }).filter(Boolean) as string[];
 
-        if (urls.length < 2) return null;
+        if (urls.length >= 2) {
+          return (
+            <BillboardConversationGroup
+              key={`conv-${i}`}
+              position={group.position}
+              spriteUrls={urls}
+              count={group.count}
+            />
+          );
+        }
+        // Procedural fallback for conversation groups
+        const angles = group.count === 2 ? [0, Math.PI] : [0, Math.PI * 0.7, Math.PI * 1.3];
+        const radius = 0.55;
         return (
-          <BillboardConversationGroup
-            key={`conv-${i}`}
-            position={group.position}
-            spriteUrls={urls}
-            count={group.count}
-          />
+          <group key={`conv-${i}`} position={group.position}>
+            {angles.map((angle, j) => (
+              <ProceduralFigure
+                key={j}
+                position={[Math.sin(angle) * radius, 0, Math.cos(angle) * radius]}
+                rotation={angle + Math.PI}
+                height={1.65 + (j * 7 % 5) * 0.03}
+              />
+            ))}
+          </group>
         );
       })}
       
