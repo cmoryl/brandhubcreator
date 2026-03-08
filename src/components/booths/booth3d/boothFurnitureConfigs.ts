@@ -4,7 +4,7 @@
  * All dimensions in meters. Conversion: 1 foot = 0.3048m, 1 inch = 0.0254m
  */
 
-export type FurnitureCategory = 'tables' | 'displays' | 'seating' | 'signage' | 'accessories';
+export type FurnitureCategory = 'tables' | 'displays' | 'seating' | 'signage' | 'accessories' | 'flooring';
 
 export interface FurnitureAsset {
   id: string;
@@ -248,6 +248,56 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     color: '#64748b',
     description: 'Custom-sized box primitive — specify your own dimensions',
   },
+
+  // Flooring — Rugs & Carpets
+  {
+    id: 'rug-4x6',
+    name: "4' × 6' Area Rug",
+    category: 'flooring',
+    size: [4 * FT, 0.01, 6 * FT],
+    color: '#1e3a5f',
+    description: "4' × 6' area rug with custom color",
+  },
+  {
+    id: 'rug-6x8',
+    name: "6' × 8' Area Rug",
+    category: 'flooring',
+    size: [6 * FT, 0.01, 8 * FT],
+    color: '#1e3a5f',
+    description: "6' × 8' area rug with custom color",
+  },
+  {
+    id: 'rug-8x10',
+    name: "8' × 10' Area Rug",
+    category: 'flooring',
+    size: [8 * FT, 0.01, 10 * FT],
+    color: '#1e3a5f',
+    description: "8' × 10' full booth carpet",
+  },
+  {
+    id: 'rug-10x10',
+    name: "10' × 10' Carpet",
+    category: 'flooring',
+    size: [10 * FT, 0.01, 10 * FT],
+    color: '#334155',
+    description: "10' × 10' full booth carpet pad",
+  },
+  {
+    id: 'rug-runner',
+    name: "Runner Rug (2' × 8')",
+    category: 'flooring',
+    size: [2 * FT, 0.01, 8 * FT],
+    color: '#7c3aed',
+    description: "Narrow runner rug for aisles (2' × 8')",
+  },
+  {
+    id: 'rug-round',
+    name: "6' Round Rug",
+    category: 'flooring',
+    size: [6 * FT, 0.01, 6 * FT],
+    color: '#be185d',
+    description: "6' diameter round area rug",
+  },
 ];
 
 export const CATEGORY_LABELS: Record<FurnitureCategory, string> = {
@@ -256,6 +306,7 @@ export const CATEGORY_LABELS: Record<FurnitureCategory, string> = {
   seating: 'Seating',
   signage: 'Signage & Banners',
   accessories: 'Accessories',
+  flooring: 'Rugs & Carpets',
 };
 
 export function getFurnitureById(id: string): FurnitureAsset | undefined {
