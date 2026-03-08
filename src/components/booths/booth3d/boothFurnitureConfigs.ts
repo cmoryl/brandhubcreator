@@ -24,6 +24,8 @@ export interface FurnitureAsset {
   screenSize?: [number, number];
   /** Screen Y offset from base */
   screenYOffset?: number;
+  /** Whether this asset supports a table cover */
+  hasTableCover?: boolean;
 }
 
 export interface PlacedAsset {
