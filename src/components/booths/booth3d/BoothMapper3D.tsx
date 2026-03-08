@@ -1437,7 +1437,6 @@ export function BoothMapper3D({
           </div>
         </Card>
       )}
-    </div>
 
       {/* Cover Image Picker Dialog */}
       <Dialog open={coverImagePickerOpen} onOpenChange={(open) => { setCoverImagePickerOpen(open); if (!open) setCoverImageTargetAssetId(null); }}>
@@ -1494,5 +1493,4 @@ export function BoothMapper3D({
     </div>
   );
 }
-
 
