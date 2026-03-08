@@ -274,9 +274,9 @@ export const BrandEventSignageSection = ({
   const defaultSubtitle = "Physical signage specifications for booth, banners, and venue graphics";
   const displaySubtitle = customSubtitle || defaultSubtitle;
 
-  // Booth detail state
+  // Booth navigation
   const { divisions: customDivisions } = useCustomDivisions();
-  const [selectedDivision, setSelectedDivision] = useState<BoothDivision | null>(null);
+  const navigate = useNavigate();
 
   const openPreview = (item: BrandEventSignage) => {
     setPreviewItem(item);
