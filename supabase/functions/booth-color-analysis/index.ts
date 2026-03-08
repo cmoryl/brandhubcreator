@@ -44,7 +44,8 @@ Provide a comprehensive analysis covering:
 4. **Color Psychology**: Emotional associations, industry appropriateness, audience impact
 5. **Harmony Analysis**: Color relationships (complementary, analogous, triadic), balance assessment
 6. **Contrast Pairs**: Best foreground/background combinations for booth signage
-7. **Recommendations**: Specific actionable improvements
+7. **Color Code Conversions**: For EVERY color in the palette, provide the full set of color codes: HEX, RGB (r,g,b), CMYK (c,m,y,k percentages), and the closest Pantone match name
+8. **Recommendations**: Specific actionable improvements
 
 Use the analyze_colors tool to return structured results.`;
 
