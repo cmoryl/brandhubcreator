@@ -569,7 +569,10 @@ export function BoothMapper3D({
 
   const handleSelectPanel = useCallback((panelId: string) => {
     if (isDragMode) return;
-    if (!isAdmin) return;
+    if (!isAdmin) {
+      toast.info('View-only mode — contact an admin to edit panel assignments');
+      return;
+    }
     setSelectedPanelId(panelId);
     setAssigningSide('front');
     setImagePickerOpen(true);
