@@ -428,11 +428,7 @@ function SystemCard({
                     variant={variant}
                     isAdmin={isAdmin}
                     onOpen={() => onNavigateToMapper()}
-                    onDelete={() => {
-                      if (confirm(`Delete variant "${variant.variantName}"? This cannot be undone.`)) {
-                        onDeleteVariant(variant.id);
-                      }
-                    }}
+                    onDelete={() => onDeleteVariant(variant.id)}
                   />
                 ))}
               </div>
