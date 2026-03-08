@@ -75,6 +75,7 @@ import {
 } from './boothLightingConfig';
 import { CrowdSimulationPanel } from './CrowdSimulationPanel';
 import type { CrowdSimulationData } from './crowdSimulationTypes';
+import { ARPreviewPanel } from './ARPreviewPanel';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
