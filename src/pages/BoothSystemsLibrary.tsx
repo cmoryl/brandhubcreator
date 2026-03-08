@@ -228,7 +228,7 @@ export default function BoothSystemsLibrary() {
               Create a master booth system that can be reused across events.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pt-2">
+          <form onSubmit={(e) => { e.preventDefault(); handleCreate(); }} className="space-y-4 pt-2">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">System Name</label>
               <Input
@@ -248,10 +248,12 @@ export default function BoothSystemsLibrary() {
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancel</Button>
-              <Button onClick={handleCreate} disabled={!newName.trim()}>Create System</Button>
+              <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>Cancel</Button>
+              <Button type="submit" disabled={!newName.trim() || isSubmitting}>
+                {isSubmitting ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> Creating...</> : 'Create System'}
+              </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
 
