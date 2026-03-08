@@ -204,7 +204,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['cybersecurity', 'security', 'compliance', 'zero-trust', 'soc'],
     placedAssets: TECH_CYBER_ASSETS,
     flooringConfig: TECH_CYBER_FLOOR,
-
+  },
   // ═══════════════════════════════════════
   // HEALTHCARE & PHARMA
   // ═══════════════════════════════════════
