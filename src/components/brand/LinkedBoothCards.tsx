@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, Radio, Heart, Database, Microscope, Globe, Trash2, Plus, X, Search, ExternalLink, Link as LinkIcon, ImagePlus, PenLine, ZoomIn, FileDown, FileText, Download } from 'lucide-react';
 import { Label } from '@/components/ui/label';
@@ -645,7 +646,7 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
   isAdmin?: boolean;
 }) => {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [selectedDivision, setSelectedDivision] = useState<BoothDivision | null>(null);
+  const navigate = useNavigate();
   const { divisions: customDivisions } = useCustomDivisions();
 
   if (linkedBooths.length === 0 && !isEditable) return null;
@@ -668,10 +669,7 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
   };
 
   const handleOpenDetail = (booth: LinkedBoothCard) => {
-    const division = resolveBoothDivision(booth, customDivisions);
-    if (division) {
-      setSelectedDivision(division);
-    }
+    navigate(`/booths/${booth.divisionId}`);
   };
 
   return (
@@ -723,16 +721,6 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
         onLink={handleLink}
       />
 
-      {/* Full Booth Detail Popup - same as Booth Catalog */}
-      <AnimatePresence>
-        {selectedDivision && (
-          <DivisionDetail
-            division={selectedDivision}
-            onClose={() => setSelectedDivision(null)}
-            isAdmin={isAdmin}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 };

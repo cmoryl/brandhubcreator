@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
-import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, Maximize, FileImage, Download, Eye, Pencil, Check, Upload, Sparkles, Loader2, ImagePlus, Link, FileText, Image, X, Building2, Search, ExternalLink } from 'lucide-react';
 import { BrandEventSignage, LayoutPreset, BrandColor, LinkedBoothCard } from '@/types/brand';
 import { Input } from '@/components/ui/input';
@@ -19,8 +19,7 @@ import { RichTextEditor, RichTextDisplay } from '@/components/ui/rich-text-edito
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { EditBrandSignageDialog } from './EditBrandSignageDialog';
 import { LinkedBoothPreviewCard, resolveBoothDivision, LinkBoothDialog } from './LinkedBoothCards';
-import { DivisionDetail, type BoothDivision } from '@/pages/BoothsCatalog';
-import { AnimatePresence } from 'framer-motion';
+import { type BoothDivision } from '@/pages/BoothsCatalog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
@@ -275,9 +274,9 @@ export const BrandEventSignageSection = ({
   const defaultSubtitle = "Physical signage specifications for booth, banners, and venue graphics";
   const displaySubtitle = customSubtitle || defaultSubtitle;
 
-  // Booth detail state
+  // Booth navigation
   const { divisions: customDivisions } = useCustomDivisions();
-  const [selectedDivision, setSelectedDivision] = useState<BoothDivision | null>(null);
+  const navigate = useNavigate();
 
   const openPreview = (item: BrandEventSignage) => {
     setPreviewItem(item);
@@ -1225,8 +1224,7 @@ export const BrandEventSignageSection = ({
                     isEditable={!!onLinkedBoothsChange}
                     onRemove={() => onLinkedBoothsChange?.(linkedBooths.filter(b => b.id !== booth.id))}
                     onOpenDetail={() => {
-                      const division = resolveBoothDivision(booth, customDivisions);
-                      if (division) setSelectedDivision(division);
+                      navigate(`/booths/${booth.divisionId}`);
                     }}
                   />
                 ))}
@@ -1285,17 +1283,6 @@ export const BrandEventSignageSection = ({
         />
       )}
 
-      {/* Full Booth Detail Popup - portaled to body to avoid transform/overflow issues */}
-      {selectedDivision && createPortal(
-        <AnimatePresence>
-          <DivisionDetail
-            division={selectedDivision}
-            onClose={() => setSelectedDivision(null)}
-            isAdmin={isAdmin}
-          />
-        </AnimatePresence>,
-        document.body
-      )}
     </section>
   );
 };

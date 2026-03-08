@@ -1,12 +1,9 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { Building2, Plus, Trash2 } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
 import { LinkedBoothCard, BoothLink } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { LinkedBoothPreviewCard, resolveBoothDivision, LinkBoothDialog } from '@/components/brand/LinkedBoothCards';
-import { DivisionDetail, type BoothDivision } from '@/pages/BoothsCatalog';
-import { useCustomDivisions } from '@/hooks/useCustomDivisions';
 
 interface PartnerBoothsSectionProps {
   partnerBooths: LinkedBoothCard[];
@@ -20,8 +17,7 @@ export const PartnerBoothsSection = ({
   isEditable,
 }: PartnerBoothsSectionProps) => {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [selectedDivision, setSelectedDivision] = useState<BoothDivision | null>(null);
-  const { divisions: customDivisions } = useCustomDivisions();
+  const navigate = useNavigate();
 
   const handleLink = (booth: LinkedBoothCard) => {
     if (!onUpdate) return;
@@ -51,8 +47,7 @@ export const PartnerBoothsSection = ({
   };
 
   const handleOpenDetail = (booth: LinkedBoothCard) => {
-    const resolved = resolveBoothDivision(booth, customDivisions);
-    if (resolved) setSelectedDivision(resolved);
+    navigate(`/booths/${booth.divisionId}`);
   };
 
   
@@ -113,17 +108,6 @@ export const PartnerBoothsSection = ({
         linkedBooths={partnerBooths}
       />
 
-      {/* Division Detail Popup */}
-      {selectedDivision && createPortal(
-        <AnimatePresence>
-          <DivisionDetail
-            division={selectedDivision}
-            onClose={() => setSelectedDivision(null)}
-            isAdmin={isEditable}
-          />
-        </AnimatePresence>,
-        document.body
-      )}
     </section>
   );
 };
