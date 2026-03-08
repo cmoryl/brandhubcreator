@@ -335,7 +335,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['fintech', 'payments', 'banking', 'api', 'digital', 'neobank'],
     placedAssets: FINANCE_FINTECH_ASSETS,
     flooringConfig: FINANCE_FINTECH_FLOOR,
-
+  },
   // ═══════════════════════════════════════
   // CREATIVE & MARKETING
   // ═══════════════════════════════════════
