@@ -876,6 +876,24 @@ export function BoothMapper3D({
             </div>
           )}
 
+          {/* Selected asset action bar */}
+          {selectedAssetId && isAdmin && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg px-2 py-1.5 z-10">
+              <span className="text-[10px] text-muted-foreground mr-1">
+                {getFurnitureById(placedAssets.find(a => a.instanceId === selectedAssetId)?.assetId || '')?.name || 'Asset'}
+              </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-6 text-[10px] gap-1 px-2"
+                onClick={() => handleRemoveAsset(selectedAssetId)}
+              >
+                <Trash2 className="h-3 w-3" />
+                Delete
+              </Button>
+            </div>
+          )}
+
           {/* Camera presets panel (when environment is on) */}
           {showEnvironment && (
             <div className="absolute top-3 right-3 flex flex-col gap-1 z-10">
