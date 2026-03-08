@@ -106,6 +106,8 @@ export function BoothScene3D({
   allCameraPresets = [],
   onWalkthroughEnd,
   onTourStep,
+  spriteUrls = {},
+  useBillboards = false,
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
