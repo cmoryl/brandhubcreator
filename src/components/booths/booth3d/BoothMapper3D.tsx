@@ -1082,7 +1082,7 @@ export function BoothMapper3D({
             </TabsList>
 
             {/* Image Library Tab - Primary */}
-            <TabsContent value="library" className="mt-3 flex-1 min-h-0 overflow-hidden">
+            <TabsContent value="library" className="mt-3 flex-1 min-h-0 flex flex-col overflow-hidden">
               <div className="flex items-center gap-2 mb-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -1136,7 +1136,7 @@ export function BoothMapper3D({
                   )}
                 </div>
               ) : (
-                <ScrollArea className="h-[45vh]">
+                <ScrollArea className="flex-1 min-h-0 max-h-[45vh]">
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                     {filteredLibraryImages.map((img) => (
                       <button
