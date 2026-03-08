@@ -155,6 +155,14 @@ export function BoothMapper3D({
           setUploadedSpecs((data.uploaded_specs as { url: string; name: string }[]) || []);
           setShowLabels(data.show_labels ?? true);
           setShowDimensions(data.show_dimensions ?? true);
+          // Load furniture assets and panel overrides from assignments JSONB
+          const saved = data.assignments as any;
+          if (saved?.__placedAssets) {
+            setPlacedAssets(saved.__placedAssets as PlacedAsset[]);
+          }
+          if (saved?.__panelPositions) {
+            setPanelPositionOverrides(saved.__panelPositions as Record<string, [number, number, number]>);
+          }
         }
       } catch (e) {
         console.error('Failed to load 3D mapping:', e);
