@@ -22,6 +22,7 @@ interface BoothPanel3DProps {
 function TexturedPanel({ imageUrl, isSelected }: { imageUrl: string; isSelected: boolean }) {
   const texture = useTexture(imageUrl);
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 16;
 
   return (
     <meshStandardMaterial
@@ -29,6 +30,9 @@ function TexturedPanel({ imageUrl, isSelected }: { imageUrl: string; isSelected:
       side={THREE.DoubleSide}
       emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
       emissiveIntensity={isSelected ? 0.1 : 0}
+      roughness={0.35}
+      metalness={0.02}
+      envMapIntensity={0.4}
     />
   );
 }
@@ -39,6 +43,9 @@ function EmptyPanel({ hovered, isSelected }: { hovered: boolean; isSelected: boo
       color={hovered ? '#1e293b' : '#0f172a'}
       emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
       emissiveIntensity={isSelected ? 0.2 : 0}
+      roughness={0.6}
+      metalness={0.05}
+      envMapIntensity={0.2}
     />
   );
 }
@@ -236,14 +243,32 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
   const widthFt = (panel.size[0] * 3.28).toFixed(0);
   const heightFt = (panel.size[1] * 3.28).toFixed(0);
 
-  const panelThickness = 0.05; // 5cm thick wall
+  const panelThickness = 0.05;
 
   return (
     <group position={panel.position} rotation={panel.rotation}>
-      {/* Panel back body — solid wall with depth */}
+      {/* Panel back body — solid wall with depth, enhanced PBR */}
       <mesh position={[0, 0, -panelThickness / 2]} receiveShadow castShadow>
         <boxGeometry args={[panel.size[0], panel.size[1], panelThickness]} />
-        <meshStandardMaterial color="#1e293b" roughness={0.7} metalness={0.05} />
+        <meshStandardMaterial
+          color="#1e293b"
+          roughness={0.55}
+          metalness={0.08}
+          envMapIntensity={0.3}
+        />
+      </mesh>
+
+      {/* Panel edge trim — aluminum frame effect */}
+      <mesh position={[0, 0, -panelThickness / 2]}>
+        <boxGeometry args={[panel.size[0] + 0.008, panel.size[1] + 0.008, panelThickness + 0.004]} />
+        <meshStandardMaterial
+          color="#4b5563"
+          roughness={0.2}
+          metalness={0.7}
+          transparent
+          opacity={0.3}
+          envMapIntensity={0.5}
+        />
       </mesh>
 
       {/* Panel front face — image or empty material */}

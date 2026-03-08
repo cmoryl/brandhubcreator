@@ -13,19 +13,18 @@ interface ExpoEnvironmentProps {
   config: EnvironmentConfig;
 }
 
-/** Realistic expo hall carpet floor */
+/** Realistic expo hall carpet floor with procedural bump */
 function ExpoCarpet({ showReflections, glossy }: { showReflections: boolean; glossy?: boolean }) {
-  const carpetTexture = useMemo(() => {
+  const { carpetTexture, bumpTexture } = useMemo(() => {
+    // Color texture
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
     canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
 
-    // Base carpet color (deep expo blue-grey)
     ctx.fillStyle = '#2d3748';
     ctx.fillRect(0, 0, 1024, 1024);
 
-    // Carpet fiber texture - dense noise
     const fiberCount = glossy ? 50000 : 30000;
     for (let i = 0; i < fiberCount; i++) {
       const x = Math.random() * 1024;
@@ -36,7 +35,6 @@ function ExpoCarpet({ showReflections, glossy }: { showReflections: boolean; glo
       ctx.fillRect(x, y, size, size);
     }
 
-    // Carpet weave pattern
     ctx.globalAlpha = glossy ? 0.05 : 0.08;
     for (let i = 0; i < 1024; i += 4) {
       ctx.strokeStyle = '#1a2332';
@@ -52,7 +50,6 @@ function ExpoCarpet({ showReflections, glossy }: { showReflections: boolean; glo
     }
     ctx.globalAlpha = 1;
 
-    // Aisle tape markings (yellow safety tape)
     ctx.strokeStyle = '#b8860b';
     ctx.lineWidth = 6;
     ctx.setLineDash([40, 20]);
@@ -65,7 +62,27 @@ function ExpoCarpet({ showReflections, glossy }: { showReflections: boolean; glo
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
     tex.repeat.set(10, 10);
     tex.anisotropy = 16;
-    return tex;
+
+    // Bump/roughness texture for surface detail
+    const bumpCanvas = document.createElement('canvas');
+    bumpCanvas.width = 512;
+    bumpCanvas.height = 512;
+    const bCtx = bumpCanvas.getContext('2d')!;
+    bCtx.fillStyle = '#808080';
+    bCtx.fillRect(0, 0, 512, 512);
+    // Carpet fiber bumps
+    for (let i = 0; i < 20000; i++) {
+      const x = Math.random() * 512;
+      const y = Math.random() * 512;
+      const v = 100 + Math.random() * 56;
+      bCtx.fillStyle = `rgb(${v},${v},${v})`;
+      bCtx.fillRect(x, y, 1, 1);
+    }
+    const bTex = new THREE.CanvasTexture(bumpCanvas);
+    bTex.wrapS = bTex.wrapT = THREE.RepeatWrapping;
+    bTex.repeat.set(10, 10);
+
+    return { carpetTexture: tex, bumpTexture: bTex };
   }, [glossy]);
 
   return (
@@ -73,6 +90,8 @@ function ExpoCarpet({ showReflections, glossy }: { showReflections: boolean; glo
       <planeGeometry args={[50, 50]} />
       <meshStandardMaterial
         map={carpetTexture}
+        bumpMap={bumpTexture}
+        bumpScale={glossy ? 0.003 : 0.005}
         roughness={glossy ? 0.6 : showReflections ? 0.85 : 0.95}
         metalness={glossy ? 0.08 : showReflections ? 0.02 : 0}
         envMapIntensity={glossy ? 0.4 : 0.1}
