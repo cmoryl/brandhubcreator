@@ -439,6 +439,9 @@ export function BoothScene3D({
           showSafeZones={showSafeZones}
           isDragMode={isDragMode}
           onPositionChange={onPanelPositionChange || (() => {})}
+          printStyle={printStyle}
+          edgeLightIntensity={boothLighting?.edgeLightEnabled ? boothLighting.edgeLightIntensity : 0}
+          edgeLightColor={boothLighting?.edgeLightColor}
         />
       ))}
 
