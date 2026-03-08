@@ -331,20 +331,6 @@ export function BoothMapper3D({
     toast.success('Asset removed');
   }, []);
 
-  // Keyboard shortcut: Delete/Backspace removes selected asset
-  useEffect(() => {
-    if (!isAdmin || !selectedAssetId) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        if ((e.target as HTMLElement)?.tagName === 'INPUT' || (e.target as HTMLElement)?.tagName === 'TEXTAREA') return;
-        e.preventDefault();
-        handleRemoveAsset(selectedAssetId);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [isAdmin, selectedAssetId, handleRemoveAsset]);
-
   const handleUpdateAsset = useCallback((instanceId: string, updates: Partial<PlacedAsset>) => {
     setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, ...updates } : a));
   }, []);
@@ -362,6 +348,50 @@ export function BoothMapper3D({
       };
     }));
   }, []);
+
+  // Keyboard shortcuts: Delete/Backspace removes, Arrow keys nudge selected asset
+  useEffect(() => {
+    if (!isAdmin || !selectedAssetId) return;
+    const step = 0.1;
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      switch (e.key) {
+        case 'Delete':
+        case 'Backspace':
+          e.preventDefault();
+          handleRemoveAsset(selectedAssetId);
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          onAssetNudge(selectedAssetId, -step, 0, 0);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          onAssetNudge(selectedAssetId, step, 0, 0);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          if (e.shiftKey) {
+            onAssetNudge(selectedAssetId, 0, step, 0);
+          } else {
+            onAssetNudge(selectedAssetId, 0, 0, -step);
+          }
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          if (e.shiftKey) {
+            onAssetNudge(selectedAssetId, 0, -step, 0);
+          } else {
+            onAssetNudge(selectedAssetId, 0, 0, step);
+          }
+          break;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isAdmin, selectedAssetId, handleRemoveAsset, onAssetNudge]);
 
   const handleOpenCoverImagePicker = useCallback((instanceId: string) => {
     setCoverImageTargetAssetId(instanceId);
