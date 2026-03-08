@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { AssetColorAnalysis } from './AssetColorAnalysis';
 import { AssetReadabilityAnalysis } from './AssetReadabilityAnalysis';
+import { SmartGraphicWarnings } from './SmartGraphicWarnings';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -118,10 +119,20 @@ export function InspectorPanel({
             <span className="text-xs font-semibold">Inspector</span>
           </div>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 text-center">
-          <Box className="h-8 w-8 text-muted-foreground/30 mb-3" />
-          <p className="text-xs text-muted-foreground font-medium">No Selection</p>
-          <p className="text-[10px] text-muted-foreground/70 mt-1">Click a panel or asset in the viewport to inspect and edit its properties</p>
+        <div className="flex-1 flex flex-col px-3 py-3">
+          <div className="flex flex-col items-center justify-center py-6 text-center mb-4">
+            <Box className="h-8 w-8 text-muted-foreground/30 mb-3" />
+            <p className="text-xs text-muted-foreground font-medium">No Selection</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-1">Click a panel or asset in the viewport to inspect and edit its properties</p>
+          </div>
+          <Separator />
+          <div className="mt-3">
+            <SmartGraphicWarnings
+              panels={panels}
+              assignments={assignments}
+              compact={false}
+            />
+          </div>
         </div>
       </div>
     );
@@ -185,6 +196,15 @@ export function InspectorPanel({
               </div>
             )}
           </div>
+
+          {/* Smart Graphic Warnings for this panel */}
+          <Separator />
+          <SmartGraphicWarnings
+            panels={panels}
+            assignments={assignments}
+            focusPanelId={selectedPanel.id}
+            compact
+          />
 
           {/* Panel Color Analysis */}
           {hasImage && (
