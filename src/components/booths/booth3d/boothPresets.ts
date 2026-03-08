@@ -611,7 +611,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Warm lighting and premium textures mirror the hospitality experience',
     ],
     tags: ['hotel', 'resort', 'hospitality', 'travel', 'destination', 'luxury'],
-  },
+    placedAssets: HOSPITALITY_HOTEL_ASSETS,
+    flooringConfig: HOSPITALITY_HOTEL_FLOOR,
 
   // ═══════════════════════════════════════
   // GOVERNMENT & DEFENSE
