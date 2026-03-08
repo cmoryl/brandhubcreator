@@ -86,6 +86,7 @@ import { BoothScorePanel, type BoothScoreData } from './BoothScorePanel';
 import { BoothDesignToolbar } from './BoothDesignToolbar';
 import { BoothLeftPanel } from './BoothLeftPanel';
 import { EnvironmentPresetCards } from './EnvironmentPresetCards';
+import { PanelDesigner } from './PanelDesigner';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -186,6 +187,8 @@ export function BoothMapper3D({
   const [activeMode, setActiveMode] = useState<BoothMode>('design');
   const [boothScore, setBoothScore] = useState<BoothScoreData | null>(null);
   const [isScoringBooth, setIsScoringBooth] = useState(false);
+  const [panelDesignerOpen, setPanelDesignerOpen] = useState(false);
+  const [panelDesignerTarget, setPanelDesignerTarget] = useState<string | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   // Organization context for image library
   const { organization } = useOrganization();
@@ -1438,8 +1441,25 @@ export function BoothMapper3D({
               Assign {assigningSide === 'back' ? 'Back' : 'Front'} Image to {boothConfig.panels.find((p) => p.id === selectedPanelId)?.label}
             </DialogTitle>
             <DialogDescription>
-              Select from your image library, uploaded specs, booth variants, or gallery.
+              Select from your image library, uploaded specs, booth variants, or gallery — or design directly.
             </DialogDescription>
+            {/* Design Panel button */}
+            <div className="flex items-center gap-2 mt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs border-primary/30 hover:bg-primary/10"
+                onClick={() => {
+                  setImagePickerOpen(false);
+                  setPanelDesignerTarget(selectedPanelId);
+                  setPanelDesignerOpen(true);
+                }}
+              >
+                <Palette className="h-3.5 w-3.5 text-primary" />
+                Design Panel Graphic
+              </Button>
+              <span className="text-[10px] text-muted-foreground">Compose text, logos & graphics directly</span>
+            </div>
             {/* Front / Back toggle */}
             <div className="flex items-center gap-1 mt-2">
               <button
@@ -1758,6 +1778,31 @@ export function BoothMapper3D({
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Panel Designer */}
+      <PanelDesigner
+        open={panelDesignerOpen}
+        onClose={() => { setPanelDesignerOpen(false); setPanelDesignerTarget(null); }}
+        panelId={panelDesignerTarget || ''}
+        panelLabel={boothConfig.panels.find(p => p.id === panelDesignerTarget)?.label || 'Panel'}
+        panelSizeFt={(() => {
+          const panel = boothConfig.panels.find(p => p.id === panelDesignerTarget);
+          if (!panel) return [10, 8] as [number, number];
+          return [Math.round(panel.size[0] / 0.3048), Math.round(panel.size[1] / 0.3048)] as [number, number];
+        })()}
+        brandColors={['hsl(221, 83%, 53%)', 'hsl(0, 0%, 100%)', 'hsl(0, 0%, 0%)', 'hsl(0, 0%, 20%)', 'hsl(48, 96%, 53%)']}
+        imageLibrary={libraryImages.map(i => i.public_url).filter(Boolean)}
+        onApply={(dataUrl) => {
+          if (!panelDesignerTarget) return;
+          setAssignments(prev => {
+            const next = { ...prev, [panelDesignerTarget]: dataUrl };
+            onAssignmentsChange?.(
+              Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
+            );
+            return next;
+          });
+        }}
+      />
     </div>
   );
 }
