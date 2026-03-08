@@ -142,6 +142,9 @@ export function BoothMapper3D({
     showDimensions: true,
   });
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  // Booth lighting & print material
+  const [boothLighting, setBoothLighting] = useState<BoothLightingConfig>(getDefaultBoothLighting());
+  const [printStyle, setPrintStyle] = useState<PrintStyle>('fabric-matte');
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [assetFilterCategory, setAssetFilterCategory] = useState<string>('all');
   const [panelPositionOverrides, setPanelPositionOverrides] = useState<Record<string, [number, number, number]>>({});
