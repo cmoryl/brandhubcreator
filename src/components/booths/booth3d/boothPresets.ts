@@ -579,7 +579,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Include a "teacher view" and "student view" to demo both sides',
     ],
     tags: ['edtech', 'lms', 'e-learning', 'platform', 'digital-learning'],
-  },
+    placedAssets: EDU_EDTECH_ASSETS,
+    flooringConfig: EDU_EDTECH_FLOOR,
 
   // ═══════════════════════════════════════
   // HOSPITALITY & EVENTS
