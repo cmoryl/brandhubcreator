@@ -93,6 +93,7 @@ import { type LogisticsMarker, type LogisticsCategory, createMarker, LOGISTICS_C
 import { BoothAnalyticsDashboard } from './BoothAnalyticsDashboard';
 import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
 import type { AIBoothResult } from './AIBoothGenerator';
+import { VendorExportPack } from './VendorExportPack';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
