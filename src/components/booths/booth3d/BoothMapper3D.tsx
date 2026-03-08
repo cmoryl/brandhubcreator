@@ -130,6 +130,13 @@ export function BoothMapper3D({
   // Drag mode & furniture state
   const [isDragMode, setIsDragMode] = useState(false);
   const [placedAssets, setPlacedAssets] = useState<PlacedAsset[]>([]);
+  // Flooring state
+  const [flooringConfig, setFlooringConfig] = useState<FlooringConfig>({
+    type: 'carpet-plush',
+    color: '#1a1a2e',
+    showBorder: true,
+    showDimensions: true,
+  });
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [assetFilterCategory, setAssetFilterCategory] = useState<string>('all');
