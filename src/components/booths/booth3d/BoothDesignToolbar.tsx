@@ -2,7 +2,7 @@
  * BoothDesignToolbar - Grouped toolbar for design mode
  * Condensed from the original dense toolbar into logical sections
  */
-import { type ReactNode } from 'react';
+import { type ReactNode, forwardRef } from 'react';
 import {
   Layout, Sun, Tag, Ruler, ScanLine, Building2, Users, Route,
   BarChart3, Move, Plus, Box, Lightbulb, BookTemplate, Camera,
