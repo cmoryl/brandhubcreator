@@ -1276,7 +1276,7 @@ export function BoothMapper3D({
             onNudgeAsset={onAssetNudge}
             isAdmin={isAdmin}
             onOpenAssetImagePicker={handleOpenAssetImagePicker}
-            brandColors={organization?.primary_color ? [organization.primary_color, organization.secondary_color, organization.accent_color].filter(Boolean) as string[] : []}
+            brandColors={organization?.primaryColor ? [organization.primaryColor, organization.secondaryColor, organization.accentColor].filter(Boolean) as string[] : []}
           />
         }
         canvas={canvasElement}
