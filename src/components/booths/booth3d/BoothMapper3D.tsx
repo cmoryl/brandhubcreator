@@ -19,7 +19,7 @@ import {
   Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search,
   Users, Route, Building2, BookTemplate, Lightbulb, ScanLine,
   Move, Plus, Trash2, Monitor, Table2, Armchair, Flag, Box,
-  Palette, Shirt
+  Palette, Shirt, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
