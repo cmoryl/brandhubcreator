@@ -78,6 +78,11 @@ interface BoothScene3DProps {
   /** Crowd simulation data for heat map overlay */
   crowdSimulation?: CrowdSimulationData | null;
   showHeatMap?: boolean;
+  /** Logistics markers overlay */
+  logisticsMarkers?: LogisticsMarker[];
+  showLogistics?: boolean;
+  selectedLogisticsId?: string | null;
+  onSelectLogistics?: (id: string) => void;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
