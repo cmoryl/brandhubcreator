@@ -497,6 +497,7 @@ export function BoothMapper3D({
 
   const handleResetView = useCallback(() => {
     setAssignments({});
+    setBackAssignments({});
     onAssignmentsChange?.([]);
     toast.success('All panels cleared');
   }, [onAssignmentsChange]);
