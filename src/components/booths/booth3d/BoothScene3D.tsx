@@ -718,15 +718,23 @@ export function BoothScene3D({
                 <boxGeometry args={[monW, monH, bezelDepth]} />
                 <meshStandardMaterial color="#111111" metalness={0.8} roughness={0.15} />
               </mesh>
-              {/* Screen face (slightly in front) */}
+              {/* Screen face with vivid glow */}
               <mesh position={[0, 0, bezelDepth / 2 + 0.001]}>
                 <planeGeometry args={[monW - 0.02, monH - 0.02]} />
-                <meshStandardMaterial color="#1a1a2e" emissive="#1a2a4a" emissiveIntensity={0.3} metalness={0.1} roughness={0.2} />
+                <meshStandardMaterial color="#0f172a" emissive="#2563eb" emissiveIntensity={0.5} metalness={0.1} roughness={0.15} />
               </mesh>
+              {/* Screen glow halo (soft light spill from display) */}
+              <pointLight
+                position={[0, 0, bezelDepth / 2 + 0.15]}
+                intensity={0.3}
+                color="#3b82f6"
+                distance={2}
+                decay={2}
+              />
               {/* Bezel highlight */}
               <mesh position={[0, 0, bezelDepth / 2 + 0.0005]}>
                 <planeGeometry args={[monW - 0.005, monH - 0.005]} />
-                <meshStandardMaterial color="#000000" opacity={0.5} transparent />
+                <meshStandardMaterial color="#000000" opacity={0.4} transparent />
               </mesh>
               {/* Stand arm */}
               <mesh position={[0, -monH / 2 - 0.15, -0.03]} castShadow>
