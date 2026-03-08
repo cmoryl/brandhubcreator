@@ -1495,6 +1495,18 @@ export function BoothMapper3D({
         </Card>
       )}
 
+      {/* Booth Success Score Panel */}
+      <Card className="p-4 border-primary/20">
+        <BoothScorePanel
+          scoreData={boothScore}
+          onScoreData={setBoothScore}
+          isLoading={isScoringBooth}
+          onRunScore={handleRunBoothScore}
+          crowdScore={crowdSimulation?.visibilityScore}
+          isAdmin={isAdmin}
+        />
+      </Card>
+
       {/* Asset Picker Dialog */}
       <Dialog open={assetPickerOpen} onOpenChange={setAssetPickerOpen}>
         <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
