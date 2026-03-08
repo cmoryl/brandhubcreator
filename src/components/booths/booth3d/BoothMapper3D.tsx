@@ -94,6 +94,7 @@ import { BoothAnalyticsDashboard } from './BoothAnalyticsDashboard';
 import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
 import type { AIBoothResult } from './AIBoothGenerator';
 import { VendorExportPack } from './VendorExportPack';
+import { PanelFileMapper } from './PanelFileMapper';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
