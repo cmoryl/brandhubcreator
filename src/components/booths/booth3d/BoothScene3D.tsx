@@ -632,8 +632,8 @@ export function BoothScene3D({
         </>
       )}
 
-      {/* Contact shadows — soft ground-level AO for hyper/ultra modes */}
-      {envConfig?.useContactShadows && (
+      {/* Contact shadows — soft ground-level AO for all modes */}
+      {envConfig?.useContactShadows ? (
         <ContactShadows
           position={[0, 0.001, 0]}
           opacity={envConfig.contactShadowOpacity ?? 0.4}
@@ -642,6 +642,16 @@ export function BoothScene3D({
           far={4}
           resolution={isHyper ? 512 : 256}
           color="#0a0a14"
+        />
+      ) : (
+        <ContactShadows
+          position={[0, 0.001, 0]}
+          opacity={0.25}
+          scale={16}
+          blur={2.5}
+          far={3}
+          resolution={256}
+          color="#1a1a2e"
         />
       )}
 
