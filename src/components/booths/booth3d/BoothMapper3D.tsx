@@ -950,13 +950,22 @@ export function BoothMapper3D({
               <div className="border-t border-border pt-1.5 mt-1 space-y-1">
                 <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider px-1">🎬 Walkthrough</p>
                 <button
+                  onClick={() => setWalkthroughMode(walkthroughMode === 'fps' ? 'none' : 'fps')}
+                  className={cn(
+                    "w-full text-left px-2 py-1 rounded text-[10px] font-medium transition-colors",
+                    walkthroughMode === 'fps' ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground"
+                  )}
+                >
+                  {walkthroughMode === 'fps' ? '⏹ Exit FPS' : '🎮 WASD Walk'}
+                </button>
+                <button
                   onClick={() => setWalkthroughMode(walkthroughMode === 'walkthrough' ? 'none' : 'walkthrough')}
                   className={cn(
                     "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
                     walkthroughMode === 'walkthrough' ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground"
                   )}
                 >
-                  {walkthroughMode === 'walkthrough' ? '⏹ Stop Walk' : '🚶 First Person'}
+                  {walkthroughMode === 'walkthrough' ? '⏹ Stop Walk' : '🚶 Auto Walk'}
                 </button>
                 <button
                   onClick={() => setWalkthroughMode(walkthroughMode === 'tour' ? 'none' : 'tour')}
