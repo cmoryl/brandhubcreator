@@ -1283,17 +1283,6 @@ export const BrandEventSignageSection = ({
         />
       )}
 
-      {/* Full Booth Detail Popup - portaled to body to avoid transform/overflow issues */}
-      {selectedDivision && createPortal(
-        <AnimatePresence>
-          <DivisionDetail
-            division={selectedDivision}
-            onClose={() => setSelectedDivision(null)}
-            isAdmin={isAdmin}
-          />
-        </AnimatePresence>,
-        document.body
-      )}
     </section>
   );
 };
