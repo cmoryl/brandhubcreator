@@ -30,6 +30,8 @@ interface InspectorPanelProps {
   isAdmin: boolean;
   /** Open the image picker for the given asset, targeting a specific field */
   onOpenAssetImagePicker?: (instanceId: string, target: 'screen' | 'texture' | 'cover') => void;
+  /** Brand colors for alignment analysis */
+  brandColors?: string[];
 }
 
 function PropertyRow({ label, children }: { label: string; children: React.ReactNode }) {
