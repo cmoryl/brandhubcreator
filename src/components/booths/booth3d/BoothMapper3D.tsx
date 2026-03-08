@@ -417,37 +417,53 @@ export function BoothMapper3D({
   }, [coverImageTargetAssetId, handleUpdateAsset]);
 
   const handleSelectPanel = useCallback((panelId: string) => {
-    if (isDragMode) return; // In drag mode, don't open picker
+    if (isDragMode) return;
     if (!isAdmin) return;
     setSelectedPanelId(panelId);
+    setAssigningSide('front');
     setImagePickerOpen(true);
   }, [isAdmin, isDragMode]);
 
   const handleAssignImage = useCallback((imageUrl: string) => {
     if (!selectedPanelId) return;
-    setAssignments((prev) => {
-      const next = { ...prev, [selectedPanelId]: imageUrl };
-      onAssignmentsChange?.(
-        Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
-      );
-      return next;
-    });
+    if (assigningSide === 'back') {
+      setBackAssignments((prev) => ({ ...prev, [selectedPanelId]: imageUrl }));
+      toast.success('Back image assigned');
+    } else {
+      setAssignments((prev) => {
+        const next = { ...prev, [selectedPanelId]: imageUrl };
+        onAssignmentsChange?.(
+          Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
+        );
+        return next;
+      });
+      toast.success('Panel image assigned');
+    }
     setImagePickerOpen(false);
     setSelectedPanelId(null);
-    toast.success('Panel image assigned');
-  }, [selectedPanelId, onAssignmentsChange]);
+  }, [selectedPanelId, assigningSide, onAssignmentsChange]);
 
   const handleClearPanel = useCallback(() => {
     if (!selectedPanelId) return;
-    setAssignments((prev) => {
-      const next = { ...prev };
-      delete next[selectedPanelId];
-      onAssignmentsChange?.(
-        Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
-      );
-      return next;
-    });
+    if (assigningSide === 'back') {
+      setBackAssignments((prev) => {
+        const next = { ...prev };
+        delete next[selectedPanelId];
+        return next;
+      });
+    } else {
+      setAssignments((prev) => {
+        const next = { ...prev };
+        delete next[selectedPanelId];
+        onAssignmentsChange?.(
+          Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
+        );
+        return next;
+      });
+    }
     setImagePickerOpen(false);
+    setSelectedPanelId(null);
+  }, [selectedPanelId, assigningSide, onAssignmentsChange]);
     setSelectedPanelId(null);
   }, [selectedPanelId, onAssignmentsChange]);
 
