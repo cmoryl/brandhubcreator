@@ -203,6 +203,8 @@ export function BoothFurniture3D({
   const isTable = config.category === 'tables';
   const isStool = config.id === 'bar-stool';
   const isKiosk = config.id === 'kiosk-ipad';
+  const isRug = config.category === 'flooring';
+  const isRoundRug = config.id === 'rug-round';
   const hasCover = config.hasTableCover && asset.tableCoverColor;
 
   return (
