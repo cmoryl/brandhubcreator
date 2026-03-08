@@ -480,7 +480,7 @@ function VariantCard({
             </div>
             <div className="flex items-center gap-1 mt-1.5">
               {hasSnapshot ? (
-                <Badge className="text-[9px] bg-emerald-500/15 text-emerald-600 border-emerald-500/30 py-0 px-1.5">
+                <Badge className="text-[9px] bg-primary/10 text-primary border-primary/30 py-0 px-1.5">
                   <Save className="h-2.5 w-2.5 mr-0.5" /> Snapshot saved
                 </Badge>
               ) : (
