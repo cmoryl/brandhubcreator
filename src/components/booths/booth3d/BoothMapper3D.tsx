@@ -666,6 +666,7 @@ export function BoothMapper3D({
     }
   }, [layout, boothConfig, placedAssets, assignments, crowdSimulation, divisionName]);
 
+  const handleScreenshot = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
