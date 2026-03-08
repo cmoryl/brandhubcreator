@@ -94,6 +94,7 @@ export function InspectorPanel({
   onRemoveAsset,
   onNudgeAsset,
   isAdmin,
+  onOpenAssetImagePicker,
 }: InspectorPanelProps) {
   // Selected asset info
   const selectedAsset = selectedAssetId ? placedAssets.find(a => a.instanceId === selectedAssetId) : null;
