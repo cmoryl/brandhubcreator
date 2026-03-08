@@ -2,7 +2,7 @@
  * BoothSystemsLibrary — Master booth system library page.
  * One base design powers multiple events with variant size configurations.
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Building2, Layers, Box, Calendar,
@@ -20,11 +20,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
 import { BrandHubLogo } from '@/components/BrandHubLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useBoothSystems, type BoothSystem, type BoothSystemVariant } from '@/hooks/useBoothSystems';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { toast } from 'sonner';
 
 const VARIANT_TYPES = [
@@ -47,7 +47,7 @@ function VariantTypeIcon({ type }: { type: string }) {
 export default function BoothSystemsLibrary() {
   const navigate = useNavigate();
   const { organization } = useOrganization();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isGuideAdmin: isAdmin } = useGuideAdmin({ entityOrgId: organization?.id });
   const { systems, isLoading, createSystem, updateSystem, deleteSystem, addVariant, deleteVariant } =
     useBoothSystems(organization?.id);
 
@@ -55,6 +55,7 @@ export default function BoothSystemsLibrary() {
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [expandedSystem, setExpandedSystem] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add variant dialog
   const [showAddVariant, setShowAddVariant] = useState<string | null>(null);
@@ -67,32 +68,34 @@ export default function BoothSystemsLibrary() {
   const [editName, setEditName] = useState('');
   const [editDesc, setEditDesc] = useState('');
 
-  useEffect(() => {
-    const check = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAdmin(!!user);
-    };
-    check();
-  }, []);
-
   const handleCreate = async () => {
-    if (!newName.trim()) return;
-    const id = await createSystem(newName.trim(), newDesc.trim());
-    if (id) {
-      setShowCreateDialog(false);
-      setNewName('');
-      setNewDesc('');
-      setExpandedSystem(id);
+    if (!newName.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const id = await createSystem(newName.trim(), newDesc.trim());
+      if (id) {
+        setShowCreateDialog(false);
+        setNewName('');
+        setNewDesc('');
+        setExpandedSystem(id);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleAddVariant = async () => {
-    if (!showAddVariant || !variantName.trim()) return;
-    await addVariant(showAddVariant, variantName.trim(), variantType, variantDims.trim(), {});
-    setShowAddVariant(null);
-    setVariantName('');
-    setVariantType('inline');
-    setVariantDims('');
+    if (!showAddVariant || !variantName.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await addVariant(showAddVariant, variantName.trim(), variantType, variantDims.trim(), {});
+      setShowAddVariant(null);
+      setVariantName('');
+      setVariantType('inline');
+      setVariantDims('');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSaveEdit = async (systemId: string) => {
@@ -156,7 +159,7 @@ export default function BoothSystemsLibrary() {
         </div>
       </div>
 
-      <Separator className="mx-6 max-w-7xl" />
+      <Separator className="max-w-7xl mx-auto" />
 
       {/* Systems list */}
       <div className="max-w-7xl mx-auto px-6 py-6">
@@ -224,7 +227,7 @@ export default function BoothSystemsLibrary() {
               Create a master booth system that can be reused across events.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pt-2">
+          <form onSubmit={(e) => { e.preventDefault(); handleCreate(); }} className="space-y-4 pt-2">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">System Name</label>
               <Input
@@ -244,10 +247,12 @@ export default function BoothSystemsLibrary() {
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancel</Button>
-              <Button onClick={handleCreate} disabled={!newName.trim()}>Create System</Button>
+              <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>Cancel</Button>
+              <Button type="submit" disabled={!newName.trim() || isSubmitting}>
+                {isSubmitting ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> Creating...</> : 'Create System'}
+              </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -260,7 +265,7 @@ export default function BoothSystemsLibrary() {
               Define a new size variant for this system.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pt-2">
+          <form onSubmit={(e) => { e.preventDefault(); handleAddVariant(); }} className="space-y-4 pt-2">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Variant Name</label>
               <Input
@@ -292,10 +297,12 @@ export default function BoothSystemsLibrary() {
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowAddVariant(null)}>Cancel</Button>
-              <Button onClick={handleAddVariant} disabled={!variantName.trim()}>Add Variant</Button>
+              <Button type="button" variant="outline" onClick={() => setShowAddVariant(null)}>Cancel</Button>
+              <Button type="submit" disabled={!variantName.trim() || isSubmitting}>
+                {isSubmitting ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> Adding...</> : 'Add Variant'}
+              </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
@@ -329,7 +336,7 @@ function SystemCard({
   onEditNameChange, onEditDescChange, onDelete, onAddVariant, onDeleteVariant,
   onNavigateToMapper,
 }: SystemCardProps) {
-  const [confirmDeleteVariant, setConfirmDeleteVariant] = useState<string | null>(null);
+  
   return (
     <Card className={cn(
       'transition-all',
@@ -420,11 +427,7 @@ function SystemCard({
                     variant={variant}
                     isAdmin={isAdmin}
                     onOpen={() => onNavigateToMapper()}
-                    onDelete={() => {
-                      if (confirm(`Delete variant "${variant.variantName}"? This cannot be undone.`)) {
-                        onDeleteVariant(variant.id);
-                      }
-                    }}
+                    onDelete={() => onDeleteVariant(variant.id)}
                   />
                 ))}
               </div>
@@ -477,7 +480,7 @@ function VariantCard({
             </div>
             <div className="flex items-center gap-1 mt-1.5">
               {hasSnapshot ? (
-                <Badge className="text-[9px] bg-emerald-500/15 text-emerald-600 border-emerald-500/30 py-0 px-1.5">
+                <Badge className="text-[9px] bg-primary/10 text-primary border-primary/30 py-0 px-1.5">
                   <Save className="h-2.5 w-2.5 mr-0.5" /> Snapshot saved
                 </Badge>
               ) : (
@@ -488,13 +491,31 @@ function VariantCard({
             </div>
           </div>
           {isAdmin && (
-            <Button
-              variant="ghost" size="sm"
-              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive shrink-0"
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost" size="sm"
+                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete "{variant.variantName}"?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This variant and its snapshot data will be permanently removed. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Delete Variant
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
       </CardContent>
