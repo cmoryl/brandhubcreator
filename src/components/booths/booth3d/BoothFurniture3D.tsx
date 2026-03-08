@@ -1,6 +1,7 @@
 /**
  * BoothFurniture3D - 3D furniture / asset models for booth scene
  * Supports drag-and-drop repositioning on the floor plane
+ * Table covers with custom fabric colors and image mapping
  */
 import { useRef, useState, useMemo, Suspense, useCallback } from 'react';
 import * as THREE from 'three';
@@ -22,6 +23,102 @@ function ScreenTexture({ url }: { url: string }) {
   const tex = useTexture(url);
   tex.colorSpace = THREE.SRGBColorSpace;
   return <meshStandardMaterial map={tex} emissive="#111" emissiveIntensity={0.05} />;
+}
+
+/** Table cover front-panel image texture */
+function CoverImageTexture({ url, color }: { url: string; color: string }) {
+  const tex = useTexture(url);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return (
+    <meshStandardMaterial
+      map={tex}
+      color={color}
+      roughness={0.75}
+      metalness={0.02}
+      side={THREE.DoubleSide}
+    />
+  );
+}
+
+/** Table cover 3D rendering — fitted, draped, or throw style */
+function TableCover3D({
+  w, h, d,
+  coverColor,
+  coverImageUrl,
+  coverStyle = 'fitted',
+}: {
+  w: number; h: number; d: number;
+  coverColor: string;
+  coverImageUrl?: string;
+  coverStyle?: 'fitted' | 'draped' | 'throw';
+}) {
+  const fabricMat = useMemo(() => ({
+    color: coverColor,
+    roughness: 0.8,
+    metalness: 0.02,
+    side: THREE.DoubleSide as THREE.Side,
+  }), [coverColor]);
+
+  const overhang = coverStyle === 'throw' ? 0.06 : coverStyle === 'draped' ? 0.03 : 0.01;
+  const dropLength = coverStyle === 'throw' ? h + 0.02 : coverStyle === 'draped' ? h * 0.85 : h;
+  const coverW = w + overhang * 2;
+  const coverD = d + overhang * 2;
+
+  return (
+    <group>
+      {/* Top surface */}
+      <mesh position={[0, h + 0.005, 0]} receiveShadow>
+        <boxGeometry args={[coverW, 0.008, coverD]} />
+        <meshStandardMaterial {...fabricMat} />
+      </mesh>
+
+      {/* Front drape (primary — receives image) */}
+      <mesh position={[0, h - dropLength / 2, d / 2 + overhang]} receiveShadow castShadow>
+        <planeGeometry args={[coverW, dropLength]} />
+        {coverImageUrl ? (
+          <Suspense fallback={<meshStandardMaterial {...fabricMat} />}>
+            <CoverImageTexture url={coverImageUrl} color={coverColor} />
+          </Suspense>
+        ) : (
+          <meshStandardMaterial {...fabricMat} />
+        )}
+      </mesh>
+
+      {/* Back drape */}
+      <mesh position={[0, h - dropLength / 2, -(d / 2 + overhang)]} rotation={[0, Math.PI, 0]} receiveShadow>
+        <planeGeometry args={[coverW, dropLength]} />
+        <meshStandardMaterial {...fabricMat} />
+      </mesh>
+
+      {/* Left side drape */}
+      <mesh position={[-(w / 2 + overhang), h - dropLength / 2, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+        <planeGeometry args={[coverD, dropLength]} />
+        <meshStandardMaterial {...fabricMat} />
+      </mesh>
+
+      {/* Right side drape */}
+      <mesh position={[w / 2 + overhang, h - dropLength / 2, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
+        <planeGeometry args={[coverD, dropLength]} />
+        <meshStandardMaterial {...fabricMat} />
+      </mesh>
+
+      {/* Subtle bottom edge fold for throw/draped styles */}
+      {coverStyle !== 'fitted' && (
+        <>
+          {/* Front bottom fold */}
+          <mesh position={[0, h - dropLength - 0.005, d / 2 + overhang - 0.005]} receiveShadow>
+            <boxGeometry args={[coverW, 0.01, 0.015]} />
+            <meshStandardMaterial {...fabricMat} />
+          </mesh>
+          {/* Back bottom fold */}
+          <mesh position={[0, h - dropLength - 0.005, -(d / 2 + overhang - 0.005)]} receiveShadow>
+            <boxGeometry args={[coverW, 0.01, 0.015]} />
+            <meshStandardMaterial {...fabricMat} />
+          </mesh>
+        </>
+      )}
+    </group>
+  );
 }
 
 export function BoothFurniture3D({
@@ -78,6 +175,7 @@ export function BoothFurniture3D({
   const isTable = config.category === 'tables';
   const isStool = config.id === 'bar-stool';
   const isKiosk = config.id === 'kiosk-ipad';
+  const hasCover = config.hasTableCover && asset.tableCoverColor;
 
   return (
     <group
@@ -119,6 +217,18 @@ export function BoothFurniture3D({
               <meshStandardMaterial color={color} roughness={0.6} />
             </mesh>
           ))}
+
+          {/* Table Cover */}
+          {hasCover && (
+            <TableCover3D
+              w={w}
+              h={h}
+              d={d}
+              coverColor={asset.tableCoverColor!}
+              coverImageUrl={asset.tableCoverImageUrl}
+              coverStyle={asset.tableCoverStyle || 'fitted'}
+            />
+          )}
         </group>
       ) : isTV && config.id.includes('wall') ? (
         // Wall-mounted TV: flat panel
@@ -235,6 +345,9 @@ export function BoothFurniture3D({
             : "bg-background/80 text-foreground border border-border/50"
         )}>
           {asset.label || config.name}
+          {hasCover && (
+            <span className="ml-1 text-[8px] opacity-70">🎨</span>
+          )}
         </div>
       </Html>
 
