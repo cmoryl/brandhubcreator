@@ -655,6 +655,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['government', 'defense', 'federal', 'contractor', 'public-sector'],
     placedAssets: GOV_DEFENSE_ASSETS,
     flooringConfig: GOV_DEFENSE_FLOOR,
+  },
 ];
 
 export const PRESET_CATEGORIES: { value: string; label: string; icon: string }[] = [
