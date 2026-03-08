@@ -16,6 +16,10 @@ interface SpriteState {
   count: number;
 }
 
+interface GenerateSpriteOptions {
+  forceRegenerate?: boolean;
+}
+
 export function useCharacterSprites() {
   const [state, setState] = useState<SpriteState>({
     sprites: {},
@@ -25,32 +29,54 @@ export function useCharacterSprites() {
   });
   const mountedRef = useRef(true);
 
+  const getSpriteDirectory = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return null;
+    return `booth-sprites/${user.id}`;
+  }, []);
+
+  const getPublicSpriteUrl = useCallback((path: string, version: string) => {
+    const { data } = supabase.storage.from('organization-assets').getPublicUrl(path);
+    return `${data.publicUrl}?v=${encodeURIComponent(version)}`;
+  }, []);
+
   // Check which sprites already exist in storage
   useEffect(() => {
     mountedRef.current = true;
     checkExistingSprites();
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const checkExistingSprites = useCallback(async () => {
     try {
-      const { data: files } = await supabase.storage
-        .from('organization-assets')
-        .list('booth-sprites');
+      const spriteDir = await getSpriteDirectory();
+      if (!spriteDir) {
+        if (mountedRef.current) {
+          setState((prev) => ({ ...prev, ready: true }));
+        }
+        return;
+      }
+
+      const { data: files } = await supabase.storage.from('organization-assets').list(spriteDir);
 
       if (!mountedRef.current) return;
 
       const existing: Record<string, string> = {};
       if (files) {
-          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-          for (const file of files) {
-            const id = file.name.replace('.png', '');
-            const version = encodeURIComponent(file.updated_at ?? file.created_at ?? file.name);
-            existing[id] = `${supabaseUrl}/storage/v1/object/public/organization-assets/booth-sprites/${file.name}?v=${version}`;
-          }
+        for (const file of files) {
+          if (!file.name.endsWith('.png')) continue;
+          const id = file.name.replace('.png', '');
+          const version = file.updated_at ?? file.created_at ?? file.name;
+          existing[id] = getPublicSpriteUrl(`${spriteDir}/${file.name}`, version);
+        }
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         sprites: { ...prev.sprites, ...existing },
         ready: true,
@@ -59,110 +85,127 @@ export function useCharacterSprites() {
     } catch (err) {
       console.warn('[useCharacterSprites] Failed to check existing sprites:', err);
       if (mountedRef.current) {
-        setState(prev => ({ ...prev, ready: true }));
+        setState((prev) => ({ ...prev, ready: true }));
       }
     }
-  }, []);
+  }, [getPublicSpriteUrl, getSpriteDirectory]);
 
-  const generateSprite = useCallback(async (character: CharacterSprite) => {
-    if (state.sprites[character.id] || state.generating.has(character.id)) return;
+  const requestSprite = useCallback(
+    async (character: CharacterSprite, options: GenerateSpriteOptions = {}) => {
+      setState((prev) => ({
+        ...prev,
+        generating: new Set([...prev.generating, character.id]),
+      }));
 
-    setState(prev => ({
-      ...prev,
-      generating: new Set([...prev.generating, character.id]),
-    }));
+      try {
+        const [{ data: sessionData }, spriteDir] = await Promise.all([
+          supabase.auth.getSession(),
+          getSpriteDirectory(),
+        ]);
 
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-      if (!token) return;
+        const token = sessionData?.session?.access_token;
+        if (!token || !spriteDir) return;
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/generate-character-sprite`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          characterId: character.id,
-          promptHint: character.promptHint,
-        }),
-      });
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const response = await fetch(`${supabaseUrl}/functions/v1/generate-character-sprite`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            characterId: character.id,
+            promptHint: character.promptHint,
+            forceRegenerate: options.forceRegenerate ?? false,
+          }),
+        });
 
-      if (!response.ok) {
-        console.warn(`[useCharacterSprites] Failed to generate ${character.id}: ${response.status}`);
-        return;
-      }
+        if (!response.ok) {
+          console.warn(`[useCharacterSprites] Failed to generate ${character.id}: ${response.status}`);
+          return;
+        }
 
-      const data = await response.json();
-      if (!mountedRef.current) return;
+        const data = await response.json();
+        if (!mountedRef.current || !data.url) return;
 
-      if (data.url) {
-        setState(prev => {
+        setState((prev) => {
           const newSprites = { ...prev.sprites, [character.id]: data.url };
-          const newGen = new Set(prev.generating);
-          newGen.delete(character.id);
           return {
             ...prev,
             sprites: newSprites,
-            generating: newGen,
             count: Object.keys(newSprites).length,
           };
         });
+      } catch (err) {
+        console.warn(`[useCharacterSprites] Error generating ${character.id}:`, err);
+      } finally {
+        if (mountedRef.current) {
+          setState((prev) => {
+            const newGen = new Set(prev.generating);
+            newGen.delete(character.id);
+            return { ...prev, generating: newGen };
+          });
+        }
       }
-    } catch (err) {
-      console.warn(`[useCharacterSprites] Error generating ${character.id}:`, err);
-      if (mountedRef.current) {
-        setState(prev => {
-          const newGen = new Set(prev.generating);
-          newGen.delete(character.id);
-          return { ...prev, generating: newGen };
-        });
-      }
-    }
-  }, [state.sprites, state.generating]);
+    },
+    [getSpriteDirectory]
+  );
+
+  const generateSprite = useCallback(
+    async (character: CharacterSprite) => {
+      if (state.sprites[character.id] || state.generating.has(character.id)) return;
+      await requestSprite(character);
+    },
+    [requestSprite, state.generating, state.sprites]
+  );
 
   const generateAll = useCallback(async () => {
     for (const char of CHARACTER_CATALOG) {
       if (!state.sprites[char.id]) {
-        await generateSprite(char);
+        await requestSprite(char);
       }
     }
-  }, [state.sprites, generateSprite]);
+  }, [requestSprite, state.sprites]);
 
-  /** Delete all cached sprites and regenerate with proper transparency */
+  /** Delete all cached sprites and regenerate */
   const regenerateAll = useCallback(async () => {
     try {
-      // Delete all existing sprites from storage
-      const { data: files } = await supabase.storage
-        .from('organization-assets')
-        .list('booth-sprites');
+      const spriteDir = await getSpriteDirectory();
+      if (!spriteDir) return;
+
+      // Delete user-scoped sprites from storage
+      const { data: files } = await supabase.storage.from('organization-assets').list(spriteDir);
 
       if (files && files.length > 0) {
-        const paths = files.map(f => `booth-sprites/${f.name}`);
+        const paths = files.map((f) => `${spriteDir}/${f.name}`);
         await supabase.storage.from('organization-assets').remove(paths);
       }
 
       // Reset state
       setState({ sprites: {}, generating: new Set(), ready: true, count: 0 });
 
-      // Regenerate all
+      // Regenerate all from scratch (bypass server cache)
       for (const char of CHARACTER_CATALOG) {
-        await generateSprite(char);
+        await requestSprite(char, { forceRegenerate: true });
       }
     } catch (err) {
       console.warn('[useCharacterSprites] Regeneration error:', err);
     }
-  }, [generateSprite]);
+  }, [getSpriteDirectory, requestSprite]);
 
-  const getSpriteUrl = useCallback((characterId: string): string | undefined => {
-    return state.sprites[characterId];
-  }, [state.sprites]);
+  const getSpriteUrl = useCallback(
+    (characterId: string): string | undefined => {
+      return state.sprites[characterId];
+    },
+    [state.sprites]
+  );
 
-  const hasSpriteFor = useCallback((characterId: string): boolean => {
-    return !!state.sprites[characterId];
-  }, [state.sprites]);
+  const hasSpriteFor = useCallback(
+    (characterId: string): boolean => {
+      return !!state.sprites[characterId];
+    },
+    [state.sprites]
+  );
 
   return {
     sprites: state.sprites,
@@ -177,3 +220,4 @@ export function useCharacterSprites() {
     hasSpriteFor,
   };
 }
+
