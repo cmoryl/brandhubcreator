@@ -28,30 +28,22 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Toggle } from '@/components/ui/toggle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useImageLibrary } from '@/hooks/useImageLibrary';
 import { BoothScene3D } from './BoothScene3D';
 import {
-  getBoothPanels,
   LAYOUT_OPTIONS,
   LIGHTING_PRESETS,
   type BoothLayout,
   type LightingPreset,
-  type PanelConfig,
   type PanelAssignment,
 } from './boothConfigs';
 import { BoothPresetPicker } from './BoothPresetPicker';
-import { parseAllSpecs, generatePanelsFromSpecs, parseMonitorSpecs, type ParsedPanelSpec, type MonitorSpec } from './specParser';
 import type { BoothDesignPreset } from './boothPresets';
 import {
   FURNITURE_CATALOG,
@@ -61,40 +53,30 @@ import {
   type FurnitureCategory,
 } from './boothFurnitureConfigs';
 import {
-  ENVIRONMENT_PRESETS,
   getEnvironmentConfig,
   type EnvironmentRealism,
 } from './environmentPresets';
 import type { WalkthroughMode } from './CameraAnimator';
 import { useCharacterSprites } from './useCharacterSprites';
-import { FLOORING_OPTIONS, FLOOR_COLOR_PRESETS, type FlooringConfig, type FlooringType } from './BoothFloorpad';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  type BoothLightingConfig, type PrintStyle, type ParCanColor, type ColorTemperature,
-  getDefaultBoothLighting, PRINT_STYLE_OPTIONS, PAR_CAN_OPTIONS, TEMPERATURE_OPTIONS,
-} from './boothLightingConfig';
+import { type PrintStyle } from './boothLightingConfig';
 import { CrowdSimulationPanel } from './CrowdSimulationPanel';
 import type { CrowdSimulationData } from './crowdSimulationTypes';
 import { ARPreviewPanel } from './ARPreviewPanel';
 import { SalesDeckPanel } from './SalesDeckPanel';
 import { BoothWorkspace, type BoothMode } from './BoothWorkspace';
-import { AssetLibraryPanel } from './AssetLibraryPanel';
 import { InspectorPanel } from './InspectorPanel';
-import { SceneLayersPanel, type SceneLayer } from './SceneLayersPanel';
+import { type SceneLayer } from './SceneLayersPanel';
 import { MiniMapOverlay } from './MiniMapOverlay';
 import { BoothScorePanel, type BoothScoreData } from './BoothScorePanel';
 import { BoothDesignToolbar } from './BoothDesignToolbar';
 import { BoothLeftPanel } from './BoothLeftPanel';
-import { EnvironmentPresetCards } from './EnvironmentPresetCards';
 import { PanelDesigner } from './PanelDesigner';
-import { LogisticsPanel } from './LogisticsPanel';
-import { LogisticsOverlay3D } from './LogisticsMarker3D';
-import { type LogisticsMarker, type LogisticsCategory, createMarker, LOGISTICS_CATEGORIES } from './logisticsTypes';
+import { type LogisticsMarker } from './logisticsTypes';
 import { BoothAnalyticsDashboard } from './BoothAnalyticsDashboard';
 import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
-import type { AIBoothResult } from './AIBoothGenerator';
 import { VendorExportPack } from './VendorExportPack';
 import { PanelFileMapper } from './PanelFileMapper';
+import { useBoothState } from './useBoothState';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -131,22 +113,70 @@ export function BoothMapper3D({
 }: BoothMapper3DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [layout, setLayout] = useState<BoothLayout>('u-shape');
-  const [lightingPreset, setLightingPreset] = useState<LightingPreset>('expo-bright');
-  const [showLabels, setShowLabels] = useState(true);
-  const [showDimensions, setShowDimensions] = useState(true);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+
+  // === Core booth state from hook ===
+  const booth = useBoothState({
+    divisionId,
+    variantLabel,
+    isAdmin,
+    galleryImages,
+    variantImages,
+    onAssignmentsChange,
+  });
+
+  const {
+    layout, setLayout,
+    lightingPreset, setLightingPreset,
+    showLabels, setShowLabels,
+    showDimensions, setShowDimensions,
+    isLoaded,
+    assignments, setAssignments,
+    backAssignments,
+    uploadedSpecs, setUploadedSpecs,
+    panelPositionOverrides, setPanelPositionOverrides,
+    placedAssets, setPlacedAssets,
+    selectedAssetId, setSelectedAssetId,
+    isDragMode, setIsDragMode,
+    flooringConfig, setFlooringConfig,
+    boothLighting,
+    logisticsMarkers,
+    selectedLogisticsId, setSelectedLogisticsId,
+    showLogistics, setShowLogistics,
+    monitorSpecs,
+    specConfigType, setSpecConfigType,
+    useProductionSpecs, setUseProductionSpecs,
+    availableSpecTypes,
+    mergedGalleryImages,
+    panels,
+    boothConfig,
+    assignedCount,
+    totalPanels,
+    handlePanelPositionChange,
+    handleSelectAsset,
+    handleAssetPositionChange,
+    handleAddAsset,
+    handleRemoveAsset,
+    handleUpdateAsset,
+    onAssetNudge,
+    handleAddLogisticsMarker,
+    handleUpdateLogisticsMarker,
+    handleRemoveLogisticsMarker,
+    handleAutoFill,
+    handleResetView,
+    handleApplyPreset: applyPresetBase,
+    handleAIGenerate: aiGenerateBase,
+  } = booth;
+
+  // === UI-only state (not persisted) ===
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
-  const [assignments, setAssignments] = useState<Record<string, string>>({});
-  const [backAssignments, setBackAssignments] = useState<Record<string, string>>({});
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [assigningSide, setAssigningSide] = useState<'front' | 'back'>('front');
-  const [uploadedSpecs, setUploadedSpecs] = useState<{ url: string; name: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isAiMapping, setIsAiMapping] = useState(false);
   const [librarySearch, setLibrarySearch] = useState('');
   const [pickerTab, setPickerTab] = useState<string>('library');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [isLoaded, setIsLoaded] = useState(false);
   const [showEnvironment, setShowEnvironment] = useState(false);
   const [environmentRealism, setEnvironmentRealism] = useState<EnvironmentRealism>('standard');
   const [showPeople, setShowPeople] = useState(false);
@@ -159,38 +189,16 @@ export function BoothMapper3D({
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
-  const [prodSpecs, setProdSpecs] = useState<ParsedPanelSpec[]>([]);
-  const [monitorSpecs, setMonitorSpecs] = useState<MonitorSpec[]>([]);
-  const [specConfigType, setSpecConfigType] = useState<string>('');
-  const [useProductionSpecs, setUseProductionSpecs] = useState(false);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Drag mode & furniture state
-  const [isDragMode, setIsDragMode] = useState(false);
-  const [placedAssets, setPlacedAssets] = useState<PlacedAsset[]>([]);
-  // Flooring state
-  const [flooringConfig, setFlooringConfig] = useState<FlooringConfig>({
-    type: 'carpet-plush',
-    color: '#1a1a2e',
-    showBorder: true,
-    showDimensions: true,
-  });
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
-  // Booth lighting & print material
-  const [boothLighting, setBoothLighting] = useState<BoothLightingConfig>(getDefaultBoothLighting());
   const [printStyle, setPrintStyle] = useState<PrintStyle>('fabric-matte');
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [assetFilterCategory, setAssetFilterCategory] = useState<string>('all');
-  const [panelPositionOverrides, setPanelPositionOverrides] = useState<Record<string, [number, number, number]>>({});
   const [coverImagePickerOpen, setCoverImagePickerOpen] = useState(false);
   const [coverImageTargetAssetId, setCoverImageTargetAssetId] = useState<string | null>(null);
   const [assetImageTarget, setAssetImageTarget] = useState<'screen' | 'texture' | 'cover'>('cover');
-  // Crowd simulation state
   const [crowdSimulation, setCrowdSimulation] = useState<CrowdSimulationData | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [showHeatMap, setShowHeatMap] = useState(false);
   const [showSimPanel, setShowSimPanel] = useState(false);
-  // AR Preview state
   const [showARPanel, setShowARPanel] = useState(false);
   const [showSalesDeck, setShowSalesDeck] = useState(false);
   const [activeMode, setActiveMode] = useState<BoothMode>('design');
@@ -198,51 +206,15 @@ export function BoothMapper3D({
   const [isScoringBooth, setIsScoringBooth] = useState(false);
   const [panelDesignerOpen, setPanelDesignerOpen] = useState(false);
   const [panelDesignerTarget, setPanelDesignerTarget] = useState<string | null>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  // Logistics markers
-  const [logisticsMarkers, setLogisticsMarkers] = useState<LogisticsMarker[]>([]);
-  const [selectedLogisticsId, setSelectedLogisticsId] = useState<string | null>(null);
-  const [showLogistics, setShowLogistics] = useState(true);
+
   // Organization context for image library
   const { organization } = useOrganization();
-
-  // Booth analytics hook
   const { analytics: boothAnalytics, saveAnalytics: saveBoothAnalytics } = useBoothAnalytics(divisionId, variantLabel);
-
-  // Image library integration
   const { images: libraryImages, isLoading: libraryLoading, fetchImages, uploadImage } = useImageLibrary();
-
-  // Fetch booth gallery photos for this division+variant
-  const [boothGalleryUrls, setBoothGalleryUrls] = useState<string[]>([]);
-  useEffect(() => {
-    if (!divisionId) return;
-    const fetchGallery = async () => {
-      const { data } = await supabase
-        .from('booth_gallery_photos')
-        .select('image_url, variant_label')
-        .eq('division_id', divisionId)
-        .order('display_order');
-      if (data) {
-        const filtered = data.filter(p =>
-          p.variant_label === null || p.variant_label === variantLabel
-        );
-        setBoothGalleryUrls(filtered.map(p => p.image_url));
-      }
-    };
-    fetchGallery();
-  }, [divisionId, variantLabel]);
-
-  // Merge passed galleryImages with fetched booth gallery photos
-  const mergedGalleryImages = useMemo(() => {
-    const set = new Set([...galleryImages, ...boothGalleryUrls]);
-    return Array.from(set);
-  }, [galleryImages, boothGalleryUrls]);
 
   // Eagerly fetch images when organization is available
   useEffect(() => {
-    if (organization?.id) {
-      fetchImages(organization.id);
-    }
+    if (organization?.id) fetchImages(organization.id);
   }, [organization?.id, fetchImages]);
 
   // Filtered library images based on search + category
@@ -257,290 +229,27 @@ export function BoothMapper3D({
     });
   }, [libraryImages, librarySearch, selectedCategory]);
 
-  // Load saved mapping from database on mount or variant change
-  useEffect(() => {
-    if (!divisionId) { setIsLoaded(true); return; }
-    // Reset state when variant changes
-    setIsLoaded(false);
-    setLayout('inline');
-    setAssignments({});
-    setBackAssignments({});
-    setUploadedSpecs([]);
-    setPlacedAssets([]);
-    setPanelPositionOverrides({});
-    setLogisticsMarkers([]);
-    const load = async () => {
-      try {
-        const { data } = await supabase
-          .from('booth_3d_mappings')
-          .select('*')
-          .eq('division_id', divisionId)
-          .eq('variant_label', variantLabel)
-          .maybeSingle();
-        if (data) {
-          setLayout((data.layout as BoothLayout) || 'u-shape');
-          setLightingPreset((data.lighting_preset as LightingPreset) || 'expo-bright');
-          setAssignments((data.assignments as Record<string, string>) || {});
-          setUploadedSpecs((data.uploaded_specs as { url: string; name: string }[]) || []);
-          setShowLabels(data.show_labels ?? true);
-          setShowDimensions(data.show_dimensions ?? true);
-          // Load extended state from assignments JSONB
-          const saved = data.assignments as any;
-          if (saved?.__placedAssets) {
-            setPlacedAssets(saved.__placedAssets as PlacedAsset[]);
-          }
-          if (saved?.__panelPositions) {
-            setPanelPositionOverrides(saved.__panelPositions as Record<string, [number, number, number]>);
-          }
-          if (saved?.__backAssignments) {
-            setBackAssignments(saved.__backAssignments as Record<string, string>);
-          }
-          if (saved?.__logisticsMarkers) {
-            setLogisticsMarkers(saved.__logisticsMarkers as LogisticsMarker[]);
-          }
-          if (saved?.__flooringConfig) {
-            setFlooringConfig(saved.__flooringConfig as FlooringConfig);
-          }
-          if (saved?.__boothLighting) {
-            setBoothLighting(saved.__boothLighting as BoothLightingConfig);
-          }
-        }
-      } catch (e) {
-        console.error('Failed to load 3D mapping:', e);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
-    load();
-  }, [divisionId, variantLabel]);
-
-  // Fetch production specs for this division (all categories, variant-aware)
-  const [allProdSpecs, setAllProdSpecs] = useState<{ title: string; content: string; category: string }[]>([]);
-  useEffect(() => {
-    if (!divisionId) return;
-    const fetchProdSpecs = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('booth_production_specs')
-          .select('title, content, category, variant_label')
-          .eq('division_id', divisionId)
-          .order('display_order', { ascending: true });
-
-        if (error || !data || data.length === 0) return;
-
-        // Filter by variant: include specs with matching variant_label or null (shared)
-        const filtered = data.filter(s =>
-          s.variant_label === null || s.variant_label === (variantLabel || null)
-        );
-
-        setAllProdSpecs(filtered);
-
-        // Parse content-sizing specs for panel generation
-        const contentSizing = filtered.filter(s => s.category === 'content-sizing');
-        const layouts = parseAllSpecs(contentSizing);
-        if (layouts.length > 0) {
-          const allParsed = layouts.flatMap(l => l.panels);
-          setProdSpecs(allParsed);
-          setSpecConfigType(layouts[0].configType);
-          setUseProductionSpecs(true);
-        }
-
-        // Parse monitor specs from general category
-        const monitors = parseMonitorSpecs(filtered);
-        setMonitorSpecs(monitors);
-      } catch (e) {
-        console.error('Failed to load production specs:', e);
-      }
-    };
-    fetchProdSpecs();
-  }, [divisionId, variantLabel]);
-
-  // Debounced save to database
-  const saveMapping = useCallback(() => {
-    if (!divisionId || !isLoaded) return;
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        // Store all extended state alongside panel assignments in JSONB
-        const enrichedAssignments = {
-          ...assignments,
-          __placedAssets: placedAssets,
-          __panelPositions: panelPositionOverrides,
-          __backAssignments: backAssignments,
-          __logisticsMarkers: logisticsMarkers,
-          __flooringConfig: flooringConfig,
-          __boothLighting: boothLighting,
-        } as unknown as Record<string, unknown>;
-        await supabase.from('booth_3d_mappings').upsert({
-          division_id: divisionId,
-          variant_label: variantLabel,
-          layout,
-          lighting_preset: lightingPreset,
-          assignments: enrichedAssignments as any,
-          uploaded_specs: uploadedSpecs,
-          show_labels: showLabels,
-          show_dimensions: showDimensions,
-          created_by: user.id,
-        }, { onConflict: 'division_id,variant_label' });
-      } catch (e) {
-        console.error('Failed to save 3D mapping:', e);
-      }
-    }, 1000);
-  }, [divisionId, variantLabel, layout, lightingPreset, assignments, uploadedSpecs, showLabels, showDimensions, isLoaded, placedAssets, panelPositionOverrides, backAssignments, logisticsMarkers, flooringConfig, boothLighting]);
-
-  // Auto-save when state changes
-  useEffect(() => {
-    if (isLoaded) saveMapping();
-    return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
-  }, [saveMapping, isLoaded]);
-
-
-  // Available spec config types for the dropdown
-  const availableSpecTypes = useMemo(() => {
-    const types = new Set(prodSpecs.map(s => s.configType).filter(Boolean));
-    return Array.from(types);
-  }, [prodSpecs]);
-
-  // Generate panels: use production specs when available, fallback to generic layout
-  const { boothConfig, specPanels } = useMemo(() => {
-    const genericConfig = getBoothPanels(layout);
-    
-    if (useProductionSpecs && specConfigType && prodSpecs.length > 0) {
-      const generated = generatePanelsFromSpecs(prodSpecs, specConfigType);
-      if (generated.panels.length > 0) {
-        return {
-          boothConfig: {
-            layout,
-            dimensions: generated.dimensions,
-            footprint: generated.footprint,
-            panels: generated.panels.map(p => ({
-              id: p.id,
-              label: p.label,
-              specLabel: p.specLabel,
-              position: p.position,
-              rotation: p.rotation,
-              size: p.size,
-              zones: p.zones,
-            })),
-          },
-          specPanels: generated.panels,
-        };
-      }
-    }
-
-    return { boothConfig: genericConfig, specPanels: null };
-  }, [layout, useProductionSpecs, specConfigType, prodSpecs]);
-
-  // Apply assignments and position overrides to panels
-  const panels: PanelConfig[] = boothConfig.panels.map((p) => ({
-    ...p,
-    imageUrl: assignments[p.id],
-    backImageUrl: backAssignments[p.id],
-    position: panelPositionOverrides[p.id] || p.position,
-  }));
-
-  // Panel position change handler (drag mode)
-  const handlePanelPositionChange = useCallback((panelId: string, position: [number, number, number]) => {
-    setPanelPositionOverrides(prev => ({ ...prev, [panelId]: position }));
-  }, []);
-
-  // Asset handlers
-  const handleSelectAsset = useCallback((instanceId: string) => {
-    setSelectedAssetId(instanceId);
-  }, []);
-
-  const handleAssetPositionChange = useCallback((instanceId: string, position: [number, number, number]) => {
-    setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, position } : a));
-  }, []);
-
-  const handleAddAsset = useCallback((assetId: string) => {
-    const config = getFurnitureById(assetId);
-    if (!config) return;
-    const defaultY = config.wallMountable ? 1.5 : 0; // Wall items start at ~eye level
-    const newAsset: PlacedAsset = {
-      instanceId: `${assetId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      assetId,
-      position: [0, defaultY, 2],
-      rotation: [0, 0, 0],
-      label: config.name,
-    };
-    setPlacedAssets(prev => [...prev, newAsset]);
-    setAssetPickerOpen(false);
-    setIsDragMode(true);
-    setSelectedAssetId(newAsset.instanceId);
-    toast.success(`Added ${config.name} — drag to position`);
-  }, []);
-
-  const handleRemoveAsset = useCallback((instanceId: string) => {
-    setPlacedAssets(prev => prev.filter(a => a.instanceId !== instanceId));
-    setSelectedAssetId(null);
-    toast.success('Asset removed');
-  }, []);
-
-  const handleUpdateAsset = useCallback((instanceId: string, updates: Partial<PlacedAsset>) => {
-    setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, ...updates } : a));
-  }, []);
-
-  const onAssetNudge = useCallback((instanceId: string, dx: number, dy: number, dz: number) => {
-    setPlacedAssets(prev => prev.map(a => {
-      if (a.instanceId !== instanceId) return a;
-      return {
-        ...a,
-        position: [
-          Math.round((a.position[0] + dx) * 10) / 10,
-          Math.max(0, Math.round((a.position[1] + dy) * 10) / 10),
-          Math.round((a.position[2] + dz) * 10) / 10,
-        ] as [number, number, number],
-      };
-    }));
-  }, []);
-
-  // Keyboard shortcuts: Delete/Backspace removes, Arrow keys nudge selected asset
+  // Keyboard shortcuts
   useEffect(() => {
     if (!isAdmin || !selectedAssetId) return;
     const step = 0.1;
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-
       switch (e.key) {
         case 'Delete':
-        case 'Backspace':
-          e.preventDefault();
-          handleRemoveAsset(selectedAssetId);
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          onAssetNudge(selectedAssetId, -step, 0, 0);
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          onAssetNudge(selectedAssetId, step, 0, 0);
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          if (e.shiftKey) {
-            onAssetNudge(selectedAssetId, 0, step, 0);
-          } else {
-            onAssetNudge(selectedAssetId, 0, 0, -step);
-          }
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          if (e.shiftKey) {
-            onAssetNudge(selectedAssetId, 0, -step, 0);
-          } else {
-            onAssetNudge(selectedAssetId, 0, 0, step);
-          }
-          break;
+        case 'Backspace': e.preventDefault(); handleRemoveAsset(selectedAssetId); break;
+        case 'ArrowLeft': e.preventDefault(); onAssetNudge(selectedAssetId, -step, 0, 0); break;
+        case 'ArrowRight': e.preventDefault(); onAssetNudge(selectedAssetId, step, 0, 0); break;
+        case 'ArrowUp': e.preventDefault(); onAssetNudge(selectedAssetId, 0, e.shiftKey ? step : 0, e.shiftKey ? 0 : -step); break;
+        case 'ArrowDown': e.preventDefault(); onAssetNudge(selectedAssetId, 0, e.shiftKey ? -step : 0, e.shiftKey ? 0 : step); break;
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [isAdmin, selectedAssetId, handleRemoveAsset, onAssetNudge]);
 
+  // Cover / asset image pickers
   const handleOpenCoverImagePicker = useCallback((instanceId: string) => {
     setCoverImageTargetAssetId(instanceId);
     setAssetImageTarget('cover');
@@ -567,6 +276,7 @@ export function BoothMapper3D({
     toast.success(`${label} assigned`);
   }, [coverImageTargetAssetId, assetImageTarget, handleUpdateAsset]);
 
+  // Panel selection
   const handleSelectPanel = useCallback((panelId: string) => {
     if (isDragMode) return;
     if (!isAdmin) {
@@ -578,60 +288,37 @@ export function BoothMapper3D({
     setImagePickerOpen(true);
   }, [isAdmin, isDragMode]);
 
+  // Panel image assignment (delegates to hook)
   const handleAssignImage = useCallback((imageUrl: string) => {
-    if (!selectedPanelId) return;
-    if (assigningSide === 'back') {
-      setBackAssignments((prev) => ({ ...prev, [selectedPanelId]: imageUrl }));
-      toast.success('Back image assigned');
-    } else {
-      setAssignments((prev) => {
-        const next = { ...prev, [selectedPanelId]: imageUrl };
-        onAssignmentsChange?.(
-          Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
-        );
-        return next;
-      });
-      toast.success('Panel image assigned');
-    }
+    booth.handleAssignImage(imageUrl, selectedPanelId, assigningSide);
     setImagePickerOpen(false);
     setSelectedPanelId(null);
-  }, [selectedPanelId, assigningSide, onAssignmentsChange]);
+  }, [booth, selectedPanelId, assigningSide]);
 
   const handleClearPanel = useCallback(() => {
-    if (!selectedPanelId) return;
-    if (assigningSide === 'back') {
-      setBackAssignments((prev) => {
-        const next = { ...prev };
-        delete next[selectedPanelId];
-        return next;
-      });
-    } else {
-      setAssignments((prev) => {
-        const next = { ...prev };
-        delete next[selectedPanelId];
-        onAssignmentsChange?.(
-          Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
-        );
-        return next;
-      });
-    }
+    booth.handleClearPanel(selectedPanelId, assigningSide);
     setImagePickerOpen(false);
     setSelectedPanelId(null);
-  }, [selectedPanelId, assigningSide, onAssignmentsChange]);
+  }, [booth, selectedPanelId, assigningSide]);
 
-  const handleAutoFill = useCallback(() => {
-    const newAssignments: Record<string, string> = {};
-    boothConfig.panels.forEach((panel, i) => {
-      if (variantImages[i]) {
-        newAssignments[panel.id] = variantImages[i].url;
-      }
+  // Preset + AI wrappers (set UI state the hook can't own)
+  const handleApplyPreset = useCallback((preset: BoothDesignPreset) => {
+    applyPresetBase(preset);
+    setActivePreset(preset);
+    setShowEnvironment(true);
+    setShowPeople(true);
+    const assetCount = preset.placedAssets?.length || 0;
+    toast.success(`Applied "${preset.name}" preset — ${preset.industry}`, {
+      description: `${preset.panelGuides.length} panels, ${assetCount} furniture pieces, ${preset.layout} layout`,
     });
-    setAssignments(newAssignments);
-    onAssignmentsChange?.(
-      Object.entries(newAssignments).map(([panelId, imageUrl]) => ({ panelId, imageUrl }))
-    );
-    toast.success(`Auto-filled ${Object.keys(newAssignments).length} panels`);
-  }, [boothConfig.panels, variantImages, onAssignmentsChange]);
+  }, [applyPresetBase]);
+
+  const handleAIGenerate = useCallback((result: any) => {
+    aiGenerateBase(result);
+    setShowEnvironment(true);
+    setShowPeople(true);
+    setActivePreset(null);
+  }, [aiGenerateBase]);
 
   // Crowd simulation handler
   const handleRunSimulation = useCallback(async () => {
@@ -642,17 +329,9 @@ export function BoothMapper3D({
         body: {
           boothLayout: layout,
           panels: boothConfig.panels.map(p => ({
-            label: p.label,
-            position: p.position,
-            size: p.size,
-            specLabel: p.specLabel,
-            imageUrl: assignments[p.id] || null,
+            label: p.label, position: p.position, size: p.size, specLabel: p.specLabel, imageUrl: assignments[p.id] || null,
           })),
-          placedAssets: placedAssets.map(a => ({
-            assetId: a.assetId,
-            label: a.label,
-            position: a.position,
-          })),
+          placedAssets: placedAssets.map(a => ({ assetId: a.assetId, label: a.label, position: a.position })),
           boothSize: boothConfig.footprint,
           divisionName,
         },
@@ -677,15 +356,10 @@ export function BoothMapper3D({
     try {
       const { data, error } = await supabase.functions.invoke('booth-score', {
         body: {
-          layoutName: layout,
-          boothSize: boothConfig.footprint,
-          panelCount: boothConfig.panels.length,
-          panelLabels: boothConfig.panels.map(p => p.label),
-          furnitureList: placedAssets.map(a => a.label || a.assetId),
+          layoutName: layout, boothSize: boothConfig.footprint, panelCount: boothConfig.panels.length,
+          panelLabels: boothConfig.panels.map(p => p.label), furnitureList: placedAssets.map(a => a.label || a.assetId),
           hasMonitors: placedAssets.some(a => a.assetId.includes('tv') || a.assetId.includes('monitor')),
-          hasGraphics: Object.keys(assignments).length > 0,
-          crowdScore: crowdSimulation?.visibilityScore,
-          divisionName,
+          hasGraphics: Object.keys(assignments).length > 0, crowdScore: crowdSimulation?.visibilityScore, divisionName,
         },
       });
       if (error) throw error;
@@ -704,7 +378,6 @@ export function BoothMapper3D({
   const handleScreenshot = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
     try {
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
@@ -712,188 +385,63 @@ export function BoothMapper3D({
       link.href = dataUrl;
       link.click();
       toast.success('Screenshot saved');
-    } catch {
-      toast.error('Failed to capture screenshot');
-    }
+    } catch { toast.error('Failed to capture screenshot'); }
   }, [layout]);
-
-  const handleResetView = useCallback(() => {
-    setAssignments({});
-    setBackAssignments({});
-    onAssignmentsChange?.([]);
-    toast.success('All panels cleared');
-  }, [onAssignmentsChange]);
-
-  // Apply a design preset
-  const handleApplyPreset = useCallback((preset: BoothDesignPreset) => {
-    setLayout(preset.layout);
-    setLightingPreset(preset.lighting);
-    setActivePreset(preset);
-    setShowEnvironment(true);
-    setShowPeople(true);
-    setPanelPositionOverrides({});
-    setAssignments({});
-
-    // Apply pre-placed furniture assets (deep-clone with fresh instance IDs)
-    if (preset.placedAssets && preset.placedAssets.length > 0) {
-      const cloned: PlacedAsset[] = preset.placedAssets.map((a) => ({
-        ...a,
-        instanceId: `preset-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        position: [...a.position] as [number, number, number],
-        rotation: [...a.rotation] as [number, number, number],
-      }));
-      setPlacedAssets(cloned);
-      setIsDragMode(true);
-    }
-
-    // Apply flooring config
-    if (preset.flooringConfig) {
-      setFlooringConfig({ ...preset.flooringConfig });
-    }
-
-    const assetCount = preset.placedAssets?.length || 0;
-    toast.success(`Applied "${preset.name}" preset — ${preset.industry}`, {
-      description: `${preset.panelGuides.length} panels, ${assetCount} furniture pieces, ${preset.layout} layout`,
-    });
-  }, []);
-
-  // Apply AI-generated booth configuration
-  const handleAIGenerate = useCallback((result: AIBoothResult) => {
-    // Apply layout & lighting
-    setLayout(result.layout);
-    setLightingPreset(result.lighting);
-    setShowEnvironment(true);
-    setShowPeople(true);
-    setPanelPositionOverrides({});
-    setAssignments({});
-
-    // Apply flooring
-    if (result.flooring) {
-      setFlooringConfig(prev => ({
-        ...prev,
-        type: result.flooring.type as any,
-        color: result.flooring.color,
-      }));
-    }
-
-    // Apply furniture
-    if (result.furniture && result.furniture.length > 0) {
-      const placed: PlacedAsset[] = result.furniture.map((f, i) => ({
-        instanceId: `ai-${Date.now()}-${i}-${Math.random().toString(36).slice(2)}`,
-        assetId: f.assetId,
-        position: f.position as [number, number, number],
-        rotation: f.rotation as [number, number, number],
-        label: f.label,
-      }));
-      setPlacedAssets(placed);
-      setIsDragMode(true);
-    }
-
-    setActivePreset(null);
-  }, []);
 
   // Upload booth spec image/PDF
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const isImage = file.type.startsWith('image/');
     const isPdf = file.type === 'application/pdf';
     const isAi = file.name.endsWith('.ai') || file.name.endsWith('.eps');
     const isSvg = file.type === 'image/svg+xml';
-    if (!isImage && !isPdf && !isAi && !isSvg) {
-      toast.error('Please upload an image, PDF, AI, EPS, or SVG file');
-      return;
-    }
-
-    if (file.size > 20 * 1024 * 1024) {
-      toast.error('File must be under 20MB');
-      return;
-    }
-
+    if (!isImage && !isPdf && !isAi && !isSvg) { toast.error('Please upload an image, PDF, AI, EPS, or SVG file'); return; }
+    if (file.size > 20 * 1024 * 1024) { toast.error('File must be under 20MB'); return; }
     setIsUploading(true);
     try {
       const ext = file.name.split('.').pop() || 'png';
       const fileName = `booth-3d-specs/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('organization-assets')
-        .upload(fileName, file, { contentType: file.type, upsert: false });
-
+      const { error: uploadError } = await supabase.storage.from('organization-assets').upload(fileName, file, { contentType: file.type, upsert: false });
       if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('organization-assets')
-        .getPublicUrl(fileName);
-
-      if (urlData?.publicUrl) {
-        setUploadedSpecs(prev => [...prev, { url: urlData.publicUrl, name: file.name }]);
-        toast.success(`Uploaded: ${file.name}`);
-      }
-    } catch (err) {
-      console.error('Upload error:', err);
-      toast.error('Failed to upload file');
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  }, []);
+      const { data: urlData } = supabase.storage.from('organization-assets').getPublicUrl(fileName);
+      if (urlData?.publicUrl) { setUploadedSpecs(prev => [...prev, { url: urlData.publicUrl, name: file.name }]); toast.success(`Uploaded: ${file.name}`); }
+    } catch (err) { console.error('Upload error:', err); toast.error('Failed to upload file'); }
+    finally { setIsUploading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+  }, [setUploadedSpecs]);
 
   // AI-powered spec mapping
   const handleAiMapping = useCallback(async (specUrl: string) => {
     setIsAiMapping(true);
     try {
       const { data, error } = await supabase.functions.invoke('booth-3d-ai-mapper', {
-        body: {
-          imageUrl: specUrl,
-          layout,
-          panelIds: boothConfig.panels.map(p => p.id),
-          panelLabels: boothConfig.panels.map(p => p.label),
-        },
+        body: { imageUrl: specUrl, layout, panelIds: boothConfig.panels.map(p => p.id), panelLabels: boothConfig.panels.map(p => p.label) },
       });
-
       if (error) throw error;
-
       if (data?.assignments?.length) {
         const newAssignments: Record<string, string> = { ...assignments };
         let mapped = 0;
         for (const assignment of data.assignments) {
-          if (assignment.useFullImage && assignment.panelId) {
-            newAssignments[assignment.panelId] = specUrl;
-            mapped++;
-          }
+          if (assignment.useFullImage && assignment.panelId) { newAssignments[assignment.panelId] = specUrl; mapped++; }
         }
         setAssignments(newAssignments);
-        onAssignmentsChange?.(
-          Object.entries(newAssignments).map(([panelId, imageUrl]) => ({ panelId, imageUrl }))
-        );
-
+        onAssignmentsChange?.(Object.entries(newAssignments).map(([panelId, imageUrl]) => ({ panelId, imageUrl })));
         const notes = [
           data.boothDescription && `📋 ${data.boothDescription}`,
           data.designNotes && `💡 ${data.designNotes}`,
-          data.suggestedLayout && data.suggestedLayout !== layout && `🔄 AI suggests "${data.suggestedLayout}" layout for this spec`,
+          data.suggestedLayout && data.suggestedLayout !== layout && `🔄 AI suggests "${data.suggestedLayout}" layout`,
         ].filter(Boolean).join('\n');
-
         toast.success(`AI mapped spec to ${mapped} panel(s)`, { description: notes, duration: 6000 });
-      } else {
-        toast.info('AI could not identify specific panels. Try assigning manually.');
-      }
-    } catch (err) {
-      console.error('AI mapping error:', err);
-      toast.error(err instanceof Error ? err.message : 'AI mapping failed');
-    } finally {
-      setIsAiMapping(false);
-    }
-  }, [layout, boothConfig.panels, assignments, onAssignmentsChange]);
+      } else { toast.info('AI could not identify specific panels. Try assigning manually.'); }
+    } catch (err) { console.error('AI mapping error:', err); toast.error(err instanceof Error ? err.message : 'AI mapping failed'); }
+    finally { setIsAiMapping(false); }
+  }, [layout, boothConfig.panels, assignments, setAssignments, onAssignmentsChange]);
 
   const allImages = [
     ...uploadedSpecs.map((s) => ({ url: s.url, label: s.name, source: 'upload' as const })),
     ...variantImages.map((v) => ({ url: v.url, label: v.label, source: 'variant' as const })),
     ...mergedGalleryImages.map((url, i) => ({ url, label: `Gallery ${i + 1}`, source: 'gallery' as const })),
   ];
-
-  const assignedCount = Object.keys(assignments).length;
-  const totalPanels = boothConfig.panels.length;
 
   // Scene layers for toggling visibility
   const sceneLayers: SceneLayer[] = [
@@ -912,21 +460,8 @@ export function BoothMapper3D({
       case 'people': setShowPeople(v => !v); break;
       case 'logistics': setShowLogistics(v => !v); break;
     }
-  }, []);
+  }, [setShowLogistics]);
 
-  // Logistics handlers
-  const handleAddLogisticsMarker = useCallback((marker: LogisticsMarker) => {
-    setLogisticsMarkers(prev => [...prev, marker]);
-  }, []);
-
-  const handleUpdateLogisticsMarker = useCallback((id: string, updates: Partial<LogisticsMarker>) => {
-    setLogisticsMarkers(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
-  }, []);
-
-  const handleRemoveLogisticsMarker = useCallback((id: string) => {
-    setLogisticsMarkers(prev => prev.filter(m => m.id !== id));
-    if (selectedLogisticsId === id) setSelectedLogisticsId(null);
-  }, [selectedLogisticsId]);
 
   // Panel graphic thumbnail grid for bottom content
   const panelThumbnails = (
@@ -1694,10 +1229,10 @@ export function BoothMapper3D({
                 Back
               </button>
               {assigningSide === 'back' && backAssignments[selectedPanelId || ''] && (
-                <span className="text-[10px] text-green-500 ml-2">✓ Back image set</span>
+                <span className="text-[10px] text-primary ml-2">✓ Back image set</span>
               )}
               {assigningSide === 'front' && assignments[selectedPanelId || ''] && (
-                <span className="text-[10px] text-green-500 ml-2">✓ Front image set</span>
+                <span className="text-[10px] text-primary ml-2">✓ Front image set</span>
               )}
             </div>
           </DialogHeader>
