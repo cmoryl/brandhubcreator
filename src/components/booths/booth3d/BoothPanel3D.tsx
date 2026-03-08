@@ -1,6 +1,7 @@
 /**
  * BoothPanel3D - A single clickable panel in 3D space with image texture
  * Includes optional safe zone overlay using real production spec zones
+ * Supports print material styles affecting PBR properties
  */
 import { useRef, useState, useMemo, Suspense } from 'react';
 import * as THREE from 'three';
@@ -8,6 +9,7 @@ import { useTexture } from '@react-three/drei';
 import { Html } from '@react-three/drei';
 import type { PanelConfig } from './boothConfigs';
 import type { PanelZones } from './specParser';
+import { type PrintStyle, type PrintMaterialConfig, getPrintMaterial } from './boothLightingConfig';
 
 interface BoothPanel3DProps {
   panel: PanelConfig;
@@ -16,36 +18,61 @@ interface BoothPanel3DProps {
   showLabels: boolean;
   showDimensions: boolean;
   showSafeZones?: boolean;
+  /** Print material style for PBR rendering */
+  printStyle?: PrintStyle;
+  /** Edge light intensity (0 = off, 0–1) */
+  edgeLightIntensity?: number;
+  /** Edge light color */
+  edgeLightColor?: string;
 }
 
-/** Inner component that loads and displays the texture */
-function TexturedPanel({ imageUrl, isSelected }: { imageUrl: string; isSelected: boolean }) {
+/** Inner component that loads and displays the texture with print material PBR */
+function TexturedPanel({ imageUrl, isSelected, mat }: { imageUrl: string; isSelected: boolean; mat: PrintMaterialConfig }) {
   const texture = useTexture(imageUrl);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 16;
+
+  const usePhysical = mat.clearcoat > 0 || mat.transmission > 0;
+
+  if (usePhysical) {
+    return (
+      <meshPhysicalMaterial
+        map={texture}
+        side={THREE.DoubleSide}
+        emissive={isSelected ? new THREE.Color('#1e40af') : mat.emissive ? new THREE.Color('#ffffff') : undefined}
+        emissiveIntensity={isSelected ? 0.1 : mat.emissive ? mat.emissiveIntensity : 0}
+        roughness={mat.roughness}
+        metalness={mat.metalness}
+        envMapIntensity={mat.envMapIntensity}
+        clearcoat={mat.clearcoat}
+        clearcoatRoughness={mat.clearcoatRoughness}
+        transmission={mat.transmission}
+      />
+    );
+  }
 
   return (
     <meshStandardMaterial
       map={texture}
       side={THREE.DoubleSide}
-      emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
-      emissiveIntensity={isSelected ? 0.1 : 0}
-      roughness={0.35}
-      metalness={0.02}
-      envMapIntensity={0.4}
+      emissive={isSelected ? new THREE.Color('#1e40af') : mat.emissive ? new THREE.Color('#ffffff') : undefined}
+      emissiveIntensity={isSelected ? 0.1 : mat.emissive ? mat.emissiveIntensity : 0}
+      roughness={mat.roughness}
+      metalness={mat.metalness}
+      envMapIntensity={mat.envMapIntensity}
     />
   );
 }
 
-function EmptyPanel({ hovered, isSelected }: { hovered: boolean; isSelected: boolean }) {
+function EmptyPanel({ hovered, isSelected, mat }: { hovered: boolean; isSelected: boolean; mat: PrintMaterialConfig }) {
   return (
     <meshStandardMaterial
       color={hovered ? '#1e293b' : '#0f172a'}
       emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
       emissiveIntensity={isSelected ? 0.2 : 0}
-      roughness={0.6}
-      metalness={0.05}
-      envMapIntensity={0.2}
+      roughness={mat.roughness}
+      metalness={mat.metalness}
+      envMapIntensity={mat.envMapIntensity}
     />
   );
 }
@@ -229,9 +256,10 @@ function SafeZoneOverlay({ size, zones }: { size: [number, number]; zones?: Pane
   );
 }
 
-export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDimensions, showSafeZones = false }: BoothPanel3DProps) {
+export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDimensions, showSafeZones = false, printStyle = 'fabric-matte', edgeLightIntensity = 0, edgeLightColor = '#ffffff' }: BoothPanel3DProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
+  const mat = useMemo(() => getPrintMaterial(printStyle), [printStyle]);
 
   const borderColor = isSelected
     ? '#3b82f6'
@@ -279,7 +307,7 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
         <planeGeometry args={[panel.size[0], panel.size[1]]} />
         {panel.backImageUrl ? (
           <Suspense fallback={<meshStandardMaterial color="#1e293b" roughness={0.55} metalness={0.08} />}>
-            <TexturedPanel imageUrl={panel.backImageUrl} isSelected={isSelected} />
+            <TexturedPanel imageUrl={panel.backImageUrl} isSelected={isSelected} mat={mat} />
           </Suspense>
         ) : (
           <meshStandardMaterial
@@ -304,6 +332,34 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
         />
       </mesh>
 
+      {/* Edge lighting strips (when enabled) */}
+      {edgeLightIntensity > 0 && (
+        <group position={[0, 0, -panelThickness / 2]}>
+          {/* Top edge */}
+          <mesh position={[0, panel.size[1] / 2 + 0.006, 0]}>
+            <boxGeometry args={[panel.size[0] + 0.01, 0.012, panelThickness + 0.01]} />
+            <meshStandardMaterial color={edgeLightColor} emissive={edgeLightColor} emissiveIntensity={edgeLightIntensity * 2} transparent opacity={0.9} />
+          </mesh>
+          {/* Bottom edge */}
+          <mesh position={[0, -panel.size[1] / 2 - 0.006, 0]}>
+            <boxGeometry args={[panel.size[0] + 0.01, 0.012, panelThickness + 0.01]} />
+            <meshStandardMaterial color={edgeLightColor} emissive={edgeLightColor} emissiveIntensity={edgeLightIntensity * 2} transparent opacity={0.9} />
+          </mesh>
+          {/* Left edge */}
+          <mesh position={[-panel.size[0] / 2 - 0.006, 0, 0]}>
+            <boxGeometry args={[0.012, panel.size[1] + 0.01, panelThickness + 0.01]} />
+            <meshStandardMaterial color={edgeLightColor} emissive={edgeLightColor} emissiveIntensity={edgeLightIntensity * 2} transparent opacity={0.9} />
+          </mesh>
+          {/* Right edge */}
+          <mesh position={[panel.size[0] / 2 + 0.006, 0, 0]}>
+            <boxGeometry args={[0.012, panel.size[1] + 0.01, panelThickness + 0.01]} />
+            <meshStandardMaterial color={edgeLightColor} emissive={edgeLightColor} emissiveIntensity={edgeLightIntensity * 2} transparent opacity={0.9} />
+          </mesh>
+          {/* Point light for glow effect */}
+          <pointLight color={edgeLightColor} intensity={edgeLightIntensity * 0.5} distance={2} />
+        </group>
+      )}
+
       {/* Panel front face — image or empty material */}
       <mesh
         ref={meshRef}
@@ -324,11 +380,11 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
       >
         <planeGeometry args={[panel.size[0], panel.size[1]]} />
         {panel.imageUrl ? (
-          <Suspense fallback={<EmptyPanel hovered={hovered} isSelected={isSelected} />}>
-            <TexturedPanel imageUrl={panel.imageUrl} isSelected={isSelected} />
+          <Suspense fallback={<EmptyPanel hovered={hovered} isSelected={isSelected} mat={mat} />}>
+            <TexturedPanel imageUrl={panel.imageUrl} isSelected={isSelected} mat={mat} />
           </Suspense>
         ) : (
-          <EmptyPanel hovered={hovered} isSelected={isSelected} />
+          <EmptyPanel hovered={hovered} isSelected={isSelected} mat={mat} />
         )}
       </mesh>
 

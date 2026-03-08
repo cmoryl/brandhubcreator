@@ -31,6 +31,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -64,6 +66,10 @@ import type { WalkthroughMode } from './CameraAnimator';
 import { useCharacterSprites } from './useCharacterSprites';
 import { FLOORING_OPTIONS, FLOOR_COLOR_PRESETS, type FlooringConfig, type FlooringType } from './BoothFloorpad';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  type BoothLightingConfig, type PrintStyle, type ParCanColor, type ColorTemperature,
+  getDefaultBoothLighting, PRINT_STYLE_OPTIONS, PAR_CAN_OPTIONS, TEMPERATURE_OPTIONS,
+} from './boothLightingConfig';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -138,6 +144,9 @@ export function BoothMapper3D({
     showDimensions: true,
   });
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  // Booth lighting & print material
+  const [boothLighting, setBoothLighting] = useState<BoothLightingConfig>(getDefaultBoothLighting());
+  const [printStyle, setPrintStyle] = useState<PrintStyle>('fabric-matte');
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [assetFilterCategory, setAssetFilterCategory] = useState<string>('all');
   const [panelPositionOverrides, setPanelPositionOverrides] = useState<Record<string, [number, number, number]>>({});
@@ -972,6 +981,101 @@ export function BoothMapper3D({
           </TooltipProvider>
         </div>
 
+        <div className="h-5 w-px bg-border" />
+
+        {/* ── Print & Light ── */}
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline mr-1">Print</span>
+          <Select value={printStyle} onValueChange={(v) => setPrintStyle(v as PrintStyle)}>
+            <SelectTrigger className="h-8 w-[110px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PRINT_STYLE_OPTIONS.map((p) => (
+                <SelectItem key={p.value} value={p.value}>
+                  <span className="font-medium">{p.label}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1 px-2">
+                <Lightbulb className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Lighting</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-3" align="start">
+              <div className="space-y-3">
+                <p className="text-xs font-semibold text-foreground">Booth Lighting Rig</p>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-medium text-muted-foreground uppercase">Hall Ambient</label>
+                  <div className="flex items-center gap-2">
+                    <input type="range" min="0" max="100" value={Math.round(boothLighting.hallAmbient * 100)}
+                      onChange={(e) => setBoothLighting(prev => ({ ...prev, hallAmbient: Number(e.target.value) / 100 }))}
+                      className="flex-1 h-1.5 accent-primary" />
+                    <span className="text-[10px] font-mono text-muted-foreground w-8">{Math.round(boothLighting.hallAmbient * 100)}%</span>
+                  </div>
+                  <div className="flex gap-1">
+                    {TEMPERATURE_OPTIONS.map((t) => (
+                      <button key={t.value}
+                        className={cn("text-[10px] px-1.5 py-0.5 rounded border", boothLighting.hallTemperature === t.value ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground")}
+                        onClick={() => setBoothLighting(prev => ({ ...prev, hallTemperature: t.value }))}
+                      >{t.label}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-medium text-muted-foreground uppercase">Par Can Wash</label>
+                  <Select value={boothLighting.parCanColor} onValueChange={(v) => setBoothLighting(prev => ({ ...prev, parCanColor: v as ParCanColor }))}>
+                    <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {PAR_CAN_OPTIONS.map((p) => (
+                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {boothLighting.parCanColor !== 'none' && (
+                    <div className="flex items-center gap-2">
+                      <input type="range" min="0" max="100" value={Math.round(boothLighting.parCanIntensity * 100)}
+                        onChange={(e) => setBoothLighting(prev => ({ ...prev, parCanIntensity: Number(e.target.value) / 100 }))}
+                        className="flex-1 h-1.5 accent-primary" />
+                      <span className="text-[10px] font-mono text-muted-foreground w-8">{Math.round(boothLighting.parCanIntensity * 100)}%</span>
+                    </div>
+                  )}
+                </div>
+
+                <Separator />
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-medium text-muted-foreground uppercase">Edge Lighting</label>
+                    <Switch checked={boothLighting.edgeLightEnabled} onCheckedChange={(v) => setBoothLighting(prev => ({ ...prev, edgeLightEnabled: v }))} />
+                  </div>
+                  {boothLighting.edgeLightEnabled && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <input type="range" min="0" max="100" value={Math.round(boothLighting.edgeLightIntensity * 100)}
+                          onChange={(e) => setBoothLighting(prev => ({ ...prev, edgeLightIntensity: Number(e.target.value) / 100 }))}
+                          className="flex-1 h-1.5 accent-primary" />
+                        <span className="text-[10px] font-mono text-muted-foreground w-8">{Math.round(boothLighting.edgeLightIntensity * 100)}%</span>
+                      </div>
+                      <Input type="text" value={boothLighting.edgeLightColor}
+                        onChange={(e) => setBoothLighting(prev => ({ ...prev, edgeLightColor: e.target.value }))}
+                        className="h-7 text-xs font-mono" placeholder="#hex color" />
+                    </>
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+
         <div className="ml-auto flex items-center gap-2">
           {availableSpecTypes.length > 0 && (
             <Select value={useProductionSpecs ? specConfigType : '__generic'} onValueChange={(v) => {
@@ -1112,6 +1216,8 @@ export function BoothMapper3D({
                 activeSpecConfig={useProductionSpecs ? specConfigType : ''}
                 flooringConfig={flooringConfig}
                 footprint={boothConfig.footprint}
+                boothLighting={boothLighting}
+                printStyle={printStyle}
               />
             </Suspense>
           </Canvas>

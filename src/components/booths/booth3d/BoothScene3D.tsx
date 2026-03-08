@@ -18,6 +18,7 @@ import type { EnvironmentRealism, EnvironmentConfig, CameraPreset } from './envi
 import { getEnvironmentConfig } from './environmentPresets';
 import { CameraAnimator, type WalkthroughMode } from './CameraAnimator';
 import type { MonitorSpec } from './specParser';
+import { type BoothLightingConfig, type PrintStyle, temperatureToColor, parCanToColor } from './boothLightingConfig';
 
 
 
@@ -65,6 +66,10 @@ interface BoothScene3DProps {
   flooringConfig?: FlooringConfig;
   /** Booth footprint string e.g. "10' × 10' floor" */
   footprint?: string;
+  /** Configurable booth lighting rig */
+  boothLighting?: BoothLightingConfig;
+  /** Panel print material style */
+  printStyle?: PrintStyle;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
@@ -122,6 +127,8 @@ export function BoothScene3D({
   activeSpecConfig = '',
   flooringConfig,
   footprint = "10' × 10' floor",
+  boothLighting,
+  printStyle = 'fabric-matte',
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
@@ -271,6 +278,82 @@ export function BoothScene3D({
         </>
       )}
 
+      {/* ═══ CONFIGURABLE BOOTH LIGHTING RIG ═══ */}
+      {boothLighting && (
+        <>
+          {/* Override hall ambient with user config */}
+          <ambientLight
+            intensity={boothLighting.hallAmbient}
+            color={temperatureToColor(boothLighting.hallTemperature)}
+          />
+
+          {/* User-defined overhead booth spotlights */}
+          {boothLighting.boothSpots.map((spot, i) => (
+            <spotLight
+              key={`booth-spot-${i}`}
+              position={spot.position}
+              angle={spot.angle}
+              penumbra={0.8}
+              intensity={spot.intensity}
+              color={temperatureToColor(spot.temperature)}
+              castShadow={spot.castShadow}
+              shadow-mapSize={spot.castShadow ? [2048, 2048] : [512, 512]}
+              shadow-bias={-0.0003}
+              target-position={[spot.position[0], 0, spot.position[2]]}
+            />
+          ))}
+
+          {/* Par can color wash */}
+          {boothLighting.parCanColor !== 'none' && (
+            <>
+              <spotLight
+                position={[-2, 6.5, 1]}
+                angle={0.7}
+                penumbra={0.95}
+                intensity={boothLighting.parCanIntensity}
+                color={parCanToColor(boothLighting.parCanColor)}
+                distance={10}
+              />
+              <spotLight
+                position={[2, 6.5, -1]}
+                angle={0.7}
+                penumbra={0.95}
+                intensity={boothLighting.parCanIntensity * 0.7}
+                color={parCanToColor(boothLighting.parCanColor)}
+                distance={10}
+              />
+              <spotLight
+                position={[0, 6.5, 2]}
+                angle={0.6}
+                penumbra={0.9}
+                intensity={boothLighting.parCanIntensity * 0.5}
+                color={parCanToColor(boothLighting.parCanColor)}
+                distance={8}
+              />
+              {/* Par can housing visuals */}
+              {[[-2, 6.5, 1], [2, 6.5, -1], [0, 6.5, 2]].map(([x, y, z], i) => (
+                <group key={`par-${i}`} position={[x, y, z]}>
+                  <mesh>
+                    <cylinderGeometry args={[0.1, 0.13, 0.25, 12]} />
+                    <meshStandardMaterial color="#111" metalness={0.9} roughness={0.1} />
+                  </mesh>
+                  <mesh position={[0, -0.14, 0]}>
+                    <cylinderGeometry args={[0.08, 0.08, 0.02, 12]} />
+                    <meshStandardMaterial
+                      color={parCanToColor(boothLighting.parCanColor)}
+                      emissive={parCanToColor(boothLighting.parCanColor)}
+                      emissiveIntensity={0.6}
+                      transparent
+                      opacity={0.7}
+                    />
+                  </mesh>
+                </group>
+              ))}
+            </>
+          )}
+        </>
+      )}
+
       <Environment
         preset={lighting.envPreset}
         environmentIntensity={envConfig?.envIntensity ?? 0.5}
@@ -356,6 +439,9 @@ export function BoothScene3D({
           showSafeZones={showSafeZones}
           isDragMode={isDragMode}
           onPositionChange={onPanelPositionChange || (() => {})}
+          printStyle={printStyle}
+          edgeLightIntensity={boothLighting?.edgeLightEnabled ? boothLighting.edgeLightIntensity : 0}
+          edgeLightColor={boothLighting?.edgeLightColor}
         />
       ))}
 
