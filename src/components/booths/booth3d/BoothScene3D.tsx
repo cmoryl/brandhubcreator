@@ -89,13 +89,17 @@ function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
   const base = (() => {
     switch (preset) {
       case 'expo-bright':
-        return { ambientIntensity: 0.8, spotIntensity: 1.2, envPreset: 'warehouse' as const, bgColor: '#f8fafc' };
+        return { ambientIntensity: 0.8, spotIntensity: 1.2, envPreset: 'warehouse' as const, bgColor: '#f8fafc', hallBrightness: 'bright' as const };
       case 'showcase-dim':
-        return { ambientIntensity: 0.3, spotIntensity: 0.8, envPreset: 'night' as const, bgColor: '#0f172a' };
+        return { ambientIntensity: 0.4, spotIntensity: 0.9, envPreset: 'city' as const, bgColor: '#1e293b', hallBrightness: 'standard' as const };
+      case 'dark-hall':
+        return { ambientIntensity: 0.1, spotIntensity: 1.5, envPreset: 'night' as const, bgColor: '#09090b', hallBrightness: 'dark' as const };
+      case 'stage-lighting':
+        return { ambientIntensity: 0.15, spotIntensity: 1.8, envPreset: 'night' as const, bgColor: '#0c0a1a', hallBrightness: 'dark' as const };
       case 'warm-gallery':
-        return { ambientIntensity: 0.5, spotIntensity: 1.0, envPreset: 'sunset' as const, bgColor: '#1c1917' };
+        return { ambientIntensity: 0.5, spotIntensity: 1.0, envPreset: 'sunset' as const, bgColor: '#1c1917', hallBrightness: 'standard' as const };
       case 'cool-neutral':
-        return { ambientIntensity: 0.6, spotIntensity: 0.9, envPreset: 'city' as const, bgColor: '#f1f5f9' };
+        return { ambientIntensity: 0.6, spotIntensity: 0.9, envPreset: 'city' as const, bgColor: '#f1f5f9', hallBrightness: 'bright' as const };
     }
   })();
   if (envConfig) {
