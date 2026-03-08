@@ -129,13 +129,16 @@ export function BoothDesignToolbar(props: BoothDesignToolbarProps) {
           )}
           {isAdmin ? (
             <Select value={props.lightingPreset} onValueChange={(v) => props.onLightingChange(v as LightingPreset)}>
-              <SelectTrigger className="w-[110px] h-7 text-[11px]">
+              <SelectTrigger className="w-[140px] h-7 text-[11px]">
                 <Sun className="h-3 w-3 mr-1" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {LIGHTING_PRESETS.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                  <SelectItem key={p.value} value={p.value}>
+                    <span className="font-medium">{p.label}</span>
+                    <span className="text-muted-foreground text-[9px] block">{p.desc}</span>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
