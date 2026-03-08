@@ -377,7 +377,148 @@ export function BoothScene3D({
         </>
       )}
 
-      <Environment
+      {/* ═══ SPOTLIGHT BEAMS (visible volumetric cones) ═══ */}
+      {(lightingPreset === 'dark-hall' || lightingPreset === 'stage-lighting') && (
+        <>
+          {/* Visible beam cone meshes — simulates volumetric light */}
+          {[
+            { pos: [0, 7, 0] as [number, number, number], color: lightingPreset === 'stage-lighting' ? '#6366f1' : '#fef3c7', intensity: 0.8 },
+            { pos: [-2.5, 7, -0.5] as [number, number, number], color: lightingPreset === 'stage-lighting' ? '#ec4899' : '#fef3c7', intensity: 0.6 },
+            { pos: [2.5, 7, 0.5] as [number, number, number], color: lightingPreset === 'stage-lighting' ? '#06b6d4' : '#fef3c7', intensity: 0.6 },
+          ].map((beam, i) => (
+            <group key={`beam-${i}`} position={beam.pos}>
+              {/* Spot fixture housing */}
+              <mesh position={[0, 0.15, 0]}>
+                <cylinderGeometry args={[0.08, 0.12, 0.3, 12]} />
+                <meshStandardMaterial color="#1a1a2e" metalness={0.9} roughness={0.1} />
+              </mesh>
+              {/* Visible beam cone */}
+              <mesh position={[0, -3.2, 0]} rotation={[0, 0, 0]}>
+                <coneGeometry args={[1.8, 6.4, 16, 1, true]} />
+                <meshBasicMaterial
+                  color={beam.color}
+                  transparent
+                  opacity={0.04}
+                  side={2}
+                  depthWrite={false}
+                />
+              </mesh>
+              {/* Inner bright core */}
+              <mesh position={[0, -3.2, 0]}>
+                <coneGeometry args={[0.6, 6.4, 12, 1, true]} />
+                <meshBasicMaterial
+                  color={beam.color}
+                  transparent
+                  opacity={0.06}
+                  side={2}
+                  depthWrite={false}
+                />
+              </mesh>
+              {/* Actual spot light */}
+              <spotLight
+                position={[0, 0, 0]}
+                angle={0.35}
+                penumbra={0.8}
+                intensity={beam.intensity * lighting.spotIntensity}
+                color={beam.color}
+                castShadow
+                shadow-mapSize={[2048, 2048]}
+                shadow-bias={-0.0002}
+                distance={12}
+              />
+            </group>
+          ))}
+        </>
+      )}
+
+      {/* ═══ LED WASH (colored floor/wall wash) ═══ */}
+      {lightingPreset === 'stage-lighting' && (
+        <>
+          {/* Ground LED wash strips */}
+          {[
+            { pos: [-3, 0.05, -1.5] as [number, number, number], color: '#6366f1', rot: [0, 0, 0] as [number, number, number] },
+            { pos: [3, 0.05, -1.5] as [number, number, number], color: '#ec4899', rot: [0, 0, 0] as [number, number, number] },
+            { pos: [0, 0.05, 2] as [number, number, number], color: '#06b6d4', rot: [0, Math.PI / 2, 0] as [number, number, number] },
+          ].map((wash, i) => (
+            <group key={`wash-${i}`} position={wash.pos} rotation={wash.rot}>
+              {/* LED strip housing */}
+              <mesh>
+                <boxGeometry args={[2, 0.04, 0.08]} />
+                <meshStandardMaterial color="#111" metalness={0.8} roughness={0.2} />
+              </mesh>
+              {/* LED glow */}
+              <mesh position={[0, 0.01, 0]}>
+                <boxGeometry args={[1.9, 0.02, 0.06]} />
+                <meshBasicMaterial color={wash.color} transparent opacity={0.9} />
+              </mesh>
+              {/* Upward wash */}
+              <spotLight
+                position={[0, 0.1, 0]}
+                angle={1.2}
+                penumbra={1}
+                intensity={0.4}
+                color={wash.color}
+                distance={5}
+                target-position={[wash.pos[0], 4, wash.pos[2]]}
+              />
+              {/* Floor pool of light */}
+              <pointLight
+                position={[0, 0.15, 0]}
+                intensity={0.25}
+                color={wash.color}
+                distance={3}
+              />
+            </group>
+          ))}
+        </>
+      )}
+
+      {/* ═══ HALO BACKLIGHTING (panels glow ring) ═══ */}
+      {(lightingPreset === 'dark-hall' || lightingPreset === 'stage-lighting') && panels.length > 0 && (
+        <>
+          {panels.map((panel, i) => {
+            const haloColor = lightingPreset === 'stage-lighting' ? '#818cf8' : '#e2e8f0';
+            return (
+              <group key={`halo-${i}`} position={panel.position}>
+                {/* Back-glow point light behind panel */}
+                <pointLight
+                  position={[0, panel.size[1] * 0.5, -0.15]}
+                  intensity={lightingPreset === 'stage-lighting' ? 0.5 : 0.3}
+                  color={haloColor}
+                  distance={3}
+                />
+                {/* Halo ring mesh */}
+                <mesh position={[0, panel.size[1] * 0.5, -0.06]} rotation={[0, 0, 0]}>
+                  <ringGeometry args={[
+                    Math.max(panel.size[0], panel.size[1]) * 0.52,
+                    Math.max(panel.size[0], panel.size[1]) * 0.56,
+                    32
+                  ]} />
+                  <meshBasicMaterial
+                    color={haloColor}
+                    transparent
+                    opacity={0.15}
+                    side={2}
+                    depthWrite={false}
+                  />
+                </mesh>
+                {/* Soft glow plane behind panel */}
+                <mesh position={[0, panel.size[1] * 0.5, -0.08]}>
+                  <planeGeometry args={[panel.size[0] + 0.3, panel.size[1] + 0.3]} />
+                  <meshBasicMaterial
+                    color={haloColor}
+                    transparent
+                    opacity={0.08}
+                    depthWrite={false}
+                  />
+                </mesh>
+              </group>
+            );
+          })}
+        </>
+      )}
+
+
         preset={lighting.envPreset}
         environmentIntensity={envConfig?.envIntensity ?? 0.5}
         background={false}
