@@ -486,6 +486,8 @@ export function BoothMapper3D({
     setActivePreset(preset);
     setShowEnvironment(true);
     setShowPeople(true);
+    setPanelPositionOverrides({});
+    setAssignments({});
     toast.success(`Applied "${preset.name}" preset — ${preset.industry}`, {
       description: `${preset.panelGuides.length} panel guides loaded. Layout: ${preset.layout}`,
     });
