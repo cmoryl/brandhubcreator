@@ -44,7 +44,8 @@ Provide a comprehensive analysis covering:
 4. **Color Psychology**: Emotional associations, industry appropriateness, audience impact
 5. **Harmony Analysis**: Color relationships (complementary, analogous, triadic), balance assessment
 6. **Contrast Pairs**: Best foreground/background combinations for booth signage
-7. **Recommendations**: Specific actionable improvements
+7. **Color Code Conversions**: For EVERY color in the palette, provide the full set of color codes: HEX, RGB (r,g,b), CMYK (c,m,y,k percentages), and the closest Pantone match name
+8. **Recommendations**: Specific actionable improvements
 
 Use the analyze_colors tool to return structured results.`;
 
@@ -107,14 +108,18 @@ Use the analyze_colors tool to return structured results.`;
                     items: {
                       type: "object",
                       properties: {
-                        color: { type: "string", description: "Hex color" },
+                        color: { type: "string", description: "Hex color code including # prefix" },
+                        hex: { type: "string", description: "HEX color code (e.g. #1A2B3C)" },
+                        rgb: { type: "string", description: "RGB values as 'R, G, B' (e.g. '26, 43, 60')" },
+                        cmyk: { type: "string", description: "CMYK percentages as 'C, M, Y, K' (e.g. '57, 28, 0, 76')" },
+                        pantone: { type: "string", description: "Closest Pantone color match name (e.g. 'Pantone 289 C')" },
                         cmyk_safe: { type: "boolean", description: "Whether the color reproduces well in CMYK" },
                         large_format_notes: { type: "string", description: "Notes for large-format printing" },
                         material_notes: { type: "string", description: "Notes about material/substrate considerations" },
                       },
-                      required: ["color", "cmyk_safe"],
+                      required: ["color", "hex", "rgb", "cmyk", "pantone", "cmyk_safe"],
                     },
-                    description: "Production suitability per color",
+                    description: "Production suitability and color codes per color",
                   },
                   recommendations: {
                     type: "array",

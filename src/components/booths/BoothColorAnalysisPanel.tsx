@@ -75,15 +75,41 @@ const ContrastPairRow = ({ pair }: { pair: ContrastPair }) => (
 );
 
 const ProductionRow = ({ note }: { note: ProductionNote }) => (
-  <div className="flex items-start gap-2 p-2 rounded-lg bg-card border border-border/30">
-    <div className="h-5 w-5 rounded shrink-0 border border-border/40" style={{ backgroundColor: note.color }} />
-    <div className="min-w-0 flex-1">
-      <div className="flex items-center gap-1.5">
-        <span className="text-[10px] font-mono text-muted-foreground">{note.color}</span>
+  <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-card border border-border/30">
+    <div className="h-10 w-10 rounded-md shrink-0 border border-border/40 shadow-sm" style={{ backgroundColor: note.color }} />
+    <div className="min-w-0 flex-1 space-y-1">
+      <div className="flex items-center gap-1.5 flex-wrap">
         {note.cmyk_safe ? (
           <Badge variant="outline" className="text-[8px] px-1 py-0 border-green-500/30 text-green-500">CMYK Safe</Badge>
         ) : (
           <Badge variant="outline" className="text-[8px] px-1 py-0 border-yellow-500/30 text-yellow-500">Gamut Risk</Badge>
+        )}
+        {note.pantone && (
+          <Badge variant="outline" className="text-[8px] px-1 py-0 border-primary/30 text-primary">{note.pantone}</Badge>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] font-semibold text-muted-foreground uppercase w-8">HEX</span>
+          <span className="text-[10px] font-mono text-foreground">{note.hex || note.color}</span>
+        </div>
+        {note.rgb && (
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] font-semibold text-muted-foreground uppercase w-8">RGB</span>
+            <span className="text-[10px] font-mono text-foreground">{note.rgb}</span>
+          </div>
+        )}
+        {note.cmyk && (
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] font-semibold text-muted-foreground uppercase w-8">CMYK</span>
+            <span className="text-[10px] font-mono text-foreground">{note.cmyk}</span>
+          </div>
+        )}
+        {note.pantone && (
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] font-semibold text-muted-foreground uppercase w-8">PMS</span>
+            <span className="text-[10px] font-mono text-foreground">{note.pantone}</span>
+          </div>
         )}
       </div>
       {note.large_format_notes && <p className="text-[10px] text-muted-foreground mt-0.5">{note.large_format_notes}</p>}
