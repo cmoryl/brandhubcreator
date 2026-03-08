@@ -228,26 +228,33 @@ export function BoothMapper3D({
     load();
   }, [divisionId, variantLabel]);
 
-  // Fetch production specs for this division
+  // Fetch production specs for this division (all categories, variant-aware)
+  const [allProdSpecs, setAllProdSpecs] = useState<{ title: string; content: string; category: string }[]>([]);
   useEffect(() => {
     if (!divisionId) return;
     const fetchProdSpecs = async () => {
       try {
         const { data, error } = await supabase
           .from('booth_production_specs')
-          .select('title, content, category')
+          .select('title, content, category, variant_label')
           .eq('division_id', divisionId)
-          .eq('category', 'content-sizing')
           .order('display_order', { ascending: true });
 
         if (error || !data || data.length === 0) return;
 
-        const layouts = parseAllSpecs(data);
+        // Filter by variant: include specs with matching variant_label or null (shared)
+        const filtered = data.filter(s =>
+          s.variant_label === null || s.variant_label === (variantLabel || null)
+        );
+
+        setAllProdSpecs(filtered);
+
+        // Parse content-sizing specs for panel generation
+        const contentSizing = filtered.filter(s => s.category === 'content-sizing');
+        const layouts = parseAllSpecs(contentSizing);
         if (layouts.length > 0) {
-          // Flatten all parsed specs
           const allParsed = layouts.flatMap(l => l.panels);
           setProdSpecs(allParsed);
-          // Auto-select the first available config type
           setSpecConfigType(layouts[0].configType);
           setUseProductionSpecs(true);
         }
@@ -256,7 +263,7 @@ export function BoothMapper3D({
       }
     };
     fetchProdSpecs();
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   // Debounced save to database
   const saveMapping = useCallback(() => {
