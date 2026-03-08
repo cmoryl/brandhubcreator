@@ -54,6 +54,11 @@ import {
   type PlacedAsset,
   type FurnitureCategory,
 } from './boothFurnitureConfigs';
+import {
+  ENVIRONMENT_PRESETS,
+  getEnvironmentConfig,
+  type EnvironmentRealism,
+} from './environmentPresets';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -95,8 +100,10 @@ export function BoothMapper3D({
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [showEnvironment, setShowEnvironment] = useState(false);
+  const [environmentRealism, setEnvironmentRealism] = useState<EnvironmentRealism>('standard');
   const [showPeople, setShowPeople] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
+  const [activeCameraPreset, setActiveCameraPreset] = useState<string | null>(null);
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
@@ -587,12 +594,43 @@ export function BoothMapper3D({
           {/* Advanced spatial view toggles */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Toggle pressed={showEnvironment} onPressedChange={setShowEnvironment} size="sm" aria-label="Toggle expo environment">
+              <Toggle pressed={showEnvironment} onPressedChange={(v) => {
+                setShowEnvironment(v);
+                if (v) { setShowPeople(true); }
+              }} size="sm" aria-label="Toggle expo environment">
                 <Building2 className="h-4 w-4" />
               </Toggle>
             </TooltipTrigger>
             <TooltipContent>Expo Environment</TooltipContent>
           </Tooltip>
+
+          {/* Realism level selector (shown when environment is on) */}
+          {showEnvironment && (
+            <Select value={environmentRealism} onValueChange={(v) => {
+              setEnvironmentRealism(v as EnvironmentRealism);
+              setActiveCameraPreset(null);
+              const config = getEnvironmentConfig(v as EnvironmentRealism);
+              // Auto-enable people for cinematic/ultra
+              if (v === 'cinematic' || v === 'ultra') {
+                setShowPeople(true);
+                setShowTrafficFlow(true);
+              }
+            }}>
+              <SelectTrigger className="h-8 w-[130px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.entries(ENVIRONMENT_PRESETS) as [EnvironmentRealism, typeof ENVIRONMENT_PRESETS[EnvironmentRealism]][]).map(([key, preset]) => (
+                  <SelectItem key={key} value={key}>
+                    <span className="flex items-center gap-1.5">
+                      <span>{preset.icon}</span>
+                      <span>{preset.label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
           <Tooltip>
             <TooltipTrigger asChild>
@@ -774,6 +812,7 @@ export function BoothMapper3D({
                 selectedAssetId={selectedAssetId}
                 onSelectAsset={handleSelectAsset}
                 onAssetPositionChange={handleAssetPositionChange}
+                environmentRealism={environmentRealism}
               />
             </Suspense>
           </Canvas>
