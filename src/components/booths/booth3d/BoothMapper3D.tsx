@@ -105,6 +105,7 @@ export function BoothMapper3D({
   const [showPeople, setShowPeople] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
   const [activeCameraPreset, setActiveCameraPreset] = useState<string | null>(null);
+  const [cameraVersion, setCameraVersion] = useState(0);
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
