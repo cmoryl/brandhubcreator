@@ -1138,7 +1138,7 @@ export function BoothMapper3D({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,.pdf"
+          accept="image/*,.pdf,.ai,.eps,.svg"
           className="hidden"
           onChange={handleFileUpload}
         />
