@@ -1,16 +1,16 @@
 /**
- * PeopleFigures - Orchestrates realistic human figures in the 3D booth scene.
- * Uses RealisticHumanFigure for enhanced procedural characters with:
- * - Facial features, articulated joints, finger detail
- * - Conference lanyards & name badges
- * - Staff vs visitor distinction
- * - Collision avoidance with booth assets
+ * PeopleFigures - Orchestrates human figures in the 3D booth scene.
+ *
+ * Supports two rendering modes:
+ * 1. Billboard sprites (photorealistic cutout images facing camera)
+ * 2. Procedural fallback (stylized geometry when no sprites available)
  */
 import { useMemo } from 'react';
 import type { EnvironmentConfig } from './environmentPresets';
 import { getPeopleMultiplier } from './environmentPresets';
 import { getLayoutFamily } from './boothConfigs';
-import { RealisticHumanFigure, type RealisticFigureProps, type FigurePose } from './RealisticHumanFigure';
+import { RealisticHumanFigure, type FigurePose } from './RealisticHumanFigure';
+import { BillboardFigure, BillboardConversationGroup, getCharacterBySeed } from './BillboardFigure';
 
 const HUMAN_HEIGHT = 1.75;
 
@@ -23,7 +23,7 @@ interface FigurePlacement {
   isStaff?: boolean;
 }
 
-/** Conversation cluster - 2-3 people facing each other */
+/** Conversation cluster fallback */
 function ConversationGroup({ position, count = 2 }: { position: [number, number, number]; count?: number }) {
   const angles = count === 2 ? [0, Math.PI] : [0, Math.PI * 0.7, Math.PI * 1.3];
   const radius = 0.55;
@@ -76,6 +76,10 @@ interface PeopleFiguresProps {
   layout: string;
   envConfig?: EnvironmentConfig;
   occupiedZones?: OccupiedZone[];
+  /** Map of characterId → sprite URL for billboard rendering */
+  spriteUrls?: Record<string, string>;
+  /** When true and sprites available, use billboard rendering */
+  useBillboards?: boolean;
 }
 
 const PERSON_RADIUS = 0.35;
@@ -87,10 +91,17 @@ function collidesWithZone(px: number, pz: number, zone: OccupiedZone): boolean {
   );
 }
 
-export function PeopleFigures({ layout: rawLayout, envConfig, occupiedZones = [] }: PeopleFiguresProps) {
+export function PeopleFigures({
+  layout: rawLayout,
+  envConfig,
+  occupiedZones = [],
+  spriteUrls = {},
+  useBillboards = false,
+}: PeopleFiguresProps) {
   const layout = getLayoutFamily(rawLayout as any);
   const multiplier = envConfig ? getPeopleMultiplier(envConfig.peopleCount) : 1;
   const showConversationGroups = envConfig?.showConversationGroups ?? false;
+  const hasBillboards = useBillboards && Object.keys(spriteUrls).length > 0;
 
   const figures = useMemo(() => {
     const base: FigurePlacement[] = [];
@@ -128,7 +139,7 @@ export function PeopleFigures({ layout: rawLayout, envConfig, occupiedZones = []
       add([-1.5, 0, -4.5], Math.PI * 0.1);
     }
 
-    // Staff inside booth (marked as staff for polo collar + branded badge)
+    // Staff inside booth
     add([0, 0, 0.8], Math.PI, { opacity: 0.9, pose: 'standing', isStaff: true });
     if (layout !== 'inline') {
       add([-0.8, 0, 0.5], Math.PI * 0.7, { opacity: 0.9, pose: 'pointing', isStaff: true });
@@ -202,21 +213,62 @@ export function PeopleFigures({ layout: rawLayout, envConfig, occupiedZones = []
 
   return (
     <group>
-      {safeFigures.map((fig, i) => (
-        <RealisticHumanFigure
-          key={i}
-          position={fig.position}
-          rotation={fig.rotation}
-          opacity={fig.opacity}
-          pose={fig.pose}
-          seed={fig.seed}
-          isStaff={fig.isStaff}
-          animated
-        />
-      ))}
-      {conversationPositions.map((group, i) => (
-        <ConversationGroup key={`conv-${i}`} position={group.position} count={group.count} />
-      ))}
+      {safeFigures.map((fig, i) => {
+        // Try billboard mode first
+        if (hasBillboards) {
+          const character = getCharacterBySeed(fig.seed || i, fig.isStaff);
+          const url = spriteUrls[character.id];
+          if (url) {
+            return (
+              <BillboardFigure
+                key={i}
+                position={fig.position}
+                rotation={fig.rotation}
+                opacity={fig.opacity}
+                spriteUrl={url}
+                height={1.68 + (fig.seed || 0) % 3 * 0.04}
+                aspect={character.aspect}
+              />
+            );
+          }
+        }
+
+        // Fallback to procedural
+        return (
+          <RealisticHumanFigure
+            key={i}
+            position={fig.position}
+            rotation={fig.rotation}
+            opacity={fig.opacity}
+            pose={fig.pose}
+            seed={fig.seed}
+            isStaff={fig.isStaff}
+            animated
+          />
+        );
+      })}
+      {conversationPositions.map((group, i) => {
+        if (hasBillboards) {
+          const urls = Array.from({ length: group.count }, (_, j) => {
+            const char = getCharacterBySeed(i * 10 + j + 100);
+            return spriteUrls[char.id];
+          }).filter(Boolean) as string[];
+
+          if (urls.length >= 2) {
+            return (
+              <BillboardConversationGroup
+                key={`conv-${i}`}
+                position={group.position}
+                spriteUrls={urls}
+                count={group.count}
+              />
+            );
+          }
+        }
+        return (
+          <ConversationGroup key={`conv-${i}`} position={group.position} count={group.count} />
+        );
+      })}
       <HeightMarker position={[layout === 'island' ? 3.5 : 2, 0, -0.5]} />
     </group>
   );
