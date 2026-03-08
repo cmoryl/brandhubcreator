@@ -500,6 +500,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['cpg', 'consumer', 'retail', 'food', 'beverage', 'sampling'],
     placedAssets: RETAIL_CPG_ASSETS,
     flooringConfig: RETAIL_CPG_FLOOR,
+  },
   {
     id: 'retail-fashion',
     name: 'Fashion & Luxury',
