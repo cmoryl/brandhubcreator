@@ -310,10 +310,11 @@ export function BoothMapper3D({
   const handleAddAsset = useCallback((assetId: string) => {
     const config = getFurnitureById(assetId);
     if (!config) return;
+    const defaultY = config.wallMountable ? 1.5 : 0; // Wall items start at ~eye level
     const newAsset: PlacedAsset = {
       instanceId: `${assetId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       assetId,
-      position: [0, 0, 2],
+      position: [0, defaultY, 2],
       rotation: [0, 0, 0],
       label: config.name,
     };
