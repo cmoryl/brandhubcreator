@@ -94,6 +94,13 @@ interface BoothMapper3DProps {
   onAssignmentsChange?: (assignments: PanelAssignment[]) => void;
 }
 
+/** Tiny bridge component to capture the Three.js scene reference from inside the Canvas */
+function SceneBridge({ sceneRef }: { sceneRef: React.MutableRefObject<THREE.Scene | null> }) {
+  const { scene } = useThree();
+  sceneRef.current = scene;
+  return null;
+}
+
 export function BoothMapper3D({
   variantImages,
   galleryImages = [],
