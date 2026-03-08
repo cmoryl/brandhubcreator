@@ -94,6 +94,7 @@ import { BoothAnalyticsDashboard } from './BoothAnalyticsDashboard';
 import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
 import type { AIBoothResult } from './AIBoothGenerator';
 import { VendorExportPack } from './VendorExportPack';
+import { PanelFileMapper } from './PanelFileMapper';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -764,8 +765,10 @@ export function BoothMapper3D({
 
     const isImage = file.type.startsWith('image/');
     const isPdf = file.type === 'application/pdf';
-    if (!isImage && !isPdf) {
-      toast.error('Please upload an image (JPG, PNG) or PDF file');
+    const isAi = file.name.endsWith('.ai') || file.name.endsWith('.eps');
+    const isSvg = file.type === 'image/svg+xml';
+    if (!isImage && !isPdf && !isAi && !isSvg) {
+      toast.error('Please upload an image, PDF, AI, EPS, or SVG file');
       return;
     }
 
@@ -1138,7 +1141,7 @@ export function BoothMapper3D({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,.pdf"
+          accept="image/*,.pdf,.ai,.eps,.svg"
           className="hidden"
           onChange={handleFileUpload}
         />
@@ -1257,20 +1260,31 @@ export function BoothMapper3D({
             />
           ) :
           activeMode === 'production' ? (
-            <VendorExportPack
-              divisionName={divisionName}
-              layout={layout}
-              boothDimensions={boothConfig.dimensions}
-              boothFootprint={boothConfig.footprint}
-              panels={panels}
-              assignments={assignments}
-              backAssignments={backAssignments}
-              placedAssets={placedAssets}
-              boothLighting={boothLighting}
-              flooringConfig={flooringConfig}
-              logisticsMarkers={logisticsMarkers}
-              isAdmin={isAdmin}
-            />
+            <div className="space-y-4">
+              <PanelFileMapper
+                panels={panels}
+                assignments={assignments}
+                onAssignFile={(panelId, fileUrl) => {
+                  setAssignments(prev => ({ ...prev, [panelId]: fileUrl }));
+                }}
+                isAdmin={isAdmin}
+                divisionId={divisionId}
+              />
+              <VendorExportPack
+                divisionName={divisionName}
+                layout={layout}
+                boothDimensions={boothConfig.dimensions}
+                boothFootprint={boothConfig.footprint}
+                panels={panels}
+                assignments={assignments}
+                backAssignments={backAssignments}
+                placedAssets={placedAssets}
+                boothLighting={boothLighting}
+                flooringConfig={flooringConfig}
+                logisticsMarkers={logisticsMarkers}
+                isAdmin={isAdmin}
+              />
+            </div>
           ) : undefined
         }
       />

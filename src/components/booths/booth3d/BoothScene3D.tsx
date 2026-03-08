@@ -590,7 +590,7 @@ export function BoothScene3D({
 
 
       {showEnvironment && envConfig ? (
-        <ExpoEnvironment config={envConfig} />
+        <ExpoEnvironment config={envConfig} isAerialView={activeCameraPreset?.id === 'aerial'} />
       ) : (
         <>
           <Grid

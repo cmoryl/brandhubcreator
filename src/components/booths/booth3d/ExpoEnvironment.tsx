@@ -13,6 +13,8 @@ const FT = 0.3048;
 
 interface ExpoEnvironmentProps {
   config: EnvironmentConfig;
+  /** When true, hides ceiling trusses, light rigs, ventilation, and overhead elements for aerial/top-down view */
+  isAerialView?: boolean;
 }
 
 // ─── Procedural Texture Utilities ──────────────────────────
@@ -857,7 +859,7 @@ function HallWalls() {
 
 // ─── Main Exported Component ──────────────────────────
 
-export function ExpoEnvironment({ config }: ExpoEnvironmentProps) {
+export function ExpoEnvironment({ config, isAerialView = false }: ExpoEnvironmentProps) {
   const cinematic = config.showLightRigs;
   const isHyper = config.showVolumetricLights === true;
   const particleDensity = config.particleDensity ?? 300;
@@ -877,22 +879,23 @@ export function ExpoEnvironment({ config }: ExpoEnvironmentProps) {
         </>
       )}
 
-      <CeilingTrusses enhanced={config.enhancedMaterials} />
+      {/* Ceiling & overhead elements hidden during aerial view */}
+      {!isAerialView && <CeilingTrusses enhanced={config.enhancedMaterials} />}
       <NeighborBooths detailed={cinematic} enhanced={config.enhancedMaterials} />
       <AisleMarkings />
 
       {config.showPillars && <Pillars enhanced={config.enhancedMaterials} />}
       {config.showExitSigns && <ExitSigns />}
-      {config.showLightRigs && <LightRigs cinematic={cinematic} hyper={isHyper} />}
-      {config.showVentilation && <VentilationDucts />}
-      {config.showCableTroughs && <CableTroughs />}
-      {config.showFog && <AtmosphericFog density={config.fogDensity} />}
-      {config.showAmbientParticles && <AmbientParticles density={particleDensity} />}
-      {config.showBannerRigs && <EntranceBackdrop enhanced={config.enhancedMaterials} />}
+      {!isAerialView && config.showLightRigs && <LightRigs cinematic={cinematic} hyper={isHyper} />}
+      {!isAerialView && config.showVentilation && <VentilationDucts />}
+      {!isAerialView && config.showCableTroughs && <CableTroughs />}
+      {config.showFog && !isAerialView && <AtmosphericFog density={config.fogDensity} />}
+      {config.showAmbientParticles && !isAerialView && <AmbientParticles density={particleDensity} />}
+      {!isAerialView && config.showBannerRigs && <EntranceBackdrop enhanced={config.enhancedMaterials} />}
 
-      {/* Hyper-mode exclusives */}
-      {isHyper && <VolumetricLightCones />}
-      {config.showLightShafts && <LightShafts />}
+      {/* Hyper-mode exclusives — volumetric cones & light shafts hidden in aerial */}
+      {!isAerialView && isHyper && <VolumetricLightCones />}
+      {!isAerialView && config.showLightShafts && <LightShafts />}
       {config.showNeonAccents && <NeonAccents />}
       {config.showDetailedWalls && <HallWalls />}
 
@@ -904,6 +907,14 @@ export function ExpoEnvironment({ config }: ExpoEnvironmentProps) {
           <pointLight position={[-8, 6.5, 8]} intensity={0.15} color="#e2e8f0" />
           <pointLight position={[8, 6.5, 8]} intensity={0.15} color="#e2e8f0" />
           <spotLight position={[0, 6.8, 2]} angle={0.6} penumbra={0.8} intensity={0.4} color="#fef3c7" />
+        </>
+      )}
+
+      {/* Extra top-down lighting for aerial view clarity */}
+      {isAerialView && (
+        <>
+          <ambientLight intensity={0.9} />
+          <directionalLight position={[0, 15, 0]} intensity={1.2} castShadow={false} />
         </>
       )}
     </group>
