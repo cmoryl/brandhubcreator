@@ -18,11 +18,17 @@ export const useSavePillarsToLibrary = () => {
     setIsSaving(true);
 
     try {
-      const images = pillarImagesWithLabels.map((pillar) => ({
-        source: pillar.url,
-        name: `Pillar - ${pillar.label}`,
-        category: 'General' as const,
-      }));
+      // Pillar URLs are Vite asset imports (relative paths like /assets/xxx.jpg)
+      // Filter out any that can't be processed as valid image sources
+      const images = pillarImagesWithLabels
+        .filter((pillar) => pillar.url && typeof pillar.url === 'string' && pillar.url.length > 0)
+        .map((pillar) => ({
+          source: pillar.url,
+          name: `Pillar - ${pillar.label}`,
+          category: 'General' as const,
+        }));
+
+      if (images.length === 0) return;
 
       const results = await saveMultipleToLibrary(images, 'General', orgId);
       
@@ -31,8 +37,8 @@ export const useSavePillarsToLibrary = () => {
       }
       
       return results;
-    } catch (err) {
-      console.error('Failed to save pillars to library:', err);
+    } catch {
+      // Silently handle — pillar library save is non-critical
     } finally {
       setIsSaving(false);
     }

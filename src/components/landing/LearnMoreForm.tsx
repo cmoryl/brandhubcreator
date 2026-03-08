@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 const interestOptions = [
   { id: 'brand-guides', label: 'Brand Guide Creation', icon: Layers },
