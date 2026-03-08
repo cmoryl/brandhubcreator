@@ -267,7 +267,7 @@ export function BillboardConversationGroup({
             rotation={angle + Math.PI}
             opacity={1}
             spriteUrl={url}
-            height={1.7 + Math.random() * 0.1}
+            height={1.65 + (i * 7 % 5) * 0.03}
           />
         );
       })}
