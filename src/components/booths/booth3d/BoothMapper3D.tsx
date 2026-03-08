@@ -1438,6 +1438,60 @@ export function BoothMapper3D({
         </Card>
       )}
     </div>
+
+      {/* Cover Image Picker Dialog */}
+      <Dialog open={coverImagePickerOpen} onOpenChange={(open) => { setCoverImagePickerOpen(open); if (!open) setCoverImageTargetAssetId(null); }}>
+        <DialogContent className="max-w-xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shirt className="h-5 w-5" />
+              Select Cover Print / Logo
+            </DialogTitle>
+            <DialogDescription>
+              Choose an image from your library to print on the table cover front panel.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative mb-2">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search images..."
+              value={librarySearch}
+              onChange={(e) => setLibrarySearch(e.target.value)}
+              className="pl-9 h-9"
+            />
+          </div>
+
+          <ScrollArea className="flex-1 min-h-0 max-h-[50vh]">
+            {libraryLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : filteredLibraryImages.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No images found</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2 pr-2">
+                {filteredLibraryImages.map((img, i) => (
+                  <button
+                    key={`cover-${img.public_url}-${i}`}
+                    onClick={() => handleAssignCoverImage(img.public_url)}
+                    className="group relative rounded-lg overflow-hidden border hover:border-primary hover:shadow-md transition-all"
+                  >
+                    <img src={img.public_url} alt={img.name} className="w-full aspect-video object-cover" loading="lazy" />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5">
+                      <span className="text-[10px] text-white font-medium truncate block">{img.name || 'Image'}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
