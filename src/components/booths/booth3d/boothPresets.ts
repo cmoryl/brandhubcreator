@@ -199,7 +199,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Amber/gold accents convey warning/alert appropriately for the security context',
     ],
     tags: ['cybersecurity', 'security', 'compliance', 'zero-trust', 'soc'],
-  },
+    placedAssets: TECH_CYBER_ASSETS,
+    flooringConfig: TECH_CYBER_FLOOR,
 
   // ═══════════════════════════════════════
   // HEALTHCARE & PHARMA
