@@ -1224,8 +1224,7 @@ export const BrandEventSignageSection = ({
                     isEditable={!!onLinkedBoothsChange}
                     onRemove={() => onLinkedBoothsChange?.(linkedBooths.filter(b => b.id !== booth.id))}
                     onOpenDetail={() => {
-                      const division = resolveBoothDivision(booth, customDivisions);
-                      if (division) setSelectedDivision(division);
+                      navigate(`/booths/${booth.divisionId}`);
                     }}
                   />
                 ))}
