@@ -529,7 +529,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['fashion', 'luxury', 'premium', 'editorial', 'lifestyle'],
     placedAssets: RETAIL_FASHION_ASSETS,
     flooringConfig: RETAIL_FASHION_FLOOR,
-
+  },
   // ═══════════════════════════════════════
   // EDUCATION
   // ═══════════════════════════════════════
