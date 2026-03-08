@@ -214,6 +214,36 @@ export function BoothMapper3D({
   const { analytics: boothAnalytics, saveAnalytics: saveBoothAnalytics } = useBoothAnalytics(divisionId, variantLabel);
   const { images: libraryImages, isLoading: libraryLoading, fetchImages, uploadImage } = useImageLibrary();
 
+  // Division branding switch
+  const handleApplyBrand = useCallback((data: {
+    assignments?: Record<string, string>;
+    accentColors?: { primary: string; secondary: string; accent: string };
+    screenContent?: Record<string, string>;
+    logoUrl?: string;
+    headline?: string;
+    tagline?: string;
+  }) => {
+    if (data.assignments) {
+      setAssignments(prev => ({ ...prev, ...data.assignments }));
+    }
+    if (data.screenContent) {
+      setPlacedAssets(prev => prev.map(a => {
+        const screenUrl = data.screenContent?.[a.instanceId];
+        return screenUrl ? { ...a, screenImageUrl: screenUrl } : a;
+      }));
+    }
+    // Color accent changes are applied via the active brand preset's color data
+    // which flows through the organization context to the 3D scene
+  }, [setAssignments, setPlacedAssets]);
+
+  const divisionBranding = useDivisionBranding(
+    divisionId,
+    organization?.id,
+    assignments,
+    placedAssets,
+    handleApplyBrand,
+  );
+
   // Eagerly fetch images when organization is available
   useEffect(() => {
     if (organization?.id) fetchImages(organization.id);
