@@ -2589,6 +2589,20 @@ export default function BoothsCatalog() {
             <Badge className="bg-white/10 text-white/80 border-white/20 text-sm px-3 py-1">
               2026 Season
             </Badge>
+            <Badge className="bg-white/10 text-white/80 border-white/20 text-sm px-3 py-1">
+              2026 Season
+            </Badge>
+          </div>
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white/10 border-white/30 text-white hover:bg-white/20 gap-2"
+              onClick={() => navigate('/expo-floor')}
+            >
+              <MapPin className="h-4 w-4" />
+              Expo Floor Planner
+            </Button>
           </div>
         </div>
       </div>
