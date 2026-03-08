@@ -329,6 +329,7 @@ function SystemCard({
   onEditNameChange, onEditDescChange, onDelete, onAddVariant, onDeleteVariant,
   onNavigateToMapper,
 }: SystemCardProps) {
+  const [confirmDeleteVariant, setConfirmDeleteVariant] = useState<string | null>(null);
   return (
     <Card className={cn(
       'transition-all',
