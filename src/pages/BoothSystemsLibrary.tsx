@@ -2,12 +2,12 @@
  * BoothSystemsLibrary — Master booth system library page.
  * One base design powers multiple events with variant size configurations.
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Building2, Layers, Box, Calendar,
   Trash2, Edit2, Check, X, ChevronRight, Loader2,
-  BookTemplate, Copy, Save,
+  BookTemplate, Copy, Save, AlertTriangle, Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -24,6 +25,7 @@ import { BrandHubLogo } from '@/components/BrandHubLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useBoothSystems, type BoothSystem, type BoothSystemVariant } from '@/hooks/useBoothSystems';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { toast } from 'sonner';
 
 const VARIANT_TYPES = [
   { value: 'inline', label: 'Inline' },
@@ -102,34 +104,41 @@ export default function BoothSystemsLibrary() {
     <div className="min-h-screen bg-background">
       {/* Top bar */}
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <Button
               variant="ghost" size="sm"
               onClick={() => navigate('/booths')}
-              className="gap-2 text-muted-foreground hover:text-foreground"
+              className="gap-1.5 text-muted-foreground hover:text-foreground shrink-0 hidden sm:flex"
             >
               <ArrowLeft className="h-4 w-4" />
               Booth Catalog
             </Button>
-            <div className="h-5 w-px bg-border" />
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                <BookTemplate className="h-4 w-4 text-primary" />
+            <Button
+              variant="ghost" size="icon"
+              onClick={() => navigate('/booths')}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0 sm:hidden"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="h-5 w-px bg-border hidden sm:block" />
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+                <BookTemplate className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
               </div>
-              <h1 className="text-lg font-bold text-foreground font-heading">
-                Booth System Library
+              <h1 className="text-sm sm:text-lg font-bold text-foreground font-heading truncate">
+                System Library
               </h1>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {isAdmin && (
-              <Button size="sm" onClick={() => setShowCreateDialog(true)} className="gap-1.5 h-8 text-xs">
-                <Plus className="h-3.5 w-3.5" /> New System
+              <Button size="sm" onClick={() => setShowCreateDialog(true)} className="gap-1.5 h-7 sm:h-8 text-[11px] sm:text-xs">
+                <Plus className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> <span className="hidden xs:inline">New</span> System
               </Button>
             )}
             <ThemeToggle />
-            <div className="cursor-pointer" onClick={() => navigate('/org/transperfect')}>
+            <div className="cursor-pointer hidden sm:block" onClick={() => navigate('/org/transperfect')}>
               <BrandHubLogo size="sm" />
             </div>
           </div>
@@ -187,11 +196,18 @@ export default function BoothSystemsLibrary() {
                 onCancelEdit={() => setEditingSystem(null)}
                 onEditNameChange={setEditName}
                 onEditDescChange={setEditDesc}
-                onDelete={() => deleteSystem(system.id)}
+                onDelete={() => {
+                  if (system.variants.length > 0) {
+                    toast.error(`Remove all ${system.variants.length} variant(s) first`);
+                    return;
+                  }
+                  deleteSystem(system.id);
+                }}
                 onAddVariant={() => setShowAddVariant(system.id)}
                 onDeleteVariant={(vId) => deleteVariant(vId)}
-                onNavigateToMapper={(variant) => {
-                  navigate(`/booths/system-preview?systemId=${system.id}&variantId=${variant.id}`);
+                onNavigateToMapper={() => {
+                  toast.info('Open a booth in the Catalog, then use the Systems picker in the toolbar');
+                  navigate('/booths');
                 }}
               />
             ))}
@@ -304,7 +320,7 @@ interface SystemCardProps {
   onDelete: () => void;
   onAddVariant: () => void;
   onDeleteVariant: (id: string) => void;
-  onNavigateToMapper: (variant: BoothSystemVariant) => void;
+  onNavigateToMapper: () => void;
 }
 
 function SystemCard({
@@ -313,6 +329,7 @@ function SystemCard({
   onEditNameChange, onEditDescChange, onDelete, onAddVariant, onDeleteVariant,
   onNavigateToMapper,
 }: SystemCardProps) {
+  const [confirmDeleteVariant, setConfirmDeleteVariant] = useState<string | null>(null);
   return (
     <Card className={cn(
       'transition-all',
@@ -347,6 +364,13 @@ function SystemCard({
                 />
               ) : (
                 <p className="text-xs text-muted-foreground truncate">{system.description || 'No description'}</p>
+              )}
+              {!isEditing && system.tags.length > 0 && (
+                <div className="flex items-center gap-1 mt-1 flex-wrap">
+                  {system.tags.slice(0, 3).map(tag => (
+                    <Badge key={tag} variant="secondary" className="text-[8px] py-0 px-1 font-normal">{tag}</Badge>
+                  ))}
+                </div>
               )}
             </div>
           </button>
@@ -395,8 +419,12 @@ function SystemCard({
                     key={variant.id}
                     variant={variant}
                     isAdmin={isAdmin}
-                    onOpen={() => onNavigateToMapper(variant)}
-                    onDelete={() => onDeleteVariant(variant.id)}
+                    onOpen={() => onNavigateToMapper()}
+                    onDelete={() => {
+                      if (confirm(`Delete variant "${variant.variantName}"? This cannot be undone.`)) {
+                        onDeleteVariant(variant.id);
+                      }
+                    }}
                   />
                 ))}
               </div>
