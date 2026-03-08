@@ -22,6 +22,8 @@ import { CameraAnimator, type WalkthroughMode } from './CameraAnimator';
 import { FirstPersonController } from './FirstPersonController';
 import type { MonitorSpec } from './specParser';
 import { type BoothLightingConfig, type PrintStyle, temperatureToColor, parCanToColor } from './boothLightingConfig';
+import { LogisticsOverlay3D } from './LogisticsMarker3D';
+import type { LogisticsMarker } from './logisticsTypes';
 
 
 
