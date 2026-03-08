@@ -564,7 +564,7 @@ export function BoothScene3D({
 
       <Environment
         preset={lighting.envPreset}
-        environmentIntensity={envConfig?.envIntensity ?? 0.5}
+        environmentIntensity={envConfig?.envIntensity ?? 0.7}
         background={false}
       />
 
