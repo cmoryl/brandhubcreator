@@ -46,15 +46,8 @@ function CameraController({
 
   return null;
 }
-import { BoothFurniture3D } from './BoothFurniture3D';
-import { ExpoEnvironment } from './ExpoEnvironment';
-import { PeopleFigures, type OccupiedZone } from './PeopleFigures';
-import { TrafficFlow } from './TrafficFlow';
-import type { PanelConfig, LightingPreset, BoothLayout } from './boothConfigs';
-import type { PlacedAsset } from './boothFurnitureConfigs';
-import { getFurnitureById } from './boothFurnitureConfigs';
-import type { EnvironmentRealism, EnvironmentConfig } from './environmentPresets';
-import { getEnvironmentConfig } from './environmentPresets';
+
+
 
 interface BoothScene3DProps {
   panels: PanelConfig[];
