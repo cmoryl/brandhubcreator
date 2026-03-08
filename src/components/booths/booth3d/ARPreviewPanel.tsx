@@ -3,8 +3,24 @@
  * Phase 1: GLB/USDZ export with content selection
  * Phase 2: model-viewer WebAR with QR code for phone viewing
  */
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import * as THREE from 'three';
+
+// Declare model-viewer as a custom element for JSX
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'model-viewer': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
+        src?: string;
+        ar?: boolean;
+        'ar-modes'?: string;
+        'camera-controls'?: boolean;
+        'auto-rotate'?: boolean;
+        'shadow-intensity'?: string;
+      }, HTMLElement>;
+    }
+  }
+}
 import {
   Download, Smartphone, QrCode, Loader2, CheckSquare, Square,
   Box, Users, Armchair, Layers, Building2, Eye, Share2, Copy,

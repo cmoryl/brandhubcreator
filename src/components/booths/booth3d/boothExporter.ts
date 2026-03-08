@@ -117,8 +117,9 @@ export async function exportToUSDZ(
   const filtered = filterScene(scene, opts);
 
   const exporter = new USDZExporter();
-  const arrayBuffer = await exporter.parse(filtered);
-  return new Blob([arrayBuffer], { type: 'model/vnd.usdz+zip' });
+  const result = await (exporter as any).parse(filtered);
+  const buffer = result instanceof ArrayBuffer ? result : new Uint8Array(0);
+  return new Blob([buffer], { type: 'model/vnd.usdz+zip' });
 }
 
 /**
