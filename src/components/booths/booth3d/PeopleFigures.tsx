@@ -13,6 +13,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import type { EnvironmentConfig } from './environmentPresets';
 import { getPeopleMultiplier } from './environmentPresets';
+import { getLayoutFamily } from './boothConfigs';
 
 const HUMAN_HEIGHT = 1.75;
 const HEAD_RADIUS = 0.095;
@@ -311,7 +312,8 @@ interface PeopleFiguresProps {
   envConfig?: EnvironmentConfig;
 }
 
-export function PeopleFigures({ layout, envConfig }: PeopleFiguresProps) {
+export function PeopleFigures({ layout: rawLayout, envConfig }: PeopleFiguresProps) {
+  const layout = getLayoutFamily(rawLayout as any);
   const multiplier = envConfig ? getPeopleMultiplier(envConfig.peopleCount) : 1;
   const showConversationGroups = envConfig?.showConversationGroups ?? false;
 

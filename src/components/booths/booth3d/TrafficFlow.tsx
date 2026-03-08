@@ -11,6 +11,7 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
+import { getLayoutFamily } from './boothConfigs';
 
 interface FlowPathProps {
   points: [number, number, number][];
@@ -144,7 +145,8 @@ interface TrafficFlowProps {
   layout: string;
 }
 
-export function TrafficFlow({ layout }: TrafficFlowProps) {
+export function TrafficFlow({ layout: rawLayout }: TrafficFlowProps) {
+  const layout = getLayoutFamily(rawLayout as any);
   const flowPaths = useMemo(() => {
     const paths: FlowPathProps[] = [];
 
