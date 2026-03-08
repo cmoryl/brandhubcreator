@@ -1119,6 +1119,8 @@ export function BoothMapper3D({
                 activeSpecConfig={useProductionSpecs ? specConfigType : ''}
                 flooringConfig={flooringConfig}
                 footprint={boothConfig.footprint}
+                boothLighting={boothLighting}
+                printStyle={printStyle}
               />
             </Suspense>
           </Canvas>
