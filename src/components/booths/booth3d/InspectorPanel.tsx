@@ -8,6 +8,7 @@ import {
   Monitor, Shirt, Trash2, Box, Upload
 } from 'lucide-react';
 import { AssetColorAnalysis } from './AssetColorAnalysis';
+import { AssetReadabilityAnalysis } from './AssetReadabilityAnalysis';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
