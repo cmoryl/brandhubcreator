@@ -211,11 +211,17 @@ export function BoothMapper3D({
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+        // Store placed assets and panel position overrides alongside assignments
+        const enrichedAssignments = {
+          ...assignments,
+          __placedAssets: placedAssets,
+          __panelPositions: panelPositionOverrides,
+        };
         await supabase.from('booth_3d_mappings').upsert({
           division_id: divisionId,
           layout,
           lighting_preset: lightingPreset,
-          assignments,
+          assignments: enrichedAssignments,
           uploaded_specs: uploadedSpecs,
           show_labels: showLabels,
           show_dimensions: showDimensions,
@@ -225,7 +231,7 @@ export function BoothMapper3D({
         console.error('Failed to save 3D mapping:', e);
       }
     }, 1000);
-  }, [divisionId, layout, lightingPreset, assignments, uploadedSpecs, showLabels, showDimensions, isLoaded]);
+  }, [divisionId, layout, lightingPreset, assignments, uploadedSpecs, showLabels, showDimensions, isLoaded, placedAssets, panelPositionOverrides]);
 
   // Auto-save when state changes
   useEffect(() => {
