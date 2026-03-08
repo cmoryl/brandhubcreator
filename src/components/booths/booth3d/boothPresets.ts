@@ -112,6 +112,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['saas', 'product-launch', 'demo', 'tech', 'startup', 'modern'],
     placedAssets: TECH_SAAS_ASSETS,
     flooringConfig: TECH_SAAS_FLOOR,
+  },
   {
     id: 'tech-enterprise',
     name: 'Enterprise Solutions',
