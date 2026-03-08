@@ -721,16 +721,6 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
         onLink={handleLink}
       />
 
-      {/* Full Booth Detail Popup - same as Booth Catalog */}
-      <AnimatePresence>
-        {selectedDivision && (
-          <DivisionDetail
-            division={selectedDivision}
-            onClose={() => setSelectedDivision(null)}
-            isAdmin={isAdmin}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 };
