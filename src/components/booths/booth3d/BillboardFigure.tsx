@@ -183,7 +183,7 @@ export function BillboardFigure({
 
   // Derive aspect from actual texture dimensions for proper proportions
   const aspect = useMemo(() => {
-    const img = texture.image;
+    const img = texture.image as HTMLImageElement | undefined;
     if (img && img.width && img.height) {
       return img.width / img.height;
     }
