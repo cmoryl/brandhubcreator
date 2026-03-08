@@ -2,28 +2,22 @@
  * BillboardFigure — Photorealistic character billboard sprites for arch-viz.
  *
  * Uses a transparent PNG cutout of a person rendered as a camera-facing plane.
- * Falls back to the stylized procedural figure if no sprite is available.
+ * Includes a custom shader to chroma-key out white/light backgrounds.
  */
 import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
-import { useFrame, useThree } from '@react-three/fiber';
-import { useTexture } from '@react-three/drei';
+import { useFrame, useThree, extend } from '@react-three/fiber';
+import { useTexture, shaderMaterial } from '@react-three/drei';
 
 // ── Pre-baked sprite descriptors ──────────────────────────
-// Each describes a character type with a prompt seed for AI generation.
-// Sprites are loaded from Supabase storage or generated on demand.
 export interface CharacterSprite {
   id: string;
   label: string;
-  /** Prompt fragment for AI generation */
   promptHint: string;
-  /** Aspect ratio width:height (typical person ~0.45:1.0) */
   aspect: number;
-  /** URL once generated/cached */
   url?: string;
 }
 
-// Character catalog — diverse trade-show attendee types
 export const CHARACTER_CATALOG: CharacterSprite[] = [
   { id: 'visitor-m1', label: 'Male Visitor 1', promptHint: 'professional man in business casual, navy blazer, standing relaxed at trade show, full body, front view', aspect: 0.45 },
   { id: 'visitor-f1', label: 'Female Visitor 1', promptHint: 'professional woman in business attire, holding coffee, standing at convention, full body, front view', aspect: 0.42 },
@@ -39,12 +33,73 @@ export const CHARACTER_CATALOG: CharacterSprite[] = [
   { id: 'visitor-m4', label: 'Male Visitor 4', promptHint: 'casual tech professional in t-shirt and jeans, conference badge, standing relaxed, full body, front view', aspect: 0.44 },
 ];
 
-/** Pick a character from the catalog using a seed */
 export function getCharacterBySeed(seed: number, isStaff = false): CharacterSprite {
   const pool = isStaff
     ? CHARACTER_CATALOG.filter(c => c.id.startsWith('staff-'))
     : CHARACTER_CATALOG.filter(c => !c.id.startsWith('staff-') && c.id !== 'group-pair');
   return pool[Math.abs(seed) % pool.length];
+}
+
+// ── White-keying shader material ──────────────────────────
+// Discards pixels that are close to white (background removal)
+const WhiteKeyMaterial = shaderMaterial(
+  {
+    map: null as THREE.Texture | null,
+    opacity: 1.0,
+    threshold: 0.88, // brightness above this is considered background
+  },
+  // Vertex shader
+  `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  // Fragment shader
+  `
+    uniform sampler2D map;
+    uniform float opacity;
+    uniform float threshold;
+    varying vec2 vUv;
+    
+    void main() {
+      vec4 texColor = texture2D(map, vUv);
+      
+      // Calculate brightness (luminance)
+      float brightness = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+      
+      // Also check if the color is near-white (all channels high)
+      float minChannel = min(min(texColor.r, texColor.g), texColor.b);
+      
+      // Discard if both bright AND all channels are high (white/near-white)
+      if (brightness > threshold && minChannel > threshold * 0.85) {
+        discard;
+      }
+      
+      // Smooth edge fade for pixels near the threshold
+      float edge = smoothstep(threshold * 0.95, threshold, brightness);
+      float whiteEdge = smoothstep(threshold * 0.80, threshold * 0.85, minChannel);
+      float combinedAlpha = 1.0 - (edge * whiteEdge);
+      
+      // Apply original alpha and opacity
+      float finalAlpha = texColor.a * combinedAlpha * opacity;
+      if (finalAlpha < 0.01) discard;
+      
+      gl_FragColor = vec4(texColor.rgb, finalAlpha);
+    }
+  `
+);
+
+extend({ WhiteKeyMaterial });
+
+// Add type declaration for JSX
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      whiteKeyMaterial: any;
+    }
+  }
 }
 
 // ── Billboard Figure Component ────────────────────────────
@@ -58,7 +113,6 @@ interface BillboardFigureProps {
   aspect?: number;
 }
 
-/** Single billboard sprite that always faces the camera */
 export function BillboardFigure({
   position,
   rotation = 0,
@@ -72,7 +126,6 @@ export function BillboardFigure({
 
   const texture = useTexture(spriteUrl);
 
-  // Configure texture
   useMemo(() => {
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.minFilter = THREE.LinearFilter;
@@ -82,17 +135,12 @@ export function BillboardFigure({
 
   const width = height * aspect;
 
-  // Billboard — face camera each frame
   useFrame(() => {
     if (meshRef.current) {
-      // Get camera position in world space
       const cameraWorldPos = new THREE.Vector3();
       camera.getWorldPosition(cameraWorldPos);
-
-      // Make the billboard face the camera on the Y axis only (stay upright)
       const meshWorldPos = new THREE.Vector3();
       meshRef.current.getWorldPosition(meshWorldPos);
-
       const dx = cameraWorldPos.x - meshWorldPos.x;
       const dz = cameraWorldPos.z - meshWorldPos.z;
       meshRef.current.rotation.y = Math.atan2(dx, dz);
@@ -104,19 +152,15 @@ export function BillboardFigure({
       ref={meshRef}
       position={[position[0], position[1] + height / 2, position[2]]}
       castShadow
-      receiveShadow
     >
       <planeGeometry args={[width, height]} />
-      <meshStandardMaterial
+      <whiteKeyMaterial
         map={texture}
-        transparent
-        alphaTest={0.1}
         opacity={opacity}
+        threshold={0.88}
+        transparent={true}
         side={THREE.DoubleSide}
-        roughness={0.9}
-        metalness={0}
-        envMapIntensity={0.15}
-        depthWrite={true}
+        depthWrite={false}
       />
     </mesh>
   );
