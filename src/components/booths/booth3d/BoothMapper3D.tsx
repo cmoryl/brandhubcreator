@@ -159,15 +159,23 @@ export function BoothMapper3D({
     });
   }, [libraryImages, librarySearch, selectedCategory]);
 
-  // Load saved mapping from database on mount
+  // Load saved mapping from database on mount or variant change
   useEffect(() => {
     if (!divisionId) { setIsLoaded(true); return; }
+    // Reset state when variant changes
+    setIsLoaded(false);
+    setLayout('inline');
+    setAssignments({});
+    setUploadedSpecs([]);
+    setPlacedAssets([]);
+    setPanelPositionOverrides({});
     const load = async () => {
       try {
         const { data } = await supabase
           .from('booth_3d_mappings')
           .select('*')
           .eq('division_id', divisionId)
+          .eq('variant_label', variantLabel)
           .maybeSingle();
         if (data) {
           setLayout((data.layout as BoothLayout) || 'u-shape');
@@ -192,7 +200,7 @@ export function BoothMapper3D({
       }
     };
     load();
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   // Fetch production specs for this division
   useEffect(() => {
