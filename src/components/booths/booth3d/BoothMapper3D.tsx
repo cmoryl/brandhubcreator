@@ -77,6 +77,8 @@ import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
 import { VendorExportPack } from './VendorExportPack';
 import { PanelFileMapper } from './PanelFileMapper';
 import { useBoothState } from './useBoothState';
+import { useDivisionBranding } from './useDivisionBranding';
+import { DivisionBrandSwitcher } from './DivisionBrandSwitcher';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -211,6 +213,36 @@ export function BoothMapper3D({
   const { organization } = useOrganization();
   const { analytics: boothAnalytics, saveAnalytics: saveBoothAnalytics } = useBoothAnalytics(divisionId, variantLabel);
   const { images: libraryImages, isLoading: libraryLoading, fetchImages, uploadImage } = useImageLibrary();
+
+  // Division branding switch
+  const handleApplyBrand = useCallback((data: {
+    assignments?: Record<string, string>;
+    accentColors?: { primary: string; secondary: string; accent: string };
+    screenContent?: Record<string, string>;
+    logoUrl?: string;
+    headline?: string;
+    tagline?: string;
+  }) => {
+    if (data.assignments) {
+      setAssignments(prev => ({ ...prev, ...data.assignments }));
+    }
+    if (data.screenContent) {
+      setPlacedAssets(prev => prev.map(a => {
+        const screenUrl = data.screenContent?.[a.instanceId];
+        return screenUrl ? { ...a, screenImageUrl: screenUrl } : a;
+      }));
+    }
+    // Color accent changes are applied via the active brand preset's color data
+    // which flows through the organization context to the 3D scene
+  }, [setAssignments, setPlacedAssets]);
+
+  const divisionBranding = useDivisionBranding(
+    divisionId,
+    organization?.id,
+    assignments,
+    placedAssets,
+    handleApplyBrand,
+  );
 
   // Eagerly fetch images when organization is available
   useEffect(() => {
@@ -781,6 +813,12 @@ export function BoothMapper3D({
               if (v === '__generic') setUseProductionSpecs(false);
               else { setSpecConfigType(v); setUseProductionSpecs(true); }
             }}
+            brandSwitcher={
+              <DivisionBrandSwitcher
+                branding={divisionBranding}
+                isAdmin={isAdmin}
+              />
+            }
           />
         }
         leftPanel={
