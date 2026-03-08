@@ -7,6 +7,7 @@ import {
   Settings, Move, RotateCw, Maximize2, Palette, Image as ImageIcon,
   Monitor, Shirt, Trash2, Box, Upload
 } from 'lucide-react';
+import { AssetColorAnalysis } from './AssetColorAnalysis';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
