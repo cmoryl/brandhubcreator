@@ -183,7 +183,7 @@ export function SalesDeckPanel({
         filename: `${divisionName.replace(/\s+/g, '_')}_Booth_Sales_Deck.pdf`,
         image: { type: 'jpeg', quality: 0.85 },
         html2canvas: { scale: 1.5, useCORS: true, logging: false, backgroundColor: '#ffffff' },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape', compress: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
         pagebreak: { mode: ['avoid-all', 'css'] },
       }).from(container).save();
 

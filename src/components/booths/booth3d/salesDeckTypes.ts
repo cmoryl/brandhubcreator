@@ -33,6 +33,7 @@ export interface SalesDeckGenerateRequest {
   panelCount: number;
   furnitureList: string[];
   hasMonitors: boolean;
+  hasPeople?: boolean;
   hasPeople: boolean;
   crowdScore?: number;
   panelLabels: string[];
