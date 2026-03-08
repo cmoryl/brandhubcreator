@@ -18,6 +18,7 @@ import type { EnvironmentRealism, EnvironmentConfig, CameraPreset } from './envi
 import { getEnvironmentConfig } from './environmentPresets';
 import { CameraAnimator, type WalkthroughMode } from './CameraAnimator';
 import type { MonitorSpec } from './specParser';
+import { type BoothLightingConfig, type PrintStyle, temperatureToColor, parCanToColor } from './boothLightingConfig';
 
 
 
