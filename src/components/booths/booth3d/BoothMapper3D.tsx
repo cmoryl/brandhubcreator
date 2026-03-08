@@ -1260,20 +1260,31 @@ export function BoothMapper3D({
             />
           ) :
           activeMode === 'production' ? (
-            <VendorExportPack
-              divisionName={divisionName}
-              layout={layout}
-              boothDimensions={boothConfig.dimensions}
-              boothFootprint={boothConfig.footprint}
-              panels={panels}
-              assignments={assignments}
-              backAssignments={backAssignments}
-              placedAssets={placedAssets}
-              boothLighting={boothLighting}
-              flooringConfig={flooringConfig}
-              logisticsMarkers={logisticsMarkers}
-              isAdmin={isAdmin}
-            />
+            <div className="space-y-4">
+              <PanelFileMapper
+                panels={panels}
+                assignments={assignments}
+                onAssignFile={(panelId, fileUrl) => {
+                  setAssignments(prev => ({ ...prev, [panelId]: fileUrl }));
+                }}
+                isAdmin={isAdmin}
+                divisionId={divisionId}
+              />
+              <VendorExportPack
+                divisionName={divisionName}
+                layout={layout}
+                boothDimensions={boothConfig.dimensions}
+                boothFootprint={boothConfig.footprint}
+                panels={panels}
+                assignments={assignments}
+                backAssignments={backAssignments}
+                placedAssets={placedAssets}
+                boothLighting={boothLighting}
+                flooringConfig={flooringConfig}
+                logisticsMarkers={logisticsMarkers}
+                isAdmin={isAdmin}
+              />
+            </div>
           ) : undefined
         }
       />
