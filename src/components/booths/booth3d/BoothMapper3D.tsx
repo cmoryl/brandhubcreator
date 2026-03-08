@@ -1229,10 +1229,10 @@ export function BoothMapper3D({
                 Back
               </button>
               {assigningSide === 'back' && backAssignments[selectedPanelId || ''] && (
-                <span className="text-[10px] text-green-500 ml-2">✓ Back image set</span>
+                <span className="text-[10px] text-primary ml-2">✓ Back image set</span>
               )}
               {assigningSide === 'front' && assignments[selectedPanelId || ''] && (
-                <span className="text-[10px] text-green-500 ml-2">✓ Front image set</span>
+                <span className="text-[10px] text-primary ml-2">✓ Front image set</span>
               )}
             </div>
           </DialogHeader>
