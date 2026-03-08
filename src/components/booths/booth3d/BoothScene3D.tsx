@@ -84,6 +84,7 @@ export function BoothScene3D({
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
   const lighting = getLighting(lightingPreset, envConfig);
+  const isHyper = environmentRealism === 'hyper';
 
   return (
     <>
@@ -93,18 +94,41 @@ export function BoothScene3D({
       <ambientLight intensity={lighting.ambientIntensity} />
       <spotLight
         position={[5, 8, 5]}
-        angle={0.5}
-        penumbra={0.5}
+        angle={isHyper ? 0.4 : 0.5}
+        penumbra={isHyper ? 0.7 : 0.5}
         intensity={lighting.spotIntensity}
         castShadow
         shadow-mapSize={envConfig ? [envConfig.shadowQuality, envConfig.shadowQuality] : [1024, 1024]}
+        shadow-bias={isHyper ? -0.0002 : undefined}
       />
       <spotLight
         position={[-5, 6, -3]}
         angle={0.4}
-        penumbra={0.8}
-        intensity={lighting.spotIntensity * 0.5}
+        penumbra={isHyper ? 0.9 : 0.8}
+        intensity={lighting.spotIntensity * (isHyper ? 0.6 : 0.5)}
       />
+      {/* Hyper mode: extra key light for dramatic depth */}
+      {isHyper && (
+        <>
+          <spotLight
+            position={[0, 9, 0]}
+            angle={0.3}
+            penumbra={0.95}
+            intensity={0.4}
+            color="#e8d5b7"
+            castShadow
+            shadow-mapSize={[4096, 4096]}
+            shadow-bias={-0.0001}
+          />
+          <spotLight
+            position={[-3, 7, 5]}
+            angle={0.35}
+            penumbra={0.9}
+            intensity={0.3}
+            color="#bfdbfe"
+          />
+        </>
+      )}
       <Environment
         preset={lighting.envPreset}
         environmentIntensity={envConfig?.envIntensity ?? 0.5}
