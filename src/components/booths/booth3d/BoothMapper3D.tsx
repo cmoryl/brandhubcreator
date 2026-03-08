@@ -462,19 +462,6 @@ export function BoothMapper3D({
     }
   }, [setShowLogistics]);
 
-  // Logistics handlers
-  const handleAddLogisticsMarker = useCallback((marker: LogisticsMarker) => {
-    setLogisticsMarkers(prev => [...prev, marker]);
-  }, []);
-
-  const handleUpdateLogisticsMarker = useCallback((id: string, updates: Partial<LogisticsMarker>) => {
-    setLogisticsMarkers(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
-  }, []);
-
-  const handleRemoveLogisticsMarker = useCallback((id: string) => {
-    setLogisticsMarkers(prev => prev.filter(m => m.id !== id));
-    if (selectedLogisticsId === id) setSelectedLogisticsId(null);
-  }, [selectedLogisticsId]);
 
   // Panel graphic thumbnail grid for bottom content
   const panelThumbnails = (
