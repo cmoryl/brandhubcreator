@@ -80,11 +80,13 @@ export interface RealisticFigureProps {
   staffColor?: string;
 }
 
-// ── Body proportions ──────────────────────────────────────
-const HEAD_R = 0.10;
-const TORSO_H = 0.48;
-const LEG_H = 0.84;
-const NECK_H = 0.065;
+// ── Body proportions (must sum to ~1.75m total height) ────
+// Total = SHOE_H + LEG_H + TORSO_H + NECK_H + HEAD_R*2
+// 0.04 + 0.88 + 0.50 + 0.07 + 0.22 = 1.71m (+ hair ~1.75m)
+const HEAD_R = 0.11;
+const TORSO_H = 0.50;
+const LEG_H = 0.88;
+const NECK_H = 0.07;
 const SHOE_H = 0.04;
 const SEG = 24; // segment count for smooth geometry
 
@@ -262,22 +264,22 @@ export function RealisticHumanFigure({
             {/* Eye white */}
             <mesh>
               <sphereGeometry args={[0.012, SEG, SEG / 2]} />
-              <meshStandardMaterial color="#f8f8f8" roughness={0.15} metalness={0} envMapIntensity={0.4} />
+              <meshStandardMaterial color="#f0f0f0" roughness={0.15} metalness={0} envMapIntensity={0.4} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Iris — clean dot */}
             <mesh position={[0, 0, 0.007]}>
               <circleGeometry args={[0.007, SEG]} />
-              <meshStandardMaterial color={appearance.eyes} roughness={0.25} metalness={0.05} />
+              <meshStandardMaterial color={appearance.eyes} roughness={0.25} metalness={0.05} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Pupil */}
             <mesh position={[0, 0, 0.008]}>
               <circleGeometry args={[0.003, 12]} />
-              <meshStandardMaterial color="#0a0a0a" roughness={0.1} />
+              <meshStandardMaterial color="#0a0a0a" roughness={0.1} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Specular highlight dot */}
             <mesh position={[0.002, 0.002, 0.009]}>
               <circleGeometry args={[0.0015, 8]} />
-              <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.5} roughness={0} />
+              <meshStandardMaterial color="#e0e0e0" emissive="#e0e0e0" emissiveIntensity={0.5} roughness={0} transparent opacity={opacity * 0.85} />
             </mesh>
           </group>
         ))}
@@ -350,36 +352,36 @@ export function RealisticHumanFigure({
           {/* Lanyard — clean flat ribbon */}
           <mesh position={[-0.018, torsoTop - 0.06, 0.055]} rotation={[-0.1, 0, 0.14]}>
             <boxGeometry args={[0.01, 0.15, 0.002]} />
-            <meshStandardMaterial color={appearance.lanyard} roughness={0.65} envMapIntensity={0.15} />
+            <meshStandardMaterial color={appearance.lanyard} roughness={0.65} envMapIntensity={0.15} transparent opacity={opacity * 0.85} />
           </mesh>
           <mesh position={[0.018, torsoTop - 0.06, 0.055]} rotation={[-0.1, 0, -0.14]}>
             <boxGeometry args={[0.01, 0.15, 0.002]} />
-            <meshStandardMaterial color={appearance.lanyard} roughness={0.65} envMapIntensity={0.15} />
+            <meshStandardMaterial color={appearance.lanyard} roughness={0.65} envMapIntensity={0.15} transparent opacity={opacity * 0.85} />
           </mesh>
           {/* Badge — clean card */}
           <group position={[0, torsoBot + TORSO_H * 0.38, hipW / 2 + 0.018]}>
             <mesh castShadow>
               <boxGeometry args={[0.05, 0.068, 0.003]} />
-              <meshStandardMaterial color="#fafafa" roughness={0.35} metalness={0.02} envMapIntensity={0.3} />
+              <meshStandardMaterial color="#e8e8e8" roughness={0.35} metalness={0.02} envMapIntensity={0.3} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Color strip */}
             <mesh position={[0, 0.029, 0.002]}>
               <boxGeometry args={[0.05, 0.01, 0.001]} />
-              <meshStandardMaterial color={isStaff ? (staffColor || shirtColor) : appearance.lanyard} roughness={0.45} />
+              <meshStandardMaterial color={isStaff ? (staffColor || shirtColor) : appearance.lanyard} roughness={0.45} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Text lines */}
             <mesh position={[0, 0.008, 0.002]}>
               <boxGeometry args={[0.032, 0.004, 0.001]} />
-              <meshStandardMaterial color="#334155" roughness={0.5} />
+              <meshStandardMaterial color="#334155" roughness={0.5} transparent opacity={opacity * 0.85} />
             </mesh>
             <mesh position={[0, -0.004, 0.002]}>
               <boxGeometry args={[0.024, 0.003, 0.001]} />
-              <meshStandardMaterial color="#94a3b8" roughness={0.5} />
+              <meshStandardMaterial color="#94a3b8" roughness={0.5} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Clip */}
             <mesh position={[0, 0.038, 0]}>
               <boxGeometry args={[0.012, 0.006, 0.006]} />
-              <meshStandardMaterial color="#a1a1aa" roughness={0.15} metalness={0.7} envMapIntensity={0.5} />
+              <meshStandardMaterial color="#a1a1aa" roughness={0.15} metalness={0.7} envMapIntensity={0.5} transparent opacity={opacity * 0.85} />
             </mesh>
           </group>
         </group>
@@ -419,18 +421,18 @@ export function RealisticHumanFigure({
       {pose === 'phone' && (
         <mesh position={[-0.08, headCenter - 0.06, 0.1]}>
           <boxGeometry args={[0.035, 0.07, 0.006]} />
-          <meshStandardMaterial color="#18181b" roughness={0.08} metalness={0.35} envMapIntensity={0.6} />
+          <meshStandardMaterial color="#18181b" roughness={0.08} metalness={0.35} envMapIntensity={0.6} transparent opacity={opacity * 0.85} />
         </mesh>
       )}
       {pose === 'photographing' && (
         <group position={[0, torsoTop - 0.1, 0.14]}>
           <mesh>
             <boxGeometry args={[0.09, 0.055, 0.055]} />
-            <meshStandardMaterial color="#18181b" metalness={0.5} roughness={0.2} envMapIntensity={0.5} />
+            <meshStandardMaterial color="#18181b" metalness={0.5} roughness={0.2} envMapIntensity={0.5} transparent opacity={opacity * 0.85} />
           </mesh>
           <mesh position={[0, 0, 0.038]}>
             <cylinderGeometry args={[0.018, 0.022, 0.028, SEG]} />
-            <meshStandardMaterial color="#27272a" metalness={0.6} roughness={0.15} envMapIntensity={0.6} />
+            <meshStandardMaterial color="#27272a" metalness={0.6} roughness={0.15} envMapIntensity={0.6} transparent opacity={opacity * 0.85} />
           </mesh>
         </group>
       )}
@@ -453,7 +455,7 @@ function StylizedHand({ position, skin, opacity, isFist }: {
   opacity: number;
   isFist: boolean;
 }) {
-  const skinProps = { color: skin, roughness: 0.6, metalness: 0, emissive: skin, emissiveIntensity: 0.04, envMapIntensity: 0.25, transparent: opacity < 1, opacity };
+  const skinProps = { color: skin, roughness: 0.6, metalness: 0, emissive: skin, emissiveIntensity: 0.04, envMapIntensity: 0.25, transparent: true, opacity: opacity * 0.85 };
 
   if (isFist) {
     return (
@@ -492,7 +494,7 @@ function StylizedHair({ hairStyle, hairColor }: {
   hairStyle: FigureAppearance['hairStyle'];
   hairColor: string;
 }) {
-  const mat = { color: hairColor, roughness: 0.75, metalness: 0, envMapIntensity: 0.15 };
+  const mat = { color: hairColor, roughness: 0.75, metalness: 0, envMapIntensity: 0.15, transparent: true, opacity: 0.85 };
 
   return (
     <group>
