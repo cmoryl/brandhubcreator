@@ -44,8 +44,10 @@ export function getCharacterBySeed(seed: number, isStaff = false): CharacterSpri
 const CutoutMaterial = shaderMaterial(
   {
     map: null as THREE.Texture | null,
-    threshold: 0.9,
-    despill: 0.9,
+    threshold: 0.88,
+    despill: 1.15,
+    alphaClip: 0.06,
+    edgeTighten: 0.85,
   },
   // Vertex
   `
@@ -55,38 +57,46 @@ const CutoutMaterial = shaderMaterial(
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `,
-  // Fragment — discard white background + remove white edge fringing
+  // Fragment — stronger white-halo suppression while preserving subject opacity
   `
     uniform sampler2D map;
     uniform float threshold;
     uniform float despill;
+    uniform float alphaClip;
+    uniform float edgeTighten;
     varying vec2 vUv;
     
     void main() {
       vec4 texColor = texture2D(map, vUv);
+      float baseAlpha = texColor.a;
+      if (baseAlpha <= 0.001) discard;
 
       float brightness = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
       float minChannel = min(min(texColor.r, texColor.g), texColor.b);
       float maxChannel = max(max(texColor.r, texColor.g), texColor.b);
       float saturation = maxChannel > 0.0 ? (maxChannel - minChannel) / maxChannel : 0.0;
 
-      // Background/halo likelihood: bright + low saturation + high minimum channel
+      // White-matte likelihood: bright + low saturation + high minimum channel
       float nearWhite =
-        smoothstep(threshold * 0.78, threshold, brightness) *
-        smoothstep(threshold * 0.72, threshold * 0.90, minChannel) *
-        (1.0 - smoothstep(0.05, 0.16, saturation));
+        smoothstep(threshold * 0.74, threshold, brightness) *
+        smoothstep(threshold * 0.68, threshold * 0.92, minChannel) *
+        (1.0 - smoothstep(0.06, 0.22, saturation));
 
-      if (nearWhite > 0.92) discard;
+      // Concentrate suppression on edge pixels where halos appear
+      float edge = 1.0 - smoothstep(0.40, 0.98, baseAlpha);
+      float halo = nearWhite * edge;
 
-      // Keep character opaque; only cut out white halo/background pixels
-      float alpha = texColor.a * (1.0 - nearWhite * 0.98);
-      if (alpha < 0.035) discard;
+      float alpha = baseAlpha * (1.0 - clamp(nearWhite * 0.22 + halo * edgeTighten, 0.0, 0.995));
 
-      // White-matte decontamination for fringe pixels (removes white outlines)
-      float edgeFactor = (1.0 - smoothstep(0.35, 0.95, alpha)) * nearWhite;
+      // Hard cut for obvious white fringe pixels
+      if (halo > 0.62 && brightness > threshold * 0.92) discard;
+      if (alpha < alphaClip) discard;
+
+      // De-matte edge colors to remove white contamination
       vec3 unMatted = (texColor.rgb - vec3(1.0 - alpha)) / max(alpha, 0.001);
       unMatted = clamp(unMatted, 0.0, 1.0);
-      vec3 corrected = mix(texColor.rgb, unMatted, clamp(edgeFactor * despill, 0.0, 1.0));
+      vec3 corrected = mix(texColor.rgb, unMatted, clamp((halo + nearWhite * 0.25) * despill, 0.0, 1.0));
+      corrected = clamp(corrected - vec3(halo * 0.16), 0.0, 1.0);
 
       gl_FragColor = vec4(corrected, alpha);
     }
@@ -131,6 +141,9 @@ export function BillboardFigure({
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.premultiplyAlpha = true;
     texture.anisotropy = 16;
   }, [texture]);
 
@@ -157,8 +170,10 @@ export function BillboardFigure({
         <planeGeometry args={[width, height]} />
         <cutoutMaterial
           map={texture}
-          threshold={0.9}
-          despill={0.9}
+          threshold={0.88}
+          despill={1.15}
+          alphaClip={0.06}
+          edgeTighten={0.85}
           transparent={true}
           side={THREE.DoubleSide}
         />
