@@ -892,22 +892,89 @@ export function BoothMapper3D({
           )}
 
           {/* Selected asset action bar */}
-          {selectedAssetId && isAdmin && (
-            <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg px-2 py-1.5 z-10">
-              <span className="text-[10px] text-muted-foreground mr-1">
-                {getFurnitureById(placedAssets.find(a => a.instanceId === selectedAssetId)?.assetId || '')?.name || 'Asset'}
-              </span>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="h-6 text-[10px] gap-1 px-2"
-                onClick={() => handleRemoveAsset(selectedAssetId)}
-              >
-                <Trash2 className="h-3 w-3" />
-                Delete
-              </Button>
-            </div>
-          )}
+          {selectedAssetId && isAdmin && (() => {
+            const selectedAsset = placedAssets.find(a => a.instanceId === selectedAssetId);
+            const selectedConfig = getFurnitureById(selectedAsset?.assetId || '');
+            const isWallMount = selectedConfig?.wallMountable === true;
+            const step = 0.1; // 10cm nudge
+
+            return (
+              <div className="absolute bottom-3 right-3 flex flex-col gap-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg px-2.5 py-2 z-10 min-w-[180px]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground font-medium">
+                    {selectedConfig?.name || 'Asset'}
+                    {isWallMount && <span className="ml-1 text-primary">(Wall)</span>}
+                  </span>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="h-5 text-[9px] gap-0.5 px-1.5"
+                    onClick={() => handleRemoveAsset(selectedAssetId)}
+                  >
+                    <Trash2 className="h-2.5 w-2.5" />
+                    Del
+                  </Button>
+                </div>
+
+                {/* Position controls */}
+                {isDragMode && selectedAsset && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      {/* Horizontal nudge */}
+                      <Button variant="outline" size="icon" className="h-6 w-6"
+                        onClick={() => onAssetNudge(selectedAssetId, -step, 0, 0)} title="Move left (X-)">
+                        <ArrowLeft className="h-3 w-3" />
+                      </Button>
+                      <Button variant="outline" size="icon" className="h-6 w-6"
+                        onClick={() => onAssetNudge(selectedAssetId, step, 0, 0)} title="Move right (X+)">
+                        <ArrowRight className="h-3 w-3" />
+                      </Button>
+
+                      {/* Vertical nudge (Y) */}
+                      <Button variant="outline" size="icon" className="h-6 w-6"
+                        onClick={() => onAssetNudge(selectedAssetId, 0, step, 0)} title="Move up (Y+)">
+                        <ArrowUp className="h-3 w-3" />
+                      </Button>
+                      <Button variant="outline" size="icon" className="h-6 w-6"
+                        onClick={() => onAssetNudge(selectedAssetId, 0, -step, 0)} title="Move down (Y-)">
+                        <ArrowDown className="h-3 w-3" />
+                      </Button>
+
+                      {/* Depth nudge (Z) - forward/back */}
+                      <div className="flex flex-col gap-0.5">
+                        <Button variant="outline" size="icon" className="h-3 w-6 rounded-sm"
+                          onClick={() => onAssetNudge(selectedAssetId, 0, 0, -step)} title="Move forward (Z-)">
+                          <span className="text-[7px]">▲Z</span>
+                        </Button>
+                        <Button variant="outline" size="icon" className="h-3 w-6 rounded-sm"
+                          onClick={() => onAssetNudge(selectedAssetId, 0, 0, step)} title="Move back (Z+)">
+                          <span className="text-[7px]">▼Z</span>
+                        </Button>
+                      </div>
+
+                      {/* Rotate 90° */}
+                      <Button variant="outline" size="icon" className="h-6 w-6"
+                        onClick={() => {
+                          const a = placedAssets.find(a => a.instanceId === selectedAssetId);
+                          if (a) {
+                            handleUpdateAsset(selectedAssetId, {
+                              rotation: [a.rotation[0], a.rotation[1] + Math.PI / 2, a.rotation[2]],
+                            });
+                          }
+                        }} title="Rotate 90°">
+                        <RotateCw className="h-3 w-3" />
+                      </Button>
+                    </div>
+
+                    {/* Position readout */}
+                    <div className="text-[8px] text-muted-foreground font-mono text-center">
+                      X:{selectedAsset.position[0].toFixed(1)} Y:{selectedAsset.position[1].toFixed(1)} Z:{selectedAsset.position[2].toFixed(1)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Camera presets panel (when environment is on) */}
           {showEnvironment && (
