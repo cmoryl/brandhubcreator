@@ -2,9 +2,8 @@
  * BoothScene3D - The Three.js scene containing booth panels, floor, lighting,
  * furniture assets, and drag-and-drop support
  */
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
-import { useThree } from '@react-three/fiber';
 import { OrbitControls, Grid, Environment } from '@react-three/drei';
 import { DraggablePanel3D } from './DraggablePanel3D';
 import { BoothFurniture3D } from './BoothFurniture3D';
@@ -16,38 +15,7 @@ import type { PlacedAsset } from './boothFurnitureConfigs';
 import { getFurnitureById } from './boothFurnitureConfigs';
 import type { EnvironmentRealism, EnvironmentConfig, CameraPreset } from './environmentPresets';
 import { getEnvironmentConfig } from './environmentPresets';
-
-/**
- * CameraController — lives inside the R3F canvas and imperatively moves
- * the camera + OrbitControls target when `activePreset` changes.
- */
-function CameraController({
-  activePreset,
-  controlsRef,
-  version,
-}: {
-  activePreset: CameraPreset | null;
-  controlsRef: React.RefObject<any>;
-  version: number;
-}) {
-  const { camera } = useThree();
-
-  useEffect(() => {
-    if (!activePreset) return;
-    camera.position.set(...activePreset.position);
-    if ((camera as THREE.PerspectiveCamera).fov !== undefined) {
-      (camera as THREE.PerspectiveCamera).fov = activePreset.fov;
-      (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
-    }
-    const controls = controlsRef.current;
-    if (controls) {
-      controls.target.set(...activePreset.target);
-      controls.update();
-    }
-  }, [activePreset, camera, controlsRef, version]);
-
-  return null;
-}
+import { CameraAnimator, type WalkthroughMode } from './CameraAnimator';
 
 
 
