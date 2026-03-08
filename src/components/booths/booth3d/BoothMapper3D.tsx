@@ -264,9 +264,11 @@ export function BoothMapper3D({
     setIsLoaded(false);
     setLayout('inline');
     setAssignments({});
+    setBackAssignments({});
     setUploadedSpecs([]);
     setPlacedAssets([]);
     setPanelPositionOverrides({});
+    setLogisticsMarkers([]);
     const load = async () => {
       try {
         const { data } = await supabase
@@ -282,13 +284,25 @@ export function BoothMapper3D({
           setUploadedSpecs((data.uploaded_specs as { url: string; name: string }[]) || []);
           setShowLabels(data.show_labels ?? true);
           setShowDimensions(data.show_dimensions ?? true);
-          // Load furniture assets and panel overrides from assignments JSONB
+          // Load extended state from assignments JSONB
           const saved = data.assignments as any;
           if (saved?.__placedAssets) {
             setPlacedAssets(saved.__placedAssets as PlacedAsset[]);
           }
           if (saved?.__panelPositions) {
             setPanelPositionOverrides(saved.__panelPositions as Record<string, [number, number, number]>);
+          }
+          if (saved?.__backAssignments) {
+            setBackAssignments(saved.__backAssignments as Record<string, string>);
+          }
+          if (saved?.__logisticsMarkers) {
+            setLogisticsMarkers(saved.__logisticsMarkers as LogisticsMarker[]);
+          }
+          if (saved?.__flooringConfig) {
+            setFlooringConfig(saved.__flooringConfig as FlooringConfig);
+          }
+          if (saved?.__boothLighting) {
+            setBoothLighting(saved.__boothLighting as BoothLightingConfig);
           }
         }
       } catch (e) {
