@@ -909,6 +909,7 @@ export function BoothMapper3D({
                     ? getEnvironmentConfig(environmentRealism).cameraPresets.find(p => p.id === activeCameraPreset) ?? null
                     : null
                 }
+                cameraVersion={cameraVersion}
               />
             </Suspense>
           </Canvas>
