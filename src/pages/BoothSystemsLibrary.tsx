@@ -2,7 +2,7 @@
  * BoothSystemsLibrary — Master booth system library page.
  * One base design powers multiple events with variant size configurations.
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Building2, Layers, Box, Calendar,
