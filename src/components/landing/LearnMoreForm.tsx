@@ -76,7 +76,7 @@ export function LearnMoreForm({ onClose }: LearnMoreFormProps) {
     // Simulate API call - in production, this would submit to your backend
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    console.log('Learn More submission:', formData);
+    logger.debug('Learn More submission:', formData);
     
     setIsSubmitting(false);
     setIsSubmitted(true);
