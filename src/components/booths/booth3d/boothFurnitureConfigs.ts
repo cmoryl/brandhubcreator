@@ -72,6 +72,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     color: '#1e293b',
     description: "Standard 6' folding table (72\" × 30\" × 30\")",
     hasTableCover: true,
+    hasCustomTexture: true,
   },
   {
     id: 'table-8ft',
@@ -81,6 +82,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     color: '#1e293b',
     description: "Standard 8' folding table (96\" × 30\" × 30\")",
     hasTableCover: true,
+    hasCustomTexture: true,
   },
   {
     id: 'table-6ft-covered',
