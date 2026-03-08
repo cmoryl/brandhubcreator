@@ -6,6 +6,7 @@ import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { OrbitControls, Grid, Environment, ContactShadows, SoftShadows } from '@react-three/drei';
 import { DraggablePanel3D } from './DraggablePanel3D';
+import { BoothFloorpad, type FlooringConfig } from './BoothFloorpad';
 import { BoothFurniture3D } from './BoothFurniture3D';
 import { ExpoEnvironment } from './ExpoEnvironment';
 import { PeopleFigures, type OccupiedZone } from './PeopleFigures';
@@ -60,6 +61,10 @@ interface BoothScene3DProps {
   monitorSpecs?: MonitorSpec[];
   /** Active spec config type (RDT-108, RDT-110) */
   activeSpecConfig?: string;
+  /** Booth flooring configuration */
+  flooringConfig?: FlooringConfig;
+  /** Booth footprint string e.g. "10' × 10' floor" */
+  footprint?: string;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
@@ -115,6 +120,8 @@ export function BoothScene3D({
   useBillboards = false,
   monitorSpecs = [],
   activeSpecConfig = '',
+  flooringConfig,
+  footprint = "10' × 10' floor",
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
@@ -331,6 +338,11 @@ export function BoothScene3D({
 
       {showPeople && <PeopleFigures layout={layout} envConfig={envConfig} occupiedZones={occupiedZones} spriteUrls={spriteUrls} useBillboards={useBillboards} />}
       {showTrafficFlow && <TrafficFlow layout={layout} />}
+
+      {/* Booth floor pad — shows footprint with flooring material */}
+      {flooringConfig && flooringConfig.type !== 'none' && (
+        <BoothFloorpad footprint={footprint} config={flooringConfig} showLabels={showLabels} />
+      )}
 
       {/* Booth panels */}
       {panels.map((panel) => (

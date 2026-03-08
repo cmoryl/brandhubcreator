@@ -62,6 +62,8 @@ import {
 } from './environmentPresets';
 import type { WalkthroughMode } from './CameraAnimator';
 import { useCharacterSprites } from './useCharacterSprites';
+import { FLOORING_OPTIONS, FLOOR_COLOR_PRESETS, type FlooringConfig, type FlooringType } from './BoothFloorpad';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -128,6 +130,13 @@ export function BoothMapper3D({
   // Drag mode & furniture state
   const [isDragMode, setIsDragMode] = useState(false);
   const [placedAssets, setPlacedAssets] = useState<PlacedAsset[]>([]);
+  // Flooring state
+  const [flooringConfig, setFlooringConfig] = useState<FlooringConfig>({
+    type: 'carpet-plush',
+    color: '#1a1a2e',
+    showBorder: true,
+    showDimensions: true,
+  });
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [assetFilterCategory, setAssetFilterCategory] = useState<string>('all');
@@ -878,7 +887,72 @@ export function BoothMapper3D({
           </>
         )}
 
-        {/* ── Status (pushed right) ── */}
+        <div className="h-5 w-px bg-border" />
+
+        {/* ── Floor ── */}
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline mr-1">Floor</span>
+          <Select value={flooringConfig.type} onValueChange={(v) => setFlooringConfig(prev => ({ ...prev, type: v as FlooringType }))}>
+            <SelectTrigger className="h-8 w-[120px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FLOORING_OPTIONS.map((f) => (
+                <SelectItem key={f.value} value={f.value}>
+                  <span className="font-medium">{f.label}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {flooringConfig.type !== 'none' && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-2" style={{ borderColor: flooringConfig.color }}>
+                  <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: flooringConfig.color }} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3" align="start">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">Floor Color</p>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {FLOOR_COLOR_PRESETS.map((c) => (
+                      <button
+                        key={c.value}
+                        className={cn(
+                          "w-7 h-7 rounded-md border-2 transition-all",
+                          flooringConfig.color === c.value ? "border-primary ring-1 ring-primary" : "border-border hover:border-muted-foreground"
+                        )}
+                        style={{ backgroundColor: c.value }}
+                        onClick={() => setFlooringConfig(prev => ({ ...prev, color: c.value }))}
+                        title={c.label}
+                      />
+                    ))}
+                  </div>
+                  <Input
+                    type="text"
+                    value={flooringConfig.color}
+                    onChange={(e) => setFlooringConfig(prev => ({ ...prev, color: e.target.value }))}
+                    className="h-7 text-xs font-mono mt-1"
+                    placeholder="#hex"
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle pressed={flooringConfig.showBorder} onPressedChange={(v) => setFlooringConfig(prev => ({ ...prev, showBorder: v }))} size="sm" className="h-8 w-8" aria-label="Toggle border">
+                  <Box className="h-3.5 w-3.5" />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>Booth Boundary</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
         <div className="ml-auto flex items-center gap-2">
           {availableSpecTypes.length > 0 && (
             <Select value={useProductionSpecs ? specConfigType : '__generic'} onValueChange={(v) => {
@@ -1017,6 +1091,8 @@ export function BoothMapper3D({
                 useBillboards={characterSprites.count > 0}
                 monitorSpecs={monitorSpecs}
                 activeSpecConfig={useProductionSpecs ? specConfigType : ''}
+                flooringConfig={flooringConfig}
+                footprint={boothConfig.footprint}
               />
             </Suspense>
           </Canvas>
