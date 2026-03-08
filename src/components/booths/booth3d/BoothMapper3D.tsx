@@ -1551,6 +1551,21 @@ export function BoothMapper3D({
         />
       </Card>
 
+      {/* Post-Show Analytics Dashboard */}
+      <Card className="p-4 border-primary/20">
+        <BoothAnalyticsDashboard
+          analytics={boothAnalytics}
+          onSave={(data) => saveBoothAnalytics(data, organization?.id)}
+          isAdmin={isAdmin}
+          simulationPredictions={crowdSimulation ? {
+            traffic: crowdSimulation.peakCapacity * 8,
+            dwellTime: parseInt(crowdSimulation.overallDwellTime) || 120,
+            peakCapacity: crowdSimulation.peakCapacity,
+            visibilityScore: crowdSimulation.visibilityScore,
+          } : undefined}
+        />
+      </Card>
+
       {/* Asset Picker Dialog */}
       <Dialog open={assetPickerOpen} onOpenChange={setAssetPickerOpen}>
         <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
