@@ -105,7 +105,7 @@ const CAMERA_PRESETS: Record<string, CameraPreset[]> = {
     { id: 'hero-dramatic', name: 'Dramatic Hero', description: 'Low-angle power shot with depth', position: [2.5, 0.4, 3.5], target: [0, 2.2, 0], fov: 30 },
     { id: 'photographer', name: 'Event Photographer', description: 'Pro camera position — 70mm equiv', position: [4, 1.6, 5], target: [0, 1.3, 0], fov: 32 },
     { id: 'aisle-editorial', name: 'Editorial Aisle', description: 'Magazine-style corridor shot', position: [-8, 1.7, 2], target: [0, 1.4, 0.5], fov: 40 },
-    { id: 'overhead-plan', name: 'Overhead Plan', description: 'Bird\'s-eye layout documentation', position: [0, 10, 0.5], target: [0, 0, 0], fov: 50 },
+    { id: 'aerial', name: 'Aerial Top-Down', description: 'Bird\'s-eye layout documentation', position: [0, 10, 0.5], target: [0, 0, 0], fov: 50 },
     { id: 'immersive-crowd', name: 'In The Crowd', description: 'Shoulder-level among attendees', position: [1.2, 1.55, 3.8], target: [-0.3, 1.7, 0], fov: 58 },
     { id: 'detail-product', name: 'Product Detail', description: 'Tight macro with bokeh', position: [0.5, 1.3, 0.6], target: [0, 1.4, 0], fov: 24 },
   ],
