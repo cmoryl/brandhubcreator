@@ -848,6 +848,126 @@ export function BoothMapper3D({
         ))}
       </div>
 
+      {/* Placed Assets Row */}
+      {placedAssets.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Placed Assets ({placedAssets.length})</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {placedAssets.map((asset) => {
+              const config = getFurnitureById(asset.assetId);
+              return (
+                <div
+                  key={asset.instanceId}
+                  className={cn(
+                    "flex items-center gap-2 p-2 rounded-lg border transition-colors",
+                    selectedAssetId === asset.instanceId
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <div className="h-8 w-8 bg-muted rounded flex items-center justify-center shrink-0">
+                    {config?.category === 'displays' ? <Monitor className="h-4 w-4 text-muted-foreground" /> :
+                     config?.category === 'tables' ? <Table2 className="h-4 w-4 text-muted-foreground" /> :
+                     config?.category === 'seating' ? <Armchair className="h-4 w-4 text-muted-foreground" /> :
+                     config?.category === 'signage' ? <Flag className="h-4 w-4 text-muted-foreground" /> :
+                     <Box className="h-4 w-4 text-muted-foreground" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium truncate">{asset.label || config?.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {config?.description?.split('(')[0]?.trim()}
+                    </p>
+                  </div>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleRemoveAsset(asset.instanceId)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Asset Picker Dialog */}
+      <Dialog open={assetPickerOpen} onOpenChange={setAssetPickerOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Box className="h-5 w-5" />
+              Add Furniture / Asset
+            </DialogTitle>
+            <DialogDescription>
+              Select from predefined booth furniture with exact production sizes.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Category filter */}
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            <button
+              className={cn(
+                "text-[11px] px-2.5 py-1 rounded-full border transition-colors",
+                assetFilterCategory === 'all'
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:border-primary/40"
+              )}
+              onClick={() => setAssetFilterCategory('all')}
+            >
+              All
+            </button>
+            {(Object.entries(CATEGORY_LABELS) as [FurnitureCategory, string][]).map(([key, label]) => (
+              <button
+                key={key}
+                className={cn(
+                  "text-[11px] px-2.5 py-1 rounded-full border transition-colors",
+                  assetFilterCategory === key
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                )}
+                onClick={() => setAssetFilterCategory(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <ScrollArea className="flex-1 min-h-0 h-[50vh]">
+            <div className="grid grid-cols-1 gap-2 pr-2">
+              {FURNITURE_CATALOG
+                .filter(f => assetFilterCategory === 'all' || f.category === assetFilterCategory)
+                .map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleAddAsset(item.id)}
+                    className="flex items-center gap-3 p-3 rounded-lg border hover:border-primary hover:bg-primary/5 transition-colors text-left"
+                  >
+                    <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                      {item.category === 'displays' ? <Monitor className="h-5 w-5 text-muted-foreground" /> :
+                       item.category === 'tables' ? <Table2 className="h-5 w-5 text-muted-foreground" /> :
+                       item.category === 'seating' ? <Armchair className="h-5 w-5 text-muted-foreground" /> :
+                       item.category === 'signage' ? <Flag className="h-5 w-5 text-muted-foreground" /> :
+                       <Box className="h-5 w-5 text-muted-foreground" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{item.name}</p>
+                      <p className="text-[11px] text-muted-foreground">{item.description}</p>
+                    </div>
+                    {item.hasScreen && (
+                      <Badge variant="secondary" className="text-[9px] shrink-0">Screen</Badge>
+                    )}
+                  </button>
+                ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
       {/* Image Picker Dialog */}
       <Dialog open={imagePickerOpen} onOpenChange={(open) => { setImagePickerOpen(open); if (open) fetchImages(organization?.id); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
