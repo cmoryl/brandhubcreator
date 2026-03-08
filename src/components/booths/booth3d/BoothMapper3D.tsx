@@ -62,6 +62,8 @@ import {
 } from './environmentPresets';
 import type { WalkthroughMode } from './CameraAnimator';
 import { useCharacterSprites } from './useCharacterSprites';
+import { FLOORING_OPTIONS, FLOOR_COLOR_PRESETS, type FlooringConfig, type FlooringType } from './BoothFloorpad';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
