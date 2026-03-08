@@ -822,7 +822,7 @@ export function BoothMapper3D({
                   )}
                 </div>
               ) : (
-                <ScrollArea className="max-h-[50vh]">
+                <ScrollArea className="h-[45vh]">
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                     {filteredLibraryImages.map((img) => (
                       <button
