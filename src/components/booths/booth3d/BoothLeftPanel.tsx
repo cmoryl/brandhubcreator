@@ -1,12 +1,13 @@
 /**
- * BoothLeftPanel - Tabbed left panel with Asset Library + Scene Layers + Logistics
+ * BoothLeftPanel - Tabbed left panel with Asset Library + Scene Layers + Logistics + AI Generator
  */
 import { useState } from 'react';
-import { LayoutGrid, Layers, ClipboardList } from 'lucide-react';
+import { LayoutGrid, Layers, ClipboardList, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AssetLibraryPanel } from './AssetLibraryPanel';
 import { SceneLayersPanel, type SceneLayer } from './SceneLayersPanel';
 import { LogisticsPanel } from './LogisticsPanel';
+import { AIBoothGenerator, type AIBoothResult } from './AIBoothGenerator';
 import type { LogisticsMarker } from './logisticsTypes';
 
 interface BoothLeftPanelProps {
@@ -21,14 +22,17 @@ interface BoothLeftPanelProps {
   onAddLogisticsMarker?: (marker: LogisticsMarker) => void;
   onUpdateLogisticsMarker?: (id: string, updates: Partial<LogisticsMarker>) => void;
   onRemoveLogisticsMarker?: (id: string) => void;
+  // AI Generator
+  onAIGenerate?: (result: AIBoothResult) => void;
 }
 
-type LeftTab = 'assets' | 'layers' | 'logistics';
+type LeftTab = 'assets' | 'layers' | 'logistics' | 'ai';
 
 export function BoothLeftPanel({
   isAdmin, onAddAsset, layers, onToggleLayer,
   logisticsMarkers = [], selectedLogisticsId = null,
   onSelectLogistics, onAddLogisticsMarker, onUpdateLogisticsMarker, onRemoveLogisticsMarker,
+  onAIGenerate,
 }: BoothLeftPanelProps) {
   const [activeTab, setActiveTab] = useState<LeftTab>('assets');
 
@@ -37,6 +41,7 @@ export function BoothLeftPanel({
       {/* Tab switcher */}
       <div className="flex border-b shrink-0">
         {([
+          { id: 'ai' as LeftTab, icon: Sparkles, label: 'AI' },
           { id: 'assets' as LeftTab, icon: LayoutGrid, label: 'Assets' },
           { id: 'layers' as LeftTab, icon: Layers, label: 'Layers' },
           { id: 'logistics' as LeftTab, icon: ClipboardList, label: 'Ops' },
@@ -62,7 +67,14 @@ export function BoothLeftPanel({
 
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto">
-        {activeTab === 'assets' ? (
+        {activeTab === 'ai' ? (
+          <div className="p-3">
+            <AIBoothGenerator
+              onGenerate={onAIGenerate || (() => {})}
+              isAdmin={isAdmin}
+            />
+          </div>
+        ) : activeTab === 'assets' ? (
           <AssetLibraryPanel onAddAsset={onAddAsset} isAdmin={isAdmin} />
         ) : activeTab === 'layers' ? (
           <SceneLayersPanel layers={layers} onToggleLayer={onToggleLayer} />
