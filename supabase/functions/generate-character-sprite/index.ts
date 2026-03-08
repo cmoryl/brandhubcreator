@@ -79,47 +79,63 @@ Deno.serve(async (req) => {
       });
     }
 
-    const fullPrompt = `Generate a photorealistic full-body portrait of ${promptHint}. The output must be a single person only, full body from head to shoes, centered, with clean silhouette edges and no cropping. Place the person on a perfectly uniform, solid bright green (#00FF00) chroma-key background that fills the entire frame edge-to-edge with zero gradients, props, floor texture, scenery, shadows, or color variation. Use neutral studio lighting and sharp detail suitable for background removal.`;
+    const whiteBgPrompt = `Create a photorealistic full-body character sprite of ${promptHint}. Show exactly one person, full body from head to shoes, centered and clearly visible, occupying most of the frame. Use neutral studio lighting and sharp detail. Place the person on a perfectly solid pure white background (#FFFFFF) with no gradients, no texture, no props, no environment, no text, no logo, and no extra people.`;
+    const greenBgPrompt = `Create a photorealistic full-body character sprite of ${promptHint}. Show exactly one person, full body from head to shoes, centered and clearly visible, occupying most of the frame. Use neutral studio lighting and sharp detail. Place the person on a perfectly solid bright green chroma key background (#00FF00) edge-to-edge with no gradients, no texture, no props, no environment, no text, no logo, and no extra people.`;
 
     console.log(`[generate-character-sprite] Generating sprite for ${characterId} (${user.id})`);
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: fullPrompt,
-          },
-        ],
-        modalities: ["image", "text"],
-      }),
-    });
+    const generationAttempts = [
+      { model: "google/gemini-2.5-flash-image", prompt: whiteBgPrompt },
+      { model: "google/gemini-3-pro-image-preview", prompt: whiteBgPrompt },
+      { model: "google/gemini-3-pro-image-preview", prompt: greenBgPrompt },
+    ] as const;
 
-    if (!aiResponse.ok) {
-      const status = aiResponse.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited — please try again shortly" }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    let imageUrl: string | undefined;
+
+    for (const attempt of generationAttempts) {
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: attempt.model,
+          messages: [
+            {
+              role: "user",
+              content: attempt.prompt,
+            },
+          ],
+          modalities: ["image", "text"],
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        const status = aiResponse.status;
+        if (status === 429) {
+          return new Response(JSON.stringify({ error: "Rate limited — please try again shortly" }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (status === 402) {
+          return new Response(JSON.stringify({ error: "AI usage limit reached" }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        console.warn(`[generate-character-sprite] Attempt failed (${attempt.model}): ${status}`);
+        continue;
       }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage limit reached" }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+
+      const aiData = await aiResponse.json();
+      imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (imageUrl) {
+        console.log(`[generate-character-sprite] Success with ${attempt.model}`);
+        break;
       }
-      throw new Error(`AI API returned ${status}`);
     }
-
-    const aiData = await aiResponse.json();
-    const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: "No image generated" }), {
