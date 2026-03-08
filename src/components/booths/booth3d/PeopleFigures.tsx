@@ -10,6 +10,7 @@ import type { EnvironmentConfig } from './environmentPresets';
 import { getPeopleMultiplier } from './environmentPresets';
 import { getLayoutFamily } from './boothConfigs';
 import { BillboardFigure, BillboardConversationGroup, getCharacterBySeed } from './BillboardFigure';
+import { ProceduralFigure } from './ProceduralFigure';
 
 const HUMAN_HEIGHT = 1.75;
 
