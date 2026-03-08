@@ -61,6 +61,7 @@ import {
   type EnvironmentRealism,
 } from './environmentPresets';
 import type { WalkthroughMode } from './CameraAnimator';
+import { useCharacterSprites } from './useCharacterSprites';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -109,6 +110,7 @@ export function BoothMapper3D({
   const [cameraVersion, setCameraVersion] = useState(0);
   const [walkthroughMode, setWalkthroughMode] = useState<WalkthroughMode>('none');
   const [cameraPanelOpen, setCameraPanelOpen] = useState(true);
+  const characterSprites = useCharacterSprites();
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
@@ -737,6 +739,23 @@ export function BoothMapper3D({
             <TooltipContent>People &amp; Scale</TooltipContent>
           </Tooltip>
 
+          {showPeople && isAdmin && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={characterSprites.count > 0 ? "outline" : "secondary"}
+                  size="sm"
+                  className="h-8 text-[10px] px-2"
+                  onClick={() => characterSprites.generateAll()}
+                  disabled={characterSprites.isGenerating}
+                >
+                  {characterSprites.isGenerating ? '⏳' : '📸'} {characterSprites.count > 0 ? `${characterSprites.count} Sprites` : 'Generate People'}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Generate photorealistic character sprites using AI ({characterSprites.count}/{characterSprites.totalAvailable} ready)</TooltipContent>
+            </Tooltip>
+          )}
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Toggle pressed={showTrafficFlow} onPressedChange={setShowTrafficFlow} size="sm" aria-label="Toggle traffic flow">
@@ -919,6 +938,8 @@ export function BoothMapper3D({
                 allCameraPresets={getEnvironmentConfig(environmentRealism).cameraPresets}
                 onWalkthroughEnd={() => setWalkthroughMode('none')}
                 onTourStep={(id) => setActiveCameraPreset(id)}
+                spriteUrls={characterSprites.sprites}
+                useBillboards={characterSprites.count > 0}
               />
             </Suspense>
           </Canvas>

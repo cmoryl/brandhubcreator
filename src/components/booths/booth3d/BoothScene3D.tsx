@@ -51,6 +51,10 @@ interface BoothScene3DProps {
   onWalkthroughEnd?: () => void;
   /** Called when tour advances to a step */
   onTourStep?: (presetId: string) => void;
+  /** Billboard sprite URLs for photorealistic characters */
+  spriteUrls?: Record<string, string>;
+  /** Use billboard rendering for characters */
+  useBillboards?: boolean;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
@@ -102,6 +106,8 @@ export function BoothScene3D({
   allCameraPresets = [],
   onWalkthroughEnd,
   onTourStep,
+  spriteUrls = {},
+  useBillboards = false,
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
@@ -301,7 +307,7 @@ export function BoothScene3D({
         </>
       )}
 
-      {showPeople && <PeopleFigures layout={layout} envConfig={envConfig} occupiedZones={occupiedZones} />}
+      {showPeople && <PeopleFigures layout={layout} envConfig={envConfig} occupiedZones={occupiedZones} spriteUrls={spriteUrls} useBillboards={useBillboards} />}
       {showTrafficFlow && <TrafficFlow layout={layout} />}
 
       {/* Booth panels */}
