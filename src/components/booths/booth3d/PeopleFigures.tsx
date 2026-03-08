@@ -201,7 +201,7 @@ export function PeopleFigures({
             rotation={fig.rotation}
             opacity={fig.opacity}
             spriteUrl={url}
-            height={1.68 + (fig.seed || 0) % 3 * 0.04}
+            height={1.62 + ((fig.seed || 0) % 7) * 0.03}
             aspect={character.aspect}
           />
         );
