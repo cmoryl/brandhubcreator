@@ -44,6 +44,7 @@ import {
   type PanelAssignment,
 } from './boothConfigs';
 import { BoothPresetPicker } from './BoothPresetPicker';
+import { parseAllSpecs, generatePanelsFromSpecs, type ParsedPanelSpec } from './specParser';
 import type { BoothDesignPreset } from './boothPresets';
 
 interface BoothMapper3DProps {
@@ -91,6 +92,9 @@ export function BoothMapper3D({
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
+  const [prodSpecs, setProdSpecs] = useState<ParsedPanelSpec[]>([]);
+  const [specConfigType, setSpecConfigType] = useState<string>('');
+  const [useProductionSpecs, setUseProductionSpecs] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Organization context for image library
@@ -145,6 +149,36 @@ export function BoothMapper3D({
     load();
   }, [divisionId]);
 
+  // Fetch production specs for this division
+  useEffect(() => {
+    if (!divisionId) return;
+    const fetchProdSpecs = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('booth_production_specs')
+          .select('title, content, category')
+          .eq('division_id', divisionId)
+          .eq('category', 'content-sizing')
+          .order('display_order', { ascending: true });
+
+        if (error || !data || data.length === 0) return;
+
+        const layouts = parseAllSpecs(data);
+        if (layouts.length > 0) {
+          // Flatten all parsed specs
+          const allParsed = layouts.flatMap(l => l.panels);
+          setProdSpecs(allParsed);
+          // Auto-select the first available config type
+          setSpecConfigType(layouts[0].configType);
+          setUseProductionSpecs(true);
+        }
+      } catch (e) {
+        console.error('Failed to load production specs:', e);
+      }
+    };
+    fetchProdSpecs();
+  }, [divisionId]);
+
   // Debounced save to database
   const saveMapping = useCallback(() => {
     if (!divisionId || !isLoaded) return;
@@ -175,7 +209,41 @@ export function BoothMapper3D({
     return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
   }, [saveMapping, isLoaded]);
 
-  const boothConfig = getBoothPanels(layout);
+  // Available spec config types for the dropdown
+  const availableSpecTypes = useMemo(() => {
+    const types = new Set(prodSpecs.map(s => s.configType).filter(Boolean));
+    return Array.from(types);
+  }, [prodSpecs]);
+
+  // Generate panels: use production specs when available, fallback to generic layout
+  const { boothConfig, specPanels } = useMemo(() => {
+    const genericConfig = getBoothPanels(layout);
+    
+    if (useProductionSpecs && specConfigType && prodSpecs.length > 0) {
+      const generated = generatePanelsFromSpecs(prodSpecs, specConfigType);
+      if (generated.panels.length > 0) {
+        return {
+          boothConfig: {
+            layout,
+            dimensions: generated.dimensions,
+            footprint: generated.footprint,
+            panels: generated.panels.map(p => ({
+              id: p.id,
+              label: p.label,
+              specLabel: p.specLabel,
+              position: p.position,
+              rotation: p.rotation,
+              size: p.size,
+              zones: p.zones,
+            })),
+          },
+          specPanels: generated.panels,
+        };
+      }
+    }
+
+    return { boothConfig: genericConfig, specPanels: null };
+  }, [layout, useProductionSpecs, specConfigType, prodSpecs]);
 
   // Apply assignments to panels
   const panels: PanelConfig[] = boothConfig.panels.map((p) => ({
@@ -531,6 +599,28 @@ export function BoothMapper3D({
         )}
 
         <div className="ml-auto flex items-center gap-2">
+          {/* Production spec config selector */}
+          {availableSpecTypes.length > 0 && (
+            <Select value={useProductionSpecs ? specConfigType : '__generic'} onValueChange={(v) => {
+              if (v === '__generic') {
+                setUseProductionSpecs(false);
+              } else {
+                setSpecConfigType(v);
+                setUseProductionSpecs(true);
+              }
+            }}>
+              <SelectTrigger className="w-[140px] h-8 text-xs">
+                <Ruler className="h-3.5 w-3.5 mr-1.5" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__generic">Generic Layout</SelectItem>
+                {availableSpecTypes.map((t) => (
+                  <SelectItem key={t} value={t}>{t} Specs</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Badge variant="outline" className="text-xs">
             {boothConfig.dimensions} · {boothConfig.footprint}
           </Badge>

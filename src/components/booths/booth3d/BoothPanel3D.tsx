@@ -1,12 +1,13 @@
 /**
  * BoothPanel3D - A single clickable panel in 3D space with image texture
- * Includes optional safe zone overlay for print production guidelines
+ * Includes optional safe zone overlay using real production spec zones
  */
 import { useRef, useState, useMemo, Suspense } from 'react';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
 import { Html } from '@react-three/drei';
 import type { PanelConfig } from './boothConfigs';
+import type { PanelZones } from './specParser';
 
 interface BoothPanel3DProps {
   panel: PanelConfig;
@@ -18,7 +19,7 @@ interface BoothPanel3DProps {
 }
 
 /** Inner component that loads and displays the texture */
-function TexturedPanel({ imageUrl, size, isSelected }: { imageUrl: string; size: [number, number]; isSelected: boolean }) {
+function TexturedPanel({ imageUrl, isSelected }: { imageUrl: string; isSelected: boolean }) {
   const texture = useTexture(imageUrl);
   texture.colorSpace = THREE.SRGBColorSpace;
 
@@ -43,81 +44,11 @@ function EmptyPanel({ hovered, isSelected }: { hovered: boolean; isSelected: boo
   );
 }
 
-/**
- * Safe zone overlay — dashed rectangle inset from panel edges
- * Standard production safe zone: ~2 inches (≈0.05m) from each edge at 150 DPI
- */
-function SafeZoneOverlay({ size }: { size: [number, number] }) {
-  const INSET = 0.06; // ~2.4 inches inset (production safe zone)
-  const innerW = size[0] - INSET * 2;
-  const innerH = size[1] - INSET * 2;
-
-  // Build dashed rectangle geometry
-  const lineGeometry = useMemo(() => {
-    const hw = innerW / 2;
-    const hh = innerH / 2;
-    const segments = 80;
-    const points: THREE.Vector3[] = [];
-
-    // Create the rectangle perimeter as a series of points
-    const corners = [
-      new THREE.Vector3(-hw, hh, 0),
-      new THREE.Vector3(hw, hh, 0),
-      new THREE.Vector3(hw, -hh, 0),
-      new THREE.Vector3(-hw, -hh, 0),
-      new THREE.Vector3(-hw, hh, 0), // close
-    ];
-
-    // Interpolate points along edges for dashing
-    for (let side = 0; side < 4; side++) {
-      const from = corners[side];
-      const to = corners[side + 1];
-      const perSide = Math.ceil(segments / 4);
-      for (let i = 0; i < perSide; i++) {
-        const t = i / perSide;
-        points.push(new THREE.Vector3(
-          from.x + (to.x - from.x) * t,
-          from.y + (to.y - from.y) * t,
-          0
-        ));
-      }
-    }
-
-    const geo = new THREE.BufferGeometry().setFromPoints(points);
-    return geo;
-  }, [innerW, innerH]);
-
-  // Corner bracket marks for visual emphasis
-  const bracketGeometry = useMemo(() => {
-    const hw = innerW / 2;
-    const hh = innerH / 2;
-    const bLen = Math.min(innerW, innerH) * 0.08; // bracket arm length
-    const points: THREE.Vector3[] = [];
-
-    // Top-left
-    points.push(new THREE.Vector3(-hw, hh - bLen, 0), new THREE.Vector3(-hw, hh, 0));
-    points.push(new THREE.Vector3(-hw, hh, 0), new THREE.Vector3(-hw + bLen, hh, 0));
-    // Top-right
-    points.push(new THREE.Vector3(hw - bLen, hh, 0), new THREE.Vector3(hw, hh, 0));
-    points.push(new THREE.Vector3(hw, hh, 0), new THREE.Vector3(hw, hh - bLen, 0));
-    // Bottom-right
-    points.push(new THREE.Vector3(hw, -hh + bLen, 0), new THREE.Vector3(hw, -hh, 0));
-    points.push(new THREE.Vector3(hw, -hh, 0), new THREE.Vector3(hw - bLen, -hh, 0));
-    // Bottom-left
-    points.push(new THREE.Vector3(-hw + bLen, -hh, 0), new THREE.Vector3(-hw, -hh, 0));
-    points.push(new THREE.Vector3(-hw, -hh, 0), new THREE.Vector3(-hw, -hh + bLen, 0));
-
-    const geo = new THREE.BufferGeometry().setFromPoints(points);
-    return geo;
-  }, [innerW, innerH]);
-
-  // Bleed zone (outer dashed line, very close to edge)
-  const bleedGeometry = useMemo(() => {
-    const bleedInset = 0.02; // ~0.8 inch from edge
-    const bw = size[0] - bleedInset * 2;
-    const bh = size[1] - bleedInset * 2;
-    const hw = bw / 2;
-    const hh = bh / 2;
+/** Build a dashed rectangle from points */
+function useDashedRect(w: number, h: number) {
+  return useMemo(() => {
+    const hw = w / 2;
+    const hh = h / 2;
     const points = [
       new THREE.Vector3(-hw, hh, 0),
       new THREE.Vector3(hw, hh, 0),
@@ -125,62 +56,151 @@ function SafeZoneOverlay({ size }: { size: [number, number] }) {
       new THREE.Vector3(-hw, -hh, 0),
       new THREE.Vector3(-hw, hh, 0),
     ];
-    return new THREE.BufferGeometry().setFromPoints(points);
-  }, [size]);
+    const geo = new THREE.BufferGeometry().setFromPoints(points);
+    geo.computeBoundingSphere();
+    return geo;
+  }, [w, h]);
+}
 
-  // Inset in feet for label
-  const insetInches = (INSET / 0.0254).toFixed(1);
+/** Build corner bracket marks */
+function useCornerBrackets(w: number, h: number) {
+  return useMemo(() => {
+    const hw = w / 2;
+    const hh = h / 2;
+    const bLen = Math.min(w, h) * 0.06;
+    const points: THREE.Vector3[] = [];
+    // TL
+    points.push(new THREE.Vector3(-hw, hh - bLen, 0), new THREE.Vector3(-hw, hh, 0));
+    points.push(new THREE.Vector3(-hw, hh, 0), new THREE.Vector3(-hw + bLen, hh, 0));
+    // TR
+    points.push(new THREE.Vector3(hw - bLen, hh, 0), new THREE.Vector3(hw, hh, 0));
+    points.push(new THREE.Vector3(hw, hh, 0), new THREE.Vector3(hw, hh - bLen, 0));
+    // BR
+    points.push(new THREE.Vector3(hw, -hh + bLen, 0), new THREE.Vector3(hw, -hh, 0));
+    points.push(new THREE.Vector3(hw, -hh, 0), new THREE.Vector3(hw - bLen, -hh, 0));
+    // BL
+    points.push(new THREE.Vector3(-hw + bLen, -hh, 0), new THREE.Vector3(-hw, -hh, 0));
+    points.push(new THREE.Vector3(-hw, -hh, 0), new THREE.Vector3(-hw, -hh + bLen, 0));
+    return new THREE.BufferGeometry().setFromPoints(points);
+  }, [w, h]);
+}
+
+/**
+ * Safe zone overlay using real production spec zones when available.
+ * Falls back to calculated insets when no spec data present.
+ * 
+ * Zones (from spec):
+ * - Green (Visual): Keep all critical text/logos within this area
+ * - Yellow (Cut): Graphic will be cut on this line during finishing
+ * - Red (Bleed): Full design must extend to this outer boundary
+ */
+function SafeZoneOverlay({ size, zones }: { size: [number, number]; zones?: PanelZones }) {
+  const hasSpecZones = zones?.visualSize || zones?.cutSize || zones?.bleedSize;
+
+  // Compute zone dimensions in meters
+  const visualW = zones?.visualSize?.[0] ?? (size[0] - 0.10);
+  const visualH = zones?.visualSize?.[1] ?? (size[1] - 0.10);
+  const cutW = zones?.cutSize?.[0] ?? (size[0] - 0.04);
+  const cutH = zones?.cutSize?.[1] ?? (size[1] - 0.04);
+  const bleedW = zones?.bleedSize?.[0] ?? size[0];
+  const bleedH = zones?.bleedSize?.[1] ?? size[1];
+
+  // Geometries
+  const visualGeo = useDashedRect(visualW, visualH);
+  const cutGeo = useDashedRect(cutW, cutH);
+  const bleedGeo = useDashedRect(bleedW, bleedH);
+  const bracketGeo = useCornerBrackets(visualW, visualH);
+
+  // Calculate inset from bleed to visual in inches for label
+  const insetW = ((bleedW - visualW) / 2 / 0.0254).toFixed(1);
+  const insetH = ((bleedH - visualH) / 2 / 0.0254).toFixed(1);
+
+  // Format dimensions for labels
+  const fmtDim = (w: number, h: number) => 
+    `${(w / 0.0254).toFixed(1)}" × ${(h / 0.0254).toFixed(1)}"`;
 
   return (
     <group position={[0, 0, 0.005]}>
-      {/* Bleed line (red, outer) */}
+      {/* Bleed line (red, outermost) */}
       <line>
-        <primitive object={bleedGeometry} attach="geometry" />
+        <primitive object={bleedGeo} attach="geometry" />
         <lineDashedMaterial
           color="#ef4444"
           dashSize={0.04}
           gapSize={0.06}
           linewidth={1}
-          opacity={0.5}
+          opacity={0.6}
           transparent
         />
       </line>
 
-      {/* Safe zone dashed line (green) */}
+      {/* Cut line (amber/yellow, middle) */}
       <line>
-        <primitive object={lineGeometry} attach="geometry" />
+        <primitive object={cutGeo} attach="geometry" />
+        <lineDashedMaterial
+          color="#f59e0b"
+          dashSize={0.05}
+          gapSize={0.04}
+          linewidth={1}
+          opacity={0.6}
+          transparent
+        />
+      </line>
+
+      {/* Visual / safe area (green, innermost) */}
+      <line>
+        <primitive object={visualGeo} attach="geometry" />
         <lineDashedMaterial
           color="#22c55e"
           dashSize={0.06}
-          gapSize={0.04}
+          gapSize={0.03}
           linewidth={1}
-          opacity={0.7}
+          opacity={0.8}
           transparent
         />
       </line>
 
-      {/* Corner brackets (bright green, solid) */}
+      {/* Corner brackets on visual zone */}
       <lineSegments>
-        <primitive object={bracketGeometry} attach="geometry" />
+        <primitive object={bracketGeo} attach="geometry" />
         <lineBasicMaterial color="#22c55e" linewidth={2} opacity={0.9} transparent />
       </lineSegments>
 
-      {/* Safe zone label */}
+      {/* Zone labels */}
       <Html
-        position={[0, innerH / 2 + 0.08, 0]}
+        position={[0, bleedH / 2 + 0.12, 0]}
         center
         distanceFactor={8}
         style={{ pointerEvents: 'none' }}
       >
-        <div className="flex items-center gap-1.5 text-[9px] font-mono whitespace-nowrap">
-          <span className="px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
-            Safe Zone ({insetInches}" inset)
-          </span>
-          <span className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
-            Bleed
-          </span>
+        <div className="flex flex-col items-center gap-1">
+          {zones?.specTitle && (
+            <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-background/90 text-foreground border border-border whitespace-nowrap">
+              {zones.specTitle}
+            </span>
+          )}
+          <div className="flex items-center gap-1 text-[8px] font-mono whitespace-nowrap">
+            <span className="px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
+              Visual {hasSpecZones ? fmtDim(visualW, visualH) : `${insetW}" inset`}
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              Cut {hasSpecZones ? fmtDim(cutW, cutH) : ''}
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
+              Bleed {hasSpecZones ? fmtDim(bleedW, bleedH) : ''}
+            </span>
+          </div>
         </div>
       </Html>
+
+      {/* Solid color only warning */}
+      {zones?.solidColorOnly && (
+        <Html position={[0, 0, 0.01]} center distanceFactor={8} style={{ pointerEvents: 'none' }}>
+          <div className="px-3 py-1.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-semibold">
+            SOLID COLOR ONLY
+          </div>
+        </Html>
+      )}
 
       {/* Center crosshair */}
       <lineSegments>
@@ -239,15 +259,15 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
         <planeGeometry args={[panel.size[0], panel.size[1]]} />
         {panel.imageUrl ? (
           <Suspense fallback={<EmptyPanel hovered={hovered} isSelected={isSelected} />}>
-            <TexturedPanel imageUrl={panel.imageUrl} size={panel.size} isSelected={isSelected} />
+            <TexturedPanel imageUrl={panel.imageUrl} isSelected={isSelected} />
           </Suspense>
         ) : (
           <EmptyPanel hovered={hovered} isSelected={isSelected} />
         )}
       </mesh>
 
-      {/* Safe zone overlay */}
-      {showSafeZones && <SafeZoneOverlay size={panel.size} />}
+      {/* Safe zone overlay with production spec zones */}
+      {showSafeZones && <SafeZoneOverlay size={panel.size} zones={panel.zones} />}
 
       {/* Selection border */}
       <lineSegments>
@@ -287,7 +307,7 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
       )}
 
       {/* Empty state indicator */}
-      {!panel.imageUrl && (
+      {!panel.imageUrl && !panel.zones?.solidColorOnly && (
         <Html position={[0, 0, 0.01]} center distanceFactor={8} style={{ pointerEvents: 'none' }}>
           <div className="flex flex-col items-center text-muted-foreground/60">
             <svg className="w-8 h-8 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
