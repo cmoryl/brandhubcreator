@@ -1255,6 +1255,7 @@ export function BoothMapper3D({
             onNudgeAsset={onAssetNudge}
             isAdmin={isAdmin}
             onOpenAssetImagePicker={handleOpenAssetImagePicker}
+            brandColors={[]}
           />
         }
         canvas={canvasElement}

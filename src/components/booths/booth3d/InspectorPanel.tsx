@@ -7,6 +7,7 @@ import {
   Settings, Move, RotateCw, Maximize2, Palette, Image as ImageIcon,
   Monitor, Shirt, Trash2, Box, Upload
 } from 'lucide-react';
+import { AssetColorAnalysis } from './AssetColorAnalysis';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,8 @@ interface InspectorPanelProps {
   isAdmin: boolean;
   /** Open the image picker for the given asset, targeting a specific field */
   onOpenAssetImagePicker?: (instanceId: string, target: 'screen' | 'texture' | 'cover') => void;
+  /** Brand colors for alignment analysis */
+  brandColors?: string[];
 }
 
 function PropertyRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -95,6 +98,7 @@ export function InspectorPanel({
   onNudgeAsset,
   isAdmin,
   onOpenAssetImagePicker,
+  brandColors = [],
 }: InspectorPanelProps) {
   // Selected asset info
   const selectedAsset = selectedAssetId ? placedAssets.find(a => a.instanceId === selectedAssetId) : null;
@@ -180,6 +184,18 @@ export function InspectorPanel({
               </div>
             )}
           </div>
+
+          {/* Panel Color Analysis */}
+          {hasImage && (
+            <>
+              <Separator />
+              <AssetColorAnalysis
+                imageUrl={assignments[selectedPanel.id]}
+                assetName={selectedPanel.label}
+                brandColors={brandColors}
+              />
+            </>
+          )}
         </div>
       </div>
     );
@@ -366,6 +382,22 @@ export function InspectorPanel({
               </div>
             </>
           )}
+
+          {/* Asset Color Analysis — analyze any assigned image */}
+          {(() => {
+            const assetImageUrl = selectedAsset.screenImageUrl || selectedAsset.customTextureUrl || selectedAsset.tableCoverImageUrl;
+            if (!assetImageUrl) return null;
+            return (
+              <>
+                <Separator />
+                <AssetColorAnalysis
+                  imageUrl={assetImageUrl}
+                  assetName={assetConfig.name}
+                  brandColors={brandColors}
+                />
+              </>
+            );
+          })()}
         </div>
       </div>
     );
