@@ -1225,6 +1225,22 @@ export function BoothMapper3D({
                 visibilityScore: crowdSimulation.visibilityScore,
               } : undefined}
             />
+          ) :
+          activeMode === 'production' ? (
+            <VendorExportPack
+              divisionName={divisionName}
+              layout={layout}
+              boothDimensions={boothConfig.dimensions}
+              boothFootprint={boothConfig.footprint}
+              panels={panels}
+              assignments={assignments}
+              backAssignments={backAssignments}
+              placedAssets={placedAssets}
+              boothLighting={boothLighting}
+              flooringConfig={flooringConfig}
+              logisticsMarkers={logisticsMarkers}
+              isAdmin={isAdmin}
+            />
           ) : undefined
         }
       />
