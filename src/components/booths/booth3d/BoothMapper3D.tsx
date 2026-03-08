@@ -1431,11 +1431,42 @@ export function BoothMapper3D({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ImageIcon className="h-5 w-5" />
-              Assign Image to {boothConfig.panels.find((p) => p.id === selectedPanelId)?.label}
+              Assign {assigningSide === 'back' ? 'Back' : 'Front'} Image to {boothConfig.panels.find((p) => p.id === selectedPanelId)?.label}
             </DialogTitle>
             <DialogDescription>
               Select from your image library, uploaded specs, booth variants, or gallery.
             </DialogDescription>
+            {/* Front / Back toggle */}
+            <div className="flex items-center gap-1 mt-2">
+              <button
+                onClick={() => setAssigningSide('front')}
+                className={cn(
+                  "px-3 py-1 rounded text-xs font-medium transition-colors border",
+                  assigningSide === 'front'
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                )}
+              >
+                Front
+              </button>
+              <button
+                onClick={() => setAssigningSide('back')}
+                className={cn(
+                  "px-3 py-1 rounded text-xs font-medium transition-colors border",
+                  assigningSide === 'back'
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                )}
+              >
+                Back
+              </button>
+              {assigningSide === 'back' && backAssignments[selectedPanelId || ''] && (
+                <span className="text-[10px] text-green-500 ml-2">✓ Back image set</span>
+              )}
+              {assigningSide === 'front' && assignments[selectedPanelId || ''] && (
+                <span className="text-[10px] text-green-500 ml-2">✓ Front image set</span>
+              )}
+            </div>
           </DialogHeader>
 
           <Tabs value={pickerTab} onValueChange={setPickerTab} className="flex-1 min-h-0 flex flex-col">
