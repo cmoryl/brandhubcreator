@@ -72,6 +72,9 @@ interface BoothScene3DProps {
   boothLighting?: BoothLightingConfig;
   /** Panel print material style */
   printStyle?: PrintStyle;
+  /** Crowd simulation data for heat map overlay */
+  crowdSimulation?: CrowdSimulationData | null;
+  showHeatMap?: boolean;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
