@@ -264,11 +264,12 @@ export function BoothScene3D({
         position={[-5, 6, -3]}
         angle={0.4}
         penumbra={isHyper ? 0.9 : 0.8}
-        intensity={lighting.spotIntensity * (isHyper ? 0.6 : 0.5)}
-        castShadow={isAdvanced}
-        shadow-mapSize={isAdvanced ? [2048, 2048] : [512, 512]}
+        intensity={lighting.spotIntensity * (isHyper ? 0.6 : 0.45)}
+        castShadow
+        shadow-mapSize={isAdvanced ? [2048, 2048] : [1024, 1024]}
         shadow-bias={-0.0003}
-        color={isAdvanced ? '#e8eaf0' : '#ffffff'}
+        shadow-radius={2}
+        color={isAdvanced ? '#e8eaf0' : '#f0f0f8'}
       />
 
       {/* Rim/back light for depth separation */}
