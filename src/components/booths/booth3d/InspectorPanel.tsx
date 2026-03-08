@@ -391,10 +391,11 @@ export function InspectorPanel({
             </>
           )}
 
-          {/* Asset Color Analysis — analyze any assigned image */}
+          {/* Asset Color & Readability Analysis */}
           {(() => {
             const assetImageUrl = selectedAsset.screenImageUrl || selectedAsset.customTextureUrl || selectedAsset.tableCoverImageUrl;
             if (!assetImageUrl) return null;
+            const sz = selectedAsset.customSize || assetConfig.size;
             return (
               <>
                 <Separator />
@@ -402,6 +403,13 @@ export function InspectorPanel({
                   imageUrl={assetImageUrl}
                   assetName={assetConfig.name}
                   brandColors={brandColors}
+                />
+                <Separator />
+                <AssetReadabilityAnalysis
+                  imageUrl={assetImageUrl}
+                  assetName={assetConfig.name}
+                  panelSizeMeters={[sz[0], sz[1]]}
+                  assetType={assetConfig.category === 'signage' ? 'banner' : assetConfig.hasScreen ? 'screen' : 'texture'}
                 />
               </>
             );
