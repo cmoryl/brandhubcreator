@@ -61,6 +61,10 @@ interface BoothScene3DProps {
   monitorSpecs?: MonitorSpec[];
   /** Active spec config type (RDT-108, RDT-110) */
   activeSpecConfig?: string;
+  /** Booth flooring configuration */
+  flooringConfig?: FlooringConfig;
+  /** Booth footprint string e.g. "10' × 10' floor" */
+  footprint?: string;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
