@@ -649,7 +649,7 @@ export function BoothMapper3D({
   const allImages = [
     ...uploadedSpecs.map((s) => ({ url: s.url, label: s.name, source: 'upload' as const })),
     ...variantImages.map((v) => ({ url: v.url, label: v.label, source: 'variant' as const })),
-    ...galleryImages.map((url, i) => ({ url, label: `Gallery ${i + 1}`, source: 'gallery' as const })),
+    ...mergedGalleryImages.map((url, i) => ({ url, label: `Gallery ${i + 1}`, source: 'gallery' as const })),
   ];
 
   const assignedCount = Object.keys(assignments).length;
