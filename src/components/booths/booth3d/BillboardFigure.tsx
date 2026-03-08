@@ -1,13 +1,13 @@
 /**
  * BillboardFigure — Photorealistic character billboard sprites for arch-viz.
  *
- * Uses a transparent PNG cutout of a person rendered as a camera-facing plane.
- * Includes a custom shader to chroma-key out white/light backgrounds.
+ * Uses AI-generated transparent PNG cutouts rendered as camera-facing planes.
+ * Characters are generated with proper alpha channels — no post-processing needed.
  */
 import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
-import { useFrame, useThree, extend } from '@react-three/fiber';
-import { useTexture, shaderMaterial } from '@react-three/drei';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useTexture } from '@react-three/drei';
 
 // ── Pre-baked sprite descriptors ──────────────────────────
 export interface CharacterSprite {
@@ -38,68 +38,6 @@ export function getCharacterBySeed(seed: number, isStaff = false): CharacterSpri
     ? CHARACTER_CATALOG.filter(c => c.id.startsWith('staff-'))
     : CHARACTER_CATALOG.filter(c => !c.id.startsWith('staff-') && c.id !== 'group-pair');
   return pool[Math.abs(seed) % pool.length];
-}
-
-// ── White-keying shader material ──────────────────────────
-// Discards pixels that are close to white (background removal)
-const WhiteKeyMaterial = shaderMaterial(
-  {
-    map: null as THREE.Texture | null,
-    opacity: 1.0,
-    threshold: 0.88, // brightness above this is considered background
-  },
-  // Vertex shader
-  `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  // Fragment shader
-  `
-    uniform sampler2D map;
-    uniform float opacity;
-    uniform float threshold;
-    varying vec2 vUv;
-    
-    void main() {
-      vec4 texColor = texture2D(map, vUv);
-      
-      // Calculate brightness (luminance)
-      float brightness = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
-      
-      // Also check if the color is near-white (all channels high)
-      float minChannel = min(min(texColor.r, texColor.g), texColor.b);
-      
-      // Discard if both bright AND all channels are high (white/near-white)
-      if (brightness > threshold && minChannel > threshold * 0.85) {
-        discard;
-      }
-      
-      // Smooth edge fade for pixels near the threshold
-      float edge = smoothstep(threshold * 0.95, threshold, brightness);
-      float whiteEdge = smoothstep(threshold * 0.80, threshold * 0.85, minChannel);
-      float combinedAlpha = 1.0 - (edge * whiteEdge);
-      
-      // Apply original alpha and opacity
-      float finalAlpha = texColor.a * combinedAlpha * opacity;
-      if (finalAlpha < 0.01) discard;
-      
-      gl_FragColor = vec4(texColor.rgb, finalAlpha);
-    }
-  `
-);
-
-extend({ WhiteKeyMaterial });
-
-// Add type declaration for JSX
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      whiteKeyMaterial: any;
-    }
-  }
 }
 
 // ── Billboard Figure Component ────────────────────────────
@@ -154,11 +92,11 @@ export function BillboardFigure({
       castShadow
     >
       <planeGeometry args={[width, height]} />
-      <whiteKeyMaterial
+      <meshStandardMaterial
         map={texture}
+        transparent
         opacity={opacity}
-        threshold={0.88}
-        transparent={true}
+        alphaTest={0.05}
         side={THREE.DoubleSide}
         depthWrite={false}
       />

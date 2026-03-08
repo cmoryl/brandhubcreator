@@ -758,20 +758,38 @@ export function BoothMapper3D({
           </Tooltip>
 
           {showPeople && isAdmin && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={characterSprites.count > 0 ? "outline" : "secondary"}
-                  size="sm"
-                  className="h-8 text-[10px] px-2"
-                  onClick={() => characterSprites.generateAll()}
-                  disabled={characterSprites.isGenerating}
-                >
-                  {characterSprites.isGenerating ? '⏳' : '📸'} {characterSprites.count > 0 ? `${characterSprites.count} Sprites` : 'Generate People'}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Generate photorealistic character sprites using AI ({characterSprites.count}/{characterSprites.totalAvailable} ready)</TooltipContent>
-            </Tooltip>
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={characterSprites.count > 0 ? "outline" : "secondary"}
+                    size="sm"
+                    className="h-8 text-[10px] px-2"
+                    onClick={() => characterSprites.generateAll()}
+                    disabled={characterSprites.isGenerating}
+                  >
+                    {characterSprites.isGenerating ? '⏳' : '📸'} {characterSprites.count > 0 ? `${characterSprites.count} Sprites` : 'Generate People'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Generate photorealistic character sprites using AI ({characterSprites.count}/{characterSprites.totalAvailable} ready)</TooltipContent>
+              </Tooltip>
+              {characterSprites.count > 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-[10px] px-2"
+                      onClick={() => characterSprites.regenerateAll()}
+                      disabled={characterSprites.isGenerating}
+                    >
+                      🔄 Regenerate
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete cached sprites and regenerate with improved transparency</TooltipContent>
+                </Tooltip>
+              )}
+            </>
           )}
 
           <Tooltip>

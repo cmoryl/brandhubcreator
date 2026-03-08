@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const fullPrompt = `Generate a photorealistic full-body portrait of a ${promptHint}. The person should be standing on a plain solid white background with no shadows on the background. The image should be a clean cutout-style photo suitable for architectural visualization billboard sprites. Professional photography quality, natural lighting, sharp details. Full body from head to shoes visible. White/clean background for easy transparency extraction.`;
+    const fullPrompt = `Generate a photorealistic full-body portrait of a ${promptHint}. The person must be rendered as a clean cutout with a fully transparent background (alpha channel). NO white background, NO colored background — only the person with transparent surroundings. This is for a 3D architectural visualization billboard sprite. Professional photography quality, natural studio lighting on the person only, sharp details. Full body visible from head to shoes. The output MUST be a PNG with proper alpha transparency — no background at all, just the isolated person figure on a solid white background.`;
 
     console.log(`[generate-character-sprite] Generating sprite for ${characterId}`);
 
