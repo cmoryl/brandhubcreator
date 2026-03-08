@@ -1862,41 +1862,7 @@ export const DivisionDetail = ({ division, onClose, isAdmin, mode = 'modal' }: {
     }
   };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.92, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.92, opacity: 0, y: 20 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative w-full max-w-5xl max-h-[90vh] bg-card rounded-2xl shadow-2xl border border-border/50 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
-          <div className="flex items-center gap-3">
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-xl"
-              style={{ backgroundColor: division.color }}
-            >
-              <Icon className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold font-heading">{division.name}</h2>
-            </div>
-          </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+  const contentBody = (
           <div className="p-6 space-y-6">
             {/* Image Viewer */}
             <div
