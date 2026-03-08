@@ -2626,7 +2626,7 @@ export default function BoothsCatalog() {
               transition={{ delay: i * 0.05, duration: 0.4 }}
               className="relative group/card"
             >
-              <BoothCardWithImages division={div} onClick={() => setSelected(div)} isAdmin={isAdmin} />
+              <BoothCardWithImages division={div} onClick={() => navigate(`/booths/${div.id}`)} isAdmin={isAdmin} />
               {/* Edit/Delete buttons for admin */}
               {isAdmin && (
                 <div className="absolute top-3 left-3 z-10 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-opacity">
