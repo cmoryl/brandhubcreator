@@ -1717,6 +1717,23 @@ export function BoothMapper3D({
         </Card>
       )}
 
+      {/* Sales Deck Panel */}
+      {showSalesDeck && (
+        <Card className="p-4 border-primary/20">
+          <SalesDeckPanel
+            divisionName={divisionName}
+            layoutName={layout}
+            boothSize={boothConfig.footprint}
+            panelLabels={boothConfig.panels.map(p => p.label)}
+            furnitureList={placedAssets.map(a => a.label)}
+            hasMonitors={placedAssets.some(a => a.assetId.includes('monitor') || a.assetId.includes('tv'))}
+            crowdScore={crowdSimulation?.visibilityScore}
+            variantLabel={variantLabel}
+            isAdmin={isAdmin}
+          />
+        </Card>
+      )}
+
       {/* Asset Picker Dialog */}
       <Dialog open={assetPickerOpen} onOpenChange={setAssetPickerOpen}>
         <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
