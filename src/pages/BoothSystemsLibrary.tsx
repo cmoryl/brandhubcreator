@@ -196,11 +196,18 @@ export default function BoothSystemsLibrary() {
                 onCancelEdit={() => setEditingSystem(null)}
                 onEditNameChange={setEditName}
                 onEditDescChange={setEditDesc}
-                onDelete={() => deleteSystem(system.id)}
+                onDelete={() => {
+                  if (system.variants.length > 0) {
+                    toast.error(`Remove all ${system.variants.length} variant(s) first`);
+                    return;
+                  }
+                  deleteSystem(system.id);
+                }}
                 onAddVariant={() => setShowAddVariant(system.id)}
                 onDeleteVariant={(vId) => deleteVariant(vId)}
-                onNavigateToMapper={(variant) => {
-                  navigate(`/booths/system-preview?systemId=${system.id}&variantId=${variant.id}`);
+                onNavigateToMapper={() => {
+                  toast.info('Open a booth in the Catalog, then use the Systems picker in the toolbar');
+                  navigate('/booths');
                 }}
               />
             ))}
