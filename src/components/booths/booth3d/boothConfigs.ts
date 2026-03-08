@@ -286,9 +286,11 @@ export const LAYOUT_OPTIONS: { value: BoothLayout; label: string; desc: string; 
   { value: 'island-40x40', label: 'Island 40×40', desc: "40'×40' anchor booth", category: 'Island' },
 ];
 
-export const LIGHTING_PRESETS: { value: LightingPreset; label: string }[] = [
-  { value: 'expo-bright', label: 'Expo Bright' },
-  { value: 'showcase-dim', label: 'Showcase Dim' },
-  { value: 'warm-gallery', label: 'Warm Gallery' },
-  { value: 'cool-neutral', label: 'Cool Neutral' },
+export const LIGHTING_PRESETS: { value: LightingPreset; label: string; desc: string }[] = [
+  { value: 'expo-bright', label: 'Expo Bright', desc: 'Full convention center lighting — high visibility' },
+  { value: 'showcase-dim', label: 'Standard Hall', desc: 'Typical exhibit hall ambient — balanced contrast' },
+  { value: 'dark-hall', label: 'Dark Hall', desc: 'Minimal ambient — dramatic spotlight focus' },
+  { value: 'stage-lighting', label: 'Stage Lighting', desc: 'Concert-style colored wash with dramatic beams' },
+  { value: 'warm-gallery', label: 'Warm Gallery', desc: 'Museum-quality warm directional lighting' },
+  { value: 'cool-neutral', label: 'Cool Neutral', desc: 'Daylight-balanced neutral tones' },
 ];
