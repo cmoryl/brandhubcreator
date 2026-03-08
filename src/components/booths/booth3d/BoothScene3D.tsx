@@ -98,6 +98,10 @@ export function BoothScene3D({
   environmentRealism = 'standard',
   activeCameraPreset = null,
   cameraVersion = 0,
+  walkthroughMode = 'none',
+  allCameraPresets = [],
+  onWalkthroughEnd,
+  onTourStep,
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
@@ -262,7 +266,15 @@ export function BoothScene3D({
         target={[0, 1.2, 0]}
         enabled={!isDragMode}
       />
-      <CameraController activePreset={activeCameraPreset} controlsRef={controlsRef} version={cameraVersion} />
+      <CameraAnimator
+        activePreset={activeCameraPreset}
+        version={cameraVersion}
+        controlsRef={controlsRef}
+        walkthroughMode={walkthroughMode}
+        allPresets={allCameraPresets}
+        onModeChange={(mode) => { if (mode === 'none') onWalkthroughEnd?.(); }}
+        onTourStep={onTourStep}
+      />
 
 
       {showEnvironment && envConfig ? (
