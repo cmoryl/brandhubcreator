@@ -2289,11 +2289,9 @@ export default function BoothsCatalog() {
   useEffect(() => {
     const state = location.state as { openDivision?: string } | null;
     if (state?.openDivision) {
-      const div = allDivisions.find(d => d.id === state.openDivision);
-      if (div) setSelected(div);
-      navigate('/booths', { replace: true, state: {} });
+      navigate(`/booths/${state.openDivision}`, { replace: true });
     }
-  }, [location.state, allDivisions]);
+  }, [location.state]);
 
   // Check if current user is authenticated (admin)
   useEffect(() => {
