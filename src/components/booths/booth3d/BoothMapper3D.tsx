@@ -298,6 +298,7 @@ export function BoothMapper3D({
   const panels: PanelConfig[] = boothConfig.panels.map((p) => ({
     ...p,
     imageUrl: assignments[p.id],
+    backImageUrl: backAssignments[p.id],
     position: panelPositionOverrides[p.id] || p.position,
   }));
 
