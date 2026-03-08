@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import {
   Settings, Move, RotateCw, Maximize2, Palette, Image as ImageIcon,
-  Monitor, Shirt, Trash2, Box
+  Monitor, Shirt, Trash2, Box, Upload
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,8 @@ interface InspectorPanelProps {
   onRemoveAsset: (instanceId: string) => void;
   onNudgeAsset: (instanceId: string, dx: number, dy: number, dz: number) => void;
   isAdmin: boolean;
+  /** Open the image picker for the given asset, targeting a specific field */
+  onOpenAssetImagePicker?: (instanceId: string, target: 'screen' | 'texture' | 'cover') => void;
 }
 
 function PropertyRow({ label, children }: { label: string; children: React.ReactNode }) {
