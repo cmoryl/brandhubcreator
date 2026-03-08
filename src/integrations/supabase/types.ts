@@ -382,6 +382,7 @@ export type Database = {
           show_labels: boolean
           updated_at: string
           uploaded_specs: Json
+          variant_label: string
         }
         Insert: {
           assignments?: Json
@@ -395,6 +396,7 @@ export type Database = {
           show_labels?: boolean
           updated_at?: string
           uploaded_specs?: Json
+          variant_label?: string
         }
         Update: {
           assignments?: Json
@@ -408,6 +410,7 @@ export type Database = {
           show_labels?: boolean
           updated_at?: string
           uploaded_specs?: Json
+          variant_label?: string
         }
         Relationships: []
       }
