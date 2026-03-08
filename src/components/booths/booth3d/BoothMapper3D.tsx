@@ -803,10 +803,18 @@ export function BoothMapper3D({
             </Suspense>
           </div>
 
-          {/* Orbit hint */}
+          {/* Orbit hint / drag mode indicator */}
           <div className="absolute bottom-3 left-3 text-xs text-muted-foreground/60 bg-background/50 backdrop-blur-sm rounded px-2 py-1">
-            Drag to orbit · Scroll to zoom · Click panel to assign image
+            {isDragMode
+              ? '⊞ Drag Mode — click & drag panels or assets to reposition'
+              : 'Drag to orbit · Scroll to zoom · Click panel to assign image'}
           </div>
+          {isDragMode && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-accent/90 text-accent-foreground text-xs font-medium shadow-lg animate-pulse">
+              <Move className="h-3 w-3 inline mr-1.5" />
+              Drag Mode Active
+            </div>
+          )}
         </div>
       </Card>
 
