@@ -37,7 +37,6 @@ function EmptyPanel({ hovered, isSelected }: { hovered: boolean; isSelected: boo
   return (
     <meshStandardMaterial
       color={hovered ? '#1e293b' : '#0f172a'}
-      side={THREE.DoubleSide}
       emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
       emissiveIntensity={isSelected ? 0.2 : 0}
     />
