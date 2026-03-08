@@ -46,7 +46,7 @@ import {
   type PanelAssignment,
 } from './boothConfigs';
 import { BoothPresetPicker } from './BoothPresetPicker';
-import { parseAllSpecs, generatePanelsFromSpecs, type ParsedPanelSpec } from './specParser';
+import { parseAllSpecs, generatePanelsFromSpecs, parseMonitorSpecs, type ParsedPanelSpec, type MonitorSpec } from './specParser';
 import type { BoothDesignPreset } from './boothPresets';
 import {
   FURNITURE_CATALOG,
