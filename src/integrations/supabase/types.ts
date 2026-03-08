@@ -1003,6 +1003,161 @@ export type Database = {
         }
         Relationships: []
       }
+      booth_system_event_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          division_id: string | null
+          event_id: string
+          id: string
+          notes: string | null
+          override_data: Json | null
+          system_id: string
+          updated_at: string
+          variant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          division_id?: string | null
+          event_id: string
+          id?: string
+          notes?: string | null
+          override_data?: Json | null
+          system_id: string
+          updated_at?: string
+          variant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          division_id?: string | null
+          event_id?: string
+          id?: string
+          notes?: string | null
+          override_data?: Json | null
+          system_id?: string
+          updated_at?: string
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booth_system_event_links_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booth_system_event_links_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "booth_systems"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booth_system_event_links_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "booth_system_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booth_system_variants: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          dimensions: string | null
+          display_order: number
+          id: string
+          snapshot_data: Json
+          system_id: string
+          updated_at: string
+          variant_name: string
+          variant_type: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          dimensions?: string | null
+          display_order?: number
+          id?: string
+          snapshot_data?: Json
+          system_id: string
+          updated_at?: string
+          variant_name: string
+          variant_type?: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          dimensions?: string | null
+          display_order?: number
+          id?: string
+          snapshot_data?: Json
+          system_id?: string
+          updated_at?: string
+          variant_name?: string
+          variant_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booth_system_variants_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "booth_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booth_systems: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          organization_id: string | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          organization_id?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booth_systems_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booth_variant_info: {
         Row: {
           created_at: string
