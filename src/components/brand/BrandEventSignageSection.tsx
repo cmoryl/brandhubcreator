@@ -19,8 +19,7 @@ import { RichTextEditor, RichTextDisplay } from '@/components/ui/rich-text-edito
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { EditBrandSignageDialog } from './EditBrandSignageDialog';
 import { LinkedBoothPreviewCard, resolveBoothDivision, LinkBoothDialog } from './LinkedBoothCards';
-import { DivisionDetail, type BoothDivision } from '@/pages/BoothsCatalog';
-import { AnimatePresence } from 'framer-motion';
+import { type BoothDivision } from '@/pages/BoothsCatalog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
