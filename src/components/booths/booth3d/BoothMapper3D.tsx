@@ -914,6 +914,10 @@ export function BoothMapper3D({
                     : null
                 }
                 cameraVersion={cameraVersion}
+                walkthroughMode={walkthroughMode}
+                allCameraPresets={getEnvironmentConfig(environmentRealism).cameraPresets}
+                onWalkthroughEnd={() => setWalkthroughMode('none')}
+                onTourStep={(id) => setActiveCameraPreset(id)}
               />
             </Suspense>
           </Canvas>
