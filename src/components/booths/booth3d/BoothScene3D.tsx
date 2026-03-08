@@ -56,6 +56,10 @@ interface BoothScene3DProps {
   spriteUrls?: Record<string, string>;
   /** Use billboard rendering for characters */
   useBillboards?: boolean;
+  /** Monitor specs from production data */
+  monitorSpecs?: MonitorSpec[];
+  /** Active spec config type (RDT-108, RDT-110) */
+  activeSpecConfig?: string;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
