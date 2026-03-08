@@ -17,8 +17,7 @@ export const PartnerBoothsSection = ({
   isEditable,
 }: PartnerBoothsSectionProps) => {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [selectedDivision, setSelectedDivision] = useState<BoothDivision | null>(null);
-  const { divisions: customDivisions } = useCustomDivisions();
+  const navigate = useNavigate();
 
   const handleLink = (booth: LinkedBoothCard) => {
     if (!onUpdate) return;
