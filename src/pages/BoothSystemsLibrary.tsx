@@ -365,6 +365,13 @@ function SystemCard({
               ) : (
                 <p className="text-xs text-muted-foreground truncate">{system.description || 'No description'}</p>
               )}
+              {!isEditing && system.tags.length > 0 && (
+                <div className="flex items-center gap-1 mt-1 flex-wrap">
+                  {system.tags.slice(0, 3).map(tag => (
+                    <Badge key={tag} variant="secondary" className="text-[8px] py-0 px-1 font-normal">{tag}</Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </button>
           <div className="flex items-center gap-1.5 shrink-0">
