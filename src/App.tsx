@@ -206,6 +206,7 @@ const App = () => (
                           <BoothDivisionPage />
                         </Suspense>
                       }
+                    />
                     <Route
                       path="color-lab"
                       element={
