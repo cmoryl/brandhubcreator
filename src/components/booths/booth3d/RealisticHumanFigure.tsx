@@ -151,8 +151,9 @@ export function RealisticHumanFigure({
     emissive: appearance.skin,
     emissiveIntensity: 0.04,
     envMapIntensity: 0.25,
-    transparent: opacity < 1,
-    opacity,
+    transparent: true,
+    opacity: opacity * 0.85,
+    depthWrite: opacity > 0.9,
   }), [appearance.skin, opacity]);
 
   // Fabric: clean matte with subtle env response
@@ -161,8 +162,9 @@ export function RealisticHumanFigure({
     roughness: 0.72,
     metalness: 0,
     envMapIntensity: 0.2,
-    transparent: opacity < 1,
-    opacity,
+    transparent: true,
+    opacity: opacity * 0.85,
+    depthWrite: opacity > 0.9,
   });
 
   // Dark accent (shoes, belt)
@@ -171,8 +173,9 @@ export function RealisticHumanFigure({
     roughness: 0.45,
     metalness: metal,
     envMapIntensity: 0.3,
-    transparent: opacity < 1,
-    opacity,
+    transparent: true,
+    opacity: opacity * 0.85,
+    depthWrite: opacity > 0.9,
   });
 
   return (
