@@ -275,17 +275,56 @@ export function BoothMapper3D({
     return { boothConfig: genericConfig, specPanels: null };
   }, [layout, useProductionSpecs, specConfigType, prodSpecs]);
 
-  // Apply assignments to panels
+  // Apply assignments and position overrides to panels
   const panels: PanelConfig[] = boothConfig.panels.map((p) => ({
     ...p,
     imageUrl: assignments[p.id],
+    position: panelPositionOverrides[p.id] || p.position,
   }));
 
+  // Panel position change handler (drag mode)
+  const handlePanelPositionChange = useCallback((panelId: string, position: [number, number, number]) => {
+    setPanelPositionOverrides(prev => ({ ...prev, [panelId]: position }));
+  }, []);
+
+  // Asset handlers
+  const handleSelectAsset = useCallback((instanceId: string) => {
+    setSelectedAssetId(instanceId);
+  }, []);
+
+  const handleAssetPositionChange = useCallback((instanceId: string, position: [number, number, number]) => {
+    setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, position } : a));
+  }, []);
+
+  const handleAddAsset = useCallback((assetId: string) => {
+    const config = getFurnitureById(assetId);
+    if (!config) return;
+    const newAsset: PlacedAsset = {
+      instanceId: `${assetId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      assetId,
+      position: [0, 0, 2],
+      rotation: [0, 0, 0],
+      label: config.name,
+    };
+    setPlacedAssets(prev => [...prev, newAsset]);
+    setAssetPickerOpen(false);
+    setIsDragMode(true);
+    setSelectedAssetId(newAsset.instanceId);
+    toast.success(`Added ${config.name} — drag to position`);
+  }, []);
+
+  const handleRemoveAsset = useCallback((instanceId: string) => {
+    setPlacedAssets(prev => prev.filter(a => a.instanceId !== instanceId));
+    setSelectedAssetId(null);
+    toast.success('Asset removed');
+  }, []);
+
   const handleSelectPanel = useCallback((panelId: string) => {
-    if (!isAdmin) return; // View-only for non-admins
+    if (isDragMode) return; // In drag mode, don't open picker
+    if (!isAdmin) return;
     setSelectedPanelId(panelId);
     setImagePickerOpen(true);
-  }, [isAdmin]);
+  }, [isAdmin, isDragMode]);
 
   const handleAssignImage = useCallback((imageUrl: string) => {
     if (!selectedPanelId) return;
