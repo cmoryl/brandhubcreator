@@ -142,7 +142,7 @@ export function BillboardConversationGroup({
             key={i}
             position={[Math.sin(angle) * radius, 0, Math.cos(angle) * radius]}
             rotation={angle + Math.PI}
-            opacity={0.85}
+            opacity={1}
             spriteUrl={url}
             height={1.7 + Math.random() * 0.1}
           />
