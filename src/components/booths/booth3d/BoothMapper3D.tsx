@@ -85,6 +85,7 @@ export function BoothMapper3D({
   galleryImages = [],
   divisionName,
   divisionId,
+  variantLabel = 'default',
   isAdmin = false,
   onAssignmentsChange,
 }: BoothMapper3DProps) {
