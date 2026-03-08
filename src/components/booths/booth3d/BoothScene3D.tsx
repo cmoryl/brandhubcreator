@@ -339,6 +339,11 @@ export function BoothScene3D({
       {showPeople && <PeopleFigures layout={layout} envConfig={envConfig} occupiedZones={occupiedZones} spriteUrls={spriteUrls} useBillboards={useBillboards} />}
       {showTrafficFlow && <TrafficFlow layout={layout} />}
 
+      {/* Booth floor pad — shows footprint with flooring material */}
+      {flooringConfig && flooringConfig.type !== 'none' && (
+        <BoothFloorpad footprint={footprint} config={flooringConfig} showLabels={showLabels} />
+      )}
+
       {/* Booth panels */}
       {panels.map((panel) => (
         <DraggablePanel3D
