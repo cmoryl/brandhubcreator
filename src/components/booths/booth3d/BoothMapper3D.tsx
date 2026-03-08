@@ -916,7 +916,45 @@ export function BoothMapper3D({
         </div>
       )}
 
-      {/* Camera panel */}
+      {/* FPS Mode HUD */}
+      {walkthroughMode === 'fps' && (
+        <>
+          {/* Crosshair */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
+            <div className="relative h-6 w-6">
+              <div className="absolute top-1/2 left-0 right-0 h-px bg-foreground/40" />
+              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-foreground/40" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-1 w-1 rounded-full bg-primary/80" />
+            </div>
+          </div>
+          {/* Controls HUD */}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20">
+            <div className="bg-background/80 backdrop-blur-sm rounded-lg border shadow-lg px-4 py-2 flex items-center gap-4">
+              <div className="flex flex-col items-center gap-0.5">
+                <div className="flex gap-0.5">
+                  <kbd className="bg-muted rounded px-1.5 py-0.5 text-[10px] font-mono font-bold border">W</kbd>
+                </div>
+                <div className="flex gap-0.5">
+                  <kbd className="bg-muted rounded px-1.5 py-0.5 text-[10px] font-mono font-bold border">A</kbd>
+                  <kbd className="bg-muted rounded px-1.5 py-0.5 text-[10px] font-mono font-bold border">S</kbd>
+                  <kbd className="bg-muted rounded px-1.5 py-0.5 text-[10px] font-mono font-bold border">D</kbd>
+                </div>
+              </div>
+              <div className="text-[10px] text-muted-foreground leading-tight">
+                <p className="font-semibold text-foreground">First Person Mode</p>
+                <p>Mouse to look · Shift to sprint</p>
+              </div>
+              <button
+                onClick={() => setWalkthroughMode('none')}
+                className="bg-destructive/10 hover:bg-destructive/20 text-destructive text-[10px] font-medium px-2 py-1 rounded transition-colors"
+              >
+                Exit
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       <div className="absolute top-3 right-3 flex flex-col gap-1 z-10 max-w-[160px]">
         <div className="bg-background/85 backdrop-blur-sm rounded-lg border shadow-lg overflow-hidden">
           <button
