@@ -145,6 +145,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['enterprise', 'b2b', 'security', 'platform', 'integrations'],
     placedAssets: TECH_ENTERPRISE_ASSETS,
     flooringConfig: TECH_ENTERPRISE_FLOOR,
+  },
   {
     id: 'tech-ai-ml',
     name: 'AI & Machine Learning',
