@@ -66,6 +66,10 @@ interface BoothScene3DProps {
   flooringConfig?: FlooringConfig;
   /** Booth footprint string e.g. "10' × 10' floor" */
   footprint?: string;
+  /** Configurable booth lighting rig */
+  boothLighting?: BoothLightingConfig;
+  /** Panel print material style */
+  printStyle?: PrintStyle;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
