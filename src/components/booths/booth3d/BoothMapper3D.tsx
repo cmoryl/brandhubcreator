@@ -92,6 +92,7 @@ import { LogisticsOverlay3D } from './LogisticsMarker3D';
 import { type LogisticsMarker, type LogisticsCategory, createMarker, LOGISTICS_CATEGORIES } from './logisticsTypes';
 import { BoothAnalyticsDashboard } from './BoothAnalyticsDashboard';
 import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
+import type { AIBoothResult } from './AIBoothGenerator';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -690,6 +691,41 @@ export function BoothMapper3D({
     });
   }, []);
 
+  // Apply AI-generated booth configuration
+  const handleAIGenerate = useCallback((result: AIBoothResult) => {
+    // Apply layout & lighting
+    setLayout(result.layout);
+    setLightingPreset(result.lighting);
+    setShowEnvironment(true);
+    setShowPeople(true);
+    setPanelPositionOverrides({});
+    setAssignments({});
+
+    // Apply flooring
+    if (result.flooring) {
+      setFlooringConfig(prev => ({
+        ...prev,
+        type: result.flooring.type as any,
+        color: result.flooring.color,
+      }));
+    }
+
+    // Apply furniture
+    if (result.furniture && result.furniture.length > 0) {
+      const placed: PlacedAsset[] = result.furniture.map((f, i) => ({
+        instanceId: `ai-${Date.now()}-${i}-${Math.random().toString(36).slice(2)}`,
+        assetId: f.assetId,
+        position: f.position as [number, number, number],
+        rotation: f.rotation as [number, number, number],
+        label: f.label,
+      }));
+      setPlacedAssets(placed);
+      setIsDragMode(true);
+    }
+
+    setActivePreset(null);
+  }, []);
+
   // Upload booth spec image/PDF
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1156,6 +1192,7 @@ export function BoothMapper3D({
             onAddLogisticsMarker={handleAddLogisticsMarker}
             onUpdateLogisticsMarker={handleUpdateLogisticsMarker}
             onRemoveLogisticsMarker={handleRemoveLogisticsMarker}
+            onAIGenerate={handleAIGenerate}
           />
         }
         rightPanel={
