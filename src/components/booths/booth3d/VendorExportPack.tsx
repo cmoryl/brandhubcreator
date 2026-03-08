@@ -236,7 +236,7 @@ export function VendorExportPack({
     } else {
       allInternet.forEach((m, i) => {
         doc += `  ${i + 1}. ${m.label} — Position: [${m.position.map(v => v.toFixed(2)).join(', ')}]m\n`;
-        if (m.specs) doc += `     Specs: ${m.specs}\n`;
+        if (m.spec) doc += `     Specs: ${m.spec}\n`;
       });
     }
 
