@@ -19,7 +19,8 @@ import {
   Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search,
   Users, Route, Building2, BookTemplate, Lightbulb, ScanLine,
   Move, Plus, Trash2, Monitor, Table2, Armchair, Flag, Box,
-  Palette, Shirt, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw
+  Palette, Shirt, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +71,8 @@ import {
   type BoothLightingConfig, type PrintStyle, type ParCanColor, type ColorTemperature,
   getDefaultBoothLighting, PRINT_STYLE_OPTIONS, PAR_CAN_OPTIONS, TEMPERATURE_OPTIONS,
 } from './boothLightingConfig';
+import { CrowdSimulationPanel } from './CrowdSimulationPanel';
+import type { CrowdSimulationData } from './crowdSimulationTypes';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -152,7 +155,11 @@ export function BoothMapper3D({
   const [panelPositionOverrides, setPanelPositionOverrides] = useState<Record<string, [number, number, number]>>({});
   const [coverImagePickerOpen, setCoverImagePickerOpen] = useState(false);
   const [coverImageTargetAssetId, setCoverImageTargetAssetId] = useState<string | null>(null);
-
+  // Crowd simulation state
+  const [crowdSimulation, setCrowdSimulation] = useState<CrowdSimulationData | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [showHeatMap, setShowHeatMap] = useState(false);
+  const [showSimPanel, setShowSimPanel] = useState(false);
   // Organization context for image library
   const { organization } = useOrganization();
 
@@ -547,6 +554,44 @@ export function BoothMapper3D({
     toast.success(`Auto-filled ${Object.keys(newAssignments).length} panels`);
   }, [boothConfig.panels, variantImages, onAssignmentsChange]);
 
+  // Crowd simulation handler
+  const handleRunSimulation = useCallback(async () => {
+    setIsSimulating(true);
+    setShowSimPanel(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('booth-crowd-simulation', {
+        body: {
+          boothLayout: layout,
+          panels: boothConfig.panels.map(p => ({
+            label: p.label,
+            position: p.position,
+            size: p.size,
+            specLabel: p.specLabel,
+            imageUrl: assignments[p.id] || null,
+          })),
+          placedAssets: placedAssets.map(a => ({
+            assetId: a.assetId,
+            label: a.label,
+            position: a.position,
+          })),
+          boothSize: boothConfig.footprint,
+          divisionName,
+        },
+      });
+      if (error) throw error;
+      setCrowdSimulation(data);
+      setShowHeatMap(true);
+      toast.success(`Booth Visibility Score: ${data.visibilityScore}/100`);
+    } catch (e: any) {
+      console.error('Simulation error:', e);
+      if (e?.status === 429) toast.error('Rate limit exceeded. Try again shortly.');
+      else if (e?.status === 402) toast.error('AI credits exhausted. Please add credits.');
+      else toast.error('Simulation failed: ' + (e?.message || 'Unknown error'));
+    } finally {
+      setIsSimulating(false);
+    }
+  }, [layout, boothConfig, assignments, placedAssets, divisionName]);
+
   const handleScreenshot = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -838,6 +883,17 @@ export function BoothMapper3D({
                 </Toggle>
               </TooltipTrigger>
               <TooltipContent>Traffic Flow</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle pressed={showHeatMap} onPressedChange={(v) => {
+                  setShowHeatMap(v);
+                  if (v && !crowdSimulation) setShowSimPanel(true);
+                }} size="sm" className="h-8 w-8" aria-label="Toggle heat map">
+                  <BarChart3 className="h-3.5 w-3.5" />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>Crowd Simulation</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -1217,6 +1273,8 @@ export function BoothMapper3D({
                 flooringConfig={flooringConfig}
                 footprint={boothConfig.footprint}
                 boothLighting={boothLighting}
+                showHeatMap={showHeatMap}
+                crowdSimulation={crowdSimulation}
                 printStyle={printStyle}
               />
             </Suspense>

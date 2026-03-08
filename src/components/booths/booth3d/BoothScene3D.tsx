@@ -6,6 +6,8 @@ import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { OrbitControls, Grid, Environment, ContactShadows, SoftShadows } from '@react-three/drei';
 import { DraggablePanel3D } from './DraggablePanel3D';
+import { CrowdHeatMap3D } from './CrowdHeatMap3D';
+import type { CrowdSimulationData } from './crowdSimulationTypes';
 import { BoothFloorpad, type FlooringConfig } from './BoothFloorpad';
 import { BoothFurniture3D } from './BoothFurniture3D';
 import { ExpoEnvironment } from './ExpoEnvironment';
@@ -70,6 +72,9 @@ interface BoothScene3DProps {
   boothLighting?: BoothLightingConfig;
   /** Panel print material style */
   printStyle?: PrintStyle;
+  /** Crowd simulation data for heat map overlay */
+  crowdSimulation?: CrowdSimulationData | null;
+  showHeatMap?: boolean;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
@@ -129,6 +134,8 @@ export function BoothScene3D({
   footprint = "10' × 10' floor",
   boothLighting,
   printStyle = 'fabric-matte',
+  crowdSimulation = null,
+  showHeatMap = false,
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
@@ -514,6 +521,25 @@ export function BoothScene3D({
             </group>
           ));
         })}
+
+      {/* Crowd simulation heat map overlay */}
+      {showHeatMap && crowdSimulation && (
+        <CrowdHeatMap3D
+          simulationData={crowdSimulation}
+          boothSize={[
+            layout?.startsWith('island-40') ? 40 * 0.3048 :
+            layout?.startsWith('island-30') ? 30 * 0.3048 :
+            layout?.startsWith('island') || layout?.startsWith('peninsula') ? 20 * 0.3048 :
+            10 * 0.3048,
+            layout?.startsWith('island-40') ? 40 * 0.3048 :
+            layout?.startsWith('island-30') ? 30 * 0.3048 :
+            layout?.startsWith('island') || layout?.startsWith('peninsula') ? 20 * 0.3048 :
+            10 * 0.3048,
+          ]}
+          showLabels={showLabels}
+          showSightlines={true}
+        />
+      )}
     </>
   );
 }
