@@ -1026,6 +1026,8 @@ export function BoothMapper3D({
                 useBillboards={characterSprites.count > 0}
                 monitorSpecs={monitorSpecs}
                 activeSpecConfig={useProductionSpecs ? specConfigType : ''}
+                flooringConfig={flooringConfig}
+                footprint={boothConfig.footprint}
               />
             </Suspense>
           </Canvas>
