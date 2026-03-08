@@ -249,6 +249,7 @@ export function BoothMapper3D({
     return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
   }, [saveMapping, isLoaded]);
 
+
   // Available spec config types for the dropdown
   const availableSpecTypes = useMemo(() => {
     const types = new Set(prodSpecs.map(s => s.configType).filter(Boolean));
@@ -328,6 +329,20 @@ export function BoothMapper3D({
     setSelectedAssetId(null);
     toast.success('Asset removed');
   }, []);
+
+  // Keyboard shortcut: Delete/Backspace removes selected asset
+  useEffect(() => {
+    if (!isAdmin || !selectedAssetId) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if ((e.target as HTMLElement)?.tagName === 'INPUT' || (e.target as HTMLElement)?.tagName === 'TEXTAREA') return;
+        e.preventDefault();
+        handleRemoveAsset(selectedAssetId);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isAdmin, selectedAssetId, handleRemoveAsset]);
 
   const handleUpdateAsset = useCallback((instanceId: string, updates: Partial<PlacedAsset>) => {
     setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, ...updates } : a));
@@ -873,6 +888,24 @@ export function BoothMapper3D({
             <div className="absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-accent/90 text-accent-foreground text-xs font-medium shadow-lg animate-pulse">
               <Move className="h-3 w-3 inline mr-1.5" />
               Drag Mode Active
+            </div>
+          )}
+
+          {/* Selected asset action bar */}
+          {selectedAssetId && isAdmin && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg px-2 py-1.5 z-10">
+              <span className="text-[10px] text-muted-foreground mr-1">
+                {getFurnitureById(placedAssets.find(a => a.instanceId === selectedAssetId)?.assetId || '')?.name || 'Asset'}
+              </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-6 text-[10px] gap-1 px-2"
+                onClick={() => handleRemoveAsset(selectedAssetId)}
+              >
+                <Trash2 className="h-3 w-3" />
+                Delete
+              </Button>
             </div>
           )}
 
