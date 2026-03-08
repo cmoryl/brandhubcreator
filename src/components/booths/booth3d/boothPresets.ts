@@ -400,7 +400,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['media', 'entertainment', 'streaming', 'content', 'video', 'immersive'],
     placedAssets: CREATIVE_MEDIA_ASSETS,
     flooringConfig: CREATIVE_MEDIA_FLOOR,
-
+  },
   // ═══════════════════════════════════════
   // INDUSTRIAL & MANUFACTURING
   // ═══════════════════════════════════════
