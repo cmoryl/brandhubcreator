@@ -127,6 +127,8 @@ export function BoothScene3D({
   activeSpecConfig = '',
   flooringConfig,
   footprint = "10' × 10' floor",
+  boothLighting,
+  printStyle = 'fabric-matte',
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
