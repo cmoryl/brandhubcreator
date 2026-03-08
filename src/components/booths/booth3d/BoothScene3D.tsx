@@ -1,15 +1,17 @@
 /**
- * BoothScene3D - The Three.js scene containing booth panels, floor, and lighting
- * Enhanced with optional expo environment, people figures, and traffic flow visualization
+ * BoothScene3D - The Three.js scene containing booth panels, floor, lighting,
+ * furniture assets, and drag-and-drop support
  */
 import { useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls, Grid, Environment } from '@react-three/drei';
-import { BoothPanel3D } from './BoothPanel3D';
+import { DraggablePanel3D } from './DraggablePanel3D';
+import { BoothFurniture3D } from './BoothFurniture3D';
 import { ExpoEnvironment } from './ExpoEnvironment';
 import { PeopleFigures } from './PeopleFigures';
 import { TrafficFlow } from './TrafficFlow';
 import type { PanelConfig, LightingPreset, BoothLayout } from './boothConfigs';
+import type { PlacedAsset } from './boothFurnitureConfigs';
 
 interface BoothScene3DProps {
   panels: PanelConfig[];
@@ -19,11 +21,18 @@ interface BoothScene3DProps {
   showLabels: boolean;
   showDimensions: boolean;
   showSafeZones?: boolean;
-  /** Advanced view options */
   showEnvironment?: boolean;
   showPeople?: boolean;
   showTrafficFlow?: boolean;
   layout?: BoothLayout;
+  /** Drag mode */
+  isDragMode?: boolean;
+  onPanelPositionChange?: (panelId: string, position: [number, number, number]) => void;
+  /** Furniture assets */
+  placedAssets?: PlacedAsset[];
+  selectedAssetId?: string | null;
+  onSelectAsset?: (instanceId: string) => void;
+  onAssetPositionChange?: (instanceId: string, position: [number, number, number]) => void;
 }
 
 function getLighting(preset: LightingPreset, immersive: boolean) {
@@ -39,8 +48,6 @@ function getLighting(preset: LightingPreset, immersive: boolean) {
         return { ambientIntensity: 0.6, spotIntensity: 0.9, envPreset: 'city' as const, bgColor: '#f1f5f9' };
     }
   })();
-
-  // When immersive environment is on, use darker background for realism
   if (immersive) {
     return { ...base, bgColor: '#111827' };
   }
@@ -59,6 +66,12 @@ export function BoothScene3D({
   showPeople = false,
   showTrafficFlow = false,
   layout = 'u-shape',
+  isDragMode = false,
+  onPanelPositionChange,
+  placedAssets = [],
+  selectedAssetId,
+  onSelectAsset,
+  onAssetPositionChange,
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const lighting = getLighting(lightingPreset, showEnvironment);
@@ -85,7 +98,7 @@ export function BoothScene3D({
       />
       <Environment preset={lighting.envPreset} />
 
-      {/* Controls */}
+      {/* Controls - disable when dragging */}
       <OrbitControls
         ref={controlsRef}
         enableDamping
@@ -94,6 +107,7 @@ export function BoothScene3D({
         maxDistance={showEnvironment ? 30 : 20}
         maxPolarAngle={Math.PI / 2 - 0.05}
         target={[0, 1.2, 0]}
+        enabled={!isDragMode}
       />
 
       {/* Expo environment (immersive mode) */}
@@ -101,7 +115,6 @@ export function BoothScene3D({
         <ExpoEnvironment />
       ) : (
         <>
-          {/* Default floor grid */}
           <Grid
             position={[0, 0, 0]}
             args={[20, 20]}
@@ -115,7 +128,6 @@ export function BoothScene3D({
             fadeStrength={1}
             followCamera={false}
           />
-          {/* Floor plane for shadow catching */}
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
             <planeGeometry args={[20, 20]} />
             <shadowMaterial opacity={0.15} />
@@ -123,15 +135,12 @@ export function BoothScene3D({
         </>
       )}
 
-      {/* People figures for scale reference */}
       {showPeople && <PeopleFigures layout={layout} />}
-
-      {/* Traffic flow visualization */}
       {showTrafficFlow && <TrafficFlow layout={layout} />}
 
-      {/* Booth panels */}
+      {/* Booth panels with drag support */}
       {panels.map((panel) => (
-        <BoothPanel3D
+        <DraggablePanel3D
           key={panel.id}
           panel={panel}
           isSelected={selectedPanelId === panel.id}
@@ -139,6 +148,20 @@ export function BoothScene3D({
           showLabels={showLabels}
           showDimensions={showDimensions}
           showSafeZones={showSafeZones}
+          isDragMode={isDragMode}
+          onPositionChange={onPanelPositionChange || (() => {})}
+        />
+      ))}
+
+      {/* Furniture assets */}
+      {placedAssets.map((asset) => (
+        <BoothFurniture3D
+          key={asset.instanceId}
+          asset={asset}
+          isSelected={selectedAssetId === asset.instanceId}
+          isDragMode={isDragMode}
+          onSelect={onSelectAsset || (() => {})}
+          onPositionChange={onAssetPositionChange || (() => {})}
         />
       ))}
     </>

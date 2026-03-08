@@ -17,7 +17,8 @@ import { Canvas } from '@react-three/fiber';
 import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
   Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search,
-  Users, Route, Building2, BookTemplate, Lightbulb, ScanLine
+  Users, Route, Building2, BookTemplate, Lightbulb, ScanLine,
+  Move, Plus, Trash2, Monitor, Table2, Armchair, Flag, Box
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +47,13 @@ import {
 import { BoothPresetPicker } from './BoothPresetPicker';
 import { parseAllSpecs, generatePanelsFromSpecs, type ParsedPanelSpec } from './specParser';
 import type { BoothDesignPreset } from './boothPresets';
+import {
+  FURNITURE_CATALOG,
+  CATEGORY_LABELS,
+  getFurnitureById,
+  type PlacedAsset,
+  type FurnitureCategory,
+} from './boothFurnitureConfigs';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -97,6 +105,14 @@ export function BoothMapper3D({
   const [useProductionSpecs, setUseProductionSpecs] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Drag mode & furniture state
+  const [isDragMode, setIsDragMode] = useState(false);
+  const [placedAssets, setPlacedAssets] = useState<PlacedAsset[]>([]);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [assetPickerOpen, setAssetPickerOpen] = useState(false);
+  const [assetFilterCategory, setAssetFilterCategory] = useState<string>('all');
+  const [panelPositionOverrides, setPanelPositionOverrides] = useState<Record<string, [number, number, number]>>({});
+
   // Organization context for image library
   const { organization } = useOrganization();
 
@@ -139,6 +155,14 @@ export function BoothMapper3D({
           setUploadedSpecs((data.uploaded_specs as { url: string; name: string }[]) || []);
           setShowLabels(data.show_labels ?? true);
           setShowDimensions(data.show_dimensions ?? true);
+          // Load furniture assets and panel overrides from assignments JSONB
+          const saved = data.assignments as any;
+          if (saved?.__placedAssets) {
+            setPlacedAssets(saved.__placedAssets as PlacedAsset[]);
+          }
+          if (saved?.__panelPositions) {
+            setPanelPositionOverrides(saved.__panelPositions as Record<string, [number, number, number]>);
+          }
         }
       } catch (e) {
         console.error('Failed to load 3D mapping:', e);
@@ -187,11 +211,17 @@ export function BoothMapper3D({
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+        // Store placed assets and panel position overrides alongside assignments
+        const enrichedAssignments = {
+          ...assignments,
+          __placedAssets: placedAssets,
+          __panelPositions: panelPositionOverrides,
+        } as unknown as Record<string, unknown>;
         await supabase.from('booth_3d_mappings').upsert({
           division_id: divisionId,
           layout,
           lighting_preset: lightingPreset,
-          assignments,
+          assignments: enrichedAssignments as any,
           uploaded_specs: uploadedSpecs,
           show_labels: showLabels,
           show_dimensions: showDimensions,
@@ -201,7 +231,7 @@ export function BoothMapper3D({
         console.error('Failed to save 3D mapping:', e);
       }
     }, 1000);
-  }, [divisionId, layout, lightingPreset, assignments, uploadedSpecs, showLabels, showDimensions, isLoaded]);
+  }, [divisionId, layout, lightingPreset, assignments, uploadedSpecs, showLabels, showDimensions, isLoaded, placedAssets, panelPositionOverrides]);
 
   // Auto-save when state changes
   useEffect(() => {
@@ -245,17 +275,56 @@ export function BoothMapper3D({
     return { boothConfig: genericConfig, specPanels: null };
   }, [layout, useProductionSpecs, specConfigType, prodSpecs]);
 
-  // Apply assignments to panels
+  // Apply assignments and position overrides to panels
   const panels: PanelConfig[] = boothConfig.panels.map((p) => ({
     ...p,
     imageUrl: assignments[p.id],
+    position: panelPositionOverrides[p.id] || p.position,
   }));
 
+  // Panel position change handler (drag mode)
+  const handlePanelPositionChange = useCallback((panelId: string, position: [number, number, number]) => {
+    setPanelPositionOverrides(prev => ({ ...prev, [panelId]: position }));
+  }, []);
+
+  // Asset handlers
+  const handleSelectAsset = useCallback((instanceId: string) => {
+    setSelectedAssetId(instanceId);
+  }, []);
+
+  const handleAssetPositionChange = useCallback((instanceId: string, position: [number, number, number]) => {
+    setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, position } : a));
+  }, []);
+
+  const handleAddAsset = useCallback((assetId: string) => {
+    const config = getFurnitureById(assetId);
+    if (!config) return;
+    const newAsset: PlacedAsset = {
+      instanceId: `${assetId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      assetId,
+      position: [0, 0, 2],
+      rotation: [0, 0, 0],
+      label: config.name,
+    };
+    setPlacedAssets(prev => [...prev, newAsset]);
+    setAssetPickerOpen(false);
+    setIsDragMode(true);
+    setSelectedAssetId(newAsset.instanceId);
+    toast.success(`Added ${config.name} — drag to position`);
+  }, []);
+
+  const handleRemoveAsset = useCallback((instanceId: string) => {
+    setPlacedAssets(prev => prev.filter(a => a.instanceId !== instanceId));
+    setSelectedAssetId(null);
+    toast.success('Asset removed');
+  }, []);
+
   const handleSelectPanel = useCallback((panelId: string) => {
-    if (!isAdmin) return; // View-only for non-admins
+    if (isDragMode) return; // In drag mode, don't open picker
+    if (!isAdmin) return;
     setSelectedPanelId(panelId);
     setImagePickerOpen(true);
-  }, [isAdmin]);
+  }, [isAdmin, isDragMode]);
 
   const handleAssignImage = useCallback((imageUrl: string) => {
     if (!selectedPanelId) return;
@@ -551,6 +620,29 @@ export function BoothMapper3D({
             </TooltipTrigger>
             <TooltipContent>Safe Zones &amp; Bleed</TooltipContent>
           </Tooltip>
+          {/* Drag & Asset toggles (admin only) */}
+          {isAdmin && (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Toggle pressed={isDragMode} onPressedChange={setIsDragMode} size="sm" aria-label="Toggle drag mode"
+                    className={isDragMode ? 'bg-accent text-accent-foreground' : ''}>
+                    <Move className="h-4 w-4" />
+                  </Toggle>
+                </TooltipTrigger>
+                <TooltipContent>Drag Mode (move panels &amp; assets)</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={() => setAssetPickerOpen(true)}>
+                    <Plus className="h-3.5 w-3.5" />
+                    <Box className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Add Furniture / Asset</TooltipContent>
+              </Tooltip>
+            </>
+          )}
         </TooltipProvider>
 
         <div className="h-6 w-px bg-border" />
@@ -676,6 +768,12 @@ export function BoothMapper3D({
                 showPeople={showPeople}
                 showTrafficFlow={showTrafficFlow}
                 layout={layout}
+                isDragMode={isDragMode}
+                onPanelPositionChange={handlePanelPositionChange}
+                placedAssets={placedAssets}
+                selectedAssetId={selectedAssetId}
+                onSelectAsset={handleSelectAsset}
+                onAssetPositionChange={handleAssetPositionChange}
               />
             </Suspense>
           </Canvas>
@@ -705,10 +803,18 @@ export function BoothMapper3D({
             </Suspense>
           </div>
 
-          {/* Orbit hint */}
+          {/* Orbit hint / drag mode indicator */}
           <div className="absolute bottom-3 left-3 text-xs text-muted-foreground/60 bg-background/50 backdrop-blur-sm rounded px-2 py-1">
-            Drag to orbit · Scroll to zoom · Click panel to assign image
+            {isDragMode
+              ? '⊞ Drag Mode — click & drag panels or assets to reposition'
+              : 'Drag to orbit · Scroll to zoom · Click panel to assign image'}
           </div>
+          {isDragMode && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-accent/90 text-accent-foreground text-xs font-medium shadow-lg animate-pulse">
+              <Move className="h-3 w-3 inline mr-1.5" />
+              Drag Mode Active
+            </div>
+          )}
         </div>
       </Card>
 
@@ -741,6 +847,126 @@ export function BoothMapper3D({
           </button>
         ))}
       </div>
+
+      {/* Placed Assets Row */}
+      {placedAssets.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Placed Assets ({placedAssets.length})</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {placedAssets.map((asset) => {
+              const config = getFurnitureById(asset.assetId);
+              return (
+                <div
+                  key={asset.instanceId}
+                  className={cn(
+                    "flex items-center gap-2 p-2 rounded-lg border transition-colors",
+                    selectedAssetId === asset.instanceId
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <div className="h-8 w-8 bg-muted rounded flex items-center justify-center shrink-0">
+                    {config?.category === 'displays' ? <Monitor className="h-4 w-4 text-muted-foreground" /> :
+                     config?.category === 'tables' ? <Table2 className="h-4 w-4 text-muted-foreground" /> :
+                     config?.category === 'seating' ? <Armchair className="h-4 w-4 text-muted-foreground" /> :
+                     config?.category === 'signage' ? <Flag className="h-4 w-4 text-muted-foreground" /> :
+                     <Box className="h-4 w-4 text-muted-foreground" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium truncate">{asset.label || config?.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {config?.description?.split('(')[0]?.trim()}
+                    </p>
+                  </div>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleRemoveAsset(asset.instanceId)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Asset Picker Dialog */}
+      <Dialog open={assetPickerOpen} onOpenChange={setAssetPickerOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Box className="h-5 w-5" />
+              Add Furniture / Asset
+            </DialogTitle>
+            <DialogDescription>
+              Select from predefined booth furniture with exact production sizes.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Category filter */}
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            <button
+              className={cn(
+                "text-[11px] px-2.5 py-1 rounded-full border transition-colors",
+                assetFilterCategory === 'all'
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-muted-foreground border-border hover:border-primary/40"
+              )}
+              onClick={() => setAssetFilterCategory('all')}
+            >
+              All
+            </button>
+            {(Object.entries(CATEGORY_LABELS) as [FurnitureCategory, string][]).map(([key, label]) => (
+              <button
+                key={key}
+                className={cn(
+                  "text-[11px] px-2.5 py-1 rounded-full border transition-colors",
+                  assetFilterCategory === key
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                )}
+                onClick={() => setAssetFilterCategory(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <ScrollArea className="flex-1 min-h-0 h-[50vh]">
+            <div className="grid grid-cols-1 gap-2 pr-2">
+              {FURNITURE_CATALOG
+                .filter(f => assetFilterCategory === 'all' || f.category === assetFilterCategory)
+                .map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleAddAsset(item.id)}
+                    className="flex items-center gap-3 p-3 rounded-lg border hover:border-primary hover:bg-primary/5 transition-colors text-left"
+                  >
+                    <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                      {item.category === 'displays' ? <Monitor className="h-5 w-5 text-muted-foreground" /> :
+                       item.category === 'tables' ? <Table2 className="h-5 w-5 text-muted-foreground" /> :
+                       item.category === 'seating' ? <Armchair className="h-5 w-5 text-muted-foreground" /> :
+                       item.category === 'signage' ? <Flag className="h-5 w-5 text-muted-foreground" /> :
+                       <Box className="h-5 w-5 text-muted-foreground" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{item.name}</p>
+                      <p className="text-[11px] text-muted-foreground">{item.description}</p>
+                    </div>
+                    {item.hasScreen && (
+                      <Badge variant="secondary" className="text-[9px] shrink-0">Screen</Badge>
+                    )}
+                  </button>
+                ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
 
       {/* Image Picker Dialog */}
       <Dialog open={imagePickerOpen} onOpenChange={(open) => { setImagePickerOpen(open); if (open) fetchImages(organization?.id); }}>
