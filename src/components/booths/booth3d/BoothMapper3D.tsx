@@ -1151,7 +1151,7 @@ export function BoothMapper3D({
       <BoothWorkspace
         activeMode={activeMode}
         onModeChange={setActiveMode}
-        hasLeftPanel={activeMode === 'design' || activeMode === 'graphics'}
+        hasLeftPanel={true}
         hasRightPanel={true}
         toolbar={
           <BoothDesignToolbar
