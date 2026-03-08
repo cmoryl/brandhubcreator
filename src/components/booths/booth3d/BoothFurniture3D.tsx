@@ -14,6 +14,7 @@ interface BoothFurniture3DProps {
   asset: PlacedAsset;
   isSelected: boolean;
   isDragMode: boolean;
+  showLabels?: boolean;
   onSelect: (instanceId: string) => void;
   onPositionChange: (instanceId: string, position: [number, number, number]) => void;
 }
