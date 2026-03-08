@@ -9,7 +9,6 @@ import { useMemo } from 'react';
 import type { EnvironmentConfig } from './environmentPresets';
 import { getPeopleMultiplier } from './environmentPresets';
 import { getLayoutFamily } from './boothConfigs';
-import { RealisticHumanFigure, type FigurePose } from './RealisticHumanFigure';
 import { BillboardFigure, BillboardConversationGroup, getCharacterBySeed } from './BillboardFigure';
 
 const HUMAN_HEIGHT = 1.75;
