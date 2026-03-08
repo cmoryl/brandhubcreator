@@ -1034,6 +1034,8 @@ export function BoothMapper3D({
                 onTourStep={(id) => setActiveCameraPreset(id)}
                 spriteUrls={characterSprites.sprites}
                 useBillboards={characterSprites.count > 0}
+                monitorSpecs={monitorSpecs}
+                activeSpecConfig={useProductionSpecs ? specConfigType : ''}
               />
             </Suspense>
           </Canvas>
