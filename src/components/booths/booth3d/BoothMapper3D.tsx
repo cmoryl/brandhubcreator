@@ -260,9 +260,11 @@ export function BoothMapper3D({
     if (snap.flooringConfig) setFlooringConfig(snap.flooringConfig as any);
     if (snap.boothLighting) setBoothLighting(snap.boothLighting as any);
     if (snap.logisticsMarkers) setLogisticsMarkers(snap.logisticsMarkers as any);
+    if (typeof snap.showDimensions === 'boolean') setShowDimensions(snap.showDimensions);
+    if (typeof snap.showLabels === 'boolean') setShowLabels(snap.showLabels);
     setActiveSystemVariantId(variant.id);
     toast.success('System variant loaded');
-  }, [setLayout, setLightingPreset, setAssignments, setPlacedAssets, setFlooringConfig, setBoothLighting, setLogisticsMarkers]);
+  }, [setLayout, setLightingPreset, setAssignments, setPlacedAssets, setFlooringConfig, setBoothLighting, setLogisticsMarkers, setShowDimensions, setShowLabels]);
 
   const handleSaveToSystemVariant = useCallback(async (variantId: string) => {
     const snapshotData = {
