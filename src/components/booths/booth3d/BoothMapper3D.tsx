@@ -1694,6 +1694,18 @@ export function BoothMapper3D({
         </div>
       )}
 
+      {/* AR Preview Panel */}
+      {showARPanel && (
+        <Card className="p-4 border-primary/20">
+          <ARPreviewPanel
+            getScene={() => sceneRef.current}
+            layoutName={layout}
+            divisionName={divisionName}
+            isAdmin={isAdmin}
+          />
+        </Card>
+      )}
+
       {/* Asset Picker Dialog */}
       <Dialog open={assetPickerOpen} onOpenChange={setAssetPickerOpen}>
         <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
