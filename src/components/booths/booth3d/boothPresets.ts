@@ -5,10 +5,13 @@
  * - Recommended layout, lighting, and color scheme
  * - Panel content descriptions (what should go on each wall)
  * - Industry-specific design notes and best practices
- * - Fixture/furniture suggestions
+ * - Fixture/furniture suggestions AND actual 3D PlacedAsset layouts
+ * - Flooring configuration
  */
 
 import type { BoothLayout, LightingPreset } from './boothConfigs';
+import type { PlacedAsset } from './boothFurnitureConfigs';
+import type { FlooringConfig, FlooringType } from './BoothFloorpad';
 
 export interface BoothPresetPanelGuide {
   panelId: string;
@@ -49,6 +52,10 @@ export interface BoothDesignPreset {
   designTips: string[];
   /** Tags for search/filter */
   tags: string[];
+  /** Pre-placed 3D furniture assets — applied when user selects preset */
+  placedAssets?: PlacedAsset[];
+  /** Flooring configuration */
+  flooringConfig?: FlooringConfig;
 }
 
 export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
