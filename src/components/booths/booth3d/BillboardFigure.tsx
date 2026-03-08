@@ -157,8 +157,8 @@ export function BillboardFigure({
         <planeGeometry args={[width, height]} />
         <cutoutMaterial
           map={texture}
-          threshold={0.92}
-          transparent={true}
+          threshold={0.9}
+          despill={0.9}
           side={THREE.DoubleSide}
           depthWrite={true}
         />
