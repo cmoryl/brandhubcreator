@@ -108,17 +108,6 @@ export const PartnerBoothsSection = ({
         linkedBooths={partnerBooths}
       />
 
-      {/* Division Detail Popup */}
-      {selectedDivision && createPortal(
-        <AnimatePresence>
-          <DivisionDetail
-            division={selectedDivision}
-            onClose={() => setSelectedDivision(null)}
-            isAdmin={isEditable}
-          />
-        </AnimatePresence>,
-        document.body
-      )}
     </section>
   );
 };
