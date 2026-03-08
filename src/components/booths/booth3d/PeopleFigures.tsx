@@ -307,12 +307,32 @@ function HeightMarker({ position }: { position: [number, number, number] }) {
   );
 }
 
+/** Occupied zone — a rectangle on the XZ plane that people should avoid */
+export interface OccupiedZone {
+  cx: number; // center X
+  cz: number; // center Z
+  hw: number; // half-width (X)
+  hd: number; // half-depth (Z)
+}
+
 interface PeopleFiguresProps {
   layout: string;
   envConfig?: EnvironmentConfig;
+  /** Bounding zones of panels + placed assets — people are filtered if they overlap */
+  occupiedZones?: OccupiedZone[];
 }
 
-export function PeopleFigures({ layout: rawLayout, envConfig }: PeopleFiguresProps) {
+const PERSON_RADIUS = 0.35; // clearance radius around each figure
+
+function collidesWithZone(px: number, pz: number, zone: OccupiedZone): boolean {
+  // Expand zone by person radius for clearance
+  return (
+    Math.abs(px - zone.cx) < zone.hw + PERSON_RADIUS &&
+    Math.abs(pz - zone.cz) < zone.hd + PERSON_RADIUS
+  );
+}
+
+export function PeopleFigures({ layout: rawLayout, envConfig, occupiedZones = [] }: PeopleFiguresProps) {
   const layout = getLayoutFamily(rawLayout as any);
   const multiplier = envConfig ? getPeopleMultiplier(envConfig.peopleCount) : 1;
   const showConversationGroups = envConfig?.showConversationGroups ?? false;
@@ -396,25 +416,39 @@ export function PeopleFigures({ layout: rawLayout, envConfig }: PeopleFiguresPro
     return base;
   }, [layout, multiplier]);
 
+  // Filter figures that collide with any occupied zone
+  const safeFigures = useMemo(() => {
+    if (occupiedZones.length === 0) return figures;
+    return figures.filter(fig => {
+      const [px, , pz] = fig.position;
+      return !occupiedZones.some(zone => collidesWithZone(px, pz, zone));
+    });
+  }, [figures, occupiedZones]);
+
   const conversationPositions = useMemo(() => {
     if (!showConversationGroups) return [];
-    const groups: { position: [number, number, number]; count: number }[] = [];
-    groups.push({ position: [2, 0, 3.5], count: 2 });
-    groups.push({ position: [-2.5, 0, 4], count: 3 });
+    const allGroups: { position: [number, number, number]; count: number }[] = [];
+    allGroups.push({ position: [2, 0, 3.5], count: 2 });
+    allGroups.push({ position: [-2.5, 0, 4], count: 3 });
     if (multiplier >= 2.5) {
-      groups.push({ position: [5, 0, 4], count: 2 });
-      groups.push({ position: [-5, 0, 2], count: 2 });
+      allGroups.push({ position: [5, 0, 4], count: 2 });
+      allGroups.push({ position: [-5, 0, 2], count: 2 });
     }
     if (multiplier >= 3.5) {
-      groups.push({ position: [7, 0, -3], count: 3 });
-      groups.push({ position: [-7, 0, 6], count: 2 });
+      allGroups.push({ position: [7, 0, -3], count: 3 });
+      allGroups.push({ position: [-7, 0, 6], count: 2 });
     }
-    return groups;
-  }, [showConversationGroups, multiplier]);
+    // Filter conversation groups that overlap with assets
+    if (occupiedZones.length === 0) return allGroups;
+    return allGroups.filter(g => {
+      const [gx, , gz] = g.position;
+      return !occupiedZones.some(zone => collidesWithZone(gx, gz, zone));
+    });
+  }, [showConversationGroups, multiplier, occupiedZones]);
 
   return (
     <group>
-      {figures.map((fig, i) => (
+      {safeFigures.map((fig, i) => (
         <HumanFigure key={i} {...fig} />
       ))}
       {conversationPositions.map((group, i) => (
