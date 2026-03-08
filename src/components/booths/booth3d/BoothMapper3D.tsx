@@ -1173,7 +1173,22 @@ export function BoothMapper3D({
           />
         }
         canvas={canvasElement}
-        bottomContent={activeMode === 'graphics' ? panelThumbnails : undefined}
+        bottomContent={
+          activeMode === 'graphics' ? panelThumbnails :
+          activeMode === 'simulation' ? (
+            <BoothAnalyticsDashboard
+              analytics={boothAnalytics}
+              onSave={(data) => saveBoothAnalytics(data, organization?.id)}
+              isAdmin={isAdmin}
+              simulationPredictions={crowdSimulation ? {
+                traffic: crowdSimulation.peakCapacity * 8,
+                dwellTime: parseInt(crowdSimulation.overallDwellTime) || 120,
+                peakCapacity: crowdSimulation.peakCapacity,
+                visibilityScore: crowdSimulation.visibilityScore,
+              } : undefined}
+            />
+          ) : undefined
+        }
       />
 
       {/* Panel summary row */}
