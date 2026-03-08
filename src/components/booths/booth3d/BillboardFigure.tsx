@@ -164,7 +164,7 @@ export function BillboardFigure({
   opacity = 1,
   spriteUrl,
   height = 1.75,
-  aspect = 0.45,
+  aspect: fallbackAspect = 0.45,
 }: BillboardFigureProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
@@ -180,6 +180,15 @@ export function BillboardFigure({
     texture.premultiplyAlpha = false; // Must be false for chroma-key
     texture.anisotropy = 16;
   }, [texture]);
+
+  // Derive aspect from actual texture dimensions for proper proportions
+  const aspect = useMemo(() => {
+    const img = texture.image;
+    if (img && img.width && img.height) {
+      return img.width / img.height;
+    }
+    return fallbackAspect;
+  }, [texture, fallbackAspect]);
 
   const width = height * aspect;
 
