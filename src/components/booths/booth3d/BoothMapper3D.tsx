@@ -72,6 +72,8 @@ interface BoothMapper3DProps {
   divisionName?: string;
   /** Division ID for persistence */
   divisionId?: string;
+  /** Current booth variant label for per-variant 3D persistence */
+  variantLabel?: string;
   /** Whether current user has admin edit permissions */
   isAdmin?: boolean;
   /** Callback when assignments change */
