@@ -174,6 +174,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['ai', 'machine-learning', 'data-science', 'neural', 'futuristic'],
     placedAssets: TECH_AI_ASSETS,
     flooringConfig: TECH_AI_FLOOR,
+  },
   {
     id: 'tech-cybersecurity',
     name: 'Cybersecurity',
