@@ -117,7 +117,7 @@ const CAMERA_PRESETS: Record<string, CameraPreset[]> = {
     { id: 'golden-hour', name: 'Golden Hour', description: 'Warm atmospheric side angle', position: [-5, 2.2, 6], target: [0.5, 1.2, 0], fov: 38 },
     { id: 'photographer-pro', name: 'Pro Photographer', description: '85mm portrait lens equivalent', position: [3.5, 1.65, 4.5], target: [0, 1.4, 0], fov: 28 },
     { id: 'editorial-wide', name: 'Editorial Wide', description: 'Magazine double-page spread angle', position: [-9, 2.5, 3], target: [0, 1.2, 0.5], fov: 42 },
-    { id: 'overhead-plan', name: 'Overhead Plan', description: 'Bird\'s-eye layout documentation', position: [0, 12, 0.5], target: [0, 0, 0], fov: 45 },
+    { id: 'aerial', name: 'Aerial Top-Down', description: 'Bird\'s-eye layout documentation', position: [0, 12, 0.5], target: [0, 0, 0], fov: 45 },
     { id: 'immersive', name: 'Immersive Walk', description: 'Handheld walk-through feel', position: [1, 1.6, 3.5], target: [-0.4, 1.7, -0.5], fov: 60 },
     { id: 'detail-macro', name: 'Macro Detail', description: 'Extreme close-up with shallow DOF', position: [0.4, 1.35, 0.5], target: [0, 1.4, 0], fov: 20 },
     { id: 'hallway', name: 'Hall Corridor', description: 'Deep perspective down the aisle', position: [-12, 1.75, 0], target: [0, 1.5, 0], fov: 35 },
