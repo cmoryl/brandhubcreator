@@ -266,6 +266,9 @@ export function BoothMapper3D({
     toast.success('System variant loaded');
   }, [setLayout, setLightingPreset, setAssignments, setPlacedAssets, setFlooringConfig, setBoothLighting, setLogisticsMarkers, setShowDimensions, setShowLabels]);
 
+  const updateVariantSnapshotRef = useRef(boothSystems.updateVariantSnapshot);
+  updateVariantSnapshotRef.current = boothSystems.updateVariantSnapshot;
+
   const handleSaveToSystemVariant = useCallback(async (variantId: string) => {
     const snapshotData = {
       layout,
@@ -278,9 +281,9 @@ export function BoothMapper3D({
       showDimensions,
       showLabels,
     };
-    await boothSystems.updateVariantSnapshot(variantId, snapshotData as any);
+    await updateVariantSnapshotRef.current(variantId, snapshotData as any);
     setActiveSystemVariantId(variantId);
-  }, [layout, lightingPreset, assignments, placedAssets, flooringConfig, boothLighting, logisticsMarkers, showDimensions, showLabels, boothSystems]);
+  }, [layout, lightingPreset, assignments, placedAssets, flooringConfig, boothLighting, logisticsMarkers, showDimensions, showLabels]);
 
   useEffect(() => {
     if (organization?.id) fetchImages(organization.id);
