@@ -195,6 +195,13 @@ export function InspectorPanel({
                 assetName={selectedPanel.label}
                 brandColors={brandColors}
               />
+              <Separator />
+              <AssetReadabilityAnalysis
+                imageUrl={assignments[selectedPanel.id]}
+                assetName={selectedPanel.label}
+                panelSizeMeters={[selectedPanel.size[0], selectedPanel.size[1]]}
+                assetType="panel"
+              />
             </>
           )}
         </div>
