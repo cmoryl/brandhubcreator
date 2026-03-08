@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const fullPrompt = `Generate a photorealistic full-body portrait of ${promptHint}. Output must be a PNG with true transparent alpha background only (no backdrop at all). Keep natural hair/clothing edge detail with clean anti-aliased transparency and absolutely no white fringe or halo around the subject. Full body from head to shoes, professional trade-show context, sharp detail, realistic lighting.`;
+    const fullPrompt = `Generate a photorealistic full-body portrait of ${promptHint}. The subject must be standing on a perfectly uniform solid bright green (#00FF00) chroma-key background — the entire background must be this exact pure green with no gradients, shadows, or variations. Full body from head to shoes visible, professional trade-show context, sharp detail, studio lighting. The green background must extend fully to all edges of the image with absolutely no other background elements.`;
 
     console.log(`[generate-character-sprite] Generating sprite for ${characterId}`);
 
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
+        model: "google/gemini-3-pro-image-preview",
         messages: [
           {
             role: "user",
