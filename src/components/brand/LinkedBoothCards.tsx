@@ -669,10 +669,7 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
   };
 
   const handleOpenDetail = (booth: LinkedBoothCard) => {
-    const division = resolveBoothDivision(booth, customDivisions);
-    if (division) {
-      setSelectedDivision(division);
-    }
+    navigate(`/booths/${booth.divisionId}`);
   };
 
   return (
