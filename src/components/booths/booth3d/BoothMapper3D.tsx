@@ -764,8 +764,10 @@ export function BoothMapper3D({
 
     const isImage = file.type.startsWith('image/');
     const isPdf = file.type === 'application/pdf';
-    if (!isImage && !isPdf) {
-      toast.error('Please upload an image (JPG, PNG) or PDF file');
+    const isAi = file.name.endsWith('.ai') || file.name.endsWith('.eps');
+    const isSvg = file.type === 'image/svg+xml';
+    if (!isImage && !isPdf && !isAi && !isSvg) {
+      toast.error('Please upload an image, PDF, AI, EPS, or SVG file');
       return;
     }
 
