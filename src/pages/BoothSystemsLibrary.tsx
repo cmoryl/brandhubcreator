@@ -266,7 +266,7 @@ export default function BoothSystemsLibrary() {
               Define a new size variant for this system.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pt-2">
+          <form onSubmit={(e) => { e.preventDefault(); handleAddVariant(); }} className="space-y-4 pt-2">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Variant Name</label>
               <Input
@@ -298,10 +298,12 @@ export default function BoothSystemsLibrary() {
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowAddVariant(null)}>Cancel</Button>
-              <Button onClick={handleAddVariant} disabled={!variantName.trim()}>Add Variant</Button>
+              <Button type="button" variant="outline" onClick={() => setShowAddVariant(null)}>Cancel</Button>
+              <Button type="submit" disabled={!variantName.trim() || isSubmitting}>
+                {isSubmitting ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> Adding...</> : 'Add Variant'}
+              </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
