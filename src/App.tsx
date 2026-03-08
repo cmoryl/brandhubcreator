@@ -200,6 +200,13 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="booths/:divisionId"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BoothDivisionPage />
+                        </Suspense>
+                      }
+                    <Route
                       path="color-lab"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
