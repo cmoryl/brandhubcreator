@@ -352,6 +352,43 @@ export function BoothFurniture3D({
             <meshStandardMaterial color={color} roughness={0.6} />
           </mesh>
         </group>
+      ) : isRug ? (
+        // Rug / carpet — flat on floor with fabric material
+        <group>
+          {isRoundRug ? (
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]} receiveShadow>
+              <circleGeometry args={[w / 2, 48]} />
+              <meshStandardMaterial
+                color={color}
+                roughness={0.9}
+                metalness={0}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+          ) : (
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]} receiveShadow>
+              <planeGeometry args={[w, d]} />
+              <meshStandardMaterial
+                color={color}
+                roughness={0.9}
+                metalness={0}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+          )}
+          {/* Subtle border/fringe edge */}
+          {isRoundRug ? (
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 0]}>
+              <ringGeometry args={[w / 2 - 0.02, w / 2, 48]} />
+              <meshStandardMaterial color={color} roughness={0.85} metalness={0} opacity={0.6} transparent side={THREE.DoubleSide} />
+            </mesh>
+          ) : (
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 0]}>
+              <planeGeometry args={[w + 0.04, d + 0.04]} />
+              <meshStandardMaterial color={color} roughness={0.85} metalness={0} opacity={0.4} transparent side={THREE.DoubleSide} />
+            </mesh>
+          )}
+        </group>
       ) : (
         // Generic box
         <mesh position={[0, h / 2, 0]} castShadow>
