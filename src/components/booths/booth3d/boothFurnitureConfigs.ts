@@ -110,6 +110,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     color: '#334155',
     description: "Standing-height reception counter (48\" × 42\" × 24\")",
     hasTableCover: true,
+    hasCustomTexture: true,
   },
   {
     id: 'podium',
