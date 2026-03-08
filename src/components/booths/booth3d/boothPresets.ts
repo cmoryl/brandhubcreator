@@ -519,7 +519,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Minimal text, maximum imagery — the product IS the message',
     ],
     tags: ['fashion', 'luxury', 'premium', 'editorial', 'lifestyle'],
-  },
+    placedAssets: RETAIL_FASHION_ASSETS,
+    flooringConfig: RETAIL_FASHION_FLOOR,
 
   // ═══════════════════════════════════════
   // EDUCATION
