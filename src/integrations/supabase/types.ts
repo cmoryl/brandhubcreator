@@ -2381,6 +2381,101 @@ export type Database = {
           },
         ]
       }
+      expo_booth_analytics: {
+        Row: {
+          actual_demos_given: number | null
+          actual_dwell_time_seconds: number | null
+          actual_engagement_rate: number | null
+          actual_leads_captured: number | null
+          actual_peak_visitors: number | null
+          actual_traffic_estimate: number | null
+          created_at: string
+          created_by: string | null
+          demos_by_station: Json | null
+          division_id: string
+          engagement_by_zone: Json | null
+          event_date: string | null
+          event_name: string | null
+          id: string
+          leads_by_source: Json | null
+          notes: string | null
+          organization_id: string | null
+          predicted_dwell_time_seconds: number | null
+          predicted_peak_capacity: number | null
+          predicted_traffic: number | null
+          predicted_visibility_score: number | null
+          simulation_data: Json | null
+          top_performing_panels: Json | null
+          traffic_by_hour: Json | null
+          updated_at: string
+          variant_label: string
+        }
+        Insert: {
+          actual_demos_given?: number | null
+          actual_dwell_time_seconds?: number | null
+          actual_engagement_rate?: number | null
+          actual_leads_captured?: number | null
+          actual_peak_visitors?: number | null
+          actual_traffic_estimate?: number | null
+          created_at?: string
+          created_by?: string | null
+          demos_by_station?: Json | null
+          division_id: string
+          engagement_by_zone?: Json | null
+          event_date?: string | null
+          event_name?: string | null
+          id?: string
+          leads_by_source?: Json | null
+          notes?: string | null
+          organization_id?: string | null
+          predicted_dwell_time_seconds?: number | null
+          predicted_peak_capacity?: number | null
+          predicted_traffic?: number | null
+          predicted_visibility_score?: number | null
+          simulation_data?: Json | null
+          top_performing_panels?: Json | null
+          traffic_by_hour?: Json | null
+          updated_at?: string
+          variant_label?: string
+        }
+        Update: {
+          actual_demos_given?: number | null
+          actual_dwell_time_seconds?: number | null
+          actual_engagement_rate?: number | null
+          actual_leads_captured?: number | null
+          actual_peak_visitors?: number | null
+          actual_traffic_estimate?: number | null
+          created_at?: string
+          created_by?: string | null
+          demos_by_station?: Json | null
+          division_id?: string
+          engagement_by_zone?: Json | null
+          event_date?: string | null
+          event_name?: string | null
+          id?: string
+          leads_by_source?: Json | null
+          notes?: string | null
+          organization_id?: string | null
+          predicted_dwell_time_seconds?: number | null
+          predicted_peak_capacity?: number | null
+          predicted_traffic?: number | null
+          predicted_visibility_score?: number | null
+          simulation_data?: Json | null
+          top_performing_panels?: Json | null
+          traffic_by_hour?: Json | null
+          updated_at?: string
+          variant_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expo_booth_analytics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expo_booth_placements: {
         Row: {
           booth_number: string | null
