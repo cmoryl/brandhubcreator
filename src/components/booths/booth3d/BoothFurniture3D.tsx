@@ -14,6 +14,7 @@ interface BoothFurniture3DProps {
   asset: PlacedAsset;
   isSelected: boolean;
   isDragMode: boolean;
+  showLabels?: boolean;
   onSelect: (instanceId: string) => void;
   onPositionChange: (instanceId: string, position: [number, number, number]) => void;
 }
@@ -138,6 +139,7 @@ export function BoothFurniture3D({
   asset,
   isSelected,
   isDragMode,
+  showLabels = true,
   onSelect,
   onPositionChange,
 }: BoothFurniture3DProps) {
@@ -428,19 +430,21 @@ export function BoothFurniture3D({
       )}
 
       {/* Label */}
-      <Html position={[0, h + 0.15, 0]} center distanceFactor={8} occlude={false}>
-        <div className={cn(
-          "px-1.5 py-0.5 rounded text-[9px] font-medium whitespace-nowrap select-none pointer-events-none",
-          isSelected
-            ? "bg-primary text-primary-foreground"
-            : "bg-background/80 text-foreground border border-border/50"
-        )}>
-          {asset.label || config.name}
-          {hasCover && (
-            <span className="ml-1 text-[8px] opacity-70">🎨</span>
-          )}
-        </div>
-      </Html>
+      {showLabels && (
+        <Html position={[0, h + 0.15, 0]} center distanceFactor={8} occlude={false}>
+          <div className={cn(
+            "px-1.5 py-0.5 rounded text-[9px] font-medium whitespace-nowrap select-none pointer-events-none",
+            isSelected
+              ? "bg-primary text-primary-foreground"
+              : "bg-background/80 text-foreground border border-border/50"
+          )}>
+            {asset.label || config.name}
+            {hasCover && (
+              <span className="ml-1 text-[8px] opacity-70">🎨</span>
+            )}
+          </div>
+        </Html>
+      )}
 
       {/* Drag mode indicator */}
       {isDragMode && isSelected && (
