@@ -3,7 +3,7 @@
  * Includes optional safe zone overlay using real production spec zones
  * Supports print material styles affecting PBR properties
  */
-import { useRef, useState, useMemo, Suspense } from 'react';
+import { useRef, useState, useMemo, Suspense, forwardRef } from 'react';
 import * as THREE from 'three';
 import { useTexture } from '@react-three/drei';
 import { Html } from '@react-three/drei';
