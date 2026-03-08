@@ -464,8 +464,6 @@ export function BoothMapper3D({
     setImagePickerOpen(false);
     setSelectedPanelId(null);
   }, [selectedPanelId, assigningSide, onAssignmentsChange]);
-    setSelectedPanelId(null);
-  }, [selectedPanelId, onAssignmentsChange]);
 
   const handleAutoFill = useCallback(() => {
     const newAssignments: Record<string, string> = {};
