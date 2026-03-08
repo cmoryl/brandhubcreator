@@ -237,11 +237,20 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
   const widthFt = (panel.size[0] * 3.28).toFixed(0);
   const heightFt = (panel.size[1] * 3.28).toFixed(0);
 
+  const panelThickness = 0.05; // 5cm thick wall
+
   return (
     <group position={panel.position} rotation={panel.rotation}>
-      {/* Panel mesh */}
+      {/* Panel back body — solid wall with depth */}
+      <mesh position={[0, 0, -panelThickness / 2]} receiveShadow castShadow>
+        <boxGeometry args={[panel.size[0], panel.size[1], panelThickness]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.7} metalness={0.05} />
+      </mesh>
+
+      {/* Panel front face — image or empty material */}
       <mesh
         ref={meshRef}
+        position={[0, 0, 0.001]}
         onClick={(e) => {
           e.stopPropagation();
           onSelect(panel.id);
@@ -270,7 +279,7 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
       {showSafeZones && <SafeZoneOverlay size={panel.size} zones={panel.zones} />}
 
       {/* Selection border */}
-      <lineSegments>
+      <lineSegments position={[0, 0, 0.002]}>
         <edgesGeometry args={[new THREE.PlaneGeometry(panel.size[0], panel.size[1])]} />
         <lineBasicMaterial color={borderColor} linewidth={2} />
       </lineSegments>
