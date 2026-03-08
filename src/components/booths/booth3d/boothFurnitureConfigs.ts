@@ -28,6 +28,10 @@ export interface FurnitureAsset {
   hasTableCover?: boolean;
   /** Whether this asset is wall-mountable (drags on vertical plane) */
   wallMountable?: boolean;
+  /** Custom thumbnail image URL for asset library preview */
+  thumbnailUrl?: string;
+  /** Whether this asset supports a custom surface texture/decal */
+  hasCustomTexture?: boolean;
 }
 
 export interface PlacedAsset {
