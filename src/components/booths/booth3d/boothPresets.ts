@@ -265,7 +265,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Include device dimensions/scale references for context',
     ],
     tags: ['medtech', 'medical-device', 'surgical', 'diagnostic', 'fda'],
-  },
+    placedAssets: HEALTH_MEDTECH_ASSETS,
+    flooringConfig: HEALTH_MEDTECH_FLOOR,
 
   // ═══════════════════════════════════════
   // FINANCE & FINTECH
