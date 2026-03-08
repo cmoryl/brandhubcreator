@@ -755,7 +755,7 @@ export function BoothMapper3D({
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs value={pickerTab} onValueChange={setPickerTab}>
+          <Tabs value={pickerTab} onValueChange={setPickerTab} className="flex-1 min-h-0 flex flex-col">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="library" className="gap-1.5">
                 <FolderOpen className="h-3.5 w-3.5" />
