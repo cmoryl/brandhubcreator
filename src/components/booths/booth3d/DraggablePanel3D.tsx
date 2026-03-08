@@ -92,6 +92,9 @@ export function DraggablePanel3D({
         showLabels={showLabels}
         showDimensions={showDimensions}
         showSafeZones={showSafeZones}
+        printStyle={printStyle}
+        edgeLightIntensity={edgeLightIntensity}
+        edgeLightColor={edgeLightColor}
       />
     </group>
   );
