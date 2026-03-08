@@ -636,6 +636,36 @@ export function BoothMapper3D({
     }
   }, [layout, boothConfig, assignments, placedAssets, divisionName]);
 
+  // Booth Score handler
+  const handleRunBoothScore = useCallback(async () => {
+    setIsScoringBooth(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('booth-score', {
+        body: {
+          layoutName: layout,
+          boothSize: boothConfig.footprint,
+          panelCount: boothConfig.panels.length,
+          panelLabels: boothConfig.panels.map(p => p.label),
+          furnitureList: placedAssets.map(a => a.label || a.assetId),
+          hasMonitors: placedAssets.some(a => a.assetId.includes('tv') || a.assetId.includes('monitor')),
+          hasGraphics: Object.keys(assignments).length > 0,
+          crowdScore: crowdSimulation?.visibilityScore,
+          divisionName,
+        },
+      });
+      if (error) throw error;
+      setBoothScore(data as BoothScoreData);
+      toast.success(`Booth Score: ${data.overallScore}/100`);
+    } catch (e: any) {
+      console.error('Booth score error:', e);
+      if (e?.status === 429) toast.error('Rate limit exceeded. Try again shortly.');
+      else if (e?.status === 402) toast.error('AI credits exhausted.');
+      else toast.error('Scoring failed: ' + (e?.message || 'Unknown error'));
+    } finally {
+      setIsScoringBooth(false);
+    }
+  }, [layout, boothConfig, placedAssets, assignments, crowdSimulation, divisionName]);
+
   const handleScreenshot = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -1465,6 +1495,18 @@ export function BoothMapper3D({
           />
         </Card>
       )}
+
+      {/* Booth Success Score Panel */}
+      <Card className="p-4 border-primary/20">
+        <BoothScorePanel
+          scoreData={boothScore}
+          onScoreData={setBoothScore}
+          isLoading={isScoringBooth}
+          onRunScore={handleRunBoothScore}
+          crowdScore={crowdSimulation?.visibilityScore}
+          isAdmin={isAdmin}
+        />
+      </Card>
 
       {/* Asset Picker Dialog */}
       <Dialog open={assetPickerOpen} onOpenChange={setAssetPickerOpen}>
