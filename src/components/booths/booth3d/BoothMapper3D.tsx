@@ -77,6 +77,8 @@ import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
 import { VendorExportPack } from './VendorExportPack';
 import { PanelFileMapper } from './PanelFileMapper';
 import { useBoothState } from './useBoothState';
+import { useDivisionBranding } from './useDivisionBranding';
+import { DivisionBrandSwitcher } from './DivisionBrandSwitcher';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
