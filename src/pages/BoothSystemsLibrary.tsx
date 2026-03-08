@@ -48,7 +48,7 @@ function VariantTypeIcon({ type }: { type: string }) {
 export default function BoothSystemsLibrary() {
   const navigate = useNavigate();
   const { organization } = useOrganization();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isGuideAdmin: isAdmin } = useGuideAdmin({ entityOrgId: organization?.id });
   const { systems, isLoading, createSystem, updateSystem, deleteSystem, addVariant, deleteVariant } =
     useBoothSystems(organization?.id);
 
@@ -56,6 +56,7 @@ export default function BoothSystemsLibrary() {
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [expandedSystem, setExpandedSystem] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add variant dialog
   const [showAddVariant, setShowAddVariant] = useState<string | null>(null);
@@ -67,14 +68,6 @@ export default function BoothSystemsLibrary() {
   const [editingSystem, setEditingSystem] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editDesc, setEditDesc] = useState('');
-
-  useEffect(() => {
-    const check = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAdmin(!!user);
-    };
-    check();
-  }, []);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
