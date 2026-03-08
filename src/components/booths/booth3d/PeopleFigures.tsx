@@ -79,7 +79,6 @@ export function PeopleFigures({
   const layout = getLayoutFamily(rawLayout as any);
   const multiplier = envConfig ? getPeopleMultiplier(envConfig.peopleCount) : 1;
   const showConversationGroups = envConfig?.showConversationGroups ?? false;
-  const hasBillboards = useBillboards && Object.keys(spriteUrls).length > 0;
 
   const figures = useMemo(() => {
     const base: FigurePlacement[] = [];
