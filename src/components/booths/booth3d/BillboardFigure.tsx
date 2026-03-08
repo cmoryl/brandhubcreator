@@ -48,9 +48,9 @@ const CutoutMaterial = shaderMaterial(
     similarity: 0.35,   // how close to key color triggers removal
     smoothness: 0.12,   // edge softness
     spillReduction: 0.7, // green spill removal from edges
-    whiteThreshold: 0.91, // remove near-white backgrounds too
-    whiteSmoothness: 0.05,
-    whiteDespill: 0.38,
+    whiteThreshold: 0.95, // remove near-white backgrounds too
+    whiteSmoothness: 0.03,
+    whiteDespill: 0.25,
   },
   // Vertex
   `
@@ -107,30 +107,26 @@ const CutoutMaterial = shaderMaterial(
       float minCh = min(rgb.r, min(rgb.g, rgb.b));
       float sat = maxCh - minCh;
       float nearWhite = smoothstep(whiteThreshold - whiteSmoothness, whiteThreshold + whiteSmoothness, minCh);
-      float lowSaturation = 1.0 - smoothstep(0.02, 0.14, sat);
+      float lowSaturation = 1.0 - smoothstep(0.03, 0.18, sat);
       float whiteMask = 1.0 - (nearWhite * lowSaturation);
       
       float alpha = texColor.a * min(greenAlpha, whiteMask);
       
       // Hard discard for pure backdrop pixels (green OR white)
       if (greenDominance > 0.15 && chromaDist < similarity * 1.8) discard;
-      if (minCh > 0.96 && sat < 0.045) discard;
-      if (alpha < 0.035) discard;
+      if (minCh > 0.97 && sat < 0.04) discard;
+      if (alpha < 0.05) discard;
       
       // --- Spill suppression on edge pixels ---
       float spillAmount = max(0.0, rgb.g - mix(rgb.r, rgb.b, 0.5)) * (1.0 - alpha * 0.5);
       vec3 despilled = rgb;
       despilled.g -= spillAmount * spillReduction;
 
-      // Neutralize white fringe on semi-transparent edges
-      float whiteFringe = smoothstep(0.88, 1.0, minCh) * lowSaturation * (1.0 - alpha);
+      // Minimal white fringe neutralization — avoid over-darkening edges
+      float whiteFringe = smoothstep(0.92, 1.0, minCh) * lowSaturation * (1.0 - alpha);
       float luma = dot(despilled, vec3(0.299, 0.587, 0.114));
       despilled = mix(despilled, vec3(luma), whiteFringe * whiteDespill);
       despilled = clamp(despilled, 0.0, 1.0);
-      
-      // Slight darkening at the edge to prevent bright fringe
-      float edgeDarken = smoothstep(0.0, 0.5, alpha) * 0.15 + 0.85;
-      despilled *= edgeDarken;
       
       gl_FragColor = vec4(despilled, alpha);
     }
@@ -217,9 +213,9 @@ export function BillboardFigure({
           similarity={0.35}
           smoothness={0.12}
           spillReduction={0.7}
-          whiteThreshold={0.91}
-          whiteSmoothness={0.05}
-          whiteDespill={0.38}
+          whiteThreshold={0.95}
+          whiteSmoothness={0.03}
+          whiteDespill={0.25}
           transparent={true}
           side={THREE.DoubleSide}
           depthWrite={false}
