@@ -330,6 +330,20 @@ export function BoothMapper3D({
     toast.success('Asset removed');
   }, []);
 
+  // Keyboard shortcut: Delete/Backspace removes selected asset
+  useEffect(() => {
+    if (!isAdmin || !selectedAssetId) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if ((e.target as HTMLElement)?.tagName === 'INPUT' || (e.target as HTMLElement)?.tagName === 'TEXTAREA') return;
+        e.preventDefault();
+        handleRemoveAsset(selectedAssetId);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isAdmin, selectedAssetId, handleRemoveAsset]);
+
   const handleUpdateAsset = useCallback((instanceId: string, updates: Partial<PlacedAsset>) => {
     setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, ...updates } : a));
   }, []);
