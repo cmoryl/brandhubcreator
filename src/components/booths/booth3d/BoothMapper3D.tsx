@@ -1172,8 +1172,8 @@ export function BoothMapper3D({
             gl={{
               preserveDrawingBuffer: true,
               antialias: true,
-              toneMapping: environmentRealism === 'hyper' ? 6 : 4, // ACESFilmic=6, Linear=4
-              toneMappingExposure: environmentRealism === 'hyper' ? 1.15 : environmentRealism === 'ultra' ? 1.05 : 1.0,
+              toneMapping: 4, // ACESFilmicToneMapping for all realism levels
+              toneMappingExposure: environmentRealism === 'hyper' ? 1.0 : environmentRealism === 'ultra' ? 1.0 : 1.0,
               outputColorSpace: 'srgb',
               shadowMap: { enabled: true, type: environmentRealism === 'hyper' ? 2 : 1 }, // VSM=2, PCF=1
             } as any}

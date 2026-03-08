@@ -222,7 +222,7 @@ export function PeopleFigures({
           />
         );
       })}
-      <HeightMarker position={[layout === 'island' ? 3.5 : 2, 0, -0.5]} />
+      
     </group>
   );
 }
