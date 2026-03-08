@@ -210,6 +210,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="booth-systems"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BoothSystemsLibrary />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="expo-floor"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
