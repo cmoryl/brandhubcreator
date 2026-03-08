@@ -140,6 +140,12 @@ export function BoothFurniture3D({
   const color = config ? (asset.customColor || config.color) : '#666';
   const [w, h, d] = size;
 
+  const isWallMount = config?.wallMountable === true;
+
+  // Drag planes: floor (XZ) for normal items, vertical (XY facing camera) for wall-mounted
+  const floorPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
+  const wallPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
+
   // Drag handlers
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
@@ -147,19 +153,44 @@ export function BoothFurniture3D({
     if (!isDragMode) return;
     setIsDragging(true);
     (e.target as HTMLElement)?.setPointerCapture?.(e.pointerId);
-  }, [isDragMode, asset.instanceId, onSelect]);
+
+    // For wall-mounted items, set the drag plane to face the camera through the asset
+    if (isWallMount) {
+      const cameraDir = new THREE.Vector3();
+      camera.getWorldDirection(cameraDir);
+      // Use camera's forward direction projected onto XZ to get a stable vertical plane
+      cameraDir.y = 0;
+      cameraDir.normalize();
+      wallPlaneRef.current.setFromNormalAndCoplanarPoint(
+        cameraDir,
+        new THREE.Vector3(...asset.position)
+      );
+    }
+  }, [isDragMode, asset.instanceId, asset.position, onSelect, isWallMount, camera]);
 
   const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
     if (!isDragging || !isDragMode) return;
     e.stopPropagation();
     const intersect = new THREE.Vector3();
-    raycaster.ray.intersectPlane(floorPlane, intersect);
-    if (intersect) {
-      const x = Math.round(intersect.x * 10) / 10;
-      const z = Math.round(intersect.z * 10) / 10;
-      onPositionChange(asset.instanceId, [x, asset.position[1], z]);
+
+    if (isWallMount) {
+      // Drag on vertical plane — moves X and Y
+      raycaster.ray.intersectPlane(wallPlaneRef.current, intersect);
+      if (intersect) {
+        const x = Math.round(intersect.x * 10) / 10;
+        const y = Math.max(0.1, Math.round(intersect.y * 10) / 10); // clamp above floor
+        onPositionChange(asset.instanceId, [x, y, asset.position[2]]);
+      }
+    } else {
+      // Drag on floor plane — moves X and Z
+      raycaster.ray.intersectPlane(floorPlane, intersect);
+      if (intersect) {
+        const x = Math.round(intersect.x * 10) / 10;
+        const z = Math.round(intersect.z * 10) / 10;
+        onPositionChange(asset.instanceId, [x, asset.position[1], z]);
+      }
     }
-  }, [isDragging, isDragMode, raycaster, floorPlane, asset.instanceId, asset.position, onPositionChange]);
+  }, [isDragging, isDragMode, raycaster, floorPlane, isWallMount, asset.instanceId, asset.position, onPositionChange]);
 
   const handlePointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
     if (isDragging) {
