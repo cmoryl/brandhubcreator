@@ -25,7 +25,11 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
+
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -33,7 +37,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { characterId, promptHint, organizationId } = await req.json();
+    const { characterId, promptHint, forceRegenerate = false } = await req.json();
 
     if (!characterId || !promptHint) {
       return new Response(JSON.stringify({ error: "Missing characterId or promptHint" }), {
@@ -42,21 +46,28 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if sprite already exists in storage
-    const storagePath = `booth-sprites/${characterId}.png`;
-    const { data: existingFile } = await supabase.storage
-      .from("organization-assets")
-      .list("booth-sprites", { search: `${characterId}.png` });
+    // User-scoped caching path prevents stale cross-user sprites
+    const spriteDir = `booth-sprites/${user.id}`;
+    const fileName = `${characterId}.png`;
+    const storagePath = `${spriteDir}/${fileName}`;
 
-    if (existingFile && existingFile.length > 0) {
-      const match = existingFile.find((file) => file.name === `${characterId}.png`) ?? existingFile[0];
-      const cacheToken = encodeURIComponent(match?.updated_at ?? match?.created_at ?? Date.now().toString());
-      const { data: urlData } = supabase.storage
+    // Check if sprite already exists in storage unless forced
+    if (!forceRegenerate) {
+      const { data: existingFiles } = await supabase.storage
         .from("organization-assets")
-        .getPublicUrl(storagePath);
-      return new Response(JSON.stringify({ url: `${urlData.publicUrl}?v=${cacheToken}`, cached: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+        .list(spriteDir, { search: fileName });
+
+      if (existingFiles && existingFiles.length > 0) {
+        const match = existingFiles.find((file) => file.name === fileName) ?? existingFiles[0];
+        const cacheToken = encodeURIComponent(
+          match?.updated_at ?? match?.created_at ?? Date.now().toString()
+        );
+        const { data: urlData } = supabase.storage.from("organization-assets").getPublicUrl(storagePath);
+
+        return new Response(JSON.stringify({ url: `${urlData.publicUrl}?v=${cacheToken}`, cached: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Generate character sprite using AI
@@ -68,9 +79,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const fullPrompt = `Generate a photorealistic full-body portrait of ${promptHint}. The subject must be standing on a perfectly uniform solid bright green (#00FF00) chroma-key background — the entire background must be this exact pure green with no gradients, shadows, or variations. Full body from head to shoes visible, professional trade-show context, sharp detail, studio lighting. The green background must extend fully to all edges of the image with absolutely no other background elements.`;
+    const fullPrompt = `Generate a photorealistic full-body portrait of ${promptHint}. The output must be a single person only, full body from head to shoes, centered, with clean silhouette edges and no cropping. Place the person on a perfectly uniform, solid bright green (#00FF00) chroma-key background that fills the entire frame edge-to-edge with zero gradients, props, floor texture, scenery, shadows, or color variation. Use neutral studio lighting and sharp detail suitable for background removal.`;
 
-    console.log(`[generate-character-sprite] Generating sprite for ${characterId}`);
+    console.log(`[generate-character-sprite] Generating sprite for ${characterId} (${user.id})`);
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -117,9 +128,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Extract base64 data and upload to storage
-    const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, "");
-    const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+    // Extract base64 data or fetch remote image URL, then upload to storage
+    let binaryData: Uint8Array;
+    if (imageUrl.startsWith("data:image")) {
+      const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, "");
+      binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+    } else {
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to download generated image (${imageResponse.status})`);
+      }
+      const arrayBuffer = await imageResponse.arrayBuffer();
+      binaryData = new Uint8Array(arrayBuffer);
+    }
 
     const { error: uploadError } = await supabase.storage
       .from("organization-assets")
@@ -130,15 +151,13 @@ Deno.serve(async (req) => {
 
     if (uploadError) {
       console.error("[generate-character-sprite] Upload error:", uploadError);
-      // Return the base64 directly as fallback
+      // Return the image directly as fallback
       return new Response(JSON.stringify({ url: imageUrl, cached: false }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { data: publicUrlData } = supabase.storage
-      .from("organization-assets")
-      .getPublicUrl(storagePath);
+    const { data: publicUrlData } = supabase.storage.from("organization-assets").getPublicUrl(storagePath);
 
     console.log(`[generate-character-sprite] Generated and cached: ${publicUrlData.publicUrl}`);
 
@@ -154,3 +173,4 @@ Deno.serve(async (req) => {
     });
   }
 });
+
