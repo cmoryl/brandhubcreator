@@ -852,6 +852,16 @@ export function BoothMapper3D({
                 isAdmin={isAdmin}
               />
             }
+            systemPicker={
+              <BoothSystemPicker
+                systems={boothSystems.systems}
+                isLoading={boothSystems.isLoading}
+                isAdmin={isAdmin}
+                activeVariantId={activeSystemVariantId}
+                onLoadVariant={handleLoadSystemVariant}
+                onSaveToVariant={handleSaveToSystemVariant}
+              />
+            }
           />
         }
         leftPanel={
