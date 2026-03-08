@@ -1199,6 +1199,15 @@ export function BoothMapper3D({
             Clear
           </Button>
         )}
+        <Button
+          variant={showARPanel ? 'default' : 'outline'}
+          size="sm"
+          className="h-8 gap-1.5 text-xs"
+          onClick={() => setShowARPanel(v => !v)}
+        >
+          <Smartphone className="h-3.5 w-3.5" />
+          AR Preview
+        </Button>
       </div>
 
       {/* Uploaded Specs Row (admin only) */}
