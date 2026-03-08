@@ -141,7 +141,7 @@ function FloorArrow({ position, rotation, color = '#64748b' }: {
 }
 
 interface TrafficFlowProps {
-  layout: 'inline' | 'l-shape' | 'u-shape' | 'island';
+  layout: string;
 }
 
 export function TrafficFlow({ layout }: TrafficFlowProps) {

@@ -307,7 +307,7 @@ function HeightMarker({ position }: { position: [number, number, number] }) {
 }
 
 interface PeopleFiguresProps {
-  layout: 'inline' | 'l-shape' | 'u-shape' | 'island';
+  layout: string;
   envConfig?: EnvironmentConfig;
 }
 
