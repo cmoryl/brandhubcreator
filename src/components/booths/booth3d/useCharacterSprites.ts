@@ -43,10 +43,12 @@ export function useCharacterSprites() {
     return `${data.publicUrl}?v=${encodeURIComponent(version)}`;
   }, []);
 
-  // Check which sprites already exist in storage
+  // Check which sprites already exist in storage, then auto-generate missing ones
   useEffect(() => {
     mountedRef.current = true;
-    checkExistingSprites();
+    checkExistingSprites().then(() => {
+      if (mountedRef.current) autoGenerateMissing();
+    });
     return () => {
       mountedRef.current = false;
     };
