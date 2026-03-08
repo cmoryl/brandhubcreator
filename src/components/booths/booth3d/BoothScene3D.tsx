@@ -358,6 +358,63 @@ export function BoothScene3D({
           onPositionChange={onAssetPositionChange || (() => {})}
         />
       ))}
+
+      {/* Production-spec monitors */}
+      {monitorSpecs
+        .filter(ms => ms.configType === activeSpecConfig)
+        .map((ms) => {
+          // Convert monitor diagonal inches to approximate width/height (16:9)
+          const diagM = ms.monitorSize * 0.0254;
+          const aspect = 16 / 9;
+          const monW = diagM * Math.cos(Math.atan(1 / aspect));
+          const monH = diagM * Math.sin(Math.atan(1 / aspect));
+          const bezelDepth = 0.04;
+          const standH = 1.2; // typical monitor stand/arm height
+
+          // Position monitors centered on the back wall, at standing eye height
+          const positions: [number, number, number][] = ms.count === 1
+            ? [[0, standH + monH / 2, -0.02]]
+            : [[-monW * 0.6, standH + monH / 2, -0.02], [monW * 0.6, standH + monH / 2, -0.02]];
+
+          return positions.map((pos, idx) => (
+            <group key={`monitor-${ms.configType}-${idx}`} position={pos}>
+              {/* Screen */}
+              <mesh castShadow>
+                <boxGeometry args={[monW, monH, bezelDepth]} />
+                <meshStandardMaterial color="#111111" metalness={0.8} roughness={0.15} />
+              </mesh>
+              {/* Screen face (slightly in front) */}
+              <mesh position={[0, 0, bezelDepth / 2 + 0.001]}>
+                <planeGeometry args={[monW - 0.02, monH - 0.02]} />
+                <meshStandardMaterial color="#1a1a2e" emissive="#1a2a4a" emissiveIntensity={0.3} metalness={0.1} roughness={0.2} />
+              </mesh>
+              {/* Bezel highlight */}
+              <mesh position={[0, 0, bezelDepth / 2 + 0.0005]}>
+                <planeGeometry args={[monW - 0.005, monH - 0.005]} />
+                <meshStandardMaterial color="#000000" opacity={0.5} transparent />
+              </mesh>
+              {/* Stand arm */}
+              <mesh position={[0, -monH / 2 - 0.15, -0.03]} castShadow>
+                <boxGeometry args={[0.04, 0.3, 0.04]} />
+                <meshStandardMaterial color="#333333" metalness={0.9} roughness={0.1} />
+              </mesh>
+              {/* Wall mount bracket */}
+              <mesh position={[0, 0, -bezelDepth / 2 - 0.015]}>
+                <boxGeometry args={[0.15, 0.15, 0.03]} />
+                <meshStandardMaterial color="#444444" metalness={0.85} roughness={0.15} />
+              </mesh>
+              {/* Label */}
+              {showLabels && (
+                <group position={[0, monH / 2 + 0.08, 0.03]}>
+                  <mesh>
+                    <planeGeometry args={[monW * 0.7, 0.08]} />
+                    <meshBasicMaterial color="#000000" opacity={0.7} transparent />
+                  </mesh>
+                </group>
+              )}
+            </group>
+          ));
+        })}
     </>
   );
 }
