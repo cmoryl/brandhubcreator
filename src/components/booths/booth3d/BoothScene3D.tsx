@@ -2,16 +2,17 @@
  * BoothScene3D - The Three.js scene containing booth panels, floor, lighting,
  * furniture assets, and drag-and-drop support
  */
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { OrbitControls, Grid, Environment } from '@react-three/drei';
 import { DraggablePanel3D } from './DraggablePanel3D';
 import { BoothFurniture3D } from './BoothFurniture3D';
 import { ExpoEnvironment } from './ExpoEnvironment';
-import { PeopleFigures } from './PeopleFigures';
+import { PeopleFigures, type OccupiedZone } from './PeopleFigures';
 import { TrafficFlow } from './TrafficFlow';
 import type { PanelConfig, LightingPreset, BoothLayout } from './boothConfigs';
 import type { PlacedAsset } from './boothFurnitureConfigs';
+import { getFurnitureById } from './boothFurnitureConfigs';
 import type { EnvironmentRealism, EnvironmentConfig } from './environmentPresets';
 import { getEnvironmentConfig } from './environmentPresets';
 
@@ -85,6 +86,36 @@ export function BoothScene3D({
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
   const lighting = getLighting(lightingPreset, envConfig);
   const isHyper = environmentRealism === 'hyper';
+
+  // Build occupied zones from panels + placed assets for collision avoidance
+  const occupiedZones = useMemo<OccupiedZone[]>(() => {
+    const zones: OccupiedZone[] = [];
+
+    // Panels occupy space on the XZ plane
+    for (const p of panels) {
+      zones.push({
+        cx: p.position[0],
+        cz: p.position[2],
+        hw: p.size[0] / 2,
+        hd: p.size[2] / 2,
+      });
+    }
+
+    // Placed furniture assets
+    for (const asset of placedAssets) {
+      const catalog = getFurnitureById(asset.assetId);
+      if (!catalog) continue;
+      const sz = asset.customSize || catalog.size;
+      zones.push({
+        cx: asset.position[0],
+        cz: asset.position[2],
+        hw: sz[0] / 2,
+        hd: sz[2] / 2,
+      });
+    }
+
+    return zones;
+  }, [panels, placedAssets]);
 
   return (
     <>
@@ -171,7 +202,7 @@ export function BoothScene3D({
         </>
       )}
 
-      {showPeople && <PeopleFigures layout={layout} envConfig={envConfig} />}
+      {showPeople && <PeopleFigures layout={layout} envConfig={envConfig} occupiedZones={occupiedZones} />}
       {showTrafficFlow && <TrafficFlow layout={layout} />}
 
       {/* Booth panels */}
