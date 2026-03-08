@@ -47,8 +47,7 @@ export const PartnerBoothsSection = ({
   };
 
   const handleOpenDetail = (booth: LinkedBoothCard) => {
-    const resolved = resolveBoothDivision(booth, customDivisions);
-    if (resolved) setSelectedDivision(resolved);
+    navigate(`/booths/${booth.divisionId}`);
   };
 
   
