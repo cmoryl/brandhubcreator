@@ -599,6 +599,28 @@ export function BoothMapper3D({
         )}
 
         <div className="ml-auto flex items-center gap-2">
+          {/* Production spec config selector */}
+          {availableSpecTypes.length > 0 && (
+            <Select value={useProductionSpecs ? specConfigType : '__generic'} onValueChange={(v) => {
+              if (v === '__generic') {
+                setUseProductionSpecs(false);
+              } else {
+                setSpecConfigType(v);
+                setUseProductionSpecs(true);
+              }
+            }}>
+              <SelectTrigger className="w-[140px] h-8 text-xs">
+                <Ruler className="h-3.5 w-3.5 mr-1.5" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__generic">Generic Layout</SelectItem>
+                {availableSpecTypes.map((t) => (
+                  <SelectItem key={t} value={t}>{t} Specs</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Badge variant="outline" className="text-xs">
             {boothConfig.dimensions} · {boothConfig.footprint}
           </Badge>
