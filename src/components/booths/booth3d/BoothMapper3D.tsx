@@ -1260,6 +1260,14 @@ export function BoothMapper3D({
         canvas={canvasElement}
         bottomContent={
           activeMode === 'graphics' ? panelThumbnails :
+          activeMode === 'simulation' ? (
+            <CrowdSimulationPanel
+              data={crowdSimulation}
+              isLoading={isSimulating}
+              onRunSimulation={handleRunSimulation}
+              onClose={() => setShowSimPanel(false)}
+            />
+          ) :
           activeMode === 'production' ? (
             <div className="space-y-4">
               <PanelFileMapper
