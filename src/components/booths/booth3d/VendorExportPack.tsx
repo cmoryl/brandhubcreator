@@ -248,7 +248,7 @@ export function VendorExportPack({
     } else {
       allRigging.forEach((m, i) => {
         doc += `  ${i + 1}. ${m.label} — Height: ${formatMeters(m.position[1])}\n`;
-        if (m.specs) doc += `     Specs: ${m.specs}\n`;
+        if (m.spec) doc += `     Specs: ${m.spec}\n`;
       });
     }
 
