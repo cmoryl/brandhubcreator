@@ -939,10 +939,18 @@ export function BoothMapper3D({
         <div className="relative h-[500px] md:h-[600px]">
           <Canvas
             ref={canvasRef}
-            shadows
+            shadows={environmentRealism === 'hyper' ? 'soft' : true}
             camera={{ position: [6, 4, 6], fov: 45 }}
-            gl={{ preserveDrawingBuffer: true, antialias: true }}
-            dpr={[1, 2]}
+            gl={{
+              preserveDrawingBuffer: true,
+              antialias: true,
+              toneMapping: environmentRealism === 'hyper' ? 6 : 4, // ACESFilmic=6, Linear=4
+              toneMappingExposure: environmentRealism === 'hyper' ? 1.15 : environmentRealism === 'ultra' ? 1.05 : 1.0,
+              outputColorSpace: 'srgb',
+              shadowMap: { enabled: true, type: environmentRealism === 'hyper' ? 2 : 1 }, // VSM=2, PCF=1
+            } as any}
+            dpr={[1, environmentRealism === 'hyper' ? 2 : 1.5]}
+            flat={false}
           >
             <Suspense fallback={null}>
               <BoothScene3D

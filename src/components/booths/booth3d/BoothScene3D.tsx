@@ -4,7 +4,7 @@
  */
 import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
-import { OrbitControls, Grid, Environment } from '@react-three/drei';
+import { OrbitControls, Grid, Environment, ContactShadows, SoftShadows } from '@react-three/drei';
 import { DraggablePanel3D } from './DraggablePanel3D';
 import { BoothFurniture3D } from './BoothFurniture3D';
 import { ExpoEnvironment } from './ExpoEnvironment';
