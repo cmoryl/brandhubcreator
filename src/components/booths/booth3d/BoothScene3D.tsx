@@ -286,7 +286,7 @@ export function BoothScene3D({
         target={[0, 1.2, 0]}
         enabled={!isDragMode}
       />
-      <CameraController activePreset={activeCameraPreset} controlsRef={controlsRef} />
+      <CameraController activePreset={activeCameraPreset} controlsRef={controlsRef} version={cameraVersion} />
 
 
       {showEnvironment && envConfig ? (
