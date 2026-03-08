@@ -1255,7 +1255,7 @@ export function BoothMapper3D({
             onNudgeAsset={onAssetNudge}
             isAdmin={isAdmin}
             onOpenAssetImagePicker={handleOpenAssetImagePicker}
-            brandColors={boothLighting?.primaryColor ? [boothLighting.primaryColor, boothLighting.accentColor || '#ffffff'] : []}
+            brandColors={[]}
           />
         }
         canvas={canvasElement}
