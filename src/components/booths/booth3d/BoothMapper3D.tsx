@@ -1320,35 +1320,7 @@ export function BoothMapper3D({
         }
       />
 
-      {/* Panel summary row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {boothConfig.panels.map((panel) => (
-          <button
-            key={panel.id}
-            onClick={() => handleSelectPanel(panel.id)}
-            className={cn(
-              "flex items-center gap-2 p-2 rounded-lg border transition-colors text-left",
-              assignments[panel.id]
-                ? "border-primary/30 bg-primary/5"
-                : "border-dashed border-muted-foreground/30 hover:border-primary/50"
-            )}
-          >
-            {assignments[panel.id] ? (
-              <img src={assignments[panel.id]} alt={panel.label} className="h-10 w-14 object-cover rounded" />
-            ) : (
-              <div className="h-10 w-14 bg-muted rounded flex items-center justify-center">
-                <ImageIcon className="h-4 w-4 text-muted-foreground" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-xs font-medium truncate">{panel.label}</p>
-              <p className="text-[10px] text-muted-foreground">
-                {panel.specLabel || ''} {assignments[panel.id] ? '· Assigned' : '· Empty'}
-              </p>
-            </div>
-          </button>
-        ))}
-      </div>
+      {/* Panel summary moved to Graphics mode bottom content — no duplicate here */}
 
       {/* Placed Assets Row */}
       {placedAssets.length > 0 && (
