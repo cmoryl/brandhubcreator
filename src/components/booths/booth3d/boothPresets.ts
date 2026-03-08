@@ -491,7 +491,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Vibrant colors and lifestyle imagery outperform corporate aesthetics for CPG',
     ],
     tags: ['cpg', 'consumer', 'retail', 'food', 'beverage', 'sampling'],
-  },
+    placedAssets: RETAIL_CPG_ASSETS,
+    flooringConfig: RETAIL_CPG_FLOOR,
   {
     id: 'retail-fashion',
     name: 'Fashion & Luxury',
