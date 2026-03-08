@@ -87,6 +87,7 @@ const Sitemap = lazyWithRetry(() => import("./pages/Sitemap"));
 const SectionsShowcase = lazyWithRetry(() => import("./pages/SectionsShowcase"));
 const BoothsCatalog = lazyWithRetry(() => import("./pages/BoothsCatalog"));
 const BoothDivisionPage = lazyWithRetry(() => import("./pages/BoothDivisionPage"));
+const BoothSystemsLibrary = lazyWithRetry(() => import("./pages/BoothSystemsLibrary"));
 const ExpoFloorPlanner = lazyWithRetry(() => import("./pages/ExpoFloorPlanner"));
 const ColorLab = lazyWithRetry(() => import("./pages/ColorLab"));
 const SharedPalette = lazyWithRetry(() => import("./pages/SharedPalette"));
@@ -205,6 +206,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <BoothDivisionPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="booth-systems"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BoothSystemsLibrary />
                         </Suspense>
                       }
                     />

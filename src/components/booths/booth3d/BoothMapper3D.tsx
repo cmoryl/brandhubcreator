@@ -79,6 +79,8 @@ import { PanelFileMapper } from './PanelFileMapper';
 import { useBoothState } from './useBoothState';
 import { useDivisionBranding } from './useDivisionBranding';
 import { DivisionBrandSwitcher } from './DivisionBrandSwitcher';
+import { BoothSystemPicker } from './BoothSystemPicker';
+import { useBoothSystems } from '@/hooks/useBoothSystems';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -141,8 +143,8 @@ export function BoothMapper3D({
     selectedAssetId, setSelectedAssetId,
     isDragMode, setIsDragMode,
     flooringConfig, setFlooringConfig,
-    boothLighting,
-    logisticsMarkers,
+    boothLighting, setBoothLighting,
+    logisticsMarkers, setLogisticsMarkers,
     selectedLogisticsId, setSelectedLogisticsId,
     showLogistics, setShowLogistics,
     monitorSpecs,
@@ -244,7 +246,38 @@ export function BoothMapper3D({
     handleApplyBrand,
   );
 
-  // Eagerly fetch images when organization is available
+  // Booth System Library
+  const boothSystems = useBoothSystems(organization?.id);
+  const [activeSystemVariantId, setActiveSystemVariantId] = useState<string | null>(null);
+
+  const handleLoadSystemVariant = useCallback((variant: { id: string; snapshotData: Record<string, unknown> }) => {
+    const snap = variant.snapshotData;
+    if (!snap || Object.keys(snap).length === 0) { toast.info('This variant has no saved snapshot'); return; }
+    if (snap.layout) setLayout(snap.layout as any);
+    if (snap.lightingPreset) setLightingPreset(snap.lightingPreset as any);
+    if (snap.assignments) setAssignments(snap.assignments as Record<string, string>);
+    if (snap.placedAssets) setPlacedAssets(snap.placedAssets as PlacedAsset[]);
+    if (snap.flooringConfig) setFlooringConfig(snap.flooringConfig as any);
+    if (snap.boothLighting) setBoothLighting(snap.boothLighting as any);
+    if (snap.logisticsMarkers) setLogisticsMarkers(snap.logisticsMarkers as any);
+    setActiveSystemVariantId(variant.id);
+    toast.success('System variant loaded');
+  }, [setLayout, setLightingPreset, setAssignments, setPlacedAssets, setFlooringConfig, setBoothLighting, setLogisticsMarkers]);
+
+  const handleSaveToSystemVariant = useCallback(async (variantId: string) => {
+    const snapshotData = {
+      layout,
+      lightingPreset,
+      assignments,
+      placedAssets,
+      flooringConfig,
+      boothLighting,
+      logisticsMarkers,
+    };
+    await boothSystems.updateVariantSnapshot(variantId, snapshotData as any);
+    setActiveSystemVariantId(variantId);
+  }, [layout, lightingPreset, assignments, placedAssets, flooringConfig, boothLighting, logisticsMarkers, boothSystems]);
+
   useEffect(() => {
     if (organization?.id) fetchImages(organization.id);
   }, [organization?.id, fetchImages]);
@@ -817,6 +850,16 @@ export function BoothMapper3D({
               <DivisionBrandSwitcher
                 branding={divisionBranding}
                 isAdmin={isAdmin}
+              />
+            }
+            systemPicker={
+              <BoothSystemPicker
+                systems={boothSystems.systems}
+                isLoading={boothSystems.isLoading}
+                isAdmin={isAdmin}
+                activeVariantId={activeSystemVariantId}
+                onLoadVariant={handleLoadSystemVariant}
+                onSaveToVariant={handleSaveToSystemVariant}
               />
             }
           />
