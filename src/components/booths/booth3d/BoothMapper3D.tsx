@@ -79,6 +79,8 @@ import { PanelFileMapper } from './PanelFileMapper';
 import { useBoothState } from './useBoothState';
 import { useDivisionBranding } from './useDivisionBranding';
 import { DivisionBrandSwitcher } from './DivisionBrandSwitcher';
+import { BoothSystemPicker } from './BoothSystemPicker';
+import { useBoothSystems } from '@/hooks/useBoothSystems';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
