@@ -202,6 +202,9 @@ export function BoothMapper3D({
   // Organization context for image library
   const { organization } = useOrganization();
 
+  // Booth analytics hook
+  const { analytics: boothAnalytics, saveAnalytics: saveBoothAnalytics } = useBoothAnalytics(divisionId, variantLabel);
+
   // Image library integration
   const { images: libraryImages, isLoading: libraryLoading, fetchImages, uploadImage } = useImageLibrary();
 
