@@ -67,18 +67,21 @@ const TexturedPanel = forwardRef<THREE.MeshStandardMaterial, { imageUrl: string;
   }
 );
 
-function EmptyPanel({ hovered, isSelected, mat }: { hovered: boolean; isSelected: boolean; mat: PrintMaterialConfig }) {
-  return (
-    <meshStandardMaterial
-      color={hovered ? '#1e293b' : '#0f172a'}
-      emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
-      emissiveIntensity={isSelected ? 0.2 : 0}
-      roughness={mat.roughness}
-      metalness={mat.metalness}
-      envMapIntensity={mat.envMapIntensity}
-    />
-  );
-}
+const EmptyPanel = forwardRef<THREE.MeshStandardMaterial, { hovered: boolean; isSelected: boolean; mat: PrintMaterialConfig }>(
+  function EmptyPanel({ hovered, isSelected, mat }, ref) {
+    return (
+      <meshStandardMaterial
+        ref={ref as any}
+        color={hovered ? '#1e293b' : '#0f172a'}
+        emissive={isSelected ? new THREE.Color('#1e40af') : undefined}
+        emissiveIntensity={isSelected ? 0.2 : 0}
+        roughness={mat.roughness}
+        metalness={mat.metalness}
+        envMapIntensity={mat.envMapIntensity}
+      />
+    );
+  }
+);
 
 /** Build a dashed rectangle from points */
 function useDashedRect(w: number, h: number) {
