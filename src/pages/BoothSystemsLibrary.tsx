@@ -320,7 +320,7 @@ interface SystemCardProps {
   onDelete: () => void;
   onAddVariant: () => void;
   onDeleteVariant: (id: string) => void;
-  onNavigateToMapper: (variant: BoothSystemVariant) => void;
+  onNavigateToMapper: () => void;
 }
 
 function SystemCard({
