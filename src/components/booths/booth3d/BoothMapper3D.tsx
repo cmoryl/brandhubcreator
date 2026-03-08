@@ -22,7 +22,7 @@ import {
   Users, Route, Building2, BookTemplate, Lightbulb, ScanLine,
   Move, Plus, Trash2, Monitor, Table2, Armchair, Flag, Box,
   Palette, Shirt, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw,
-  BarChart3, Smartphone, Presentation
+  BarChart3, Smartphone, Presentation, ClipboardList
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -87,6 +87,9 @@ import { BoothDesignToolbar } from './BoothDesignToolbar';
 import { BoothLeftPanel } from './BoothLeftPanel';
 import { EnvironmentPresetCards } from './EnvironmentPresetCards';
 import { PanelDesigner } from './PanelDesigner';
+import { LogisticsPanel } from './LogisticsPanel';
+import { LogisticsOverlay3D } from './LogisticsMarker3D';
+import { type LogisticsMarker, type LogisticsCategory, createMarker, LOGISTICS_CATEGORIES } from './logisticsTypes';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -190,6 +193,10 @@ export function BoothMapper3D({
   const [panelDesignerOpen, setPanelDesignerOpen] = useState(false);
   const [panelDesignerTarget, setPanelDesignerTarget] = useState<string | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
+  // Logistics markers
+  const [logisticsMarkers, setLogisticsMarkers] = useState<LogisticsMarker[]>([]);
+  const [selectedLogisticsId, setSelectedLogisticsId] = useState<string | null>(null);
+  const [showLogistics, setShowLogistics] = useState(true);
   // Organization context for image library
   const { organization } = useOrganization();
 
@@ -787,14 +794,30 @@ export function BoothMapper3D({
     { id: 'furniture', label: 'Furniture', icon: <Armchair className="h-3.5 w-3.5" />, visible: true, count: placedAssets.length },
     { id: 'lighting', label: 'Lighting', icon: <Lightbulb className="h-3.5 w-3.5" />, visible: showEnvironment },
     { id: 'people', label: 'People', icon: <Users className="h-3.5 w-3.5" />, visible: showPeople },
+    { id: 'logistics', label: 'Logistics', icon: <ClipboardList className="h-3.5 w-3.5" />, visible: showLogistics, count: logisticsMarkers.length },
   ];
 
   const handleToggleLayer = useCallback((layerId: string) => {
     switch (layerId) {
       case 'lighting': setShowEnvironment(v => !v); break;
       case 'people': setShowPeople(v => !v); break;
+      case 'logistics': setShowLogistics(v => !v); break;
     }
   }, []);
+
+  // Logistics handlers
+  const handleAddLogisticsMarker = useCallback((marker: LogisticsMarker) => {
+    setLogisticsMarkers(prev => [...prev, marker]);
+  }, []);
+
+  const handleUpdateLogisticsMarker = useCallback((id: string, updates: Partial<LogisticsMarker>) => {
+    setLogisticsMarkers(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+  }, []);
+
+  const handleRemoveLogisticsMarker = useCallback((id: string) => {
+    setLogisticsMarkers(prev => prev.filter(m => m.id !== id));
+    if (selectedLogisticsId === id) setSelectedLogisticsId(null);
+  }, [selectedLogisticsId]);
 
   // Panel graphic thumbnail grid for bottom content
   const panelThumbnails = (
@@ -887,6 +910,10 @@ export function BoothMapper3D({
             showHeatMap={showHeatMap}
             crowdSimulation={crowdSimulation}
             printStyle={printStyle}
+            logisticsMarkers={logisticsMarkers}
+            showLogistics={showLogistics}
+            selectedLogisticsId={selectedLogisticsId}
+            onSelectLogistics={setSelectedLogisticsId}
           />
         </Suspense>
       </Canvas>
@@ -1118,6 +1145,12 @@ export function BoothMapper3D({
             onAddAsset={handleAddAsset}
             layers={sceneLayers}
             onToggleLayer={handleToggleLayer}
+            logisticsMarkers={logisticsMarkers}
+            selectedLogisticsId={selectedLogisticsId}
+            onSelectLogistics={setSelectedLogisticsId}
+            onAddLogisticsMarker={handleAddLogisticsMarker}
+            onUpdateLogisticsMarker={handleUpdateLogisticsMarker}
+            onRemoveLogisticsMarker={handleRemoveLogisticsMarker}
           />
         }
         rightPanel={

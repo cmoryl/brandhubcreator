@@ -22,6 +22,8 @@ import { CameraAnimator, type WalkthroughMode } from './CameraAnimator';
 import { FirstPersonController } from './FirstPersonController';
 import type { MonitorSpec } from './specParser';
 import { type BoothLightingConfig, type PrintStyle, temperatureToColor, parCanToColor } from './boothLightingConfig';
+import { LogisticsOverlay3D } from './LogisticsMarker3D';
+import type { LogisticsMarker } from './logisticsTypes';
 
 
 
@@ -76,6 +78,11 @@ interface BoothScene3DProps {
   /** Crowd simulation data for heat map overlay */
   crowdSimulation?: CrowdSimulationData | null;
   showHeatMap?: boolean;
+  /** Logistics markers overlay */
+  logisticsMarkers?: LogisticsMarker[];
+  showLogistics?: boolean;
+  selectedLogisticsId?: string | null;
+  onSelectLogistics?: (id: string) => void;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
@@ -137,6 +144,10 @@ export function BoothScene3D({
   printStyle = 'fabric-matte',
   crowdSimulation = null,
   showHeatMap = false,
+  logisticsMarkers = [],
+  showLogistics = false,
+  selectedLogisticsId = null,
+  onSelectLogistics,
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
@@ -546,6 +557,14 @@ export function BoothScene3D({
           showSightlines={true}
         />
       )}
+
+      {/* Logistics overlay markers */}
+      <LogisticsOverlay3D
+        markers={logisticsMarkers}
+        visible={showLogistics}
+        selectedMarkerId={selectedLogisticsId}
+        onSelectMarker={onSelectLogistics}
+      />
     </>
   );
 }
