@@ -105,6 +105,7 @@ export function BoothMapper3D({
   const [showPeople, setShowPeople] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
   const [activeCameraPreset, setActiveCameraPreset] = useState<string | null>(null);
+  const [cameraVersion, setCameraVersion] = useState(0);
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
@@ -903,6 +904,12 @@ export function BoothMapper3D({
                 onSelectAsset={handleSelectAsset}
                 onAssetPositionChange={handleAssetPositionChange}
                 environmentRealism={environmentRealism}
+                activeCameraPreset={
+                  activeCameraPreset
+                    ? getEnvironmentConfig(environmentRealism).cameraPresets.find(p => p.id === activeCameraPreset) ?? null
+                    : null
+                }
+                cameraVersion={cameraVersion}
               />
             </Suspense>
           </Canvas>
@@ -1040,24 +1047,7 @@ export function BoothMapper3D({
                   key={preset.id}
                   onClick={() => {
                     setActiveCameraPreset(preset.id);
-                    const canvas = canvasRef.current;
-                    if (canvas) {
-                      const state = (canvas as any).__r3f;
-                      if (state) {
-                        const cam = state.camera;
-                        cam.position.set(...preset.position);
-                        cam.fov = preset.fov;
-                        cam.updateProjectionMatrix();
-                        // Small delay ensures controls pick up the new position
-                        setTimeout(() => {
-                          const controls = state.controls;
-                          if (controls) {
-                            controls.target.set(...preset.target);
-                            controls.update();
-                          }
-                        }, 10);
-                      }
-                    }
+                    setCameraVersion(v => v + 1);
                   }}
                   className={cn(
                     "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
