@@ -613,15 +613,24 @@ export function BoothMapper3D({
               <Layout className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              {LAYOUT_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  <div>
-                    <span className="font-medium">{opt.label}</span>
-                    <span className="text-muted-foreground ml-1.5 text-xs">· {opt.desc}</span>
+            <SelectContent className="max-h-[320px]">
+              {['Inline', 'Corner', 'Peninsula', 'Island'].map((cat) => {
+                const items = LAYOUT_OPTIONS.filter(o => o.category === cat);
+                if (!items.length) return null;
+                return (
+                  <div key={cat}>
+                    <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{cat}</div>
+                    {items.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <div>
+                          <span className="font-medium">{opt.label}</span>
+                          <span className="text-muted-foreground ml-1.5 text-xs">· {opt.desc}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </div>
-                </SelectItem>
-              ))}
+                );
+              })}
             </SelectContent>
           </Select>
         ) : (
