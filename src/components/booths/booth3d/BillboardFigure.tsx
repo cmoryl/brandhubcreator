@@ -1,13 +1,13 @@
 /**
  * BillboardFigure — Photorealistic character billboard sprites for arch-viz.
  *
- * Uses AI-generated transparent PNG cutouts rendered as camera-facing planes.
- * Characters are generated with proper alpha channels — no post-processing needed.
+ * Uses a custom shader to remove white/near-white backgrounds while keeping
+ * character pixels fully opaque (no transparency on the person themselves).
  */
 import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
-import { useFrame, useThree } from '@react-three/fiber';
-import { useTexture } from '@react-three/drei';
+import { useFrame, useThree, extend } from '@react-three/fiber';
+import { useTexture, shaderMaterial } from '@react-three/drei';
 
 // ── Pre-baked sprite descriptors ──────────────────────────
 export interface CharacterSprite {
@@ -38,6 +38,66 @@ export function getCharacterBySeed(seed: number, isStaff = false): CharacterSpri
     ? CHARACTER_CATALOG.filter(c => c.id.startsWith('staff-'))
     : CHARACTER_CATALOG.filter(c => !c.id.startsWith('staff-') && c.id !== 'group-pair');
   return pool[Math.abs(seed) % pool.length];
+}
+
+// ── White-removal shader — keeps people fully opaque ──────
+const CutoutMaterial = shaderMaterial(
+  {
+    map: null as THREE.Texture | null,
+    threshold: 0.92,
+  },
+  // Vertex
+  `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  // Fragment — discards white bg, keeps person at full opacity
+  `
+    uniform sampler2D map;
+    uniform float threshold;
+    varying vec2 vUv;
+    
+    void main() {
+      vec4 texColor = texture2D(map, vUv);
+      
+      float brightness = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+      float minChannel = min(min(texColor.r, texColor.g), texColor.b);
+      float maxChannel = max(max(texColor.r, texColor.g), texColor.b);
+      float saturation = maxChannel > 0.0 ? (maxChannel - minChannel) / maxChannel : 0.0;
+      
+      // Pure white/near-white background: high brightness + low saturation + all channels high
+      bool isBackground = brightness > threshold && saturation < 0.08 && minChannel > (threshold * 0.88);
+      
+      if (isBackground) {
+        discard;
+      }
+      
+      // Soft anti-aliased edge for the transition zone
+      float edgeBright = smoothstep(threshold * 0.92, threshold, brightness);
+      float edgeSat = 1.0 - smoothstep(0.04, 0.08, saturation);
+      float edgeMin = smoothstep(threshold * 0.82, threshold * 0.88, minChannel);
+      float bgLikeness = edgeBright * edgeSat * edgeMin;
+      
+      // People stay fully opaque (alpha = 1), only edge transitions fade
+      float alpha = texColor.a * (1.0 - bgLikeness * 0.95);
+      if (alpha < 0.02) discard;
+      
+      gl_FragColor = vec4(texColor.rgb, alpha);
+    }
+  `
+);
+
+extend({ CutoutMaterial });
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      cutoutMaterial: any;
+    }
+  }
 }
 
 // ── Billboard Figure Component ────────────────────────────
@@ -92,11 +152,10 @@ export function BillboardFigure({
         position={[position[0], position[1] + height / 2, position[2]]}
       >
         <planeGeometry args={[width, height]} />
-        <meshStandardMaterial
+        <cutoutMaterial
           map={texture}
-          transparent
-          opacity={1}
-          alphaTest={0.1}
+          threshold={0.92}
+          transparent={true}
           side={THREE.DoubleSide}
           depthWrite={true}
         />
@@ -105,7 +164,6 @@ export function BillboardFigure({
       <mesh
         position={[position[0], position[1] + 0.005, position[2]]}
         rotation={[-Math.PI / 2, 0, 0]}
-        receiveShadow={false}
       >
         <circleGeometry args={[width * 0.55, 32]} />
         <meshBasicMaterial
