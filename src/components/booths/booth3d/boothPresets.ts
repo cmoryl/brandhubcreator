@@ -306,6 +306,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['banking', 'finance', 'investment', 'insurance', 'wealth', 'premium'],
     placedAssets: FINANCE_BANKING_ASSETS,
     flooringConfig: FINANCE_BANKING_FLOOR,
+  },
   {
     id: 'finance-fintech',
     name: 'FinTech & Payments',
