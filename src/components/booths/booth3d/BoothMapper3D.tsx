@@ -776,6 +776,210 @@ export function BoothMapper3D({
   const assignedCount = Object.keys(assignments).length;
   const totalPanels = boothConfig.panels.length;
 
+  // Scene layers for toggling visibility
+  const sceneLayers: SceneLayer[] = [
+    { id: 'structure', label: 'Structure', icon: <Box className="h-3.5 w-3.5" />, visible: true, count: panels.length },
+    { id: 'graphics', label: 'Graphics', icon: <ImageIcon className="h-3.5 w-3.5" />, visible: true, count: assignedCount },
+    { id: 'screens', label: 'Screens', icon: <Monitor className="h-3.5 w-3.5" />, visible: true, count: placedAssets.filter(a => getFurnitureById(a.assetId)?.hasScreen).length },
+    { id: 'furniture', label: 'Furniture', icon: <Armchair className="h-3.5 w-3.5" />, visible: true, count: placedAssets.length },
+    { id: 'lighting', label: 'Lighting', icon: <Lightbulb className="h-3.5 w-3.5" />, visible: showEnvironment },
+    { id: 'people', label: 'People', icon: <Users className="h-3.5 w-3.5" />, visible: showPeople },
+  ];
+
+  const handleToggleLayer = useCallback((layerId: string) => {
+    switch (layerId) {
+      case 'lighting': setShowEnvironment(v => !v); break;
+      case 'people': setShowPeople(v => !v); break;
+    }
+  }, []);
+
+  // Panel graphic thumbnail grid for bottom content
+  const panelThumbnails = (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {boothConfig.panels.map((panel) => (
+        <button
+          key={panel.id}
+          onClick={() => handleSelectPanel(panel.id)}
+          className={cn(
+            "flex items-center gap-2 p-2 rounded-lg border transition-colors text-left",
+            assignments[panel.id]
+              ? "border-primary/30 bg-primary/5"
+              : "border-dashed border-muted-foreground/30 hover:border-primary/50"
+          )}
+        >
+          {assignments[panel.id] ? (
+            <img src={assignments[panel.id]} alt={panel.label} className="h-10 w-14 object-cover rounded" />
+          ) : (
+            <div className="h-10 w-14 bg-muted rounded flex items-center justify-center">
+              <ImageIcon className="h-4 w-4 text-muted-foreground" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-xs font-medium truncate">{panel.label}</p>
+            <p className="text-[10px] text-muted-foreground">
+              {panel.specLabel || ''} {assignments[panel.id] ? '· Assigned' : '· Empty'}
+            </p>
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+
+  // 3D Canvas element
+  const canvasElement = (
+    <div className="relative h-full min-h-[500px]">
+      <Canvas
+        ref={canvasRef}
+        shadows={environmentRealism === 'hyper' ? 'soft' : true}
+        camera={{ position: [6, 4, 6], fov: 45 }}
+        gl={{
+          preserveDrawingBuffer: true,
+          antialias: true,
+          toneMapping: 4,
+          toneMappingExposure: 1.0,
+          outputColorSpace: 'srgb',
+          shadowMap: { enabled: true, type: environmentRealism === 'hyper' ? 2 : 1 },
+        } as any}
+        dpr={[1, environmentRealism === 'hyper' ? 2 : 1.5]}
+        flat={false}
+      >
+        <Suspense fallback={null}>
+          <SceneBridge sceneRef={sceneRef} />
+          <BoothScene3D
+            panels={panels}
+            selectedPanelId={selectedPanelId}
+            onSelectPanel={handleSelectPanel}
+            lightingPreset={lightingPreset}
+            showLabels={showLabels}
+            showDimensions={showDimensions}
+            showSafeZones={showSafeZones}
+            showEnvironment={showEnvironment}
+            showPeople={showPeople}
+            showTrafficFlow={showTrafficFlow}
+            layout={layout}
+            isDragMode={isDragMode}
+            onPanelPositionChange={handlePanelPositionChange}
+            placedAssets={placedAssets}
+            selectedAssetId={selectedAssetId}
+            onSelectAsset={handleSelectAsset}
+            onAssetPositionChange={handleAssetPositionChange}
+            environmentRealism={environmentRealism}
+            activeCameraPreset={
+              activeCameraPreset
+                ? getEnvironmentConfig(environmentRealism).cameraPresets.find(p => p.id === activeCameraPreset) ?? null
+                : null
+            }
+            cameraVersion={cameraVersion}
+            walkthroughMode={walkthroughMode}
+            allCameraPresets={getEnvironmentConfig(environmentRealism).cameraPresets}
+            onWalkthroughEnd={() => setWalkthroughMode('none')}
+            onTourStep={(id) => setActiveCameraPreset(id)}
+            spriteUrls={characterSprites.sprites}
+            useBillboards={characterSprites.count > 0}
+            monitorSpecs={monitorSpecs}
+            activeSpecConfig={useProductionSpecs ? specConfigType : ''}
+            flooringConfig={flooringConfig}
+            footprint={boothConfig.footprint}
+            boothLighting={boothLighting}
+            showHeatMap={showHeatMap}
+            crowdSimulation={crowdSimulation}
+            printStyle={printStyle}
+          />
+        </Suspense>
+      </Canvas>
+
+      {/* AI Mapping overlay */}
+      {isAiMapping && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-10">
+          <div className="flex flex-col items-center gap-3 bg-background/90 rounded-xl px-6 py-4 border shadow-lg">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <div className="text-center">
+              <p className="text-sm font-medium">AI Analyzing Booth Spec</p>
+              <p className="text-xs text-muted-foreground mt-1">Identifying panels and mapping content...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Orbit hint */}
+      <div className="absolute bottom-3 left-3 text-xs text-muted-foreground/60 bg-background/50 backdrop-blur-sm rounded px-2 py-1 z-10">
+        {isDragMode
+          ? '⊞ Drag Mode — click & drag to reposition'
+          : 'Drag to orbit · Scroll to zoom · Click panel to assign'}
+      </div>
+      {isDragMode && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-accent/90 text-accent-foreground text-xs font-medium shadow-lg animate-pulse z-10">
+          <Move className="h-3 w-3 inline mr-1.5" />
+          Drag Mode
+        </div>
+      )}
+
+      {/* Camera panel */}
+      <div className="absolute top-3 right-3 flex flex-col gap-1 z-10 max-w-[160px]">
+        <div className="bg-background/85 backdrop-blur-sm rounded-lg border shadow-lg overflow-hidden">
+          <button
+            onClick={() => setCameraPanelOpen(v => !v)}
+            className="w-full flex items-center justify-between px-2 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted/50 transition-colors"
+          >
+            <span>📷 Camera</span>
+            <span className="text-[10px]">{cameraPanelOpen ? '▲' : '▼'}</span>
+          </button>
+          {cameraPanelOpen && (
+            <div className="p-2 pt-0 space-y-1.5">
+              {getEnvironmentConfig(environmentRealism).cameraPresets.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => {
+                    if (walkthroughMode !== 'none') setWalkthroughMode('none');
+                    setActiveCameraPreset(preset.id);
+                    setCameraVersion(v => v + 1);
+                  }}
+                  className={cn(
+                    "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
+                    activeCameraPreset === preset.id && walkthroughMode === 'none'
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted text-foreground"
+                  )}
+                  title={preset.description}
+                >
+                  {preset.name}
+                </button>
+              ))}
+              <div className="border-t border-border pt-1.5 mt-1 space-y-1">
+                <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider px-1">🎬 Walkthrough</p>
+                <button
+                  onClick={() => setWalkthroughMode(walkthroughMode === 'walkthrough' ? 'none' : 'walkthrough')}
+                  className={cn(
+                    "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
+                    walkthroughMode === 'walkthrough' ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground"
+                  )}
+                >
+                  {walkthroughMode === 'walkthrough' ? '⏹ Stop Walk' : '🚶 First Person'}
+                </button>
+                <button
+                  onClick={() => setWalkthroughMode(walkthroughMode === 'tour' ? 'none' : 'tour')}
+                  className={cn(
+                    "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
+                    walkthroughMode === 'tour' ? "bg-primary text-primary-foreground" : "hover:bg-muted text-foreground"
+                  )}
+                >
+                  {walkthroughMode === 'tour' ? '⏹ Stop Tour' : '🎥 Auto Tour'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mini map */}
+      <MiniMapOverlay
+        panels={panels}
+        placedAssets={placedAssets}
+        boothFootprint={boothConfig.footprint}
+      />
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       {/* Hidden file input (admin only) */}
@@ -789,741 +993,98 @@ export function BoothMapper3D({
         />
       )}
 
-      {/* Toolbar — Row 1: Scene & View */}
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card/50 px-3 py-2">
-        {/* ── Scene Setup ── */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline">Scene</span>
-          {isAdmin ? (
-            <Select value={layout} onValueChange={(v) => { setLayout(v as BoothLayout); setAssignments({}); setPanelPositionOverrides({}); setPlacedAssets([]); }}>
-              <SelectTrigger className="w-[150px] h-8 text-xs">
-                <Layout className="h-3.5 w-3.5 mr-1.5" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="max-h-[320px]">
-                {['Inline', 'Corner', 'Peninsula', 'Island'].map((cat) => {
-                  const items = LAYOUT_OPTIONS.filter(o => o.category === cat);
-                  if (!items.length) return null;
-                  return (
-                    <div key={cat}>
-                      <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{cat}</div>
-                      {items.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          <span className="font-medium">{opt.label}</span>
-                          <span className="text-muted-foreground ml-1.5 text-xs">· {opt.desc}</span>
-                        </SelectItem>
-                      ))}
-                    </div>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Badge variant="outline" className="h-8 px-2.5 text-xs flex items-center gap-1.5">
-              <Layout className="h-3.5 w-3.5" />
-              {LAYOUT_OPTIONS.find(o => o.value === layout)?.label || layout}
-            </Badge>
-          )}
-
-          {isAdmin ? (
-            <Select value={lightingPreset} onValueChange={(v) => setLightingPreset(v as LightingPreset)}>
-              <SelectTrigger className="w-[130px] h-8 text-xs">
-                <Sun className="h-3.5 w-3.5 mr-1.5" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {LIGHTING_PRESETS.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Badge variant="outline" className="h-8 px-2.5 text-xs flex items-center gap-1.5">
-              <Sun className="h-3.5 w-3.5" />
-              {LIGHTING_PRESETS.find(p => p.value === lightingPreset)?.label || lightingPreset}
-            </Badge>
-          )}
-        </div>
-
-        <div className="h-5 w-px bg-border" />
-
-        {/* ── View Toggles ── */}
-        <div className="flex items-center gap-1">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline mr-1">View</span>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Toggle pressed={showLabels} onPressedChange={setShowLabels} size="sm" className="h-8 w-8" aria-label="Toggle labels">
-                  <Tag className="h-3.5 w-3.5" />
-                </Toggle>
-              </TooltipTrigger>
-              <TooltipContent>Panel Labels</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Toggle pressed={showDimensions} onPressedChange={setShowDimensions} size="sm" className="h-8 w-8" aria-label="Toggle dimensions">
-                  <Ruler className="h-3.5 w-3.5" />
-                </Toggle>
-              </TooltipTrigger>
-              <TooltipContent>Dimensions</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Toggle pressed={showSafeZones} onPressedChange={setShowSafeZones} size="sm" className="h-8 w-8" aria-label="Toggle safe zones">
-                  <ScanLine className="h-3.5 w-3.5" />
-                </Toggle>
-              </TooltipTrigger>
-              <TooltipContent>Safe Zones &amp; Bleed</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
-        <div className="h-5 w-px bg-border" />
-
-        {/* ── Environment ── */}
-        <div className="flex items-center gap-1">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline mr-1">Env</span>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Toggle pressed={showEnvironment} onPressedChange={(v) => {
-                  setShowEnvironment(v);
-                  if (v) setShowPeople(true);
-                }} size="sm" className="h-8 w-8" aria-label="Toggle expo environment">
-                  <Building2 className="h-3.5 w-3.5" />
-                </Toggle>
-              </TooltipTrigger>
-              <TooltipContent>Expo Environment</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Toggle pressed={showPeople} onPressedChange={setShowPeople} size="sm" className="h-8 w-8" aria-label="Toggle people">
-                  <Users className="h-3.5 w-3.5" />
-                </Toggle>
-              </TooltipTrigger>
-              <TooltipContent>People &amp; Scale</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Toggle pressed={showTrafficFlow} onPressedChange={setShowTrafficFlow} size="sm" className="h-8 w-8" aria-label="Toggle traffic flow">
-                  <Route className="h-3.5 w-3.5" />
-                </Toggle>
-              </TooltipTrigger>
-              <TooltipContent>Traffic Flow</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Toggle pressed={showHeatMap} onPressedChange={(v) => {
-                  setShowHeatMap(v);
-                  if (v && !crowdSimulation) setShowSimPanel(true);
-                }} size="sm" className="h-8 w-8" aria-label="Toggle heat map">
-                  <BarChart3 className="h-3.5 w-3.5" />
-                </Toggle>
-              </TooltipTrigger>
-              <TooltipContent>Crowd Simulation</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          {showEnvironment && (
-            <Select value={environmentRealism} onValueChange={(v) => {
-              setEnvironmentRealism(v as EnvironmentRealism);
+      {/* BoothWorkspace IDE Layout */}
+      <BoothWorkspace
+        activeMode={activeMode}
+        onModeChange={setActiveMode}
+        hasLeftPanel={activeMode === 'design' || activeMode === 'graphics'}
+        hasRightPanel={true}
+        toolbar={
+          <BoothDesignToolbar
+            mode={activeMode}
+            isAdmin={isAdmin}
+            layout={layout}
+            onLayoutChange={(v) => { setLayout(v); setAssignments({}); setPanelPositionOverrides({}); setPlacedAssets([]); }}
+            lightingPreset={lightingPreset}
+            onLightingChange={setLightingPreset}
+            showLabels={showLabels}
+            onShowLabelsChange={setShowLabels}
+            showDimensions={showDimensions}
+            onShowDimensionsChange={setShowDimensions}
+            showSafeZones={showSafeZones}
+            onShowSafeZonesChange={setShowSafeZones}
+            showEnvironment={showEnvironment}
+            onShowEnvironmentChange={setShowEnvironment}
+            showPeople={showPeople}
+            onShowPeopleChange={setShowPeople}
+            showTrafficFlow={showTrafficFlow}
+            onShowTrafficFlowChange={setShowTrafficFlow}
+            showHeatMap={showHeatMap}
+            onShowHeatMapChange={(v) => {
+              setShowHeatMap(v);
+              if (v && !crowdSimulation) setShowSimPanel(true);
+            }}
+            environmentRealism={environmentRealism}
+            onEnvironmentRealismChange={(v) => {
+              setEnvironmentRealism(v);
               setActiveCameraPreset(null);
-              const config = getEnvironmentConfig(v as EnvironmentRealism);
               if (v === 'cinematic' || v === 'ultra') {
                 setShowPeople(true);
                 setShowTrafficFlow(true);
               }
-            }}>
-              <SelectTrigger className="h-8 w-[120px] text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.entries(ENVIRONMENT_PRESETS) as [EnvironmentRealism, typeof ENVIRONMENT_PRESETS[EnvironmentRealism]][]).map(([key, preset]) => (
-                  <SelectItem key={key} value={key}>
-                    <span className="flex items-center gap-1.5">
-                      <span>{preset.icon}</span>
-                      <span>{preset.label}</span>
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          {showPeople && isAdmin && (
-            <>
-              <Button
-                variant={characterSprites.count > 0 ? "outline" : "secondary"}
-                size="sm"
-                className="h-8 text-[10px] px-2"
-                onClick={() => characterSprites.generateAll()}
-                disabled={characterSprites.isGenerating}
-              >
-                {characterSprites.isGenerating ? '⏳' : '📸'} {characterSprites.count > 0 ? `${characterSprites.count}` : 'Gen'}
-              </Button>
-              {characterSprites.count > 0 && (
-                <Button variant="ghost" size="sm" className="h-8 text-[10px] px-1.5" onClick={() => characterSprites.regenerateAll()} disabled={characterSprites.isGenerating}>
-                  🔄
-                </Button>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* ── Edit Tools (admin) ── */}
-        {isAdmin && (
-          <>
-            <div className="h-5 w-px bg-border" />
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline mr-1">Edit</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Toggle pressed={isDragMode} onPressedChange={setIsDragMode} size="sm" className={`h-8 w-8 ${isDragMode ? 'bg-accent text-accent-foreground' : ''}`} aria-label="Toggle drag mode">
-                      <Move className="h-3.5 w-3.5" />
-                    </Toggle>
-                  </TooltipTrigger>
-                  <TooltipContent>Drag Mode</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setAssetPickerOpen(true)}>
-                      <Plus className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Add Furniture</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </>
-        )}
-
-        <div className="h-5 w-px bg-border" />
-
-        {/* ── Floor ── */}
-        <div className="flex items-center gap-1">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline mr-1">Floor</span>
-          <Select value={flooringConfig.type} onValueChange={(v) => setFlooringConfig(prev => ({ ...prev, type: v as FlooringType }))}>
-            <SelectTrigger className="h-8 w-[120px] text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FLOORING_OPTIONS.map((f) => (
-                <SelectItem key={f.value} value={f.value}>
-                  <span className="font-medium">{f.label}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {flooringConfig.type !== 'none' && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-2" style={{ borderColor: flooringConfig.color }}>
-                  <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: flooringConfig.color }} />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-3" align="start">
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Floor Color</p>
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {FLOOR_COLOR_PRESETS.map((c) => (
-                      <button
-                        key={c.value}
-                        className={cn(
-                          "w-7 h-7 rounded-md border-2 transition-all",
-                          flooringConfig.color === c.value ? "border-primary ring-1 ring-primary" : "border-border hover:border-muted-foreground"
-                        )}
-                        style={{ backgroundColor: c.value }}
-                        onClick={() => setFlooringConfig(prev => ({ ...prev, color: c.value }))}
-                        title={c.label}
-                      />
-                    ))}
-                  </div>
-                  <Input
-                    type="text"
-                    value={flooringConfig.color}
-                    onChange={(e) => setFlooringConfig(prev => ({ ...prev, color: e.target.value }))}
-                    className="h-7 text-xs font-mono mt-1"
-                    placeholder="#hex"
-                  />
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Toggle pressed={flooringConfig.showBorder} onPressedChange={(v) => setFlooringConfig(prev => ({ ...prev, showBorder: v }))} size="sm" className="h-8 w-8" aria-label="Toggle border">
-                  <Box className="h-3.5 w-3.5" />
-                </Toggle>
-              </TooltipTrigger>
-              <TooltipContent>Booth Boundary</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
-        <div className="h-5 w-px bg-border" />
-
-        {/* ── Print & Light ── */}
-        <div className="flex items-center gap-1">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline mr-1">Print</span>
-          <Select value={printStyle} onValueChange={(v) => setPrintStyle(v as PrintStyle)}>
-            <SelectTrigger className="h-8 w-[110px] text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PRINT_STYLE_OPTIONS.map((p) => (
-                <SelectItem key={p.value} value={p.value}>
-                  <span className="font-medium">{p.label}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 text-xs gap-1 px-2">
-                <Lightbulb className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Lighting</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-3" align="start">
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-foreground">Booth Lighting Rig</p>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-medium text-muted-foreground uppercase">Hall Ambient</label>
-                  <div className="flex items-center gap-2">
-                    <input type="range" min="0" max="100" value={Math.round(boothLighting.hallAmbient * 100)}
-                      onChange={(e) => setBoothLighting(prev => ({ ...prev, hallAmbient: Number(e.target.value) / 100 }))}
-                      className="flex-1 h-1.5 accent-primary" />
-                    <span className="text-[10px] font-mono text-muted-foreground w-8">{Math.round(boothLighting.hallAmbient * 100)}%</span>
-                  </div>
-                  <div className="flex gap-1">
-                    {TEMPERATURE_OPTIONS.map((t) => (
-                      <button key={t.value}
-                        className={cn("text-[10px] px-1.5 py-0.5 rounded border", boothLighting.hallTemperature === t.value ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground")}
-                        onClick={() => setBoothLighting(prev => ({ ...prev, hallTemperature: t.value }))}
-                      >{t.label}</button>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-medium text-muted-foreground uppercase">Par Can Wash</label>
-                  <Select value={boothLighting.parCanColor} onValueChange={(v) => setBoothLighting(prev => ({ ...prev, parCanColor: v as ParCanColor }))}>
-                    <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {PAR_CAN_OPTIONS.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {boothLighting.parCanColor !== 'none' && (
-                    <div className="flex items-center gap-2">
-                      <input type="range" min="0" max="100" value={Math.round(boothLighting.parCanIntensity * 100)}
-                        onChange={(e) => setBoothLighting(prev => ({ ...prev, parCanIntensity: Number(e.target.value) / 100 }))}
-                        className="flex-1 h-1.5 accent-primary" />
-                      <span className="text-[10px] font-mono text-muted-foreground w-8">{Math.round(boothLighting.parCanIntensity * 100)}%</span>
-                    </div>
-                  )}
-                </div>
-
-                <Separator />
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-medium text-muted-foreground uppercase">Edge Lighting</label>
-                    <Switch checked={boothLighting.edgeLightEnabled} onCheckedChange={(v) => setBoothLighting(prev => ({ ...prev, edgeLightEnabled: v }))} />
-                  </div>
-                  {boothLighting.edgeLightEnabled && (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <input type="range" min="0" max="100" value={Math.round(boothLighting.edgeLightIntensity * 100)}
-                          onChange={(e) => setBoothLighting(prev => ({ ...prev, edgeLightIntensity: Number(e.target.value) / 100 }))}
-                          className="flex-1 h-1.5 accent-primary" />
-                        <span className="text-[10px] font-mono text-muted-foreground w-8">{Math.round(boothLighting.edgeLightIntensity * 100)}%</span>
-                      </div>
-                      <Input type="text" value={boothLighting.edgeLightColor}
-                        onChange={(e) => setBoothLighting(prev => ({ ...prev, edgeLightColor: e.target.value }))}
-                        className="h-7 text-xs font-mono" placeholder="#hex color" />
-                    </>
-                  )}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="ml-auto flex items-center gap-2">
-          {availableSpecTypes.length > 0 && (
-            <Select value={useProductionSpecs ? specConfigType : '__generic'} onValueChange={(v) => {
-              if (v === '__generic') {
-                setUseProductionSpecs(false);
-              } else {
-                setSpecConfigType(v);
-                setUseProductionSpecs(true);
-              }
-            }}>
-              <SelectTrigger className="w-[130px] h-8 text-xs">
-                <Ruler className="h-3 w-3 mr-1" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__generic">Generic Layout</SelectItem>
-                {availableSpecTypes.map((t) => (
-                  <SelectItem key={t} value={t}>{t} Specs</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          <Badge variant="outline" className="text-[10px] h-7 px-2">
-            {boothConfig.dimensions} · {boothConfig.footprint}
-          </Badge>
-          <Badge variant={assignedCount === totalPanels ? 'default' : 'secondary'} className="text-[10px] h-7 px-2">
-            {assignedCount}/{totalPanels} panels
-          </Badge>
-        </div>
-      </div>
-
-      {/* Toolbar — Row 2: Actions */}
-      <div className="flex flex-wrap items-center gap-2">
-        {isAdmin && (
-          <>
-            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-              {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-              Upload Spec
-            </Button>
-            {variantImages.length > 0 && (
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={handleAutoFill}>
-                <Sparkles className="h-3.5 w-3.5" />
-                Auto-fill
-              </Button>
-            )}
-          </>
-        )}
-        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setPresetPickerOpen(true)}>
-          <BookTemplate className="h-3.5 w-3.5" />
-          Presets
-        </Button>
-        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={handleScreenshot}>
-          <Camera className="h-3.5 w-3.5" />
-          Screenshot
-        </Button>
-        {isAdmin && (
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs text-muted-foreground" onClick={handleResetView}>
-            <RotateCcw className="h-3.5 w-3.5" />
-            Clear
-          </Button>
-        )}
-        <Button
-          variant={showARPanel ? 'default' : 'outline'}
-          size="sm"
-          className="h-8 gap-1.5 text-xs"
-          onClick={() => setShowARPanel(v => !v)}
-        >
-          <Smartphone className="h-3.5 w-3.5" />
-          AR Preview
-        </Button>
-        <Button
-          variant={showSalesDeck ? 'default' : 'outline'}
-          size="sm"
-          className="h-8 gap-1.5 text-xs"
-          onClick={() => setShowSalesDeck(v => !v)}
-        >
-          <Presentation className="h-3.5 w-3.5" />
-          Sales Deck
-        </Button>
-      </div>
-
-      {/* Uploaded Specs Row (admin only) */}
-      {isAdmin && uploadedSpecs.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
-          <span className="text-xs font-medium text-muted-foreground mr-1">Uploaded Specs:</span>
-          {uploadedSpecs.map((spec, i) => (
-            <div key={spec.url} className="flex items-center gap-1.5 bg-background rounded-md border px-2 py-1">
-              <img src={spec.url} alt={spec.name} className="h-8 w-12 object-cover rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              <span className="text-xs truncate max-w-[120px]">{spec.name}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-1.5 gap-1 text-xs"
-                onClick={() => handleAiMapping(spec.url)}
-                disabled={isAiMapping}
-              >
-                {isAiMapping ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
-                AI Map
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 3D Canvas */}
-      <Card className="overflow-hidden border">
-        <div className="relative h-[500px] md:h-[600px]">
-          <Canvas
-            ref={canvasRef}
-            shadows={environmentRealism === 'hyper' ? 'soft' : true}
-            camera={{ position: [6, 4, 6], fov: 45 }}
-            gl={{
-              preserveDrawingBuffer: true,
-              antialias: true,
-              toneMapping: 4, // ACESFilmicToneMapping for all realism levels
-              toneMappingExposure: environmentRealism === 'hyper' ? 1.0 : environmentRealism === 'ultra' ? 1.0 : 1.0,
-              outputColorSpace: 'srgb',
-              shadowMap: { enabled: true, type: environmentRealism === 'hyper' ? 2 : 1 }, // VSM=2, PCF=1
-            } as any}
-            dpr={[1, environmentRealism === 'hyper' ? 2 : 1.5]}
-            flat={false}
-          >
-            <Suspense fallback={null}>
-              <SceneBridge sceneRef={sceneRef} />
-              <BoothScene3D
-                panels={panels}
-                selectedPanelId={selectedPanelId}
-                onSelectPanel={handleSelectPanel}
-                lightingPreset={lightingPreset}
-                showLabels={showLabels}
-                showDimensions={showDimensions}
-                showSafeZones={showSafeZones}
-                showEnvironment={showEnvironment}
-                showPeople={showPeople}
-                showTrafficFlow={showTrafficFlow}
-                layout={layout}
-                isDragMode={isDragMode}
-                onPanelPositionChange={handlePanelPositionChange}
-                placedAssets={placedAssets}
-                selectedAssetId={selectedAssetId}
-                onSelectAsset={handleSelectAsset}
-                onAssetPositionChange={handleAssetPositionChange}
-                environmentRealism={environmentRealism}
-                activeCameraPreset={
-                  activeCameraPreset
-                    ? getEnvironmentConfig(environmentRealism).cameraPresets.find(p => p.id === activeCameraPreset) ?? null
-                    : null
-                }
-                cameraVersion={cameraVersion}
-                walkthroughMode={walkthroughMode}
-                allCameraPresets={getEnvironmentConfig(environmentRealism).cameraPresets}
-                onWalkthroughEnd={() => setWalkthroughMode('none')}
-                onTourStep={(id) => setActiveCameraPreset(id)}
-                spriteUrls={characterSprites.sprites}
-                useBillboards={characterSprites.count > 0}
-                monitorSpecs={monitorSpecs}
-                activeSpecConfig={useProductionSpecs ? specConfigType : ''}
-                flooringConfig={flooringConfig}
-                footprint={boothConfig.footprint}
-                boothLighting={boothLighting}
-                showHeatMap={showHeatMap}
-                crowdSimulation={crowdSimulation}
-                printStyle={printStyle}
-              />
-            </Suspense>
-          </Canvas>
-
-          {/* AI Mapping overlay */}
-          {isAiMapping && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-10">
-              <div className="flex flex-col items-center gap-3 bg-background/90 rounded-xl px-6 py-4 border shadow-lg">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <div className="text-center">
-                  <p className="text-sm font-medium">AI Analyzing Booth Spec</p>
-                  <p className="text-xs text-muted-foreground mt-1">Identifying panels and mapping content...</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Loading overlay */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <Suspense fallback={
-              <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-lg px-4 py-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm">Loading 3D scene...</span>
-              </div>
-            }>
-              <></>
-            </Suspense>
-          </div>
-
-          {/* Orbit hint / drag mode indicator */}
-          <div className="absolute bottom-3 left-3 text-xs text-muted-foreground/60 bg-background/50 backdrop-blur-sm rounded px-2 py-1">
-            {isDragMode
-              ? '⊞ Drag Mode — click & drag panels or assets to reposition'
-              : 'Drag to orbit · Scroll to zoom · Click panel to assign image'}
-          </div>
-          {isDragMode && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-accent/90 text-accent-foreground text-xs font-medium shadow-lg animate-pulse">
-              <Move className="h-3 w-3 inline mr-1.5" />
-              Drag Mode Active
-            </div>
-          )}
-
-          {/* Selected asset action bar */}
-          {selectedAssetId && isAdmin && (() => {
-            const selectedAsset = placedAssets.find(a => a.instanceId === selectedAssetId);
-            const selectedConfig = getFurnitureById(selectedAsset?.assetId || '');
-            const isWallMount = selectedConfig?.wallMountable === true;
-            const step = 0.1; // 10cm nudge
-
-            return (
-              <div className="absolute bottom-3 right-3 flex flex-col gap-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg px-2.5 py-2 z-10 min-w-[180px]">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground font-medium">
-                    {selectedConfig?.name || 'Asset'}
-                    {isWallMount && <span className="ml-1 text-primary">(Wall)</span>}
-                  </span>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="h-5 text-[9px] gap-0.5 px-1.5"
-                    onClick={() => handleRemoveAsset(selectedAssetId)}
-                  >
-                    <Trash2 className="h-2.5 w-2.5" />
-                    Del
-                  </Button>
-                </div>
-
-                {/* Position controls */}
-                {isDragMode && selectedAsset && (
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1">
-                      {/* Horizontal nudge */}
-                      <Button variant="outline" size="icon" className="h-6 w-6"
-                        onClick={() => onAssetNudge(selectedAssetId, -step, 0, 0)} title="Move left (X-)">
-                        <ArrowLeft className="h-3 w-3" />
-                      </Button>
-                      <Button variant="outline" size="icon" className="h-6 w-6"
-                        onClick={() => onAssetNudge(selectedAssetId, step, 0, 0)} title="Move right (X+)">
-                        <ArrowRight className="h-3 w-3" />
-                      </Button>
-
-                      {/* Vertical nudge (Y) */}
-                      <Button variant="outline" size="icon" className="h-6 w-6"
-                        onClick={() => onAssetNudge(selectedAssetId, 0, step, 0)} title="Move up (Y+)">
-                        <ArrowUp className="h-3 w-3" />
-                      </Button>
-                      <Button variant="outline" size="icon" className="h-6 w-6"
-                        onClick={() => onAssetNudge(selectedAssetId, 0, -step, 0)} title="Move down (Y-)">
-                        <ArrowDown className="h-3 w-3" />
-                      </Button>
-
-                      {/* Depth nudge (Z) - forward/back */}
-                      <div className="flex flex-col gap-0.5">
-                        <Button variant="outline" size="icon" className="h-3 w-6 rounded-sm"
-                          onClick={() => onAssetNudge(selectedAssetId, 0, 0, -step)} title="Move forward (Z-)">
-                          <span className="text-[7px]">▲Z</span>
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-3 w-6 rounded-sm"
-                          onClick={() => onAssetNudge(selectedAssetId, 0, 0, step)} title="Move back (Z+)">
-                          <span className="text-[7px]">▼Z</span>
-                        </Button>
-                      </div>
-
-                      {/* Rotate 90° */}
-                      <Button variant="outline" size="icon" className="h-6 w-6"
-                        onClick={() => {
-                          const a = placedAssets.find(a => a.instanceId === selectedAssetId);
-                          if (a) {
-                            handleUpdateAsset(selectedAssetId, {
-                              rotation: [a.rotation[0], a.rotation[1] + Math.PI / 2, a.rotation[2]],
-                            });
-                          }
-                        }} title="Rotate 90°">
-                        <RotateCw className="h-3 w-3" />
-                      </Button>
-                    </div>
-
-                    {/* Position readout */}
-                    <div className="text-[8px] text-muted-foreground font-mono text-center">
-                      X:{selectedAsset.position[0].toFixed(1)} Y:{selectedAsset.position[1].toFixed(1)} Z:{selectedAsset.position[2].toFixed(1)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-
-          {/* Camera presets panel (when environment is on) */}
-          {/* Camera presets panel — always available */}
-          <div className="absolute top-3 right-3 flex flex-col gap-1 z-10 max-w-[160px]">
-            <div className="bg-background/85 backdrop-blur-sm rounded-lg border shadow-lg overflow-hidden">
-              <button
-                onClick={() => setCameraPanelOpen(v => !v)}
-                className="w-full flex items-center justify-between px-2 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted/50 transition-colors"
-              >
-                <span>📷 Camera</span>
-                <span className="text-[10px]">{cameraPanelOpen ? '▲' : '▼'}</span>
-              </button>
-              {cameraPanelOpen && (
-                <div className="p-2 pt-0 space-y-1.5">
-                  {getEnvironmentConfig(environmentRealism).cameraPresets.map((preset) => (
-                    <button
-                      key={preset.id}
-                      onClick={() => {
-                        if (walkthroughMode !== 'none') setWalkthroughMode('none');
-                        setActiveCameraPreset(preset.id);
-                        setCameraVersion(v => v + 1);
-                      }}
-                      className={cn(
-                        "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
-                        activeCameraPreset === preset.id && walkthroughMode === 'none'
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted text-foreground"
-                      )}
-                      title={preset.description}
-                    >
-                      {preset.name}
-                    </button>
-                  ))}
-                  {/* ── Walkthrough controls ── */}
-                  <div className="border-t border-border pt-1.5 mt-1 space-y-1">
-                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider px-1">🎬 Walkthrough</p>
-                    <button
-                      onClick={() => setWalkthroughMode(walkthroughMode === 'walkthrough' ? 'none' : 'walkthrough')}
-                      className={cn(
-                        "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
-                        walkthroughMode === 'walkthrough'
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted text-foreground"
-                      )}
-                      title="Simulated first-person walk around the booth"
-                    >
-                      {walkthroughMode === 'walkthrough' ? '⏹ Stop Walk' : '🚶 First Person'}
-                    </button>
-                    <button
-                      onClick={() => setWalkthroughMode(walkthroughMode === 'tour' ? 'none' : 'tour')}
-                      className={cn(
-                        "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
-                        walkthroughMode === 'tour'
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted text-foreground"
-                      )}
-                      title="Auto-tour through all camera presets"
-                    >
-                      {walkthroughMode === 'tour' ? '⏹ Stop Tour' : '🎥 Auto Tour'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-            {/* Realism level badge (when environment is on) */}
-            {showEnvironment && (
-              <div className="bg-background/85 backdrop-blur-sm rounded-lg border px-2 py-1.5 text-center shadow-lg">
-                <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Realism</p>
-                <p className="text-xs font-semibold">
-                  {ENVIRONMENT_PRESETS[environmentRealism].icon} {ENVIRONMENT_PRESETS[environmentRealism].label}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
+            }}
+            isDragMode={isDragMode}
+            onDragModeChange={setIsDragMode}
+            onAddAsset={() => setAssetPickerOpen(true)}
+            onUploadSpec={() => fileInputRef.current?.click()}
+            onAutoFill={handleAutoFill}
+            onPresets={() => setPresetPickerOpen(true)}
+            onScreenshot={handleScreenshot}
+            onReset={handleResetView}
+            onToggleAR={() => setShowARPanel(v => !v)}
+            onToggleSalesDeck={() => setShowSalesDeck(v => !v)}
+            showARPanel={showARPanel}
+            showSalesDeck={showSalesDeck}
+            isUploading={isUploading}
+            hasVariantImages={variantImages.length > 0}
+            assignedCount={assignedCount}
+            totalPanels={totalPanels}
+            boothDimensions={boothConfig.dimensions}
+            boothFootprint={boothConfig.footprint}
+            availableSpecTypes={availableSpecTypes}
+            specConfigType={specConfigType}
+            useProductionSpecs={useProductionSpecs}
+            onSpecConfigChange={(v) => {
+              if (v === '__generic') setUseProductionSpecs(false);
+              else { setSpecConfigType(v); setUseProductionSpecs(true); }
+            }}
+          />
+        }
+        leftPanel={
+          <BoothLeftPanel
+            isAdmin={isAdmin}
+            onAddAsset={handleAddAsset}
+            layers={sceneLayers}
+            onToggleLayer={handleToggleLayer}
+          />
+        }
+        rightPanel={
+          <InspectorPanel
+            selectedPanelId={selectedPanelId}
+            selectedAssetId={selectedAssetId}
+            panels={panels}
+            placedAssets={placedAssets}
+            assignments={assignments}
+            onSelectPanel={handleSelectPanel}
+            onUpdateAsset={handleUpdateAsset}
+            onRemoveAsset={handleRemoveAsset}
+            onNudgeAsset={onAssetNudge}
+            isAdmin={isAdmin}
+          />
+        }
+        canvas={canvasElement}
+        bottomContent={activeMode === 'graphics' ? panelThumbnails : undefined}
+      />
 
       {/* Panel summary row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
