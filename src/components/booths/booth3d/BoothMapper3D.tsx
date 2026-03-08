@@ -108,6 +108,7 @@ export function BoothMapper3D({
   const [activeCameraPreset, setActiveCameraPreset] = useState<string | null>(null);
   const [cameraVersion, setCameraVersion] = useState(0);
   const [walkthroughMode, setWalkthroughMode] = useState<WalkthroughMode>('none');
+  const [cameraPanelOpen, setCameraPanelOpen] = useState(true);
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
@@ -1047,56 +1048,66 @@ export function BoothMapper3D({
 
           {/* Camera presets panel (when environment is on) */}
           {/* Camera presets panel — always available */}
-          <div className="absolute top-3 right-3 flex flex-col gap-1 z-10">
-            <div className="bg-background/85 backdrop-blur-sm rounded-lg border p-2 space-y-1.5 shadow-lg max-w-[160px]">
-              <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider px-1">📷 Camera</p>
-              {getEnvironmentConfig(environmentRealism).cameraPresets.map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => {
-                    if (walkthroughMode !== 'none') setWalkthroughMode('none');
-                    setActiveCameraPreset(preset.id);
-                    setCameraVersion(v => v + 1);
-                  }}
-                  className={cn(
-                    "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
-                    activeCameraPreset === preset.id && walkthroughMode === 'none'
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted text-foreground"
-                  )}
-                  title={preset.description}
-                >
-                  {preset.name}
-                </button>
-              ))}
-              {/* ── Walkthrough controls ── */}
-              <div className="border-t border-border pt-1.5 mt-1 space-y-1">
-                <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider px-1">🎬 Walkthrough</p>
-                <button
-                  onClick={() => setWalkthroughMode(walkthroughMode === 'walkthrough' ? 'none' : 'walkthrough')}
-                  className={cn(
-                    "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
-                    walkthroughMode === 'walkthrough'
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted text-foreground"
-                  )}
-                  title="Simulated first-person walk around the booth"
-                >
-                  {walkthroughMode === 'walkthrough' ? '⏹ Stop Walk' : '🚶 First Person'}
-                </button>
-                <button
-                  onClick={() => setWalkthroughMode(walkthroughMode === 'tour' ? 'none' : 'tour')}
-                  className={cn(
-                    "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
-                    walkthroughMode === 'tour'
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted text-foreground"
-                  )}
-                  title="Auto-tour through all camera presets"
-                >
-                  {walkthroughMode === 'tour' ? '⏹ Stop Tour' : '🎥 Auto Tour'}
-                </button>
-              </div>
+          <div className="absolute top-3 right-3 flex flex-col gap-1 z-10 max-w-[160px]">
+            <div className="bg-background/85 backdrop-blur-sm rounded-lg border shadow-lg overflow-hidden">
+              <button
+                onClick={() => setCameraPanelOpen(v => !v)}
+                className="w-full flex items-center justify-between px-2 py-1.5 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted/50 transition-colors"
+              >
+                <span>📷 Camera</span>
+                <span className="text-[10px]">{cameraPanelOpen ? '▲' : '▼'}</span>
+              </button>
+              {cameraPanelOpen && (
+                <div className="p-2 pt-0 space-y-1.5">
+                  {getEnvironmentConfig(environmentRealism).cameraPresets.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => {
+                        if (walkthroughMode !== 'none') setWalkthroughMode('none');
+                        setActiveCameraPreset(preset.id);
+                        setCameraVersion(v => v + 1);
+                      }}
+                      className={cn(
+                        "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
+                        activeCameraPreset === preset.id && walkthroughMode === 'none'
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted text-foreground"
+                      )}
+                      title={preset.description}
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                  {/* ── Walkthrough controls ── */}
+                  <div className="border-t border-border pt-1.5 mt-1 space-y-1">
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider px-1">🎬 Walkthrough</p>
+                    <button
+                      onClick={() => setWalkthroughMode(walkthroughMode === 'walkthrough' ? 'none' : 'walkthrough')}
+                      className={cn(
+                        "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
+                        walkthroughMode === 'walkthrough'
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted text-foreground"
+                      )}
+                      title="Simulated first-person walk around the booth"
+                    >
+                      {walkthroughMode === 'walkthrough' ? '⏹ Stop Walk' : '🚶 First Person'}
+                    </button>
+                    <button
+                      onClick={() => setWalkthroughMode(walkthroughMode === 'tour' ? 'none' : 'tour')}
+                      className={cn(
+                        "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
+                        walkthroughMode === 'tour'
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted text-foreground"
+                      )}
+                      title="Auto-tour through all camera presets"
+                    >
+                      {walkthroughMode === 'tour' ? '⏹ Stop Tour' : '🎥 Auto Tour'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             {/* Realism level badge (when environment is on) */}
             {showEnvironment && (
