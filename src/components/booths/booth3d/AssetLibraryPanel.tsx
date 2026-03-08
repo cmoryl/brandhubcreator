@@ -144,18 +144,27 @@ export function AssetLibraryPanel({ onAddAsset, isAdmin }: AssetLibraryPanelProp
                             : "opacity-50 cursor-not-allowed"
                         )}
                       >
-                        <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
-                          {asset.category === 'displays' ? <Monitor className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" /> :
-                           asset.category === 'tables' ? <Table2 className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" /> :
-                           asset.category === 'seating' ? <Armchair className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" /> :
-                           asset.category === 'signage' ? <Flag className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" /> :
-                           <Box className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />}
-                        </div>
+                        {asset.thumbnailUrl ? (
+                          <img
+                            src={asset.thumbnailUrl}
+                            alt={asset.name}
+                            className="h-8 w-8 rounded-md object-cover shrink-0 border border-border"
+                          />
+                        ) : (
+                          <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
+                            {asset.category === 'displays' ? <Monitor className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" /> :
+                             asset.category === 'tables' ? <Table2 className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" /> :
+                             asset.category === 'seating' ? <Armchair className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" /> :
+                             asset.category === 'signage' ? <Flag className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" /> :
+                             <Box className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />}
+                          </div>
+                        )}
                         <div className="min-w-0 flex-1">
                           <p className="text-[11px] font-medium truncate">{asset.name}</p>
                           <p className="text-[9px] text-muted-foreground truncate">{asset.description.split('(')[0]?.trim()}</p>
                         </div>
                         {asset.hasScreen && <Badge variant="outline" className="text-[8px] h-3.5 px-1 shrink-0">📺</Badge>}
+                        {asset.hasCustomTexture && <Badge variant="outline" className="text-[8px] h-3.5 px-1 shrink-0">🎨</Badge>}
                       </button>
                     ))
                   )}
