@@ -870,7 +870,7 @@ export function BoothMapper3D({
                   </div>
                 </div>
               ) : (
-                <ScrollArea className="max-h-[50vh]">
+                <ScrollArea className="h-[45vh]">
                   {uploadedSpecs.length > 0 && (
                     <div className="space-y-2 mb-4">
                       <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
