@@ -1046,6 +1046,7 @@ export function BoothMapper3D({
                   key={preset.id}
                   onClick={() => {
                     setActiveCameraPreset(preset.id);
+                    setCameraVersion(v => v + 1);
                   }}
                   className={cn(
                     "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
