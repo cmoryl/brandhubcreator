@@ -144,6 +144,10 @@ export function BoothScene3D({
   printStyle = 'fabric-matte',
   crowdSimulation = null,
   showHeatMap = false,
+  logisticsMarkers = [],
+  showLogistics = false,
+  selectedLogisticsId = null,
+  onSelectLogistics,
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
