@@ -133,6 +133,7 @@ export function BoothFurniture3D({
   const [isDragging, setIsDragging] = useState(false);
   const { raycaster, camera } = useThree();
   const floorPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
+  const wallPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
 
   const config = getFurnitureById(asset.assetId);
 
@@ -141,10 +142,6 @@ export function BoothFurniture3D({
   const [w, h, d] = size;
 
   const isWallMount = config?.wallMountable === true;
-
-  // Drag planes: floor (XZ) for normal items, vertical (XY facing camera) for wall-mounted
-  const floorPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
-  const wallPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
 
   // Drag handlers
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
