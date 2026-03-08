@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import {
   Settings, Move, RotateCw, Maximize2, Palette, Image as ImageIcon,
-  Monitor, Shirt, Trash2, Box
+  Monitor, Shirt, Trash2, Box, Upload
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,8 @@ interface InspectorPanelProps {
   onRemoveAsset: (instanceId: string) => void;
   onNudgeAsset: (instanceId: string, dx: number, dy: number, dz: number) => void;
   isAdmin: boolean;
+  /** Open the image picker for the given asset, targeting a specific field */
+  onOpenAssetImagePicker?: (instanceId: string, target: 'screen' | 'texture' | 'cover') => void;
 }
 
 function PropertyRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -92,6 +94,7 @@ export function InspectorPanel({
   onRemoveAsset,
   onNudgeAsset,
   isAdmin,
+  onOpenAssetImagePicker,
 }: InspectorPanelProps) {
   // Selected asset info
   const selectedAsset = selectedAssetId ? placedAssets.find(a => a.instanceId === selectedAssetId) : null;
@@ -242,18 +245,80 @@ export function InspectorPanel({
             />
           </div>
 
+          {/* Screen / Banner Image */}
           {assetConfig.hasScreen && (
             <>
               <Separator />
               <div className="space-y-2">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <Monitor className="h-3 w-3" /> Screen Content
+                  <Monitor className="h-3 w-3" /> {assetConfig.category === 'signage' ? 'Banner Artwork' : 'Screen Content'}
                 </p>
                 {selectedAsset.screenImageUrl ? (
-                  <img src={selectedAsset.screenImageUrl} alt="" className="w-full aspect-video object-cover rounded-md border" />
+                  <div className="space-y-1.5">
+                    <img src={selectedAsset.screenImageUrl} alt="" className="w-full aspect-[3/4] object-cover rounded-md border" />
+                    {isAdmin && (
+                      <div className="flex gap-1">
+                        <Button variant="outline" size="sm" className="flex-1 h-6 text-[10px] gap-1"
+                          onClick={() => onOpenAssetImagePicker?.(selectedAsset.instanceId, 'screen')}>
+                          <ImageIcon className="h-3 w-3" /> Change
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-6 text-[10px] text-muted-foreground hover:text-destructive"
+                          onClick={() => onUpdateAsset(selectedAsset.instanceId, { screenImageUrl: undefined })}>
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <div className="bg-muted/50 rounded-md p-3 text-center">
-                    <p className="text-[10px] text-muted-foreground">No content assigned</p>
+                  <div className="bg-muted/50 rounded-md p-3 text-center space-y-1.5">
+                    <ImageIcon className="h-5 w-5 mx-auto text-muted-foreground/50" />
+                    <p className="text-[10px] text-muted-foreground">No image assigned</p>
+                    {isAdmin && (
+                      <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1"
+                        onClick={() => onOpenAssetImagePicker?.(selectedAsset.instanceId, 'screen')}>
+                        <Upload className="h-3 w-3" /> Assign Image
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Surface Texture / Decal (for non-screen assets) */}
+          {assetConfig.hasCustomTexture && !assetConfig.hasScreen && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                  <ImageIcon className="h-3 w-3" /> Surface Artwork
+                </p>
+                {selectedAsset.customTextureUrl ? (
+                  <div className="space-y-1.5">
+                    <img src={selectedAsset.customTextureUrl} alt="" className="w-full aspect-video object-cover rounded-md border" />
+                    {isAdmin && (
+                      <div className="flex gap-1">
+                        <Button variant="outline" size="sm" className="flex-1 h-6 text-[10px] gap-1"
+                          onClick={() => onOpenAssetImagePicker?.(selectedAsset.instanceId, 'texture')}>
+                          <ImageIcon className="h-3 w-3" /> Change
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-6 text-[10px] text-muted-foreground hover:text-destructive"
+                          onClick={() => onUpdateAsset(selectedAsset.instanceId, { customTextureUrl: undefined })}>
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-muted/50 rounded-md p-3 text-center space-y-1.5">
+                    <ImageIcon className="h-5 w-5 mx-auto text-muted-foreground/50" />
+                    <p className="text-[10px] text-muted-foreground">No surface image</p>
+                    {isAdmin && (
+                      <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1"
+                        onClick={() => onOpenAssetImagePicker?.(selectedAsset.instanceId, 'texture')}>
+                        <Upload className="h-3 w-3" /> Add Artwork
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -276,6 +341,28 @@ export function InspectorPanel({
                 ) : (
                   <p className="text-[10px] text-muted-foreground">No cover applied</p>
                 )}
+                {selectedAsset.tableCoverImageUrl ? (
+                  <div className="space-y-1.5">
+                    <img src={selectedAsset.tableCoverImageUrl} alt="" className="w-full aspect-video object-cover rounded-md border" />
+                    {isAdmin && (
+                      <div className="flex gap-1">
+                        <Button variant="outline" size="sm" className="flex-1 h-6 text-[10px] gap-1"
+                          onClick={() => onOpenAssetImagePicker?.(selectedAsset.instanceId, 'cover')}>
+                          <ImageIcon className="h-3 w-3" /> Change Print
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-6 text-[10px] text-muted-foreground hover:text-destructive"
+                          onClick={() => onUpdateAsset(selectedAsset.instanceId, { tableCoverImageUrl: undefined })}>
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : isAdmin ? (
+                  <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1"
+                    onClick={() => onOpenAssetImagePicker?.(selectedAsset.instanceId, 'cover')}>
+                    <Upload className="h-3 w-3" /> Add Cover Print
+                  </Button>
+                ) : null}
               </div>
             </>
           )}

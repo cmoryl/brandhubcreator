@@ -184,6 +184,7 @@ export function BoothMapper3D({
   const [panelPositionOverrides, setPanelPositionOverrides] = useState<Record<string, [number, number, number]>>({});
   const [coverImagePickerOpen, setCoverImagePickerOpen] = useState(false);
   const [coverImageTargetAssetId, setCoverImageTargetAssetId] = useState<string | null>(null);
+  const [assetImageTarget, setAssetImageTarget] = useState<'screen' | 'texture' | 'cover'>('cover');
   // Crowd simulation state
   const [crowdSimulation, setCrowdSimulation] = useState<CrowdSimulationData | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
@@ -524,17 +525,29 @@ export function BoothMapper3D({
 
   const handleOpenCoverImagePicker = useCallback((instanceId: string) => {
     setCoverImageTargetAssetId(instanceId);
+    setAssetImageTarget('cover');
+    setCoverImagePickerOpen(true);
+    if (organization?.id) fetchImages(organization.id);
+  }, [organization?.id, fetchImages]);
+
+  const handleOpenAssetImagePicker = useCallback((instanceId: string, target: 'screen' | 'texture' | 'cover') => {
+    setCoverImageTargetAssetId(instanceId);
+    setAssetImageTarget(target);
     setCoverImagePickerOpen(true);
     if (organization?.id) fetchImages(organization.id);
   }, [organization?.id, fetchImages]);
 
   const handleAssignCoverImage = useCallback((imageUrl: string) => {
     if (!coverImageTargetAssetId) return;
-    handleUpdateAsset(coverImageTargetAssetId, { tableCoverImageUrl: imageUrl });
+    const updateField = assetImageTarget === 'screen' ? 'screenImageUrl'
+      : assetImageTarget === 'texture' ? 'customTextureUrl'
+      : 'tableCoverImageUrl';
+    handleUpdateAsset(coverImageTargetAssetId, { [updateField]: imageUrl });
     setCoverImagePickerOpen(false);
     setCoverImageTargetAssetId(null);
-    toast.success('Cover image assigned');
-  }, [coverImageTargetAssetId, handleUpdateAsset]);
+    const label = assetImageTarget === 'screen' ? 'Screen image' : assetImageTarget === 'texture' ? 'Surface artwork' : 'Cover image';
+    toast.success(`${label} assigned`);
+  }, [coverImageTargetAssetId, assetImageTarget, handleUpdateAsset]);
 
   const handleSelectPanel = useCallback((panelId: string) => {
     if (isDragMode) return;
@@ -1241,6 +1254,7 @@ export function BoothMapper3D({
             onRemoveAsset={handleRemoveAsset}
             onNudgeAsset={onAssetNudge}
             isAdmin={isAdmin}
+            onOpenAssetImagePicker={handleOpenAssetImagePicker}
           />
         }
         canvas={canvasElement}
@@ -1350,18 +1364,46 @@ export function BoothMapper3D({
                       <p className="text-[10px] text-muted-foreground">
                         {config?.description?.split('(')[0]?.trim()}
                         {asset.tableCoverColor && ' · Cover applied'}
+                        {asset.screenImageUrl && ' · 🖼 Image'}
+                        {asset.customTextureUrl && ' · 🎨 Artwork'}
                       </p>
                     </div>
-                    {isAdmin && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
-                        onClick={() => handleRemoveAsset(asset.instanceId)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-1 shrink-0">
+                      {/* Quick assign image button for screen/banner assets */}
+                      {isAdmin && config?.hasScreen && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-primary"
+                          onClick={() => handleOpenAssetImagePicker(asset.instanceId, 'screen')}
+                          title="Assign image"
+                        >
+                          <ImageIcon className="h-3 w-3" />
+                        </Button>
+                      )}
+                      {/* Quick assign texture for non-screen assets with custom texture */}
+                      {isAdmin && config?.hasCustomTexture && !config?.hasScreen && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-primary"
+                          onClick={() => handleOpenAssetImagePicker(asset.instanceId, 'texture')}
+                          title="Assign surface artwork"
+                        >
+                          <ImageIcon className="h-3 w-3" />
+                        </Button>
+                      )}
+                      {isAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleRemoveAsset(asset.instanceId)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Table Cover Customization */}
@@ -1894,11 +1936,17 @@ export function BoothMapper3D({
         <DialogContent className="max-w-xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Shirt className="h-5 w-5" />
-              Select Cover Print / Logo
+              {assetImageTarget === 'screen' ? <Monitor className="h-5 w-5" /> :
+               assetImageTarget === 'texture' ? <ImageIcon className="h-5 w-5" /> :
+               <Shirt className="h-5 w-5" />}
+              {assetImageTarget === 'screen' ? 'Assign Screen / Banner Image' :
+               assetImageTarget === 'texture' ? 'Assign Surface Artwork' :
+               'Select Cover Print / Logo'}
             </DialogTitle>
             <DialogDescription>
-              Choose an image from your library to print on the table cover front panel.
+              {assetImageTarget === 'screen' ? 'Choose an image to display on the screen or banner surface.' :
+               assetImageTarget === 'texture' ? 'Choose an image to apply as a surface decal or artwork.' :
+               'Choose an image from your library to print on the table cover front panel.'}
             </DialogDescription>
           </DialogHeader>
 

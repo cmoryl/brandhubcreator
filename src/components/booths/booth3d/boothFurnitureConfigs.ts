@@ -218,6 +218,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     hasScreen: true,
     screenSize: [33 * IN, 78 * IN],
     screenYOffset: 1 * IN,
+    hasCustomTexture: true,
   },
   {
     id: 'banner-wide',
@@ -229,6 +230,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     hasScreen: true,
     screenSize: [46 * IN, 78 * IN],
     screenYOffset: 1 * IN,
+    hasCustomTexture: true,
   },
 
   // Accessories
@@ -239,6 +241,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     size: [24 * IN, 60 * IN, 14 * IN],
     color: '#94a3b8',
     description: "Brochure / literature display rack",
+    hasCustomTexture: true,
   },
   {
     id: 'kiosk-ipad',
@@ -258,6 +261,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     size: [1, 1, 1],
     color: '#64748b',
     description: 'Custom-sized box primitive — specify your own dimensions',
+    hasCustomTexture: true,
   },
 
   // Flooring — Rugs & Carpets
