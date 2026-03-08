@@ -768,6 +768,12 @@ export function BoothMapper3D({
                 showPeople={showPeople}
                 showTrafficFlow={showTrafficFlow}
                 layout={layout}
+                isDragMode={isDragMode}
+                onPanelPositionChange={handlePanelPositionChange}
+                placedAssets={placedAssets}
+                selectedAssetId={selectedAssetId}
+                onSelectAsset={handleSelectAsset}
+                onAssetPositionChange={handleAssetPositionChange}
               />
             </Suspense>
           </Canvas>
