@@ -217,9 +217,15 @@ export function BoothAnalyticsDashboard({
         {isAdmin && (
           <div className="flex items-center gap-1.5">
             {!editing ? (
-              <Button variant="outline" size="sm" className="h-7 text-[10px] gap-1" onClick={() => setEditing(true)}>
-                <FileSpreadsheet className="h-3 w-3" /> Enter Post-Show Data
-              </Button>
+              <>
+                <PostShowDataImport isAdmin={isAdmin} onImport={(data) => {
+                  setDraft(data);
+                  onSave(data);
+                }} />
+                <Button variant="outline" size="sm" className="h-7 text-[10px] gap-1" onClick={() => setEditing(true)}>
+                  <FileSpreadsheet className="h-3 w-3" /> Manual Entry
+                </Button>
+              </>
             ) : (
               <>
                 <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={() => { setEditing(false); setDraft({}); }}>
