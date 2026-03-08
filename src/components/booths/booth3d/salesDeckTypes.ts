@@ -34,7 +34,6 @@ export interface SalesDeckGenerateRequest {
   furnitureList: string[];
   hasMonitors: boolean;
   hasPeople?: boolean;
-  hasPeople: boolean;
   crowdScore?: number;
   panelLabels: string[];
   variantLabel: string;

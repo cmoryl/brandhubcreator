@@ -184,7 +184,6 @@ export function SalesDeckPanel({
         image: { type: 'jpeg', quality: 0.85 },
         html2canvas: { scale: 1.5, useCORS: true, logging: false, backgroundColor: '#ffffff' },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-        pagebreak: { mode: ['avoid-all', 'css'] },
       }).from(container).save();
 
       document.body.removeChild(container);
