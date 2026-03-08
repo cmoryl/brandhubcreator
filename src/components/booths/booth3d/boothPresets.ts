@@ -367,6 +367,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['agency', 'creative', 'design', 'branding', 'portfolio', 'marketing'],
     placedAssets: CREATIVE_AGENCY_ASSETS,
     flooringConfig: CREATIVE_AGENCY_FLOOR,
+  },
   {
     id: 'creative-media',
     name: 'Media & Entertainment',
