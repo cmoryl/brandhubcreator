@@ -264,22 +264,22 @@ export function RealisticHumanFigure({
             {/* Eye white */}
             <mesh>
               <sphereGeometry args={[0.012, SEG, SEG / 2]} />
-              <meshStandardMaterial color="#f8f8f8" roughness={0.15} metalness={0} envMapIntensity={0.4} />
+              <meshStandardMaterial color="#f0f0f0" roughness={0.15} metalness={0} envMapIntensity={0.4} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Iris — clean dot */}
             <mesh position={[0, 0, 0.007]}>
               <circleGeometry args={[0.007, SEG]} />
-              <meshStandardMaterial color={appearance.eyes} roughness={0.25} metalness={0.05} />
+              <meshStandardMaterial color={appearance.eyes} roughness={0.25} metalness={0.05} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Pupil */}
             <mesh position={[0, 0, 0.008]}>
               <circleGeometry args={[0.003, 12]} />
-              <meshStandardMaterial color="#0a0a0a" roughness={0.1} />
+              <meshStandardMaterial color="#0a0a0a" roughness={0.1} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Specular highlight dot */}
             <mesh position={[0.002, 0.002, 0.009]}>
               <circleGeometry args={[0.0015, 8]} />
-              <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.5} roughness={0} />
+              <meshStandardMaterial color="#e0e0e0" emissive="#e0e0e0" emissiveIntensity={0.5} roughness={0} transparent opacity={opacity * 0.85} />
             </mesh>
           </group>
         ))}
@@ -421,18 +421,18 @@ export function RealisticHumanFigure({
       {pose === 'phone' && (
         <mesh position={[-0.08, headCenter - 0.06, 0.1]}>
           <boxGeometry args={[0.035, 0.07, 0.006]} />
-          <meshStandardMaterial color="#18181b" roughness={0.08} metalness={0.35} envMapIntensity={0.6} />
+          <meshStandardMaterial color="#18181b" roughness={0.08} metalness={0.35} envMapIntensity={0.6} transparent opacity={opacity * 0.85} />
         </mesh>
       )}
       {pose === 'photographing' && (
         <group position={[0, torsoTop - 0.1, 0.14]}>
           <mesh>
             <boxGeometry args={[0.09, 0.055, 0.055]} />
-            <meshStandardMaterial color="#18181b" metalness={0.5} roughness={0.2} envMapIntensity={0.5} />
+            <meshStandardMaterial color="#18181b" metalness={0.5} roughness={0.2} envMapIntensity={0.5} transparent opacity={opacity * 0.85} />
           </mesh>
           <mesh position={[0, 0, 0.038]}>
             <cylinderGeometry args={[0.018, 0.022, 0.028, SEG]} />
-            <meshStandardMaterial color="#27272a" metalness={0.6} roughness={0.15} envMapIntensity={0.6} />
+            <meshStandardMaterial color="#27272a" metalness={0.6} roughness={0.15} envMapIntensity={0.6} transparent opacity={opacity * 0.85} />
           </mesh>
         </group>
       )}
@@ -455,7 +455,7 @@ function StylizedHand({ position, skin, opacity, isFist }: {
   opacity: number;
   isFist: boolean;
 }) {
-  const skinProps = { color: skin, roughness: 0.6, metalness: 0, emissive: skin, emissiveIntensity: 0.04, envMapIntensity: 0.25, transparent: opacity < 1, opacity };
+  const skinProps = { color: skin, roughness: 0.6, metalness: 0, emissive: skin, emissiveIntensity: 0.04, envMapIntensity: 0.25, transparent: true, opacity: opacity * 0.85 };
 
   if (isFist) {
     return (
@@ -494,7 +494,7 @@ function StylizedHair({ hairStyle, hairColor }: {
   hairStyle: FigureAppearance['hairStyle'];
   hairColor: string;
 }) {
-  const mat = { color: hairColor, roughness: 0.75, metalness: 0, envMapIntensity: 0.15 };
+  const mat = { color: hairColor, roughness: 0.75, metalness: 0, envMapIntensity: 0.15, transparent: true, opacity: 0.85 };
 
   return (
     <group>
