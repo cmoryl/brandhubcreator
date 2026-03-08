@@ -119,12 +119,17 @@ export function BoothScene3D({
     return zones;
   }, [panels, placedAssets]);
 
+  // Determine enhanced lighting tier
+  const isAdvanced = environmentRealism === 'cinematic' || environmentRealism === 'ultra' || isHyper;
+
   return (
     <>
       <color attach="background" args={[lighting.bgColor]} />
 
-      {/* Lighting */}
-      <ambientLight intensity={lighting.ambientIntensity} />
+      {/* ═══ PRIMARY LIGHTING ═══ */}
+      <ambientLight intensity={lighting.ambientIntensity} color={isHyper ? '#e8e4df' : '#ffffff'} />
+
+      {/* Key light — main directional spot */}
       <spotLight
         position={[5, 8, 5]}
         angle={isHyper ? 0.4 : 0.5}
@@ -132,15 +137,51 @@ export function BoothScene3D({
         intensity={lighting.spotIntensity}
         castShadow
         shadow-mapSize={envConfig ? [envConfig.shadowQuality, envConfig.shadowQuality] : [1024, 1024]}
-        shadow-bias={isHyper ? -0.0002 : undefined}
+        shadow-bias={isAdvanced ? -0.0002 : -0.0005}
+        shadow-normalBias={isAdvanced ? 0.02 : 0.05}
+        shadow-radius={isHyper ? 4 : 2}
+        color={isHyper ? '#fff5e6' : '#ffffff'}
       />
+
+      {/* Fill light — opposite side */}
       <spotLight
         position={[-5, 6, -3]}
         angle={0.4}
         penumbra={isHyper ? 0.9 : 0.8}
         intensity={lighting.spotIntensity * (isHyper ? 0.6 : 0.5)}
+        castShadow={isAdvanced}
+        shadow-mapSize={isAdvanced ? [2048, 2048] : [512, 512]}
+        shadow-bias={-0.0003}
+        color={isAdvanced ? '#e8eaf0' : '#ffffff'}
       />
-      {/* Hyper mode: extra key light for dramatic depth */}
+
+      {/* Rim/back light for depth separation */}
+      {isAdvanced && (
+        <spotLight
+          position={[0, 7, -5]}
+          angle={0.5}
+          penumbra={0.85}
+          intensity={lighting.spotIntensity * 0.35}
+          color="#c8d8f0"
+          castShadow={isHyper}
+          shadow-mapSize={[2048, 2048]}
+          shadow-bias={-0.0002}
+        />
+      )}
+
+      {/* Booth-focused overhead — warm accent for fabric/surface pop */}
+      <spotLight
+        position={[0, 6, 1]}
+        angle={0.6}
+        penumbra={0.75}
+        intensity={isAdvanced ? lighting.spotIntensity * 0.4 : lighting.spotIntensity * 0.2}
+        color="#fef3c7"
+        castShadow={isAdvanced}
+        shadow-mapSize={isAdvanced ? [2048, 2048] : [1024, 1024]}
+        shadow-bias={-0.0003}
+      />
+
+      {/* Hyper mode: extra key lights for dramatic depth + reflections */}
       {isHyper && (
         <>
           <spotLight
@@ -152,6 +193,7 @@ export function BoothScene3D({
             castShadow
             shadow-mapSize={[4096, 4096]}
             shadow-bias={-0.0001}
+            shadow-normalBias={0.01}
           />
           <spotLight
             position={[-3, 7, 5]}
@@ -160,11 +202,36 @@ export function BoothScene3D({
             intensity={0.3}
             color="#bfdbfe"
           />
+          {/* Ground bounce light (simulates reflected light from floor) */}
+          <pointLight
+            position={[0, 0.3, 2]}
+            intensity={0.15}
+            color="#94a3b8"
+            distance={6}
+          />
+          {/* Side accent for fabric sheen */}
+          <spotLight
+            position={[4, 3, 0]}
+            angle={0.5}
+            penumbra={0.9}
+            intensity={0.2}
+            color="#f0e6d4"
+          />
         </>
       )}
+
+      {/* Ultra mode: additional fill */}
+      {environmentRealism === 'ultra' && (
+        <>
+          <pointLight position={[0, 0.5, 3]} intensity={0.1} color="#b0b8c8" distance={5} />
+          <spotLight position={[3, 5, -2]} angle={0.4} penumbra={0.85} intensity={0.25} color="#e0d8cc" castShadow shadow-mapSize={[2048, 2048]} />
+        </>
+      )}
+
       <Environment
         preset={lighting.envPreset}
         environmentIntensity={envConfig?.envIntensity ?? 0.5}
+        background={false}
       />
 
       {/* Controls */}
