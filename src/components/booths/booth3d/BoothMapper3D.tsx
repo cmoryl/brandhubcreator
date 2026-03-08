@@ -903,9 +903,11 @@ export function BoothMapper3D({
 
       {/* Orbit hint */}
       <div className="absolute bottom-3 left-3 text-xs text-muted-foreground/60 bg-background/50 backdrop-blur-sm rounded px-2 py-1 z-10">
-        {isDragMode
-          ? '⊞ Drag Mode — click & drag to reposition'
-          : 'Drag to orbit · Scroll to zoom · Click panel to assign'}
+        {walkthroughMode === 'fps'
+          ? 'WASD to move · Mouse to look · Shift to sprint · Esc to exit'
+          : isDragMode
+            ? '⊞ Drag Mode — click & drag to reposition'
+            : 'Drag to orbit · Scroll to zoom · Click panel to assign'}
       </div>
       {isDragMode && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-accent/90 text-accent-foreground text-xs font-medium shadow-lg animate-pulse z-10">
