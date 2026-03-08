@@ -94,7 +94,9 @@ export function BoothMapper3D({
   const [showDimensions, setShowDimensions] = useState(true);
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
   const [assignments, setAssignments] = useState<Record<string, string>>({});
+  const [backAssignments, setBackAssignments] = useState<Record<string, string>>({});
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [assigningSide, setAssigningSide] = useState<'front' | 'back'>('front');
   const [uploadedSpecs, setUploadedSpecs] = useState<{ url: string; name: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isAiMapping, setIsAiMapping] = useState(false);
