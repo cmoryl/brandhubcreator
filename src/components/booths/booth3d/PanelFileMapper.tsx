@@ -391,7 +391,7 @@ export function PanelFileMapper({
                   selectedPanelId === panel.id
                     ? 'border-primary bg-primary/10 text-primary'
                     : hasMapping
-                    ? 'border-emerald-500/30 bg-emerald-500/5'
+                    ? 'border-primary/30 bg-primary/5'
                     : 'border-border hover:border-primary/50'
                 )}
               >
