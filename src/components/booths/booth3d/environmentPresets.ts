@@ -47,6 +47,20 @@ export interface EnvironmentConfig {
   enhancedMaterials?: boolean;
   showSpotCones?: boolean;
   particleDensity?: number;
+  /** Advanced rendering (hyper mode) */
+  useContactShadows?: boolean;
+  contactShadowOpacity?: number;
+  contactShadowBlur?: number;
+  useSoftShadows?: boolean;
+  toneMapping?: 'aces' | 'cineon' | 'reinhard' | 'linear';
+  toneMappingExposure?: number;
+  useBloom?: boolean;
+  bloomIntensity?: number;
+  showPolishedFloor?: boolean;
+  showLightShafts?: boolean;
+  showHeatHaze?: boolean;
+  showNeonAccents?: boolean;
+  showDetailedFixtures?: boolean;
 }
 
 export interface CameraPreset {
@@ -223,16 +237,19 @@ export const ENVIRONMENT_PRESETS: Record<EnvironmentRealism, EnvironmentConfig> 
     showFloorReflections: true,
     cinematicDOF: true,
     cameraPresets: CAMERA_PRESETS.ultra,
+    useContactShadows: true,
+    contactShadowOpacity: 0.3,
+    contactShadowBlur: 2,
   },
   hyper: {
     label: 'Hyper-Real',
-    description: 'Maximum photorealism — volumetric lights, glossy floors, rich materials',
+    description: 'Maximum photorealism — volumetric lights, polished floors, PBR materials, contact shadows',
     icon: '💎',
-    ambientMultiplier: 0.25,
-    spotMultiplier: 1.8,
+    ambientMultiplier: 0.22,
+    spotMultiplier: 1.9,
     shadowQuality: 4096,
     useHDRI: true,
-    envIntensity: 1.4,
+    envIntensity: 1.6,
     showCarpetDetail: true,
     showCeilingTrusses: true,
     showNeighborBooths: true,
@@ -247,7 +264,7 @@ export const ENVIRONMENT_PRESETS: Record<EnvironmentRealism, EnvironmentConfig> 
     showInteractions: true,
     showConversationGroups: true,
     showFog: true,
-    fogDensity: 0.02,
+    fogDensity: 0.018,
     showAmbientParticles: true,
     showFloorReflections: true,
     cinematicDOF: true,
@@ -258,7 +275,19 @@ export const ENVIRONMENT_PRESETS: Record<EnvironmentRealism, EnvironmentConfig> 
     showFloorGloss: true,
     enhancedMaterials: true,
     showSpotCones: true,
-    particleDensity: 800,
+    particleDensity: 1200,
+    // Advanced rendering pipeline
+    useContactShadows: true,
+    contactShadowOpacity: 0.55,
+    contactShadowBlur: 2.5,
+    useSoftShadows: true,
+    toneMapping: 'aces',
+    toneMappingExposure: 1.15,
+    showPolishedFloor: true,
+    showLightShafts: true,
+    showHeatHaze: false,
+    showNeonAccents: true,
+    showDetailedFixtures: true,
   },
 };
 
