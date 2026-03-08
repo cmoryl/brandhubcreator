@@ -97,6 +97,9 @@ export function BoothDesignToolbar(props: BoothDesignToolbarProps) {
   if (mode === 'design') {
     return (
       <div className="flex flex-wrap items-center gap-1.5">
+        {/* BRAND SWITCHER */}
+        {props.brandSwitcher}
+        {props.brandSwitcher && <ToolSep />}
         {/* SCENE */}
         <ToolGroup label="Scene">
           {isAdmin ? (
