@@ -12,6 +12,8 @@
  * - Auto-fill from variant images
  */
 import { useState, useCallback, useRef, useEffect, Suspense, useMemo } from 'react';
+import * as THREE from 'three';
+import { useThree } from '@react-three/fiber';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Canvas } from '@react-three/fiber';
 import {
@@ -20,7 +22,7 @@ import {
   Users, Route, Building2, BookTemplate, Lightbulb, ScanLine,
   Move, Plus, Trash2, Monitor, Table2, Armchair, Flag, Box,
   Palette, Shirt, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw,
-  BarChart3
+  BarChart3, Smartphone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +75,7 @@ import {
 } from './boothLightingConfig';
 import { CrowdSimulationPanel } from './CrowdSimulationPanel';
 import type { CrowdSimulationData } from './crowdSimulationTypes';
+import { ARPreviewPanel } from './ARPreviewPanel';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -89,6 +92,13 @@ interface BoothMapper3DProps {
   isAdmin?: boolean;
   /** Callback when assignments change */
   onAssignmentsChange?: (assignments: PanelAssignment[]) => void;
+}
+
+/** Tiny bridge component to capture the Three.js scene reference from inside the Canvas */
+function SceneBridge({ sceneRef }: { sceneRef: React.MutableRefObject<THREE.Scene | null> }) {
+  const { scene } = useThree();
+  sceneRef.current = scene;
+  return null;
 }
 
 export function BoothMapper3D({
@@ -160,6 +170,9 @@ export function BoothMapper3D({
   const [isSimulating, setIsSimulating] = useState(false);
   const [showHeatMap, setShowHeatMap] = useState(false);
   const [showSimPanel, setShowSimPanel] = useState(false);
+  // AR Preview state
+  const [showARPanel, setShowARPanel] = useState(false);
+  const sceneRef = useRef<THREE.Scene | null>(null);
   // Organization context for image library
   const { organization } = useOrganization();
 
@@ -1193,6 +1206,15 @@ export function BoothMapper3D({
             Clear
           </Button>
         )}
+        <Button
+          variant={showARPanel ? 'default' : 'outline'}
+          size="sm"
+          className="h-8 gap-1.5 text-xs"
+          onClick={() => setShowARPanel(v => !v)}
+        >
+          <Smartphone className="h-3.5 w-3.5" />
+          AR Preview
+        </Button>
       </div>
 
       {/* Uploaded Specs Row (admin only) */}
@@ -1237,6 +1259,7 @@ export function BoothMapper3D({
             flat={false}
           >
             <Suspense fallback={null}>
+              <SceneBridge sceneRef={sceneRef} />
               <BoothScene3D
                 panels={panels}
                 selectedPanelId={selectedPanelId}
@@ -1669,6 +1692,18 @@ export function BoothMapper3D({
             })}
           </div>
         </div>
+      )}
+
+      {/* AR Preview Panel */}
+      {showARPanel && (
+        <Card className="p-4 border-primary/20">
+          <ARPreviewPanel
+            getScene={() => sceneRef.current}
+            layoutName={layout}
+            divisionName={divisionName}
+            isAdmin={isAdmin}
+          />
+        </Card>
       )}
 
       {/* Asset Picker Dialog */}
