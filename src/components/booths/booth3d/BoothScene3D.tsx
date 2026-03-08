@@ -113,6 +113,8 @@ export function BoothScene3D({
   onTourStep,
   spriteUrls = {},
   useBillboards = false,
+  monitorSpecs = [],
+  activeSpecConfig = '',
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
