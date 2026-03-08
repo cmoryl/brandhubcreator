@@ -1908,11 +1908,17 @@ export function BoothMapper3D({
         <DialogContent className="max-w-xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Shirt className="h-5 w-5" />
-              Select Cover Print / Logo
+              {assetImageTarget === 'screen' ? <Monitor className="h-5 w-5" /> :
+               assetImageTarget === 'texture' ? <ImageIcon className="h-5 w-5" /> :
+               <Shirt className="h-5 w-5" />}
+              {assetImageTarget === 'screen' ? 'Assign Screen / Banner Image' :
+               assetImageTarget === 'texture' ? 'Assign Surface Artwork' :
+               'Select Cover Print / Logo'}
             </DialogTitle>
             <DialogDescription>
-              Choose an image from your library to print on the table cover front panel.
+              {assetImageTarget === 'screen' ? 'Choose an image to display on the screen or banner surface.' :
+               assetImageTarget === 'texture' ? 'Choose an image to apply as a surface decal or artwork.' :
+               'Choose an image from your library to print on the table cover front panel.'}
             </DialogDescription>
           </DialogHeader>
 
