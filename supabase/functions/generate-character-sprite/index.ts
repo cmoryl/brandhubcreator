@@ -49,10 +49,12 @@ Deno.serve(async (req) => {
       .list("booth-sprites", { search: `${characterId}.png` });
 
     if (existingFile && existingFile.length > 0) {
+      const match = existingFile.find((file) => file.name === `${characterId}.png`) ?? existingFile[0];
+      const cacheToken = encodeURIComponent(match?.updated_at ?? match?.created_at ?? Date.now().toString());
       const { data: urlData } = supabase.storage
         .from("organization-assets")
         .getPublicUrl(storagePath);
-      return new Response(JSON.stringify({ url: urlData.publicUrl, cached: true }), {
+      return new Response(JSON.stringify({ url: `${urlData.publicUrl}?v=${cacheToken}`, cached: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

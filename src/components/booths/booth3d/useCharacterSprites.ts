@@ -42,11 +42,12 @@ export function useCharacterSprites() {
 
       const existing: Record<string, string> = {};
       if (files) {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        for (const file of files) {
-          const id = file.name.replace('.png', '');
-          existing[id] = `${supabaseUrl}/storage/v1/object/public/organization-assets/booth-sprites/${file.name}`;
-        }
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          for (const file of files) {
+            const id = file.name.replace('.png', '');
+            const version = encodeURIComponent(file.updated_at ?? file.created_at ?? file.name);
+            existing[id] = `${supabaseUrl}/storage/v1/object/public/organization-assets/booth-sprites/${file.name}?v=${version}`;
+          }
       }
 
       setState(prev => ({
