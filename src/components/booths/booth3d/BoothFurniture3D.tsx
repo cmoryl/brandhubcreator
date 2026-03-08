@@ -73,35 +73,6 @@ export function BoothFurniture3D({
 
   if (!config) return null;
 
-  // Drag handlers
-  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation();
-    onSelect(asset.instanceId);
-    if (!isDragMode) return;
-    setIsDragging(true);
-    (e.target as HTMLElement)?.setPointerCapture?.(e.pointerId);
-  }, [isDragMode, asset.instanceId, onSelect]);
-
-  const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (!isDragging || !isDragMode) return;
-    e.stopPropagation();
-    const intersect = new THREE.Vector3();
-    raycaster.ray.intersectPlane(floorPlane, intersect);
-    if (intersect) {
-      // Snap to 0.1m grid
-      const x = Math.round(intersect.x * 10) / 10;
-      const z = Math.round(intersect.z * 10) / 10;
-      onPositionChange(asset.instanceId, [x, asset.position[1], z]);
-    }
-  }, [isDragging, isDragMode, raycaster, floorPlane, asset.instanceId, asset.position, onPositionChange]);
-
-  const handlePointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (isDragging) {
-      setIsDragging(false);
-      (e.target as HTMLElement)?.releasePointerCapture?.(e.pointerId);
-    }
-  }, [isDragging]);
-
   const isTV = config.category === 'displays';
   const isBanner = config.id.startsWith('banner');
   const isTable = config.category === 'tables';
