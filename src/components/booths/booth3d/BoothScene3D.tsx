@@ -19,6 +19,7 @@ import { getFurnitureById } from './boothFurnitureConfigs';
 import type { EnvironmentRealism, EnvironmentConfig, CameraPreset } from './environmentPresets';
 import { getEnvironmentConfig } from './environmentPresets';
 import { CameraAnimator, type WalkthroughMode } from './CameraAnimator';
+import { FirstPersonController } from './FirstPersonController';
 import type { MonitorSpec } from './specParser';
 import { type BoothLightingConfig, type PrintStyle, temperatureToColor, parCanToColor } from './boothLightingConfig';
 
