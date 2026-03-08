@@ -2790,12 +2790,6 @@ export default function BoothsCatalog() {
         </div>
       )}
 
-      {/* Detail Modal */}
-      <AnimatePresence>
-        {selected && (
-          <DivisionDetail division={selected} onClose={() => setSelected(null)} isAdmin={isAdmin} />
-        )}
-      </AnimatePresence>
     </div>
   );
 }
