@@ -1441,8 +1441,25 @@ export function BoothMapper3D({
               Assign {assigningSide === 'back' ? 'Back' : 'Front'} Image to {boothConfig.panels.find((p) => p.id === selectedPanelId)?.label}
             </DialogTitle>
             <DialogDescription>
-              Select from your image library, uploaded specs, booth variants, or gallery.
+              Select from your image library, uploaded specs, booth variants, or gallery — or design directly.
             </DialogDescription>
+            {/* Design Panel button */}
+            <div className="flex items-center gap-2 mt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs border-primary/30 hover:bg-primary/10"
+                onClick={() => {
+                  setImagePickerOpen(false);
+                  setPanelDesignerTarget(selectedPanelId);
+                  setPanelDesignerOpen(true);
+                }}
+              >
+                <Palette className="h-3.5 w-3.5 text-primary" />
+                Design Panel Graphic
+              </Button>
+              <span className="text-[10px] text-muted-foreground">Compose text, logos & graphics directly</span>
+            </div>
             {/* Front / Back toggle */}
             <div className="flex items-center gap-1 mt-2">
               <button
