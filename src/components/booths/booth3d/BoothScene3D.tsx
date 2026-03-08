@@ -612,9 +612,22 @@ export function BoothScene3D({
             fadeStrength={1}
             followCamera={false}
           />
+          {/* Shadow receiver floor with subtle reflection */}
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
             <planeGeometry args={[20, 20]} />
-            <shadowMaterial opacity={0.15} />
+            <meshStandardMaterial
+              color="#e8e8ec"
+              roughness={0.75}
+              metalness={0.05}
+              envMapIntensity={0.3}
+              transparent
+              opacity={0.92}
+            />
+          </mesh>
+          {/* Soft shadow catcher underneath */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, 0]} receiveShadow>
+            <planeGeometry args={[20, 20]} />
+            <shadowMaterial opacity={0.2} />
           </mesh>
         </>
       )}
