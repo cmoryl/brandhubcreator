@@ -11,7 +11,7 @@ import type { CameraPreset } from './environmentPresets';
 
 /* ─── Types ────────────────────────────────────────────── */
 
-export type WalkthroughMode = 'none' | 'walkthrough' | 'tour';
+export type WalkthroughMode = 'none' | 'walkthrough' | 'tour' | 'fps';
 
 export interface CameraAnimatorProps {
   /** Target preset to transition to */

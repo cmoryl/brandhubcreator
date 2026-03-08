@@ -377,7 +377,7 @@ export function BoothScene3D({
         maxDistance={showEnvironment ? 35 : 20}
         maxPolarAngle={Math.PI / 2 - 0.05}
         target={[0, 1.2, 0]}
-        enabled={!isDragMode}
+        enabled={!isDragMode && walkthroughMode !== 'fps'}
       />
       <CameraAnimator
         activePreset={activeCameraPreset}
@@ -387,6 +387,11 @@ export function BoothScene3D({
         allPresets={allCameraPresets}
         onModeChange={(mode) => { if (mode === 'none') onWalkthroughEnd?.(); }}
         onTourStep={onTourStep}
+      />
+      <FirstPersonController
+        enabled={walkthroughMode === 'fps'}
+        controlsRef={controlsRef}
+        onExit={() => onWalkthroughEnd?.()}
       />
 
 
