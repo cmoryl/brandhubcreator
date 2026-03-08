@@ -142,7 +142,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Neutral color palette with strategic brand color accents reads as sophisticated',
     ],
     tags: ['enterprise', 'b2b', 'security', 'platform', 'integrations'],
-  },
+    placedAssets: TECH_ENTERPRISE_ASSETS,
+    flooringConfig: TECH_ENTERPRISE_FLOOR,
   {
     id: 'tech-ai-ml',
     name: 'AI & Machine Learning',
