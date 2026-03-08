@@ -197,6 +197,15 @@ export function InspectorPanel({
             )}
           </div>
 
+          {/* Smart Graphic Warnings for this panel */}
+          <Separator />
+          <SmartGraphicWarnings
+            panels={panels}
+            assignments={assignments}
+            focusPanelId={selectedPanel.id}
+            compact
+          />
+
           {/* Panel Color Analysis */}
           {hasImage && (
             <>
