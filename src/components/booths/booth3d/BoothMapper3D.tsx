@@ -1145,6 +1145,12 @@ export function BoothMapper3D({
             onAddAsset={handleAddAsset}
             layers={sceneLayers}
             onToggleLayer={handleToggleLayer}
+            logisticsMarkers={logisticsMarkers}
+            selectedLogisticsId={selectedLogisticsId}
+            onSelectLogistics={setSelectedLogisticsId}
+            onAddLogisticsMarker={handleAddLogisticsMarker}
+            onUpdateLogisticsMarker={handleUpdateLogisticsMarker}
+            onRemoveLogisticsMarker={handleRemoveLogisticsMarker}
           />
         }
         rightPanel={
