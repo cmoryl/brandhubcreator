@@ -525,17 +525,29 @@ export function BoothMapper3D({
 
   const handleOpenCoverImagePicker = useCallback((instanceId: string) => {
     setCoverImageTargetAssetId(instanceId);
+    setAssetImageTarget('cover');
+    setCoverImagePickerOpen(true);
+    if (organization?.id) fetchImages(organization.id);
+  }, [organization?.id, fetchImages]);
+
+  const handleOpenAssetImagePicker = useCallback((instanceId: string, target: 'screen' | 'texture' | 'cover') => {
+    setCoverImageTargetAssetId(instanceId);
+    setAssetImageTarget(target);
     setCoverImagePickerOpen(true);
     if (organization?.id) fetchImages(organization.id);
   }, [organization?.id, fetchImages]);
 
   const handleAssignCoverImage = useCallback((imageUrl: string) => {
     if (!coverImageTargetAssetId) return;
-    handleUpdateAsset(coverImageTargetAssetId, { tableCoverImageUrl: imageUrl });
+    const updateField = assetImageTarget === 'screen' ? 'screenImageUrl'
+      : assetImageTarget === 'texture' ? 'customTextureUrl'
+      : 'tableCoverImageUrl';
+    handleUpdateAsset(coverImageTargetAssetId, { [updateField]: imageUrl });
     setCoverImagePickerOpen(false);
     setCoverImageTargetAssetId(null);
-    toast.success('Cover image assigned');
-  }, [coverImageTargetAssetId, handleUpdateAsset]);
+    const label = assetImageTarget === 'screen' ? 'Screen image' : assetImageTarget === 'texture' ? 'Surface artwork' : 'Cover image';
+    toast.success(`${label} assigned`);
+  }, [coverImageTargetAssetId, assetImageTarget, handleUpdateAsset]);
 
   const handleSelectPanel = useCallback((panelId: string) => {
     if (isDragMode) return;
