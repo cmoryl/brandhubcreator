@@ -1807,7 +1807,7 @@ const ContactWebsiteEditor = ({ division, isAdmin }: { division: BoothDivision; 
   );
 };
 
-export const DivisionDetail = ({ division, onClose, isAdmin }: { division: BoothDivision; onClose: () => void; isAdmin: boolean }) => {
+export const DivisionDetail = ({ division, onClose, isAdmin, mode = 'modal' }: { division: BoothDivision; onClose: () => void; isAdmin: boolean; mode?: 'modal' | 'page' }) => {
   const [activeVariant, setActiveVariant] = useState(0);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
