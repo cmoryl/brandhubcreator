@@ -739,6 +739,23 @@ export function BoothMapper3D({
             <TooltipContent>People &amp; Scale</TooltipContent>
           </Tooltip>
 
+          {showPeople && isAdmin && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={characterSprites.count > 0 ? "outline" : "secondary"}
+                  size="sm"
+                  className="h-8 text-[10px] px-2"
+                  onClick={() => characterSprites.generateAll()}
+                  disabled={characterSprites.isGenerating}
+                >
+                  {characterSprites.isGenerating ? '⏳' : '📸'} {characterSprites.count > 0 ? `${characterSprites.count} Sprites` : 'Generate People'}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Generate photorealistic character sprites using AI ({characterSprites.count}/{characterSprites.totalAvailable} ready)</TooltipContent>
+            </Tooltip>
+          )}
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Toggle pressed={showTrafficFlow} onPressedChange={setShowTrafficFlow} size="sm" aria-label="Toggle traffic flow">
