@@ -69,6 +69,8 @@ interface BoothScene3DProps {
   onAssetPositionChange?: (instanceId: string, position: [number, number, number]) => void;
   /** Environment realism level */
   environmentRealism?: EnvironmentRealism;
+  /** Active camera preset to snap to */
+  activeCameraPreset?: CameraPreset | null;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
@@ -114,6 +116,7 @@ export function BoothScene3D({
   onSelectAsset,
   onAssetPositionChange,
   environmentRealism = 'standard',
+  activeCameraPreset = null,
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
