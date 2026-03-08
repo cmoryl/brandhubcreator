@@ -30,9 +30,19 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 
 const LAYOUT_LABELS: Record<string, string> = {
   'inline': "10'×8' Inline",
+  'inline-10x10': "10'×10' Inline Tall",
+  'inline-10x20': "10'×20' Double Inline",
+  'inline-10x30': "10'×30' Triple Inline",
   'l-shape': "10'×10' L-Shape",
+  'l-shape-10x20': "10'×20' L-Shape Wide",
   'u-shape': "10'×10' U-Shape",
+  'u-shape-10x20': "10'×20' U-Shape Wide",
+  't-shape-10x20': "10'×20' T-Shape",
+  'peninsula-20x20': "20'×20' Peninsula",
   'island': "20'×20' Island",
+  'island-20x30': "20'×30' Island",
+  'island-30x30': "30'×30' Island",
+  'island-40x40': "40'×40' Island",
 };
 
 interface BoothPresetPickerProps {
