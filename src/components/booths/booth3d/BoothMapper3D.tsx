@@ -1273,6 +1273,8 @@ export function BoothMapper3D({
                 flooringConfig={flooringConfig}
                 footprint={boothConfig.footprint}
                 boothLighting={boothLighting}
+                showHeatMap={showHeatMap}
+                crowdSimulation={crowdSimulation}
                 printStyle={printStyle}
               />
             </Suspense>
