@@ -70,23 +70,33 @@ export default function BoothSystemsLibrary() {
   const [editDesc, setEditDesc] = useState('');
 
   const handleCreate = async () => {
-    if (!newName.trim()) return;
-    const id = await createSystem(newName.trim(), newDesc.trim());
-    if (id) {
-      setShowCreateDialog(false);
-      setNewName('');
-      setNewDesc('');
-      setExpandedSystem(id);
+    if (!newName.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const id = await createSystem(newName.trim(), newDesc.trim());
+      if (id) {
+        setShowCreateDialog(false);
+        setNewName('');
+        setNewDesc('');
+        setExpandedSystem(id);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleAddVariant = async () => {
-    if (!showAddVariant || !variantName.trim()) return;
-    await addVariant(showAddVariant, variantName.trim(), variantType, variantDims.trim(), {});
-    setShowAddVariant(null);
-    setVariantName('');
-    setVariantType('inline');
-    setVariantDims('');
+    if (!showAddVariant || !variantName.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await addVariant(showAddVariant, variantName.trim(), variantType, variantDims.trim(), {});
+      setShowAddVariant(null);
+      setVariantName('');
+      setVariantType('inline');
+      setVariantDims('');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSaveEdit = async (systemId: string) => {
