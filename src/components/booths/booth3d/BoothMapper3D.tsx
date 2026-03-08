@@ -86,6 +86,7 @@ import { BoothScorePanel, type BoothScoreData } from './BoothScorePanel';
 import { BoothDesignToolbar } from './BoothDesignToolbar';
 import { BoothLeftPanel } from './BoothLeftPanel';
 import { EnvironmentPresetCards } from './EnvironmentPresetCards';
+import { PanelDesigner } from './PanelDesigner';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
