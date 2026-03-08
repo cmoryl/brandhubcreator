@@ -193,6 +193,10 @@ export function BoothMapper3D({
   const [panelDesignerOpen, setPanelDesignerOpen] = useState(false);
   const [panelDesignerTarget, setPanelDesignerTarget] = useState<string | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
+  // Logistics markers
+  const [logisticsMarkers, setLogisticsMarkers] = useState<LogisticsMarker[]>([]);
+  const [selectedLogisticsId, setSelectedLogisticsId] = useState<string | null>(null);
+  const [showLogistics, setShowLogistics] = useState(true);
   // Organization context for image library
   const { organization } = useOrganization();
 
