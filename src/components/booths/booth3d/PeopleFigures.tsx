@@ -17,30 +17,9 @@ interface FigurePlacement {
   position: [number, number, number];
   rotation?: number;
   opacity?: number;
-  pose?: FigurePose;
+  pose?: string;
   seed?: number;
   isStaff?: boolean;
-}
-
-/** Conversation cluster fallback */
-function ConversationGroup({ position, count = 2 }: { position: [number, number, number]; count?: number }) {
-  const angles = count === 2 ? [0, Math.PI] : [0, Math.PI * 0.7, Math.PI * 1.3];
-  const radius = 0.55;
-
-  return (
-    <group position={position}>
-      {angles.map((angle, i) => (
-        <RealisticHumanFigure
-          key={i}
-          position={[Math.sin(angle) * radius, 0, Math.cos(angle) * radius]}
-          rotation={angle + Math.PI}
-          opacity={0.8}
-          pose="talking"
-          seed={i * 17 + 5}
-        />
-      ))}
-    </group>
-  );
 }
 
 /** Height reference marker */
