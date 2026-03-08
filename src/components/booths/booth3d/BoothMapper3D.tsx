@@ -1364,18 +1364,46 @@ export function BoothMapper3D({
                       <p className="text-[10px] text-muted-foreground">
                         {config?.description?.split('(')[0]?.trim()}
                         {asset.tableCoverColor && ' · Cover applied'}
+                        {asset.screenImageUrl && ' · 🖼 Image'}
+                        {asset.customTextureUrl && ' · 🎨 Artwork'}
                       </p>
                     </div>
-                    {isAdmin && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
-                        onClick={() => handleRemoveAsset(asset.instanceId)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-1 shrink-0">
+                      {/* Quick assign image button for screen/banner assets */}
+                      {isAdmin && config?.hasScreen && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-primary"
+                          onClick={() => handleOpenAssetImagePicker(asset.instanceId, 'screen')}
+                          title="Assign image"
+                        >
+                          <ImageIcon className="h-3 w-3" />
+                        </Button>
+                      )}
+                      {/* Quick assign texture for non-screen assets with custom texture */}
+                      {isAdmin && config?.hasCustomTexture && !config?.hasScreen && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-primary"
+                          onClick={() => handleOpenAssetImagePicker(asset.instanceId, 'texture')}
+                          title="Assign surface artwork"
+                        >
+                          <ImageIcon className="h-3 w-3" />
+                        </Button>
+                      )}
+                      {isAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleRemoveAsset(asset.instanceId)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Table Cover Customization */}
