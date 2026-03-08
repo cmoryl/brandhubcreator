@@ -108,6 +108,7 @@ export function BoothMapper3D({
   const [activeCameraPreset, setActiveCameraPreset] = useState<string | null>(null);
   const [cameraVersion, setCameraVersion] = useState(0);
   const [walkthroughMode, setWalkthroughMode] = useState<WalkthroughMode>('none');
+  const [cameraPanelOpen, setCameraPanelOpen] = useState(true);
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
