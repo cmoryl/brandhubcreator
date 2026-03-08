@@ -452,6 +452,7 @@ export function BoothScene3D({
           asset={asset}
           isSelected={selectedAssetId === asset.instanceId}
           isDragMode={isDragMode}
+          showLabels={showLabels}
           onSelect={onSelectAsset || (() => {})}
           onPositionChange={onAssetPositionChange || (() => {})}
         />
