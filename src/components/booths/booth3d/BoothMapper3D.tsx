@@ -259,6 +259,10 @@ export function BoothMapper3D({
           setSpecConfigType(layouts[0].configType);
           setUseProductionSpecs(true);
         }
+
+        // Parse monitor specs from general category
+        const monitors = parseMonitorSpecs(filtered);
+        setMonitorSpecs(monitors);
       } catch (e) {
         console.error('Failed to load production specs:', e);
       }
