@@ -24,9 +24,11 @@ import { getEnvironmentConfig } from './environmentPresets';
 function CameraController({
   activePreset,
   controlsRef,
+  version,
 }: {
   activePreset: CameraPreset | null;
   controlsRef: React.RefObject<any>;
+  version: number;
 }) {
   const { camera } = useThree();
 
@@ -42,7 +44,7 @@ function CameraController({
       controls.target.set(...activePreset.target);
       controls.update();
     }
-  }, [activePreset, camera, controlsRef]);
+  }, [activePreset, camera, controlsRef, version]);
 
   return null;
 }
@@ -71,6 +73,8 @@ interface BoothScene3DProps {
   environmentRealism?: EnvironmentRealism;
   /** Active camera preset to snap to */
   activeCameraPreset?: CameraPreset | null;
+  /** Bumped each click to re-trigger same preset */
+  cameraVersion?: number;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
