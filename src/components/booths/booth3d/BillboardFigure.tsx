@@ -86,21 +86,36 @@ export function BillboardFigure({
   });
 
   return (
-    <mesh
-      ref={meshRef}
-      position={[position[0], position[1] + height / 2, position[2]]}
-      castShadow
-    >
-      <planeGeometry args={[width, height]} />
-      <meshStandardMaterial
-        map={texture}
-        transparent
-        opacity={opacity}
-        alphaTest={0.05}
-        side={THREE.DoubleSide}
-        depthWrite={false}
-      />
-    </mesh>
+    <group>
+      <mesh
+        ref={meshRef}
+        position={[position[0], position[1] + height / 2, position[2]]}
+      >
+        <planeGeometry args={[width, height]} />
+        <meshStandardMaterial
+          map={texture}
+          transparent
+          opacity={opacity}
+          alphaTest={0.05}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+      {/* Realistic elliptical contact shadow on the ground */}
+      <mesh
+        position={[position[0], position[1] + 0.005, position[2]]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow={false}
+      >
+        <circleGeometry args={[width * 0.55, 32]} />
+        <meshBasicMaterial
+          color="#000000"
+          transparent
+          opacity={opacity * 0.18}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
   );
 }
 
