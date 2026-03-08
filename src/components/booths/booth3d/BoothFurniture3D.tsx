@@ -18,23 +18,35 @@ interface BoothFurniture3DProps {
   onPositionChange: (instanceId: string, position: [number, number, number]) => void;
 }
 
-/** Screen texture loader */
+/** Screen texture loader with enhanced PBR */
 function ScreenTexture({ url }: { url: string }) {
   const tex = useTexture(url);
   tex.colorSpace = THREE.SRGBColorSpace;
-  return <meshStandardMaterial map={tex} emissive="#111" emissiveIntensity={0.05} />;
+  tex.anisotropy = 16;
+  return (
+    <meshStandardMaterial
+      map={tex}
+      emissive="#222"
+      emissiveIntensity={0.15}
+      roughness={0.08}
+      metalness={0.05}
+      envMapIntensity={0.6}
+    />
+  );
 }
 
-/** Table cover front-panel image texture */
+/** Table cover front-panel image texture with fabric PBR */
 function CoverImageTexture({ url, color }: { url: string; color: string }) {
   const tex = useTexture(url);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 16;
   return (
     <meshStandardMaterial
       map={tex}
       color={color}
-      roughness={0.75}
-      metalness={0.02}
+      roughness={0.7}
+      metalness={0.03}
+      envMapIntensity={0.35}
       side={THREE.DoubleSide}
     />
   );
@@ -54,8 +66,9 @@ function TableCover3D({
 }) {
   const fabricMat = useMemo(() => ({
     color: coverColor,
-    roughness: 0.8,
-    metalness: 0.02,
+    roughness: 0.72,
+    metalness: 0.03,
+    envMapIntensity: 0.35,
     side: THREE.DoubleSide as THREE.Side,
   }), [coverColor]);
 
@@ -233,18 +246,23 @@ export function BoothFurniture3D({
 
       {/* Main body */}
       {isTable ? (
-        // Table: flat top + 4 legs
+        // Table: flat top + 4 legs with real-time reflective surfaces
         <group>
-          {/* Tabletop */}
-          <mesh position={[0, h, 0]} castShadow>
+          {/* Tabletop — glossy laminate surface */}
+          <mesh position={[0, h, 0]} castShadow receiveShadow>
             <boxGeometry args={[w, 0.03, d]} />
-            <meshStandardMaterial color={color} roughness={0.4} metalness={0.1} />
+            <meshStandardMaterial
+              color={color}
+              roughness={0.25}
+              metalness={0.15}
+              envMapIntensity={0.6}
+            />
           </mesh>
-          {/* Legs */}
+          {/* Legs — brushed metal */}
           {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([lx, lz], i) => (
-            <mesh key={i} position={[lx * (w / 2 - 0.03), h / 2, lz * (d / 2 - 0.03)]}>
+            <mesh key={i} position={[lx * (w / 2 - 0.03), h / 2, lz * (d / 2 - 0.03)]} castShadow>
               <boxGeometry args={[0.03, h, 0.03]} />
-              <meshStandardMaterial color={color} roughness={0.6} />
+              <meshStandardMaterial color={color} roughness={0.4} metalness={0.3} envMapIntensity={0.4} />
             </mesh>
           ))}
 
@@ -261,11 +279,11 @@ export function BoothFurniture3D({
           )}
         </group>
       ) : isTV && config.id.includes('wall') ? (
-        // Wall-mounted TV: flat panel
+        // Wall-mounted TV: glossy bezel with reflections
         <group>
-          <mesh position={[0, h / 2, 0]} castShadow>
+          <mesh position={[0, h / 2, 0]} castShadow receiveShadow>
             <boxGeometry args={[w, h, d]} />
-            <meshStandardMaterial color="#111" roughness={0.2} metalness={0.8} />
+            <meshStandardMaterial color="#0a0a0a" roughness={0.08} metalness={0.85} envMapIntensity={0.8} />
           </mesh>
           {/* Screen area */}
           {config.screenSize && (
@@ -282,24 +300,24 @@ export function BoothFurniture3D({
           )}
         </group>
       ) : isTV ? (
-        // Floor-standing TV: stand pole + screen
+        // Floor-standing TV: stand pole + screen with reflective bezel
         <group>
-          {/* Base plate */}
-          <mesh position={[0, 0.02, 0]} castShadow>
+          {/* Base plate — polished metal */}
+          <mesh position={[0, 0.02, 0]} castShadow receiveShadow>
             <boxGeometry args={[w * 0.6, 0.04, d]} />
-            <meshStandardMaterial color="#222" roughness={0.3} metalness={0.6} />
+            <meshStandardMaterial color="#1a1a1a" roughness={0.15} metalness={0.7} envMapIntensity={0.7} />
           </mesh>
-          {/* Pole */}
+          {/* Pole — chrome */}
           <mesh position={[0, (config.screenYOffset || h * 0.6) / 2, 0]}>
-            <cylinderGeometry args={[0.02, 0.025, config.screenYOffset || h * 0.6, 8]} />
-            <meshStandardMaterial color="#333" roughness={0.3} metalness={0.7} />
+            <cylinderGeometry args={[0.02, 0.025, config.screenYOffset || h * 0.6, 12]} />
+            <meshStandardMaterial color="#c0c0c0" roughness={0.12} metalness={0.85} envMapIntensity={0.8} />
           </mesh>
           {/* Screen */}
           {config.screenSize && (
             <group position={[0, (config.screenYOffset || 0) + config.screenSize[1] / 2, 0]}>
-              <mesh castShadow>
+              <mesh castShadow receiveShadow>
                 <boxGeometry args={[config.screenSize[0], config.screenSize[1], 0.05]} />
-                <meshStandardMaterial color="#111" roughness={0.2} metalness={0.8} />
+                <meshStandardMaterial color="#0a0a0a" roughness={0.06} metalness={0.9} envMapIntensity={0.8} />
               </mesh>
               <mesh position={[0, 0, 0.026]}>
                 <planeGeometry args={[config.screenSize[0] * 0.95, config.screenSize[1] * 0.92]} />
@@ -315,12 +333,12 @@ export function BoothFurniture3D({
           )}
         </group>
       ) : isBanner ? (
-        // Retractable banner
+        // Retractable banner with fabric-like surface
         <group>
-          {/* Base */}
-          <mesh position={[0, 0.02, 0]} castShadow>
+          {/* Base — weighted metal */}
+          <mesh position={[0, 0.02, 0]} castShadow receiveShadow>
             <boxGeometry args={[w, 0.04, d * 0.3]} />
-            <meshStandardMaterial color="#333" roughness={0.4} metalness={0.5} />
+            <meshStandardMaterial color="#2a2a2a" roughness={0.2} metalness={0.6} envMapIntensity={0.5} />
           </mesh>
           {/* Banner surface */}
           {config.screenSize && (
@@ -331,37 +349,41 @@ export function BoothFurniture3D({
                   <ScreenTexture url={asset.screenImageUrl} />
                 </Suspense>
               ) : (
-                <meshStandardMaterial color="#e2e8f0" side={THREE.DoubleSide} />
+              <meshStandardMaterial color="#f0f0f0" roughness={0.65} metalness={0.02} envMapIntensity={0.3} side={THREE.DoubleSide} />
               )}
             </mesh>
           )}
         </group>
       ) : isStool ? (
-        // Bar stool: seat + single pole + base
+        // Bar stool: reflective metal with padded seat
         <group>
-          <mesh position={[0, 0.02, 0]}>
-            <cylinderGeometry args={[w * 0.4, w * 0.5, 0.04, 16]} />
-            <meshStandardMaterial color={color} roughness={0.5} metalness={0.4} />
+          {/* Base — polished metal */}
+          <mesh position={[0, 0.02, 0]} receiveShadow>
+            <cylinderGeometry args={[w * 0.4, w * 0.5, 0.04, 20]} />
+            <meshStandardMaterial color={color} roughness={0.15} metalness={0.75} envMapIntensity={0.7} />
           </mesh>
+          {/* Pole — chrome */}
           <mesh position={[0, h / 2, 0]}>
-            <cylinderGeometry args={[0.02, 0.02, h, 8]} />
-            <meshStandardMaterial color="#666" roughness={0.3} metalness={0.6} />
+            <cylinderGeometry args={[0.02, 0.02, h, 12]} />
+            <meshStandardMaterial color="#c0c0c0" roughness={0.1} metalness={0.9} envMapIntensity={0.8} />
           </mesh>
-          <mesh position={[0, h, 0]} castShadow>
-            <cylinderGeometry args={[w / 2, w / 2, 0.04, 16]} />
-            <meshStandardMaterial color={color} roughness={0.6} />
+          {/* Seat — padded fabric */}
+          <mesh position={[0, h, 0]} castShadow receiveShadow>
+            <cylinderGeometry args={[w / 2, w / 2, 0.05, 20]} />
+            <meshStandardMaterial color={color} roughness={0.65} metalness={0.05} envMapIntensity={0.3} />
           </mesh>
         </group>
       ) : isRug ? (
-        // Rug / carpet — flat on floor with fabric material
+        // Rug / carpet — fabric with subtle environment reflection
         <group>
           {isRoundRug ? (
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]} receiveShadow>
               <circleGeometry args={[w / 2, 48]} />
               <meshStandardMaterial
                 color={color}
-                roughness={0.9}
-                metalness={0}
+                roughness={0.82}
+                metalness={0.02}
+                envMapIntensity={0.15}
                 side={THREE.DoubleSide}
               />
             </mesh>
@@ -370,8 +392,9 @@ export function BoothFurniture3D({
               <planeGeometry args={[w, d]} />
               <meshStandardMaterial
                 color={color}
-                roughness={0.9}
-                metalness={0}
+                roughness={0.82}
+                metalness={0.02}
+                envMapIntensity={0.15}
                 side={THREE.DoubleSide}
               />
             </mesh>
@@ -380,23 +403,24 @@ export function BoothFurniture3D({
           {isRoundRug ? (
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 0]}>
               <ringGeometry args={[w / 2 - 0.02, w / 2, 48]} />
-              <meshStandardMaterial color={color} roughness={0.85} metalness={0} opacity={0.6} transparent side={THREE.DoubleSide} />
+              <meshStandardMaterial color={color} roughness={0.78} metalness={0.03} opacity={0.6} transparent side={THREE.DoubleSide} envMapIntensity={0.1} />
             </mesh>
           ) : (
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 0]}>
               <planeGeometry args={[w + 0.04, d + 0.04]} />
-              <meshStandardMaterial color={color} roughness={0.85} metalness={0} opacity={0.4} transparent side={THREE.DoubleSide} />
+              <meshStandardMaterial color={color} roughness={0.78} metalness={0.03} opacity={0.4} transparent side={THREE.DoubleSide} envMapIntensity={0.1} />
             </mesh>
           )}
         </group>
       ) : (
-        // Generic box
-        <mesh position={[0, h / 2, 0]} castShadow>
+        // Generic box with environment-responsive materials
+        <mesh position={[0, h / 2, 0]} castShadow receiveShadow>
           <boxGeometry args={[w, h, d]} />
           <meshStandardMaterial
             color={color}
-            roughness={0.5}
-            metalness={0.1}
+            roughness={0.4}
+            metalness={0.12}
+            envMapIntensity={0.45}
             emissive={isSelected ? '#1e40af' : undefined}
             emissiveIntensity={isSelected ? 0.15 : 0}
           />
