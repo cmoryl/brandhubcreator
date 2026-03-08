@@ -240,6 +240,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['pharma', 'clinical', 'medical', 'healthcare', 'regulatory', 'hcp'],
     placedAssets: HEALTH_PHARMA_ASSETS,
     flooringConfig: HEALTH_PHARMA_FLOOR,
+  },
   {
     id: 'health-medtech',
     name: 'Medical Devices & MedTech',
