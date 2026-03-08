@@ -28,30 +28,22 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Toggle } from '@/components/ui/toggle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useImageLibrary } from '@/hooks/useImageLibrary';
 import { BoothScene3D } from './BoothScene3D';
 import {
-  getBoothPanels,
   LAYOUT_OPTIONS,
   LIGHTING_PRESETS,
   type BoothLayout,
   type LightingPreset,
-  type PanelConfig,
   type PanelAssignment,
 } from './boothConfigs';
 import { BoothPresetPicker } from './BoothPresetPicker';
-import { parseAllSpecs, generatePanelsFromSpecs, parseMonitorSpecs, type ParsedPanelSpec, type MonitorSpec } from './specParser';
 import type { BoothDesignPreset } from './boothPresets';
 import {
   FURNITURE_CATALOG,
@@ -61,40 +53,30 @@ import {
   type FurnitureCategory,
 } from './boothFurnitureConfigs';
 import {
-  ENVIRONMENT_PRESETS,
   getEnvironmentConfig,
   type EnvironmentRealism,
 } from './environmentPresets';
 import type { WalkthroughMode } from './CameraAnimator';
 import { useCharacterSprites } from './useCharacterSprites';
-import { FLOORING_OPTIONS, FLOOR_COLOR_PRESETS, type FlooringConfig, type FlooringType } from './BoothFloorpad';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  type BoothLightingConfig, type PrintStyle, type ParCanColor, type ColorTemperature,
-  getDefaultBoothLighting, PRINT_STYLE_OPTIONS, PAR_CAN_OPTIONS, TEMPERATURE_OPTIONS,
-} from './boothLightingConfig';
+import { type PrintStyle } from './boothLightingConfig';
 import { CrowdSimulationPanel } from './CrowdSimulationPanel';
 import type { CrowdSimulationData } from './crowdSimulationTypes';
 import { ARPreviewPanel } from './ARPreviewPanel';
 import { SalesDeckPanel } from './SalesDeckPanel';
 import { BoothWorkspace, type BoothMode } from './BoothWorkspace';
-import { AssetLibraryPanel } from './AssetLibraryPanel';
 import { InspectorPanel } from './InspectorPanel';
-import { SceneLayersPanel, type SceneLayer } from './SceneLayersPanel';
+import { type SceneLayer } from './SceneLayersPanel';
 import { MiniMapOverlay } from './MiniMapOverlay';
 import { BoothScorePanel, type BoothScoreData } from './BoothScorePanel';
 import { BoothDesignToolbar } from './BoothDesignToolbar';
 import { BoothLeftPanel } from './BoothLeftPanel';
-import { EnvironmentPresetCards } from './EnvironmentPresetCards';
 import { PanelDesigner } from './PanelDesigner';
-import { LogisticsPanel } from './LogisticsPanel';
-import { LogisticsOverlay3D } from './LogisticsMarker3D';
-import { type LogisticsMarker, type LogisticsCategory, createMarker, LOGISTICS_CATEGORIES } from './logisticsTypes';
+import { type LogisticsMarker } from './logisticsTypes';
 import { BoothAnalyticsDashboard } from './BoothAnalyticsDashboard';
 import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
-import type { AIBoothResult } from './AIBoothGenerator';
 import { VendorExportPack } from './VendorExportPack';
 import { PanelFileMapper } from './PanelFileMapper';
+import { useBoothState } from './useBoothState';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
