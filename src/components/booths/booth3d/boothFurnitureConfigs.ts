@@ -53,6 +53,10 @@ export interface PlacedAsset {
   tableCoverImageUrl?: string;
   /** Table cover style */
   tableCoverStyle?: 'fitted' | 'draped' | 'throw';
+  /** Custom surface texture/decal image URL */
+  customTextureUrl?: string;
+  /** Custom thumbnail override for asset library */
+  customThumbnailUrl?: string;
 }
 
 const FT = 0.3048;

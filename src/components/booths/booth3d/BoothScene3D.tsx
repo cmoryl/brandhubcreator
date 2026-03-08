@@ -158,37 +158,75 @@ export function BoothScene3D({
   const lighting = getLighting(lightingPreset, envConfig);
   const isHyper = environmentRealism === 'hyper';
 
-  // Build occupied zones from panels + placed assets for collision avoidance
+  // Build occupied zones from panels + placed assets + monitors + lighting rigs for collision avoidance
   const occupiedZones = useMemo<OccupiedZone[]>(() => {
     const zones: OccupiedZone[] = [];
 
     // Panels occupy space on the XZ plane
-    // Panels are vertical walls — size is [width, height]. Use width for XZ footprint.
-    const PANEL_DEPTH = 0.15; // physical thickness of a panel
+    const PANEL_DEPTH = 0.15;
     for (const p of panels) {
+      // Account for panel rotation — panels rotated 90° swap width/depth footprint
+      const rotY = p.rotation[1] || 0;
+      const isRotated = Math.abs(Math.sin(rotY)) > 0.5;
       zones.push({
         cx: p.position[0],
         cz: p.position[2],
-        hw: p.size[0] / 2,
-        hd: PANEL_DEPTH / 2,
+        hw: isRotated ? PANEL_DEPTH / 2 : p.size[0] / 2 + 0.2, // +0.2m clearance buffer
+        hd: isRotated ? p.size[0] / 2 + 0.2 : PANEL_DEPTH / 2 + 0.2,
       });
     }
 
-    // Placed furniture assets
+    // Placed furniture assets — with clearance buffer for walk-around space
     for (const asset of placedAssets) {
       const catalog = getFurnitureById(asset.assetId);
       if (!catalog) continue;
       const sz = asset.customSize || catalog.size;
+      const clearance = catalog.category === 'displays' ? 0.6 : // screens need viewer clearance
+                        catalog.category === 'tables' ? 0.4 :   // tables need chair/approach space
+                        catalog.category === 'seating' ? 0.2 :
+                        0.15;
       zones.push({
         cx: asset.position[0],
         cz: asset.position[2],
-        hw: sz[0] / 2,
-        hd: sz[2] / 2,
+        hw: sz[0] / 2 + clearance,
+        hd: sz[2] / 2 + clearance,
       });
     }
 
+    // Production-spec mounted monitors
+    for (const ms of monitorSpecs.filter(m => m.configType === activeSpecConfig)) {
+      const diagM = ms.monitorSize * 0.0254;
+      const aspect = 16 / 9;
+      const monW = diagM * Math.cos(Math.atan(1 / aspect));
+      const positions: [number, number, number][] = ms.count === 1
+        ? [[0, 0, -0.02]]
+        : [[-monW * 0.6, 0, -0.02], [monW * 0.6, 0, -0.02]];
+      for (const pos of positions) {
+        zones.push({ cx: pos[0], cz: pos[2], hw: monW / 2 + 0.3, hd: 0.4 });
+      }
+    }
+
+    // LED wash strips and par can fixtures (stage lighting mode)
+    if (lightingPreset === 'stage-lighting') {
+      for (const wash of [[-3, 0, -1.5], [3, 0, -1.5], [0, 0, 2]]) {
+        zones.push({ cx: wash[0], cz: wash[2], hw: 1.2, hd: 0.3 });
+      }
+    }
+
+    // Volumetric beam landing zones (dark/stage modes)
+    if (lightingPreset === 'dark-hall' || lightingPreset === 'stage-lighting') {
+      for (const bx of [0, -2.5, 2.5]) {
+        zones.push({ cx: bx, cz: bx === 0 ? 0 : bx > 0 ? 0.5 : -0.5, hw: 1.0, hd: 1.0 });
+      }
+    }
+
+    // Booth flooring edges — people shouldn't stand ON the booth edge
+    if (flooringConfig && flooringConfig.type !== 'none') {
+      // The booth floor itself is an implicit zone; people should be near it but not on the edge strips
+    }
+
     return zones;
-  }, [panels, placedAssets]);
+  }, [panels, placedAssets, monitorSpecs, activeSpecConfig, lightingPreset, flooringConfig]);
 
   // Determine enhanced lighting tier
   const isAdvanced = environmentRealism === 'cinematic' || environmentRealism === 'ultra' || isHyper;
