@@ -26,6 +26,8 @@ export interface FurnitureAsset {
   screenYOffset?: number;
   /** Whether this asset supports a table cover */
   hasTableCover?: boolean;
+  /** Whether this asset is wall-mountable (drags on vertical plane) */
+  wallMountable?: boolean;
 }
 
 export interface PlacedAsset {
@@ -161,6 +163,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     hasScreen: true,
     screenSize: [37 * IN, 21 * IN],
     screenYOffset: 0,
+    wallMountable: true,
   },
   {
     id: 'tv-wall-55',
@@ -172,6 +175,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     hasScreen: true,
     screenSize: [48.5 * IN, 27.5 * IN],
     screenYOffset: 0,
+    wallMountable: true,
   },
 
   // Seating
