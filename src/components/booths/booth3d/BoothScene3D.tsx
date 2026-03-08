@@ -12,6 +12,8 @@ import { PeopleFigures } from './PeopleFigures';
 import { TrafficFlow } from './TrafficFlow';
 import type { PanelConfig, LightingPreset, BoothLayout } from './boothConfigs';
 import type { PlacedAsset } from './boothFurnitureConfigs';
+import type { EnvironmentRealism, EnvironmentConfig } from './environmentPresets';
+import { getEnvironmentConfig } from './environmentPresets';
 
 interface BoothScene3DProps {
   panels: PanelConfig[];
@@ -25,17 +27,17 @@ interface BoothScene3DProps {
   showPeople?: boolean;
   showTrafficFlow?: boolean;
   layout?: BoothLayout;
-  /** Drag mode */
   isDragMode?: boolean;
   onPanelPositionChange?: (panelId: string, position: [number, number, number]) => void;
-  /** Furniture assets */
   placedAssets?: PlacedAsset[];
   selectedAssetId?: string | null;
   onSelectAsset?: (instanceId: string) => void;
   onAssetPositionChange?: (instanceId: string, position: [number, number, number]) => void;
+  /** Environment realism level */
+  environmentRealism?: EnvironmentRealism;
 }
 
-function getLighting(preset: LightingPreset, immersive: boolean) {
+function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
   const base = (() => {
     switch (preset) {
       case 'expo-bright':
@@ -48,8 +50,13 @@ function getLighting(preset: LightingPreset, immersive: boolean) {
         return { ambientIntensity: 0.6, spotIntensity: 0.9, envPreset: 'city' as const, bgColor: '#f1f5f9' };
     }
   })();
-  if (immersive) {
-    return { ...base, bgColor: '#111827' };
+  if (envConfig) {
+    return {
+      ...base,
+      bgColor: '#111827',
+      ambientIntensity: base.ambientIntensity * envConfig.ambientMultiplier,
+      spotIntensity: base.spotIntensity * envConfig.spotMultiplier,
+    };
   }
   return base;
 }
@@ -72,23 +79,25 @@ export function BoothScene3D({
   selectedAssetId,
   onSelectAsset,
   onAssetPositionChange,
+  environmentRealism = 'standard',
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
-  const lighting = getLighting(lightingPreset, showEnvironment);
+  const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
+  const lighting = getLighting(lightingPreset, envConfig);
 
   return (
     <>
       <color attach="background" args={[lighting.bgColor]} />
 
       {/* Lighting */}
-      <ambientLight intensity={showEnvironment ? lighting.ambientIntensity * 0.7 : lighting.ambientIntensity} />
+      <ambientLight intensity={lighting.ambientIntensity} />
       <spotLight
         position={[5, 8, 5]}
         angle={0.5}
         penumbra={0.5}
         intensity={lighting.spotIntensity}
         castShadow
-        shadow-mapSize={[1024, 1024]}
+        shadow-mapSize={envConfig ? [envConfig.shadowQuality, envConfig.shadowQuality] : [1024, 1024]}
       />
       <spotLight
         position={[-5, 6, -3]}
@@ -96,23 +105,26 @@ export function BoothScene3D({
         penumbra={0.8}
         intensity={lighting.spotIntensity * 0.5}
       />
-      <Environment preset={lighting.envPreset} />
+      <Environment
+        preset={lighting.envPreset}
+        environmentIntensity={envConfig?.envIntensity ?? 0.5}
+      />
 
-      {/* Controls - disable when dragging */}
+      {/* Controls */}
       <OrbitControls
         ref={controlsRef}
         enableDamping
         dampingFactor={0.1}
-        minDistance={2}
-        maxDistance={showEnvironment ? 30 : 20}
+        minDistance={1}
+        maxDistance={showEnvironment ? 35 : 20}
         maxPolarAngle={Math.PI / 2 - 0.05}
         target={[0, 1.2, 0]}
         enabled={!isDragMode}
       />
 
-      {/* Expo environment (immersive mode) */}
-      {showEnvironment ? (
-        <ExpoEnvironment />
+      {/* Environment or grid */}
+      {showEnvironment && envConfig ? (
+        <ExpoEnvironment config={envConfig} />
       ) : (
         <>
           <Grid
@@ -135,10 +147,10 @@ export function BoothScene3D({
         </>
       )}
 
-      {showPeople && <PeopleFigures layout={layout} />}
+      {showPeople && <PeopleFigures layout={layout} envConfig={envConfig} />}
       {showTrafficFlow && <TrafficFlow layout={layout} />}
 
-      {/* Booth panels with drag support */}
+      {/* Booth panels */}
       {panels.map((panel) => (
         <DraggablePanel3D
           key={panel.id}

@@ -54,6 +54,11 @@ import {
   type PlacedAsset,
   type FurnitureCategory,
 } from './boothFurnitureConfigs';
+import {
+  ENVIRONMENT_PRESETS,
+  getEnvironmentConfig,
+  type EnvironmentRealism,
+} from './environmentPresets';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -95,8 +100,10 @@ export function BoothMapper3D({
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [showEnvironment, setShowEnvironment] = useState(false);
+  const [environmentRealism, setEnvironmentRealism] = useState<EnvironmentRealism>('standard');
   const [showPeople, setShowPeople] = useState(false);
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
+  const [activeCameraPreset, setActiveCameraPreset] = useState<string | null>(null);
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
@@ -587,12 +594,43 @@ export function BoothMapper3D({
           {/* Advanced spatial view toggles */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Toggle pressed={showEnvironment} onPressedChange={setShowEnvironment} size="sm" aria-label="Toggle expo environment">
+              <Toggle pressed={showEnvironment} onPressedChange={(v) => {
+                setShowEnvironment(v);
+                if (v) { setShowPeople(true); }
+              }} size="sm" aria-label="Toggle expo environment">
                 <Building2 className="h-4 w-4" />
               </Toggle>
             </TooltipTrigger>
             <TooltipContent>Expo Environment</TooltipContent>
           </Tooltip>
+
+          {/* Realism level selector (shown when environment is on) */}
+          {showEnvironment && (
+            <Select value={environmentRealism} onValueChange={(v) => {
+              setEnvironmentRealism(v as EnvironmentRealism);
+              setActiveCameraPreset(null);
+              const config = getEnvironmentConfig(v as EnvironmentRealism);
+              // Auto-enable people for cinematic/ultra
+              if (v === 'cinematic' || v === 'ultra') {
+                setShowPeople(true);
+                setShowTrafficFlow(true);
+              }
+            }}>
+              <SelectTrigger className="h-8 w-[130px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.entries(ENVIRONMENT_PRESETS) as [EnvironmentRealism, typeof ENVIRONMENT_PRESETS[EnvironmentRealism]][]).map(([key, preset]) => (
+                  <SelectItem key={key} value={key}>
+                    <span className="flex items-center gap-1.5">
+                      <span>{preset.icon}</span>
+                      <span>{preset.label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
           <Tooltip>
             <TooltipTrigger asChild>
@@ -774,6 +812,7 @@ export function BoothMapper3D({
                 selectedAssetId={selectedAssetId}
                 onSelectAsset={handleSelectAsset}
                 onAssetPositionChange={handleAssetPositionChange}
+                environmentRealism={environmentRealism}
               />
             </Suspense>
           </Canvas>
@@ -813,6 +852,55 @@ export function BoothMapper3D({
             <div className="absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-accent/90 text-accent-foreground text-xs font-medium shadow-lg animate-pulse">
               <Move className="h-3 w-3 inline mr-1.5" />
               Drag Mode Active
+            </div>
+          )}
+
+          {/* Camera presets panel (when environment is on) */}
+          {showEnvironment && (
+            <div className="absolute top-3 right-3 flex flex-col gap-1 z-10">
+              <div className="bg-background/85 backdrop-blur-sm rounded-lg border p-2 space-y-1.5 shadow-lg max-w-[160px]">
+                <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider px-1">📷 Camera</p>
+                {getEnvironmentConfig(environmentRealism).cameraPresets.map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => {
+                      setActiveCameraPreset(preset.id);
+                      // Update camera via canvas ref
+                      const canvas = canvasRef.current;
+                      if (canvas) {
+                        const state = (canvas as any).__r3f;
+                        if (state) {
+                          const cam = state.camera;
+                          cam.position.set(...preset.position);
+                          cam.fov = preset.fov;
+                          cam.updateProjectionMatrix();
+                          const controls = state.controls;
+                          if (controls) {
+                            controls.target.set(...preset.target);
+                            controls.update();
+                          }
+                        }
+                      }
+                    }}
+                    className={cn(
+                      "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
+                      activeCameraPreset === preset.id
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-muted text-foreground"
+                    )}
+                    title={preset.description}
+                  >
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
+              {/* Realism level badge */}
+              <div className="bg-background/85 backdrop-blur-sm rounded-lg border px-2 py-1.5 text-center shadow-lg">
+                <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Realism</p>
+                <p className="text-xs font-semibold">
+                  {ENVIRONMENT_PRESETS[environmentRealism].icon} {ENVIRONMENT_PRESETS[environmentRealism].label}
+                </p>
+              </div>
             </div>
           )}
         </div>
