@@ -216,12 +216,12 @@ export function BoothMapper3D({
           ...assignments,
           __placedAssets: placedAssets,
           __panelPositions: panelPositionOverrides,
-        };
+        } as unknown as Record<string, unknown>;
         await supabase.from('booth_3d_mappings').upsert({
           division_id: divisionId,
           layout,
           lighting_preset: lightingPreset,
-          assignments: enrichedAssignments,
+          assignments: enrichedAssignments as any,
           uploaded_specs: uploadedSpecs,
           show_labels: showLabels,
           show_dimensions: showDimensions,
