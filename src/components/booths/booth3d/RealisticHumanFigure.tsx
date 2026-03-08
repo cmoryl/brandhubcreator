@@ -80,11 +80,13 @@ export interface RealisticFigureProps {
   staffColor?: string;
 }
 
-// ── Body proportions ──────────────────────────────────────
-const HEAD_R = 0.10;
-const TORSO_H = 0.48;
-const LEG_H = 0.84;
-const NECK_H = 0.065;
+// ── Body proportions (must sum to ~1.75m total height) ────
+// Total = SHOE_H + LEG_H + TORSO_H + NECK_H + HEAD_R*2
+// 0.04 + 0.88 + 0.50 + 0.07 + 0.22 = 1.71m (+ hair ~1.75m)
+const HEAD_R = 0.11;
+const TORSO_H = 0.50;
+const LEG_H = 0.88;
+const NECK_H = 0.07;
 const SHOE_H = 0.04;
 const SEG = 24; // segment count for smooth geometry
 
