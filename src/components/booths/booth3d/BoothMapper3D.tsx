@@ -87,6 +87,9 @@ import { BoothDesignToolbar } from './BoothDesignToolbar';
 import { BoothLeftPanel } from './BoothLeftPanel';
 import { EnvironmentPresetCards } from './EnvironmentPresetCards';
 import { PanelDesigner } from './PanelDesigner';
+import { LogisticsPanel } from './LogisticsPanel';
+import { LogisticsOverlay3D } from './LogisticsMarker3D';
+import { type LogisticsMarker, type LogisticsCategory, createMarker, LOGISTICS_CATEGORIES } from './logisticsTypes';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
