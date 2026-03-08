@@ -680,109 +680,141 @@ export function BoothMapper3D({
         />
       )}
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Layout picker (admin only) */}
-        {isAdmin ? (
-          <Select value={layout} onValueChange={(v) => { setLayout(v as BoothLayout); setAssignments({}); setPanelPositionOverrides({}); setPlacedAssets([]); }}>
-            <SelectTrigger className="w-[160px] h-9">
-              <Layout className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="max-h-[320px]">
-              {['Inline', 'Corner', 'Peninsula', 'Island'].map((cat) => {
-                const items = LAYOUT_OPTIONS.filter(o => o.category === cat);
-                if (!items.length) return null;
-                return (
-                  <div key={cat}>
-                    <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{cat}</div>
-                    {items.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        <div>
+      {/* Toolbar — Row 1: Scene & View */}
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card/50 px-3 py-2">
+        {/* ── Scene Setup ── */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline">Scene</span>
+          {isAdmin ? (
+            <Select value={layout} onValueChange={(v) => { setLayout(v as BoothLayout); setAssignments({}); setPanelPositionOverrides({}); setPlacedAssets([]); }}>
+              <SelectTrigger className="w-[150px] h-8 text-xs">
+                <Layout className="h-3.5 w-3.5 mr-1.5" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-[320px]">
+                {['Inline', 'Corner', 'Peninsula', 'Island'].map((cat) => {
+                  const items = LAYOUT_OPTIONS.filter(o => o.category === cat);
+                  if (!items.length) return null;
+                  return (
+                    <div key={cat}>
+                      <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{cat}</div>
+                      {items.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
                           <span className="font-medium">{opt.label}</span>
                           <span className="text-muted-foreground ml-1.5 text-xs">· {opt.desc}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </div>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        ) : (
-          <Badge variant="outline" className="h-9 px-3 flex items-center gap-1.5">
-            <Layout className="h-4 w-4" />
-            {LAYOUT_OPTIONS.find(o => o.value === layout)?.label || layout}
-          </Badge>
-        )}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Badge variant="outline" className="h-8 px-2.5 text-xs flex items-center gap-1.5">
+              <Layout className="h-3.5 w-3.5" />
+              {LAYOUT_OPTIONS.find(o => o.value === layout)?.label || layout}
+            </Badge>
+          )}
 
-        {/* Lighting (admin only) */}
-        {isAdmin ? (
-          <Select value={lightingPreset} onValueChange={(v) => setLightingPreset(v as LightingPreset)}>
-            <SelectTrigger className="w-[150px] h-9">
-              <Sun className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {LIGHTING_PRESETS.map((p) => (
-                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <Badge variant="outline" className="h-9 px-3 flex items-center gap-1.5">
-            <Sun className="h-4 w-4" />
-            {LIGHTING_PRESETS.find(p => p.value === lightingPreset)?.label || lightingPreset}
-          </Badge>
-        )}
+          {isAdmin ? (
+            <Select value={lightingPreset} onValueChange={(v) => setLightingPreset(v as LightingPreset)}>
+              <SelectTrigger className="w-[130px] h-8 text-xs">
+                <Sun className="h-3.5 w-3.5 mr-1.5" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LIGHTING_PRESETS.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Badge variant="outline" className="h-8 px-2.5 text-xs flex items-center gap-1.5">
+              <Sun className="h-3.5 w-3.5" />
+              {LIGHTING_PRESETS.find(p => p.value === lightingPreset)?.label || lightingPreset}
+            </Badge>
+          )}
+        </div>
 
-        <div className="h-6 w-px bg-border" />
+        <div className="h-5 w-px bg-border" />
 
-        {/* View toggles (available to all) */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle pressed={showLabels} onPressedChange={setShowLabels} size="sm" aria-label="Toggle labels">
-                <Tag className="h-4 w-4" />
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>Panel Labels</TooltipContent>
-          </Tooltip>
+        {/* ── View Toggles ── */}
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline mr-1">View</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle pressed={showLabels} onPressedChange={setShowLabels} size="sm" className="h-8 w-8" aria-label="Toggle labels">
+                  <Tag className="h-3.5 w-3.5" />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>Panel Labels</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle pressed={showDimensions} onPressedChange={setShowDimensions} size="sm" className="h-8 w-8" aria-label="Toggle dimensions">
+                  <Ruler className="h-3.5 w-3.5" />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>Dimensions</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle pressed={showSafeZones} onPressedChange={setShowSafeZones} size="sm" className="h-8 w-8" aria-label="Toggle safe zones">
+                  <ScanLine className="h-3.5 w-3.5" />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>Safe Zones &amp; Bleed</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle pressed={showDimensions} onPressedChange={setShowDimensions} size="sm" aria-label="Toggle dimensions">
-                <Ruler className="h-4 w-4" />
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>Dimensions</TooltipContent>
-          </Tooltip>
-          {/* Advanced spatial view toggles */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle pressed={showEnvironment} onPressedChange={(v) => {
-                setShowEnvironment(v);
-                if (v) { setShowPeople(true); }
-              }} size="sm" aria-label="Toggle expo environment">
-                <Building2 className="h-4 w-4" />
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>Expo Environment</TooltipContent>
-          </Tooltip>
+        <div className="h-5 w-px bg-border" />
 
-          {/* Realism level selector (shown when environment is on) */}
+        {/* ── Environment ── */}
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline mr-1">Env</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle pressed={showEnvironment} onPressedChange={(v) => {
+                  setShowEnvironment(v);
+                  if (v) setShowPeople(true);
+                }} size="sm" className="h-8 w-8" aria-label="Toggle expo environment">
+                  <Building2 className="h-3.5 w-3.5" />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>Expo Environment</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle pressed={showPeople} onPressedChange={setShowPeople} size="sm" className="h-8 w-8" aria-label="Toggle people">
+                  <Users className="h-3.5 w-3.5" />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>People &amp; Scale</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle pressed={showTrafficFlow} onPressedChange={setShowTrafficFlow} size="sm" className="h-8 w-8" aria-label="Toggle traffic flow">
+                  <Route className="h-3.5 w-3.5" />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>Traffic Flow</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           {showEnvironment && (
             <Select value={environmentRealism} onValueChange={(v) => {
               setEnvironmentRealism(v as EnvironmentRealism);
               setActiveCameraPreset(null);
               const config = getEnvironmentConfig(v as EnvironmentRealism);
-              // Auto-enable people for cinematic/ultra
               if (v === 'cinematic' || v === 'ultra') {
                 setShowPeople(true);
                 setShowTrafficFlow(true);
               }
             }}>
-              <SelectTrigger className="h-8 w-[130px] text-xs">
+              <SelectTrigger className="h-8 w-[120px] text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -798,139 +830,56 @@ export function BoothMapper3D({
             </Select>
           )}
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle pressed={showPeople} onPressedChange={setShowPeople} size="sm" aria-label="Toggle people">
-                <Users className="h-4 w-4" />
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>People &amp; Scale</TooltipContent>
-          </Tooltip>
-
           {showPeople && isAdmin && (
             <>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={characterSprites.count > 0 ? "outline" : "secondary"}
-                    size="sm"
-                    className="h-8 text-[10px] px-2"
-                    onClick={() => characterSprites.generateAll()}
-                    disabled={characterSprites.isGenerating}
-                  >
-                    {characterSprites.isGenerating ? '⏳' : '📸'} {characterSprites.count > 0 ? `${characterSprites.count} Sprites` : 'Generate People'}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Generate photorealistic character sprites using AI ({characterSprites.count}/{characterSprites.totalAvailable} ready)</TooltipContent>
-              </Tooltip>
+              <Button
+                variant={characterSprites.count > 0 ? "outline" : "secondary"}
+                size="sm"
+                className="h-8 text-[10px] px-2"
+                onClick={() => characterSprites.generateAll()}
+                disabled={characterSprites.isGenerating}
+              >
+                {characterSprites.isGenerating ? '⏳' : '📸'} {characterSprites.count > 0 ? `${characterSprites.count}` : 'Gen'}
+              </Button>
               {characterSprites.count > 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 text-[10px] px-2"
-                      onClick={() => characterSprites.regenerateAll()}
-                      disabled={characterSprites.isGenerating}
-                    >
-                      🔄 Regenerate
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Delete cached sprites and regenerate with improved transparency</TooltipContent>
-                </Tooltip>
+                <Button variant="ghost" size="sm" className="h-8 text-[10px] px-1.5" onClick={() => characterSprites.regenerateAll()} disabled={characterSprites.isGenerating}>
+                  🔄
+                </Button>
               )}
             </>
           )}
+        </div>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle pressed={showTrafficFlow} onPressedChange={setShowTrafficFlow} size="sm" aria-label="Toggle traffic flow">
-                <Route className="h-4 w-4" />
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>Traffic Flow</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Toggle pressed={showSafeZones} onPressedChange={setShowSafeZones} size="sm" aria-label="Toggle safe zones">
-                <ScanLine className="h-4 w-4" />
-              </Toggle>
-            </TooltipTrigger>
-            <TooltipContent>Safe Zones &amp; Bleed</TooltipContent>
-          </Tooltip>
-          {/* Drag & Asset toggles (admin only) */}
-          {isAdmin && (
-            <>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Toggle pressed={isDragMode} onPressedChange={setIsDragMode} size="sm" aria-label="Toggle drag mode"
-                    className={isDragMode ? 'bg-accent text-accent-foreground' : ''}>
-                    <Move className="h-4 w-4" />
-                  </Toggle>
-                </TooltipTrigger>
-                <TooltipContent>Drag Mode (move panels &amp; assets)</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={() => setAssetPickerOpen(true)}>
-                    <Plus className="h-3.5 w-3.5" />
-                    <Box className="h-3.5 w-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Add Furniture / Asset</TooltipContent>
-              </Tooltip>
-            </>
-          )}
-        </TooltipProvider>
-
-        <div className="h-6 w-px bg-border" />
-
-        {/* Admin-only editing controls */}
+        {/* ── Edit Tools (admin) ── */}
         {isAdmin && (
           <>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="gap-1.5"
-            >
-              {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-              Upload Spec
-            </Button>
-
-            {variantImages.length > 0 && (
-              <Button variant="outline" size="sm" onClick={handleAutoFill} className="gap-1.5">
-                <Sparkles className="h-3.5 w-3.5" />
-                Auto-fill
-              </Button>
-            )}
+            <div className="h-5 w-px bg-border" />
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline mr-1">Edit</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Toggle pressed={isDragMode} onPressedChange={setIsDragMode} size="sm" className={`h-8 w-8 ${isDragMode ? 'bg-accent text-accent-foreground' : ''}`} aria-label="Toggle drag mode">
+                      <Move className="h-3.5 w-3.5" />
+                    </Toggle>
+                  </TooltipTrigger>
+                  <TooltipContent>Drag Mode</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setAssetPickerOpen(true)}>
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add Furniture</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </>
         )}
 
-        {/* Presets button (available to all) */}
-        <Button variant="outline" size="sm" onClick={() => setPresetPickerOpen(true)} className="gap-1.5">
-          <BookTemplate className="h-3.5 w-3.5" />
-          Presets
-        </Button>
-
-        {/* Screenshot (available to all) */}
-        <Button variant="outline" size="sm" onClick={handleScreenshot} className="gap-1.5">
-          <Camera className="h-3.5 w-3.5" />
-          Screenshot
-        </Button>
-
-        {/* Clear (admin only) */}
-        {isAdmin && (
-          <Button variant="ghost" size="sm" onClick={handleResetView} className="gap-1.5 text-muted-foreground">
-            <RotateCcw className="h-3.5 w-3.5" />
-            Clear
-          </Button>
-        )}
-
+        {/* ── Status (pushed right) ── */}
         <div className="ml-auto flex items-center gap-2">
-          {/* Production spec config selector */}
           {availableSpecTypes.length > 0 && (
             <Select value={useProductionSpecs ? specConfigType : '__generic'} onValueChange={(v) => {
               if (v === '__generic') {
@@ -940,8 +889,8 @@ export function BoothMapper3D({
                 setUseProductionSpecs(true);
               }
             }}>
-              <SelectTrigger className="w-[140px] h-8 text-xs">
-                <Ruler className="h-3.5 w-3.5 mr-1.5" />
+              <SelectTrigger className="w-[130px] h-8 text-xs">
+                <Ruler className="h-3 w-3 mr-1" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -952,13 +901,45 @@ export function BoothMapper3D({
               </SelectContent>
             </Select>
           )}
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-[10px] h-7 px-2">
             {boothConfig.dimensions} · {boothConfig.footprint}
           </Badge>
-          <Badge variant={assignedCount === totalPanels ? 'default' : 'secondary'} className="text-xs">
+          <Badge variant={assignedCount === totalPanels ? 'default' : 'secondary'} className="text-[10px] h-7 px-2">
             {assignedCount}/{totalPanels} panels
           </Badge>
         </div>
+      </div>
+
+      {/* Toolbar — Row 2: Actions */}
+      <div className="flex flex-wrap items-center gap-2">
+        {isAdmin && (
+          <>
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+              {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+              Upload Spec
+            </Button>
+            {variantImages.length > 0 && (
+              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={handleAutoFill}>
+                <Sparkles className="h-3.5 w-3.5" />
+                Auto-fill
+              </Button>
+            )}
+          </>
+        )}
+        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setPresetPickerOpen(true)}>
+          <BookTemplate className="h-3.5 w-3.5" />
+          Presets
+        </Button>
+        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={handleScreenshot}>
+          <Camera className="h-3.5 w-3.5" />
+          Screenshot
+        </Button>
+        {isAdmin && (
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs text-muted-foreground" onClick={handleResetView}>
+            <RotateCcw className="h-3.5 w-3.5" />
+            Clear
+          </Button>
+        )}
       </div>
 
       {/* Uploaded Specs Row (admin only) */}
