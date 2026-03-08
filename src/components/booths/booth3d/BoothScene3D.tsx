@@ -4,7 +4,7 @@
  */
 import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
-import { OrbitControls, Grid, Environment } from '@react-three/drei';
+import { OrbitControls, Grid, Environment, ContactShadows, SoftShadows } from '@react-three/drei';
 import { DraggablePanel3D } from './DraggablePanel3D';
 import { BoothFurniture3D } from './BoothFurniture3D';
 import { ExpoEnvironment } from './ExpoEnvironment';
@@ -153,6 +153,8 @@ export function BoothScene3D({
     <>
       <color attach="background" args={[lighting.bgColor]} />
 
+      {/* Advanced rendering: Soft shadows (PCSS) for hyper/ultra modes */}
+      {envConfig?.useSoftShadows && <SoftShadows size={25} samples={16} focus={0.5} />}
       {/* ═══ PRIMARY LIGHTING ═══ */}
       <ambientLight intensity={lighting.ambientIntensity} color={isHyper ? '#e8e4df' : '#ffffff'} />
 
@@ -305,6 +307,19 @@ export function BoothScene3D({
             <shadowMaterial opacity={0.15} />
           </mesh>
         </>
+      )}
+
+      {/* Contact shadows — soft ground-level AO for hyper/ultra modes */}
+      {envConfig?.useContactShadows && (
+        <ContactShadows
+          position={[0, 0.001, 0]}
+          opacity={envConfig.contactShadowOpacity ?? 0.4}
+          scale={20}
+          blur={envConfig.contactShadowBlur ?? 2}
+          far={4}
+          resolution={isHyper ? 512 : 256}
+          color="#0a0a14"
+        />
       )}
 
       {showPeople && <PeopleFigures layout={layout} envConfig={envConfig} occupiedZones={occupiedZones} spriteUrls={spriteUrls} useBillboards={useBillboards} />}
