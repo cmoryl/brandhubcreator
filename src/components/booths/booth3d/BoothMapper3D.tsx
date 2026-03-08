@@ -22,7 +22,7 @@ import {
   Users, Route, Building2, BookTemplate, Lightbulb, ScanLine,
   Move, Plus, Trash2, Monitor, Table2, Armchair, Flag, Box,
   Palette, Shirt, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw,
-  BarChart3, Smartphone, Presentation
+  BarChart3, Smartphone, Presentation, ClipboardList
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
