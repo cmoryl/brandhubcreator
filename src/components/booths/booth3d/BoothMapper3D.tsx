@@ -72,6 +72,8 @@ interface BoothMapper3DProps {
   divisionName?: string;
   /** Division ID for persistence */
   divisionId?: string;
+  /** Current booth variant label for per-variant 3D persistence */
+  variantLabel?: string;
   /** Whether current user has admin edit permissions */
   isAdmin?: boolean;
   /** Callback when assignments change */
@@ -83,6 +85,7 @@ export function BoothMapper3D({
   galleryImages = [],
   divisionName,
   divisionId,
+  variantLabel = 'default',
   isAdmin = false,
   onAssignmentsChange,
 }: BoothMapper3DProps) {
@@ -156,15 +159,23 @@ export function BoothMapper3D({
     });
   }, [libraryImages, librarySearch, selectedCategory]);
 
-  // Load saved mapping from database on mount
+  // Load saved mapping from database on mount or variant change
   useEffect(() => {
     if (!divisionId) { setIsLoaded(true); return; }
+    // Reset state when variant changes
+    setIsLoaded(false);
+    setLayout('inline');
+    setAssignments({});
+    setUploadedSpecs([]);
+    setPlacedAssets([]);
+    setPanelPositionOverrides({});
     const load = async () => {
       try {
         const { data } = await supabase
           .from('booth_3d_mappings')
           .select('*')
           .eq('division_id', divisionId)
+          .eq('variant_label', variantLabel)
           .maybeSingle();
         if (data) {
           setLayout((data.layout as BoothLayout) || 'u-shape');
@@ -189,7 +200,7 @@ export function BoothMapper3D({
       }
     };
     load();
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   // Fetch production specs for this division
   useEffect(() => {
@@ -237,6 +248,7 @@ export function BoothMapper3D({
         } as unknown as Record<string, unknown>;
         await supabase.from('booth_3d_mappings').upsert({
           division_id: divisionId,
+          variant_label: variantLabel,
           layout,
           lighting_preset: lightingPreset,
           assignments: enrichedAssignments as any,
@@ -244,12 +256,12 @@ export function BoothMapper3D({
           show_labels: showLabels,
           show_dimensions: showDimensions,
           created_by: user.id,
-        }, { onConflict: 'division_id' });
+        }, { onConflict: 'division_id,variant_label' });
       } catch (e) {
         console.error('Failed to save 3D mapping:', e);
       }
     }, 1000);
-  }, [divisionId, layout, lightingPreset, assignments, uploadedSpecs, showLabels, showDimensions, isLoaded, placedAssets, panelPositionOverrides]);
+  }, [divisionId, variantLabel, layout, lightingPreset, assignments, uploadedSpecs, showLabels, showDimensions, isLoaded, placedAssets, panelPositionOverrides]);
 
   // Auto-save when state changes
   useEffect(() => {
