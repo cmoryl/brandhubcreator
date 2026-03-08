@@ -171,6 +171,14 @@ export function useCharacterSprites() {
     isGenerating: state.generating.size > 0,
     generateSprite,
     generateAll,
+    regenerateAll,
+    getSpriteUrl,
+    hasSpriteFor,
+  };
+}
+    isGenerating: state.generating.size > 0,
+    generateSprite,
+    generateAll,
     getSpriteUrl,
     hasSpriteFor,
   };
