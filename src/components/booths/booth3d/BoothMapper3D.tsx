@@ -570,8 +570,27 @@ export function BoothMapper3D({
     setShowPeople(true);
     setPanelPositionOverrides({});
     setAssignments({});
+
+    // Apply pre-placed furniture assets (deep-clone with fresh instance IDs)
+    if (preset.placedAssets && preset.placedAssets.length > 0) {
+      const cloned: PlacedAsset[] = preset.placedAssets.map((a) => ({
+        ...a,
+        instanceId: `preset-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        position: [...a.position] as [number, number, number],
+        rotation: [...a.rotation] as [number, number, number],
+      }));
+      setPlacedAssets(cloned);
+      setIsDragMode(true);
+    }
+
+    // Apply flooring config
+    if (preset.flooringConfig) {
+      setFlooringConfig({ ...preset.flooringConfig });
+    }
+
+    const assetCount = preset.placedAssets?.length || 0;
     toast.success(`Applied "${preset.name}" preset — ${preset.industry}`, {
-      description: `${preset.panelGuides.length} panel guides loaded. Layout: ${preset.layout}`,
+      description: `${preset.panelGuides.length} panels, ${assetCount} furniture pieces, ${preset.layout} layout`,
     });
   }, []);
 

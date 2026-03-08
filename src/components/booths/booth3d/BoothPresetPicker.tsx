@@ -88,6 +88,11 @@ function PresetCard({ preset, selected, onSelect, onApply }: {
         <Badge variant="outline" className="text-[10px] px-1.5 py-0">
           {preset.panelGuides.length} panel{preset.panelGuides.length > 1 ? 's' : ''}
         </Badge>
+        {(preset.placedAssets?.length ?? 0) > 0 && (
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-primary">
+            {preset.placedAssets!.length} furniture
+          </Badge>
+        )}
       </div>
 
       {selected && (

@@ -5,10 +5,33 @@
  * - Recommended layout, lighting, and color scheme
  * - Panel content descriptions (what should go on each wall)
  * - Industry-specific design notes and best practices
- * - Fixture/furniture suggestions
+ * - Fixture/furniture suggestions AND actual 3D PlacedAsset layouts
+ * - Flooring configuration
  */
 
 import type { BoothLayout, LightingPreset } from './boothConfigs';
+import type { PlacedAsset } from './boothFurnitureConfigs';
+import type { FlooringConfig, FlooringType } from './BoothFloorpad';
+import {
+  TECH_SAAS_ASSETS, TECH_SAAS_FLOOR,
+  TECH_ENTERPRISE_ASSETS, TECH_ENTERPRISE_FLOOR,
+  TECH_AI_ASSETS, TECH_AI_FLOOR,
+  TECH_CYBER_ASSETS, TECH_CYBER_FLOOR,
+  HEALTH_PHARMA_ASSETS, HEALTH_PHARMA_FLOOR,
+  HEALTH_MEDTECH_ASSETS, HEALTH_MEDTECH_FLOOR,
+  FINANCE_BANKING_ASSETS, FINANCE_BANKING_FLOOR,
+  FINANCE_FINTECH_ASSETS, FINANCE_FINTECH_FLOOR,
+  CREATIVE_AGENCY_ASSETS, CREATIVE_AGENCY_FLOOR,
+  CREATIVE_MEDIA_ASSETS, CREATIVE_MEDIA_FLOOR,
+  INDUSTRIAL_MFG_ASSETS, INDUSTRIAL_MFG_FLOOR,
+  INDUSTRIAL_ENERGY_ASSETS, INDUSTRIAL_ENERGY_FLOOR,
+  RETAIL_CPG_ASSETS, RETAIL_CPG_FLOOR,
+  RETAIL_FASHION_ASSETS, RETAIL_FASHION_FLOOR,
+  EDU_UNIVERSITY_ASSETS, EDU_UNIVERSITY_FLOOR,
+  EDU_EDTECH_ASSETS, EDU_EDTECH_FLOOR,
+  HOSPITALITY_HOTEL_ASSETS, HOSPITALITY_HOTEL_FLOOR,
+  GOV_DEFENSE_ASSETS, GOV_DEFENSE_FLOOR,
+} from './presetFurnitureLayouts';
 
 export interface BoothPresetPanelGuide {
   panelId: string;
@@ -49,6 +72,10 @@ export interface BoothDesignPreset {
   designTips: string[];
   /** Tags for search/filter */
   tags: string[];
+  /** Pre-placed 3D furniture assets — applied when user selects preset */
+  placedAssets?: PlacedAsset[];
+  /** Flooring configuration */
+  flooringConfig?: FlooringConfig;
 }
 
 export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
@@ -83,6 +110,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'LED backlighting on back wall dramatically increases visibility from 50ft+',
     ],
     tags: ['saas', 'product-launch', 'demo', 'tech', 'startup', 'modern'],
+    placedAssets: TECH_SAAS_ASSETS,
+    flooringConfig: TECH_SAAS_FLOOR,
   },
   {
     id: 'tech-enterprise',
@@ -114,6 +143,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Neutral color palette with strategic brand color accents reads as sophisticated',
     ],
     tags: ['enterprise', 'b2b', 'security', 'platform', 'integrations'],
+    placedAssets: TECH_ENTERPRISE_ASSETS,
+    flooringConfig: TECH_ENTERPRISE_FLOOR,
   },
   {
     id: 'tech-ai-ml',
@@ -141,6 +172,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Data visualization motion graphics on a loop capture attention from distance',
     ],
     tags: ['ai', 'machine-learning', 'data-science', 'neural', 'futuristic'],
+    placedAssets: TECH_AI_ASSETS,
+    flooringConfig: TECH_AI_FLOOR,
   },
   {
     id: 'tech-cybersecurity',
@@ -169,8 +202,9 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Amber/gold accents convey warning/alert appropriately for the security context',
     ],
     tags: ['cybersecurity', 'security', 'compliance', 'zero-trust', 'soc'],
+    placedAssets: TECH_CYBER_ASSETS,
+    flooringConfig: TECH_CYBER_FLOOR,
   },
-
   // ═══════════════════════════════════════
   // HEALTHCARE & PHARMA
   // ═══════════════════════════════════════
@@ -204,6 +238,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Use sans-serif fonts for medical data — Helvetica Neue or similar',
     ],
     tags: ['pharma', 'clinical', 'medical', 'healthcare', 'regulatory', 'hcp'],
+    placedAssets: HEALTH_PHARMA_ASSETS,
+    flooringConfig: HEALTH_PHARMA_FLOOR,
   },
   {
     id: 'health-medtech',
@@ -233,8 +269,9 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Include device dimensions/scale references for context',
     ],
     tags: ['medtech', 'medical-device', 'surgical', 'diagnostic', 'fda'],
+    placedAssets: HEALTH_MEDTECH_ASSETS,
+    flooringConfig: HEALTH_MEDTECH_FLOOR,
   },
-
   // ═══════════════════════════════════════
   // FINANCE & FINTECH
   // ═══════════════════════════════════════
@@ -267,6 +304,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Avoid flashy animations — sophistication requires restraint',
     ],
     tags: ['banking', 'finance', 'investment', 'insurance', 'wealth', 'premium'],
+    placedAssets: FINANCE_BANKING_ASSETS,
+    flooringConfig: FINANCE_BANKING_FLOOR,
   },
   {
     id: 'finance-fintech',
@@ -294,8 +333,9 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Mobile-first aesthetics reflect the digital-native product experience',
     ],
     tags: ['fintech', 'payments', 'banking', 'api', 'digital', 'neobank'],
+    placedAssets: FINANCE_FINTECH_ASSETS,
+    flooringConfig: FINANCE_FINTECH_FLOOR,
   },
-
   // ═══════════════════════════════════════
   // CREATIVE & MARKETING
   // ═══════════════════════════════════════
@@ -325,6 +365,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Bold color choices demonstrate confidence — don\'t play it safe',
     ],
     tags: ['agency', 'creative', 'design', 'branding', 'portfolio', 'marketing'],
+    placedAssets: CREATIVE_AGENCY_ASSETS,
+    flooringConfig: CREATIVE_AGENCY_FLOOR,
   },
   {
     id: 'creative-media',
@@ -356,8 +398,9 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Sound management is critical — use directional speakers to contain audio',
     ],
     tags: ['media', 'entertainment', 'streaming', 'content', 'video', 'immersive'],
+    placedAssets: CREATIVE_MEDIA_ASSETS,
+    flooringConfig: CREATIVE_MEDIA_FLOOR,
   },
-
   // ═══════════════════════════════════════
   // INDUSTRIAL & MANUFACTURING
   // ═══════════════════════════════════════
@@ -389,6 +432,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Include QR codes linking to detailed spec sheets and CAD downloads',
     ],
     tags: ['industrial', 'manufacturing', 'engineering', 'equipment', 'b2b'],
+    placedAssets: INDUSTRIAL_MFG_ASSETS,
+    flooringConfig: INDUSTRIAL_MFG_FLOOR,
   },
   {
     id: 'industrial-energy',
@@ -419,8 +464,9 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Nature photography should be authentic, not stock — show real installations',
     ],
     tags: ['energy', 'sustainability', 'renewable', 'solar', 'esg', 'green'],
+    placedAssets: INDUSTRIAL_ENERGY_ASSETS,
+    flooringConfig: INDUSTRIAL_ENERGY_FLOOR,
   },
-
   // ═══════════════════════════════════════
   // RETAIL & CONSUMER
   // ═══════════════════════════════════════
@@ -452,6 +498,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Vibrant colors and lifestyle imagery outperform corporate aesthetics for CPG',
     ],
     tags: ['cpg', 'consumer', 'retail', 'food', 'beverage', 'sampling'],
+    placedAssets: RETAIL_CPG_ASSETS,
+    flooringConfig: RETAIL_CPG_FLOOR,
   },
   {
     id: 'retail-fashion',
@@ -479,8 +527,9 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Minimal text, maximum imagery — the product IS the message',
     ],
     tags: ['fashion', 'luxury', 'premium', 'editorial', 'lifestyle'],
+    placedAssets: RETAIL_FASHION_ASSETS,
+    flooringConfig: RETAIL_FASHION_FLOOR,
   },
-
   // ═══════════════════════════════════════
   // EDUCATION
   // ═══════════════════════════════════════
@@ -509,6 +558,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Scholarship information should be prominently displayed',
     ],
     tags: ['education', 'university', 'college', 'recruitment', 'academic'],
+    placedAssets: EDU_UNIVERSITY_ASSETS,
+    flooringConfig: EDU_UNIVERSITY_FLOOR,
   },
   {
     id: 'edu-edtech',
@@ -537,8 +588,9 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Include a "teacher view" and "student view" to demo both sides',
     ],
     tags: ['edtech', 'lms', 'e-learning', 'platform', 'digital-learning'],
+    placedAssets: EDU_EDTECH_ASSETS,
+    flooringConfig: EDU_EDTECH_FLOOR,
   },
-
   // ═══════════════════════════════════════
   // HOSPITALITY & EVENTS
   // ═══════════════════════════════════════
@@ -568,8 +620,9 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Warm lighting and premium textures mirror the hospitality experience',
     ],
     tags: ['hotel', 'resort', 'hospitality', 'travel', 'destination', 'luxury'],
+    placedAssets: HOSPITALITY_HOTEL_ASSETS,
+    flooringConfig: HOSPITALITY_HOTEL_FLOOR,
   },
-
   // ═══════════════════════════════════════
   // GOVERNMENT & DEFENSE
   // ═══════════════════════════════════════
@@ -600,6 +653,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Avoid flashy design — professional restraint is valued in this sector',
     ],
     tags: ['government', 'defense', 'federal', 'contractor', 'public-sector'],
+    placedAssets: GOV_DEFENSE_ASSETS,
+    flooringConfig: GOV_DEFENSE_FLOOR,
   },
 ];
 
