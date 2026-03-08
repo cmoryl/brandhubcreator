@@ -39,6 +39,12 @@ export interface PlacedAsset {
   screenImageUrl?: string;
   /** Label */
   label?: string;
+  /** Table cover fabric color (hex) */
+  tableCoverColor?: string;
+  /** Table cover front image URL */
+  tableCoverImageUrl?: string;
+  /** Table cover style */
+  tableCoverStyle?: 'fitted' | 'draped' | 'throw';
 }
 
 const FT = 0.3048;
