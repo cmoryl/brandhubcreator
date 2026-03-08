@@ -120,6 +120,8 @@ export function BoothMapper3D({
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [assetFilterCategory, setAssetFilterCategory] = useState<string>('all');
   const [panelPositionOverrides, setPanelPositionOverrides] = useState<Record<string, [number, number, number]>>({});
+  const [coverImagePickerOpen, setCoverImagePickerOpen] = useState(false);
+  const [coverImageTargetAssetId, setCoverImageTargetAssetId] = useState<string | null>(null);
 
   // Organization context for image library
   const { organization } = useOrganization();
