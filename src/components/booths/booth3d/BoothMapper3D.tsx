@@ -140,6 +140,32 @@ export function BoothMapper3D({
   // Image library integration
   const { images: libraryImages, isLoading: libraryLoading, fetchImages, uploadImage } = useImageLibrary();
 
+  // Fetch booth gallery photos for this division+variant
+  const [boothGalleryUrls, setBoothGalleryUrls] = useState<string[]>([]);
+  useEffect(() => {
+    if (!divisionId) return;
+    const fetchGallery = async () => {
+      const { data } = await supabase
+        .from('booth_gallery_photos')
+        .select('image_url, variant_label')
+        .eq('division_id', divisionId)
+        .order('display_order');
+      if (data) {
+        const filtered = data.filter(p =>
+          p.variant_label === null || p.variant_label === variantLabel
+        );
+        setBoothGalleryUrls(filtered.map(p => p.image_url));
+      }
+    };
+    fetchGallery();
+  }, [divisionId, variantLabel]);
+
+  // Merge passed galleryImages with fetched booth gallery photos
+  const mergedGalleryImages = useMemo(() => {
+    const set = new Set([...galleryImages, ...boothGalleryUrls]);
+    return Array.from(set);
+  }, [galleryImages, boothGalleryUrls]);
+
   // Eagerly fetch images when organization is available
   useEffect(() => {
     if (organization?.id) {
