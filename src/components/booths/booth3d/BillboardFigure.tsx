@@ -48,9 +48,9 @@ const CutoutMaterial = shaderMaterial(
     similarity: 0.35,   // how close to key color triggers removal
     smoothness: 0.12,   // edge softness
     spillReduction: 0.7, // green spill removal from edges
-    whiteThreshold: 0.91, // remove near-white backgrounds too
-    whiteSmoothness: 0.05,
-    whiteDespill: 0.38,
+    whiteThreshold: 0.95, // remove near-white backgrounds too
+    whiteSmoothness: 0.03,
+    whiteDespill: 0.25,
   },
   // Vertex
   `
