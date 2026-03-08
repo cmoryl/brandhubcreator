@@ -187,6 +187,8 @@ export function BoothMapper3D({
   const [activeMode, setActiveMode] = useState<BoothMode>('design');
   const [boothScore, setBoothScore] = useState<BoothScoreData | null>(null);
   const [isScoringBooth, setIsScoringBooth] = useState(false);
+  const [panelDesignerOpen, setPanelDesignerOpen] = useState(false);
+  const [panelDesignerTarget, setPanelDesignerTarget] = useState<string | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   // Organization context for image library
   const { organization } = useOrganization();
