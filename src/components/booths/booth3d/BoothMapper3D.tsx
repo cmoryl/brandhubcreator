@@ -22,7 +22,7 @@ import {
   Users, Route, Building2, BookTemplate, Lightbulb, ScanLine,
   Move, Plus, Trash2, Monitor, Table2, Armchair, Flag, Box,
   Palette, Shirt, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCw,
-  BarChart3, Smartphone
+  BarChart3, Smartphone, Presentation
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -76,6 +76,7 @@ import {
 import { CrowdSimulationPanel } from './CrowdSimulationPanel';
 import type { CrowdSimulationData } from './crowdSimulationTypes';
 import { ARPreviewPanel } from './ARPreviewPanel';
+import { SalesDeckPanel } from './SalesDeckPanel';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -172,6 +173,7 @@ export function BoothMapper3D({
   const [showSimPanel, setShowSimPanel] = useState(false);
   // AR Preview state
   const [showARPanel, setShowARPanel] = useState(false);
+  const [showSalesDeck, setShowSalesDeck] = useState(false);
   const sceneRef = useRef<THREE.Scene | null>(null);
   // Organization context for image library
   const { organization } = useOrganization();
@@ -1215,6 +1217,15 @@ export function BoothMapper3D({
           <Smartphone className="h-3.5 w-3.5" />
           AR Preview
         </Button>
+        <Button
+          variant={showSalesDeck ? 'default' : 'outline'}
+          size="sm"
+          className="h-8 gap-1.5 text-xs"
+          onClick={() => setShowSalesDeck(v => !v)}
+        >
+          <Presentation className="h-3.5 w-3.5" />
+          Sales Deck
+        </Button>
       </div>
 
       {/* Uploaded Specs Row (admin only) */}
@@ -1701,6 +1712,23 @@ export function BoothMapper3D({
             getScene={() => sceneRef.current}
             layoutName={layout}
             divisionName={divisionName}
+            isAdmin={isAdmin}
+          />
+        </Card>
+      )}
+
+      {/* Sales Deck Panel */}
+      {showSalesDeck && (
+        <Card className="p-4 border-primary/20">
+          <SalesDeckPanel
+            divisionName={divisionName}
+            layoutName={layout}
+            boothSize={boothConfig.footprint}
+            panelLabels={boothConfig.panels.map(p => p.label)}
+            furnitureList={placedAssets.map(a => a.label)}
+            hasMonitors={placedAssets.some(a => a.assetId.includes('monitor') || a.assetId.includes('tv'))}
+            crowdScore={crowdSimulation?.visibilityScore}
+            variantLabel={variantLabel}
             isAdmin={isAdmin}
           />
         </Card>
