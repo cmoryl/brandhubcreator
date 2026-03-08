@@ -27,14 +27,16 @@ import {
 } from './environmentPresets';
 import type { BoothMode } from './BoothWorkspace';
 
-function ToolGroup({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex items-center gap-1">
-      <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground hidden lg:inline mr-0.5">{label}</span>
-      {children}
-    </div>
-  );
-}
+const ToolGroup = forwardRef<HTMLDivElement, { label: string; children: ReactNode }>(
+  function ToolGroup({ label, children }, ref) {
+    return (
+      <div ref={ref} className="flex items-center gap-1">
+        <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground hidden lg:inline mr-0.5">{label}</span>
+        {children}
+      </div>
+    );
+  }
+);
 
 function ToolSep() {
   return <div className="h-5 w-px bg-border mx-0.5" />;
