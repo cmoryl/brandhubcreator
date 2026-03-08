@@ -744,7 +744,7 @@ export function BoothMapper3D({
 
       {/* Image Picker Dialog */}
       <Dialog open={imagePickerOpen} onOpenChange={(open) => { setImagePickerOpen(open); if (open) fetchImages(organization?.id); }}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ImageIcon className="h-5 w-5" />
@@ -755,7 +755,7 @@ export function BoothMapper3D({
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs value={pickerTab} onValueChange={setPickerTab}>
+          <Tabs value={pickerTab} onValueChange={setPickerTab} className="flex-1 min-h-0 flex flex-col">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="library" className="gap-1.5">
                 <FolderOpen className="h-3.5 w-3.5" />
@@ -768,7 +768,7 @@ export function BoothMapper3D({
             </TabsList>
 
             {/* Image Library Tab - Primary */}
-            <TabsContent value="library" className="mt-3">
+            <TabsContent value="library" className="mt-3 flex-1 min-h-0 overflow-hidden">
               <div className="flex items-center gap-2 mb-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -822,7 +822,7 @@ export function BoothMapper3D({
                   )}
                 </div>
               ) : (
-                <ScrollArea className="max-h-[50vh]">
+                <ScrollArea className="h-[45vh]">
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                     {filteredLibraryImages.map((img) => (
                       <button
@@ -852,7 +852,7 @@ export function BoothMapper3D({
             </TabsContent>
 
             {/* Booth Sources Tab */}
-            <TabsContent value="sources" className="mt-3">
+            <TabsContent value="sources" className="mt-3 flex-1 min-h-0 overflow-hidden">
               {allImages.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -870,7 +870,7 @@ export function BoothMapper3D({
                   </div>
                 </div>
               ) : (
-                <ScrollArea className="max-h-[50vh]">
+                <ScrollArea className="h-[45vh]">
                   {uploadedSpecs.length > 0 && (
                     <div className="space-y-2 mb-4">
                       <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
