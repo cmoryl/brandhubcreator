@@ -92,6 +92,9 @@ export function BoothMapper3D({
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
+  const [prodSpecs, setProdSpecs] = useState<ParsedPanelSpec[]>([]);
+  const [specConfigType, setSpecConfigType] = useState<string>('');
+  const [useProductionSpecs, setUseProductionSpecs] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Organization context for image library
