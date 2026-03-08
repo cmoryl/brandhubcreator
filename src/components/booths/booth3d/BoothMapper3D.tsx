@@ -329,6 +329,24 @@ export function BoothMapper3D({
     toast.success('Asset removed');
   }, []);
 
+  const handleUpdateAsset = useCallback((instanceId: string, updates: Partial<PlacedAsset>) => {
+    setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, ...updates } : a));
+  }, []);
+
+  const handleOpenCoverImagePicker = useCallback((instanceId: string) => {
+    setCoverImageTargetAssetId(instanceId);
+    setCoverImagePickerOpen(true);
+    if (organization?.id) fetchImages(organization.id);
+  }, [organization?.id, fetchImages]);
+
+  const handleAssignCoverImage = useCallback((imageUrl: string) => {
+    if (!coverImageTargetAssetId) return;
+    handleUpdateAsset(coverImageTargetAssetId, { tableCoverImageUrl: imageUrl });
+    setCoverImagePickerOpen(false);
+    setCoverImageTargetAssetId(null);
+    toast.success('Cover image assigned');
+  }, [coverImageTargetAssetId, handleUpdateAsset]);
+
   const handleSelectPanel = useCallback((panelId: string) => {
     if (isDragMode) return; // In drag mode, don't open picker
     if (!isAdmin) return;
