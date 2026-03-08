@@ -48,6 +48,9 @@ const CutoutMaterial = shaderMaterial(
     similarity: 0.35,   // how close to key color triggers removal
     smoothness: 0.12,   // edge softness
     spillReduction: 0.7, // green spill removal from edges
+    whiteThreshold: 0.91, // remove near-white backgrounds too
+    whiteSmoothness: 0.05,
+    whiteDespill: 0.38,
   },
   // Vertex
   `
@@ -57,13 +60,16 @@ const CutoutMaterial = shaderMaterial(
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `,
-  // Fragment — professional chroma-key with spill suppression
+  // Fragment — chroma-key with white-background fallback + spill suppression
   `
     uniform sampler2D map;
     uniform vec3 keyColor;
     uniform float similarity;
     uniform float smoothness;
     uniform float spillReduction;
+    uniform float whiteThreshold;
+    uniform float whiteSmoothness;
+    uniform float whiteDespill;
     varying vec2 vUv;
     
     // Convert RGB to YCbCr for perceptual chroma keying
@@ -80,7 +86,7 @@ const CutoutMaterial = shaderMaterial(
 
       vec3 rgb = texColor.rgb;
       
-      // --- Method 1: Chroma distance in YCbCr space ---
+      // --- Method 1: Chroma distance in YCbCr space (green screen) ---
       vec2 chromaSample = rgbToChroma(rgb);
       vec2 chromaKey = rgbToChroma(keyColor);
       float chromaDist = distance(chromaSample, chromaKey);
@@ -93,19 +99,33 @@ const CutoutMaterial = shaderMaterial(
       // --- Method 3: Pure color distance fallback ---
       float colorDist = distance(rgb, keyColor);
       float colorMask = smoothstep(0.35, 0.55, colorDist);
+
+      float greenAlpha = min(chromaMask, min(greenMask, colorMask));
+
+      // --- Method 4: white backdrop removal fallback ---
+      float maxCh = max(rgb.r, max(rgb.g, rgb.b));
+      float minCh = min(rgb.r, min(rgb.g, rgb.b));
+      float sat = maxCh - minCh;
+      float nearWhite = smoothstep(whiteThreshold - whiteSmoothness, whiteThreshold + whiteSmoothness, minCh);
+      float lowSaturation = 1.0 - smoothstep(0.02, 0.14, sat);
+      float whiteMask = 1.0 - (nearWhite * lowSaturation);
       
-      // Combine all three methods — multiply for aggressive removal
-      float alpha = texColor.a * min(chromaMask, min(greenMask, colorMask));
+      float alpha = texColor.a * min(greenAlpha, whiteMask);
       
-      // Hard discard for very green pixels
+      // Hard discard for pure backdrop pixels (green OR white)
       if (greenDominance > 0.15 && chromaDist < similarity * 1.8) discard;
-      if (alpha < 0.04) discard;
+      if (minCh > 0.96 && sat < 0.045) discard;
+      if (alpha < 0.035) discard;
       
-      // --- Green spill suppression on edge pixels ---
-      // Remove green contamination from hair/clothing edges
+      // --- Spill suppression on edge pixels ---
       float spillAmount = max(0.0, rgb.g - mix(rgb.r, rgb.b, 0.5)) * (1.0 - alpha * 0.5);
       vec3 despilled = rgb;
       despilled.g -= spillAmount * spillReduction;
+
+      // Neutralize white fringe on semi-transparent edges
+      float whiteFringe = smoothstep(0.88, 1.0, minCh) * lowSaturation * (1.0 - alpha);
+      float luma = dot(despilled, vec3(0.299, 0.587, 0.114));
+      despilled = mix(despilled, vec3(luma), whiteFringe * whiteDespill);
       despilled = clamp(despilled, 0.0, 1.0);
       
       // Slight darkening at the edge to prevent bright fringe
