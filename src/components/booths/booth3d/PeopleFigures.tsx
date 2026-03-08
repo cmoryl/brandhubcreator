@@ -194,16 +194,29 @@ export function PeopleFigures({
       {safeFigures.map((fig, i) => {
         const character = getCharacterBySeed(fig.seed || i, fig.isStaff);
         const url = spriteUrls[character.id];
-        if (!url) return null; // Skip figures without sprites
+        const figHeight = 1.62 + ((fig.seed || 0) % 7) * 0.03;
+        if (url) {
+          return (
+            <BillboardFigure
+              key={i}
+              position={fig.position}
+              rotation={fig.rotation}
+              opacity={fig.opacity}
+              spriteUrl={url}
+              height={figHeight}
+              aspect={character.aspect}
+            />
+          );
+        }
+        // Procedural geometry fallback
         return (
-          <BillboardFigure
+          <ProceduralFigure
             key={i}
             position={fig.position}
             rotation={fig.rotation}
             opacity={fig.opacity}
-            spriteUrl={url}
-            height={1.62 + ((fig.seed || 0) % 7) * 0.03}
-            aspect={character.aspect}
+            height={figHeight}
+            isStaff={fig.isStaff}
           />
         );
       })}
