@@ -38,11 +38,40 @@ export function BoothFurniture3D({
   const floorPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
 
   const config = getFurnitureById(asset.assetId);
-  if (!config) return null;
 
-  const size = asset.customSize || config.size;
-  const color = asset.customColor || config.color;
+  const size = config ? (asset.customSize || config.size) : [1, 1, 1] as [number, number, number];
+  const color = config ? (asset.customColor || config.color) : '#666';
   const [w, h, d] = size;
+
+  // Drag handlers
+  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    onSelect(asset.instanceId);
+    if (!isDragMode) return;
+    setIsDragging(true);
+    (e.target as HTMLElement)?.setPointerCapture?.(e.pointerId);
+  }, [isDragMode, asset.instanceId, onSelect]);
+
+  const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
+    if (!isDragging || !isDragMode) return;
+    e.stopPropagation();
+    const intersect = new THREE.Vector3();
+    raycaster.ray.intersectPlane(floorPlane, intersect);
+    if (intersect) {
+      const x = Math.round(intersect.x * 10) / 10;
+      const z = Math.round(intersect.z * 10) / 10;
+      onPositionChange(asset.instanceId, [x, asset.position[1], z]);
+    }
+  }, [isDragging, isDragMode, raycaster, floorPlane, asset.instanceId, asset.position, onPositionChange]);
+
+  const handlePointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
+    if (isDragging) {
+      setIsDragging(false);
+      (e.target as HTMLElement)?.releasePointerCapture?.(e.pointerId);
+    }
+  }, [isDragging]);
+
+  if (!config) return null;
 
   // Drag handlers
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
