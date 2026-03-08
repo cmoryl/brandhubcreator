@@ -4,7 +4,7 @@
  * All dimensions in meters. Conversion: 1 foot = 0.3048m, 1 inch = 0.0254m
  */
 
-export type FurnitureCategory = 'tables' | 'displays' | 'seating' | 'signage' | 'accessories';
+export type FurnitureCategory = 'tables' | 'displays' | 'seating' | 'signage' | 'accessories' | 'flooring';
 
 export interface FurnitureAsset {
   id: string;
