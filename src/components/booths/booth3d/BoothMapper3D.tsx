@@ -61,6 +61,7 @@ import {
   type EnvironmentRealism,
 } from './environmentPresets';
 import type { WalkthroughMode } from './CameraAnimator';
+import { useCharacterSprites } from './useCharacterSprites';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -109,6 +110,7 @@ export function BoothMapper3D({
   const [cameraVersion, setCameraVersion] = useState(0);
   const [walkthroughMode, setWalkthroughMode] = useState<WalkthroughMode>('none');
   const [cameraPanelOpen, setCameraPanelOpen] = useState(true);
+  const characterSprites = useCharacterSprites();
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
@@ -919,6 +921,8 @@ export function BoothMapper3D({
                 allCameraPresets={getEnvironmentConfig(environmentRealism).cameraPresets}
                 onWalkthroughEnd={() => setWalkthroughMode('none')}
                 onTourStep={(id) => setActiveCameraPreset(id)}
+                spriteUrls={characterSprites.sprites}
+                useBillboards={characterSprites.count > 0}
               />
             </Suspense>
           </Canvas>
