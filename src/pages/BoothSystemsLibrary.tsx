@@ -2,12 +2,12 @@
  * BoothSystemsLibrary — Master booth system library page.
  * One base design powers multiple events with variant size configurations.
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Building2, Layers, Box, Calendar,
   Trash2, Edit2, Check, X, ChevronRight, Loader2,
-  BookTemplate, Copy, Save,
+  BookTemplate, Copy, Save, AlertTriangle, Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -24,6 +25,7 @@ import { BrandHubLogo } from '@/components/BrandHubLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useBoothSystems, type BoothSystem, type BoothSystemVariant } from '@/hooks/useBoothSystems';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { toast } from 'sonner';
 
 const VARIANT_TYPES = [
   { value: 'inline', label: 'Inline' },
