@@ -120,6 +120,8 @@ export function BoothScene3D({
   useBillboards = false,
   monitorSpecs = [],
   activeSpecConfig = '',
+  flooringConfig,
+  footprint = "10' × 10' floor",
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
