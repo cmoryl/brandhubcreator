@@ -94,7 +94,9 @@ export function BoothMapper3D({
   const [showDimensions, setShowDimensions] = useState(true);
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
   const [assignments, setAssignments] = useState<Record<string, string>>({});
+  const [backAssignments, setBackAssignments] = useState<Record<string, string>>({});
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [assigningSide, setAssigningSide] = useState<'front' | 'back'>('front');
   const [uploadedSpecs, setUploadedSpecs] = useState<{ url: string; name: string }[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isAiMapping, setIsAiMapping] = useState(false);
@@ -296,6 +298,7 @@ export function BoothMapper3D({
   const panels: PanelConfig[] = boothConfig.panels.map((p) => ({
     ...p,
     imageUrl: assignments[p.id],
+    backImageUrl: backAssignments[p.id],
     position: panelPositionOverrides[p.id] || p.position,
   }));
 
@@ -414,39 +417,53 @@ export function BoothMapper3D({
   }, [coverImageTargetAssetId, handleUpdateAsset]);
 
   const handleSelectPanel = useCallback((panelId: string) => {
-    if (isDragMode) return; // In drag mode, don't open picker
+    if (isDragMode) return;
     if (!isAdmin) return;
     setSelectedPanelId(panelId);
+    setAssigningSide('front');
     setImagePickerOpen(true);
   }, [isAdmin, isDragMode]);
 
   const handleAssignImage = useCallback((imageUrl: string) => {
     if (!selectedPanelId) return;
-    setAssignments((prev) => {
-      const next = { ...prev, [selectedPanelId]: imageUrl };
-      onAssignmentsChange?.(
-        Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
-      );
-      return next;
-    });
+    if (assigningSide === 'back') {
+      setBackAssignments((prev) => ({ ...prev, [selectedPanelId]: imageUrl }));
+      toast.success('Back image assigned');
+    } else {
+      setAssignments((prev) => {
+        const next = { ...prev, [selectedPanelId]: imageUrl };
+        onAssignmentsChange?.(
+          Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
+        );
+        return next;
+      });
+      toast.success('Panel image assigned');
+    }
     setImagePickerOpen(false);
     setSelectedPanelId(null);
-    toast.success('Panel image assigned');
-  }, [selectedPanelId, onAssignmentsChange]);
+  }, [selectedPanelId, assigningSide, onAssignmentsChange]);
 
   const handleClearPanel = useCallback(() => {
     if (!selectedPanelId) return;
-    setAssignments((prev) => {
-      const next = { ...prev };
-      delete next[selectedPanelId];
-      onAssignmentsChange?.(
-        Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
-      );
-      return next;
-    });
+    if (assigningSide === 'back') {
+      setBackAssignments((prev) => {
+        const next = { ...prev };
+        delete next[selectedPanelId];
+        return next;
+      });
+    } else {
+      setAssignments((prev) => {
+        const next = { ...prev };
+        delete next[selectedPanelId];
+        onAssignmentsChange?.(
+          Object.entries(next).map(([panelId, url]) => ({ panelId, imageUrl: url }))
+        );
+        return next;
+      });
+    }
     setImagePickerOpen(false);
     setSelectedPanelId(null);
-  }, [selectedPanelId, onAssignmentsChange]);
+  }, [selectedPanelId, assigningSide, onAssignmentsChange]);
 
   const handleAutoFill = useCallback(() => {
     const newAssignments: Record<string, string> = {};
@@ -480,6 +497,7 @@ export function BoothMapper3D({
 
   const handleResetView = useCallback(() => {
     setAssignments({});
+    setBackAssignments({});
     onAssignmentsChange?.([]);
     toast.success('All panels cleared');
   }, [onAssignmentsChange]);
@@ -1414,11 +1432,42 @@ export function BoothMapper3D({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ImageIcon className="h-5 w-5" />
-              Assign Image to {boothConfig.panels.find((p) => p.id === selectedPanelId)?.label}
+              Assign {assigningSide === 'back' ? 'Back' : 'Front'} Image to {boothConfig.panels.find((p) => p.id === selectedPanelId)?.label}
             </DialogTitle>
             <DialogDescription>
               Select from your image library, uploaded specs, booth variants, or gallery.
             </DialogDescription>
+            {/* Front / Back toggle */}
+            <div className="flex items-center gap-1 mt-2">
+              <button
+                onClick={() => setAssigningSide('front')}
+                className={cn(
+                  "px-3 py-1 rounded text-xs font-medium transition-colors border",
+                  assigningSide === 'front'
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                )}
+              >
+                Front
+              </button>
+              <button
+                onClick={() => setAssigningSide('back')}
+                className={cn(
+                  "px-3 py-1 rounded text-xs font-medium transition-colors border",
+                  assigningSide === 'back'
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                )}
+              >
+                Back
+              </button>
+              {assigningSide === 'back' && backAssignments[selectedPanelId || ''] && (
+                <span className="text-[10px] text-green-500 ml-2">✓ Back image set</span>
+              )}
+              {assigningSide === 'front' && assignments[selectedPanelId || ''] && (
+                <span className="text-[10px] text-green-500 ml-2">✓ Front image set</span>
+              )}
+            </div>
           </DialogHeader>
 
           <Tabs value={pickerTab} onValueChange={setPickerTab} className="flex-1 min-h-0 flex flex-col">

@@ -247,7 +247,7 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
 
   return (
     <group position={panel.position} rotation={panel.rotation}>
-      {/* Panel back body — solid wall with depth, enhanced PBR */}
+      {/* Panel body — solid wall with depth, enhanced PBR */}
       <mesh position={[0, 0, -panelThickness / 2]} receiveShadow castShadow>
         <boxGeometry args={[panel.size[0], panel.size[1], panelThickness]} />
         <meshStandardMaterial
@@ -256,6 +256,39 @@ export function BoothPanel3D({ panel, isSelected, onSelect, showLabels, showDime
           metalness={0.08}
           envMapIntensity={0.3}
         />
+      </mesh>
+
+      {/* Panel back face — image or solid */}
+      <mesh
+        position={[0, 0, -panelThickness - 0.001]}
+        rotation={[0, Math.PI, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect(panel.id);
+        }}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          setHovered(true);
+          document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={() => {
+          setHovered(false);
+          document.body.style.cursor = 'default';
+        }}
+      >
+        <planeGeometry args={[panel.size[0], panel.size[1]]} />
+        {panel.backImageUrl ? (
+          <Suspense fallback={<meshStandardMaterial color="#1e293b" roughness={0.55} metalness={0.08} />}>
+            <TexturedPanel imageUrl={panel.backImageUrl} isSelected={isSelected} />
+          </Suspense>
+        ) : (
+          <meshStandardMaterial
+            color="#1e293b"
+            roughness={0.55}
+            metalness={0.08}
+            envMapIntensity={0.3}
+          />
+        )}
       </mesh>
 
       {/* Panel edge trim — aluminum frame effect */}
