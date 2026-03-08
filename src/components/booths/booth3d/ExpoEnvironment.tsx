@@ -180,24 +180,25 @@ function Pillars({ enhanced }: { enhanced?: boolean }) {
     <group>
       {pillarPositions.map((pos, i) => (
         <group key={i} position={pos}>
-          <mesh position={[0, 3.75, 0]} castShadow>
-            <cylinderGeometry args={[0.2, 0.25, 7.5, enhanced ? 16 : 12]} />
+          <mesh position={[0, 3.75, 0]} castShadow receiveShadow>
+            <cylinderGeometry args={[0.2, 0.25, 7.5, enhanced ? 20 : 12]} />
             <meshStandardMaterial
               color={enhanced ? '#3a4556' : '#374151'}
-              metalness={enhanced ? 0.4 : 0.3}
-              roughness={enhanced ? 0.45 : 0.6}
+              metalness={enhanced ? 0.55 : 0.3}
+              roughness={enhanced ? 0.3 : 0.6}
+              envMapIntensity={enhanced ? 0.6 : 0.2}
             />
           </mesh>
-          {/* Base plate */}
-          <mesh position={[0, 0.02, 0]}>
-            <cylinderGeometry args={[0.35, 0.35, 0.04, enhanced ? 16 : 12]} />
-            <meshStandardMaterial color="#4b5563" metalness={0.5} roughness={0.4} />
+          {/* Base plate — polished */}
+          <mesh position={[0, 0.02, 0]} receiveShadow>
+            <cylinderGeometry args={[0.35, 0.35, 0.04, enhanced ? 20 : 12]} />
+            <meshStandardMaterial color="#4b5563" metalness={0.6} roughness={0.25} envMapIntensity={0.5} />
           </mesh>
           {/* Capital (top plate) */}
           {enhanced && (
             <mesh position={[0, 7.48, 0]}>
-              <cylinderGeometry args={[0.3, 0.22, 0.06, 16]} />
-              <meshStandardMaterial color="#4b5563" metalness={0.5} roughness={0.4} />
+              <cylinderGeometry args={[0.3, 0.22, 0.06, 20]} />
+              <meshStandardMaterial color="#4b5563" metalness={0.6} roughness={0.25} envMapIntensity={0.5} />
             </mesh>
           )}
         </group>
@@ -241,15 +242,15 @@ function NeighborBooths({ detailed, enhanced }: { detailed: boolean; enhanced?: 
     <group>
       {allBooths.map((b, i) => (
         <group key={i} position={b.pos}>
-          {/* Back wall */}
-          <mesh position={[0, b.h / 2, -b.d / 2]} castShadow>
+          {/* Back wall — matte fabric panel */}
+          <mesh position={[0, b.h / 2, -b.d / 2]} castShadow receiveShadow>
             <boxGeometry args={[b.w, b.h, enhanced ? 0.1 : 0.08]} />
-            <meshStandardMaterial color={b.color} roughness={enhanced ? 0.6 : 0.7} />
+            <meshStandardMaterial color={b.color} roughness={enhanced ? 0.5 : 0.7} metalness={enhanced ? 0.08 : 0.02} envMapIntensity={enhanced ? 0.3 : 0.1} />
           </mesh>
           {/* Side wall */}
-          <mesh position={[-b.w / 2, b.h / 2, 0]} castShadow>
+          <mesh position={[-b.w / 2, b.h / 2, 0]} castShadow receiveShadow>
             <boxGeometry args={[enhanced ? 0.1 : 0.08, b.h, b.d]} />
-            <meshStandardMaterial color={b.color} roughness={enhanced ? 0.6 : 0.7} />
+            <meshStandardMaterial color={b.color} roughness={enhanced ? 0.5 : 0.7} metalness={enhanced ? 0.08 : 0.02} envMapIntensity={enhanced ? 0.3 : 0.1} />
           </mesh>
           {/* Accent header strip */}
           <mesh position={[0, b.h - 0.15, -b.d / 2 + 0.06]}>
