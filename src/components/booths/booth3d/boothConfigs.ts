@@ -49,8 +49,10 @@ export interface PanelConfig {
   size: [number, number];
   /** Physical dimensions label (feet) */
   specLabel?: string;
-  /** Assigned image URL */
+  /** Assigned front image URL */
   imageUrl?: string;
+  /** Assigned back image URL */
+  backImageUrl?: string;
   /** Production spec zone data (visual/cut/bleed) for safe zone overlays */
   zones?: PanelZones;
 }
