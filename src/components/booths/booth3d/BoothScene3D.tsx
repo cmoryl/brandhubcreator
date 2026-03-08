@@ -39,10 +39,18 @@ interface BoothScene3DProps {
   onAssetPositionChange?: (instanceId: string, position: [number, number, number]) => void;
   /** Environment realism level */
   environmentRealism?: EnvironmentRealism;
-  /** Active camera preset to snap to */
+  /** Active camera preset to animate to */
   activeCameraPreset?: CameraPreset | null;
   /** Bumped each click to re-trigger same preset */
   cameraVersion?: number;
+  /** Walkthrough mode */
+  walkthroughMode?: WalkthroughMode;
+  /** All camera presets for tour */
+  allCameraPresets?: CameraPreset[];
+  /** Called when walkthrough/tour ends */
+  onWalkthroughEnd?: () => void;
+  /** Called when tour advances to a step */
+  onTourStep?: (presetId: string) => void;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
