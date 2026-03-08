@@ -154,6 +154,50 @@ export function specToZones(spec: ParsedPanelSpec): PanelZones {
   };
 }
 
+// ─── Monitor Spec Parsing ──────────────────────────
+
+/** Parsed monitor configuration from production specs */
+export interface MonitorSpec {
+  configType: string;
+  monitorSize: number; // inches (e.g. 32)
+  count: number;
+  adjustable: boolean;
+  notes: string;
+}
+
+/** Parse monitor specs from the 'general' category with title 'Monitor Specifications' */
+export function parseMonitorSpecs(
+  specs: { title: string; content: string; category: string }[]
+): MonitorSpec[] {
+  const monitorSpecs = specs.filter(
+    s => s.category === 'general' && s.title.toLowerCase().includes('monitor')
+  );
+  if (monitorSpecs.length === 0) return [];
+
+  const results: MonitorSpec[] = [];
+  for (const spec of monitorSpecs) {
+    const lines = spec.content.split('\n');
+    for (const line of lines) {
+      // Match: "RDT-108: 32" Monitor with adjustable placement"
+      // or "RDT-110: Dual 32" Monitors with adjustable placement"
+      const match = line.match(/(RDT-\d+):\s*(Dual\s+)?(\d+)[""]\s*Monitor/i);
+      if (match) {
+        const configType = match[1].toUpperCase();
+        const isDual = !!match[2];
+        const size = parseInt(match[3], 10);
+        results.push({
+          configType,
+          monitorSize: size,
+          count: isDual ? 2 : 1,
+          adjustable: line.toLowerCase().includes('adjustable'),
+          notes: line.trim(),
+        });
+      }
+    }
+  }
+  return results;
+}
+
 /**
  * Generate 3D panel configs from parsed production specs for a specific RDT config.
  * Returns panel positions, rotations, and sizes based on the actual bleed dimensions
