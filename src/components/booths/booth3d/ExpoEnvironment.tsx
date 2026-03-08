@@ -1,6 +1,6 @@
 /**
  * ExpoEnvironment - Hyper-realistic expo hall environment
- * Supports multiple fidelity levels from standard to ultra-cinematic
+ * Supports multiple fidelity levels from standard to hyper-realistic
  */
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
@@ -14,7 +14,7 @@ interface ExpoEnvironmentProps {
 }
 
 /** Realistic expo hall carpet floor */
-function ExpoCarpet({ showReflections }: { showReflections: boolean }) {
+function ExpoCarpet({ showReflections, glossy }: { showReflections: boolean; glossy?: boolean }) {
   const carpetTexture = useMemo(() => {
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
@@ -26,7 +26,8 @@ function ExpoCarpet({ showReflections }: { showReflections: boolean }) {
     ctx.fillRect(0, 0, 1024, 1024);
 
     // Carpet fiber texture - dense noise
-    for (let i = 0; i < 30000; i++) {
+    const fiberCount = glossy ? 50000 : 30000;
+    for (let i = 0; i < fiberCount; i++) {
       const x = Math.random() * 1024;
       const y = Math.random() * 1024;
       const brightness = 35 + Math.random() * 25;
@@ -36,7 +37,7 @@ function ExpoCarpet({ showReflections }: { showReflections: boolean }) {
     }
 
     // Carpet weave pattern
-    ctx.globalAlpha = 0.08;
+    ctx.globalAlpha = glossy ? 0.05 : 0.08;
     for (let i = 0; i < 1024; i += 4) {
       ctx.strokeStyle = '#1a2332';
       ctx.lineWidth = 0.5;
@@ -63,25 +64,26 @@ function ExpoCarpet({ showReflections }: { showReflections: boolean }) {
     const tex = new THREE.CanvasTexture(canvas);
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
     tex.repeat.set(10, 10);
-    tex.anisotropy = 8;
+    tex.anisotropy = 16;
     return tex;
-  }, []);
+  }, [glossy]);
 
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.005, 0]} receiveShadow>
       <planeGeometry args={[50, 50]} />
       <meshStandardMaterial
         map={carpetTexture}
-        roughness={showReflections ? 0.85 : 0.95}
-        metalness={showReflections ? 0.02 : 0}
+        roughness={glossy ? 0.6 : showReflections ? 0.85 : 0.95}
+        metalness={glossy ? 0.08 : showReflections ? 0.02 : 0}
+        envMapIntensity={glossy ? 0.4 : 0.1}
       />
     </mesh>
   );
 }
 
 /** Ceiling truss structure - industrial aluminum */
-function CeilingTrusses() {
-  const trussColor = '#1a1a2e';
+function CeilingTrusses({ enhanced }: { enhanced?: boolean }) {
+  const trussColor = enhanced ? '#20203a' : '#1a1a2e';
   const trusses = useMemo(() => {
     const items: { pos: [number, number, number]; rot: [number, number, number]; length: number }[] = [];
     for (let x = -15; x <= 15; x += 5) {
@@ -100,20 +102,20 @@ function CeilingTrusses() {
           {/* Main beam top */}
           <mesh position={[0, 0.12, -0.06]}>
             <boxGeometry args={[t.length, 0.04, 0.04]} />
-            <meshStandardMaterial color={trussColor} metalness={0.85} roughness={0.2} />
+            <meshStandardMaterial color={trussColor} metalness={enhanced ? 0.92 : 0.85} roughness={enhanced ? 0.12 : 0.2} />
           </mesh>
           <mesh position={[0, 0.12, 0.06]}>
             <boxGeometry args={[t.length, 0.04, 0.04]} />
-            <meshStandardMaterial color={trussColor} metalness={0.85} roughness={0.2} />
+            <meshStandardMaterial color={trussColor} metalness={enhanced ? 0.92 : 0.85} roughness={enhanced ? 0.12 : 0.2} />
           </mesh>
           {/* Main beam bottom */}
           <mesh position={[0, -0.12, -0.06]}>
             <boxGeometry args={[t.length, 0.04, 0.04]} />
-            <meshStandardMaterial color={trussColor} metalness={0.85} roughness={0.2} />
+            <meshStandardMaterial color={trussColor} metalness={enhanced ? 0.92 : 0.85} roughness={enhanced ? 0.12 : 0.2} />
           </mesh>
           <mesh position={[0, -0.12, 0.06]}>
             <boxGeometry args={[t.length, 0.04, 0.04]} />
-            <meshStandardMaterial color={trussColor} metalness={0.85} roughness={0.2} />
+            <meshStandardMaterial color={trussColor} metalness={enhanced ? 0.92 : 0.85} roughness={enhanced ? 0.12 : 0.2} />
           </mesh>
           {/* Diagonal cross braces */}
           {Array.from({ length: Math.floor(t.length / 1.5) }, (_, j) => {
@@ -122,11 +124,11 @@ function CeilingTrusses() {
               <group key={j}>
                 <mesh position={[xPos, 0, 0]} rotation={[0, 0, Math.PI / 4]}>
                   <boxGeometry args={[0.02, 0.32, 0.02]} />
-                  <meshStandardMaterial color={trussColor} metalness={0.85} roughness={0.2} />
+                  <meshStandardMaterial color={trussColor} metalness={enhanced ? 0.92 : 0.85} roughness={enhanced ? 0.12 : 0.2} />
                 </mesh>
                 <mesh position={[xPos + 0.4, 0, 0]} rotation={[0, 0, -Math.PI / 4]}>
                   <boxGeometry args={[0.02, 0.32, 0.02]} />
-                  <meshStandardMaterial color={trussColor} metalness={0.85} roughness={0.2} />
+                  <meshStandardMaterial color={trussColor} metalness={enhanced ? 0.92 : 0.85} roughness={enhanced ? 0.12 : 0.2} />
                 </mesh>
               </group>
             );
@@ -136,19 +138,19 @@ function CeilingTrusses() {
       {/* Ceiling plane */}
       <mesh position={[0, 7.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[50, 50]} />
-        <meshStandardMaterial color="#080812" side={THREE.DoubleSide} />
+        <meshStandardMaterial color={enhanced ? '#0a0a18' : '#080812'} side={THREE.DoubleSide} />
       </mesh>
     </group>
   );
 }
 
 /** Structural pillars */
-function Pillars() {
+function Pillars({ enhanced }: { enhanced?: boolean }) {
   const pillarPositions = useMemo(() => {
     const positions: [number, number, number][] = [];
     for (let x = -15; x <= 15; x += 10) {
       for (let z = -15; z <= 15; z += 10) {
-        if (Math.abs(x) < 5 && Math.abs(z) < 5) continue; // Keep booth area clear
+        if (Math.abs(x) < 5 && Math.abs(z) < 5) continue;
         positions.push([x, 0, z]);
       }
     }
@@ -160,14 +162,25 @@ function Pillars() {
       {pillarPositions.map((pos, i) => (
         <group key={i} position={pos}>
           <mesh position={[0, 3.75, 0]} castShadow>
-            <cylinderGeometry args={[0.2, 0.25, 7.5, 12]} />
-            <meshStandardMaterial color="#374151" metalness={0.3} roughness={0.6} />
+            <cylinderGeometry args={[0.2, 0.25, 7.5, enhanced ? 16 : 12]} />
+            <meshStandardMaterial
+              color={enhanced ? '#3a4556' : '#374151'}
+              metalness={enhanced ? 0.4 : 0.3}
+              roughness={enhanced ? 0.45 : 0.6}
+            />
           </mesh>
           {/* Base plate */}
           <mesh position={[0, 0.02, 0]}>
-            <cylinderGeometry args={[0.35, 0.35, 0.04, 12]} />
+            <cylinderGeometry args={[0.35, 0.35, 0.04, enhanced ? 16 : 12]} />
             <meshStandardMaterial color="#4b5563" metalness={0.5} roughness={0.4} />
           </mesh>
+          {/* Capital (top plate) */}
+          {enhanced && (
+            <mesh position={[0, 7.48, 0]}>
+              <cylinderGeometry args={[0.3, 0.22, 0.06, 16]} />
+              <meshStandardMaterial color="#4b5563" metalness={0.5} roughness={0.4} />
+            </mesh>
+          )}
         </group>
       ))}
     </group>
@@ -175,7 +188,7 @@ function Pillars() {
 }
 
 /** Neighboring booth shells with varying levels of detail */
-function NeighborBooths({ detailed }: { detailed: boolean }) {
+function NeighborBooths({ detailed, enhanced }: { detailed: boolean; enhanced?: boolean }) {
   const boothPositions = useMemo(() => [
     { pos: [-10, 0, -8] as [number, number, number], w: 3, h: 2.4, d: 3, color: '#374151', accent: '#3b82f6' },
     { pos: [-10, 0, 0] as [number, number, number], w: 3, h: 2.8, d: 4, color: '#3f3f46', accent: '#ef4444' },
@@ -186,46 +199,66 @@ function NeighborBooths({ detailed }: { detailed: boolean }) {
     { pos: [0, 0, -12] as [number, number, number], w: 4, h: 2.4, d: 3, color: '#374151', accent: '#ec4899' },
     { pos: [6, 0, -12] as [number, number, number], w: 3, h: 2.6, d: 3, color: '#3f3f46', accent: '#14b8a6' },
     { pos: [-6, 0, -12] as [number, number, number], w: 3, h: 2.4, d: 3, color: '#374151', accent: '#f97316' },
-    // Extra booths for cinematic fullness
     { pos: [0, 0, 14] as [number, number, number], w: 5, h: 3.0, d: 4, color: '#3f3f46', accent: '#a855f7' },
     { pos: [-8, 0, 14] as [number, number, number], w: 3, h: 2.4, d: 3, color: '#374151', accent: '#f43f5e' },
     { pos: [8, 0, 14] as [number, number, number], w: 4, h: 2.6, d: 3, color: '#3f3f46', accent: '#0ea5e9' },
   ], []);
 
+  // Extra far-field booths for hyper mode
+  const farBooths = useMemo(() => enhanced ? [
+    { pos: [-16, 0, -8] as [number, number, number], w: 3, h: 2.2, d: 2.5, color: '#2d3748', accent: '#94a3b8' },
+    { pos: [-16, 0, 4] as [number, number, number], w: 3, h: 2.4, d: 3, color: '#2d3748', accent: '#64748b' },
+    { pos: [16, 0, -4] as [number, number, number], w: 3, h: 2.4, d: 2.5, color: '#2d3748', accent: '#94a3b8' },
+    { pos: [16, 0, 8] as [number, number, number], w: 3, h: 2.6, d: 3, color: '#2d3748', accent: '#64748b' },
+    { pos: [0, 0, -18] as [number, number, number], w: 5, h: 2.8, d: 3, color: '#2d3748', accent: '#475569' },
+    { pos: [10, 0, -18] as [number, number, number], w: 3, h: 2.4, d: 2.5, color: '#2d3748', accent: '#94a3b8' },
+    { pos: [-10, 0, -18] as [number, number, number], w: 4, h: 2.6, d: 3, color: '#2d3748', accent: '#64748b' },
+    { pos: [0, 0, 20] as [number, number, number], w: 6, h: 3.0, d: 4, color: '#2d3748', accent: '#475569' },
+  ] : [], [enhanced]);
+
+  const allBooths = [...boothPositions, ...farBooths];
+
   return (
     <group>
-      {boothPositions.map((b, i) => (
+      {allBooths.map((b, i) => (
         <group key={i} position={b.pos}>
           {/* Back wall */}
           <mesh position={[0, b.h / 2, -b.d / 2]} castShadow>
-            <boxGeometry args={[b.w, b.h, 0.08]} />
-            <meshStandardMaterial color={b.color} roughness={0.7} />
+            <boxGeometry args={[b.w, b.h, enhanced ? 0.1 : 0.08]} />
+            <meshStandardMaterial color={b.color} roughness={enhanced ? 0.6 : 0.7} />
           </mesh>
           {/* Side wall */}
           <mesh position={[-b.w / 2, b.h / 2, 0]} castShadow>
-            <boxGeometry args={[0.08, b.h, b.d]} />
-            <meshStandardMaterial color={b.color} roughness={0.7} />
+            <boxGeometry args={[enhanced ? 0.1 : 0.08, b.h, b.d]} />
+            <meshStandardMaterial color={b.color} roughness={enhanced ? 0.6 : 0.7} />
           </mesh>
           {/* Accent header strip */}
-          <mesh position={[0, b.h - 0.15, -b.d / 2 + 0.05]}>
+          <mesh position={[0, b.h - 0.15, -b.d / 2 + 0.06]}>
             <boxGeometry args={[b.w - 0.1, 0.3, 0.02]} />
-            <meshStandardMaterial color={b.accent} emissive={b.accent} emissiveIntensity={0.15} roughness={0.3} />
+            <meshStandardMaterial color={b.accent} emissive={b.accent} emissiveIntensity={enhanced ? 0.25 : 0.15} roughness={0.3} />
           </mesh>
           {/* Counter */}
           <mesh position={[0, 0.9 * FT * 3, b.d / 2 - 0.3]}>
             <boxGeometry args={[b.w * 0.6, 0.05, 0.6]} />
             <meshStandardMaterial color="#4a5568" roughness={0.5} />
           </mesh>
-          {detailed && (
+          {(detailed || enhanced) && (
             <>
               {/* Booth lighting - overhead spot */}
-              <pointLight position={[0, b.h + 0.3, 0]} intensity={0.08} color={b.accent} distance={4} />
+              <pointLight position={[0, b.h + 0.3, 0]} intensity={enhanced ? 0.12 : 0.08} color={b.accent} distance={enhanced ? 5 : 4} />
               {/* Floor mat */}
               <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.003, 0]}>
                 <planeGeometry args={[b.w + 0.3, b.d + 0.3]} />
-                <meshStandardMaterial color="#1e293b" roughness={0.9} />
+                <meshStandardMaterial color="#1e293b" roughness={enhanced ? 0.75 : 0.9} />
               </mesh>
             </>
+          )}
+          {/* Enhanced: Side return wall */}
+          {enhanced && (
+            <mesh position={[b.w / 2, b.h / 2, 0]} castShadow>
+              <boxGeometry args={[0.1, b.h, b.d]} />
+              <meshStandardMaterial color={b.color} roughness={0.6} />
+            </mesh>
           )}
         </group>
       ))}
@@ -257,26 +290,37 @@ function ExitSigns() {
 }
 
 /** Overhead lighting rigs with realistic spot fixtures */
-function LightRigs({ cinematic }: { cinematic: boolean }) {
+function LightRigs({ cinematic, hyper }: { cinematic: boolean; hyper?: boolean }) {
+  const spotPositions = hyper
+    ? [[-1.5, 0, -1], [1.5, 0, -1], [-1.5, 0, 1], [1.5, 0, 1], [0, 0, 0], [-0.5, 0, 2], [0.5, 0, -2]]
+    : [[-1.5, 0, -1], [1.5, 0, -1], [-1.5, 0, 1], [1.5, 0, 1], [0, 0, 0]];
+
   return (
     <group>
       {/* Central booth overhead cluster */}
       <group position={[0, 6.5, 0]}>
         {/* Spot cans */}
-        {[[-1.5, 0, -1], [1.5, 0, -1], [-1.5, 0, 1], [1.5, 0, 1], [0, 0, 0]].map(([x, y, z], i) => (
+        {spotPositions.map(([x, y, z], i) => (
           <group key={i} position={[x, y, z]}>
             <mesh>
-              <cylinderGeometry args={[0.08, 0.12, 0.2, 8]} />
-              <meshStandardMaterial color="#1a1a2e" metalness={0.9} roughness={0.2} />
+              <cylinderGeometry args={[0.08, 0.12, 0.2, hyper ? 12 : 8]} />
+              <meshStandardMaterial color="#1a1a2e" metalness={hyper ? 0.95 : 0.9} roughness={hyper ? 0.1 : 0.2} />
             </mesh>
-            {cinematic && (
+            {/* Light lens/glass */}
+            {hyper && (
+              <mesh position={[0, -0.11, 0]}>
+                <cylinderGeometry args={[0.07, 0.07, 0.02, 12]} />
+                <meshStandardMaterial color="#fef3c7" emissive="#fef3c7" emissiveIntensity={0.6} transparent opacity={0.4} />
+              </mesh>
+            )}
+            {(cinematic || hyper) && (
               <spotLight
                 position={[0, -0.1, 0]}
-                angle={0.5}
-                penumbra={0.8}
-                intensity={0.25}
+                angle={hyper ? 0.45 : 0.5}
+                penumbra={hyper ? 0.9 : 0.8}
+                intensity={hyper ? 0.35 : 0.25}
                 color="#fef3c7"
-                distance={8}
+                distance={hyper ? 10 : 8}
                 castShadow
               />
             )}
@@ -298,9 +342,9 @@ function LightRigs({ cinematic }: { cinematic: boolean }) {
         <group key={`flood-${i}`}>
           <pointLight
             position={[x, y, z]}
-            intensity={cinematic ? 0.2 : 0.12}
+            intensity={hyper ? 0.25 : cinematic ? 0.2 : 0.12}
             color="#e2e8f0"
-            distance={20}
+            distance={hyper ? 25 : 20}
           />
           {/* Light fixture housing */}
           <mesh position={[x, y, z]}>
@@ -311,9 +355,62 @@ function LightRigs({ cinematic }: { cinematic: boolean }) {
       ))}
 
       {/* Warm booth accent spots */}
-      <spotLight position={[0, 6.8, 2]} angle={0.6} penumbra={0.8} intensity={cinematic ? 0.5 : 0.3} color="#fef3c7" />
-      <spotLight position={[3, 6.8, -1]} angle={0.5} penumbra={0.7} intensity={cinematic ? 0.4 : 0.2} color="#fef3c7" />
-      <spotLight position={[-2, 6.8, 1]} angle={0.5} penumbra={0.7} intensity={cinematic ? 0.35 : 0.15} color="#fef3c7" />
+      <spotLight position={[0, 6.8, 2]} angle={0.6} penumbra={0.8} intensity={hyper ? 0.6 : cinematic ? 0.5 : 0.3} color="#fef3c7" castShadow={hyper} />
+      <spotLight position={[3, 6.8, -1]} angle={0.5} penumbra={0.7} intensity={hyper ? 0.5 : cinematic ? 0.4 : 0.2} color="#fef3c7" />
+      <spotLight position={[-2, 6.8, 1]} angle={0.5} penumbra={0.7} intensity={hyper ? 0.45 : cinematic ? 0.35 : 0.15} color="#fef3c7" />
+
+      {/* Hyper-mode: Additional rim and fill lights for depth */}
+      {hyper && (
+        <>
+          <spotLight position={[-4, 6.8, 3]} angle={0.4} penumbra={0.9} intensity={0.3} color="#bfdbfe" />
+          <spotLight position={[4, 6.8, -3]} angle={0.4} penumbra={0.9} intensity={0.3} color="#bfdbfe" />
+          {/* Cool back-fill for depth separation */}
+          <spotLight position={[0, 6.8, -4]} angle={0.3} penumbra={0.95} intensity={0.2} color="#93c5fd" />
+        </>
+      )}
+    </group>
+  );
+}
+
+/** Volumetric light cone visuals (hyper mode) */
+function VolumetricLightCones() {
+  const coneRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (coneRef.current) {
+      // Subtle light shimmer
+      coneRef.current.children.forEach((child, i) => {
+        if (child instanceof THREE.Mesh) {
+          const mat = child.material as THREE.MeshBasicMaterial;
+          mat.opacity = 0.04 + Math.sin(state.clock.elapsedTime * 0.5 + i * 1.5) * 0.015;
+        }
+      });
+    }
+  });
+
+  const conePositions: [number, number, number][] = [
+    [0, 3.5, 1],
+    [-1.5, 3.5, -0.5],
+    [1.5, 3.5, 0],
+    [3, 3.5, -1],
+    [-2, 3.5, 2],
+  ];
+
+  return (
+    <group ref={coneRef}>
+      {conePositions.map((pos, i) => (
+        <mesh key={i} position={pos} rotation={[0, 0, 0]}>
+          <coneGeometry args={[1.2 + i * 0.15, 6, 16, 1, true]} />
+          <meshBasicMaterial
+            color="#fef3c7"
+            transparent
+            opacity={0.04}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -322,14 +419,12 @@ function LightRigs({ cinematic }: { cinematic: boolean }) {
 function VentilationDucts() {
   return (
     <group>
-      {/* Main duct runs along ceiling */}
       {[-10, 10].map(x => (
         <mesh key={x} position={[x, 6.8, 0]}>
           <boxGeometry args={[0.6, 0.4, 35]} />
           <meshStandardMaterial color="#1e293b" metalness={0.5} roughness={0.5} />
         </mesh>
       ))}
-      {/* Cross duct */}
       <mesh position={[0, 6.8, -15]}>
         <boxGeometry args={[25, 0.35, 0.5]} />
         <meshStandardMaterial color="#1e293b" metalness={0.5} roughness={0.5} />
@@ -358,11 +453,11 @@ function AtmosphericFog({ density }: { density: number }) {
 }
 
 /** Floating dust/ambient particles */
-function AmbientParticles() {
+function AmbientParticles({ density = 300 }: { density?: number }) {
   const particleRef = useRef<THREE.Points>(null);
 
   const particles = useMemo(() => {
-    const count = 300;
+    const count = density;
     const positions = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       positions[i * 3] = (Math.random() - 0.5) * 30;
@@ -372,7 +467,7 @@ function AmbientParticles() {
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     return geom;
-  }, []);
+  }, [density]);
 
   useFrame((state) => {
     if (particleRef.current) {
@@ -389,10 +484,10 @@ function AmbientParticles() {
   return (
     <points ref={particleRef} geometry={particles}>
       <pointsMaterial
-        size={0.015}
+        size={density > 500 ? 0.018 : 0.015}
         color="#94a3b8"
         transparent
-        opacity={0.2}
+        opacity={density > 500 ? 0.15 : 0.2}
         sizeAttenuation
       />
     </points>
@@ -420,7 +515,7 @@ function AisleMarkings() {
 }
 
 /** Registration / entrance area backdrop */
-function EntranceBackdrop() {
+function EntranceBackdrop({ enhanced }: { enhanced?: boolean }) {
   return (
     <group position={[0, 0, 20]}>
       {/* Registration desk */}
@@ -431,30 +526,95 @@ function EntranceBackdrop() {
       {/* Overhead banner */}
       <mesh position={[0, 4, 0]}>
         <boxGeometry args={[10, 1.5, 0.05]} />
-        <meshStandardMaterial color="#1e40af" emissive="#1e40af" emissiveIntensity={0.1} />
+        <meshStandardMaterial color="#1e40af" emissive="#1e40af" emissiveIntensity={enhanced ? 0.2 : 0.1} />
+      </mesh>
+      {/* Enhanced: stanchion posts */}
+      {enhanced && (
+        <>
+          {[-2.5, -1, 1, 2.5].map(x => (
+            <group key={x}>
+              <mesh position={[x, 0.5, 1]}>
+                <cylinderGeometry args={[0.03, 0.03, 1, 8]} />
+                <meshStandardMaterial color="#94a3b8" metalness={0.8} roughness={0.2} />
+              </mesh>
+              <mesh position={[x, 1.02, 1]}>
+                <sphereGeometry args={[0.04, 8, 6]} />
+                <meshStandardMaterial color="#94a3b8" metalness={0.8} roughness={0.2} />
+              </mesh>
+            </group>
+          ))}
+        </>
+      )}
+    </group>
+  );
+}
+
+/** Expo hall perimeter walls (hyper mode) */
+function HallWalls() {
+  const wallColor = '#1a1e2e';
+  return (
+    <group>
+      {/* Four hall walls */}
+      <mesh position={[0, 3.75, -22]}>
+        <boxGeometry args={[50, 7.5, 0.15]} />
+        <meshStandardMaterial color={wallColor} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 3.75, 22]}>
+        <boxGeometry args={[50, 7.5, 0.15]} />
+        <meshStandardMaterial color={wallColor} roughness={0.8} />
+      </mesh>
+      <mesh position={[-22, 3.75, 0]}>
+        <boxGeometry args={[0.15, 7.5, 44]} />
+        <meshStandardMaterial color={wallColor} roughness={0.8} />
+      </mesh>
+      <mesh position={[22, 3.75, 0]}>
+        <boxGeometry args={[0.15, 7.5, 44]} />
+        <meshStandardMaterial color={wallColor} roughness={0.8} />
       </mesh>
     </group>
   );
 }
 
+/** Floor reflection plane - subtle mirror under carpet for hyper mode */
+function FloorReflectionPlane() {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.008, 0]}>
+      <planeGeometry args={[50, 50]} />
+      <meshStandardMaterial
+        color="#1a2332"
+        metalness={0.15}
+        roughness={0.7}
+        envMapIntensity={0.3}
+      />
+    </mesh>
+  );
+}
+
 export function ExpoEnvironment({ config }: ExpoEnvironmentProps) {
   const cinematic = config.showLightRigs;
+  const isHyper = config.showVolumetricLights === true;
+  const particleDensity = config.particleDensity ?? 300;
 
   return (
     <group>
-      <ExpoCarpet showReflections={config.showFloorReflections} />
-      <CeilingTrusses />
-      <NeighborBooths detailed={cinematic} />
+      <ExpoCarpet showReflections={config.showFloorReflections} glossy={config.showFloorGloss} />
+      {isHyper && <FloorReflectionPlane />}
+      <CeilingTrusses enhanced={config.enhancedMaterials} />
+      <NeighborBooths detailed={cinematic} enhanced={config.enhancedMaterials} />
       <AisleMarkings />
 
-      {config.showPillars && <Pillars />}
+      {config.showPillars && <Pillars enhanced={config.enhancedMaterials} />}
       {config.showExitSigns && <ExitSigns />}
-      {config.showLightRigs && <LightRigs cinematic={cinematic} />}
+      {config.showLightRigs && <LightRigs cinematic={cinematic} hyper={isHyper} />}
       {config.showVentilation && <VentilationDucts />}
       {config.showCableTroughs && <CableTroughs />}
       {config.showFog && <AtmosphericFog density={config.fogDensity} />}
-      {config.showAmbientParticles && <AmbientParticles />}
-      {config.showBannerRigs && <EntranceBackdrop />}
+      {config.showAmbientParticles && <AmbientParticles density={particleDensity} />}
+      {config.showBannerRigs && <EntranceBackdrop enhanced={config.enhancedMaterials} />}
+
+      {/* Hyper-mode exclusives */}
+      {isHyper && <VolumetricLightCones />}
+      {config.showDetailedWalls && <HallWalls />}
 
       {/* Base expo lighting (when no light rigs) */}
       {!config.showLightRigs && (
