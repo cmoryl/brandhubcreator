@@ -130,6 +130,31 @@ export function useCharacterSprites() {
     }
   }, [state.sprites, generateSprite]);
 
+  /** Delete all cached sprites and regenerate with proper transparency */
+  const regenerateAll = useCallback(async () => {
+    try {
+      // Delete all existing sprites from storage
+      const { data: files } = await supabase.storage
+        .from('organization-assets')
+        .list('booth-sprites');
+
+      if (files && files.length > 0) {
+        const paths = files.map(f => `booth-sprites/${f.name}`);
+        await supabase.storage.from('organization-assets').remove(paths);
+      }
+
+      // Reset state
+      setState({ sprites: {}, generating: new Set(), ready: true, count: 0 });
+
+      // Regenerate all
+      for (const char of CHARACTER_CATALOG) {
+        await generateSprite(char);
+      }
+    } catch (err) {
+      console.warn('[useCharacterSprites] Regeneration error:', err);
+    }
+  }, [generateSprite]);
+
   const getSpriteUrl = useCallback((characterId: string): string | undefined => {
     return state.sprites[characterId];
   }, [state.sprites]);
