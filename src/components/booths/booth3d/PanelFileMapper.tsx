@@ -251,7 +251,7 @@ function PrintAnalysisCard({ result }: { result: PanelFileMappingResult }) {
       {a.warnings.length > 0 && (
         <div className="space-y-1">
           {a.warnings.map((w, i) => (
-            <div key={i} className="flex items-start gap-1.5 text-[10px] text-amber-700 dark:text-amber-400">
+            <div key={i} className="flex items-start gap-1.5 text-[10px] text-destructive">
               <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
               <span>{w}</span>
             </div>
