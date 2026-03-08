@@ -60,6 +60,7 @@ import {
   getEnvironmentConfig,
   type EnvironmentRealism,
 } from './environmentPresets';
+import type { WalkthroughMode } from './CameraAnimator';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -106,6 +107,7 @@ export function BoothMapper3D({
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
   const [activeCameraPreset, setActiveCameraPreset] = useState<string | null>(null);
   const [cameraVersion, setCameraVersion] = useState(0);
+  const [walkthroughMode, setWalkthroughMode] = useState<WalkthroughMode>('none');
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
