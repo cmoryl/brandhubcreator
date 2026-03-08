@@ -1194,6 +1194,7 @@ export function BoothMapper3D({
             onRemoveLogisticsMarker={handleRemoveLogisticsMarker}
             onAIGenerate={handleAIGenerate}
           />
+        }
         rightPanel={
           <InspectorPanel
             selectedPanelId={selectedPanelId}
