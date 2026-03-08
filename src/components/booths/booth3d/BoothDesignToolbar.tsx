@@ -86,6 +86,8 @@ interface BoothDesignToolbarProps {
   specConfigType: string;
   useProductionSpecs: boolean;
   onSpecConfigChange: (type: string) => void;
+  /** Optional brand switcher element rendered in the toolbar */
+  brandSwitcher?: ReactNode;
 }
 
 export function BoothDesignToolbar(props: BoothDesignToolbarProps) {
