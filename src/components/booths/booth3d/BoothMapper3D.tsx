@@ -71,6 +71,8 @@ import {
   type BoothLightingConfig, type PrintStyle, type ParCanColor, type ColorTemperature,
   getDefaultBoothLighting, PRINT_STYLE_OPTIONS, PAR_CAN_OPTIONS, TEMPERATURE_OPTIONS,
 } from './boothLightingConfig';
+import { CrowdSimulationPanel } from './CrowdSimulationPanel';
+import type { CrowdSimulationData } from './crowdSimulationTypes';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
