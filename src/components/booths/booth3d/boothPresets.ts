@@ -550,7 +550,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Scholarship information should be prominently displayed',
     ],
     tags: ['education', 'university', 'college', 'recruitment', 'academic'],
-  },
+    placedAssets: EDU_UNIVERSITY_ASSETS,
+    flooringConfig: EDU_UNIVERSITY_FLOOR,
   {
     id: 'edu-edtech',
     name: 'EdTech Platform',
