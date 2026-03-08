@@ -622,7 +622,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['hotel', 'resort', 'hospitality', 'travel', 'destination', 'luxury'],
     placedAssets: HOSPITALITY_HOTEL_ASSETS,
     flooringConfig: HOSPITALITY_HOTEL_FLOOR,
-
+  },
   // ═══════════════════════════════════════
   // GOVERNMENT & DEFENSE
   // ═══════════════════════════════════════
