@@ -46,7 +46,7 @@ import {
   type PanelAssignment,
 } from './boothConfigs';
 import { BoothPresetPicker } from './BoothPresetPicker';
-import { parseAllSpecs, generatePanelsFromSpecs, type ParsedPanelSpec } from './specParser';
+import { parseAllSpecs, generatePanelsFromSpecs, parseMonitorSpecs, type ParsedPanelSpec, type MonitorSpec } from './specParser';
 import type { BoothDesignPreset } from './boothPresets';
 import {
   FURNITURE_CATALOG,
@@ -120,6 +120,7 @@ export function BoothMapper3D({
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
   const [prodSpecs, setProdSpecs] = useState<ParsedPanelSpec[]>([]);
+  const [monitorSpecs, setMonitorSpecs] = useState<MonitorSpec[]>([]);
   const [specConfigType, setSpecConfigType] = useState<string>('');
   const [useProductionSpecs, setUseProductionSpecs] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -228,35 +229,46 @@ export function BoothMapper3D({
     load();
   }, [divisionId, variantLabel]);
 
-  // Fetch production specs for this division
+  // Fetch production specs for this division (all categories, variant-aware)
+  const [allProdSpecs, setAllProdSpecs] = useState<{ title: string; content: string; category: string }[]>([]);
   useEffect(() => {
     if (!divisionId) return;
     const fetchProdSpecs = async () => {
       try {
         const { data, error } = await supabase
           .from('booth_production_specs')
-          .select('title, content, category')
+          .select('title, content, category, variant_label')
           .eq('division_id', divisionId)
-          .eq('category', 'content-sizing')
           .order('display_order', { ascending: true });
 
         if (error || !data || data.length === 0) return;
 
-        const layouts = parseAllSpecs(data);
+        // Filter by variant: include specs with matching variant_label or null (shared)
+        const filtered = data.filter(s =>
+          s.variant_label === null || s.variant_label === (variantLabel || null)
+        );
+
+        setAllProdSpecs(filtered);
+
+        // Parse content-sizing specs for panel generation
+        const contentSizing = filtered.filter(s => s.category === 'content-sizing');
+        const layouts = parseAllSpecs(contentSizing);
         if (layouts.length > 0) {
-          // Flatten all parsed specs
           const allParsed = layouts.flatMap(l => l.panels);
           setProdSpecs(allParsed);
-          // Auto-select the first available config type
           setSpecConfigType(layouts[0].configType);
           setUseProductionSpecs(true);
         }
+
+        // Parse monitor specs from general category
+        const monitors = parseMonitorSpecs(filtered);
+        setMonitorSpecs(monitors);
       } catch (e) {
         console.error('Failed to load production specs:', e);
       }
     };
     fetchProdSpecs();
-  }, [divisionId]);
+  }, [divisionId, variantLabel]);
 
   // Debounced save to database
   const saveMapping = useCallback(() => {
@@ -1022,6 +1034,8 @@ export function BoothMapper3D({
                 onTourStep={(id) => setActiveCameraPreset(id)}
                 spriteUrls={characterSprites.sprites}
                 useBillboards={characterSprites.count > 0}
+                monitorSpecs={monitorSpecs}
+                activeSpecConfig={useProductionSpecs ? specConfigType : ''}
               />
             </Suspense>
           </Canvas>
