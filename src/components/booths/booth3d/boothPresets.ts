@@ -392,7 +392,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Sound management is critical — use directional speakers to contain audio',
     ],
     tags: ['media', 'entertainment', 'streaming', 'content', 'video', 'immersive'],
-  },
+    placedAssets: CREATIVE_MEDIA_ASSETS,
+    flooringConfig: CREATIVE_MEDIA_FLOOR,
 
   // ═══════════════════════════════════════
   // INDUSTRIAL & MANUFACTURING
