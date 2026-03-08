@@ -78,6 +78,7 @@ const CAMERA_PRESETS: Record<string, CameraPreset[]> = {
     { id: 'overview', name: 'Overview', description: 'Standard 3/4 view', position: [6, 4, 6], target: [0, 1.2, 0], fov: 45 },
     { id: 'front', name: 'Front', description: 'Visitor approach view', position: [0, 1.7, 6], target: [0, 1.2, 0], fov: 50 },
     { id: 'first-person', name: 'First Person', description: 'Walk up to the booth at eye level', position: [0, 1.65, 3], target: [0, 1.4, 0], fov: 65 },
+    { id: 'aerial', name: 'Aerial Top-Down', description: 'Bird\'s-eye overhead view', position: [0, 10, 0.3], target: [0, 0, 0], fov: 50 },
   ],
   realistic: [
     { id: 'overview', name: 'Overview', description: 'Elevated 3/4 angle', position: [7, 5, 7], target: [0, 1, 0], fov: 42 },
