@@ -5,7 +5,7 @@ import {
   Building2, FlaskConical, Scale, Shield, Monitor, Film, Gamepad2, 
   Radio, Heart, Database, Microscope, Globe, X, ChevronLeft, ChevronRight,
   Mail, ExternalLink, ArrowLeft, Plus, Pencil, Trash2, Loader2, BarChart3, Settings, ZoomIn, ChevronDown, Upload, RotateCcw, Type, Download, ArrowUpDown, Ruler, Brain, Check,
-  LogOut, User, HelpCircle, LayoutDashboard, Box, MapPin
+  LogOut, User, HelpCircle, LayoutDashboard, Box, MapPin, BookTemplate
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
