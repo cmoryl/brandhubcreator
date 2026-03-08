@@ -554,6 +554,44 @@ export function BoothMapper3D({
     toast.success(`Auto-filled ${Object.keys(newAssignments).length} panels`);
   }, [boothConfig.panels, variantImages, onAssignmentsChange]);
 
+  // Crowd simulation handler
+  const handleRunSimulation = useCallback(async () => {
+    setIsSimulating(true);
+    setShowSimPanel(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('booth-crowd-simulation', {
+        body: {
+          boothLayout: layout,
+          panels: boothConfig.panels.map(p => ({
+            label: p.label,
+            position: p.position,
+            size: p.size,
+            specLabel: p.specLabel,
+            imageUrl: assignments[p.id] || null,
+          })),
+          placedAssets: placedAssets.map(a => ({
+            assetId: a.assetId,
+            label: a.label,
+            position: a.position,
+          })),
+          boothSize: boothConfig.footprint,
+          divisionName,
+        },
+      });
+      if (error) throw error;
+      setCrowdSimulation(data);
+      setShowHeatMap(true);
+      toast.success(`Booth Visibility Score: ${data.visibilityScore}/100`);
+    } catch (e: any) {
+      console.error('Simulation error:', e);
+      if (e?.status === 429) toast.error('Rate limit exceeded. Try again shortly.');
+      else if (e?.status === 402) toast.error('AI credits exhausted. Please add credits.');
+      else toast.error('Simulation failed: ' + (e?.message || 'Unknown error'));
+    } finally {
+      setIsSimulating(false);
+    }
+  }, [layout, boothConfig, assignments, placedAssets, divisionName]);
+
   const handleScreenshot = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
