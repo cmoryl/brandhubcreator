@@ -98,6 +98,7 @@ export function InspectorPanel({
   onNudgeAsset,
   isAdmin,
   onOpenAssetImagePicker,
+  brandColors = [],
 }: InspectorPanelProps) {
   // Selected asset info
   const selectedAsset = selectedAssetId ? placedAssets.find(a => a.instanceId === selectedAssetId) : null;
