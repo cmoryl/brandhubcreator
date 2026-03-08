@@ -18,7 +18,8 @@ import {
   Camera, Download, Sun, Tag, Ruler, RotateCcw, Image as ImageIcon,
   Loader2, Sparkles, Layout, Upload, Wand2, FolderOpen, Search,
   Users, Route, Building2, BookTemplate, Lightbulb, ScanLine,
-  Move, Plus, Trash2, Monitor, Table2, Armchair, Flag, Box
+  Move, Plus, Trash2, Monitor, Table2, Armchair, Flag, Box,
+  Palette, Shirt
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -119,6 +120,8 @@ export function BoothMapper3D({
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [assetFilterCategory, setAssetFilterCategory] = useState<string>('all');
   const [panelPositionOverrides, setPanelPositionOverrides] = useState<Record<string, [number, number, number]>>({});
+  const [coverImagePickerOpen, setCoverImagePickerOpen] = useState(false);
+  const [coverImageTargetAssetId, setCoverImageTargetAssetId] = useState<string | null>(null);
 
   // Organization context for image library
   const { organization } = useOrganization();
@@ -325,6 +328,24 @@ export function BoothMapper3D({
     setSelectedAssetId(null);
     toast.success('Asset removed');
   }, []);
+
+  const handleUpdateAsset = useCallback((instanceId: string, updates: Partial<PlacedAsset>) => {
+    setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, ...updates } : a));
+  }, []);
+
+  const handleOpenCoverImagePicker = useCallback((instanceId: string) => {
+    setCoverImageTargetAssetId(instanceId);
+    setCoverImagePickerOpen(true);
+    if (organization?.id) fetchImages(organization.id);
+  }, [organization?.id, fetchImages]);
+
+  const handleAssignCoverImage = useCallback((imageUrl: string) => {
+    if (!coverImageTargetAssetId) return;
+    handleUpdateAsset(coverImageTargetAssetId, { tableCoverImageUrl: imageUrl });
+    setCoverImagePickerOpen(false);
+    setCoverImageTargetAssetId(null);
+    toast.success('Cover image assigned');
+  }, [coverImageTargetAssetId, handleUpdateAsset]);
 
   const handleSelectPanel = useCallback((panelId: string) => {
     if (isDragMode) return; // In drag mode, don't open picker
@@ -940,41 +961,156 @@ export function BoothMapper3D({
       {placedAssets.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground">Placed Assets ({placedAssets.length})</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {placedAssets.map((asset) => {
               const config = getFurnitureById(asset.assetId);
+              const showCoverControls = config?.hasTableCover && isAdmin;
               return (
                 <div
                   key={asset.instanceId}
                   className={cn(
-                    "flex items-center gap-2 p-2 rounded-lg border transition-colors",
+                    "rounded-lg border transition-colors",
                     selectedAssetId === asset.instanceId
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
                   )}
                 >
-                  <div className="h-8 w-8 bg-muted rounded flex items-center justify-center shrink-0">
-                    {config?.category === 'displays' ? <Monitor className="h-4 w-4 text-muted-foreground" /> :
-                     config?.category === 'tables' ? <Table2 className="h-4 w-4 text-muted-foreground" /> :
-                     config?.category === 'seating' ? <Armchair className="h-4 w-4 text-muted-foreground" /> :
-                     config?.category === 'signage' ? <Flag className="h-4 w-4 text-muted-foreground" /> :
-                     <Box className="h-4 w-4 text-muted-foreground" />}
+                  <div className="flex items-center gap-2 p-2">
+                    <div className="h-8 w-8 bg-muted rounded flex items-center justify-center shrink-0">
+                      {config?.category === 'displays' ? <Monitor className="h-4 w-4 text-muted-foreground" /> :
+                       config?.category === 'tables' ? <Table2 className="h-4 w-4 text-muted-foreground" /> :
+                       config?.category === 'seating' ? <Armchair className="h-4 w-4 text-muted-foreground" /> :
+                       config?.category === 'signage' ? <Flag className="h-4 w-4 text-muted-foreground" /> :
+                       <Box className="h-4 w-4 text-muted-foreground" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium truncate">{asset.label || config?.name}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {config?.description?.split('(')[0]?.trim()}
+                        {asset.tableCoverColor && ' · Cover applied'}
+                      </p>
+                    </div>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleRemoveAsset(asset.instanceId)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium truncate">{asset.label || config?.name}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {config?.description?.split('(')[0]?.trim()}
-                    </p>
-                  </div>
-                  {isAdmin && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => handleRemoveAsset(asset.instanceId)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+
+                  {/* Table Cover Customization */}
+                  {showCoverControls && (
+                    <div className="border-t border-border/50 px-2 py-2 space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <Shirt className="h-3 w-3 text-muted-foreground shrink-0" />
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Table Cover</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {/* Fabric color picker */}
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <label className="text-[10px] text-muted-foreground shrink-0">Fabric</label>
+                          <div className="flex gap-1">
+                            {['#1e3a5f', '#1a1a1a', '#7c2d12', '#166534', '#581c87', '#b91c1c', '#c2410c', '#0f766e', '#e2e8f0'].map((c) => (
+                              <button
+                                key={c}
+                                className={cn(
+                                  "h-5 w-5 rounded-full border-2 transition-all",
+                                  asset.tableCoverColor === c ? "border-primary scale-110 ring-1 ring-primary/30" : "border-border/50 hover:scale-105"
+                                )}
+                                style={{ backgroundColor: c }}
+                                onClick={() => handleUpdateAsset(asset.instanceId, { tableCoverColor: c })}
+                                title={c}
+                              />
+                            ))}
+                            <input
+                              type="color"
+                              value={asset.tableCoverColor || '#1e3a5f'}
+                              onChange={(e) => handleUpdateAsset(asset.instanceId, { tableCoverColor: e.target.value })}
+                              className="h-5 w-5 rounded-full cursor-pointer border border-border/50"
+                              title="Custom color"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {/* Cover style */}
+                        <label className="text-[10px] text-muted-foreground shrink-0">Style</label>
+                        <div className="flex gap-1">
+                          {(['fitted', 'draped', 'throw'] as const).map((style) => (
+                            <button
+                              key={style}
+                              className={cn(
+                                "text-[10px] px-2 py-0.5 rounded border transition-colors capitalize",
+                                (asset.tableCoverStyle || 'fitted') === style
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                              )}
+                              onClick={() => handleUpdateAsset(asset.instanceId, { tableCoverStyle: style })}
+                            >
+                              {style}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {/* Cover image */}
+                        <label className="text-[10px] text-muted-foreground shrink-0">Print</label>
+                        {asset.tableCoverImageUrl ? (
+                          <div className="flex items-center gap-1.5">
+                            <img src={asset.tableCoverImageUrl} alt="Cover" className="h-8 w-12 object-cover rounded border" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-[10px] px-1.5"
+                              onClick={() => handleOpenCoverImagePicker(asset.instanceId)}
+                            >
+                              Change
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-[10px] px-1.5 text-muted-foreground hover:text-destructive"
+                              onClick={() => handleUpdateAsset(asset.instanceId, { tableCoverImageUrl: undefined })}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 text-[10px] gap-1"
+                            onClick={() => handleOpenCoverImagePicker(asset.instanceId)}
+                          >
+                            <ImageIcon className="h-3 w-3" />
+                            Add Logo / Print
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Quick-apply: enable cover if not set */}
+                      {!asset.tableCoverColor && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-7 text-[10px] gap-1.5"
+                          onClick={() => handleUpdateAsset(asset.instanceId, {
+                            tableCoverColor: '#1e3a5f',
+                            tableCoverStyle: 'fitted',
+                          })}
+                        >
+                          <Palette className="h-3 w-3" />
+                          Add Table Cover
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               );
@@ -1301,8 +1437,60 @@ export function BoothMapper3D({
           </div>
         </Card>
       )}
+
+      {/* Cover Image Picker Dialog */}
+      <Dialog open={coverImagePickerOpen} onOpenChange={(open) => { setCoverImagePickerOpen(open); if (!open) setCoverImageTargetAssetId(null); }}>
+        <DialogContent className="max-w-xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shirt className="h-5 w-5" />
+              Select Cover Print / Logo
+            </DialogTitle>
+            <DialogDescription>
+              Choose an image from your library to print on the table cover front panel.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative mb-2">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search images..."
+              value={librarySearch}
+              onChange={(e) => setLibrarySearch(e.target.value)}
+              className="pl-9 h-9"
+            />
+          </div>
+
+          <ScrollArea className="flex-1 min-h-0 max-h-[50vh]">
+            {libraryLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : filteredLibraryImages.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No images found</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2 pr-2">
+                {filteredLibraryImages.map((img, i) => (
+                  <button
+                    key={`cover-${img.public_url}-${i}`}
+                    onClick={() => handleAssignCoverImage(img.public_url)}
+                    className="group relative rounded-lg overflow-hidden border hover:border-primary hover:shadow-md transition-all"
+                  >
+                    <img src={img.public_url} alt={img.name} className="w-full aspect-video object-cover" loading="lazy" />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-1.5">
+                      <span className="text-[10px] text-white font-medium truncate block">{img.name || 'Image'}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
-
 
