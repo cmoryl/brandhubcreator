@@ -21,6 +21,10 @@ export interface ContrastPair {
 
 export interface ProductionNote {
   color: string;
+  hex?: string;
+  rgb?: string;
+  cmyk?: string;
+  pantone?: string;
   cmyk_safe: boolean;
   large_format_notes?: string;
   material_notes?: string;
