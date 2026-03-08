@@ -249,6 +249,21 @@ export function BoothMapper3D({
     return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
   }, [saveMapping, isLoaded]);
 
+  // Keyboard shortcut: Delete/Backspace removes selected asset
+  useEffect(() => {
+    if (!isAdmin || !selectedAssetId) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        // Don't trigger if user is typing in an input
+        if ((e.target as HTMLElement)?.tagName === 'INPUT' || (e.target as HTMLElement)?.tagName === 'TEXTAREA') return;
+        e.preventDefault();
+        handleRemoveAsset(selectedAssetId);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isAdmin, selectedAssetId, handleRemoveAsset]);
+
   // Available spec config types for the dropdown
   const availableSpecTypes = useMemo(() => {
     const types = new Set(prodSpecs.map(s => s.configType).filter(Boolean));
