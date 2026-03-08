@@ -184,6 +184,18 @@ export function InspectorPanel({
               </div>
             )}
           </div>
+
+          {/* Panel Color Analysis */}
+          {hasImage && (
+            <>
+              <Separator />
+              <AssetColorAnalysis
+                imageUrl={assignments[selectedPanel.id]}
+                assetName={selectedPanel.label}
+                brandColors={brandColors}
+              />
+            </>
+          )}
         </div>
       </div>
     );
