@@ -60,6 +60,7 @@ import {
   getEnvironmentConfig,
   type EnvironmentRealism,
 } from './environmentPresets';
+import type { WalkthroughMode } from './CameraAnimator';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -106,6 +107,7 @@ export function BoothMapper3D({
   const [showTrafficFlow, setShowTrafficFlow] = useState(false);
   const [activeCameraPreset, setActiveCameraPreset] = useState<string | null>(null);
   const [cameraVersion, setCameraVersion] = useState(0);
+  const [walkthroughMode, setWalkthroughMode] = useState<WalkthroughMode>('none');
   const [showSafeZones, setShowSafeZones] = useState(false);
   const [presetPickerOpen, setPresetPickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<BoothDesignPreset | null>(null);
@@ -912,6 +914,10 @@ export function BoothMapper3D({
                     : null
                 }
                 cameraVersion={cameraVersion}
+                walkthroughMode={walkthroughMode}
+                allCameraPresets={getEnvironmentConfig(environmentRealism).cameraPresets}
+                onWalkthroughEnd={() => setWalkthroughMode('none')}
+                onTourStep={(id) => setActiveCameraPreset(id)}
               />
             </Suspense>
           </Canvas>
@@ -1048,12 +1054,13 @@ export function BoothMapper3D({
                 <button
                   key={preset.id}
                   onClick={() => {
+                    if (walkthroughMode !== 'none') setWalkthroughMode('none');
                     setActiveCameraPreset(preset.id);
                     setCameraVersion(v => v + 1);
                   }}
                   className={cn(
                     "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
-                    activeCameraPreset === preset.id
+                    activeCameraPreset === preset.id && walkthroughMode === 'none'
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-muted text-foreground"
                   )}
@@ -1062,6 +1069,34 @@ export function BoothMapper3D({
                   {preset.name}
                 </button>
               ))}
+              {/* ── Walkthrough controls ── */}
+              <div className="border-t border-border pt-1.5 mt-1 space-y-1">
+                <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider px-1">🎬 Walkthrough</p>
+                <button
+                  onClick={() => setWalkthroughMode(walkthroughMode === 'walkthrough' ? 'none' : 'walkthrough')}
+                  className={cn(
+                    "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
+                    walkthroughMode === 'walkthrough'
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted text-foreground"
+                  )}
+                  title="Simulated first-person walk around the booth"
+                >
+                  {walkthroughMode === 'walkthrough' ? '⏹ Stop Walk' : '🚶 First Person'}
+                </button>
+                <button
+                  onClick={() => setWalkthroughMode(walkthroughMode === 'tour' ? 'none' : 'tour')}
+                  className={cn(
+                    "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
+                    walkthroughMode === 'tour'
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted text-foreground"
+                  )}
+                  title="Auto-tour through all camera presets"
+                >
+                  {walkthroughMode === 'tour' ? '⏹ Stop Tour' : '🎥 Auto Tour'}
+                </button>
+              </div>
             </div>
             {/* Realism level badge (when environment is on) */}
             {showEnvironment && (

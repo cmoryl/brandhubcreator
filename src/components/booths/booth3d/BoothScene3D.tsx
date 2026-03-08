@@ -2,9 +2,8 @@
  * BoothScene3D - The Three.js scene containing booth panels, floor, lighting,
  * furniture assets, and drag-and-drop support
  */
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
-import { useThree } from '@react-three/fiber';
 import { OrbitControls, Grid, Environment } from '@react-three/drei';
 import { DraggablePanel3D } from './DraggablePanel3D';
 import { BoothFurniture3D } from './BoothFurniture3D';
@@ -16,38 +15,7 @@ import type { PlacedAsset } from './boothFurnitureConfigs';
 import { getFurnitureById } from './boothFurnitureConfigs';
 import type { EnvironmentRealism, EnvironmentConfig, CameraPreset } from './environmentPresets';
 import { getEnvironmentConfig } from './environmentPresets';
-
-/**
- * CameraController — lives inside the R3F canvas and imperatively moves
- * the camera + OrbitControls target when `activePreset` changes.
- */
-function CameraController({
-  activePreset,
-  controlsRef,
-  version,
-}: {
-  activePreset: CameraPreset | null;
-  controlsRef: React.RefObject<any>;
-  version: number;
-}) {
-  const { camera } = useThree();
-
-  useEffect(() => {
-    if (!activePreset) return;
-    camera.position.set(...activePreset.position);
-    if ((camera as THREE.PerspectiveCamera).fov !== undefined) {
-      (camera as THREE.PerspectiveCamera).fov = activePreset.fov;
-      (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
-    }
-    const controls = controlsRef.current;
-    if (controls) {
-      controls.target.set(...activePreset.target);
-      controls.update();
-    }
-  }, [activePreset, camera, controlsRef, version]);
-
-  return null;
-}
+import { CameraAnimator, type WalkthroughMode } from './CameraAnimator';
 
 
 
@@ -71,10 +39,18 @@ interface BoothScene3DProps {
   onAssetPositionChange?: (instanceId: string, position: [number, number, number]) => void;
   /** Environment realism level */
   environmentRealism?: EnvironmentRealism;
-  /** Active camera preset to snap to */
+  /** Active camera preset to animate to */
   activeCameraPreset?: CameraPreset | null;
   /** Bumped each click to re-trigger same preset */
   cameraVersion?: number;
+  /** Walkthrough mode */
+  walkthroughMode?: WalkthroughMode;
+  /** All camera presets for tour */
+  allCameraPresets?: CameraPreset[];
+  /** Called when walkthrough/tour ends */
+  onWalkthroughEnd?: () => void;
+  /** Called when tour advances to a step */
+  onTourStep?: (presetId: string) => void;
 }
 
 function getLighting(preset: LightingPreset, envConfig?: EnvironmentConfig) {
@@ -122,6 +98,10 @@ export function BoothScene3D({
   environmentRealism = 'standard',
   activeCameraPreset = null,
   cameraVersion = 0,
+  walkthroughMode = 'none',
+  allCameraPresets = [],
+  onWalkthroughEnd,
+  onTourStep,
 }: BoothScene3DProps) {
   const controlsRef = useRef<any>(null);
   const envConfig = showEnvironment ? getEnvironmentConfig(environmentRealism) : undefined;
@@ -286,7 +266,15 @@ export function BoothScene3D({
         target={[0, 1.2, 0]}
         enabled={!isDragMode}
       />
-      <CameraController activePreset={activeCameraPreset} controlsRef={controlsRef} version={cameraVersion} />
+      <CameraAnimator
+        activePreset={activeCameraPreset}
+        version={cameraVersion}
+        controlsRef={controlsRef}
+        walkthroughMode={walkthroughMode}
+        allPresets={allCameraPresets}
+        onModeChange={(mode) => { if (mode === 'none') onWalkthroughEnd?.(); }}
+        onTourStep={onTourStep}
+      />
 
 
       {showEnvironment && envConfig ? (
