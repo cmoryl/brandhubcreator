@@ -352,36 +352,36 @@ export function RealisticHumanFigure({
           {/* Lanyard — clean flat ribbon */}
           <mesh position={[-0.018, torsoTop - 0.06, 0.055]} rotation={[-0.1, 0, 0.14]}>
             <boxGeometry args={[0.01, 0.15, 0.002]} />
-            <meshStandardMaterial color={appearance.lanyard} roughness={0.65} envMapIntensity={0.15} />
+            <meshStandardMaterial color={appearance.lanyard} roughness={0.65} envMapIntensity={0.15} transparent opacity={opacity * 0.85} />
           </mesh>
           <mesh position={[0.018, torsoTop - 0.06, 0.055]} rotation={[-0.1, 0, -0.14]}>
             <boxGeometry args={[0.01, 0.15, 0.002]} />
-            <meshStandardMaterial color={appearance.lanyard} roughness={0.65} envMapIntensity={0.15} />
+            <meshStandardMaterial color={appearance.lanyard} roughness={0.65} envMapIntensity={0.15} transparent opacity={opacity * 0.85} />
           </mesh>
           {/* Badge — clean card */}
           <group position={[0, torsoBot + TORSO_H * 0.38, hipW / 2 + 0.018]}>
             <mesh castShadow>
               <boxGeometry args={[0.05, 0.068, 0.003]} />
-              <meshStandardMaterial color="#fafafa" roughness={0.35} metalness={0.02} envMapIntensity={0.3} />
+              <meshStandardMaterial color="#e8e8e8" roughness={0.35} metalness={0.02} envMapIntensity={0.3} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Color strip */}
             <mesh position={[0, 0.029, 0.002]}>
               <boxGeometry args={[0.05, 0.01, 0.001]} />
-              <meshStandardMaterial color={isStaff ? (staffColor || shirtColor) : appearance.lanyard} roughness={0.45} />
+              <meshStandardMaterial color={isStaff ? (staffColor || shirtColor) : appearance.lanyard} roughness={0.45} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Text lines */}
             <mesh position={[0, 0.008, 0.002]}>
               <boxGeometry args={[0.032, 0.004, 0.001]} />
-              <meshStandardMaterial color="#334155" roughness={0.5} />
+              <meshStandardMaterial color="#334155" roughness={0.5} transparent opacity={opacity * 0.85} />
             </mesh>
             <mesh position={[0, -0.004, 0.002]}>
               <boxGeometry args={[0.024, 0.003, 0.001]} />
-              <meshStandardMaterial color="#94a3b8" roughness={0.5} />
+              <meshStandardMaterial color="#94a3b8" roughness={0.5} transparent opacity={opacity * 0.85} />
             </mesh>
             {/* Clip */}
             <mesh position={[0, 0.038, 0]}>
               <boxGeometry args={[0.012, 0.006, 0.006]} />
-              <meshStandardMaterial color="#a1a1aa" roughness={0.15} metalness={0.7} envMapIntensity={0.5} />
+              <meshStandardMaterial color="#a1a1aa" roughness={0.15} metalness={0.7} envMapIntensity={0.5} transparent opacity={opacity * 0.85} />
             </mesh>
           </group>
         </group>
