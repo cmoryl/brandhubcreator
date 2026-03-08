@@ -61,6 +61,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     size: [6 * FT, 30 * IN, 30 * IN],
     color: '#1e293b',
     description: "Standard 6' folding table (72\" × 30\" × 30\")",
+    hasTableCover: true,
   },
   {
     id: 'table-8ft',
@@ -69,6 +70,25 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     size: [8 * FT, 30 * IN, 30 * IN],
     color: '#1e293b',
     description: "Standard 8' folding table (96\" × 30\" × 30\")",
+    hasTableCover: true,
+  },
+  {
+    id: 'table-6ft-covered',
+    name: "6' Covered Table",
+    category: 'tables',
+    size: [6 * FT, 30 * IN, 30 * IN],
+    color: '#1e3a5f',
+    description: "6' table with fitted fabric cover — customizable color & print",
+    hasTableCover: true,
+  },
+  {
+    id: 'table-8ft-covered',
+    name: "8' Covered Table",
+    category: 'tables',
+    size: [8 * FT, 30 * IN, 30 * IN],
+    color: '#1e3a5f',
+    description: "8' table with fitted fabric cover — customizable color & print",
+    hasTableCover: true,
   },
   {
     id: 'counter-reception',
@@ -77,6 +97,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     size: [4 * FT, 42 * IN, 24 * IN],
     color: '#334155',
     description: "Standing-height reception counter (48\" × 42\" × 24\")",
+    hasTableCover: true,
   },
   {
     id: 'podium',
@@ -93,6 +114,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     size: [30 * IN, 42 * IN, 30 * IN],
     color: '#475569',
     description: "Round cocktail/highboy table (30\" dia × 42\" tall)",
+    hasTableCover: true,
   },
 
   // Displays / TVs
