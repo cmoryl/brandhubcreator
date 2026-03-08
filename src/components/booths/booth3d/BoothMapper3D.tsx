@@ -910,6 +910,10 @@ export function BoothMapper3D({
             showHeatMap={showHeatMap}
             crowdSimulation={crowdSimulation}
             printStyle={printStyle}
+            logisticsMarkers={logisticsMarkers}
+            showLogistics={showLogistics}
+            selectedLogisticsId={selectedLogisticsId}
+            onSelectLogistics={setSelectedLogisticsId}
           />
         </Suspense>
       </Canvas>
