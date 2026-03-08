@@ -170,7 +170,8 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
       'Data visualization motion graphics on a loop capture attention from distance',
     ],
     tags: ['ai', 'machine-learning', 'data-science', 'neural', 'futuristic'],
-  },
+    placedAssets: TECH_AI_ASSETS,
+    flooringConfig: TECH_AI_FLOOR,
   {
     id: 'tech-cybersecurity',
     name: 'Cybersecurity',
