@@ -160,7 +160,7 @@ export default function BoothSystemsLibrary() {
         </div>
       </div>
 
-      <Separator className="mx-6 max-w-7xl" />
+      <Separator className="max-w-7xl mx-auto" />
 
       {/* Systems list */}
       <div className="max-w-7xl mx-auto px-6 py-6">
