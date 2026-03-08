@@ -1,6 +1,7 @@
 /**
  * BoothAnalyticsDashboard — Post-show performance analytics with predicted vs actual comparison.
  * Upload real data after the show and compare against simulation predictions.
+ * Supports CSV/Excel import alongside manual entry.
  */
 import { useState, useMemo, useCallback } from 'react';
 import {
@@ -16,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { type BoothAnalyticsRecord } from '@/hooks/useBoothAnalytics';
+import { PostShowDataImport } from './PostShowDataImport';
 
 /* ─── Types ──────────────────────────────────────── */
 
