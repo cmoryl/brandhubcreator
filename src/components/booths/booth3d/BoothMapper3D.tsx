@@ -83,6 +83,9 @@ import { InspectorPanel } from './InspectorPanel';
 import { SceneLayersPanel, type SceneLayer } from './SceneLayersPanel';
 import { MiniMapOverlay } from './MiniMapOverlay';
 import { BoothScorePanel, type BoothScoreData } from './BoothScorePanel';
+import { BoothDesignToolbar } from './BoothDesignToolbar';
+import { BoothLeftPanel } from './BoothLeftPanel';
+import { EnvironmentPresetCards } from './EnvironmentPresetCards';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
