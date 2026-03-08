@@ -577,12 +577,13 @@ export function BoothMapper3D({
         gl={{
           preserveDrawingBuffer: true,
           antialias: true,
-          toneMapping: 4,
-          toneMappingExposure: 1.0,
+          toneMapping: 4, // ACESFilmic
+          toneMappingExposure: 1.1,
           outputColorSpace: 'srgb',
           shadowMap: { enabled: true, type: environmentRealism === 'hyper' ? 2 : 1 },
+          powerPreference: 'high-performance',
         } as any}
-        dpr={[1, environmentRealism === 'hyper' ? 2 : 1.5]}
+        dpr={[1, environmentRealism === 'hyper' ? 2 : 1.75]}
         flat={false}
       >
         <Suspense fallback={null}>

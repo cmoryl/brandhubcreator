@@ -19,7 +19,7 @@ interface BoothFurniture3DProps {
   onPositionChange: (instanceId: string, position: [number, number, number]) => void;
 }
 
-/** Screen texture loader with enhanced PBR */
+/** Screen texture loader with enhanced PBR + glow */
 function ScreenTexture({ url }: { url: string }) {
   const tex = useTexture(url);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -27,9 +27,9 @@ function ScreenTexture({ url }: { url: string }) {
   return (
     <meshStandardMaterial
       map={tex}
-      emissive="#222"
-      emissiveIntensity={0.15}
-      roughness={0.08}
+      emissive="#334155"
+      emissiveIntensity={0.35}
+      roughness={0.06}
       metalness={0.05}
       envMapIntensity={0.6}
     />

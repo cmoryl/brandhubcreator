@@ -235,23 +235,28 @@ export function BoothScene3D({
     <>
       <color attach="background" args={[lighting.bgColor]} />
 
-      {/* Advanced rendering: Soft shadows (PCSS) for hyper/ultra modes */}
-      {envConfig?.useSoftShadows && <SoftShadows size={25} samples={16} focus={0.5} />}
-      {/* ═══ PRIMARY LIGHTING ═══ */}
-      <ambientLight intensity={lighting.ambientIntensity} color={isHyper ? '#e8e4df' : '#ffffff'} />
+      {/* Advanced rendering: Soft shadows (PCSS) — enabled for all modes at varying quality */}
+      {envConfig?.useSoftShadows ? (
+        <SoftShadows size={25} samples={16} focus={0.5} />
+      ) : (
+        <SoftShadows size={15} samples={8} focus={0.8} />
+      )}
 
-      {/* Key light — main directional spot */}
+      {/* ═══ PRIMARY LIGHTING ═══ */}
+      <ambientLight intensity={lighting.ambientIntensity} color={isHyper ? '#e8e4df' : '#faf9f7'} />
+
+      {/* Key light — main directional spot with soft penumbra */}
       <spotLight
         position={[5, 8, 5]}
-        angle={isHyper ? 0.4 : 0.5}
-        penumbra={isHyper ? 0.7 : 0.5}
+        angle={isHyper ? 0.4 : 0.45}
+        penumbra={isHyper ? 0.7 : 0.65}
         intensity={lighting.spotIntensity}
         castShadow
-        shadow-mapSize={envConfig ? [envConfig.shadowQuality, envConfig.shadowQuality] : [1024, 1024]}
-        shadow-bias={isAdvanced ? -0.0002 : -0.0005}
-        shadow-normalBias={isAdvanced ? 0.02 : 0.05}
-        shadow-radius={isHyper ? 4 : 2}
-        color={isHyper ? '#fff5e6' : '#ffffff'}
+        shadow-mapSize={envConfig ? [envConfig.shadowQuality, envConfig.shadowQuality] : [2048, 2048]}
+        shadow-bias={isAdvanced ? -0.0002 : -0.0003}
+        shadow-normalBias={isAdvanced ? 0.02 : 0.03}
+        shadow-radius={isHyper ? 4 : 3}
+        color={isHyper ? '#fff5e6' : '#fff8f0'}
       />
 
       {/* Fill light — opposite side */}
@@ -259,11 +264,12 @@ export function BoothScene3D({
         position={[-5, 6, -3]}
         angle={0.4}
         penumbra={isHyper ? 0.9 : 0.8}
-        intensity={lighting.spotIntensity * (isHyper ? 0.6 : 0.5)}
-        castShadow={isAdvanced}
-        shadow-mapSize={isAdvanced ? [2048, 2048] : [512, 512]}
+        intensity={lighting.spotIntensity * (isHyper ? 0.6 : 0.45)}
+        castShadow
+        shadow-mapSize={isAdvanced ? [2048, 2048] : [1024, 1024]}
         shadow-bias={-0.0003}
-        color={isAdvanced ? '#e8eaf0' : '#ffffff'}
+        shadow-radius={2}
+        color={isAdvanced ? '#e8eaf0' : '#f0f0f8'}
       />
 
       {/* Rim/back light for depth separation */}
@@ -558,7 +564,7 @@ export function BoothScene3D({
 
       <Environment
         preset={lighting.envPreset}
-        environmentIntensity={envConfig?.envIntensity ?? 0.5}
+        environmentIntensity={envConfig?.envIntensity ?? 0.7}
         background={false}
       />
 
@@ -606,15 +612,28 @@ export function BoothScene3D({
             fadeStrength={1}
             followCamera={false}
           />
+          {/* Shadow receiver floor with subtle reflection */}
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
             <planeGeometry args={[20, 20]} />
-            <shadowMaterial opacity={0.15} />
+            <meshStandardMaterial
+              color="#e8e8ec"
+              roughness={0.75}
+              metalness={0.05}
+              envMapIntensity={0.3}
+              transparent
+              opacity={0.92}
+            />
+          </mesh>
+          {/* Soft shadow catcher underneath */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, 0]} receiveShadow>
+            <planeGeometry args={[20, 20]} />
+            <shadowMaterial opacity={0.2} />
           </mesh>
         </>
       )}
 
-      {/* Contact shadows — soft ground-level AO for hyper/ultra modes */}
-      {envConfig?.useContactShadows && (
+      {/* Contact shadows — soft ground-level AO for all modes */}
+      {envConfig?.useContactShadows ? (
         <ContactShadows
           position={[0, 0.001, 0]}
           opacity={envConfig.contactShadowOpacity ?? 0.4}
@@ -623,6 +642,16 @@ export function BoothScene3D({
           far={4}
           resolution={isHyper ? 512 : 256}
           color="#0a0a14"
+        />
+      ) : (
+        <ContactShadows
+          position={[0, 0.001, 0]}
+          opacity={0.25}
+          scale={16}
+          blur={2.5}
+          far={3}
+          resolution={256}
+          color="#1a1a2e"
         />
       )}
 
@@ -689,15 +718,23 @@ export function BoothScene3D({
                 <boxGeometry args={[monW, monH, bezelDepth]} />
                 <meshStandardMaterial color="#111111" metalness={0.8} roughness={0.15} />
               </mesh>
-              {/* Screen face (slightly in front) */}
+              {/* Screen face with vivid glow */}
               <mesh position={[0, 0, bezelDepth / 2 + 0.001]}>
                 <planeGeometry args={[monW - 0.02, monH - 0.02]} />
-                <meshStandardMaterial color="#1a1a2e" emissive="#1a2a4a" emissiveIntensity={0.3} metalness={0.1} roughness={0.2} />
+                <meshStandardMaterial color="#0f172a" emissive="#2563eb" emissiveIntensity={0.5} metalness={0.1} roughness={0.15} />
               </mesh>
+              {/* Screen glow halo (soft light spill from display) */}
+              <pointLight
+                position={[0, 0, bezelDepth / 2 + 0.15]}
+                intensity={0.3}
+                color="#3b82f6"
+                distance={2}
+                decay={2}
+              />
               {/* Bezel highlight */}
               <mesh position={[0, 0, bezelDepth / 2 + 0.0005]}>
                 <planeGeometry args={[monW - 0.005, monH - 0.005]} />
-                <meshStandardMaterial color="#000000" opacity={0.5} transparent />
+                <meshStandardMaterial color="#000000" opacity={0.4} transparent />
               </mesh>
               {/* Stand arm */}
               <mesh position={[0, -monH / 2 - 0.15, -0.03]} castShadow>
