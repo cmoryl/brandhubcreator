@@ -264,9 +264,11 @@ export function BoothMapper3D({
     setIsLoaded(false);
     setLayout('inline');
     setAssignments({});
+    setBackAssignments({});
     setUploadedSpecs([]);
     setPlacedAssets([]);
     setPanelPositionOverrides({});
+    setLogisticsMarkers([]);
     const load = async () => {
       try {
         const { data } = await supabase
@@ -282,13 +284,25 @@ export function BoothMapper3D({
           setUploadedSpecs((data.uploaded_specs as { url: string; name: string }[]) || []);
           setShowLabels(data.show_labels ?? true);
           setShowDimensions(data.show_dimensions ?? true);
-          // Load furniture assets and panel overrides from assignments JSONB
+          // Load extended state from assignments JSONB
           const saved = data.assignments as any;
           if (saved?.__placedAssets) {
             setPlacedAssets(saved.__placedAssets as PlacedAsset[]);
           }
           if (saved?.__panelPositions) {
             setPanelPositionOverrides(saved.__panelPositions as Record<string, [number, number, number]>);
+          }
+          if (saved?.__backAssignments) {
+            setBackAssignments(saved.__backAssignments as Record<string, string>);
+          }
+          if (saved?.__logisticsMarkers) {
+            setLogisticsMarkers(saved.__logisticsMarkers as LogisticsMarker[]);
+          }
+          if (saved?.__flooringConfig) {
+            setFlooringConfig(saved.__flooringConfig as FlooringConfig);
+          }
+          if (saved?.__boothLighting) {
+            setBoothLighting(saved.__boothLighting as BoothLightingConfig);
           }
         }
       } catch (e) {
@@ -349,11 +363,15 @@ export function BoothMapper3D({
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
-        // Store placed assets and panel position overrides alongside assignments
+        // Store all extended state alongside panel assignments in JSONB
         const enrichedAssignments = {
           ...assignments,
           __placedAssets: placedAssets,
           __panelPositions: panelPositionOverrides,
+          __backAssignments: backAssignments,
+          __logisticsMarkers: logisticsMarkers,
+          __flooringConfig: flooringConfig,
+          __boothLighting: boothLighting,
         } as unknown as Record<string, unknown>;
         await supabase.from('booth_3d_mappings').upsert({
           division_id: divisionId,
@@ -370,7 +388,7 @@ export function BoothMapper3D({
         console.error('Failed to save 3D mapping:', e);
       }
     }, 1000);
-  }, [divisionId, variantLabel, layout, lightingPreset, assignments, uploadedSpecs, showLabels, showDimensions, isLoaded, placedAssets, panelPositionOverrides]);
+  }, [divisionId, variantLabel, layout, lightingPreset, assignments, uploadedSpecs, showLabels, showDimensions, isLoaded, placedAssets, panelPositionOverrides, backAssignments, logisticsMarkers, flooringConfig, boothLighting]);
 
   // Auto-save when state changes
   useEffect(() => {
@@ -551,7 +569,10 @@ export function BoothMapper3D({
 
   const handleSelectPanel = useCallback((panelId: string) => {
     if (isDragMode) return;
-    if (!isAdmin) return;
+    if (!isAdmin) {
+      toast.info('View-only mode — contact an admin to edit panel assignments');
+      return;
+    }
     setSelectedPanelId(panelId);
     setAssigningSide('front');
     setImagePickerOpen(true);
@@ -1255,7 +1276,7 @@ export function BoothMapper3D({
             onNudgeAsset={onAssetNudge}
             isAdmin={isAdmin}
             onOpenAssetImagePicker={handleOpenAssetImagePicker}
-            brandColors={[]}
+            brandColors={organization?.primaryColor ? [organization.primaryColor, organization.secondaryColor, organization.accentColor].filter(Boolean) as string[] : []}
           />
         }
         canvas={canvasElement}
@@ -1299,35 +1320,7 @@ export function BoothMapper3D({
         }
       />
 
-      {/* Panel summary row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {boothConfig.panels.map((panel) => (
-          <button
-            key={panel.id}
-            onClick={() => handleSelectPanel(panel.id)}
-            className={cn(
-              "flex items-center gap-2 p-2 rounded-lg border transition-colors text-left",
-              assignments[panel.id]
-                ? "border-primary/30 bg-primary/5"
-                : "border-dashed border-muted-foreground/30 hover:border-primary/50"
-            )}
-          >
-            {assignments[panel.id] ? (
-              <img src={assignments[panel.id]} alt={panel.label} className="h-10 w-14 object-cover rounded" />
-            ) : (
-              <div className="h-10 w-14 bg-muted rounded flex items-center justify-center">
-                <ImageIcon className="h-4 w-4 text-muted-foreground" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-xs font-medium truncate">{panel.label}</p>
-              <p className="text-[10px] text-muted-foreground">
-                {panel.specLabel || ''} {assignments[panel.id] ? '· Assigned' : '· Empty'}
-              </p>
-            </div>
-          </button>
-        ))}
-      </div>
+      {/* Panel summary moved to Graphics mode bottom content — no duplicate here */}
 
       {/* Placed Assets Row */}
       {placedAssets.length > 0 && (
