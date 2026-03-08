@@ -13,6 +13,8 @@ const FT = 0.3048;
 
 interface ExpoEnvironmentProps {
   config: EnvironmentConfig;
+  /** When true, hides ceiling trusses, light rigs, ventilation, and overhead elements for aerial/top-down view */
+  isAerialView?: boolean;
 }
 
 // ─── Procedural Texture Utilities ──────────────────────────
