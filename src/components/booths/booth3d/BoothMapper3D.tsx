@@ -90,6 +90,8 @@ import { PanelDesigner } from './PanelDesigner';
 import { LogisticsPanel } from './LogisticsPanel';
 import { LogisticsOverlay3D } from './LogisticsMarker3D';
 import { type LogisticsMarker, type LogisticsCategory, createMarker, LOGISTICS_CATEGORIES } from './logisticsTypes';
+import { BoothAnalyticsDashboard } from './BoothAnalyticsDashboard';
+import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
