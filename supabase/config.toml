@@ -121,3 +121,6 @@ verify_jwt = false
 
 [functions.booth-score]
 verify_jwt = false
+
+[functions.generate-character-sprite]
+verify_jwt = false
