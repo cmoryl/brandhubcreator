@@ -93,6 +93,7 @@ import { type LogisticsMarker, type LogisticsCategory, createMarker, LOGISTICS_C
 import { BoothAnalyticsDashboard } from './BoothAnalyticsDashboard';
 import { useBoothAnalytics } from '@/hooks/useBoothAnalytics';
 import type { AIBoothResult } from './AIBoothGenerator';
+import { VendorExportPack } from './VendorExportPack';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -1223,6 +1224,22 @@ export function BoothMapper3D({
                 peakCapacity: crowdSimulation.peakCapacity,
                 visibilityScore: crowdSimulation.visibilityScore,
               } : undefined}
+            />
+          ) :
+          activeMode === 'production' ? (
+            <VendorExportPack
+              divisionName={divisionName}
+              layout={layout}
+              boothDimensions={boothConfig.dimensions}
+              boothFootprint={boothConfig.footprint}
+              panels={panels}
+              assignments={assignments}
+              backAssignments={backAssignments}
+              placedAssets={placedAssets}
+              boothLighting={boothLighting}
+              flooringConfig={flooringConfig}
+              logisticsMarkers={logisticsMarkers}
+              isAdmin={isAdmin}
             />
           ) : undefined
         }
