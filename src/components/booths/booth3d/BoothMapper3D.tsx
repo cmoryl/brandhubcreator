@@ -76,6 +76,7 @@ import {
 import { CrowdSimulationPanel } from './CrowdSimulationPanel';
 import type { CrowdSimulationData } from './crowdSimulationTypes';
 import { ARPreviewPanel } from './ARPreviewPanel';
+import { SalesDeckPanel } from './SalesDeckPanel';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
