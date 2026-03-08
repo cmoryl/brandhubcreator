@@ -348,6 +348,20 @@ export function BoothMapper3D({
     setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, ...updates } : a));
   }, []);
 
+  const onAssetNudge = useCallback((instanceId: string, dx: number, dy: number, dz: number) => {
+    setPlacedAssets(prev => prev.map(a => {
+      if (a.instanceId !== instanceId) return a;
+      return {
+        ...a,
+        position: [
+          Math.round((a.position[0] + dx) * 10) / 10,
+          Math.max(0, Math.round((a.position[1] + dy) * 10) / 10),
+          Math.round((a.position[2] + dz) * 10) / 10,
+        ] as [number, number, number],
+      };
+    }));
+  }, []);
+
   const handleOpenCoverImagePicker = useCallback((instanceId: string) => {
     setCoverImageTargetAssetId(instanceId);
     setCoverImagePickerOpen(true);
