@@ -95,10 +95,10 @@ export function BillboardFigure({
         <meshStandardMaterial
           map={texture}
           transparent
-          opacity={opacity}
-          alphaTest={0.05}
+          opacity={1}
+          alphaTest={0.1}
           side={THREE.DoubleSide}
-          depthWrite={false}
+          depthWrite={true}
         />
       </mesh>
       {/* Realistic elliptical contact shadow on the ground */}
@@ -111,7 +111,7 @@ export function BillboardFigure({
         <meshBasicMaterial
           color="#000000"
           transparent
-          opacity={opacity * 0.18}
+          opacity={0.18}
           depthWrite={false}
         />
       </mesh>
