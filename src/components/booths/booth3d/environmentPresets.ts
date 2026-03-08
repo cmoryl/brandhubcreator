@@ -1,10 +1,10 @@
 /**
  * Environment Realism Presets
  * Controls the fidelity level of the expo hall rendering from basic wireframe
- * to ultra-cinematic photorealistic simulation.
+ * to hyper-realistic photorealistic simulation.
  */
 
-export type EnvironmentRealism = 'standard' | 'realistic' | 'cinematic' | 'ultra';
+export type EnvironmentRealism = 'standard' | 'realistic' | 'cinematic' | 'ultra' | 'hyper';
 
 export interface EnvironmentConfig {
   label: string;
@@ -40,6 +40,13 @@ export interface EnvironmentConfig {
   /** Camera */
   cinematicDOF: boolean;
   cameraPresets: CameraPreset[];
+  /** Hyper-realistic extras */
+  showVolumetricLights?: boolean;
+  showDetailedWalls?: boolean;
+  showFloorGloss?: boolean;
+  enhancedMaterials?: boolean;
+  showSpotCones?: boolean;
+  particleDensity?: number;
 }
 
 export interface CameraPreset {
@@ -80,6 +87,18 @@ const CAMERA_PRESETS: Record<string, CameraPreset[]> = {
     { id: 'overhead-plan', name: 'Overhead Plan', description: 'Bird\'s-eye layout documentation', position: [0, 10, 0.5], target: [0, 0, 0], fov: 50 },
     { id: 'immersive-crowd', name: 'In The Crowd', description: 'Shoulder-level among attendees', position: [1.2, 1.55, 3.8], target: [-0.3, 1.7, 0], fov: 58 },
     { id: 'detail-product', name: 'Product Detail', description: 'Tight macro with bokeh', position: [0.5, 1.3, 0.6], target: [0, 1.4, 0], fov: 24 },
+  ],
+  hyper: [
+    { id: 'establishing', name: 'Grand Reveal', description: 'Cinematic hall-wide establishing shot', position: [14, 6, 14], target: [0, 1, 0], fov: 28 },
+    { id: 'visitor-eye', name: 'Visitor POV', description: 'Photorealistic eye-level with depth', position: [0.15, 1.72, 4.2], target: [-0.05, 1.5, -0.2], fov: 46 },
+    { id: 'hero-dramatic', name: 'Power Shot', description: 'Low dramatic with volumetric light', position: [2, 0.3, 3.2], target: [0, 2.4, 0], fov: 26 },
+    { id: 'golden-hour', name: 'Golden Hour', description: 'Warm atmospheric side angle', position: [-5, 2.2, 6], target: [0.5, 1.2, 0], fov: 38 },
+    { id: 'photographer-pro', name: 'Pro Photographer', description: '85mm portrait lens equivalent', position: [3.5, 1.65, 4.5], target: [0, 1.4, 0], fov: 28 },
+    { id: 'editorial-wide', name: 'Editorial Wide', description: 'Magazine double-page spread angle', position: [-9, 2.5, 3], target: [0, 1.2, 0.5], fov: 42 },
+    { id: 'overhead-plan', name: 'Overhead Plan', description: 'Bird\'s-eye layout documentation', position: [0, 12, 0.5], target: [0, 0, 0], fov: 45 },
+    { id: 'immersive', name: 'Immersive Walk', description: 'Handheld walk-through feel', position: [1, 1.6, 3.5], target: [-0.4, 1.7, -0.5], fov: 60 },
+    { id: 'detail-macro', name: 'Macro Detail', description: 'Extreme close-up with shallow DOF', position: [0.4, 1.35, 0.5], target: [0, 1.4, 0], fov: 20 },
+    { id: 'hallway', name: 'Hall Corridor', description: 'Deep perspective down the aisle', position: [-12, 1.75, 0], target: [0, 1.5, 0], fov: 35 },
   ],
 };
 
@@ -173,7 +192,7 @@ export const ENVIRONMENT_PRESETS: Record<EnvironmentRealism, EnvironmentConfig> 
   },
   ultra: {
     label: 'Ultra',
-    description: 'Hyper-realistic cinematic — full event simulation',
+    description: 'Ultra-cinematic full event simulation',
     icon: '✨',
     ambientMultiplier: 0.35,
     spotMultiplier: 1.5,
@@ -199,6 +218,42 @@ export const ENVIRONMENT_PRESETS: Record<EnvironmentRealism, EnvironmentConfig> 
     showFloorReflections: true,
     cinematicDOF: true,
     cameraPresets: CAMERA_PRESETS.ultra,
+  },
+  hyper: {
+    label: 'Hyper-Real',
+    description: 'Maximum photorealism — volumetric lights, glossy floors, rich materials',
+    icon: '💎',
+    ambientMultiplier: 0.25,
+    spotMultiplier: 1.8,
+    shadowQuality: 4096,
+    useHDRI: true,
+    envIntensity: 1.4,
+    showCarpetDetail: true,
+    showCeilingTrusses: true,
+    showNeighborBooths: true,
+    showPillars: true,
+    showExitSigns: true,
+    showBannerRigs: true,
+    showVentilation: true,
+    showLightRigs: true,
+    showCableTroughs: true,
+    peopleCount: 'packed',
+    peopleAnimated: true,
+    showInteractions: true,
+    showConversationGroups: true,
+    showFog: true,
+    fogDensity: 0.02,
+    showAmbientParticles: true,
+    showFloorReflections: true,
+    cinematicDOF: true,
+    cameraPresets: CAMERA_PRESETS.hyper,
+    // Hyper-exclusive features
+    showVolumetricLights: true,
+    showDetailedWalls: true,
+    showFloorGloss: true,
+    enhancedMaterials: true,
+    showSpotCones: true,
+    particleDensity: 800,
   },
 };
 
