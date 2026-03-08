@@ -884,6 +884,17 @@ export function BoothMapper3D({
               </TooltipTrigger>
               <TooltipContent>Traffic Flow</TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle pressed={showHeatMap} onPressedChange={(v) => {
+                  setShowHeatMap(v);
+                  if (v && !crowdSimulation) setShowSimPanel(true);
+                }} size="sm" className="h-8 w-8" aria-label="Toggle heat map">
+                  <BarChart3 className="h-3.5 w-3.5" />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent>Crowd Simulation</TooltipContent>
+            </Tooltip>
           </TooltipProvider>
 
           {showEnvironment && (
