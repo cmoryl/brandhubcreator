@@ -852,7 +852,7 @@ export function BoothMapper3D({
             </TabsContent>
 
             {/* Booth Sources Tab */}
-            <TabsContent value="sources" className="mt-3">
+            <TabsContent value="sources" className="mt-3 flex-1 min-h-0 overflow-hidden">
               {allImages.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
