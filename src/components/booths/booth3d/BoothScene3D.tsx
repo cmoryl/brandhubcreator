@@ -16,6 +16,7 @@ import { getFurnitureById } from './boothFurnitureConfigs';
 import type { EnvironmentRealism, EnvironmentConfig, CameraPreset } from './environmentPresets';
 import { getEnvironmentConfig } from './environmentPresets';
 import { CameraAnimator, type WalkthroughMode } from './CameraAnimator';
+import type { MonitorSpec } from './specParser';
 
 
 
