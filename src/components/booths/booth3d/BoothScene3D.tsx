@@ -235,23 +235,28 @@ export function BoothScene3D({
     <>
       <color attach="background" args={[lighting.bgColor]} />
 
-      {/* Advanced rendering: Soft shadows (PCSS) for hyper/ultra modes */}
-      {envConfig?.useSoftShadows && <SoftShadows size={25} samples={16} focus={0.5} />}
-      {/* ═══ PRIMARY LIGHTING ═══ */}
-      <ambientLight intensity={lighting.ambientIntensity} color={isHyper ? '#e8e4df' : '#ffffff'} />
+      {/* Advanced rendering: Soft shadows (PCSS) — enabled for all modes at varying quality */}
+      {envConfig?.useSoftShadows ? (
+        <SoftShadows size={25} samples={16} focus={0.5} />
+      ) : (
+        <SoftShadows size={15} samples={8} focus={0.8} />
+      )}
 
-      {/* Key light — main directional spot */}
+      {/* ═══ PRIMARY LIGHTING ═══ */}
+      <ambientLight intensity={lighting.ambientIntensity} color={isHyper ? '#e8e4df' : '#faf9f7'} />
+
+      {/* Key light — main directional spot with soft penumbra */}
       <spotLight
         position={[5, 8, 5]}
-        angle={isHyper ? 0.4 : 0.5}
-        penumbra={isHyper ? 0.7 : 0.5}
+        angle={isHyper ? 0.4 : 0.45}
+        penumbra={isHyper ? 0.7 : 0.65}
         intensity={lighting.spotIntensity}
         castShadow
-        shadow-mapSize={envConfig ? [envConfig.shadowQuality, envConfig.shadowQuality] : [1024, 1024]}
-        shadow-bias={isAdvanced ? -0.0002 : -0.0005}
-        shadow-normalBias={isAdvanced ? 0.02 : 0.05}
-        shadow-radius={isHyper ? 4 : 2}
-        color={isHyper ? '#fff5e6' : '#ffffff'}
+        shadow-mapSize={envConfig ? [envConfig.shadowQuality, envConfig.shadowQuality] : [2048, 2048]}
+        shadow-bias={isAdvanced ? -0.0002 : -0.0003}
+        shadow-normalBias={isAdvanced ? 0.02 : 0.03}
+        shadow-radius={isHyper ? 4 : 3}
+        color={isHyper ? '#fff5e6' : '#fff8f0'}
       />
 
       {/* Fill light — opposite side */}
