@@ -382,6 +382,22 @@ export function InspectorPanel({
               </div>
             </>
           )}
+
+          {/* Asset Color Analysis — analyze any assigned image */}
+          {(() => {
+            const assetImageUrl = selectedAsset.screenImageUrl || selectedAsset.customTextureUrl || selectedAsset.tableCoverImageUrl;
+            if (!assetImageUrl) return null;
+            return (
+              <>
+                <Separator />
+                <AssetColorAnalysis
+                  imageUrl={assetImageUrl}
+                  assetName={assetConfig.name}
+                  brandColors={brandColors}
+                />
+              </>
+            );
+          })()}
         </div>
       </div>
     );
