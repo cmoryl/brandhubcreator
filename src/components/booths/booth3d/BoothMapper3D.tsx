@@ -246,7 +246,38 @@ export function BoothMapper3D({
     handleApplyBrand,
   );
 
-  // Eagerly fetch images when organization is available
+  // Booth System Library
+  const boothSystems = useBoothSystems(organization?.id);
+  const [activeSystemVariantId, setActiveSystemVariantId] = useState<string | null>(null);
+
+  const handleLoadSystemVariant = useCallback((variant: { id: string; snapshotData: Record<string, unknown> }) => {
+    const snap = variant.snapshotData;
+    if (!snap || Object.keys(snap).length === 0) { toast.info('This variant has no saved snapshot'); return; }
+    if (snap.layout) setLayout(snap.layout as any);
+    if (snap.lightingPreset) setLightingPreset(snap.lightingPreset as any);
+    if (snap.assignments) setAssignments(snap.assignments as Record<string, string>);
+    if (snap.placedAssets) setPlacedAssets(snap.placedAssets as PlacedAsset[]);
+    if (snap.flooringConfig) setFlooringConfig(snap.flooringConfig as any);
+    if (snap.boothLighting) setBoothLighting(snap.boothLighting as any);
+    if (snap.logisticsMarkers) setLogisticsMarkers(snap.logisticsMarkers as any);
+    setActiveSystemVariantId(variant.id);
+    toast.success('System variant loaded');
+  }, [setLayout, setLightingPreset, setAssignments, setPlacedAssets, setFlooringConfig, setBoothLighting, setLogisticsMarkers]);
+
+  const handleSaveToSystemVariant = useCallback(async (variantId: string) => {
+    const snapshotData = {
+      layout,
+      lightingPreset,
+      assignments,
+      placedAssets,
+      flooringConfig,
+      boothLighting,
+      logisticsMarkers,
+    };
+    await boothSystems.updateVariantSnapshot(variantId, snapshotData as any);
+    setActiveSystemVariantId(variantId);
+  }, [layout, lightingPreset, assignments, placedAssets, flooringConfig, boothLighting, logisticsMarkers, boothSystems]);
+
   useEffect(() => {
     if (organization?.id) fetchImages(organization.id);
   }, [organization?.id, fetchImages]);
