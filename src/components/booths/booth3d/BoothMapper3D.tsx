@@ -163,6 +163,9 @@ export function BoothMapper3D({
   const [isSimulating, setIsSimulating] = useState(false);
   const [showHeatMap, setShowHeatMap] = useState(false);
   const [showSimPanel, setShowSimPanel] = useState(false);
+  // AR Preview state
+  const [showARPanel, setShowARPanel] = useState(false);
+  const sceneRef = useRef<THREE.Scene | null>(null);
   // Organization context for image library
   const { organization } = useOrganization();
 
