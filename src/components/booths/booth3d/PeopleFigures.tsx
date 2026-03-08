@@ -192,59 +192,35 @@ export function PeopleFigures({
   return (
     <group>
       {safeFigures.map((fig, i) => {
-        // Try billboard mode first
-        if (hasBillboards) {
-          const character = getCharacterBySeed(fig.seed || i, fig.isStaff);
-          const url = spriteUrls[character.id];
-          if (url) {
-            return (
-              <BillboardFigure
-                key={i}
-                position={fig.position}
-                rotation={fig.rotation}
-                opacity={fig.opacity}
-                spriteUrl={url}
-                height={1.68 + (fig.seed || 0) % 3 * 0.04}
-                aspect={character.aspect}
-              />
-            );
-          }
-        }
-
-        // Fallback to procedural
+        const character = getCharacterBySeed(fig.seed || i, fig.isStaff);
+        const url = spriteUrls[character.id];
+        if (!url) return null; // Skip figures without sprites
         return (
-          <RealisticHumanFigure
+          <BillboardFigure
             key={i}
             position={fig.position}
             rotation={fig.rotation}
             opacity={fig.opacity}
-            pose={fig.pose}
-            seed={fig.seed}
-            isStaff={fig.isStaff}
-            animated
+            spriteUrl={url}
+            height={1.68 + (fig.seed || 0) % 3 * 0.04}
+            aspect={character.aspect}
           />
         );
       })}
       {conversationPositions.map((group, i) => {
-        if (hasBillboards) {
-          const urls = Array.from({ length: group.count }, (_, j) => {
-            const char = getCharacterBySeed(i * 10 + j + 100);
-            return spriteUrls[char.id];
-          }).filter(Boolean) as string[];
+        const urls = Array.from({ length: group.count }, (_, j) => {
+          const char = getCharacterBySeed(i * 10 + j + 100);
+          return spriteUrls[char.id];
+        }).filter(Boolean) as string[];
 
-          if (urls.length >= 2) {
-            return (
-              <BillboardConversationGroup
-                key={`conv-${i}`}
-                position={group.position}
-                spriteUrls={urls}
-                count={group.count}
-              />
-            );
-          }
-        }
+        if (urls.length < 2) return null;
         return (
-          <ConversationGroup key={`conv-${i}`} position={group.position} count={group.count} />
+          <BillboardConversationGroup
+            key={`conv-${i}`}
+            position={group.position}
+            spriteUrls={urls}
+            count={group.count}
+          />
         );
       })}
       <HeightMarker position={[layout === 'island' ? 3.5 : 2, 0, -0.5]} />
