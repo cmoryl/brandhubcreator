@@ -92,12 +92,14 @@ export function BoothScene3D({
     const zones: OccupiedZone[] = [];
 
     // Panels occupy space on the XZ plane
+    // Panels are vertical walls — size is [width, height]. Use width for XZ footprint.
+    const PANEL_DEPTH = 0.15; // physical thickness of a panel
     for (const p of panels) {
       zones.push({
         cx: p.position[0],
         cz: p.position[2],
         hw: p.size[0] / 2,
-        hd: p.size[2] / 2,
+        hd: PANEL_DEPTH / 2,
       });
     }
 
