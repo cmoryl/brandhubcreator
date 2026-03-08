@@ -466,7 +466,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['energy', 'sustainability', 'renewable', 'solar', 'esg', 'green'],
     placedAssets: INDUSTRIAL_ENERGY_ASSETS,
     flooringConfig: INDUSTRIAL_ENERGY_FLOOR,
-
+  },
   // ═══════════════════════════════════════
   // RETAIL & CONSUMER
   // ═══════════════════════════════════════
