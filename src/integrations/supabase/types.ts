@@ -2381,6 +2381,205 @@ export type Database = {
           },
         ]
       }
+      expo_booth_placements: {
+        Row: {
+          booth_number: string | null
+          booth_size: string
+          category: string | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          division_id: string | null
+          floor_plan_id: string
+          height: number
+          id: string
+          is_competitor: boolean | null
+          is_own_booth: boolean | null
+          label: string
+          metadata: Json | null
+          notes: string | null
+          rotation: number | null
+          updated_at: string
+          width: number
+          x_position: number
+          y_position: number
+        }
+        Insert: {
+          booth_number?: string | null
+          booth_size?: string
+          category?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          division_id?: string | null
+          floor_plan_id: string
+          height?: number
+          id?: string
+          is_competitor?: boolean | null
+          is_own_booth?: boolean | null
+          label: string
+          metadata?: Json | null
+          notes?: string | null
+          rotation?: number | null
+          updated_at?: string
+          width?: number
+          x_position?: number
+          y_position?: number
+        }
+        Update: {
+          booth_number?: string | null
+          booth_size?: string
+          category?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          division_id?: string | null
+          floor_plan_id?: string
+          height?: number
+          id?: string
+          is_competitor?: boolean | null
+          is_own_booth?: boolean | null
+          label?: string
+          metadata?: Json | null
+          notes?: string | null
+          rotation?: number | null
+          updated_at?: string
+          width?: number
+          x_position?: number
+          y_position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expo_booth_placements_floor_plan_id_fkey"
+            columns: ["floor_plan_id"]
+            isOneToOne: false
+            referencedRelation: "expo_floor_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expo_floor_plans: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dimensions: Json | null
+          event_id: string | null
+          file_type: string
+          file_url: string
+          grid_size: number | null
+          hall_name: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          organization_id: string | null
+          scale_factor: number | null
+          updated_at: string
+          venue_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dimensions?: Json | null
+          event_id?: string | null
+          file_type?: string
+          file_url: string
+          grid_size?: number | null
+          hall_name?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          organization_id?: string | null
+          scale_factor?: number | null
+          updated_at?: string
+          venue_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dimensions?: Json | null
+          event_id?: string | null
+          file_type?: string
+          file_url?: string
+          grid_size?: number | null
+          hall_name?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          organization_id?: string | null
+          scale_factor?: number | null
+          updated_at?: string
+          venue_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expo_floor_plans_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expo_floor_plans_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expo_floor_zones: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by: string | null
+          floor_plan_id: string
+          id: string
+          intensity: string | null
+          label: string
+          metadata: Json | null
+          opacity: number | null
+          points: Json
+          updated_at: string
+          zone_type: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          floor_plan_id: string
+          id?: string
+          intensity?: string | null
+          label: string
+          metadata?: Json | null
+          opacity?: number | null
+          points?: Json
+          updated_at?: string
+          zone_type?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          floor_plan_id?: string
+          id?: string
+          intensity?: string | null
+          label?: string
+          metadata?: Json | null
+          opacity?: number | null
+          points?: Json
+          updated_at?: string
+          zone_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expo_floor_zones_floor_plan_id_fkey"
+            columns: ["floor_plan_id"]
+            isOneToOne: false
+            referencedRelation: "expo_floor_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorite_competitors: {
         Row: {
           competitor_type: string | null
