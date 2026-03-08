@@ -77,6 +77,12 @@ import { CrowdSimulationPanel } from './CrowdSimulationPanel';
 import type { CrowdSimulationData } from './crowdSimulationTypes';
 import { ARPreviewPanel } from './ARPreviewPanel';
 import { SalesDeckPanel } from './SalesDeckPanel';
+import { BoothWorkspace, type BoothMode } from './BoothWorkspace';
+import { AssetLibraryPanel } from './AssetLibraryPanel';
+import { InspectorPanel } from './InspectorPanel';
+import { SceneLayersPanel, type SceneLayer } from './SceneLayersPanel';
+import { MiniMapOverlay } from './MiniMapOverlay';
+import { BoothScorePanel, type BoothScoreData } from './BoothScorePanel';
 
 interface BoothMapper3DProps {
   /** Available booth variant images to assign to panels */
@@ -174,6 +180,9 @@ export function BoothMapper3D({
   // AR Preview state
   const [showARPanel, setShowARPanel] = useState(false);
   const [showSalesDeck, setShowSalesDeck] = useState(false);
+  const [activeMode, setActiveMode] = useState<BoothMode>('design');
+  const [boothScore, setBoothScore] = useState<BoothScoreData | null>(null);
+  const [isScoringBooth, setIsScoringBooth] = useState(false);
   const sceneRef = useRef<THREE.Scene | null>(null);
   // Organization context for image library
   const { organization } = useOrganization();
