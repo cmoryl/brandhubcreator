@@ -416,17 +416,25 @@ export function BoothFurniture3D({
           )}
         </group>
       ) : (
-        // Generic box with environment-responsive materials
+        // Generic box with environment-responsive materials + optional surface texture
         <mesh position={[0, h / 2, 0]} castShadow receiveShadow>
           <boxGeometry args={[w, h, d]} />
-          <meshStandardMaterial
-            color={color}
-            roughness={0.4}
-            metalness={0.12}
-            envMapIntensity={0.45}
-            emissive={isSelected ? '#1e40af' : undefined}
-            emissiveIntensity={isSelected ? 0.15 : 0}
-          />
+          {asset.customTextureUrl ? (
+            <Suspense fallback={
+              <meshStandardMaterial color={color} roughness={0.4} metalness={0.12} envMapIntensity={0.45} />
+            }>
+              <ScreenTexture url={asset.customTextureUrl} />
+            </Suspense>
+          ) : (
+            <meshStandardMaterial
+              color={color}
+              roughness={0.4}
+              metalness={0.12}
+              envMapIntensity={0.45}
+              emissive={isSelected ? '#1e40af' : undefined}
+              emissiveIntensity={isSelected ? 0.15 : 0}
+            />
+          )}
         </mesh>
       )}
 
