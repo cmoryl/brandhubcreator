@@ -12,6 +12,8 @@
  * - Auto-fill from variant images
  */
 import { useState, useCallback, useRef, useEffect, Suspense, useMemo } from 'react';
+import * as THREE from 'three';
+import { useThree } from '@react-three/fiber';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Canvas } from '@react-three/fiber';
 import {
