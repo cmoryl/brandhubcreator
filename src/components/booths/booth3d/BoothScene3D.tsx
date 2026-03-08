@@ -557,6 +557,14 @@ export function BoothScene3D({
           showSightlines={true}
         />
       )}
+
+      {/* Logistics overlay markers */}
+      <LogisticsOverlay3D
+        markers={logisticsMarkers}
+        visible={showLogistics}
+        selectedMarkerId={selectedLogisticsId}
+        onSelectMarker={onSelectLogistics}
+      />
     </>
   );
 }
