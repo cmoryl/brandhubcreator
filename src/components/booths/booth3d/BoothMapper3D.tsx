@@ -620,6 +620,29 @@ export function BoothMapper3D({
             </TooltipTrigger>
             <TooltipContent>Safe Zones &amp; Bleed</TooltipContent>
           </Tooltip>
+          {/* Drag & Asset toggles (admin only) */}
+          {isAdmin && (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Toggle pressed={isDragMode} onPressedChange={setIsDragMode} size="sm" aria-label="Toggle drag mode"
+                    className={isDragMode ? 'bg-accent text-accent-foreground' : ''}>
+                    <Move className="h-4 w-4" />
+                  </Toggle>
+                </TooltipTrigger>
+                <TooltipContent>Drag Mode (move panels &amp; assets)</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={() => setAssetPickerOpen(true)}>
+                    <Plus className="h-3.5 w-3.5" />
+                    <Box className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Add Furniture / Asset</TooltipContent>
+              </Tooltip>
+            </>
+          )}
         </TooltipProvider>
 
         <div className="h-6 w-px bg-border" />
