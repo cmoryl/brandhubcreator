@@ -253,12 +253,13 @@ export function BoothFurniture3D({
           {/* Tabletop — glossy laminate surface */}
           <mesh position={[0, h, 0]} castShadow receiveShadow>
             <boxGeometry args={[w, 0.03, d]} />
-            <meshStandardMaterial
-              color={color}
-              roughness={0.25}
-              metalness={0.15}
-              envMapIntensity={0.6}
-            />
+            {asset.customTextureUrl ? (
+              <Suspense fallback={<meshStandardMaterial color={color} roughness={0.25} metalness={0.15} />}>
+                <ScreenTexture url={asset.customTextureUrl} />
+              </Suspense>
+            ) : (
+              <meshStandardMaterial color={color} roughness={0.25} metalness={0.15} envMapIntensity={0.6} />
+            )}
           </mesh>
           {/* Legs — brushed metal */}
           {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([lx, lz], i) => (

@@ -28,6 +28,10 @@ export interface FurnitureAsset {
   hasTableCover?: boolean;
   /** Whether this asset is wall-mountable (drags on vertical plane) */
   wallMountable?: boolean;
+  /** Custom thumbnail image URL for asset library preview */
+  thumbnailUrl?: string;
+  /** Whether this asset supports a custom surface texture/decal */
+  hasCustomTexture?: boolean;
 }
 
 export interface PlacedAsset {
@@ -49,6 +53,10 @@ export interface PlacedAsset {
   tableCoverImageUrl?: string;
   /** Table cover style */
   tableCoverStyle?: 'fitted' | 'draped' | 'throw';
+  /** Custom surface texture/decal image URL */
+  customTextureUrl?: string;
+  /** Custom thumbnail override for asset library */
+  customThumbnailUrl?: string;
 }
 
 const FT = 0.3048;
@@ -64,6 +72,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     color: '#1e293b',
     description: "Standard 6' folding table (72\" × 30\" × 30\")",
     hasTableCover: true,
+    hasCustomTexture: true,
   },
   {
     id: 'table-8ft',
@@ -73,6 +82,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     color: '#1e293b',
     description: "Standard 8' folding table (96\" × 30\" × 30\")",
     hasTableCover: true,
+    hasCustomTexture: true,
   },
   {
     id: 'table-6ft-covered',
@@ -100,6 +110,7 @@ export const FURNITURE_CATALOG: FurnitureAsset[] = [
     color: '#334155',
     description: "Standing-height reception counter (48\" × 42\" × 24\")",
     hasTableCover: true,
+    hasCustomTexture: true,
   },
   {
     id: 'podium',
