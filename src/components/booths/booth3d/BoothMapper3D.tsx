@@ -1217,6 +1217,15 @@ export function BoothMapper3D({
           <Smartphone className="h-3.5 w-3.5" />
           AR Preview
         </Button>
+        <Button
+          variant={showSalesDeck ? 'default' : 'outline'}
+          size="sm"
+          className="h-8 gap-1.5 text-xs"
+          onClick={() => setShowSalesDeck(v => !v)}
+        >
+          <Presentation className="h-3.5 w-3.5" />
+          Sales Deck
+        </Button>
       </div>
 
       {/* Uploaded Specs Row (admin only) */}
