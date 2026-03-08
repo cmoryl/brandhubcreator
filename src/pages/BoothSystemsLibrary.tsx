@@ -25,6 +25,7 @@ import { BrandHubLogo } from '@/components/BrandHubLogo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useBoothSystems, type BoothSystem, type BoothSystemVariant } from '@/hooks/useBoothSystems';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { toast } from 'sonner';
 
 const VARIANT_TYPES = [
