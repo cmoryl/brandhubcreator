@@ -105,6 +105,14 @@ export function BoothMapper3D({
   const [useProductionSpecs, setUseProductionSpecs] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Drag mode & furniture state
+  const [isDragMode, setIsDragMode] = useState(false);
+  const [placedAssets, setPlacedAssets] = useState<PlacedAsset[]>([]);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [assetPickerOpen, setAssetPickerOpen] = useState(false);
+  const [assetFilterCategory, setAssetFilterCategory] = useState<string>('all');
+  const [panelPositionOverrides, setPanelPositionOverrides] = useState<Record<string, [number, number, number]>>({});
+
   // Organization context for image library
   const { organization } = useOrganization();
 
