@@ -331,6 +331,24 @@ export function BoothMapper3D({
     toast.success('Asset removed');
   }, []);
 
+  const handleUpdateAsset = useCallback((instanceId: string, updates: Partial<PlacedAsset>) => {
+    setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, ...updates } : a));
+  }, []);
+
+  const onAssetNudge = useCallback((instanceId: string, dx: number, dy: number, dz: number) => {
+    setPlacedAssets(prev => prev.map(a => {
+      if (a.instanceId !== instanceId) return a;
+      return {
+        ...a,
+        position: [
+          Math.round((a.position[0] + dx) * 10) / 10,
+          Math.max(0, Math.round((a.position[1] + dy) * 10) / 10),
+          Math.round((a.position[2] + dz) * 10) / 10,
+        ] as [number, number, number],
+      };
+    }));
+  }, []);
+
   // Keyboard shortcuts: Delete/Backspace removes, Arrow keys nudge selected asset
   useEffect(() => {
     if (!isAdmin || !selectedAssetId) return;
@@ -355,7 +373,6 @@ export function BoothMapper3D({
           break;
         case 'ArrowUp':
           e.preventDefault();
-          // Shift+Up = raise (Y+), plain Up = forward (Z-)
           if (e.shiftKey) {
             onAssetNudge(selectedAssetId, 0, step, 0);
           } else {
@@ -364,7 +381,6 @@ export function BoothMapper3D({
           break;
         case 'ArrowDown':
           e.preventDefault();
-          // Shift+Down = lower (Y-), plain Down = backward (Z+)
           if (e.shiftKey) {
             onAssetNudge(selectedAssetId, 0, -step, 0);
           } else {
@@ -376,24 +392,6 @@ export function BoothMapper3D({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [isAdmin, selectedAssetId, handleRemoveAsset, onAssetNudge]);
-
-  const handleUpdateAsset = useCallback((instanceId: string, updates: Partial<PlacedAsset>) => {
-    setPlacedAssets(prev => prev.map(a => a.instanceId === instanceId ? { ...a, ...updates } : a));
-  }, []);
-
-  const onAssetNudge = useCallback((instanceId: string, dx: number, dy: number, dz: number) => {
-    setPlacedAssets(prev => prev.map(a => {
-      if (a.instanceId !== instanceId) return a;
-      return {
-        ...a,
-        position: [
-          Math.round((a.position[0] + dx) * 10) / 10,
-          Math.max(0, Math.round((a.position[1] + dy) * 10) / 10),
-          Math.round((a.position[2] + dz) * 10) / 10,
-        ] as [number, number, number],
-      };
-    }));
-  }, []);
 
   const handleOpenCoverImagePicker = useCallback((instanceId: string) => {
     setCoverImageTargetAssetId(instanceId);
