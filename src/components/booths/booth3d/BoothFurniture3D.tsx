@@ -139,6 +139,7 @@ export function BoothFurniture3D({
   asset,
   isSelected,
   isDragMode,
+  showLabels = true,
   onSelect,
   onPositionChange,
 }: BoothFurniture3DProps) {
