@@ -1,5 +1,6 @@
 /**
  * useCharacterSprites — manages generation and caching of billboard character sprites.
+ * Auto-generates missing sprites on mount so booths always show photorealistic people.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,12 +29,12 @@ export function useCharacterSprites() {
     count: 0,
   });
   const mountedRef = useRef(true);
+  const spritesRef = useRef<Record<string, string>>({});
 
   const getSpriteDirectory = useCallback(async () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
     if (!user) return null;
     return `booth-sprites/${user.id}`;
   }, []);
@@ -42,55 +43,6 @@ export function useCharacterSprites() {
     const { data } = supabase.storage.from('organization-assets').getPublicUrl(path);
     return `${data.publicUrl}?v=${encodeURIComponent(version)}`;
   }, []);
-
-  // Check which sprites already exist in storage, then auto-generate missing ones
-  useEffect(() => {
-    mountedRef.current = true;
-    checkExistingSprites().then(() => {
-      if (mountedRef.current) autoGenerateMissing();
-    });
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  const checkExistingSprites = useCallback(async () => {
-    try {
-      const spriteDir = await getSpriteDirectory();
-      if (!spriteDir) {
-        if (mountedRef.current) {
-          setState((prev) => ({ ...prev, ready: true }));
-        }
-        return;
-      }
-
-      const { data: files } = await supabase.storage.from('organization-assets').list(spriteDir);
-
-      if (!mountedRef.current) return;
-
-      const existing: Record<string, string> = {};
-      if (files) {
-        for (const file of files) {
-          if (!file.name.endsWith('.png')) continue;
-          const id = file.name.replace('.png', '');
-          const version = file.updated_at ?? file.created_at ?? file.name;
-          existing[id] = getPublicSpriteUrl(`${spriteDir}/${file.name}`, version);
-        }
-      }
-
-      setState((prev) => ({
-        ...prev,
-        sprites: { ...prev.sprites, ...existing },
-        ready: true,
-        count: Object.keys(existing).length,
-      }));
-    } catch (err) {
-      console.warn('[useCharacterSprites] Failed to check existing sprites:', err);
-      if (mountedRef.current) {
-        setState((prev) => ({ ...prev, ready: true }));
-      }
-    }
-  }, [getPublicSpriteUrl, getSpriteDirectory]);
 
   const requestSprite = useCallback(
     async (character: CharacterSprite, options: GenerateSpriteOptions = {}) => {
@@ -130,6 +82,7 @@ export function useCharacterSprites() {
         const data = await response.json();
         if (!mountedRef.current || !data.url) return;
 
+        spritesRef.current[character.id] = data.url;
         setState((prev) => {
           const newSprites = { ...prev.sprites, [character.id]: data.url };
           return {
@@ -153,6 +106,65 @@ export function useCharacterSprites() {
     [getSpriteDirectory]
   );
 
+  const checkExistingSprites = useCallback(async () => {
+    try {
+      const spriteDir = await getSpriteDirectory();
+      if (!spriteDir) {
+        if (mountedRef.current) {
+          setState((prev) => ({ ...prev, ready: true }));
+        }
+        return;
+      }
+
+      const { data: files } = await supabase.storage.from('organization-assets').list(spriteDir);
+
+      if (!mountedRef.current) return;
+
+      const existing: Record<string, string> = {};
+      if (files) {
+        for (const file of files) {
+          if (!file.name.endsWith('.png')) continue;
+          const id = file.name.replace('.png', '');
+          const version = file.updated_at ?? file.created_at ?? file.name;
+          existing[id] = getPublicSpriteUrl(`${spriteDir}/${file.name}`, version);
+        }
+      }
+
+      spritesRef.current = { ...spritesRef.current, ...existing };
+      setState((prev) => ({
+        ...prev,
+        sprites: { ...prev.sprites, ...existing },
+        ready: true,
+        count: Object.keys({ ...prev.sprites, ...existing }).length,
+      }));
+    } catch (err) {
+      console.warn('[useCharacterSprites] Failed to check existing sprites:', err);
+      if (mountedRef.current) {
+        setState((prev) => ({ ...prev, ready: true }));
+      }
+    }
+  }, [getPublicSpriteUrl, getSpriteDirectory]);
+
+  // Auto-generate missing sprites sequentially in the background
+  const autoGenerateMissing = useCallback(async () => {
+    for (const char of CHARACTER_CATALOG) {
+      if (!mountedRef.current) break;
+      if (spritesRef.current[char.id]) continue;
+      await requestSprite(char);
+    }
+  }, [requestSprite]);
+
+  // On mount: check cache then auto-generate missing sprites
+  useEffect(() => {
+    mountedRef.current = true;
+    checkExistingSprites().then(() => {
+      if (mountedRef.current) autoGenerateMissing();
+    });
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   const generateSprite = useCallback(
     async (character: CharacterSprite) => {
       if (state.sprites[character.id] || state.generating.has(character.id)) return;
@@ -169,24 +181,20 @@ export function useCharacterSprites() {
     }
   }, [requestSprite, state.sprites]);
 
-  /** Delete all cached sprites and regenerate */
   const regenerateAll = useCallback(async () => {
     try {
       const spriteDir = await getSpriteDirectory();
       if (!spriteDir) return;
 
-      // Delete user-scoped sprites from storage
       const { data: files } = await supabase.storage.from('organization-assets').list(spriteDir);
-
       if (files && files.length > 0) {
         const paths = files.map((f) => `${spriteDir}/${f.name}`);
         await supabase.storage.from('organization-assets').remove(paths);
       }
 
-      // Reset state
+      spritesRef.current = {};
       setState({ sprites: {}, generating: new Set(), ready: true, count: 0 });
 
-      // Regenerate all from scratch (bypass server cache)
       for (const char of CHARACTER_CATALOG) {
         await requestSprite(char, { forceRegenerate: true });
       }
@@ -222,4 +230,3 @@ export function useCharacterSprites() {
     hasSpriteFor,
   };
 }
-
