@@ -590,7 +590,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['edtech', 'lms', 'e-learning', 'platform', 'digital-learning'],
     placedAssets: EDU_EDTECH_ASSETS,
     flooringConfig: EDU_EDTECH_FLOOR,
-
+  },
   // ═══════════════════════════════════════
   // HOSPITALITY & EVENTS
   // ═══════════════════════════════════════
