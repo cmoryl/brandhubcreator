@@ -157,9 +157,9 @@ function analyzePrintSpecs(
 
 function DpiIndicator({ status }: { status: PrintAnalysis['dpiStatus'] }) {
   const config = {
-    excellent: { icon: CheckCircle2, label: 'Excellent', className: 'text-emerald-600' },
-    good: { icon: CheckCircle2, label: 'Good', className: 'text-sky-600' },
-    warning: { icon: AlertTriangle, label: 'Low', className: 'text-amber-600' },
+    excellent: { icon: CheckCircle2, label: 'Excellent', className: 'text-primary' },
+    good: { icon: CheckCircle2, label: 'Good', className: 'text-accent-foreground' },
+    warning: { icon: AlertTriangle, label: 'Low', className: 'text-muted-foreground' },
     fail: { icon: XCircle, label: 'Too Low', className: 'text-destructive' },
   }[status];
   const Icon = config.icon;
