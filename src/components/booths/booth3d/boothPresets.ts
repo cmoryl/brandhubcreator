@@ -434,6 +434,7 @@ export const BOOTH_DESIGN_PRESETS: BoothDesignPreset[] = [
     tags: ['industrial', 'manufacturing', 'engineering', 'equipment', 'b2b'],
     placedAssets: INDUSTRIAL_MFG_ASSETS,
     flooringConfig: INDUSTRIAL_MFG_FLOOR,
+  },
   {
     id: 'industrial-energy',
     name: 'Energy & Sustainability',
