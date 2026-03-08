@@ -794,14 +794,30 @@ export function BoothMapper3D({
     { id: 'furniture', label: 'Furniture', icon: <Armchair className="h-3.5 w-3.5" />, visible: true, count: placedAssets.length },
     { id: 'lighting', label: 'Lighting', icon: <Lightbulb className="h-3.5 w-3.5" />, visible: showEnvironment },
     { id: 'people', label: 'People', icon: <Users className="h-3.5 w-3.5" />, visible: showPeople },
+    { id: 'logistics', label: 'Logistics', icon: <ClipboardList className="h-3.5 w-3.5" />, visible: showLogistics, count: logisticsMarkers.length },
   ];
 
   const handleToggleLayer = useCallback((layerId: string) => {
     switch (layerId) {
       case 'lighting': setShowEnvironment(v => !v); break;
       case 'people': setShowPeople(v => !v); break;
+      case 'logistics': setShowLogistics(v => !v); break;
     }
   }, []);
+
+  // Logistics handlers
+  const handleAddLogisticsMarker = useCallback((marker: LogisticsMarker) => {
+    setLogisticsMarkers(prev => [...prev, marker]);
+  }, []);
+
+  const handleUpdateLogisticsMarker = useCallback((id: string, updates: Partial<LogisticsMarker>) => {
+    setLogisticsMarkers(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+  }, []);
+
+  const handleRemoveLogisticsMarker = useCallback((id: string) => {
+    setLogisticsMarkers(prev => prev.filter(m => m.id !== id));
+    if (selectedLogisticsId === id) setSelectedLogisticsId(null);
+  }, [selectedLogisticsId]);
 
   // Panel graphic thumbnail grid for bottom content
   const panelThumbnails = (
