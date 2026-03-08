@@ -903,6 +903,11 @@ export function BoothMapper3D({
                 onSelectAsset={handleSelectAsset}
                 onAssetPositionChange={handleAssetPositionChange}
                 environmentRealism={environmentRealism}
+                activeCameraPreset={
+                  activeCameraPreset
+                    ? getEnvironmentConfig(environmentRealism).cameraPresets.find(p => p.id === activeCameraPreset) ?? null
+                    : null
+                }
               />
             </Suspense>
           </Canvas>
@@ -1040,24 +1045,6 @@ export function BoothMapper3D({
                   key={preset.id}
                   onClick={() => {
                     setActiveCameraPreset(preset.id);
-                    const canvas = canvasRef.current;
-                    if (canvas) {
-                      const state = (canvas as any).__r3f;
-                      if (state) {
-                        const cam = state.camera;
-                        cam.position.set(...preset.position);
-                        cam.fov = preset.fov;
-                        cam.updateProjectionMatrix();
-                        // Small delay ensures controls pick up the new position
-                        setTimeout(() => {
-                          const controls = state.controls;
-                          if (controls) {
-                            controls.target.set(...preset.target);
-                            controls.update();
-                          }
-                        }, 10);
-                      }
-                    }
                   }}
                   className={cn(
                     "w-full text-left px-2 py-1 rounded text-[10px] transition-colors",
