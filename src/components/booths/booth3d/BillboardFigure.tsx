@@ -213,9 +213,9 @@ export function BillboardFigure({
           similarity={0.35}
           smoothness={0.12}
           spillReduction={0.7}
-          whiteThreshold={0.91}
-          whiteSmoothness={0.05}
-          whiteDespill={0.38}
+          whiteThreshold={0.95}
+          whiteSmoothness={0.03}
+          whiteDespill={0.25}
           transparent={true}
           side={THREE.DoubleSide}
           depthWrite={false}
