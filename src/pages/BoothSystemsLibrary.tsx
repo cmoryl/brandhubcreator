@@ -104,34 +104,41 @@ export default function BoothSystemsLibrary() {
     <div className="min-h-screen bg-background">
       {/* Top bar */}
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <Button
               variant="ghost" size="sm"
               onClick={() => navigate('/booths')}
-              className="gap-2 text-muted-foreground hover:text-foreground"
+              className="gap-1.5 text-muted-foreground hover:text-foreground shrink-0 hidden sm:flex"
             >
               <ArrowLeft className="h-4 w-4" />
               Booth Catalog
             </Button>
-            <div className="h-5 w-px bg-border" />
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                <BookTemplate className="h-4 w-4 text-primary" />
+            <Button
+              variant="ghost" size="icon"
+              onClick={() => navigate('/booths')}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0 sm:hidden"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="h-5 w-px bg-border hidden sm:block" />
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+                <BookTemplate className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
               </div>
-              <h1 className="text-lg font-bold text-foreground font-heading">
-                Booth System Library
+              <h1 className="text-sm sm:text-lg font-bold text-foreground font-heading truncate">
+                System Library
               </h1>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {isAdmin && (
-              <Button size="sm" onClick={() => setShowCreateDialog(true)} className="gap-1.5 h-8 text-xs">
-                <Plus className="h-3.5 w-3.5" /> New System
+              <Button size="sm" onClick={() => setShowCreateDialog(true)} className="gap-1.5 h-7 sm:h-8 text-[11px] sm:text-xs">
+                <Plus className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> <span className="hidden xs:inline">New</span> System
               </Button>
             )}
             <ThemeToggle />
-            <div className="cursor-pointer" onClick={() => navigate('/org/transperfect')}>
+            <div className="cursor-pointer hidden sm:block" onClick={() => navigate('/org/transperfect')}>
               <BrandHubLogo size="sm" />
             </div>
           </div>
