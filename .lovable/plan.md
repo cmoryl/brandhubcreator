@@ -1,85 +1,87 @@
 
-# Shutterstock Image Search + Approved Imagery Sections
 
-## Overview
-Add a Shutterstock-powered image search capability (admin-only) that lets administrators search, preview, and approve stock images into organized sub-sections within the brand guide. Non-admin users see a curated, read-only gallery of approved imagery grouped by category.
+## Social Asset Studio — Platform Analytics Preview & Template Library
 
-## Prerequisites
-- **Shutterstock API Key**: You'll need a Shutterstock API account. We'll securely store the API key as a backend secret. I'll walk you through obtaining one when we implement.
+### Feature 1: Platform Analytics Preview
 
-## Architecture
+An inline analytics/compatibility panel shown per placement card and in the live preview area. Surfaces dimension checks, file size estimates, and format warnings.
 
-### 1. Backend: Edge Function for Shutterstock Search
-Create a `shutterstock-search` edge function that:
-- Accepts search queries, filters (orientation, category, color)
-- Calls the Shutterstock API (`/v2/images/search`)
-- Returns preview thumbnails and metadata
-- Requires JWT verification + admin role check via `can_use_ai_features`
+**What it does:**
+- When an image is uploaded to a placement slot, analyze it and show:
+  - Actual dimensions vs. recommended dimensions (with match/mismatch indicator)
+  - Estimated file size with platform limit warnings (e.g., Instagram max 30MB for images)
+  - Aspect ratio match check (exact match, acceptable range, or needs cropping)
+  - Format compatibility (JPG/PNG/WebP support per platform)
+  - Resolution quality score (too small = blurry, too large = unnecessary)
+- Color-coded status: green (perfect), amber (acceptable), red (issue)
+- Collapsible panel below each `PlacementCard` when an image exists
 
-### 2. Data Model: Approved Imagery with Sub-Sections
-Extend the existing `guide_data` JSONB (no new database table needed) with an `approvedImagery` field:
+**Components to create:**
+- `src/components/social-studio/AssetAnalytics.tsx` — Reusable analytics display component
+- `src/lib/socialPlatformLimits.ts` — Platform-specific file size limits, format support, and dimension tolerances
 
+**Components to modify:**
+- `PlacementCard.tsx` — Add analytics panel below image preview when uploaded
+- `PlatformStudioView.tsx` — Show summary analytics badge in the live preview header
+
+**Platform limits data structure:**
 ```text
-approvedImagery: {
-  sections: [
-    { id, name, description, images: [{ id, url, thumbnailUrl, title, source, category, approvedBy, approvedAt }] }
-  ]
+Platform → {
+  maxFileSize: number (MB)
+  supportedFormats: string[]
+  dimensionTolerance: number (% variance allowed)
+  minResolution: { width, height }
 }
 ```
 
-Sub-sections are admin-configurable (e.g., "People", "Landscapes", "Product Shots", "Lifestyle", "Abstract/Textures").
+---
 
-### 3. Frontend Components
+### Feature 2: Template Library
 
-**ShutterstockSearchDialog** (admin-only)
-- Search bar with filters (orientation, category, color, keyword)
-- Results grid with preview thumbnails
-- "Approve" button per image that downloads the licensed image and saves it to storage + the selected sub-section
+A browsable library of pre-built layout templates per platform/format. Templates define composition zones (image area, text area, logo placement, CTA position) that users can preview and apply.
 
-**ApprovedImagerySection** (new brand guide section)
-- Tabs or collapsible sub-sections for each imagery category
-- Grid display with density controls (reusing existing pattern)
-- Admin controls: add/remove sub-sections, reorder images, remove approved images
-- Read-only view for non-admins showing the curated collection
+**What it does:**
+- New "Templates" tab or panel accessible from each format view
+- Pre-built templates organized by platform and format (feed, story, reel, cover)
+- Template categories: Announcement, Product Showcase, Quote, Event Promo, Testimonial, Minimal
+- Each template defines layout zones rendered as an SVG/CSS overlay preview
+- Clicking a template shows it in the live mockup preview area
+- Templates reference brand colors from the entity's `guide_data` (primary, secondary, accent)
+- Templates are visual starting points — composition guides, not full editors
 
-### 4. Integration Points
-- New sidebar entry: "Approved Imagery" under the Assets category
-- Added to `FullBrandPage.tsx` section renderer
-- Added to `BrandSidebar.tsx` / `ReorderableBrandSidebar.tsx`
-- Type additions in `src/types/brand.ts`
+**Components to create:**
+- `src/components/social-studio/TemplateLibrary.tsx` — Browsable template grid with category filter
+- `src/components/social-studio/TemplatePreview.tsx` — Individual template card with hover preview
+- `src/lib/socialTemplates.ts` — Template definitions (layout zones, text placeholders, color slots)
 
-## Technical Details
+**Components to modify:**
+- `PlatformStudioView.tsx` — Add "Templates" as a panel/section alongside asset placements, with a toggle to show/hide
+- `PlacementCard.tsx` — Add "Use Template" option that applies a selected template's layout as a visual overlay guide
 
-### Files to Create
-- `supabase/functions/shutterstock-search/index.ts` -- Edge function proxying Shutterstock API
-- `src/components/brand/approved-imagery/ApprovedImagerySection.tsx` -- Main section component
-- `src/components/brand/approved-imagery/ShutterstockSearchDialog.tsx` -- Search modal
-- `src/components/brand/approved-imagery/ImagerySubSection.tsx` -- Sub-section with grid
+**Template data structure:**
+```text
+Template → {
+  id, name, category, platforms[], formats[]
+  zones: [
+    { type: 'image' | 'text' | 'logo' | 'cta', 
+      x%, y%, width%, height%, 
+      label, style hints }
+  ]
+  colorSlots: ['primary', 'secondary', 'accent']
+  thumbnail: SVG or CSS-rendered preview
+}
+```
 
-### Files to Modify
-- `src/types/brand.ts` -- Add `ApprovedImagerySection`, `ApprovedImage` types, add field to `BrandGuideData`
-- `src/components/brand/FullBrandPage.tsx` -- Register new section
-- `src/components/brand/BrandSidebar.tsx` / `ReorderableBrandSidebar.tsx` -- Add sidebar entry
-- `supabase/config.toml` -- Register edge function with `verify_jwt = false`
+**Initial template set:** ~18 templates (3 per category × 6 categories), each tagged with compatible platforms and formats.
 
-### Security
-- Shutterstock API key stored as a backend secret (never exposed to client)
-- Search endpoint gated by JWT + admin role check
-- Only admins can search, approve, or remove images
-- Non-admins see read-only approved gallery
+---
 
-### Shutterstock API Flow
-1. Admin opens search dialog, enters query
-2. Frontend calls edge function with search params
-3. Edge function calls `https://api.shutterstock.com/v2/images/search` with API key
-4. Returns preview thumbnails (watermarked previews are free to display)
-5. On "Approve", the preview URL is saved to the sub-section (or optionally downloaded to storage for persistence)
+### Implementation Order
 
-## Step-by-Step Implementation Order
-1. Request and store the Shutterstock API key as a secret
-2. Create the `shutterstock-search` edge function
-3. Add TypeScript types for approved imagery data
-4. Build the `ApprovedImagerySection` component with sub-sections
-5. Build the `ShutterstockSearchDialog` component
-6. Wire into the brand editor sidebar and section renderer
-7. Test end-to-end
+1. Platform limits data file (`socialPlatformLimits.ts`)
+2. `AssetAnalytics` component with dimension/size/format checks
+3. Integrate analytics into `PlacementCard`
+4. Template definitions file (`socialTemplates.ts`)
+5. `TemplateLibrary` and `TemplatePreview` components
+6. Integrate template browser into `PlatformStudioView`
+
