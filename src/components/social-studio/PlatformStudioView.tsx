@@ -169,6 +169,7 @@ export const PlatformStudioView = ({
   onUpload,
   onApprove,
   onDelete,
+  onSaveToGuide,
 }: PlatformStudioViewProps) => {
   const config = platformConfigs[platform];
   const availableFormats = useMemo(() => getAvailableFormats(platform), [platform]);
