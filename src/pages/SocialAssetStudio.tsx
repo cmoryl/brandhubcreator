@@ -24,6 +24,18 @@ interface EntityOption {
   name: string;
   type: 'brand' | 'product' | 'event';
   logoUrl?: string;
+  guideData?: Record<string, any>;
+}
+
+interface BrandContext {
+  name?: string;
+  colors?: Array<{ name: string; hex: string; role?: string }>;
+  typography?: Array<{ family: string; weight?: string; usage?: string }>;
+  archetype?: string;
+  industry?: string;
+  mission?: string;
+  values?: string[];
+  logos?: Array<{ url?: string; name?: string }>;
 }
 
 const SocialAssetStudio = () => {
