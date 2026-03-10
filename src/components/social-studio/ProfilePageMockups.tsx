@@ -19,6 +19,7 @@ interface ProfilePageMockupProps {
   platform: SocialPlatform;
   coverImageUrl?: string;
   profileImageUrl?: string;
+  defaultProfileImageUrl?: string;
   brandName: string;
   handle: string;
   sizeSpec?: PlatformSizeSpec;
