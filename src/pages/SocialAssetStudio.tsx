@@ -330,6 +330,7 @@ const SocialAssetStudio = () => {
               entityId={selectedEntity.id}
               organizationId={orgId}
               brandName={selectedEntity.name}
+              brandLogoUrl={selectedEntity.logoUrl}
               isAdmin={isAdmin}
               onUpload={handleUpload}
               onApprove={handleApprove}
