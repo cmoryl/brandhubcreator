@@ -327,7 +327,8 @@ const FacebookProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUr
 };
 
 // ─── YouTube Channel ──────────────────────────────
-const YouTubeProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const YouTubeProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].yt;
   const isDesktop = d === 'desktop';
@@ -347,8 +348,8 @@ const YouTubeProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cla
       {/* Channel info */}
       <div className={cn("px-4 py-3 flex items-start gap-4", isDesktop && "px-6 py-4 gap-5")}>
         <div className={cn("rounded-full overflow-hidden bg-gray-200 flex-shrink-0", isDesktop ? "w-24 h-24" : d === 'tablet' ? "w-20 h-20" : "w-16 h-16")}>
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+          {effectiveProfile ? (
+            <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-[#FF0000] flex items-center justify-center text-white font-bold text-2xl">
               {brandName.charAt(0)}
