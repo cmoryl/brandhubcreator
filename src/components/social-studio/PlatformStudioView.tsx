@@ -266,12 +266,37 @@ export const PlatformStudioView = ({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Left: Live mockup preview */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                      Live Preview
-                    </h3>
-                    <div className="flex justify-center p-6 bg-muted/30 rounded-2xl border border-border/50">
-                      <div className="transform scale-90 origin-center">
-                        {renderMockup(platform, fmt, sizes[0], mockupImage, brandName)}
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                        Live Preview
+                      </h3>
+                      {(fmt === 'cover' || fmt === 'profile') && (
+                        <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                          {([
+                            { mode: 'desktop' as DeviceMode, icon: Monitor, label: 'Desktop' },
+                            { mode: 'tablet' as DeviceMode, icon: Tablet, label: 'Tablet' },
+                            { mode: 'mobile' as DeviceMode, icon: Smartphone, label: 'Mobile' },
+                          ]).map(({ mode, icon: Icon, label }) => (
+                            <Button
+                              key={mode}
+                              variant={deviceMode === mode ? 'secondary' : 'ghost'}
+                              size="sm"
+                              className={cn("h-7 px-2.5 gap-1.5 text-xs", deviceMode === mode && "shadow-sm")}
+                              onClick={() => setDeviceMode(mode)}
+                            >
+                              <Icon className="h-3.5 w-3.5" />
+                              <span className="hidden sm:inline">{label}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex justify-center p-6 bg-muted/30 rounded-2xl border border-border/50 overflow-x-auto">
+                      <div className={cn(
+                        "transform origin-center",
+                        (fmt === 'cover' || fmt === 'profile') && deviceMode === 'desktop' ? "scale-[0.75]" : "scale-90"
+                      )}>
+                        {renderMockup(platform, fmt, sizes[0], mockupImage, brandName, deviceMode)}
                       </div>
                     </div>
                   </div>
