@@ -19,6 +19,7 @@ interface ProfilePageMockupProps {
   platform: SocialPlatform;
   coverImageUrl?: string;
   profileImageUrl?: string;
+  defaultProfileImageUrl?: string;
   brandName: string;
   handle: string;
   sizeSpec?: PlatformSizeSpec;
@@ -32,9 +33,13 @@ const deviceWidths = {
   tablet: { ig: 'w-[400px]', li: 'w-[460px]', tw: 'w-[440px]', fb: 'w-[460px]', yt: 'w-[480px]', tt: 'w-[400px]', pi: 'w-[440px]', th: 'w-[420px]' },
   mobile: { ig: 'w-[320px]', li: 'w-[340px]', tw: 'w-[340px]', fb: 'w-[340px]', yt: 'w-[340px]', tt: 'w-[300px]', pi: 'w-[320px]', th: 'w-[340px]' },
 };
+/** Helper: resolve effective profile image (explicit upload > brand logo fallback) */
+const resolveProfileImg = (profileImageUrl?: string, defaultProfileImageUrl?: string) =>
+  profileImageUrl || defaultProfileImageUrl;
 
 // ─── Instagram Profile ──────────────────────────────
-const InstagramProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const InstagramProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].ig;
   const isMobile = d === 'mobile';
@@ -67,8 +72,8 @@ const InstagramProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, c
         <div className={cn("flex items-center", isDesktop ? "gap-8" : "gap-6")}>
           <div className={cn("rounded-full overflow-hidden bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 p-0.5 flex-shrink-0", isDesktop ? "w-28 h-28" : d === 'tablet' ? "w-24 h-24" : "w-20 h-20")}>
             <div className="w-full h-full rounded-full overflow-hidden bg-white p-0.5">
-              {profileImageUrl ? (
-                <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover rounded-full" />
+              {effectiveProfile ? (
+                <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover rounded-full" />
               ) : (
                 <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
                   <Camera className={cn(isDesktop ? "w-8 h-8" : "w-6 h-6")} />
@@ -125,7 +130,8 @@ const InstagramProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, c
 };
 
 // ─── LinkedIn Profile ──────────────────────────────
-const LinkedInProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const LinkedInProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].li;
   const isDesktop = d === 'desktop';
@@ -144,8 +150,8 @@ const LinkedInProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cl
         )}
         <div className={cn("absolute left-4", isDesktop ? "-bottom-14" : "-bottom-12")}>
           <div className={cn("rounded-full border-4 border-white overflow-hidden bg-white shadow-md", isDesktop ? "w-28 h-28" : d === 'tablet' ? "w-24 h-24" : "w-20 h-20")}>
-            {profileImageUrl ? (
-              <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+            {effectiveProfile ? (
+              <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-[#0A66C2] flex items-center justify-center text-white font-bold text-2xl">
                 {brandName.charAt(0)}
@@ -190,7 +196,8 @@ const LinkedInProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cl
 };
 
 // ─── X (Twitter) Profile ──────────────────────────────
-const TwitterProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const TwitterProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].tw;
   const isDesktop = d === 'desktop';
@@ -209,8 +216,8 @@ const TwitterProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cla
         )}
         <div className={cn("absolute left-4", isDesktop ? "-bottom-12" : "-bottom-10")}>
           <div className={cn("rounded-full border-4 border-black overflow-hidden bg-gray-900", isDesktop ? "w-24 h-24" : "w-20 h-20")}>
-            {profileImageUrl ? (
-              <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+            {effectiveProfile ? (
+              <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gray-700 flex items-center justify-center text-gray-400"><User className="w-8 h-8" /></div>
             )}
@@ -254,7 +261,8 @@ const TwitterProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cla
 };
 
 // ─── Facebook Page ──────────────────────────────
-const FacebookProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const FacebookProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].fb;
   const isDesktop = d === 'desktop';
@@ -280,8 +288,8 @@ const FacebookProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cl
       <div className={cn("relative px-4 pb-3", isDesktop && "px-6")}>
         <div className={cn("flex items-end gap-4", isDesktop ? "-mt-12" : "-mt-8")}>
           <div className={cn("rounded-full border-4 border-white overflow-hidden bg-white shadow-lg flex-shrink-0", isDesktop ? "w-[120px] h-[120px]" : d === 'tablet' ? "w-[100px] h-[100px]" : "w-[80px] h-[80px]")}>
-            {profileImageUrl ? (
-              <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+            {effectiveProfile ? (
+              <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-[#1877F2] flex items-center justify-center text-white font-bold text-3xl">
                 {brandName.charAt(0)}
@@ -319,7 +327,8 @@ const FacebookProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cl
 };
 
 // ─── YouTube Channel ──────────────────────────────
-const YouTubeProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const YouTubeProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].yt;
   const isDesktop = d === 'desktop';
@@ -339,8 +348,8 @@ const YouTubeProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cla
       {/* Channel info */}
       <div className={cn("px-4 py-3 flex items-start gap-4", isDesktop && "px-6 py-4 gap-5")}>
         <div className={cn("rounded-full overflow-hidden bg-gray-200 flex-shrink-0", isDesktop ? "w-24 h-24" : d === 'tablet' ? "w-20 h-20" : "w-16 h-16")}>
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+          {effectiveProfile ? (
+            <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-[#FF0000] flex items-center justify-center text-white font-bold text-2xl">
               {brandName.charAt(0)}
@@ -373,7 +382,8 @@ const YouTubeProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cla
 };
 
 // ─── TikTok Profile ──────────────────────────────
-const TikTokProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const TikTokProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].tt;
   const isDesktop = d === 'desktop';
@@ -408,8 +418,8 @@ const TikTokProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, clas
       {/* Profile */}
       <div className={cn("flex flex-col items-center pb-3 px-4", isDesktop ? "pt-6" : "pt-4")}>
         <div className={cn("rounded-full overflow-hidden border-2 border-gray-700", isDesktop ? "w-28 h-28" : d === 'tablet' ? "w-24 h-24" : "w-20 h-20")}>
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+          {effectiveProfile ? (
+            <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-[#69C9D0] to-[#EE1D52] flex items-center justify-center text-white font-bold text-2xl">
               {brandName.charAt(0)}
@@ -449,7 +459,8 @@ const TikTokProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, clas
 };
 
 // ─── Pinterest Profile ──────────────────────────────
-const PinterestProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const PinterestProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].pi;
   const isDesktop = d === 'desktop';
@@ -459,8 +470,8 @@ const PinterestProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, c
       {/* Profile section */}
       <div className={cn("flex flex-col items-center pb-4 px-6", isDesktop ? "pt-8" : "pt-6")}>
         <div className={cn("rounded-full overflow-hidden bg-gray-200", isDesktop ? "w-28 h-28" : "w-24 h-24")}>
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+          {effectiveProfile ? (
+            <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-[#E60023] flex items-center justify-center text-white font-bold text-2xl">
               {brandName.charAt(0)}
@@ -495,7 +506,8 @@ const PinterestProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, c
 };
 
 // ─── Threads Profile ──────────────────────────────
-const ThreadsProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const ThreadsProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].th;
   const isDesktop = d === 'desktop';
@@ -520,8 +532,8 @@ const ThreadsProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cla
             </div>
           </div>
           <div className={cn("rounded-full overflow-hidden bg-gray-800 flex-shrink-0", isDesktop ? "w-20 h-20" : "w-16 h-16")}>
-            {profileImageUrl ? (
-              <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+            {effectiveProfile ? (
+              <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl">
                 {brandName.charAt(0)}

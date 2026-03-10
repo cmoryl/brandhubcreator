@@ -23,6 +23,7 @@ interface EntityOption {
   id: string;
   name: string;
   type: 'brand' | 'product' | 'event';
+  logoUrl?: string;
 }
 
 const SocialAssetStudio = () => {
@@ -43,15 +44,27 @@ const SocialAssetStudio = () => {
       setLoadingEntities(true);
       try {
         const [brandsRes, productsRes, eventsRes] = await Promise.all([
-          supabase.from('brands').select('id, name').eq('organization_id', orgId).order('name'),
-          supabase.from('products').select('id, name').eq('organization_id', orgId).order('name'),
-          supabase.from('events').select('id, name').eq('organization_id', orgId).order('name'),
+          supabase.from('brands').select('id, name, guide_data').eq('organization_id', orgId).order('name'),
+          supabase.from('products').select('id, name, guide_data').eq('organization_id', orgId).order('name'),
+          supabase.from('events').select('id, name, guide_data').eq('organization_id', orgId).order('name'),
         ]);
 
+        const extractLogo = (guideData: any): string | undefined => {
+          if (!guideData) return undefined;
+          // Try hero imageUrl first, then first logo
+          const heroImg = guideData?.hero?.imageUrl;
+          if (heroImg) return heroImg;
+          const logos = guideData?.logos;
+          if (Array.isArray(logos) && logos.length > 0) {
+            return logos[0]?.url || logos[0]?.imageUrl;
+          }
+          return undefined;
+        };
+
         const all: EntityOption[] = [
-          ...(brandsRes.data || []).map(b => ({ id: b.id, name: b.name, type: 'brand' as const })),
-          ...(productsRes.data || []).map(p => ({ id: p.id, name: p.name, type: 'product' as const })),
-          ...(eventsRes.data || []).map(e => ({ id: e.id, name: e.name, type: 'event' as const })),
+          ...(brandsRes.data || []).map(b => ({ id: b.id, name: b.name, type: 'brand' as const, logoUrl: extractLogo(b.guide_data) })),
+          ...(productsRes.data || []).map(p => ({ id: p.id, name: p.name, type: 'product' as const, logoUrl: extractLogo(p.guide_data) })),
+          ...(eventsRes.data || []).map(e => ({ id: e.id, name: e.name, type: 'event' as const, logoUrl: extractLogo(e.guide_data) })),
         ];
         setEntities(all);
         if (all.length > 0 && !selectedEntity) {
@@ -317,6 +330,7 @@ const SocialAssetStudio = () => {
               entityId={selectedEntity.id}
               organizationId={orgId}
               brandName={selectedEntity.name}
+              brandLogoUrl={selectedEntity.logoUrl}
               isAdmin={isAdmin}
               onUpload={handleUpload}
               onApprove={handleApprove}
