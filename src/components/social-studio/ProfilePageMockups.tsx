@@ -382,7 +382,8 @@ const YouTubeProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl
 };
 
 // ─── TikTok Profile ──────────────────────────────
-const TikTokProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const TikTokProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].tt;
   const isDesktop = d === 'desktop';
@@ -417,8 +418,8 @@ const TikTokProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, clas
       {/* Profile */}
       <div className={cn("flex flex-col items-center pb-3 px-4", isDesktop ? "pt-6" : "pt-4")}>
         <div className={cn("rounded-full overflow-hidden border-2 border-gray-700", isDesktop ? "w-28 h-28" : d === 'tablet' ? "w-24 h-24" : "w-20 h-20")}>
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+          {effectiveProfile ? (
+            <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-[#69C9D0] to-[#EE1D52] flex items-center justify-center text-white font-bold text-2xl">
               {brandName.charAt(0)}
