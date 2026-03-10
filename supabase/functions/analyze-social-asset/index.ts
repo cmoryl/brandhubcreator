@@ -140,8 +140,46 @@ Return your analysis as a single JSON object with these exact keys:
     "content_quality_score": <0-100>,
     "factors": [{ "factor": "...", "impact": "positive|neutral|negative", "detail": "..." }]
   },
+  "text_content": {
+    "score": <0-100>,
+    "detected_text": "...",
+    "text_present": <boolean>,
+    "character_count": <number>,
+    "platform_limit": <number or null>,
+    "exceeds_limit": <boolean>,
+    "text_to_image_ratio": <0-100>,
+    "ratio_compliant": <boolean>,
+    "ratio_recommendation": "...",
+    "wcag_contrast": {
+      "passes_aa": <boolean>,
+      "passes_aaa": <boolean>,
+      "estimated_ratio": "...",
+      "findings": ["..."]
+    },
+    "readability": {
+      "grade_level": "...",
+      "clarity_score": <0-100>,
+      "spelling_issues": ["..."],
+      "grammar_issues": ["..."],
+      "tone_alignment": "...",
+      "findings": ["..."]
+    },
+    "findings": [{ "type": "...", "severity": "low|medium|high", "description": "...", "recommendation": "..." }]
+  },
   "overall_score": <0-100>
 }`;
+
+        const platformTextLimits: Record<string, Record<string, number>> = {
+          Instagram: { feed: 2200, story: 250, reel: 2200, profile: 150, cover: 0 },
+          LinkedIn: { feed: 3000, profile: 120, cover: 0, article: 120000 },
+          X: { feed: 280, profile: 160, cover: 0 },
+          Facebook: { feed: 63206, story: 250, profile: 101, cover: 0, ad: 125 },
+          YouTube: { cover: 0, profile: 0 },
+          TikTok: { feed: 2200, profile: 80 },
+          Pinterest: { feed: 500, profile: 160 },
+          Threads: { feed: 500, profile: 150 },
+        };
+        const textLimit = platformTextLimits[platform]?.[format] ?? null;
 
         const userPrompt = `Analyze this social media asset for ${platform} (${format} format).
 
@@ -155,12 +193,21 @@ Brand Context:
 - Brand Values: ${valueList || "Not specified"}
 - Logo count: ${(brandCtx.logos || []).length}
 
+Platform Text Limit: ${textLimit !== null ? `${textLimit} characters for ${platform} ${format}` : "Not applicable"}
+
 Image URL: ${image_url}
 
 Perform a comprehensive analysis covering:
 1. BIAS & INCLUSION: Evaluate representation diversity, cultural sensitivity, and accessibility (alt text needs, contrast, text readability)
 2. BRAND COMPLIANCE: Check color usage against brand palette, logo presence/placement, typography consistency
 3. ENGAGEMENT PREDICTION: Predict engagement rate for ${platform} ${format}, estimate reach potential, suggest optimal posting time, identify content quality factors
+4. TEXT CONTENT ANALYSIS (CRITICAL - analyze ALL text visible on the image):
+   a. EXTRACT all text visible on the image - headlines, body copy, CTAs, captions, watermarks
+   b. CHARACTER COUNT: Count total characters and check against the platform limit of ${textLimit !== null ? textLimit : "N/A"} characters
+   c. TEXT-TO-IMAGE RATIO: Estimate what percentage of the image area is covered by text. Flag if >20% (Meta/Facebook rule: ads with >20% text get reduced reach; best practice across all platforms is <20%)
+   d. WCAG CONTRAST: Evaluate text-over-image contrast ratios. AA requires 4.5:1 for normal text, 3:1 for large text (18px+). AAA requires 7:1 for normal, 4.5:1 for large
+   e. READABILITY & GRAMMAR: Check spelling, grammar, reading level (aim for grade 6-8 for social media), clarity and conciseness of messaging, and whether the tone matches the brand voice
+   f. Report any issues as findings with severity levels
 
 Be specific and actionable in your findings. Score each dimension 0-100.`;
 
