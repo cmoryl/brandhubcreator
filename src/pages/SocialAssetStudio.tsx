@@ -57,7 +57,7 @@ const SocialAssetStudio = () => {
           setSelectedEntity(all[0]);
         }
       } catch (err) {
-        logger.error('Failed to fetch entities', err);
+        logger.admin('Failed to fetch entities', err);
       } finally {
         setLoadingEntities(false);
       }
