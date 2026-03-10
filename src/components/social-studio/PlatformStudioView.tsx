@@ -42,6 +42,7 @@ interface PlatformStudioViewProps {
   entityId: string;
   organizationId: string;
   brandName: string;
+  brandLogoUrl?: string;
   isAdmin: boolean;
   onUpload: (platform: string, format: string, sizeSpec: PlatformSizeSpec, imageUrl: string) => void;
   onApprove: (id: string) => void;
