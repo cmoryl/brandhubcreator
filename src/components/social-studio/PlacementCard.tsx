@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { PlatformSizeSpec } from '@/components/brand/social-mockups/types';
 import { SocialAssetPlacement } from '@/hooks/useSocialAssetPlacements';
-import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface PlacementCardProps {
@@ -28,8 +28,8 @@ interface PlacementCardProps {
 
 const statusConfig = {
   empty: { label: 'Empty', icon: ImageIcon, className: 'bg-muted text-muted-foreground' },
-  draft: { label: 'Draft', icon: Clock, className: 'bg-amber-500/15 text-amber-600' },
-  approved: { label: 'Approved', icon: CheckCircle2, className: 'bg-emerald-500/15 text-emerald-600' },
+  draft: { label: 'Draft', icon: Clock, className: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+  approved: { label: 'Approved', icon: CheckCircle2, className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' },
   archived: { label: 'Archived', icon: Clock, className: 'bg-muted text-muted-foreground' },
 };
 
@@ -48,7 +48,6 @@ export const PlacementCard = ({
 }: PlacementCardProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const { uploadFile } = useStorageUpload();
 
   const status = placement?.status || 'empty';
   const statusInfo = statusConfig[status];
@@ -72,10 +71,23 @@ export const PlacementCard = ({
 
     setUploading(true);
     try {
-      const path = `social-assets/${organizationId}/${entityId}/${platform}/${format}/${sizeSpec.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`;
-      const url = await uploadFile(file, 'organization-assets', path);
-      if (url) {
-        onUpload(url);
+      const timestamp = Date.now();
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const sizeName = sizeSpec.name.replace(/\s+/g, '-').toLowerCase();
+      const filePath = `${organizationId}/social-assets/${entityId}/${platform}/${format}/${sizeName}-${timestamp}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('organization-assets')
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('organization-assets')
+        .getPublicUrl(filePath);
+
+      if (urlData?.publicUrl) {
+        onUpload(urlData.publicUrl);
         toast.success(`Asset uploaded for ${sizeSpec.name}`);
       }
     } catch (err) {
@@ -99,7 +111,7 @@ export const PlacementCard = ({
       >
         {hasImage ? (
           <img
-            src={placement.image_url!}
+            src={placement!.image_url!}
             alt={`${platform} ${sizeSpec.name}`}
             className="w-full h-full object-cover"
           />

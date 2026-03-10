@@ -26,7 +26,7 @@ interface EntityOption {
 
 const SocialAssetStudio = () => {
   const navigate = useNavigate();
-  const { currentOrganization } = useOrganization();
+  const { organization } = useOrganization();
   const { user } = useAuth();
   const [selectedPlatform, setSelectedPlatform] = useState<SocialPlatform>('Instagram');
   const [entities, setEntities] = useState<EntityOption[]>([]);

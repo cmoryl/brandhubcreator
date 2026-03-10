@@ -30,11 +30,11 @@ export interface SocialAssetPlacement {
 }
 
 export const useSocialAssetPlacements = (entityId?: string, entityType?: string) => {
-  const { currentOrganization } = useOrganization();
+  const { organization } = useOrganization();
   const [placements, setPlacements] = useState<SocialAssetPlacement[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const orgId = currentOrganization?.id;
+  const orgId = organization?.id;
 
   const fetchPlacements = useCallback(async () => {
     if (!orgId || !entityId) return;
@@ -52,7 +52,7 @@ export const useSocialAssetPlacements = (entityId?: string, entityType?: string)
       if (error) throw error;
       setPlacements((data as SocialAssetPlacement[]) || []);
     } catch (err) {
-      logger.error('Failed to fetch social asset placements', err);
+      logger.storage('Failed to fetch social asset placements', err);
     } finally {
       setLoading(false);
     }
@@ -126,7 +126,7 @@ export const useSocialAssetPlacements = (entityId?: string, entityType?: string)
         return data;
       }
     } catch (err) {
-      logger.error('Failed to upsert social asset placement', err);
+      logger.storage('Failed to upsert social asset placement', err);
       toast.error('Failed to save asset placement');
       return null;
     }
@@ -147,7 +147,7 @@ export const useSocialAssetPlacements = (entityId?: string, entityType?: string)
       toast.success('Asset approved');
       await fetchPlacements();
     } catch (err) {
-      logger.error('Failed to approve placement', err);
+      logger.storage('Failed to approve placement', err);
       toast.error('Failed to approve asset');
     }
   }, [fetchPlacements]);
@@ -162,7 +162,7 @@ export const useSocialAssetPlacements = (entityId?: string, entityType?: string)
       if (error) throw error;
       await fetchPlacements();
     } catch (err) {
-      logger.error('Failed to delete placement', err);
+      logger.storage('Failed to delete placement', err);
       toast.error('Failed to delete asset');
     }
   }, [fetchPlacements]);
