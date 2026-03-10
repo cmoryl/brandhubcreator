@@ -122,6 +122,7 @@ export const SocialAssetInsights = ({ analysis, loading, onReanalyze }: SocialAs
     { id: 'bias' as const, label: 'Bias & Inclusion', icon: Shield, score: analysis.bias_score },
     { id: 'compliance' as const, label: 'Compliance', icon: CheckCircle2, score: analysis.compliance_score },
     { id: 'engagement' as const, label: 'Engagement', icon: BarChart3, score: analysis.content_quality_score },
+    { id: 'text' as const, label: 'Text & Content', icon: Type, score: analysis.text_content_score },
   ];
 
   return (
