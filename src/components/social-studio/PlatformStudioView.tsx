@@ -175,6 +175,7 @@ export const PlatformStudioView = ({
   const availableFormats = useMemo(() => getAvailableFormats(platform), [platform]);
   const [activeFormat, setActiveFormat] = useState<StudioFormat>('feed');
   const [previewSize, setPreviewSize] = useState<PlatformSizeSpec | null>(null);
+  const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
 
   const currentSizes = useMemo(() => getSizesForFormat(platform, activeFormat), [platform, activeFormat]);
   
