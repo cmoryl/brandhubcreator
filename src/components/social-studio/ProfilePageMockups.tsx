@@ -130,7 +130,8 @@ const InstagramProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageU
 };
 
 // ─── LinkedIn Profile ──────────────────────────────
-const LinkedInProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const LinkedInProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].li;
   const isDesktop = d === 'desktop';
@@ -149,8 +150,8 @@ const LinkedInProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cl
         )}
         <div className={cn("absolute left-4", isDesktop ? "-bottom-14" : "-bottom-12")}>
           <div className={cn("rounded-full border-4 border-white overflow-hidden bg-white shadow-md", isDesktop ? "w-28 h-28" : d === 'tablet' ? "w-24 h-24" : "w-20 h-20")}>
-            {profileImageUrl ? (
-              <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+            {effectiveProfile ? (
+              <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-[#0A66C2] flex items-center justify-center text-white font-bold text-2xl">
                 {brandName.charAt(0)}
