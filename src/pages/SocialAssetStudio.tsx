@@ -23,6 +23,7 @@ interface EntityOption {
   id: string;
   name: string;
   type: 'brand' | 'product' | 'event';
+  logoUrl?: string;
 }
 
 const SocialAssetStudio = () => {
