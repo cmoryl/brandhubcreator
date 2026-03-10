@@ -33,9 +33,13 @@ const deviceWidths = {
   tablet: { ig: 'w-[400px]', li: 'w-[460px]', tw: 'w-[440px]', fb: 'w-[460px]', yt: 'w-[480px]', tt: 'w-[400px]', pi: 'w-[440px]', th: 'w-[420px]' },
   mobile: { ig: 'w-[320px]', li: 'w-[340px]', tw: 'w-[340px]', fb: 'w-[340px]', yt: 'w-[340px]', tt: 'w-[300px]', pi: 'w-[320px]', th: 'w-[340px]' },
 };
+/** Helper: resolve effective profile image (explicit upload > brand logo fallback) */
+const resolveProfileImg = (profileImageUrl?: string, defaultProfileImageUrl?: string) =>
+  profileImageUrl || defaultProfileImageUrl;
 
 // ─── Instagram Profile ──────────────────────────────
-const InstagramProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const InstagramProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].ig;
   const isMobile = d === 'mobile';
