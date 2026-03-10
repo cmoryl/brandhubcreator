@@ -188,9 +188,13 @@ export const PlatformStudioView = ({
   
   // Use custom profile image if set, otherwise fall back to brand logo
   const effectiveProfileImage = customProfileImage || brandLogoUrl;
-  const [previewSize, setPreviewSize] = useState<PlatformSizeSpec | null>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
   const [selectedTemplate, setSelectedTemplate] = useState<SocialTemplate | null>(null);
+
+  // Clear template selection when platform or format changes
+  useEffect(() => {
+    setSelectedTemplate(null);
+  }, [platform, activeFormat]);
 
   const currentSizes = useMemo(() => getSizesForFormat(platform, activeFormat), [platform, activeFormat]);
   
