@@ -177,6 +177,11 @@ export const PlacementCard = ({
                 }}>
                   <Download className="h-4 w-4 mr-2" /> Download
                 </DropdownMenuItem>
+                {onSaveToGuide && (
+                  <DropdownMenuItem onClick={onSaveToGuide}>
+                    <BookMarked className="h-4 w-4 mr-2" /> Save to Brand Guide
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={onDelete} className="text-destructive">
                   <Trash2 className="h-4 w-4 mr-2" /> Remove
                 </DropdownMenuItem>
