@@ -320,6 +320,16 @@ export const PlatformStudioView = ({
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                       Asset Placements ({sizes.length})
                     </h3>
+
+                    {/* Template Library */}
+                    <TemplateLibrary
+                      platform={platform}
+                      format={fmt}
+                      selectedTemplate={selectedTemplate}
+                      onSelectTemplate={setSelectedTemplate}
+                      aspectRatio={sizes[0] ? sizes[0].width / sizes[0].height : 1}
+                    />
+                    </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {sizes.map((size) => {
                         const existingPlacement = placements.find(
