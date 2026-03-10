@@ -117,6 +117,22 @@ const SocialAssetStudio = () => {
 
   const isAdmin = true; // TODO: wire to useGuideAdmin
 
+  // Extract brand context for AI analysis
+  const brandContext: BrandContext | undefined = useMemo(() => {
+    if (!selectedEntity?.guideData) return undefined;
+    const gd = selectedEntity.guideData;
+    return {
+      name: selectedEntity.name,
+      colors: Array.isArray(gd.colors) ? gd.colors.map((c: any) => ({ name: c.name || '', hex: c.hex || '', role: c.role })) : [],
+      typography: Array.isArray(gd.typography) ? gd.typography.map((t: any) => ({ family: t.fontFamily || t.family || '', weight: t.weight, usage: t.usage })) : [],
+      archetype: gd.identity?.archetype,
+      industry: gd.industry,
+      mission: gd.identity?.missionStatement,
+      values: Array.isArray(gd.values) ? gd.values.map((v: any) => v.text || v.name || String(v)).filter(Boolean) : [],
+      logos: Array.isArray(gd.logos) ? gd.logos.map((l: any) => ({ url: l.url || l.imageUrl, name: l.name })) : [],
+    };
+  }, [selectedEntity]);
+
   const handleUpload = async (platform: string, format: string, sizeSpec: PlatformSizeSpec, imageUrl: string) => {
     await upsertPlacement({
       platform,
