@@ -261,7 +261,8 @@ const TwitterProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl
 };
 
 // ─── Facebook Page ──────────────────────────────
-const FacebookProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const FacebookProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].fb;
   const isDesktop = d === 'desktop';
@@ -287,8 +288,8 @@ const FacebookProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cl
       <div className={cn("relative px-4 pb-3", isDesktop && "px-6")}>
         <div className={cn("flex items-end gap-4", isDesktop ? "-mt-12" : "-mt-8")}>
           <div className={cn("rounded-full border-4 border-white overflow-hidden bg-white shadow-lg flex-shrink-0", isDesktop ? "w-[120px] h-[120px]" : d === 'tablet' ? "w-[100px] h-[100px]" : "w-[80px] h-[80px]")}>
-            {profileImageUrl ? (
-              <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+            {effectiveProfile ? (
+              <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-[#1877F2] flex items-center justify-center text-white font-bold text-3xl">
                 {brandName.charAt(0)}
