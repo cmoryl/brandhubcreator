@@ -79,7 +79,7 @@ const EngagementFactor = ({ factor }: { factor: any }) => {
 
 export const SocialAssetInsights = ({ analysis, loading, onReanalyze }: SocialAssetInsightsProps) => {
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'bias' | 'compliance' | 'engagement'>('bias');
+  const [activeTab, setActiveTab] = useState<'bias' | 'compliance' | 'engagement' | 'text'>('bias');
 
   if (!analysis && !loading) return null;
 
