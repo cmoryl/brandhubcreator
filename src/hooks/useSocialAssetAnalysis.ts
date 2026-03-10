@@ -152,6 +152,8 @@ export const useSocialAssetAnalysis = (placementId?: string) => {
           optimal_posting_time: null,
           engagement_factors: [],
           content_quality_score: null,
+          text_content_analysis: null,
+          text_content_score: null,
           overall_score: null,
           error_message: null,
           analyzed_at: null,
