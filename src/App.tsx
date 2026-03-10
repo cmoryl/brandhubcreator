@@ -283,6 +283,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="social-studio"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <SocialAssetStudio />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="brand/:brandSlug"
                       element={
                         <Suspense fallback={<BrandEditorSkeleton />}>
