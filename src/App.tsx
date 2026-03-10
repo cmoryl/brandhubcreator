@@ -91,6 +91,7 @@ const BoothSystemsLibrary = lazyWithRetry(() => import("./pages/BoothSystemsLibr
 const ExpoFloorPlanner = lazyWithRetry(() => import("./pages/ExpoFloorPlanner"));
 const ColorLab = lazyWithRetry(() => import("./pages/ColorLab"));
 const SharedPalette = lazyWithRetry(() => import("./pages/SharedPalette"));
+const SocialAssetStudio = lazyWithRetry(() => import("./pages/SocialAssetStudio"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -278,6 +279,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <AboutPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="social-studio"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <SocialAssetStudio />
                         </Suspense>
                       }
                     />
