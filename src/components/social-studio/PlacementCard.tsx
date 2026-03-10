@@ -11,6 +11,7 @@ import { PlatformSizeSpec } from '@/components/brand/social-mockups/types';
 import { SocialAssetPlacement } from '@/hooks/useSocialAssetPlacements';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { AssetAnalytics } from './AssetAnalytics';
 
 interface PlacementCardProps {
   platform: string;
