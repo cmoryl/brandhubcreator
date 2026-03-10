@@ -224,13 +224,6 @@ export const PlatformStudioView = ({
             organizationId={organizationId}
             onSelect={setCustomProfileImage}
           />
-            className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
-            style={{
-              background: `linear-gradient(135deg, ${config.primaryColor}, ${config.secondaryColor})`,
-            }}
-          >
-            <span className="text-white text-2xl font-bold">{platform.charAt(0)}</span>
-          </div>
           <div>
             <h2 className="text-2xl font-bold">{platform}</h2>
             <p className="text-sm text-muted-foreground">
