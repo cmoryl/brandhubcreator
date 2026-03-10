@@ -25,7 +25,9 @@ import {
 import { PlacementCard } from './PlacementCard';
 import { ProfilePageMockup, DeviceMode } from './ProfilePageMockups';
 import { ProfileImagePicker } from './ProfileImagePicker';
+import { TemplateLibrary } from './TemplateLibrary';
 import { SocialAssetPlacement } from '@/hooks/useSocialAssetPlacements';
+import { SocialTemplate } from '@/lib/socialTemplates';
 
 type StudioFormat = 'feed' | 'story' | 'reel' | 'cover' | 'profile';
 
@@ -188,6 +190,7 @@ export const PlatformStudioView = ({
   const effectiveProfileImage = customProfileImage || brandLogoUrl;
   const [previewSize, setPreviewSize] = useState<PlatformSizeSpec | null>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
+  const [selectedTemplate, setSelectedTemplate] = useState<SocialTemplate | null>(null);
 
   const currentSizes = useMemo(() => getSizesForFormat(platform, activeFormat), [platform, activeFormat]);
   
@@ -317,6 +320,16 @@ export const PlatformStudioView = ({
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                       Asset Placements ({sizes.length})
                     </h3>
+
+                    {/* Template Library */}
+                    <TemplateLibrary
+                      platform={platform}
+                      format={fmt}
+                      selectedTemplate={selectedTemplate}
+                      onSelectTemplate={setSelectedTemplate}
+                      aspectRatio={sizes[0] ? sizes[0].width / sizes[0].height : 1}
+                    />
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {sizes.map((size) => {
                         const existingPlacement = placements.find(

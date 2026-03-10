@@ -11,6 +11,7 @@ import { PlatformSizeSpec } from '@/components/brand/social-mockups/types';
 import { SocialAssetPlacement } from '@/hooks/useSocialAssetPlacements';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { AssetAnalytics } from './AssetAnalytics';
 
 interface PlacementCardProps {
   platform: string;
@@ -193,6 +194,16 @@ export const PlacementCard = ({
 
       {sizeSpec.description && (
         <p className="px-3 pb-2 text-xs text-muted-foreground">{sizeSpec.description}</p>
+      )}
+
+      {/* Asset analytics panel */}
+      {hasImage && placement?.image_url && (
+        <AssetAnalytics
+          imageUrl={placement.image_url}
+          platform={platform}
+          format={format}
+          sizeSpec={sizeSpec}
+        />
       )}
 
       {/* Hidden file input */}
