@@ -46,6 +46,7 @@ interface PlatformStudioViewProps {
   onUpload: (platform: string, format: string, sizeSpec: PlatformSizeSpec, imageUrl: string) => void;
   onApprove: (id: string) => void;
   onDelete: (id: string) => void;
+  onSaveToGuide?: (platform: string, format: string, sizeSpec: PlatformSizeSpec, imageUrl: string) => void;
 }
 
 // Map format to matching sizes - expand beyond just feed/story/reel
