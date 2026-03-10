@@ -65,13 +65,15 @@ export const PlatformNav = ({ selected, onSelect, placementCounts }: PlatformNav
       {['Desktop', 'Mobile', 'Video', 'Native'].map((cat) => (
         <button
           key={cat}
-          onClick={() => {/* TODO: display ad categories */}}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all text-left"
+          disabled
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground/50 cursor-not-allowed text-left"
+          title="Coming soon"
         >
-          <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted text-muted-foreground text-sm flex-shrink-0">
+          <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/60 text-muted-foreground/50 text-sm flex-shrink-0">
             {cat === 'Desktop' ? '🖥️' : cat === 'Mobile' ? '📱' : cat === 'Video' ? '🎬' : '📰'}
           </span>
-          <span>{cat} Banners</span>
+          <span className="flex-1">{cat} Banners</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Soon</span>
         </button>
       ))}
     </div>
