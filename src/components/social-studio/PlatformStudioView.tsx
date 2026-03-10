@@ -406,6 +406,7 @@ export const PlatformStudioView = ({
                             sizeSpec={size}
                             placement={existingPlacement}
                             entityId={entityId}
+                            entityType={entityType}
                             organizationId={organizationId}
                             onUpload={(url) => onUpload(platform, fmt, size, url)}
                             onApprove={() => existingPlacement && onApprove(existingPlacement.id)}
@@ -413,6 +414,7 @@ export const PlatformStudioView = ({
                             onSaveToGuide={existingPlacement?.image_url && onSaveToGuide ? () => onSaveToGuide(platform, fmt, size, existingPlacement.image_url!) : undefined}
                             onPreview={() => {}}
                             isAdmin={isAdmin}
+                            brandContext={brandContext}
                           />
                         );
                       })}
