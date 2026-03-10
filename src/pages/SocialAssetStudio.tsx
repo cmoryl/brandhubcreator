@@ -361,6 +361,7 @@ const SocialAssetStudio = () => {
               brandName={selectedEntity.name}
               brandLogoUrl={selectedEntity.logoUrl}
               isAdmin={isAdmin}
+              brandContext={brandContext}
               onUpload={handleUpload}
               onApprove={handleApprove}
               onDelete={deletePlacement}
