@@ -190,6 +190,7 @@ export const PlatformStudioView = ({
   const effectiveProfileImage = customProfileImage || brandLogoUrl;
   const [previewSize, setPreviewSize] = useState<PlatformSizeSpec | null>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
+  const [selectedTemplate, setSelectedTemplate] = useState<SocialTemplate | null>(null);
 
   const currentSizes = useMemo(() => getSizesForFormat(platform, activeFormat), [platform, activeFormat]);
   
