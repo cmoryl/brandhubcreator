@@ -128,35 +128,35 @@ export const SocialAssetInsights = ({ analysis, loading, onReanalyze }: SocialAs
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger className="w-full">
-        <div className="px-3 py-2.5 border-t border-border/50 flex items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors">
-          <div className="flex items-center gap-2">
-            <Sparkles className={cn('h-3.5 w-3.5', overallColor)} />
-            <span className="text-xs font-semibold">
-              AI Insights
-            </span>
-            {overallScore !== null && (
-              <Badge variant="secondary" className={cn('text-[10px] h-4 px-1.5', overallColor)}>
-                {overallScore}/100
-              </Badge>
-            )}
-            <div className="flex gap-1">
-              <ScoreBadge score={analysis.bias_score} label="Bias" />
-              <ScoreBadge score={analysis.compliance_score} label="Brand" />
-              <ScoreBadge score={analysis.content_quality_score} label="Quality" />
-              <ScoreBadge score={analysis.text_content_score} label="Text" />
+        <div className="px-3 py-2.5 border-t border-border/50 cursor-pointer hover:bg-muted/50 transition-colors">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className={cn('h-3.5 w-3.5', overallColor)} />
+              <span className="text-xs font-semibold">AI Insights</span>
+              {overallScore !== null && (
+                <Badge variant="secondary" className={cn('text-[10px] h-4 px-1.5', overallColor)}>
+                  {overallScore}/100
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 w-5 p-0"
+                onClick={(e) => { e.stopPropagation(); onReanalyze(); }}
+                title="Re-analyze"
+              >
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+              {open ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-5 w-5 p-0"
-              onClick={(e) => { e.stopPropagation(); onReanalyze(); }}
-              title="Re-analyze"
-            >
-              <RefreshCw className="h-3 w-3" />
-            </Button>
-            {open ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            <ScoreBadge score={analysis.bias_score} label="Bias" />
+            <ScoreBadge score={analysis.compliance_score} label="Brand" />
+            <ScoreBadge score={analysis.content_quality_score} label="Quality" />
+            <ScoreBadge score={analysis.text_content_score} label="Text" />
           </div>
         </div>
       </CollapsibleTrigger>
