@@ -506,7 +506,8 @@ const PinterestProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageU
 };
 
 // ─── Threads Profile ──────────────────────────────
-const ThreadsProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const ThreadsProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].th;
   const isDesktop = d === 'desktop';
@@ -531,8 +532,8 @@ const ThreadsProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cla
             </div>
           </div>
           <div className={cn("rounded-full overflow-hidden bg-gray-800 flex-shrink-0", isDesktop ? "w-20 h-20" : "w-16 h-16")}>
-            {profileImageUrl ? (
-              <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+            {effectiveProfile ? (
+              <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl">
                 {brandName.charAt(0)}
