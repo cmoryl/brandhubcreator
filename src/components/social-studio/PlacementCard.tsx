@@ -2,7 +2,7 @@
  * Individual placement slot card showing the mockup with upload capability
  */
 import { useState, useRef } from 'react';
-import { Upload, Check, MoreHorizontal, Trash2, Eye, Download, CheckCircle2, Clock, ImageIcon } from 'lucide-react';
+import { Upload, Check, MoreHorizontal, Trash2, Eye, Download, CheckCircle2, Clock, ImageIcon, BookMarked } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ interface PlacementCardProps {
   onApprove: () => void;
   onDelete: () => void;
   onPreview: () => void;
+  onSaveToGuide?: () => void;
   isAdmin: boolean;
 }
 
@@ -44,6 +45,7 @@ export const PlacementCard = ({
   onApprove,
   onDelete,
   onPreview,
+  onSaveToGuide,
   isAdmin,
 }: PlacementCardProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -175,6 +177,11 @@ export const PlacementCard = ({
                 }}>
                   <Download className="h-4 w-4 mr-2" /> Download
                 </DropdownMenuItem>
+                {onSaveToGuide && (
+                  <DropdownMenuItem onClick={onSaveToGuide}>
+                    <BookMarked className="h-4 w-4 mr-2" /> Save to Brand Guide
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={onDelete} className="text-destructive">
                   <Trash2 className="h-4 w-4 mr-2" /> Remove
                 </DropdownMenuItem>

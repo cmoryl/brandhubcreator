@@ -4,7 +4,7 @@
  */
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, LayoutGrid, CheckCircle2, Clock, Image as ImageIcon, Palette } from 'lucide-react';
+import { ArrowLeft, LayoutGrid, CheckCircle2, Clock, Image as ImageIcon, Palette, BookMarked } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,7 @@ import { PlatformNav } from '@/components/social-studio/PlatformNav';
 import { PlatformStudioView } from '@/components/social-studio/PlatformStudioView';
 import { SocialPlatform, PlatformSizeSpec } from '@/components/brand/social-mockups/types';
 import { logger } from '@/lib/logger';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface EntityOption {
@@ -102,6 +103,76 @@ const SocialAssetStudio = () => {
       image_url: imageUrl,
       status: 'draft',
     });
+  };
+
+  const handleSaveToGuide = async (platform: string, format: string, sizeSpec: PlatformSizeSpec, imageUrl: string) => {
+    if (!selectedEntity) return;
+
+    try {
+      const table = selectedEntity.type === 'brand' ? 'brands' : selectedEntity.type === 'product' ? 'products' : 'events';
+      
+      // Fetch current guide_data
+      const { data: entityData, error: fetchError } = await supabase
+        .from(table)
+        .select('guide_data')
+        .eq('id', selectedEntity.id)
+        .single();
+      
+      if (fetchError) throw fetchError;
+
+      const guideData = (entityData?.guide_data as Record<string, any>) || {};
+      const socialAssets: any[] = Array.isArray(guideData.socialAssets) ? [...guideData.socialAssets] : [];
+
+      // Find existing entry for this platform or create new one
+      const existingIdx = socialAssets.findIndex((a: any) => a.platform === platform);
+      
+      // Build size string from spec
+      const sizeStr = `${sizeSpec.width}x${sizeSpec.height}`;
+      
+      if (existingIdx >= 0) {
+        // Update existing platform entry with the new image
+        const existing = socialAssets[existingIdx];
+        if (format === 'story') {
+          existing.storySize = sizeStr;
+        } else if (format === 'reel') {
+          existing.reelSize = sizeStr;
+        } else if (format === 'cover' || format === 'profile') {
+          existing.coverSize = sizeStr;
+        } else {
+          existing.postSize = sizeStr;
+        }
+        // Always update preview image to latest
+        existing.previewImageUrl = imageUrl;
+        socialAssets[existingIdx] = existing;
+      } else {
+        // Create new platform entry
+        const newAsset: any = {
+          id: crypto.randomUUID(),
+          platform,
+          postSize: format === 'feed' ? sizeStr : '',
+          textLegibility: 'Standard',
+          directive: `Auto-imported from Social Asset Studio`,
+          previewImageUrl: imageUrl,
+        };
+        if (format === 'story') newAsset.storySize = sizeStr;
+        if (format === 'reel') newAsset.reelSize = sizeStr;
+        if (format === 'cover' || format === 'profile') newAsset.coverSize = sizeStr;
+        socialAssets.push(newAsset);
+      }
+
+      // Save back
+      const { error: updateError } = await supabase
+        .from(table)
+        .update({ guide_data: { ...guideData, socialAssets } })
+        .eq('id', selectedEntity.id);
+
+      if (updateError) throw updateError;
+
+      toast.success(`Asset saved to ${selectedEntity.name}'s Social Assets section`);
+    } catch (err) {
+      logger.admin('Failed to save asset to guide', err);
+      toast.error('Failed to save asset to brand guide');
+    }
   };
 
   const handleApprove = async (id: string) => {
@@ -250,6 +321,7 @@ const SocialAssetStudio = () => {
               onUpload={handleUpload}
               onApprove={handleApprove}
               onDelete={deletePlacement}
+              onSaveToGuide={handleSaveToGuide}
             />
           )}
         </main>
