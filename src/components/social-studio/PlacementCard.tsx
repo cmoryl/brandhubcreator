@@ -45,6 +45,7 @@ export const PlacementCard = ({
   onApprove,
   onDelete,
   onPreview,
+  onSaveToGuide,
   isAdmin,
 }: PlacementCardProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
