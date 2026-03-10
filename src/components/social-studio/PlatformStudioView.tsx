@@ -216,7 +216,14 @@ export const PlatformStudioView = ({
       {/* Platform header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div
+          <ProfileImagePicker
+            currentImage={customProfileImage}
+            brandLogoUrl={brandLogoUrl}
+            entityId={entityId}
+            entityType={entityType}
+            organizationId={organizationId}
+            onSelect={setCustomProfileImage}
+          />
             className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
             style={{
               background: `linear-gradient(135deg, ${config.primaryColor}, ${config.secondaryColor})`,
