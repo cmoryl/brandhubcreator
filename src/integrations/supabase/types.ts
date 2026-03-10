@@ -4801,6 +4801,80 @@ export type Database = {
           },
         ]
       }
+      social_asset_placements: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          aspect_ratio: string
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          format: string
+          id: string
+          image_url: string | null
+          notes: string | null
+          organization_id: string
+          platform: string
+          size_height: number
+          size_name: string
+          size_width: number
+          status: string
+          thumbnail_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          aspect_ratio: string
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type?: string
+          format?: string
+          id?: string
+          image_url?: string | null
+          notes?: string | null
+          organization_id: string
+          platform: string
+          size_height: number
+          size_name: string
+          size_width: number
+          status?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          aspect_ratio?: string
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          format?: string
+          id?: string
+          image_url?: string | null
+          notes?: string | null
+          organization_id?: string
+          platform?: string
+          size_height?: number
+          size_name?: string
+          size_width?: number
+          status?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_asset_placements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_metrics_snapshots: {
         Row: {
           avg_comments_per_post: number | null
