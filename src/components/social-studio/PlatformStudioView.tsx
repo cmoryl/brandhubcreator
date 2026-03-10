@@ -168,6 +168,7 @@ export const PlatformStudioView = ({
   entityId,
   organizationId,
   brandName,
+  brandLogoUrl,
   isAdmin,
   onUpload,
   onApprove,
