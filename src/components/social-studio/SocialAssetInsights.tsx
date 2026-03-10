@@ -6,6 +6,7 @@ import { useState } from 'react';
 import {
   ChevronDown, ChevronUp, RefreshCw, Shield, Eye, TrendingUp,
   AlertTriangle, CheckCircle2, XCircle, Clock, Sparkles, BarChart3,
+  Type, FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
