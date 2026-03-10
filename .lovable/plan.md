@@ -1,85 +1,56 @@
 
-# Shutterstock Image Search + Approved Imagery Sections
 
-## Overview
-Add a Shutterstock-powered image search capability (admin-only) that lets administrators search, preview, and approve stock images into organized sub-sections within the brand guide. Non-admin users see a curated, read-only gallery of approved imagery grouped by category.
+# Integrating GlobalLink & DataForce into the Social Asset Studio
 
-## Prerequisites
-- **Shutterstock API Key**: You'll need a Shutterstock API account. We'll securely store the API key as a backend secret. I'll walk you through obtaining one when we implement.
+## Current State
 
-## Architecture
+The Social Asset Studio currently has its own standalone AI analysis engine (`analyze-social-asset` edge function) that handles bias, compliance, engagement, and text analysis independently. **Neither GlobalLink nor DataForce are connected to the Social Studio today.**
 
-### 1. Backend: Edge Function for Shutterstock Search
-Create a `shutterstock-search` edge function that:
-- Accepts search queries, filters (orientation, category, color)
-- Calls the Shutterstock API (`/v2/images/search`)
-- Returns preview thumbnails and metadata
-- Requires JWT verification + admin role check via `can_use_ai_features`
+Meanwhile, both systems are fully built and available:
+- **GlobalLink**: Cultural adaptation (`globallink-cultural-adapt`), translation, regional content guidance
+- **DataForce**: Brand compliance scanning, cultural validation panels, AI brand assistant, GenAI content generation
 
-### 2. Data Model: Approved Imagery with Sub-Sections
-Extend the existing `guide_data` JSONB (no new database table needed) with an `approvedImagery` field:
+## What We Can Build
+
+### 1. GlobalLink — Regional Asset Adaptation
+Add a **"Localize"** action per placement card that:
+- Calls `globallink-cultural-adapt` with the asset's platform, format, and target region
+- Returns region-specific guidance: color appropriateness, imagery taboos, text translation suggestions, cultural sensitivities
+- Shows a **"Cultural Insights"** panel alongside the existing AI Insights, with per-region recommendations
+- Allows selecting target markets (e.g., APAC, EMEA, LATAM) and getting localized caption/copy suggestions
+
+### 2. DataForce — Compliance & Validation Integration
+Wire the existing DataForce services into the studio:
+- **Brand Compliance**: Add a "Run DataForce Compliance" action that sends the uploaded asset + brand guide context through the `dataforce-compliance` edge function, surfacing compliance scores alongside the existing AI insights
+- **Cultural Validation Panel**: Add a "Submit for Validation" action that sends an asset to `dataforce-validation` for human cultural review across target regions, with status tracking (pending → completed)
+- **GenAI Content Generation**: Add a "Generate Caption" button per placement that uses `dataforce-training` to produce on-brand captions, hashtags, or copy for the specific platform and format
+
+### 3. UI Integration Points
 
 ```text
-approvedImagery: {
-  sections: [
-    { id, name, description, images: [{ id, url, thumbnailUrl, title, source, category, approvedBy, approvedAt }] }
-  ]
-}
+PlacementCard
+├── Upload / Preview / Approve (existing)
+├── AI Insights (existing: Bias, Brand, Quality, Text)
+├── NEW: GlobalLink Panel
+│   ├── Region selector (target markets)
+│   ├── Cultural adaptation insights per region
+│   └── Translated caption suggestions
+└── NEW: DataForce Actions
+    ├── Run Compliance Check (uses DataForceService)
+    ├── Submit for Cultural Validation (panel review)
+    └── Generate Caption (GenAI)
 ```
 
-Sub-sections are admin-configurable (e.g., "People", "Landscapes", "Product Shots", "Lifestyle", "Abstract/Textures").
+### 4. Technical Approach
+- Create `SocialGlobalLinkPanel.tsx` — collapsible panel with region selector, calling `globallink-cultural-adapt` with the asset context
+- Create `SocialDataForceActions.tsx` — action buttons + result display for compliance, validation, and caption generation
+- Wire both into `PlacementCard.tsx` below the existing `SocialAssetInsights`
+- Reuse existing hooks: `useCulturalValidation`, `useComplianceCheck`, and `DataForceService.generateContent()`
+- Pass `organizationId`, `entityId`, `entityType`, and `brandContext` (already available in PlacementCard props)
 
-### 3. Frontend Components
+### 5. Files to Create/Modify
+- **Create**: `src/components/social-studio/SocialGlobalLinkPanel.tsx`
+- **Create**: `src/components/social-studio/SocialDataForceActions.tsx`
+- **Modify**: `src/components/social-studio/PlacementCard.tsx` — add both new panels
+- **Modify**: `supabase/functions/globallink-cultural-adapt/index.ts` — add social-asset-specific context handling if needed
 
-**ShutterstockSearchDialog** (admin-only)
-- Search bar with filters (orientation, category, color, keyword)
-- Results grid with preview thumbnails
-- "Approve" button per image that downloads the licensed image and saves it to storage + the selected sub-section
-
-**ApprovedImagerySection** (new brand guide section)
-- Tabs or collapsible sub-sections for each imagery category
-- Grid display with density controls (reusing existing pattern)
-- Admin controls: add/remove sub-sections, reorder images, remove approved images
-- Read-only view for non-admins showing the curated collection
-
-### 4. Integration Points
-- New sidebar entry: "Approved Imagery" under the Assets category
-- Added to `FullBrandPage.tsx` section renderer
-- Added to `BrandSidebar.tsx` / `ReorderableBrandSidebar.tsx`
-- Type additions in `src/types/brand.ts`
-
-## Technical Details
-
-### Files to Create
-- `supabase/functions/shutterstock-search/index.ts` -- Edge function proxying Shutterstock API
-- `src/components/brand/approved-imagery/ApprovedImagerySection.tsx` -- Main section component
-- `src/components/brand/approved-imagery/ShutterstockSearchDialog.tsx` -- Search modal
-- `src/components/brand/approved-imagery/ImagerySubSection.tsx` -- Sub-section with grid
-
-### Files to Modify
-- `src/types/brand.ts` -- Add `ApprovedImagerySection`, `ApprovedImage` types, add field to `BrandGuideData`
-- `src/components/brand/FullBrandPage.tsx` -- Register new section
-- `src/components/brand/BrandSidebar.tsx` / `ReorderableBrandSidebar.tsx` -- Add sidebar entry
-- `supabase/config.toml` -- Register edge function with `verify_jwt = false`
-
-### Security
-- Shutterstock API key stored as a backend secret (never exposed to client)
-- Search endpoint gated by JWT + admin role check
-- Only admins can search, approve, or remove images
-- Non-admins see read-only approved gallery
-
-### Shutterstock API Flow
-1. Admin opens search dialog, enters query
-2. Frontend calls edge function with search params
-3. Edge function calls `https://api.shutterstock.com/v2/images/search` with API key
-4. Returns preview thumbnails (watermarked previews are free to display)
-5. On "Approve", the preview URL is saved to the sub-section (or optionally downloaded to storage for persistence)
-
-## Step-by-Step Implementation Order
-1. Request and store the Shutterstock API key as a secret
-2. Create the `shutterstock-search` edge function
-3. Add TypeScript types for approved imagery data
-4. Build the `ApprovedImagerySection` component with sub-sections
-5. Build the `ShutterstockSearchDialog` component
-6. Wire into the brand editor sidebar and section renderer
-7. Test end-to-end
