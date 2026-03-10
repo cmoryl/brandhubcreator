@@ -109,10 +109,27 @@ const SocialAssetStudio = () => {
     await approvePlacement(id, userEmail);
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <p className="text-muted-foreground text-lg">Please sign in to access the Social Asset Studio.</p>
+          <Button onClick={() => navigate('/auth')}>Sign In</Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!orgId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Please select an organization first.</p>
+        <div className="text-center space-y-4">
+          <p className="text-muted-foreground text-lg">No organization found.</p>
+          <p className="text-sm text-muted-foreground">Create or join an organization to manage social assets.</p>
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4 mr-2" /> Go Back
+          </Button>
+        </div>
       </div>
     );
   }
