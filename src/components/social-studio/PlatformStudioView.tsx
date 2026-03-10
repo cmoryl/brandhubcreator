@@ -24,6 +24,7 @@ import {
 } from '@/components/brand/social-mockups';
 import { PlacementCard } from './PlacementCard';
 import { ProfilePageMockup, DeviceMode } from './ProfilePageMockups';
+import { ProfileImagePicker } from './ProfileImagePicker';
 import { SocialAssetPlacement } from '@/hooks/useSocialAssetPlacements';
 
 type StudioFormat = 'feed' | 'story' | 'reel' | 'cover' | 'profile';
