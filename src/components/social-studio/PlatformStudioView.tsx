@@ -299,7 +299,7 @@ export const PlatformStudioView = ({
                         "transform origin-center",
                         (fmt === 'cover' || fmt === 'profile') && deviceMode === 'desktop' ? "scale-[0.75]" : "scale-90"
                       )}>
-                        {renderMockup(platform, fmt, sizes[0], mockupImage, brandName, deviceMode)}
+                        {renderMockup(platform, fmt, sizes[0], mockupImage, brandName, deviceMode, brandLogoUrl)}
                       </div>
                     </div>
                   </div>
