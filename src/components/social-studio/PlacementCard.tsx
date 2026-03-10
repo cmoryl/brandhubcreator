@@ -2,7 +2,7 @@
  * Individual placement slot card showing the mockup with upload capability
  */
 import { useState, useRef } from 'react';
-import { Upload, Check, MoreHorizontal, Trash2, Eye, Download, CheckCircle2, Clock, ImageIcon } from 'lucide-react';
+import { Upload, Check, MoreHorizontal, Trash2, Eye, Download, CheckCircle2, Clock, ImageIcon, BookMarked } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
