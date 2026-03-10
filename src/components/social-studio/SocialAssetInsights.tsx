@@ -143,6 +143,7 @@ export const SocialAssetInsights = ({ analysis, loading, onReanalyze }: SocialAs
               <ScoreBadge score={analysis.bias_score} label="Bias" />
               <ScoreBadge score={analysis.compliance_score} label="Brand" />
               <ScoreBadge score={analysis.content_quality_score} label="Quality" />
+              <ScoreBadge score={analysis.text_content_score} label="Text" />
             </div>
           </div>
           <div className="flex items-center gap-1">
