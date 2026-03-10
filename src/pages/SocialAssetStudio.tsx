@@ -33,7 +33,7 @@ const SocialAssetStudio = () => {
   const [selectedEntity, setSelectedEntity] = useState<EntityOption | null>(null);
   const [loadingEntities, setLoadingEntities] = useState(true);
 
-  const orgId = currentOrganization?.id;
+  const orgId = organization?.id;
 
   // Fetch brands, products, events for entity selector
   useEffect(() => {
