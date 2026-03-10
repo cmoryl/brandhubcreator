@@ -196,7 +196,8 @@ const LinkedInProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUr
 };
 
 // ─── X (Twitter) Profile ──────────────────────────────
-const TwitterProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const TwitterProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].tw;
   const isDesktop = d === 'desktop';
@@ -215,8 +216,8 @@ const TwitterProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, cla
         )}
         <div className={cn("absolute left-4", isDesktop ? "-bottom-12" : "-bottom-10")}>
           <div className={cn("rounded-full border-4 border-black overflow-hidden bg-gray-900", isDesktop ? "w-24 h-24" : "w-20 h-20")}>
-            {profileImageUrl ? (
-              <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+            {effectiveProfile ? (
+              <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gray-700 flex items-center justify-center text-gray-400"><User className="w-8 h-8" /></div>
             )}
