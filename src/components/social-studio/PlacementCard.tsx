@@ -23,6 +23,7 @@ interface PlacementCardProps {
   onApprove: () => void;
   onDelete: () => void;
   onPreview: () => void;
+  onSaveToGuide?: () => void;
   isAdmin: boolean;
 }
 
