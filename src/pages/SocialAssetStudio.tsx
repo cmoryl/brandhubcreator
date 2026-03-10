@@ -321,6 +321,7 @@ const SocialAssetStudio = () => {
               onUpload={handleUpload}
               onApprove={handleApprove}
               onDelete={deletePlacement}
+              onSaveToGuide={handleSaveToGuide}
             />
           )}
         </main>
