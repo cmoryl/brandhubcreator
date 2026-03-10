@@ -72,8 +72,8 @@ const InstagramProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageU
         <div className={cn("flex items-center", isDesktop ? "gap-8" : "gap-6")}>
           <div className={cn("rounded-full overflow-hidden bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 p-0.5 flex-shrink-0", isDesktop ? "w-28 h-28" : d === 'tablet' ? "w-24 h-24" : "w-20 h-20")}>
             <div className="w-full h-full rounded-full overflow-hidden bg-white p-0.5">
-              {profileImageUrl ? (
-                <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover rounded-full" />
+              {effectiveProfile ? (
+                <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover rounded-full" />
               ) : (
                 <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
                   <Camera className={cn(isDesktop ? "w-8 h-8" : "w-6 h-6")} />
