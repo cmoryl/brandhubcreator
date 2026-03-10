@@ -23,6 +23,7 @@ import {
   ThreadsMockup,
 } from '@/components/brand/social-mockups';
 import { PlacementCard } from './PlacementCard';
+import { ProfilePageMockup } from './ProfilePageMockups';
 import { SocialAssetPlacement } from '@/hooks/useSocialAssetPlacements';
 
 type StudioFormat = 'feed' | 'story' | 'reel' | 'cover' | 'profile';
