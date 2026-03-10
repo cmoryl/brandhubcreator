@@ -306,8 +306,8 @@ export const SocialDataForceActions = ({
               {compliance.result.issues.length > 0 && (
                 <div className="space-y-1.5">
                   {compliance.result.issues.slice(0, 5).map((issue, i) => {
-                    const Icon = issue.severity === 'critical' ? XCircle : issue.severity === 'major' ? AlertTriangle : CheckCircle2;
-                    const color = issue.severity === 'critical' ? 'text-destructive' : issue.severity === 'major' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+                    const Icon = issue.severity === 'critical' ? XCircle : issue.severity === 'warning' ? AlertTriangle : CheckCircle2;
+                    const color = issue.severity === 'critical' ? 'text-destructive' : issue.severity === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
                     return (
                       <div key={i} className="flex items-start gap-2 text-xs">
                         <Icon className={cn('h-3.5 w-3.5 mt-0.5 flex-shrink-0', color)} />

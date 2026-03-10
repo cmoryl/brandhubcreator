@@ -291,6 +291,32 @@ export const PlacementCard = ({
         />
       )}
 
+      {/* GlobalLink Cultural Adaptation */}
+      <SocialGlobalLinkPanel
+        organizationId={organizationId}
+        entityId={entityId}
+        entityType={entityType}
+        platform={platform}
+        format={format}
+        imageUrl={placement?.image_url || undefined}
+        brandContext={brandContext}
+        hasImage={hasImage}
+      />
+
+      {/* DataForce Compliance & GenAI */}
+      <SocialDataForceActions
+        organizationId={organizationId}
+        entityId={entityId}
+        entityType={entityType as 'brand' | 'product' | 'event'}
+        entityName={brandContext?.name || ''}
+        platform={platform}
+        format={format}
+        imageUrl={placement?.image_url || undefined}
+        brandContext={brandContext}
+        hasImage={hasImage}
+        isAdmin={isAdmin}
+      />
+
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
