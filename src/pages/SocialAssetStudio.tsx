@@ -74,9 +74,9 @@ const SocialAssetStudio = () => {
         };
 
         const all: EntityOption[] = [
-          ...(brandsRes.data || []).map(b => ({ id: b.id, name: b.name, type: 'brand' as const, logoUrl: extractLogo(b.guide_data) })),
-          ...(productsRes.data || []).map(p => ({ id: p.id, name: p.name, type: 'product' as const, logoUrl: extractLogo(p.guide_data) })),
-          ...(eventsRes.data || []).map(e => ({ id: e.id, name: e.name, type: 'event' as const, logoUrl: extractLogo(e.guide_data) })),
+          ...(brandsRes.data || []).map(b => ({ id: b.id, name: b.name, type: 'brand' as const, logoUrl: extractLogo(b.guide_data), guideData: b.guide_data as Record<string, any> })),
+          ...(productsRes.data || []).map(p => ({ id: p.id, name: p.name, type: 'product' as const, logoUrl: extractLogo(p.guide_data), guideData: p.guide_data as Record<string, any> })),
+          ...(eventsRes.data || []).map(e => ({ id: e.id, name: e.name, type: 'event' as const, logoUrl: extractLogo(e.guide_data), guideData: e.guide_data as Record<string, any> })),
         ];
         setEntities(all);
         if (all.length > 0 && !selectedEntity) {
