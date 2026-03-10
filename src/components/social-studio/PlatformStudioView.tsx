@@ -25,7 +25,9 @@ import {
 import { PlacementCard } from './PlacementCard';
 import { ProfilePageMockup, DeviceMode } from './ProfilePageMockups';
 import { ProfileImagePicker } from './ProfileImagePicker';
+import { TemplateLibrary } from './TemplateLibrary';
 import { SocialAssetPlacement } from '@/hooks/useSocialAssetPlacements';
+import { SocialTemplate } from '@/lib/socialTemplates';
 
 type StudioFormat = 'feed' | 'story' | 'reel' | 'cover' | 'profile';
 
