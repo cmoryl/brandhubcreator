@@ -263,6 +263,7 @@ Be specific and actionable in your findings. Score each dimension 0-100.`;
         const bias = parsed.bias || {};
         const compliance = parsed.compliance || {};
         const engagement = parsed.engagement || {};
+        const textContent = parsed.text_content || {};
 
         await supabase
           .from("social_asset_analyses")
@@ -285,6 +286,9 @@ Be specific and actionable in your findings. Score each dimension 0-100.`;
             optimal_posting_time: engagement.optimal_posting_time || null,
             engagement_factors: engagement.factors || [],
             content_quality_score: engagement.content_quality_score ?? null,
+            // Text Content
+            text_content_analysis: Object.keys(textContent).length > 0 ? textContent : null,
+            text_content_score: textContent.score ?? null,
             // Overall
             overall_score: parsed.overall_score ?? null,
             status: "completed",

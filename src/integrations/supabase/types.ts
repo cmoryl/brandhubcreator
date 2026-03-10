@@ -4830,6 +4830,8 @@ export type Database = {
           predicted_reach: string | null
           representation_analysis: Json | null
           status: string
+          text_content_analysis: Json | null
+          text_content_score: number | null
           typography_compliance: Json | null
           updated_at: string
         }
@@ -4861,6 +4863,8 @@ export type Database = {
           predicted_reach?: string | null
           representation_analysis?: Json | null
           status?: string
+          text_content_analysis?: Json | null
+          text_content_score?: number | null
           typography_compliance?: Json | null
           updated_at?: string
         }
@@ -4892,6 +4896,8 @@ export type Database = {
           predicted_reach?: string | null
           representation_analysis?: Json | null
           status?: string
+          text_content_analysis?: Json | null
+          text_content_score?: number | null
           typography_compliance?: Json | null
           updated_at?: string
         }
