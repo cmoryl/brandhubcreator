@@ -124,3 +124,6 @@ verify_jwt = false
 
 [functions.generate-character-sprite]
 verify_jwt = false
+
+[functions.analyze-social-asset]
+verify_jwt = false

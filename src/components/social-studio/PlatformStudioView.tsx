@@ -39,6 +39,17 @@ const formatConfig: { id: StudioFormat; label: string; icon: React.ElementType }
   { id: 'profile', label: 'Profile', icon: User },
 ];
 
+interface BrandContext {
+  name?: string;
+  colors?: Array<{ name: string; hex: string; role?: string }>;
+  typography?: Array<{ family: string; weight?: string; usage?: string }>;
+  archetype?: string;
+  industry?: string;
+  mission?: string;
+  values?: string[];
+  logos?: Array<{ url?: string; name?: string }>;
+}
+
 interface PlatformStudioViewProps {
   platform: SocialPlatform;
   placements: SocialAssetPlacement[];
@@ -48,6 +59,7 @@ interface PlatformStudioViewProps {
   brandName: string;
   brandLogoUrl?: string;
   isAdmin: boolean;
+  brandContext?: BrandContext;
   onUpload: (platform: string, format: string, sizeSpec: PlatformSizeSpec, imageUrl: string) => void;
   onApprove: (id: string) => void;
   onDelete: (id: string) => void;
@@ -176,6 +188,7 @@ export const PlatformStudioView = ({
   brandName,
   brandLogoUrl,
   isAdmin,
+  brandContext,
   onUpload,
   onApprove,
   onDelete,
@@ -393,6 +406,7 @@ export const PlatformStudioView = ({
                             sizeSpec={size}
                             placement={existingPlacement}
                             entityId={entityId}
+                            entityType={entityType}
                             organizationId={organizationId}
                             onUpload={(url) => onUpload(platform, fmt, size, url)}
                             onApprove={() => existingPlacement && onApprove(existingPlacement.id)}
@@ -400,6 +414,7 @@ export const PlatformStudioView = ({
                             onSaveToGuide={existingPlacement?.image_url && onSaveToGuide ? () => onSaveToGuide(platform, fmt, size, existingPlacement.image_url!) : undefined}
                             onPreview={() => {}}
                             isAdmin={isAdmin}
+                            brandContext={brandContext}
                           />
                         );
                       })}

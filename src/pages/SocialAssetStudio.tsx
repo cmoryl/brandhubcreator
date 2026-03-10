@@ -24,6 +24,18 @@ interface EntityOption {
   name: string;
   type: 'brand' | 'product' | 'event';
   logoUrl?: string;
+  guideData?: Record<string, any>;
+}
+
+interface BrandContext {
+  name?: string;
+  colors?: Array<{ name: string; hex: string; role?: string }>;
+  typography?: Array<{ family: string; weight?: string; usage?: string }>;
+  archetype?: string;
+  industry?: string;
+  mission?: string;
+  values?: string[];
+  logos?: Array<{ url?: string; name?: string }>;
 }
 
 const SocialAssetStudio = () => {
@@ -62,9 +74,9 @@ const SocialAssetStudio = () => {
         };
 
         const all: EntityOption[] = [
-          ...(brandsRes.data || []).map(b => ({ id: b.id, name: b.name, type: 'brand' as const, logoUrl: extractLogo(b.guide_data) })),
-          ...(productsRes.data || []).map(p => ({ id: p.id, name: p.name, type: 'product' as const, logoUrl: extractLogo(p.guide_data) })),
-          ...(eventsRes.data || []).map(e => ({ id: e.id, name: e.name, type: 'event' as const, logoUrl: extractLogo(e.guide_data) })),
+          ...(brandsRes.data || []).map(b => ({ id: b.id, name: b.name, type: 'brand' as const, logoUrl: extractLogo(b.guide_data), guideData: b.guide_data as Record<string, any> })),
+          ...(productsRes.data || []).map(p => ({ id: p.id, name: p.name, type: 'product' as const, logoUrl: extractLogo(p.guide_data), guideData: p.guide_data as Record<string, any> })),
+          ...(eventsRes.data || []).map(e => ({ id: e.id, name: e.name, type: 'event' as const, logoUrl: extractLogo(e.guide_data), guideData: e.guide_data as Record<string, any> })),
         ];
         setEntities(all);
         if (all.length > 0 && !selectedEntity) {
@@ -104,6 +116,22 @@ const SocialAssetStudio = () => {
   const totalWithAssets = placements.filter(p => p.image_url).length;
 
   const isAdmin = true; // TODO: wire to useGuideAdmin
+
+  // Extract brand context for AI analysis
+  const brandContext: BrandContext | undefined = useMemo(() => {
+    if (!selectedEntity?.guideData) return undefined;
+    const gd = selectedEntity.guideData;
+    return {
+      name: selectedEntity.name,
+      colors: Array.isArray(gd.colors) ? gd.colors.map((c: any) => ({ name: c.name || '', hex: c.hex || '', role: c.role })) : [],
+      typography: Array.isArray(gd.typography) ? gd.typography.map((t: any) => ({ family: t.fontFamily || t.family || '', weight: t.weight, usage: t.usage })) : [],
+      archetype: gd.identity?.archetype,
+      industry: gd.industry,
+      mission: gd.identity?.missionStatement,
+      values: Array.isArray(gd.values) ? gd.values.map((v: any) => v.text || v.name || String(v)).filter(Boolean) : [],
+      logos: Array.isArray(gd.logos) ? gd.logos.map((l: any) => ({ url: l.url || l.imageUrl, name: l.name })) : [],
+    };
+  }, [selectedEntity]);
 
   const handleUpload = async (platform: string, format: string, sizeSpec: PlatformSizeSpec, imageUrl: string) => {
     await upsertPlacement({
@@ -333,6 +361,7 @@ const SocialAssetStudio = () => {
               brandName={selectedEntity.name}
               brandLogoUrl={selectedEntity.logoUrl}
               isAdmin={isAdmin}
+              brandContext={brandContext}
               onUpload={handleUpload}
               onApprove={handleApprove}
               onDelete={deletePlacement}

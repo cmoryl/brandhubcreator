@@ -4801,6 +4801,117 @@ export type Database = {
           },
         ]
       }
+      social_asset_analyses: {
+        Row: {
+          accessibility_findings: Json | null
+          analyzed_at: string | null
+          bias_findings: Json | null
+          bias_score: number | null
+          color_compliance: Json | null
+          compliance_details: Json | null
+          compliance_score: number | null
+          content_quality_score: number | null
+          created_at: string
+          cultural_sensitivity: Json | null
+          engagement_factors: Json | null
+          entity_id: string
+          entity_type: string
+          error_message: string | null
+          format: string
+          id: string
+          image_url: string
+          logo_compliance: Json | null
+          optimal_posting_time: string | null
+          organization_id: string
+          overall_score: number | null
+          placement_id: string
+          platform: string
+          predicted_engagement_rate: number | null
+          predicted_reach: string | null
+          representation_analysis: Json | null
+          status: string
+          typography_compliance: Json | null
+          updated_at: string
+        }
+        Insert: {
+          accessibility_findings?: Json | null
+          analyzed_at?: string | null
+          bias_findings?: Json | null
+          bias_score?: number | null
+          color_compliance?: Json | null
+          compliance_details?: Json | null
+          compliance_score?: number | null
+          content_quality_score?: number | null
+          created_at?: string
+          cultural_sensitivity?: Json | null
+          engagement_factors?: Json | null
+          entity_id: string
+          entity_type?: string
+          error_message?: string | null
+          format: string
+          id?: string
+          image_url: string
+          logo_compliance?: Json | null
+          optimal_posting_time?: string | null
+          organization_id: string
+          overall_score?: number | null
+          placement_id: string
+          platform: string
+          predicted_engagement_rate?: number | null
+          predicted_reach?: string | null
+          representation_analysis?: Json | null
+          status?: string
+          typography_compliance?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          accessibility_findings?: Json | null
+          analyzed_at?: string | null
+          bias_findings?: Json | null
+          bias_score?: number | null
+          color_compliance?: Json | null
+          compliance_details?: Json | null
+          compliance_score?: number | null
+          content_quality_score?: number | null
+          created_at?: string
+          cultural_sensitivity?: Json | null
+          engagement_factors?: Json | null
+          entity_id?: string
+          entity_type?: string
+          error_message?: string | null
+          format?: string
+          id?: string
+          image_url?: string
+          logo_compliance?: Json | null
+          optimal_posting_time?: string | null
+          organization_id?: string
+          overall_score?: number | null
+          placement_id?: string
+          platform?: string
+          predicted_engagement_rate?: number | null
+          predicted_reach?: string | null
+          representation_analysis?: Json | null
+          status?: string
+          typography_compliance?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_asset_analyses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_asset_analyses_placement_id_fkey"
+            columns: ["placement_id"]
+            isOneToOne: false
+            referencedRelation: "social_asset_placements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_asset_placements: {
         Row: {
           approved_at: string | null
