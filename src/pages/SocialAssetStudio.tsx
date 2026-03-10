@@ -16,6 +16,7 @@ import { PlatformNav } from '@/components/social-studio/PlatformNav';
 import { PlatformStudioView } from '@/components/social-studio/PlatformStudioView';
 import { SocialPlatform, PlatformSizeSpec } from '@/components/brand/social-mockups/types';
 import { logger } from '@/lib/logger';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface EntityOption {
