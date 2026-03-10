@@ -117,7 +117,7 @@ function getAvailableFormats(platform: SocialPlatform): StudioFormat[] {
   return formats;
 }
 
-const renderMockup = (platform: SocialPlatform, format: string, sizeSpec: PlatformSizeSpec, imageUrl?: string, brandName?: string, deviceMode?: DeviceMode) => {
+const renderMockup = (platform: SocialPlatform, format: string, sizeSpec: PlatformSizeSpec, imageUrl?: string, brandName?: string, deviceMode?: DeviceMode, brandLogoUrl?: string) => {
   const handle = (brandName || 'Brand').toLowerCase().replace(/\s+/g, '');
   
   // For cover/profile formats, render the full profile page mockup
@@ -130,11 +130,12 @@ const renderMockup = (platform: SocialPlatform, format: string, sizeSpec: Platfo
       <ProfilePageMockup
         platform={platform}
         coverImageUrl={isCover ? imageUrl : undefined}
-        profileImageUrl={!isCover ? imageUrl : undefined}
+        profileImageUrl={!isCover ? imageUrl : brandLogoUrl}
         brandName={brandName || 'Brand'}
         handle={handle}
         sizeSpec={sizeSpec}
         deviceMode={deviceMode || 'desktop'}
+        defaultProfileImageUrl={brandLogoUrl}
       />
     );
   }
