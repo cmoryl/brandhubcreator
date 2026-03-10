@@ -145,6 +145,7 @@ const renderMockup = (platform: SocialPlatform, format: string, sizeSpec: Platfo
   const mockupFormat = format;
   const props = {
     imageUrl,
+    profileImageUrl: brandLogoUrl,
     brandName: brandName || 'Brand',
     handle,
     format: mockupFormat as any,
