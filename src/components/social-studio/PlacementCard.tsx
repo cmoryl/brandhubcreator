@@ -196,6 +196,16 @@ export const PlacementCard = ({
         <p className="px-3 pb-2 text-xs text-muted-foreground">{sizeSpec.description}</p>
       )}
 
+      {/* Asset analytics panel */}
+      {hasImage && placement?.image_url && (
+        <AssetAnalytics
+          imageUrl={placement.image_url}
+          platform={platform}
+          format={format}
+          sizeSpec={sizeSpec}
+        />
+      )}
+
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
