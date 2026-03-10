@@ -168,6 +168,7 @@ export const PlatformStudioView = ({
   platform,
   placements,
   entityId,
+  entityType,
   organizationId,
   brandName,
   brandLogoUrl,
@@ -180,6 +181,10 @@ export const PlatformStudioView = ({
   const config = platformConfigs[platform];
   const availableFormats = useMemo(() => getAvailableFormats(platform), [platform]);
   const [activeFormat, setActiveFormat] = useState<StudioFormat>('feed');
+  const [customProfileImage, setCustomProfileImage] = useState<string | undefined>(undefined);
+  
+  // Use custom profile image if set, otherwise fall back to brand logo
+  const effectiveProfileImage = customProfileImage || brandLogoUrl;
   const [previewSize, setPreviewSize] = useState<PlatformSizeSpec | null>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
 
