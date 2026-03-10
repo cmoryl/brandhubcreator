@@ -41,6 +41,7 @@ interface PlatformStudioViewProps {
   platform: SocialPlatform;
   placements: SocialAssetPlacement[];
   entityId: string;
+  entityType: 'brand' | 'product' | 'event';
   organizationId: string;
   brandName: string;
   brandLogoUrl?: string;
