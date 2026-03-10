@@ -398,7 +398,7 @@ export const PlatformStudioView = ({
                             onApprove={() => existingPlacement && onApprove(existingPlacement.id)}
                             onDelete={() => existingPlacement && onDelete(existingPlacement.id)}
                             onSaveToGuide={existingPlacement?.image_url && onSaveToGuide ? () => onSaveToGuide(platform, fmt, size, existingPlacement.image_url!) : undefined}
-                            onPreview={() => setPreviewSize(size)}
+                            onPreview={() => {}}
                             isAdmin={isAdmin}
                           />
                         );
