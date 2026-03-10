@@ -23,6 +23,7 @@ import {
   ThreadsMockup,
 } from '@/components/brand/social-mockups';
 import { PlacementCard } from './PlacementCard';
+import { ProfilePageMockup } from './ProfilePageMockups';
 import { SocialAssetPlacement } from '@/hooks/useSocialAssetPlacements';
 
 type StudioFormat = 'feed' | 'story' | 'reel' | 'cover' | 'profile';
@@ -116,7 +117,26 @@ function getAvailableFormats(platform: SocialPlatform): StudioFormat[] {
 
 const renderMockup = (platform: SocialPlatform, format: string, sizeSpec: PlatformSizeSpec, imageUrl?: string, brandName?: string) => {
   const handle = (brandName || 'Brand').toLowerCase().replace(/\s+/g, '');
-  const mockupFormat = (format === 'cover' || format === 'profile') ? 'feed' : format;
+  
+  // For cover/profile formats, render the full profile page mockup
+  if (format === 'cover' || format === 'profile') {
+    const isCover = sizeSpec?.name?.toLowerCase().includes('cover') || 
+                    sizeSpec?.name?.toLowerCase().includes('banner') || 
+                    sizeSpec?.name?.toLowerCase().includes('header') ||
+                    sizeSpec?.name?.toLowerCase().includes('channel');
+    return (
+      <ProfilePageMockup
+        platform={platform}
+        coverImageUrl={isCover ? imageUrl : undefined}
+        profileImageUrl={!isCover ? imageUrl : undefined}
+        brandName={brandName || 'Brand'}
+        handle={handle}
+        sizeSpec={sizeSpec}
+      />
+    );
+  }
+
+  const mockupFormat = format;
   const props = {
     imageUrl,
     brandName: brandName || 'Brand',
