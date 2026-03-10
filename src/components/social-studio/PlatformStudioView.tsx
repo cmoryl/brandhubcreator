@@ -1,7 +1,7 @@
 /**
  * Main studio view for a selected platform - shows realistic mockup + placement grid
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Tv, Smartphone, Film, LayoutGrid, Image as ImageIcon, User, Monitor, Tablet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -188,9 +188,13 @@ export const PlatformStudioView = ({
   
   // Use custom profile image if set, otherwise fall back to brand logo
   const effectiveProfileImage = customProfileImage || brandLogoUrl;
-  const [previewSize, setPreviewSize] = useState<PlatformSizeSpec | null>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
   const [selectedTemplate, setSelectedTemplate] = useState<SocialTemplate | null>(null);
+
+  // Clear template selection when platform or format changes
+  useEffect(() => {
+    setSelectedTemplate(null);
+  }, [platform, activeFormat]);
 
   const currentSizes = useMemo(() => getSizesForFormat(platform, activeFormat), [platform, activeFormat]);
   
@@ -305,13 +309,59 @@ export const PlatformStudioView = ({
                         </div>
                       )}
                     </div>
-                    <div className="flex justify-center p-6 bg-muted/30 rounded-2xl border border-border/50 overflow-x-auto">
+                    <div className="relative flex justify-center p-6 bg-muted/30 rounded-2xl border border-border/50 overflow-x-auto">
                       <div className={cn(
                         "transform origin-center",
                         (fmt === 'cover' || fmt === 'profile') && deviceMode === 'desktop' ? "scale-[0.75]" : "scale-90"
                       )}>
                         {renderMockup(platform, fmt, sizes[0], mockupImage, brandName, deviceMode, effectiveProfileImage)}
                       </div>
+                      {/* Template overlay on live preview */}
+                      {selectedTemplate && (
+                        <div className="absolute inset-6 pointer-events-none z-10 rounded-xl overflow-hidden">
+                          <div className="relative w-full h-full">
+                            {selectedTemplate.zones.map((zone, i) => {
+                              const zoneTypeColors: Record<string, string> = {
+                                image: 'border-sky-500/60 bg-sky-500/10',
+                                text: 'border-violet-500/60 bg-violet-500/10',
+                                logo: 'border-emerald-500/60 bg-emerald-500/10',
+                                cta: 'border-amber-500/60 bg-amber-500/10',
+                              };
+                              const zoneLabelColors: Record<string, string> = {
+                                image: 'text-sky-600 dark:text-sky-300',
+                                text: 'text-violet-600 dark:text-violet-300',
+                                logo: 'text-emerald-600 dark:text-emerald-300',
+                                cta: 'text-amber-600 dark:text-amber-300',
+                              };
+                              return (
+                                <div
+                                  key={i}
+                                  className={cn(
+                                    'absolute border-2 border-dashed rounded flex items-center justify-center',
+                                    zoneTypeColors[zone.type] || 'border-border bg-muted/20',
+                                  )}
+                                  style={{
+                                    left: `${zone.x}%`,
+                                    top: `${zone.y}%`,
+                                    width: `${zone.width}%`,
+                                    height: `${zone.height}%`,
+                                  }}
+                                >
+                                  <span className={cn(
+                                    'text-[10px] font-semibold text-center px-1 truncate drop-shadow-sm',
+                                    zoneLabelColors[zone.type] || 'text-muted-foreground',
+                                  )}>
+                                    {zone.label}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div className="absolute bottom-2 left-2 bg-background/90 backdrop-blur-sm text-xs font-medium px-2 py-1 rounded-md border border-border shadow-sm">
+                            Template: {selectedTemplate.name}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -348,7 +398,7 @@ export const PlatformStudioView = ({
                             onApprove={() => existingPlacement && onApprove(existingPlacement.id)}
                             onDelete={() => existingPlacement && onDelete(existingPlacement.id)}
                             onSaveToGuide={existingPlacement?.image_url && onSaveToGuide ? () => onSaveToGuide(platform, fmt, size, existingPlacement.image_url!) : undefined}
-                            onPreview={() => setPreviewSize(size)}
+                            onPreview={() => {}}
                             isAdmin={isAdmin}
                           />
                         );
