@@ -4,7 +4,7 @@
  */
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, LayoutGrid, CheckCircle2, Clock, Image as ImageIcon, Palette } from 'lucide-react';
+import { ArrowLeft, LayoutGrid, CheckCircle2, Clock, Image as ImageIcon, Palette, BookMarked } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
