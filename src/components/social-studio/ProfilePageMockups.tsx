@@ -459,7 +459,8 @@ const TikTokProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl,
 };
 
 // ─── Pinterest Profile ──────────────────────────────
-const PinterestProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+const PinterestProfile = ({ coverImageUrl, profileImageUrl, defaultProfileImageUrl, brandName, handle, className, deviceMode = 'mobile' }: ProfilePageMockupProps) => {
+  const effectiveProfile = resolveProfileImg(profileImageUrl, defaultProfileImageUrl);
   const d = deviceMode;
   const w = deviceWidths[d].pi;
   const isDesktop = d === 'desktop';
@@ -469,8 +470,8 @@ const PinterestProfile = ({ coverImageUrl, profileImageUrl, brandName, handle, c
       {/* Profile section */}
       <div className={cn("flex flex-col items-center pb-4 px-6", isDesktop ? "pt-8" : "pt-6")}>
         <div className={cn("rounded-full overflow-hidden bg-gray-200", isDesktop ? "w-28 h-28" : "w-24 h-24")}>
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={brandName} className="w-full h-full object-cover" />
+          {effectiveProfile ? (
+            <img src={effectiveProfile} alt={brandName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-[#E60023] flex items-center justify-center text-white font-bold text-2xl">
               {brandName.charAt(0)}
