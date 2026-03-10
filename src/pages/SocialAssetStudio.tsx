@@ -328,6 +328,7 @@ const SocialAssetStudio = () => {
               platform={selectedPlatform}
               placements={placements}
               entityId={selectedEntity.id}
+              entityType={selectedEntity.type}
               organizationId={orgId}
               brandName={selectedEntity.name}
               brandLogoUrl={selectedEntity.logoUrl}

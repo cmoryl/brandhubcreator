@@ -24,6 +24,7 @@ import {
 } from '@/components/brand/social-mockups';
 import { PlacementCard } from './PlacementCard';
 import { ProfilePageMockup, DeviceMode } from './ProfilePageMockups';
+import { ProfileImagePicker } from './ProfileImagePicker';
 import { SocialAssetPlacement } from '@/hooks/useSocialAssetPlacements';
 
 type StudioFormat = 'feed' | 'story' | 'reel' | 'cover' | 'profile';
@@ -40,6 +41,7 @@ interface PlatformStudioViewProps {
   platform: SocialPlatform;
   placements: SocialAssetPlacement[];
   entityId: string;
+  entityType: 'brand' | 'product' | 'event';
   organizationId: string;
   brandName: string;
   brandLogoUrl?: string;
@@ -166,6 +168,7 @@ export const PlatformStudioView = ({
   platform,
   placements,
   entityId,
+  entityType,
   organizationId,
   brandName,
   brandLogoUrl,
@@ -178,6 +181,10 @@ export const PlatformStudioView = ({
   const config = platformConfigs[platform];
   const availableFormats = useMemo(() => getAvailableFormats(platform), [platform]);
   const [activeFormat, setActiveFormat] = useState<StudioFormat>('feed');
+  const [customProfileImage, setCustomProfileImage] = useState<string | undefined>(undefined);
+  
+  // Use custom profile image if set, otherwise fall back to brand logo
+  const effectiveProfileImage = customProfileImage || brandLogoUrl;
   const [previewSize, setPreviewSize] = useState<PlatformSizeSpec | null>(null);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
 
@@ -209,14 +216,14 @@ export const PlatformStudioView = ({
       {/* Platform header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
-            style={{
-              background: `linear-gradient(135deg, ${config.primaryColor}, ${config.secondaryColor})`,
-            }}
-          >
-            <span className="text-white text-2xl font-bold">{platform.charAt(0)}</span>
-          </div>
+          <ProfileImagePicker
+            currentImage={customProfileImage}
+            brandLogoUrl={brandLogoUrl}
+            entityId={entityId}
+            entityType={entityType}
+            organizationId={organizationId}
+            onSelect={setCustomProfileImage}
+          />
           <div>
             <h2 className="text-2xl font-bold">{platform}</h2>
             <p className="text-sm text-muted-foreground">
@@ -299,7 +306,7 @@ export const PlatformStudioView = ({
                         "transform origin-center",
                         (fmt === 'cover' || fmt === 'profile') && deviceMode === 'desktop' ? "scale-[0.75]" : "scale-90"
                       )}>
-                        {renderMockup(platform, fmt, sizes[0], mockupImage, brandName, deviceMode, brandLogoUrl)}
+                        {renderMockup(platform, fmt, sizes[0], mockupImage, brandName, deviceMode, effectiveProfileImage)}
                       </div>
                     </div>
                   </div>
