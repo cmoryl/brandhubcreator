@@ -1,7 +1,7 @@
 /**
  * Main studio view for a selected platform - shows realistic mockup + placement grid
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Tv, Smartphone, Film, LayoutGrid, Image as ImageIcon, User, Monitor, Tablet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
