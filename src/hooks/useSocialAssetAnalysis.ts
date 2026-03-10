@@ -30,6 +30,9 @@ export interface SocialAssetAnalysis {
   optimal_posting_time: string | null;
   engagement_factors: any[];
   content_quality_score: number | null;
+  // Text Content
+  text_content_analysis: any;
+  text_content_score: number | null;
   // Overall
   overall_score: number | null;
   status: 'pending' | 'analyzing' | 'completed' | 'failed';
@@ -149,6 +152,8 @@ export const useSocialAssetAnalysis = (placementId?: string) => {
           optimal_posting_time: null,
           engagement_factors: [],
           content_quality_score: null,
+          text_content_analysis: null,
+          text_content_score: null,
           overall_score: null,
           error_message: null,
           analyzed_at: null,

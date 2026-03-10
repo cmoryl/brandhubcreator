@@ -6,6 +6,7 @@ import { useState } from 'react';
 import {
   ChevronDown, ChevronUp, RefreshCw, Shield, Eye, TrendingUp,
   AlertTriangle, CheckCircle2, XCircle, Clock, Sparkles, BarChart3,
+  Type, FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -78,7 +79,7 @@ const EngagementFactor = ({ factor }: { factor: any }) => {
 
 export const SocialAssetInsights = ({ analysis, loading, onReanalyze }: SocialAssetInsightsProps) => {
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'bias' | 'compliance' | 'engagement'>('bias');
+  const [activeTab, setActiveTab] = useState<'bias' | 'compliance' | 'engagement' | 'text'>('bias');
 
   if (!analysis && !loading) return null;
 
@@ -121,6 +122,7 @@ export const SocialAssetInsights = ({ analysis, loading, onReanalyze }: SocialAs
     { id: 'bias' as const, label: 'Bias & Inclusion', icon: Shield, score: analysis.bias_score },
     { id: 'compliance' as const, label: 'Compliance', icon: CheckCircle2, score: analysis.compliance_score },
     { id: 'engagement' as const, label: 'Engagement', icon: BarChart3, score: analysis.content_quality_score },
+    { id: 'text' as const, label: 'Text & Content', icon: Type, score: analysis.text_content_score },
   ];
 
   return (
@@ -141,6 +143,7 @@ export const SocialAssetInsights = ({ analysis, loading, onReanalyze }: SocialAs
               <ScoreBadge score={analysis.bias_score} label="Bias" />
               <ScoreBadge score={analysis.compliance_score} label="Brand" />
               <ScoreBadge score={analysis.content_quality_score} label="Quality" />
+              <ScoreBadge score={analysis.text_content_score} label="Text" />
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -348,6 +351,140 @@ export const SocialAssetInsights = ({ analysis, loading, onReanalyze }: SocialAs
                   {analysis.engagement_factors.map((f, i) => <EngagementFactor key={i} factor={f} />)}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Text & Content Tab */}
+          {activeTab === 'text' && (
+            <div className="space-y-2.5">
+              {(() => {
+                const tc = analysis.text_content_analysis;
+                if (!tc) return (
+                  <p className="text-xs text-muted-foreground italic">No text content analysis available. Re-analyze to generate.</p>
+                );
+
+                return (
+                  <>
+                    {/* Detected text */}
+                    {tc.detected_text && (
+                      <div className="space-y-1">
+                        <span className="text-xs font-medium">Detected Text</span>
+                        <p className="text-xs text-muted-foreground bg-muted/50 rounded-md px-2.5 py-1.5 border border-border/50 whitespace-pre-wrap">
+                          {tc.detected_text}
+                        </p>
+                      </div>
+                    )}
+
+                    {!tc.text_present && (
+                      <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-md px-2.5 py-1.5">
+                        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-muted-foreground">No text detected on this asset</span>
+                      </div>
+                    )}
+
+                    {tc.text_present && (
+                      <>
+                        {/* Quick metrics */}
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="bg-muted/50 rounded-lg p-2 text-center">
+                            <p className="text-lg font-bold text-primary">{tc.character_count ?? '—'}</p>
+                            <p className="text-[10px] text-muted-foreground">Characters</p>
+                            {tc.platform_limit && (
+                              <p className={cn('text-[10px] font-medium', tc.exceeds_limit ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400')}>
+                                {tc.exceeds_limit ? `Over ${tc.platform_limit}` : `Within ${tc.platform_limit}`}
+                              </p>
+                            )}
+                          </div>
+                          <div className="bg-muted/50 rounded-lg p-2 text-center">
+                            <p className={cn('text-lg font-bold', tc.ratio_compliant ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive')}>
+                              {tc.text_to_image_ratio ?? '—'}%
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">Text Ratio</p>
+                            <p className={cn('text-[10px] font-medium', tc.ratio_compliant ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400')}>
+                              {tc.ratio_compliant ? '≤20% ✓' : '>20% ⚠'}
+                            </p>
+                          </div>
+                          {tc.readability?.clarity_score != null && (
+                            <div className="bg-muted/50 rounded-lg p-2 text-center">
+                              <p className="text-lg font-bold text-primary">{tc.readability.clarity_score}</p>
+                              <p className="text-[10px] text-muted-foreground">Clarity</p>
+                              {tc.readability.grade_level && (
+                                <p className="text-[10px] text-muted-foreground">{tc.readability.grade_level}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* WCAG Contrast */}
+                        {tc.wcag_contrast && (
+                          <div className="space-y-1">
+                            <span className="text-xs font-medium">WCAG Contrast</span>
+                            <div className="flex gap-2 text-xs flex-wrap">
+                              <Badge variant="outline" className={cn('text-[10px]', tc.wcag_contrast.passes_aa ? 'border-emerald-500/50 text-emerald-600 dark:text-emerald-400' : 'border-destructive/50 text-destructive')}>
+                                AA (4.5:1): {tc.wcag_contrast.passes_aa ? '✓ Pass' : '✗ Fail'}
+                              </Badge>
+                              <Badge variant="outline" className={cn('text-[10px]', tc.wcag_contrast.passes_aaa ? 'border-emerald-500/50 text-emerald-600 dark:text-emerald-400' : 'border-amber-500/50 text-amber-600 dark:text-amber-400')}>
+                                AAA (7:1): {tc.wcag_contrast.passes_aaa ? '✓ Pass' : '✗ Fail'}
+                              </Badge>
+                              {tc.wcag_contrast.estimated_ratio && (
+                                <Badge variant="outline" className="text-[10px]">
+                                  Est. {tc.wcag_contrast.estimated_ratio}
+                                </Badge>
+                              )}
+                            </div>
+                            {Array.isArray(tc.wcag_contrast.findings) && tc.wcag_contrast.findings.map((f: string, i: number) => (
+                              <p key={i} className="text-xs text-muted-foreground pl-2 border-l-2 border-border">{f}</p>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Readability */}
+                        {tc.readability && (
+                          <div className="space-y-1">
+                            <span className="text-xs font-medium">Readability & Grammar</span>
+                            {tc.readability.tone_alignment && (
+                              <p className="text-xs text-muted-foreground pl-2 border-l-2 border-primary/30">
+                                <strong>Tone:</strong> {tc.readability.tone_alignment}
+                              </p>
+                            )}
+                            {Array.isArray(tc.readability.spelling_issues) && tc.readability.spelling_issues.length > 0 && (
+                              <div className="space-y-0.5">
+                                {tc.readability.spelling_issues.map((issue: string, i: number) => (
+                                  <div key={i} className="flex items-center gap-1.5 text-xs">
+                                    <XCircle className="h-3 w-3 text-destructive flex-shrink-0" />
+                                    <span className="text-destructive">{issue}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {Array.isArray(tc.readability.grammar_issues) && tc.readability.grammar_issues.length > 0 && (
+                              <div className="space-y-0.5">
+                                {tc.readability.grammar_issues.map((issue: string, i: number) => (
+                                  <div key={i} className="flex items-center gap-1.5 text-xs">
+                                    <AlertTriangle className="h-3 w-3 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                                    <span>{issue}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {Array.isArray(tc.readability.findings) && tc.readability.findings.map((f: string, i: number) => (
+                              <p key={i} className="text-xs text-muted-foreground pl-2 border-l-2 border-border">{f}</p>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Findings */}
+                        {Array.isArray(tc.findings) && tc.findings.length > 0 && (
+                          <div className="space-y-1.5">
+                            <span className="text-xs font-medium">Text Findings</span>
+                            {tc.findings.map((f: any, i: number) => <FindingItem key={i} finding={f} />)}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
 
