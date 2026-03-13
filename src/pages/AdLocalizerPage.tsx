@@ -2,11 +2,14 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Globe, Image as ImageIcon, Download, RefreshCw, Loader2, Sparkles,
-  ChevronDown, Upload, X, Check, Layers, Languages, Zap, FileArchive, Eye, ArrowLeft, Info
+  ChevronDown, Upload, X, Check, Layers, Languages, Zap, FileArchive, Eye, ArrowLeft, 
+  ShieldCheck, MessageSquare, Save, Bookmark
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import JSZip from 'jszip';
+import { supabase } from '@/integrations/supabase/client';
 import { useAdLocalizer } from '@/hooks/useAdLocalizer';
+import AdLocalizerMarketPanel from '@/components/ad-localizer/AdLocalizerMarketPanel';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -46,7 +49,11 @@ const COUNTRIES = [
 
 export default function AdLocalizerPage() {
   const navigate = useNavigate();
-  const { analysis, isAnalyzing, results, isGenerating, analyzeImage, generateForMarkets, reset, setResults } = useAdLocalizer();
+  const { 
+    analysis, isAnalyzing, results, isGenerating, brandContext,
+    analyzeImage, generateForMarkets, generateCaption, runComplianceCheck, 
+    saveAsset, loadBrandContext, reset, setResults 
+  } = useAdLocalizer();
 
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [uploadedReference, setUploadedReference] = useState<string | null>(null);
@@ -58,12 +65,38 @@ export default function AdLocalizerPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'comparison'>('grid');
   const [activeComparisonIndex, setActiveComparisonIndex] = useState(0);
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState<string>('');
+  const [brandSearchQuery, setBrandSearchQuery] = useState('');
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Load available brands
+  useEffect(() => {
+    const loadBrands = async () => {
+      const { data } = await supabase
+        .from('brands')
+        .select('id, name')
+        .order('name');
+      if (data) setBrands(data);
+    };
+    loadBrands();
+  }, []);
+
+  // Load brand context when selected
+  useEffect(() => {
+    if (selectedBrandId) {
+      loadBrandContext(selectedBrandId);
+    }
+  }, [selectedBrandId, loadBrandContext]);
+
   const filteredCountries = COUNTRIES.filter(c =>
     c.toLowerCase().includes(countrySearch.toLowerCase()) && !selectedMarkets.includes(c)
+  );
+
+  const filteredBrands = brands.filter(b =>
+    b.name.toLowerCase().includes(brandSearchQuery.toLowerCase())
   );
 
   useEffect(() => {
@@ -280,9 +313,59 @@ export default function AdLocalizerPage() {
             )}
           </section>
 
-          {/* Step 3: Settings */}
+          {/* Step 3: Brand Context */}
           <section>
-            <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground block mb-4">03. Configuration</label>
+            <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground block mb-4">03. Brand Context</label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search brands..."
+                value={brandSearchQuery}
+                onChange={(e) => setBrandSearchQuery(e.target.value)}
+                className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+              />
+              {brandSearchQuery && filteredBrands.length > 0 && (
+                <div className="absolute z-50 w-full mt-2 bg-popover border border-border rounded-xl shadow-xl max-h-36 overflow-y-auto">
+                  {filteredBrands.slice(0, 10).map(b => (
+                    <button
+                      key={b.id}
+                      onClick={() => { setSelectedBrandId(b.id); setBrandSearchQuery(''); }}
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-accent transition-colors"
+                    >
+                      {b.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {brandContext && (
+              <div className="mt-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">{brandContext.brandName}</p>
+                    <p className="text-[9px] text-muted-foreground">
+                      {[brandContext.archetype, brandContext.industry].filter(Boolean).join(' · ') || 'Brand loaded'}
+                    </p>
+                  </div>
+                  <button onClick={() => { setSelectedBrandId(''); }} className="text-muted-foreground hover:text-destructive">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+                {brandContext.colors && brandContext.colors.length > 0 && (
+                  <div className="flex gap-1 mt-2">
+                    {brandContext.colors.slice(0, 6).map((c, i) => (
+                      <div key={i} className="w-4 h-4 rounded-full border border-border" style={{ backgroundColor: c.hex }} title={c.name} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            <p className="text-[9px] text-muted-foreground/60 mt-2">Optional — enriches prompts with brand identity & enables compliance, captions, and saving.</p>
+          </section>
+
+          {/* Step 4: Settings */}
+          <section>
+            <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground block mb-4">04. Configuration</label>
 
             <div className="space-y-4">
               <div>
@@ -319,11 +402,50 @@ export default function AdLocalizerPage() {
                 </div>
                 <div className="text-left">
                   <p className="text-xs font-semibold">Cultural Adaptation</p>
-                  <p className="text-[10px] text-muted-foreground">Adjust visuals for local markets</p>
+                  <p className="text-[10px] text-muted-foreground">GlobalLink-powered visual & text adaptation</p>
                 </div>
               </button>
             </div>
           </section>
+
+          {/* Bulk Actions (post-generation) */}
+          {results.some(r => r.image) && brandContext && (
+            <section>
+              <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted-foreground block mb-3">Bulk Actions</label>
+              <div className="space-y-2">
+                <button
+                  onClick={() => results.filter(r => r.image && !r.compliance).forEach(r => runComplianceCheck(r.market))}
+                  className="w-full flex items-center gap-2 p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+                >
+                  <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-[10px] font-bold">Run All Compliance</p>
+                    <p className="text-[9px] text-muted-foreground">DataForce brand compliance scan</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => results.filter(r => r.image && !r.caption).forEach(r => generateCaption(r.market))}
+                  className="w-full flex items-center gap-2 p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+                >
+                  <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-[10px] font-bold">Generate All Captions</p>
+                    <p className="text-[9px] text-muted-foreground">GenAI platform-specific copy</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => results.filter(r => r.image && !r.saved).forEach(r => saveAsset(r.market))}
+                  className="w-full flex items-center gap-2 p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+                >
+                  <Save className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-[10px] font-bold">Save All to Library</p>
+                    <p className="text-[9px] text-muted-foreground">Persist assets + audit trail</p>
+                  </div>
+                </button>
+              </div>
+            </section>
+          )}
         </div>
 
         {/* Generate Button */}
@@ -457,38 +579,14 @@ export default function AdLocalizerPage() {
                         )}
                       </div>
 
-                      {/* GlobalLink Cultural Insights */}
-                      {res.culturalInsights && (
-                        <div className="p-3 border-t border-border bg-muted/30">
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <Globe className="w-3 h-3 text-primary" />
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-primary">GlobalLink Insights</span>
-                          </div>
-                          <div className="space-y-1">
-                            {res.culturalInsights.color_notes && (
-                              <p className="text-[9px] text-muted-foreground line-clamp-2">
-                                <span className="font-semibold text-foreground">Colors:</span> {res.culturalInsights.color_notes}
-                              </p>
-                            )}
-                            {res.culturalInsights.imagery_notes && (
-                              <p className="text-[9px] text-muted-foreground line-clamp-2">
-                                <span className="font-semibold text-foreground">Imagery:</span> {res.culturalInsights.imagery_notes}
-                              </p>
-                            )}
-                            {res.culturalInsights.taboos && (
-                              <p className="text-[9px] text-muted-foreground line-clamp-2">
-                                <span className="font-semibold text-foreground">Avoid:</span> {res.culturalInsights.taboos}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      {res.insightsLoading && (
-                        <div className="p-3 border-t border-border bg-muted/30 flex items-center gap-2">
-                          <Loader2 className="w-3 h-3 animate-spin text-primary" />
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Loading GlobalLink insights...</span>
-                        </div>
-                      )}
+                      {/* Integrated Intelligence Panel */}
+                      <AdLocalizerMarketPanel
+                        result={res}
+                        brandContext={brandContext}
+                        onGenerateCaption={generateCaption}
+                        onRunCompliance={runComplianceCheck}
+                        onSaveAsset={saveAsset}
+                      />
                     </motion.div>
                   ))}
                 </AnimatePresence>

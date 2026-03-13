@@ -156,10 +156,18 @@ async function handleGenerate(
       taboos?: string;
       adaptation_summary?: string;
     } | null;
+    brandContext?: {
+      name?: string;
+      colors?: { name: string; hex: string }[];
+      archetype?: string;
+      voiceTone?: string;
+      industry?: string;
+      tagline?: string;
+    } | null;
   },
   apiKey: string
 ) {
-  const { imageBase64, market, aspectRatio = '16:9', culturalAdaptation = false, analysis, globalLinkInsights } = body;
+  const { imageBase64, market, aspectRatio = '16:9', culturalAdaptation = false, analysis, globalLinkInsights, brandContext } = body;
 
   if (!imageBase64 || !market) {
     return new Response(
@@ -167,6 +175,16 @@ async function handleGenerate(
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
+
+  // Build brand context block
+  const brandBlock = brandContext ? `
+       Brand Identity:
+       ${brandContext.name ? `- Brand: ${brandContext.name}` : ''}
+       ${brandContext.archetype ? `- Archetype: ${brandContext.archetype}` : ''}
+       ${brandContext.voiceTone ? `- Voice: ${brandContext.voiceTone}` : ''}
+       ${brandContext.industry ? `- Industry: ${brandContext.industry}` : ''}
+       ${brandContext.tagline ? `- Tagline: ${brandContext.tagline}` : ''}
+       ${brandContext.colors?.length ? `- Brand Colors: ${brandContext.colors.map(c => `${c.name} (${c.hex})`).join(', ')}` : ''}` : '';
 
   // Build GlobalLink cultural context block
   const glInsightsBlock = globalLinkInsights ? `
@@ -180,13 +198,20 @@ async function handleGenerate(
 
   const adaptationPrompt = culturalAdaptation
     ? `Translate all text in this advertisement image to the language of ${market}. 
+       ${brandBlock}
        Context from image analysis:
        - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
        - Key Elements: ${analysis?.elements?.join(', ') || 'N/A'}
        - Mood: ${analysis?.mood || 'N/A'}
        ${glInsightsBlock}
        
-       Additionally, subtly adapt the visual elements, background, or models to be more culturally relevant and appealing to the ${market} market while maintaining the core brand identity, product placement, and overall composition. Use the GlobalLink cultural intelligence above to guide your visual and textual adaptations. Ensure the final image feels native to ${market}.`
+       Additionally, subtly adapt the visual elements, background, or models to be more culturally relevant and appealing to the ${market} market while maintaining the core brand identity, product placement, and overall composition. Use the GlobalLink cultural intelligence and brand context above to guide your visual and textual adaptations. Ensure the final image feels native to ${market}.`
+    : `Translate all text in this advertisement image to the language of ${market}. 
+       ${brandBlock}
+       Context from image analysis:
+       - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
+       
+       ONLY translate the text - do not add any cultural imagery, flags, national symbols, or stereotypical visual elements. Keep the image, composition, styling, colors, and all visual elements exactly the same as the original. The only change should be the language of the text.`;
     : `Translate all text in this advertisement image to the language of ${market}. 
        Context from image analysis:
        - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
@@ -216,6 +241,7 @@ async function handleGenerate(
           ]
         }
       ],
+      modalities: ['image', 'text'],
     }),
   });
 
@@ -238,30 +264,33 @@ async function handleGenerate(
 
   const data = await response.json();
   
-  // Extract image from response - the gateway returns base64 image data in content
+  // Extract image from response
   const message = data.choices?.[0]?.message;
   let generatedImage: string | null = null;
 
-  if (message?.content) {
-    // Check if content is an array (multimodal response)
+  // Check images array first (new gateway format)
+  if (message?.images && Array.isArray(message.images)) {
+    for (const img of message.images) {
+      const url = img?.image_url?.url;
+      if (url) {
+        generatedImage = url.startsWith('data:') ? url.split(',')[1] : url;
+        break;
+      }
+    }
+  }
+
+  // Fallback: check content array (legacy format)
+  if (!generatedImage && message?.content) {
     if (Array.isArray(message.content)) {
       for (const part of message.content) {
         if (part.type === 'image_url' && part.image_url?.url) {
-          // Extract base64 from data URL
           const dataUrl = part.image_url.url;
-          if (dataUrl.startsWith('data:')) {
-            generatedImage = dataUrl.split(',')[1];
-          } else {
-            generatedImage = dataUrl;
-          }
+          generatedImage = dataUrl.startsWith('data:') ? dataUrl.split(',')[1] : dataUrl;
           break;
         }
       }
-    } else if (typeof message.content === 'string') {
-      // Sometimes the image might be inline as base64
-      if (message.content.startsWith('data:image')) {
-        generatedImage = message.content.split(',')[1];
-      }
+    } else if (typeof message.content === 'string' && message.content.startsWith('data:image')) {
+      generatedImage = message.content.split(',')[1];
     }
   }
 
