@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Globe, Loader2, MessageSquare, ShieldCheck, Save, Check, AlertTriangle, 
-  Hash, Sparkles, ChevronDown, ChevronUp
+  Hash, Sparkles, ChevronDown, ChevronUp, BookOpen
 } from 'lucide-react';
 import type { MarketResult, BrandContext } from '@/hooks/useAdLocalizer';
 
@@ -12,6 +12,7 @@ interface AdLocalizerMarketPanelProps {
   onGenerateCaption: (market: string) => void;
   onRunCompliance: (market: string) => void;
   onSaveAsset: (market: string) => void;
+  onExportToGuide: (market: string) => void;
 }
 
 export default function AdLocalizerMarketPanel({
