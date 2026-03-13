@@ -349,7 +349,7 @@ export default function AdLocalizerPage() {
               </>
             )}
           </button>
-          <p className="text-[9px] text-center text-muted-foreground/60 mt-4 uppercase tracking-widest">Powered by Gemini 3.1 Flash Image</p>
+          <p className="text-[9px] text-center text-muted-foreground/60 mt-4 uppercase tracking-widest">Powered by GlobalLink + Gemini 3.1 Flash</p>
         </div>
       </div>
 
