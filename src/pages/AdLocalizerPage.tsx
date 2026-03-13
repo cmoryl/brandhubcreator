@@ -589,6 +589,7 @@ export default function AdLocalizerPage() {
                         onGenerateCaption={generateCaption}
                         onRunCompliance={runComplianceCheck}
                         onSaveAsset={saveAsset}
+                        onExportToGuide={(market) => setExportModalMarket(market)}
                       />
                     </motion.div>
                   ))}
