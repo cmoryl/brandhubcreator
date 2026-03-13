@@ -72,8 +72,31 @@ export default function AdLocalizerPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Load available brands
+  useEffect(() => {
+    const loadBrands = async () => {
+      const { data } = await supabase
+        .from('brands')
+        .select('id, name')
+        .order('name');
+      if (data) setBrands(data);
+    };
+    loadBrands();
+  }, []);
+
+  // Load brand context when selected
+  useEffect(() => {
+    if (selectedBrandId) {
+      loadBrandContext(selectedBrandId);
+    }
+  }, [selectedBrandId, loadBrandContext]);
+
   const filteredCountries = COUNTRIES.filter(c =>
     c.toLowerCase().includes(countrySearch.toLowerCase()) && !selectedMarkets.includes(c)
+  );
+
+  const filteredBrands = brands.filter(b =>
+    b.name.toLowerCase().includes(brandSearchQuery.toLowerCase())
   );
 
   useEffect(() => {
