@@ -446,6 +446,19 @@ export default function AdLocalizerPage() {
                     <p className="text-[9px] text-muted-foreground">Persist assets + audit trail</p>
                   </div>
                 </button>
+                <button
+                  onClick={() => {
+                    const firstWithImage = results.find(r => r.image);
+                    if (firstWithImage) setExportModalMarket(firstWithImage.market);
+                  }}
+                  className="w-full flex items-center gap-2 p-3 rounded-xl border border-border bg-accent/30 hover:bg-accent/50 transition-colors text-left"
+                >
+                  <BookOpen className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-[10px] font-bold">Export to Guide</p>
+                    <p className="text-[9px] text-muted-foreground">Add to brand/product/event Image Assets</p>
+                  </div>
+                </button>
               </div>
             </section>
           )}
