@@ -100,7 +100,34 @@ async function handleAnalyze(
             },
             {
               type: 'text',
-              text: 'Analyze this advertisement image. Identify: 1. All visible text strings. 2. Key visual elements/objects. 3. The overall mood/aesthetic. Return as JSON with keys: "text" (array of strings), "elements" (array of strings), "mood" (string).'
+              text: `Analyze this advertisement image with extreme precision. Extract every detail needed to faithfully reproduce it in another language.
+
+Return JSON with these keys:
+
+1. "text_elements": array of objects, each with:
+   - "content": the exact text string
+   - "role": one of "headline", "subheadline", "body", "cta", "legal", "tagline", "price", "label"
+   - "approximate_position": one of "top-left", "top-center", "top-right", "center-left", "center", "center-right", "bottom-left", "bottom-center", "bottom-right"
+   - "style": object with "size" (e.g. "large", "medium", "small"), "weight" (e.g. "bold", "regular", "light"), "color_description" (e.g. "white", "dark blue"), "case" (e.g. "uppercase", "mixed", "lowercase")
+
+2. "visual_elements": array of objects, each with:
+   - "element": description of the visual element
+   - "role": one of "product", "person", "logo", "icon", "background", "decoration", "graphic"
+   - "position": approximate position in the image
+
+3. "layout": object with:
+   - "composition": description of overall layout structure (e.g. "split layout with image left, text right")
+   - "text_alignment": dominant text alignment
+   - "background_type": e.g. "solid color", "gradient", "photo", "pattern"
+   - "background_description": brief description of the background
+
+4. "color_palette": array of objects with "color" (descriptive name), "hex_estimate" (best guess hex), "usage" (where it's used, e.g. "headline text", "background", "CTA button")
+
+5. "brand_marks": array of objects with "type" ("logo", "wordmark", "icon", "watermark"), "content" (text if readable), "position"
+
+6. "mood": string describing overall aesthetic/emotional tone
+7. "style_category": one of "minimal", "bold", "luxury", "playful", "corporate", "editorial", "retro", "modern"
+8. "dominant_font_style": best guess at font category (e.g. "sans-serif geometric", "serif classic", "display decorative")`
             }
           ]
         }
