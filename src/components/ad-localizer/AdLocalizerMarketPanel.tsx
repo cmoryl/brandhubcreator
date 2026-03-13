@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Globe, Loader2, MessageSquare, ShieldCheck, Save, Check, AlertTriangle, 
-  Hash, Sparkles, ChevronDown, ChevronUp
+  Hash, Sparkles, ChevronDown, ChevronUp, BookOpen
 } from 'lucide-react';
 import type { MarketResult, BrandContext } from '@/hooks/useAdLocalizer';
 
@@ -12,6 +12,7 @@ interface AdLocalizerMarketPanelProps {
   onGenerateCaption: (market: string) => void;
   onRunCompliance: (market: string) => void;
   onSaveAsset: (market: string) => void;
+  onExportToGuide: (market: string) => void;
 }
 
 export default function AdLocalizerMarketPanel({
@@ -20,6 +21,7 @@ export default function AdLocalizerMarketPanel({
   onGenerateCaption,
   onRunCompliance,
   onSaveAsset,
+  onExportToGuide,
 }: AdLocalizerMarketPanelProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -161,6 +163,13 @@ export default function AdLocalizerMarketPanel({
                   Save
                 </button>
               )}
+              <button
+                onClick={() => onExportToGuide(result.market)}
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-accent hover:bg-accent/80 text-[8px] font-bold uppercase tracking-wider text-accent-foreground transition-colors"
+              >
+                <BookOpen className="w-2.5 h-2.5" />
+                Export to Guide
+              </button>
               {result.saved && (
                 <span className="flex items-center gap-1 px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-green-600">
                   <Check className="w-2.5 h-2.5" />

@@ -3,13 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Globe, Image as ImageIcon, Download, RefreshCw, Loader2, Sparkles,
   ChevronDown, Upload, X, Check, Layers, Languages, Zap, FileArchive, Eye, ArrowLeft, 
-  ShieldCheck, MessageSquare, Save, Bookmark
+  ShieldCheck, MessageSquare, Save, Bookmark, BookOpen
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import JSZip from 'jszip';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdLocalizer } from '@/hooks/useAdLocalizer';
 import AdLocalizerMarketPanel from '@/components/ad-localizer/AdLocalizerMarketPanel';
+import ExportToGuideModal from '@/components/ad-localizer/ExportToGuideModal';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -52,8 +53,10 @@ export default function AdLocalizerPage() {
   const { 
     analysis, isAnalyzing, results, isGenerating, brandContext,
     analyzeImage, generateForMarkets, generateCaption, runComplianceCheck, 
-    saveAsset, loadBrandContext, reset, setResults 
+    saveAsset, exportToGuide, loadBrandContext, reset, setResults 
   } = useAdLocalizer();
+
+  const [exportModalMarket, setExportModalMarket] = useState<string | null>(null);
 
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [uploadedReference, setUploadedReference] = useState<string | null>(null);
@@ -443,6 +446,19 @@ export default function AdLocalizerPage() {
                     <p className="text-[9px] text-muted-foreground">Persist assets + audit trail</p>
                   </div>
                 </button>
+                <button
+                  onClick={() => {
+                    const firstWithImage = results.find(r => r.image);
+                    if (firstWithImage) setExportModalMarket(firstWithImage.market);
+                  }}
+                  className="w-full flex items-center gap-2 p-3 rounded-xl border border-border bg-accent/30 hover:bg-accent/50 transition-colors text-left"
+                >
+                  <BookOpen className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-[10px] font-bold">Export to Guide</p>
+                    <p className="text-[9px] text-muted-foreground">Add to brand/product/event Image Assets</p>
+                  </div>
+                </button>
               </div>
             </section>
           )}
@@ -586,6 +602,7 @@ export default function AdLocalizerPage() {
                         onGenerateCaption={generateCaption}
                         onRunCompliance={runComplianceCheck}
                         onSaveAsset={saveAsset}
+                        onExportToGuide={(market) => setExportModalMarket(market)}
                       />
                     </motion.div>
                   ))}
@@ -690,6 +707,18 @@ export default function AdLocalizerPage() {
           )}
         </div>
       </div>
+
+      {/* Export to Guide Modal */}
+      <ExportToGuideModal
+        open={!!exportModalMarket}
+        onClose={() => setExportModalMarket(null)}
+        market={exportModalMarket || ''}
+        onExport={async (entity) => {
+          if (exportModalMarket) {
+            await exportToGuide(exportModalMarket, entity);
+          }
+        }}
+      />
     </main>
   );
 }
