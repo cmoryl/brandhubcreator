@@ -174,7 +174,7 @@ async function handleGenerate(
     market: string;
     aspectRatio?: string;
     culturalAdaptation?: boolean;
-    analysis?: { text: string[]; elements: string[]; mood: string };
+    analysis?: any;
     globalLinkInsights?: {
       color_notes?: string;
       imagery_notes?: string;
