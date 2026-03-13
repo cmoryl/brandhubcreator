@@ -168,14 +168,25 @@ async function handleGenerate(
     );
   }
 
+  // Build GlobalLink cultural context block
+  const glInsightsBlock = globalLinkInsights ? `
+       GlobalLink Cultural Intelligence for ${market}:
+       ${globalLinkInsights.color_notes ? `- Colors: ${globalLinkInsights.color_notes}` : ''}
+       ${globalLinkInsights.imagery_notes ? `- Imagery: ${globalLinkInsights.imagery_notes}` : ''}
+       ${globalLinkInsights.messaging_notes ? `- Messaging: ${globalLinkInsights.messaging_notes}` : ''}
+       ${globalLinkInsights.typography_notes ? `- Typography: ${globalLinkInsights.typography_notes}` : ''}
+       ${globalLinkInsights.taboos ? `- Avoid: ${globalLinkInsights.taboos}` : ''}
+       ${globalLinkInsights.adaptation_summary ? `- Summary: ${globalLinkInsights.adaptation_summary}` : ''}` : '';
+
   const adaptationPrompt = culturalAdaptation
     ? `Translate all text in this advertisement image to the language of ${market}. 
        Context from image analysis:
        - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
        - Key Elements: ${analysis?.elements?.join(', ') || 'N/A'}
        - Mood: ${analysis?.mood || 'N/A'}
+       ${glInsightsBlock}
        
-       Additionally, subtly adapt the visual elements, background, or models to be more culturally relevant and appealing to the ${market} market while maintaining the core brand identity, product placement, and overall composition. Ensure the final image feels native to ${market}.`
+       Additionally, subtly adapt the visual elements, background, or models to be more culturally relevant and appealing to the ${market} market while maintaining the core brand identity, product placement, and overall composition. Use the GlobalLink cultural intelligence above to guide your visual and textual adaptations. Ensure the final image feels native to ${market}.`
     : `Translate all text in this advertisement image to the language of ${market}. 
        Context from image analysis:
        - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
