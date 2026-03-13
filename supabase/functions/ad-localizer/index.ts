@@ -148,10 +148,18 @@ async function handleGenerate(
     aspectRatio?: string;
     culturalAdaptation?: boolean;
     analysis?: { text: string[]; elements: string[]; mood: string };
+    globalLinkInsights?: {
+      color_notes?: string;
+      imagery_notes?: string;
+      messaging_notes?: string;
+      typography_notes?: string;
+      taboos?: string;
+      adaptation_summary?: string;
+    } | null;
   },
   apiKey: string
 ) {
-  const { imageBase64, market, aspectRatio = '16:9', culturalAdaptation = false, analysis } = body;
+  const { imageBase64, market, aspectRatio = '16:9', culturalAdaptation = false, analysis, globalLinkInsights } = body;
 
   if (!imageBase64 || !market) {
     return new Response(

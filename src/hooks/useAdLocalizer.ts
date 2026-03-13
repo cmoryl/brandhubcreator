@@ -8,11 +8,60 @@ interface AnalysisResult {
   mood: string;
 }
 
-interface MarketResult {
+export interface CulturalInsights {
+  color_notes?: string;
+  imagery_notes?: string;
+  messaging_notes?: string;
+  typography_notes?: string;
+  taboos?: string;
+  adaptation_summary?: string;
+}
+
+export interface MarketResult {
   market: string;
   loading: boolean;
   image: string | null;
   error: string | null;
+  culturalInsights: CulturalInsights | null;
+  insightsLoading: boolean;
+}
+
+async function fetchGlobalLinkInsights(market: string): Promise<CulturalInsights | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke('globallink-cultural-adapt', {
+      body: {
+        organization_id: 'ad-localizer',
+        entity_type: 'brand',
+        entity_id: 'ad-localizer',
+        entity_name: 'Ad Creative',
+        target_country: market,
+        variant_level: 'country',
+        region_name: market,
+        sections: ['colors', 'imagery', 'messaging'],
+      },
+    });
+
+    if (error) throw error;
+
+    if (data?.success && Array.isArray(data.suggestions)) {
+      const insights: CulturalInsights = {};
+      for (const s of data.suggestions) {
+        if (s.section === 'colors') insights.color_notes = s.reason;
+        else if (s.section === 'imagery') insights.imagery_notes = s.reason;
+        else if (s.section === 'messaging') insights.messaging_notes = s.reason;
+        else if (s.section === 'typography') insights.typography_notes = s.reason;
+        else if (s.section === 'taboos') insights.taboos = s.reason;
+      }
+      // Check for adaptation_summary in the last suggestion or a dedicated field
+      const summaryItem = data.suggestions.find((s: any) => s.section === 'summary');
+      if (summaryItem) insights.adaptation_summary = summaryItem.reason;
+      return insights;
+    }
+    return null;
+  } catch (err) {
+    console.warn(`GlobalLink insights failed for ${market}:`, err);
+    return null;
+  }
 }
 
 export function useAdLocalizer() {
@@ -53,9 +102,24 @@ export function useAdLocalizer() {
     setIsGenerating(true);
     const initialResults: MarketResult[] = markets.map(m => ({
       market: m, loading: true, image: null, error: null,
+      culturalInsights: null, insightsLoading: culturalAdaptation,
     }));
     setResults(initialResults);
 
+    // Phase 1: Fetch GlobalLink cultural insights in parallel (if cultural adaptation enabled)
+    const insightsMap: Record<string, CulturalInsights | null> = {};
+    if (culturalAdaptation) {
+      const insightsPromises = markets.map(async (market) => {
+        const insights = await fetchGlobalLinkInsights(market);
+        insightsMap[market] = insights;
+        setResults(prev => prev.map(r =>
+          r.market === market ? { ...r, culturalInsights: insights, insightsLoading: false } : r
+        ));
+      });
+      await Promise.all(insightsPromises);
+    }
+
+    // Phase 2: Generate images with GlobalLink context baked in
     const batchSize = 2;
     for (let i = 0; i < markets.length; i += batchSize) {
       const batch = markets.slice(i, i + batchSize);
@@ -70,6 +134,7 @@ export function useAdLocalizer() {
                 aspectRatio,
                 culturalAdaptation,
                 analysis: currentAnalysis,
+                globalLinkInsights: insightsMap[market] || null,
               },
             });
 
