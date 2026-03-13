@@ -176,6 +176,16 @@ async function handleGenerate(
     );
   }
 
+  // Build brand context block
+  const brandBlock = brandContext ? `
+       Brand Identity:
+       ${brandContext.name ? `- Brand: ${brandContext.name}` : ''}
+       ${brandContext.archetype ? `- Archetype: ${brandContext.archetype}` : ''}
+       ${brandContext.voiceTone ? `- Voice: ${brandContext.voiceTone}` : ''}
+       ${brandContext.industry ? `- Industry: ${brandContext.industry}` : ''}
+       ${brandContext.tagline ? `- Tagline: ${brandContext.tagline}` : ''}
+       ${brandContext.colors?.length ? `- Brand Colors: ${brandContext.colors.map(c => `${c.name} (${c.hex})`).join(', ')}` : ''}` : '';
+
   // Build GlobalLink cultural context block
   const glInsightsBlock = globalLinkInsights ? `
        GlobalLink Cultural Intelligence for ${market}:
