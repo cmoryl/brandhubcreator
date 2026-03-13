@@ -21,6 +21,7 @@ export default function AdLocalizerMarketPanel({
   onGenerateCaption,
   onRunCompliance,
   onSaveAsset,
+  onExportToGuide,
 }: AdLocalizerMarketPanelProps) {
   const [expanded, setExpanded] = useState(false);
 
