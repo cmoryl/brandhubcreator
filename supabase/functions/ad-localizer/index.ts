@@ -264,30 +264,33 @@ async function handleGenerate(
 
   const data = await response.json();
   
-  // Extract image from response - the gateway returns base64 image data in content
+  // Extract image from response
   const message = data.choices?.[0]?.message;
   let generatedImage: string | null = null;
 
-  if (message?.content) {
-    // Check if content is an array (multimodal response)
+  // Check images array first (new gateway format)
+  if (message?.images && Array.isArray(message.images)) {
+    for (const img of message.images) {
+      const url = img?.image_url?.url;
+      if (url) {
+        generatedImage = url.startsWith('data:') ? url.split(',')[1] : url;
+        break;
+      }
+    }
+  }
+
+  // Fallback: check content array (legacy format)
+  if (!generatedImage && message?.content) {
     if (Array.isArray(message.content)) {
       for (const part of message.content) {
         if (part.type === 'image_url' && part.image_url?.url) {
-          // Extract base64 from data URL
           const dataUrl = part.image_url.url;
-          if (dataUrl.startsWith('data:')) {
-            generatedImage = dataUrl.split(',')[1];
-          } else {
-            generatedImage = dataUrl;
-          }
+          generatedImage = dataUrl.startsWith('data:') ? dataUrl.split(',')[1] : dataUrl;
           break;
         }
       }
-    } else if (typeof message.content === 'string') {
-      // Sometimes the image might be inline as base64
-      if (message.content.startsWith('data:image')) {
-        generatedImage = message.content.split(',')[1];
-      }
+    } else if (typeof message.content === 'string' && message.content.startsWith('data:image')) {
+      generatedImage = message.content.split(',')[1];
     }
   }
 
