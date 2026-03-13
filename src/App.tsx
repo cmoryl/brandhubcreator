@@ -292,6 +292,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="ad-localizer"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <AdLocalizerPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="brand/:brandSlug"
                       element={
                         <Suspense fallback={<BrandEditorSkeleton />}>
