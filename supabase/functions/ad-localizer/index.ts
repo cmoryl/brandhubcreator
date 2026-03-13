@@ -211,12 +211,7 @@ async function handleGenerate(
        Context from image analysis:
        - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
        
-       ONLY translate the text - do not add any cultural imagery, flags, national symbols, or stereotypical visual elements. Keep the image, composition, styling, colors, and all visual elements exactly the same as the original. The only change should be the language of the text.`;
-    : `Translate all text in this advertisement image to the language of ${market}. 
-       Context from image analysis:
-       - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
-       
-       ONLY translate the text - do not add any cultural imagery, flags, national symbols, or stereotypical visual elements. Keep the image, composition, styling, colors, and all visual elements exactly the same as the original. The only change should be the language of the text.`;
+        ONLY translate the text - do not add any cultural imagery, flags, national symbols, or stereotypical visual elements. Keep the image, composition, styling, colors, and all visual elements exactly the same as the original. The only change should be the language of the text.`;
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
