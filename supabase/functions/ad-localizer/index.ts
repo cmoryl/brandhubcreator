@@ -156,10 +156,18 @@ async function handleGenerate(
       taboos?: string;
       adaptation_summary?: string;
     } | null;
+    brandContext?: {
+      name?: string;
+      colors?: { name: string; hex: string }[];
+      archetype?: string;
+      voiceTone?: string;
+      industry?: string;
+      tagline?: string;
+    } | null;
   },
   apiKey: string
 ) {
-  const { imageBase64, market, aspectRatio = '16:9', culturalAdaptation = false, analysis, globalLinkInsights } = body;
+  const { imageBase64, market, aspectRatio = '16:9', culturalAdaptation = false, analysis, globalLinkInsights, brandContext } = body;
 
   if (!imageBase64 || !market) {
     return new Response(
