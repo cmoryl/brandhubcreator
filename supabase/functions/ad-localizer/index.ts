@@ -159,7 +159,7 @@ Return JSON with these keys:
   try {
     analysis = typeof content === 'string' ? JSON.parse(content) : content;
   } catch {
-    analysis = { text: [], elements: [], mood: 'unknown' };
+    analysis = { text_elements: [], visual_elements: [], color_palette: [], brand_marks: [], mood: 'unknown' };
   }
 
   return new Response(
