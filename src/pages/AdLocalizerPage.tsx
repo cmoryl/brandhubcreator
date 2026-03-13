@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Globe, Image as ImageIcon, Download, RefreshCw, Loader2, Sparkles,
-  ChevronDown, Upload, X, Check, Layers, Languages, Zap, FileArchive, Eye, ArrowLeft
+  ChevronDown, Upload, X, Check, Layers, Languages, Zap, FileArchive, Eye, ArrowLeft, Info
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import JSZip from 'jszip';
