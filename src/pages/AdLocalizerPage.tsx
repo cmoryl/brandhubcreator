@@ -2,11 +2,14 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Globe, Image as ImageIcon, Download, RefreshCw, Loader2, Sparkles,
-  ChevronDown, Upload, X, Check, Layers, Languages, Zap, FileArchive, Eye, ArrowLeft, Info
+  ChevronDown, Upload, X, Check, Layers, Languages, Zap, FileArchive, Eye, ArrowLeft, 
+  ShieldCheck, MessageSquare, Save, Bookmark
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import JSZip from 'jszip';
+import { supabase } from '@/integrations/supabase/client';
 import { useAdLocalizer } from '@/hooks/useAdLocalizer';
+import AdLocalizerMarketPanel from '@/components/ad-localizer/AdLocalizerMarketPanel';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
