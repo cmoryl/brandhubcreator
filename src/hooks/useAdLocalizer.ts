@@ -382,6 +382,73 @@ export function useAdLocalizer() {
     }
   }, [brandContext, results]);
 
+  const exportToGuide = useCallback(async (
+    market: string,
+    targetEntity: { id: string; type: 'brand' | 'product' | 'event'; name: string },
+  ) => {
+    const marketResult = results.find(r => r.market === market);
+    if (!marketResult?.image) {
+      toast.error('No image to export');
+      return;
+    }
+
+    const tableName = targetEntity.type === 'brand' ? 'brands'
+      : targetEntity.type === 'product' ? 'products'
+      : 'events';
+
+    try {
+      // Fetch current guide_data
+      const { data: entity, error: fetchError } = await supabase
+        .from(tableName)
+        .select('guide_data')
+        .eq('id', targetEntity.id)
+        .single();
+
+      if (fetchError || !entity) throw new Error('Could not load guide data');
+
+      const guideData = (entity.guide_data || {}) as Record<string, any>;
+      const existingAssets: any[] = Array.isArray(guideData.imageAssets) ? guideData.imageAssets : [];
+
+      const newAsset = {
+        id: crypto.randomUUID(),
+        name: `${market} Localized Ad${brandContext ? ` — ${brandContext.brandName}` : ''}`,
+        url: `data:image/jpeg;base64,${marketResult.image}`,
+        size: `${Math.round((marketResult.image.length * 3) / 4 / 1024)}KB`,
+        type: 'image/jpeg',
+        uploadedAt: new Date().toISOString(),
+      };
+
+      const updatedGuideData = {
+        ...guideData,
+        imageAssets: [...existingAssets, newAsset],
+      };
+
+      const { error: updateError } = await supabase
+        .from(tableName)
+        .update({ guide_data: updatedGuideData })
+        .eq('id', targetEntity.id);
+
+      if (updateError) throw updateError;
+
+      // Audit log
+      if (brandContext?.organizationId) {
+        await supabase.rpc('insert_audit_log', {
+          p_brand_id: targetEntity.type === 'brand' ? targetEntity.id : brandContext.brandId,
+          p_entity_type: targetEntity.type,
+          p_action_type: 'ad_localization_exported',
+          p_entity_name: `${market} → ${targetEntity.name}`,
+          p_details: { market, targetType: targetEntity.type, targetId: targetEntity.id },
+          p_organization_id: brandContext.organizationId,
+        });
+      }
+
+      toast.success(`Exported to ${targetEntity.name} Image Assets`);
+    } catch (err) {
+      console.error('Export to guide failed:', err);
+      toast.error(`Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  }, [results, brandContext]);
+
   const reset = useCallback(() => {
     setResults([]);
     setAnalysis(null);
@@ -398,6 +465,7 @@ export function useAdLocalizer() {
     generateCaption,
     runComplianceCheck,
     saveAsset,
+    exportToGuide,
     loadBrandContext,
     reset,
     setResults,
