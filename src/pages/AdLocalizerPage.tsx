@@ -49,7 +49,11 @@ const COUNTRIES = [
 
 export default function AdLocalizerPage() {
   const navigate = useNavigate();
-  const { analysis, isAnalyzing, results, isGenerating, analyzeImage, generateForMarkets, reset, setResults } = useAdLocalizer();
+  const { 
+    analysis, isAnalyzing, results, isGenerating, brandContext,
+    analyzeImage, generateForMarkets, generateCaption, runComplianceCheck, 
+    saveAsset, loadBrandContext, reset, setResults 
+  } = useAdLocalizer();
 
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [uploadedReference, setUploadedReference] = useState<string | null>(null);
@@ -61,6 +65,9 @@ export default function AdLocalizerPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'comparison'>('grid');
   const [activeComparisonIndex, setActiveComparisonIndex] = useState(0);
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState<string>('');
+  const [brandSearchQuery, setBrandSearchQuery] = useState('');
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
