@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Globe, Image as ImageIcon, Download, RefreshCw, Loader2, Sparkles,
-  ChevronDown, Upload, X, Check, Layers, Languages, Zap, FileArchive, Eye, ArrowLeft
+  ChevronDown, Upload, X, Check, Layers, Languages, Zap, FileArchive, Eye, ArrowLeft, Info
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import JSZip from 'jszip';
@@ -349,7 +349,7 @@ export default function AdLocalizerPage() {
               </>
             )}
           </button>
-          <p className="text-[9px] text-center text-muted-foreground/60 mt-4 uppercase tracking-widest">Powered by Gemini 3.1 Flash Image</p>
+          <p className="text-[9px] text-center text-muted-foreground/60 mt-4 uppercase tracking-widest">Powered by GlobalLink + Gemini 3.1 Flash</p>
         </div>
       </div>
 
@@ -456,6 +456,39 @@ export default function AdLocalizerPage() {
                           />
                         )}
                       </div>
+
+                      {/* GlobalLink Cultural Insights */}
+                      {res.culturalInsights && (
+                        <div className="p-3 border-t border-border bg-muted/30">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <Globe className="w-3 h-3 text-primary" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-primary">GlobalLink Insights</span>
+                          </div>
+                          <div className="space-y-1">
+                            {res.culturalInsights.color_notes && (
+                              <p className="text-[9px] text-muted-foreground line-clamp-2">
+                                <span className="font-semibold text-foreground">Colors:</span> {res.culturalInsights.color_notes}
+                              </p>
+                            )}
+                            {res.culturalInsights.imagery_notes && (
+                              <p className="text-[9px] text-muted-foreground line-clamp-2">
+                                <span className="font-semibold text-foreground">Imagery:</span> {res.culturalInsights.imagery_notes}
+                              </p>
+                            )}
+                            {res.culturalInsights.taboos && (
+                              <p className="text-[9px] text-muted-foreground line-clamp-2">
+                                <span className="font-semibold text-foreground">Avoid:</span> {res.culturalInsights.taboos}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {res.insightsLoading && (
+                        <div className="p-3 border-t border-border bg-muted/30 flex items-center gap-2">
+                          <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Loading GlobalLink insights...</span>
+                        </div>
+                      )}
                     </motion.div>
                   ))}
                 </AnimatePresence>

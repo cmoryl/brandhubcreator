@@ -148,10 +148,18 @@ async function handleGenerate(
     aspectRatio?: string;
     culturalAdaptation?: boolean;
     analysis?: { text: string[]; elements: string[]; mood: string };
+    globalLinkInsights?: {
+      color_notes?: string;
+      imagery_notes?: string;
+      messaging_notes?: string;
+      typography_notes?: string;
+      taboos?: string;
+      adaptation_summary?: string;
+    } | null;
   },
   apiKey: string
 ) {
-  const { imageBase64, market, aspectRatio = '16:9', culturalAdaptation = false, analysis } = body;
+  const { imageBase64, market, aspectRatio = '16:9', culturalAdaptation = false, analysis, globalLinkInsights } = body;
 
   if (!imageBase64 || !market) {
     return new Response(
@@ -160,14 +168,25 @@ async function handleGenerate(
     );
   }
 
+  // Build GlobalLink cultural context block
+  const glInsightsBlock = globalLinkInsights ? `
+       GlobalLink Cultural Intelligence for ${market}:
+       ${globalLinkInsights.color_notes ? `- Colors: ${globalLinkInsights.color_notes}` : ''}
+       ${globalLinkInsights.imagery_notes ? `- Imagery: ${globalLinkInsights.imagery_notes}` : ''}
+       ${globalLinkInsights.messaging_notes ? `- Messaging: ${globalLinkInsights.messaging_notes}` : ''}
+       ${globalLinkInsights.typography_notes ? `- Typography: ${globalLinkInsights.typography_notes}` : ''}
+       ${globalLinkInsights.taboos ? `- Avoid: ${globalLinkInsights.taboos}` : ''}
+       ${globalLinkInsights.adaptation_summary ? `- Summary: ${globalLinkInsights.adaptation_summary}` : ''}` : '';
+
   const adaptationPrompt = culturalAdaptation
     ? `Translate all text in this advertisement image to the language of ${market}. 
        Context from image analysis:
        - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
        - Key Elements: ${analysis?.elements?.join(', ') || 'N/A'}
        - Mood: ${analysis?.mood || 'N/A'}
+       ${glInsightsBlock}
        
-       Additionally, subtly adapt the visual elements, background, or models to be more culturally relevant and appealing to the ${market} market while maintaining the core brand identity, product placement, and overall composition. Ensure the final image feels native to ${market}.`
+       Additionally, subtly adapt the visual elements, background, or models to be more culturally relevant and appealing to the ${market} market while maintaining the core brand identity, product placement, and overall composition. Use the GlobalLink cultural intelligence above to guide your visual and textual adaptations. Ensure the final image feels native to ${market}.`
     : `Translate all text in this advertisement image to the language of ${market}. 
        Context from image analysis:
        - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
