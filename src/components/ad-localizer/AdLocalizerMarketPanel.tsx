@@ -163,6 +163,13 @@ export default function AdLocalizerMarketPanel({
                   Save
                 </button>
               )}
+              <button
+                onClick={() => onExportToGuide(result.market)}
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-accent hover:bg-accent/80 text-[8px] font-bold uppercase tracking-wider text-accent-foreground transition-colors"
+              >
+                <BookOpen className="w-2.5 h-2.5" />
+                Export to Guide
+              </button>
               {result.saved && (
                 <span className="flex items-center gap-1 px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-green-600">
                   <Check className="w-2.5 h-2.5" />
