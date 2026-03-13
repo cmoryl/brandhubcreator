@@ -53,8 +53,10 @@ export default function AdLocalizerPage() {
   const { 
     analysis, isAnalyzing, results, isGenerating, brandContext,
     analyzeImage, generateForMarkets, generateCaption, runComplianceCheck, 
-    saveAsset, loadBrandContext, reset, setResults 
+    saveAsset, exportToGuide, loadBrandContext, reset, setResults 
   } = useAdLocalizer();
+
+  const [exportModalMarket, setExportModalMarket] = useState<string | null>(null);
 
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [uploadedReference, setUploadedReference] = useState<string | null>(null);
