@@ -100,7 +100,34 @@ async function handleAnalyze(
             },
             {
               type: 'text',
-              text: 'Analyze this advertisement image. Identify: 1. All visible text strings. 2. Key visual elements/objects. 3. The overall mood/aesthetic. Return as JSON with keys: "text" (array of strings), "elements" (array of strings), "mood" (string).'
+              text: `Analyze this advertisement image with extreme precision. Extract every detail needed to faithfully reproduce it in another language.
+
+Return JSON with these keys:
+
+1. "text_elements": array of objects, each with:
+   - "content": the exact text string
+   - "role": one of "headline", "subheadline", "body", "cta", "legal", "tagline", "price", "label"
+   - "approximate_position": one of "top-left", "top-center", "top-right", "center-left", "center", "center-right", "bottom-left", "bottom-center", "bottom-right"
+   - "style": object with "size" (e.g. "large", "medium", "small"), "weight" (e.g. "bold", "regular", "light"), "color_description" (e.g. "white", "dark blue"), "case" (e.g. "uppercase", "mixed", "lowercase")
+
+2. "visual_elements": array of objects, each with:
+   - "element": description of the visual element
+   - "role": one of "product", "person", "logo", "icon", "background", "decoration", "graphic"
+   - "position": approximate position in the image
+
+3. "layout": object with:
+   - "composition": description of overall layout structure (e.g. "split layout with image left, text right")
+   - "text_alignment": dominant text alignment
+   - "background_type": e.g. "solid color", "gradient", "photo", "pattern"
+   - "background_description": brief description of the background
+
+4. "color_palette": array of objects with "color" (descriptive name), "hex_estimate" (best guess hex), "usage" (where it's used, e.g. "headline text", "background", "CTA button")
+
+5. "brand_marks": array of objects with "type" ("logo", "wordmark", "icon", "watermark"), "content" (text if readable), "position"
+
+6. "mood": string describing overall aesthetic/emotional tone
+7. "style_category": one of "minimal", "bold", "luxury", "playful", "corporate", "editorial", "retro", "modern"
+8. "dominant_font_style": best guess at font category (e.g. "sans-serif geometric", "serif classic", "display decorative")`
             }
           ]
         }
@@ -132,7 +159,7 @@ async function handleAnalyze(
   try {
     analysis = typeof content === 'string' ? JSON.parse(content) : content;
   } catch {
-    analysis = { text: [], elements: [], mood: 'unknown' };
+    analysis = { text_elements: [], visual_elements: [], color_palette: [], brand_marks: [], mood: 'unknown' };
   }
 
   return new Response(
@@ -147,7 +174,7 @@ async function handleGenerate(
     market: string;
     aspectRatio?: string;
     culturalAdaptation?: boolean;
-    analysis?: { text: string[]; elements: string[]; mood: string };
+    analysis?: any;
     globalLinkInsights?: {
       color_notes?: string;
       imagery_notes?: string;
@@ -196,22 +223,69 @@ async function handleGenerate(
        ${globalLinkInsights.taboos ? `- Avoid: ${globalLinkInsights.taboos}` : ''}
        ${globalLinkInsights.adaptation_summary ? `- Summary: ${globalLinkInsights.adaptation_summary}` : ''}` : '';
 
+  // Build detailed analysis context block
+  const textElements = analysis?.text_elements || [];
+  const legacyText = analysis?.text || [];
+  const textBlock = textElements.length > 0
+    ? textElements.map((t: any) => `  • [${t.role || 'text'}] "${t.content}" at ${t.approximate_position || 'unknown'} (${t.style?.size || ''} ${t.style?.weight || ''} ${t.style?.color_description || ''} ${t.style?.case || ''})`).join('\n')
+    : legacyText.length > 0 ? legacyText.map((t: string) => `  • "${t}"`).join('\n') : '  N/A';
+
+  const visualElements = analysis?.visual_elements || analysis?.elements || [];
+  const visualBlock = Array.isArray(visualElements) 
+    ? visualElements.map((v: any) => typeof v === 'string' ? `  • ${v}` : `  • [${v.role}] ${v.element} at ${v.position || 'unknown'}`).join('\n')
+    : '  N/A';
+
+  const layoutBlock = analysis?.layout
+    ? `Layout: ${analysis.layout.composition || 'unknown'}, alignment: ${analysis.layout.text_alignment || 'unknown'}, background: ${analysis.layout.background_type || 'unknown'} (${analysis.layout.background_description || ''})`
+    : '';
+
+  const colorBlock = analysis?.color_palette?.length
+    ? `Color Palette:\n${analysis.color_palette.map((c: any) => `  • ${c.color} (${c.hex_estimate || '?'}) — used for: ${c.usage || 'unknown'}`).join('\n')}`
+    : '';
+
+  const brandMarksBlock = analysis?.brand_marks?.length
+    ? `Brand Marks:\n${analysis.brand_marks.map((b: any) => `  • ${b.type}: "${b.content || 'visual'}" at ${b.position || 'unknown'}`).join('\n')}`
+    : '';
+
+  const styleInfo = [
+    analysis?.mood ? `Mood: ${analysis.mood}` : '',
+    analysis?.style_category ? `Style: ${analysis.style_category}` : '',
+    analysis?.dominant_font_style ? `Font style: ${analysis.dominant_font_style}` : '',
+  ].filter(Boolean).join(' | ');
+
+  const analysisBlock = `
+       Detailed Image Analysis:
+       TEXT ELEMENTS (preserve exact hierarchy, position, and styling):
+${textBlock}
+       VISUAL ELEMENTS:
+${visualBlock}
+       ${layoutBlock}
+       ${colorBlock}
+       ${brandMarksBlock}
+       ${styleInfo}`;
+
   const adaptationPrompt = culturalAdaptation
-    ? `Translate all text in this advertisement image to the language of ${market}. 
+    ? `Recreate this advertisement image with all text translated to the language of ${market}.
        ${brandBlock}
-       Context from image analysis:
-       - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
-       - Key Elements: ${analysis?.elements?.join(', ') || 'N/A'}
-       - Mood: ${analysis?.mood || 'N/A'}
+       ${analysisBlock}
        ${glInsightsBlock}
-       
-       Additionally, subtly adapt the visual elements, background, or models to be more culturally relevant and appealing to the ${market} market while maintaining the core brand identity, product placement, and overall composition. Use the GlobalLink cultural intelligence and brand context above to guide your visual and textual adaptations. Ensure the final image feels native to ${market}.`
-    : `Translate all text in this advertisement image to the language of ${market}. 
+
+       CRITICAL INSTRUCTIONS:
+       1. Translate EVERY text element to ${market}'s language, preserving exact position, size, weight, color, and case styling.
+       2. Keep all logos, brand marks, and product imagery EXACTLY as they appear.
+       3. Maintain the identical layout composition, color palette, and typography style.
+       4. Subtly adapt cultural visual elements (models, scenery, symbols) to feel native to ${market} while keeping brand identity intact.
+       5. The output must look like a professional, production-ready ad — not AI-generated.`
+    : `Recreate this advertisement image with all text translated to the language of ${market}.
        ${brandBlock}
-       Context from image analysis:
-       - Detected Text: ${analysis?.text?.join(', ') || 'N/A'}
-       
-        ONLY translate the text - do not add any cultural imagery, flags, national symbols, or stereotypical visual elements. Keep the image, composition, styling, colors, and all visual elements exactly the same as the original. The only change should be the language of the text.`;
+       ${analysisBlock}
+
+       CRITICAL INSTRUCTIONS:
+       1. Translate EVERY text element to ${market}'s language, preserving exact position, size, weight, color, and case styling.
+       2. Keep ALL visual elements, composition, colors, backgrounds, logos, and imagery EXACTLY the same.
+       3. The ONLY change should be the language of the text. Do NOT add cultural imagery, flags, or stereotypical elements.
+       4. Match the original font style (${analysis?.dominant_font_style || 'as shown'}) as closely as possible.
+       5. The output must look like a professional, production-ready ad — not AI-generated.`;
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
