@@ -127,3 +127,6 @@ verify_jwt = false
 
 [functions.analyze-social-asset]
 verify_jwt = false
+
+[functions.ad-localizer]
+verify_jwt = false

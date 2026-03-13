@@ -92,6 +92,7 @@ const ExpoFloorPlanner = lazyWithRetry(() => import("./pages/ExpoFloorPlanner"))
 const ColorLab = lazyWithRetry(() => import("./pages/ColorLab"));
 const SharedPalette = lazyWithRetry(() => import("./pages/SharedPalette"));
 const SocialAssetStudio = lazyWithRetry(() => import("./pages/SocialAssetStudio"));
+const AdLocalizerPage = lazyWithRetry(() => import("./pages/AdLocalizerPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -287,6 +288,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <SocialAssetStudio />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="ad-localizer"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <AdLocalizerPage />
                         </Suspense>
                       }
                     />
