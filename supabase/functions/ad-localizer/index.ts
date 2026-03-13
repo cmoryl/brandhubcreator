@@ -241,6 +241,7 @@ async function handleGenerate(
           ]
         }
       ],
+      modalities: ['image', 'text'],
     }),
   });
 
