@@ -694,6 +694,18 @@ export default function AdLocalizerPage() {
           )}
         </div>
       </div>
+
+      {/* Export to Guide Modal */}
+      <ExportToGuideModal
+        open={!!exportModalMarket}
+        onClose={() => setExportModalMarket(null)}
+        market={exportModalMarket || ''}
+        onExport={async (entity) => {
+          if (exportModalMarket) {
+            await exportToGuide(exportModalMarket, entity);
+          }
+        }}
+      />
     </main>
   );
 }
