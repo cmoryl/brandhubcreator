@@ -547,6 +547,24 @@ export function ExportOptionsDialog({ open, onOpenChange, effectName, recordingS
             </>
           )}
 
+          <Separator />
+
+          {/* Live Preview */}
+          {isAnimated && previewContainerRef && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-primary" />
+                  Live Preview
+                </Label>
+                <Switch checked={showPreview} onCheckedChange={setShowPreview} />
+              </div>
+              {showPreview && (
+                <LivePreviewPanel options={options} containerRef={previewContainerRef} />
+              )}
+            </div>
+          )}
+
           {/* Estimate info */}
           <div className="rounded-lg bg-muted/50 border p-3 text-xs text-muted-foreground space-y-1">
             <div className="flex justify-between">
