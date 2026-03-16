@@ -143,7 +143,8 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
       const blob = await qr.getRawData('svg');
       if (!blob) throw new Error('Failed to generate SVG');
       
-      let svgText = await blob.text();
+      const svgText$ = blob instanceof Blob ? blob.text() : Promise.resolve(new TextDecoder().decode(blob));
+      let svgText = await svgText$;
       
       // If there's a logo, embed it as base64 data URI in the SVG
       const hasValidLogo = qrCode.logoType !== 'none' && qrCode.logoUrl && qrCode.logoUrl.trim() !== '';
