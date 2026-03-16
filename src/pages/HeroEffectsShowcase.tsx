@@ -486,11 +486,15 @@ const HeroEffectsShowcase = () => {
                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenuItem onClick={() => handleExportPng(effect.id, effectCardRefs.current[effect.id])}>
                           <Image className="h-4 w-4 mr-2" />
-                          PNG (static slide background)
+                          Quick PNG
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleExportVideo(effect.id, effectCardRefs.current[effect.id])}>
                           <Video className="h-4 w-4 mr-2" />
-                          Video (animated background)
+                          Quick Video (5s)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenExportDialog(effect.id, effectCardRefs.current[effect.id])}>
+                          <Film className="h-4 w-4 mr-2" />
+                          GIF / Advanced Export…
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
