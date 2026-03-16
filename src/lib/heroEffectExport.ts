@@ -12,6 +12,11 @@ import { toast } from 'sonner';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export interface VideoRecordingState {
+  isRecording: boolean;
+  progress: number; // 0–100
+}
+
 export type IntroAnimationType = 
   | 'fade'          // opacity 0→1
   | 'scale-up'      // elements grow from center
