@@ -529,6 +529,14 @@ const HeroEffectsShowcase = () => {
           ))}
         </div>
       </main>
+
+      <ExportOptionsDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        effectName={exportTarget ? (EFFECTS.find(e => e.id === exportTarget.effectId)?.name || exportTarget.effectId) : ''}
+        recordingState={recordingState}
+        onExport={handleAdvancedExport}
+      />
     </div>
   );
 };
