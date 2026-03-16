@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Sparkles, Settings2, Eye, MousePointer2, Hand, Move, Maximize2, Download, Image, Video } from 'lucide-react';
+import { ArrowLeft, Sparkles, Settings2, Eye, MousePointer2, Hand, Move, Maximize2, Download, Image, Video, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,8 @@ import { FloatingOrbsHero } from '@/components/backgrounds/FloatingOrbsHero';
 import { GradientSpheresHero } from '@/components/backgrounds/GradientSpheresHero';
 import { ImageOrbsHero } from '@/components/backgrounds/ImageOrbsHero';
 import { ImagePanelsHero } from '@/components/backgrounds/ImagePanelsHero';
-import { captureEffectAsPng, recordEffectAsVideo, VideoRecordingState } from '@/lib/heroEffectExport';
+import { captureEffectAsPng, recordEffectAsVideo, recordEffectAsGif, VideoRecordingState, ExportOptions } from '@/lib/heroEffectExport';
+import { ExportOptionsDialog } from '@/components/hero-effects/ExportOptionsDialog';
 
 type EffectType = 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres' | 'image-orbs' | 'image-panels';
 
@@ -99,6 +100,8 @@ const HeroEffectsShowcase = () => {
   const [intensity, setIntensity] = useState<'subtle' | 'medium' | 'bold'>('medium');
   const [colorScheme, setColorScheme] = useState<string>('cyan-purple');
   const [recordingState, setRecordingState] = useState<VideoRecordingState>({ isRecording: false, progress: 0 });
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportTarget, setExportTarget] = useState<{ effectId: string; container: HTMLDivElement | null } | null>(null);
 
   // Refs for export capture – gallery cards and fullscreen container
   const effectCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -115,6 +118,27 @@ const HeroEffectsShowcase = () => {
     if (!container || recordingState.isRecording) return;
     recordEffectAsVideo(container, `hero-effect-${effectId}`, 5000, setRecordingState);
   }, [recordingState.isRecording]);
+
+  const handleOpenExportDialog = useCallback((effectId: string, container: HTMLDivElement | null) => {
+    setExportTarget({ effectId, container });
+    setExportDialogOpen(true);
+  }, []);
+
+  const handleAdvancedExport = useCallback((options: ExportOptions) => {
+    if (!exportTarget?.container) return;
+    const { effectId, container } = exportTarget;
+    const fileName = `hero-effect-${effectId}`;
+
+    setExportDialogOpen(false);
+
+    if (options.format === 'png') {
+      captureEffectAsPng(container, fileName, options);
+    } else if (options.format === 'webm') {
+      recordEffectAsVideo(container, fileName, options.duration * 1000, setRecordingState, options);
+    } else if (options.format === 'gif') {
+      recordEffectAsGif(container, fileName, setRecordingState, options);
+    }
+  }, [exportTarget]);
 
   const renderEffect = (effectId: EffectType, config: { colorScheme: string; mode: 'dark' | 'light'; brightness: number; density?: string; speed?: string; intensity?: string }) => {
     const commonProps = {
@@ -166,17 +190,24 @@ const HeroEffectsShowcase = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="secondary" size="sm" className="gap-2 bg-white/20 text-white border-0 hover:bg-white/30" disabled={recordingState.isRecording}>
                     <Download className="h-4 w-4" />
-                    {recordingState.isRecording ? `Recording ${recordingState.progress}%` : 'Export for PowerPoint'}
+                    {recordingState.isRecording ? `Recording ${recordingState.progress}%` : 'Export'}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => handleExportPng(selectedEffect!, fullscreenEffectRef.current)}>
                     <Image className="h-4 w-4 mr-2" />
-                    Download as PNG (static background)
+                    Quick PNG (static)
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleExportVideo(selectedEffect!, fullscreenEffectRef.current)}>
                     <Video className="h-4 w-4 mr-2" />
-                    Download as Video (animated background)
+                    Quick Video (5s WebM)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    const config = EFFECTS.find(e => e.id === selectedEffect);
+                    if (config) handleOpenExportDialog(selectedEffect!, fullscreenEffectRef.current);
+                  }}>
+                    <Film className="h-4 w-4 mr-2" />
+                    Animated GIF / Advanced Export…
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -304,6 +335,14 @@ const HeroEffectsShowcase = () => {
             </Card>
           </div>
         </div>
+
+        <ExportOptionsDialog
+          open={exportDialogOpen}
+          onOpenChange={setExportDialogOpen}
+          effectName={selectedConfig?.name || ''}
+          recordingState={recordingState}
+          onExport={handleAdvancedExport}
+        />
       </div>
     );
   }
@@ -455,11 +494,15 @@ const HeroEffectsShowcase = () => {
                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenuItem onClick={() => handleExportPng(effect.id, effectCardRefs.current[effect.id])}>
                           <Image className="h-4 w-4 mr-2" />
-                          PNG (static slide background)
+                          Quick PNG
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleExportVideo(effect.id, effectCardRefs.current[effect.id])}>
                           <Video className="h-4 w-4 mr-2" />
-                          Video (animated background)
+                          Quick Video (5s)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenExportDialog(effect.id, effectCardRefs.current[effect.id])}>
+                          <Film className="h-4 w-4 mr-2" />
+                          GIF / Advanced Export…
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -494,6 +537,14 @@ const HeroEffectsShowcase = () => {
           ))}
         </div>
       </main>
+
+      <ExportOptionsDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        effectName={exportTarget ? (EFFECTS.find(e => e.id === exportTarget.effectId)?.name || exportTarget.effectId) : ''}
+        recordingState={recordingState}
+        onExport={handleAdvancedExport}
+      />
     </div>
   );
 };
