@@ -279,7 +279,7 @@ export function ExportOptionsDialog({ open, onOpenChange, effectName, recordingS
               </div>
             )}
             {options.format === 'gif' && (
-              <p className="text-[10px] mt-1 text-amber-600 dark:text-amber-400">
+              <p className="text-[10px] mt-1 text-accent">
                 💡 GIFs over 10s or at high FPS can be large. Consider WebM for longer animations.
               </p>
             )}
