@@ -100,6 +100,8 @@ const HeroEffectsShowcase = () => {
   const [intensity, setIntensity] = useState<'subtle' | 'medium' | 'bold'>('medium');
   const [colorScheme, setColorScheme] = useState<string>('cyan-purple');
   const [recordingState, setRecordingState] = useState<VideoRecordingState>({ isRecording: false, progress: 0 });
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportTarget, setExportTarget] = useState<{ effectId: string; container: HTMLDivElement | null } | null>(null);
 
   // Refs for export capture – gallery cards and fullscreen container
   const effectCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -116,6 +118,27 @@ const HeroEffectsShowcase = () => {
     if (!container || recordingState.isRecording) return;
     recordEffectAsVideo(container, `hero-effect-${effectId}`, 5000, setRecordingState);
   }, [recordingState.isRecording]);
+
+  const handleOpenExportDialog = useCallback((effectId: string, container: HTMLDivElement | null) => {
+    setExportTarget({ effectId, container });
+    setExportDialogOpen(true);
+  }, []);
+
+  const handleAdvancedExport = useCallback((options: ExportOptions) => {
+    if (!exportTarget?.container) return;
+    const { effectId, container } = exportTarget;
+    const fileName = `hero-effect-${effectId}`;
+
+    setExportDialogOpen(false);
+
+    if (options.format === 'png') {
+      captureEffectAsPng(container, fileName, options);
+    } else if (options.format === 'webm') {
+      recordEffectAsVideo(container, fileName, options.duration * 1000, setRecordingState, options);
+    } else if (options.format === 'gif') {
+      recordEffectAsGif(container, fileName, setRecordingState, options);
+    }
+  }, [exportTarget]);
 
   const renderEffect = (effectId: EffectType, config: { colorScheme: string; mode: 'dark' | 'light'; brightness: number; density?: string; speed?: string; intensity?: string }) => {
     const commonProps = {
