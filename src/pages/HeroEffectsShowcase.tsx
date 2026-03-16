@@ -342,6 +342,7 @@ const HeroEffectsShowcase = () => {
           effectName={selectedConfig?.name || ''}
           recordingState={recordingState}
           onExport={handleAdvancedExport}
+          previewContainerRef={fullscreenEffectRef}
         />
       </div>
     );
@@ -544,6 +545,7 @@ const HeroEffectsShowcase = () => {
         effectName={exportTarget ? (EFFECTS.find(e => e.id === exportTarget.effectId)?.name || exportTarget.effectId) : ''}
         recordingState={recordingState}
         onExport={handleAdvancedExport}
+        previewContainerRef={{ current: exportTarget?.container ?? null }}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Image, Video, Film, Sparkles, Play, RotateCcw, Settings2, Loader2 } from 'lucide-react';
+import { Image, Video, Film, Sparkles, Play, RotateCcw, Settings2, Loader2, Eye, Pause } from 'lucide-react';
 import { ExportOptions, DEFAULT_EXPORT_OPTIONS, VideoRecordingState, INTRO_ANIMATIONS, IntroAnimationType } from '@/lib/heroEffectExport';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,6 +19,242 @@ interface ExportOptionsDialogProps {
   effectName: string;
   recordingState: VideoRecordingState;
   onExport: (options: ExportOptions) => void;
+  previewContainerRef?: React.RefObject<HTMLElement | null>;
+}
+
+/** Miniature live preview that replays the chosen intro animation on a captured snapshot */
+function LivePreviewPanel({
+  options,
+  containerRef,
+}: {
+  options: ExportOptions;
+  containerRef?: React.RefObject<HTMLElement | null>;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animFrameRef = useRef<number>(0);
+  const startTimeRef = useRef<number>(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const snapshotRef = useRef<HTMLCanvasElement | null>(null);
+  const [hasSnapshot, setHasSnapshot] = useState(false);
+
+  // Capture a snapshot of the live effect once
+  const captureSnapshot = useCallback(async () => {
+    const container = containerRef?.current;
+    if (!container) return;
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const captured = await html2canvas(container, {
+        backgroundColor: '#000000',
+        scale: 0.5,
+        useCORS: true,
+        logging: false,
+        width: container.offsetWidth,
+        height: container.offsetHeight,
+      });
+      snapshotRef.current = captured;
+      setHasSnapshot(true);
+    } catch {
+      // silently fail
+    }
+  }, [containerRef]);
+
+  useEffect(() => {
+    captureSnapshot();
+  }, [captureSnapshot]);
+
+  // Easing functions (duplicated locally for preview isolation)
+  const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+  const easeOutElastic = (t: number) => {
+    if (t === 0 || t === 1) return t;
+    return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI / 3)) + 1;
+  };
+
+  const drawFrame = useCallback((timestamp: number) => {
+    const canvas = canvasRef.current;
+    const source = snapshotRef.current;
+    if (!canvas || !source || !isPlaying) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (!startTimeRef.current) startTimeRef.current = timestamp;
+    const elapsed = (timestamp - startTimeRef.current) / 1000;
+    const totalDur = options.introMode ? options.duration : 3;
+    const introDur = options.introMode ? options.introDuration : 0;
+
+    // Loop
+    const loopedElapsed = elapsed % totalDur;
+    const rawT = introDur > 0 ? Math.min(loopedElapsed / introDur, 1) : 1;
+    const w = canvas.width;
+    const h = canvas.height;
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, w, h);
+
+    if (!options.introMode || rawT >= 1) {
+      // Normal playback
+      ctx.drawImage(source, 0, 0, w, h);
+    } else {
+      // Apply animation
+      ctx.save();
+      const anim = options.introAnimation || 'fade';
+      const t = easeOutCubic(rawT);
+
+      switch (anim) {
+        case 'fade':
+          ctx.globalAlpha = t;
+          ctx.drawImage(source, 0, 0, w, h);
+          break;
+        case 'scale-up': {
+          const scale = 0.3 + 0.7 * t;
+          ctx.globalAlpha = Math.min(1, rawT * 2);
+          ctx.translate(w / 2, h / 2);
+          ctx.scale(scale, scale);
+          ctx.translate(-w / 2, -h / 2);
+          ctx.drawImage(source, 0, 0, w, h);
+          break;
+        }
+        case 'scale-down': {
+          const scale = 1.6 - 0.6 * t;
+          ctx.globalAlpha = Math.min(1, rawT * 1.5);
+          ctx.translate(w / 2, h / 2);
+          ctx.scale(scale, scale);
+          ctx.translate(-w / 2, -h / 2);
+          ctx.drawImage(source, 0, 0, w, h);
+          break;
+        }
+        case 'slide-up':
+          ctx.globalAlpha = Math.min(1, rawT * 2);
+          ctx.drawImage(source, 0, h * (1 - t), w, h);
+          break;
+        case 'slide-down':
+          ctx.globalAlpha = Math.min(1, rawT * 2);
+          ctx.drawImage(source, 0, -h * (1 - t), w, h);
+          break;
+        case 'slide-left':
+          ctx.globalAlpha = Math.min(1, rawT * 2);
+          ctx.drawImage(source, w * (1 - t), 0, w, h);
+          break;
+        case 'blur-fade':
+          ctx.globalAlpha = t;
+          ctx.drawImage(source, 0, 0, w, h);
+          break;
+        case 'spiral-in': {
+          const scale = 0.2 + 0.8 * t;
+          const rot = (1 - t) * Math.PI * 1.5;
+          ctx.globalAlpha = Math.min(1, rawT * 2);
+          ctx.translate(w / 2, h / 2);
+          ctx.rotate(rot);
+          ctx.scale(scale, scale);
+          ctx.translate(-w / 2, -h / 2);
+          ctx.drawImage(source, 0, 0, w, h);
+          break;
+        }
+        case 'wipe-right': {
+          const revealW = Math.round(w * t);
+          if (revealW > 0) {
+            ctx.beginPath();
+            ctx.rect(0, 0, revealW, h);
+            ctx.clip();
+            ctx.drawImage(source, 0, 0, w, h);
+          }
+          break;
+        }
+        case 'wipe-down': {
+          const revealH = Math.round(h * t);
+          if (revealH > 0) {
+            ctx.beginPath();
+            ctx.rect(0, 0, w, revealH);
+            ctx.clip();
+            ctx.drawImage(source, 0, 0, w, h);
+          }
+          break;
+        }
+        case 'radial-reveal': {
+          const maxR = Math.sqrt(w * w + h * h) / 2;
+          ctx.beginPath();
+          ctx.arc(w / 2, h / 2, maxR * t, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(source, 0, 0, w, h);
+          break;
+        }
+        case 'bounce-in': {
+          const bt = easeOutElastic(rawT);
+          ctx.globalAlpha = Math.min(1, rawT * 3);
+          ctx.translate(w / 2, h / 2);
+          ctx.scale(Math.max(0.01, bt), Math.max(0.01, bt));
+          ctx.translate(-w / 2, -h / 2);
+          ctx.drawImage(source, 0, 0, w, h);
+          break;
+        }
+        default:
+          ctx.globalAlpha = t;
+          ctx.drawImage(source, 0, 0, w, h);
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+
+    animFrameRef.current = requestAnimationFrame(drawFrame);
+  }, [isPlaying, options]);
+
+  useEffect(() => {
+    if (isPlaying && hasSnapshot) {
+      startTimeRef.current = 0;
+      animFrameRef.current = requestAnimationFrame(drawFrame);
+    }
+    return () => cancelAnimationFrame(animFrameRef.current);
+  }, [isPlaying, hasSnapshot, drawFrame]);
+
+  const togglePlay = () => {
+    if (!isPlaying) startTimeRef.current = 0;
+    setIsPlaying(p => !p);
+  };
+
+  const replay = () => {
+    startTimeRef.current = 0;
+    if (!isPlaying) setIsPlaying(true);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Eye className="h-4 w-4 text-primary" />
+          <Label className="text-sm font-medium">Live Preview</Label>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={togglePlay}>
+            {isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+          </Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={replay}>
+            <RotateCcw className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+      <div className="relative rounded-lg border border-border overflow-hidden bg-black aspect-video">
+        {!hasSnapshot && (
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-xs">
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            Capturing preview…
+          </div>
+        )}
+        <canvas
+          ref={canvasRef}
+          width={480}
+          height={270}
+          className="w-full h-full"
+        />
+      </div>
+      <p className="text-[10px] text-muted-foreground text-center">
+        {options.introMode
+          ? `${INTRO_ANIMATIONS.find(a => a.id === options.introAnimation)?.label || 'Fade'} · ${options.introDuration}s intro → ${Math.max(0, options.duration - options.introDuration).toFixed(1)}s loop`
+          : 'Showing live effect capture · Enable Intro Mode for animation preview'
+        }
+      </p>
+    </div>
+  );
 }
 
 const FORMAT_INFO = {
@@ -35,8 +271,9 @@ const RESOLUTION_LABELS: Record<string, string> = {
   'custom': 'Custom',
 };
 
-export function ExportOptionsDialog({ open, onOpenChange, effectName, recordingState, onExport }: ExportOptionsDialogProps) {
+export function ExportOptionsDialog({ open, onOpenChange, effectName, recordingState, onExport, previewContainerRef }: ExportOptionsDialogProps) {
   const [options, setOptions] = useState<ExportOptions>({ ...DEFAULT_EXPORT_OPTIONS });
+  const [showPreview, setShowPreview] = useState(true);
 
   const updateOption = <K extends keyof ExportOptions>(key: K, value: ExportOptions[K]) => {
     setOptions(prev => ({ ...prev, [key]: value }));
@@ -308,6 +545,24 @@ export function ExportOptionsDialog({ open, onOpenChange, effectName, recordingS
                 )}
               </div>
             </>
+          )}
+
+          <Separator />
+
+          {/* Live Preview */}
+          {isAnimated && previewContainerRef && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-primary" />
+                  Live Preview
+                </Label>
+                <Switch checked={showPreview} onCheckedChange={setShowPreview} />
+              </div>
+              {showPreview && (
+                <LivePreviewPanel options={options} containerRef={previewContainerRef} />
+              )}
+            </div>
           )}
 
           {/* Estimate info */}
