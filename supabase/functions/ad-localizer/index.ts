@@ -265,42 +265,75 @@ async function handleGenerate(
        ${globalLinkInsights.taboos ? `- Avoid: ${globalLinkInsights.taboos}` : ''}
        ${globalLinkInsights.adaptation_summary ? `- Summary: ${globalLinkInsights.adaptation_summary}` : ''}` : '';
 
-  // Build detailed analysis context block
+  // Build detailed analysis context block from new schema
   const textElements = analysis?.text_elements || [];
   const legacyText = analysis?.text || [];
   const textBlock = textElements.length > 0
-    ? textElements.map((t: any) => `  • [${t.role || 'text'}] "${t.content}" at ${t.approximate_position || 'unknown'} (${t.style?.size || ''} ${t.style?.weight || ''} ${t.style?.color_description || ''} ${t.style?.case || ''})`).join('\n')
+    ? textElements.map((t: any) => {
+        const pos = t.position ? `at (${t.position.x_percent}%, ${t.position.y_percent}%) w:${t.position.width_percent}% anchor:${t.position.anchor}` : (t.approximate_position || 'unknown');
+        const typo = t.typography || t.style || {};
+        const font = typo.font_guess || typo.font_category || '';
+        const weight = typo.font_weight || typo.weight || '';
+        const size = typo.size_px_estimate ? `${typo.size_px_estimate}px` : (typo.size || '');
+        const color = typo.color_hex || typo.color_description || '';
+        const transform = typo.text_transform || typo.case || '';
+        const spacing = typo.letter_spacing ? `spacing:${typo.letter_spacing}` : '';
+        return `  • [${t.role || 'text'}] "${t.content}" ${pos} | ${font} ${weight} ${size} ${color} ${transform} ${spacing}`;
+      }).join('\n')
     : legacyText.length > 0 ? legacyText.map((t: string) => `  • "${t}"`).join('\n') : '  N/A';
+
+  const ctaBlock = analysis?.cta_elements?.length
+    ? `CTA BUTTONS:\n${analysis.cta_elements.map((c: any) => {
+        const s = c.style || {};
+        return `  • "${c.text}" bg:${s.background_color_hex || '?'} text:${s.text_color_hex || '?'} radius:${s.border_radius || '?'} padding:${s.padding_estimate || '?'}`;
+      }).join('\n')}`
+    : '';
 
   const visualElements = analysis?.visual_elements || analysis?.elements || [];
   const visualBlock = Array.isArray(visualElements) 
-    ? visualElements.map((v: any) => typeof v === 'string' ? `  • ${v}` : `  • [${v.role}] ${v.element} at ${v.position || 'unknown'}`).join('\n')
+    ? visualElements.map((v: any) => {
+        if (typeof v === 'string') return `  • ${v}`;
+        const pos = v.position?.x_percent != null ? `(${v.position.x_percent}%, ${v.position.y_percent}%) ${v.position.width_percent || ''}x${v.position.height_percent || ''}%` : (v.position || 'unknown');
+        return `  • [${v.role}] ${v.element} at ${pos} z:${v.z_order ?? '?'} opacity:${v.opacity ?? 100}%`;
+      }).join('\n')
     : '  N/A';
 
+  const bgBlock = analysis?.background
+    ? `Background: ${analysis.background.type} | primary:${analysis.background.primary_color_hex || '?'} ${analysis.background.gradient_direction ? `gradient:${analysis.background.gradient_direction} to ${analysis.background.secondary_color_hex}` : ''} ${analysis.background.overlay ? `overlay:${analysis.background.overlay.color_hex} @${analysis.background.overlay.opacity}%` : ''}`
+    : '';
+
   const layoutBlock = analysis?.layout
-    ? `Layout: ${analysis.layout.composition || 'unknown'}, alignment: ${analysis.layout.text_alignment || 'unknown'}, background: ${analysis.layout.background_type || 'unknown'} (${analysis.layout.background_description || ''})`
+    ? `Layout: ${analysis.layout.composition_type || analysis.layout.composition || 'unknown'} | ${analysis.layout.canvas_orientation || ''} ${analysis.layout.estimated_aspect_ratio || ''} | align:${analysis.layout.text_alignment || 'unknown'} | grid:${analysis.layout.grid_structure || 'none'} | margins:${JSON.stringify(analysis.layout.margins || {})}`
     : '';
 
   const colorBlock = analysis?.color_palette?.length
-    ? `Color Palette:\n${analysis.color_palette.map((c: any) => `  • ${c.color} (${c.hex_estimate || '?'}) — used for: ${c.usage || 'unknown'}`).join('\n')}`
+    ? `Color Palette:\n${analysis.color_palette.map((c: any) => `  • ${c.name || c.color} (${c.hex || c.hex_estimate || '?'}) — ${c.usage || 'unknown'} ~${c.approximate_area_percent ?? '?'}%`).join('\n')}`
     : '';
 
   const brandMarksBlock = analysis?.brand_marks?.length
-    ? `Brand Marks:\n${analysis.brand_marks.map((b: any) => `  • ${b.type}: "${b.content || 'visual'}" at ${b.position || 'unknown'}`).join('\n')}`
+    ? `Brand Marks:\n${analysis.brand_marks.map((b: any) => {
+        const pos = b.position?.x_percent != null ? `(${b.position.x_percent}%, ${b.position.y_percent}%)` : (b.position || 'unknown');
+        return `  • ${b.type}: "${b.content || 'visual'}" at ${pos} size:${b.size_estimate || '?'} treatment:${b.color_treatment || '?'}`;
+      }).join('\n')}`
     : '';
 
+  const prodSpecs = analysis?.production_specs || {};
   const styleInfo = [
-    analysis?.mood ? `Mood: ${analysis.mood}` : '',
-    analysis?.style_category ? `Style: ${analysis.style_category}` : '',
-    analysis?.dominant_font_style ? `Font style: ${analysis.dominant_font_style}` : '',
+    prodSpecs.mood || analysis?.mood ? `Mood: ${prodSpecs.mood || analysis?.mood}` : '',
+    prodSpecs.style_category || analysis?.style_category ? `Style: ${prodSpecs.style_category || analysis?.style_category}` : '',
+    prodSpecs.dominant_font_style || analysis?.dominant_font_style ? `Primary font: ${prodSpecs.dominant_font_style || analysis?.dominant_font_style}` : '',
+    prodSpecs.secondary_font_style ? `Secondary font: ${prodSpecs.secondary_font_style}` : '',
+    prodSpecs.effects?.length ? `Effects: ${prodSpecs.effects.join(', ')}` : '',
   ].filter(Boolean).join(' | ');
 
   const analysisBlock = `
        Detailed Image Analysis:
        TEXT ELEMENTS (preserve exact hierarchy, position, and styling):
 ${textBlock}
+       ${ctaBlock}
        VISUAL ELEMENTS:
 ${visualBlock}
+       ${bgBlock}
        ${layoutBlock}
        ${colorBlock}
        ${brandMarksBlock}
