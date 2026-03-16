@@ -1,25 +1,81 @@
 /**
- * heroEffectExport - Utilities to export hero background effects as PNG images
- * and WebM videos for PowerPoint integration.
+ * heroEffectExport - Utilities to export hero background effects as PNG, WebM video, and animated GIF.
  *
- * PNG: Uses html2canvas to rasterise a DOM container at 1920×1080.
+ * PNG: Uses html2canvas to rasterise a DOM container.
  * Video: Uses MediaRecorder on a canvas fed by html2canvas frame captures.
+ * GIF: Uses gifenc for lightweight, high-quality animated GIF encoding.
  */
 
 import html2canvas from 'html2canvas';
+import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 import { toast } from 'sonner';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+export interface VideoRecordingState {
+  isRecording: boolean;
+  progress: number; // 0–100
+}
+
+export interface ExportOptions {
+  format: 'png' | 'webm' | 'gif';
+  resolution: '720p' | '1080p' | '1440p' | '4k' | 'custom';
+  customWidth?: number;
+  customHeight?: number;
+  duration: number; // seconds (for video/gif)
+  fps: number; // frames per second (for video/gif)
+  loop: boolean; // GIF looping
+  loopCount: number; // 0 = infinite, or specific count
+  quality: 'draft' | 'standard' | 'high';
+  introMode: boolean; // fade-in intro animation mode
+  introDuration: number; // intro fade duration in seconds
+}
+
+export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
+  format: 'gif',
+  resolution: '1080p',
+  duration: 5,
+  fps: 15,
+  loop: true,
+  loopCount: 0,
+  quality: 'standard',
+  introMode: false,
+  introDuration: 2,
+};
+
+function getResolutionDimensions(resolution: ExportOptions['resolution'], customW?: number, customH?: number): { w: number; h: number } {
+  switch (resolution) {
+    case '720p': return { w: 1280, h: 720 };
+    case '1080p': return { w: 1920, h: 1080 };
+    case '1440p': return { w: 2560, h: 1440 };
+    case '4k': return { w: 3840, h: 2160 };
+    case 'custom': return { w: customW || 1920, h: customH || 1080 };
+    default: return { w: 1920, h: 1080 };
+  }
+}
+
+function getScaleForQuality(quality: ExportOptions['quality']): number {
+  switch (quality) {
+    case 'draft': return 1;
+    case 'standard': return 1.5;
+    case 'high': return 2;
+    default: return 1.5;
+  }
+}
 
 // ─── PNG Export ──────────────────────────────────────────────────────────────
 
 export async function captureEffectAsPng(
   container: HTMLElement,
-  fileName: string
+  fileName: string,
+  options?: Partial<ExportOptions>
 ): Promise<void> {
   const toastId = toast.loading('Capturing effect as PNG…');
   try {
+    const scale = options?.quality ? getScaleForQuality(options.quality) : 2;
     const canvas = await html2canvas(container, {
       backgroundColor: null,
-      scale: 2, // high-res
+      scale,
       useCORS: true,
       logging: false,
       width: container.offsetWidth,
@@ -49,46 +105,35 @@ export async function captureEffectAsPng(
 
 // ─── Video (WebM) Export ─────────────────────────────────────────────────────
 
-export interface VideoRecordingState {
-  isRecording: boolean;
-  progress: number; // 0–100
-}
-
-/**
- * Records the given DOM element as a WebM video (5 seconds, ~15 fps).
- * Uses html2canvas per-frame → draws to an offscreen canvas → MediaRecorder.
- *
- * Modern PowerPoint (2016+) supports WebM. For older versions users can convert
- * to MP4 with any free tool.
- */
 export async function recordEffectAsVideo(
   container: HTMLElement,
   fileName: string,
   durationMs = 5000,
-  onProgress?: (state: VideoRecordingState) => void
+  onProgress?: (state: VideoRecordingState) => void,
+  options?: Partial<ExportOptions>
 ): Promise<void> {
-  const toastId = toast.loading('Recording effect video (5s)…');
+  const toastId = toast.loading('Recording effect video…');
 
   try {
-    const fps = 15;
-    const totalFrames = Math.ceil((durationMs / 1000) * fps);
-    const frameInterval = durationMs / totalFrames;
+    const fps = options?.fps || 15;
+    const duration = options?.duration ? options.duration * 1000 : durationMs;
+    const totalFrames = Math.ceil((duration / 1000) * fps);
+    const frameInterval = duration / totalFrames;
+    const scale = options?.quality ? getScaleForQuality(options.quality) : 2;
 
-    // Create offscreen canvas at capture size
     const w = container.offsetWidth;
     const h = container.offsetHeight;
     const offscreen = document.createElement('canvas');
-    offscreen.width = w * 2; // 2x for quality
-    offscreen.height = h * 2;
+    offscreen.width = w * scale;
+    offscreen.height = h * scale;
     const ctx = offscreen.getContext('2d')!;
 
-    // Use canvas stream for MediaRecorder
-    const stream = offscreen.captureStream(0); // manual frame push
+    const stream = offscreen.captureStream(0);
     const recorder = new MediaRecorder(stream, {
       mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
         ? 'video/webm;codecs=vp9'
         : 'video/webm',
-      videoBitsPerSecond: 5_000_000,
+      videoBitsPerSecond: options?.quality === 'high' ? 8_000_000 : 5_000_000,
     });
 
     const chunks: Blob[] = [];
@@ -103,30 +148,33 @@ export async function recordEffectAsVideo(
       onProgress?.({ isRecording: true, progress });
       toast.loading(`Recording… ${progress}%`, { id: toastId });
 
-      // Capture current frame
       const frameCanvas = await html2canvas(container, {
         backgroundColor: null,
-        scale: 2,
+        scale,
         useCORS: true,
         logging: false,
         width: w,
         height: h,
       });
 
+      // Apply intro fade if enabled
       ctx.clearRect(0, 0, offscreen.width, offscreen.height);
-      ctx.drawImage(frameCanvas, 0, 0, offscreen.width, offscreen.height);
-
-      // Push frame to stream
-      const track = stream.getVideoTracks()[0] as any;
-      if (track?.requestFrame) {
-        track.requestFrame();
+      if (options?.introMode) {
+        const introFrames = Math.ceil(((options.introDuration || 2) / (duration / 1000)) * totalFrames);
+        const opacity = i < introFrames ? Math.min(1, i / introFrames) : 1;
+        ctx.globalAlpha = opacity;
+      } else {
+        ctx.globalAlpha = 1;
       }
+      ctx.drawImage(frameCanvas, 0, 0, offscreen.width, offscreen.height);
+      ctx.globalAlpha = 1;
 
-      // Wait for next frame timing
+      const track = stream.getVideoTracks()[0] as any;
+      if (track?.requestFrame) track.requestFrame();
+
       await new Promise((r) => setTimeout(r, frameInterval));
     }
 
-    // Stop and download
     await new Promise<void>((resolve) => {
       recorder.onstop = () => resolve();
       recorder.stop();
@@ -149,5 +197,113 @@ export async function recordEffectAsVideo(
     console.error('[heroEffectExport] Video recording failed:', err);
     onProgress?.({ isRecording: false, progress: 0 });
     toast.error('Video recording failed. Try the PNG option instead.', { id: toastId });
+  }
+}
+
+// ─── GIF Export ──────────────────────────────────────────────────────────────
+
+export async function recordEffectAsGif(
+  container: HTMLElement,
+  fileName: string,
+  onProgress?: (state: VideoRecordingState) => void,
+  options?: Partial<ExportOptions>
+): Promise<void> {
+  const toastId = toast.loading('Encoding animated GIF…');
+
+  try {
+    const fps = options?.fps || 12;
+    const duration = (options?.duration || 3) * 1000;
+    const totalFrames = Math.ceil((duration / 1000) * fps);
+    const frameDelay = Math.round(1000 / fps); // ms per frame
+    const loop = options?.loop !== false;
+    const loopCount = options?.loopCount ?? 0; // 0 = infinite
+
+    // GIF resolution — scale down for file size
+    const qualityScale = options?.quality === 'high' ? 1 : options?.quality === 'draft' ? 0.5 : 0.75;
+    const captureW = container.offsetWidth;
+    const captureH = container.offsetHeight;
+    const gifW = Math.round(captureW * qualityScale);
+    const gifH = Math.round(captureH * qualityScale);
+
+    const gif = GIFEncoder();
+
+    // Temp canvas for scaling frames
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = gifW;
+    tempCanvas.height = gifH;
+    const tempCtx = tempCanvas.getContext('2d')!;
+
+    for (let i = 0; i < totalFrames; i++) {
+      const progress = Math.round(((i + 1) / totalFrames) * 100);
+      onProgress?.({ isRecording: true, progress });
+      toast.loading(`Encoding GIF… ${progress}%`, { id: toastId });
+
+      // Capture frame from DOM
+      const frameCanvas = await html2canvas(container, {
+        backgroundColor: '#000000',
+        scale: 1,
+        useCORS: true,
+        logging: false,
+        width: captureW,
+        height: captureH,
+      });
+
+      // Scale to GIF dimensions
+      tempCtx.clearRect(0, 0, gifW, gifH);
+
+      // Apply intro fade if enabled
+      if (options?.introMode) {
+        const introFrames = Math.ceil(((options.introDuration || 2) / (duration / 1000)) * totalFrames);
+        const opacity = i < introFrames ? Math.min(1, i / introFrames) : 1;
+        // Draw black background first
+        tempCtx.fillStyle = '#000000';
+        tempCtx.fillRect(0, 0, gifW, gifH);
+        tempCtx.globalAlpha = opacity;
+      }
+
+      tempCtx.drawImage(frameCanvas, 0, 0, gifW, gifH);
+      tempCtx.globalAlpha = 1;
+
+      // Get pixel data and quantize
+      const imageData = tempCtx.getImageData(0, 0, gifW, gifH);
+      const { data } = imageData;
+
+      // Convert to RGBA Uint8Array
+      const rgba = new Uint8Array(data.buffer);
+
+      // Quantize to 256 colors
+      const palette = quantize(rgba, 256, { format: 'rgba4444' });
+      const indexed = applyPalette(rgba, palette, 'rgba4444');
+
+      gif.writeFrame(indexed, gifW, gifH, {
+        palette,
+        delay: frameDelay,
+        repeat: loop ? loopCount : -1, // -1 = no repeat
+      });
+
+      // Let the animation advance
+      await new Promise((r) => setTimeout(r, frameDelay));
+    }
+
+    gif.finish();
+
+    onProgress?.({ isRecording: false, progress: 100 });
+
+    const blob = new Blob([gif.bytes()], { type: 'image/gif' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${fileName}.gif`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    const sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
+    toast.success(`Animated GIF downloaded (${sizeMB} MB) — ${loop ? 'loops' : 'plays once'}`, { id: toastId });
+  } catch (err) {
+    console.error('[heroEffectExport] GIF encoding failed:', err);
+    onProgress?.({ isRecording: false, progress: 0 });
+    toast.error('GIF encoding failed. Try the video option instead.', { id: toastId });
   }
 }
