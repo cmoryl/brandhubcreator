@@ -451,21 +451,9 @@ export async function recordEffectAsGif(
         height: captureH,
       });
 
-      // Scale to GIF dimensions
+      // Scale to GIF dimensions and apply intro animation
       tempCtx.clearRect(0, 0, gifW, gifH);
-
-      // Apply intro fade if enabled
-      if (options?.introMode) {
-        const introFrames = Math.ceil(((options.introDuration || 2) / (duration / 1000)) * totalFrames);
-        const opacity = i < introFrames ? Math.min(1, i / introFrames) : 1;
-        // Draw black background first
-        tempCtx.fillStyle = '#000000';
-        tempCtx.fillRect(0, 0, gifW, gifH);
-        tempCtx.globalAlpha = opacity;
-      }
-
-      tempCtx.drawImage(frameCanvas, 0, 0, gifW, gifH);
-      tempCtx.globalAlpha = 1;
+      applyIntroAnimation(tempCtx, gifW, gifH, i, totalFrames, options || {}, frameCanvas);
 
       // Get pixel data and quantize
       const imageData = tempCtx.getImageData(0, 0, gifW, gifH);
