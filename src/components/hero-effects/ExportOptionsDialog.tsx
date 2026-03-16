@@ -9,8 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Image, Video, Film, Sparkles, Play, RotateCcw, Settings2, Loader2 } from 'lucide-react';
-import { ExportOptions, DEFAULT_EXPORT_OPTIONS, VideoRecordingState } from '@/lib/heroEffectExport';
+import { ExportOptions, DEFAULT_EXPORT_OPTIONS, VideoRecordingState, INTRO_ANIMATIONS, IntroAnimationType } from '@/lib/heroEffectExport';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ExportOptionsDialogProps {
   open: boolean;
