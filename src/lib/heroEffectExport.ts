@@ -12,10 +12,19 @@ import { toast } from 'sonner';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export interface VideoRecordingState {
-  isRecording: boolean;
-  progress: number; // 0–100
-}
+export type IntroAnimationType = 
+  | 'fade'          // opacity 0→1
+  | 'scale-up'      // elements grow from center
+  | 'scale-down'    // zoom out reveal (starts zoomed in)
+  | 'slide-up'      // rise from bottom
+  | 'slide-down'    // drop from top
+  | 'slide-left'    // sweep from right
+  | 'blur-fade'     // blur dissolve with fade
+  | 'spiral-in'     // rotate + scale in
+  | 'wipe-right'    // progressive reveal left→right
+  | 'wipe-down'     // progressive reveal top→bottom
+  | 'radial-reveal' // circular reveal from center
+  | 'bounce-in';    // scale with overshoot bounce
 
 export interface ExportOptions {
   format: 'png' | 'webm' | 'gif';
@@ -27,8 +36,9 @@ export interface ExportOptions {
   loop: boolean; // GIF looping
   loopCount: number; // 0 = infinite, or specific count
   quality: 'draft' | 'standard' | 'high';
-  introMode: boolean; // fade-in intro animation mode
-  introDuration: number; // intro fade duration in seconds
+  introMode: boolean; // intro animation mode
+  introAnimation: IntroAnimationType;
+  introDuration: number; // intro duration in seconds
 }
 
 export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
@@ -40,8 +50,24 @@ export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
   loopCount: 0,
   quality: 'standard',
   introMode: false,
+  introAnimation: 'fade',
   introDuration: 2,
 };
+
+export const INTRO_ANIMATIONS: { id: IntroAnimationType; label: string; description: string; icon: string }[] = [
+  { id: 'fade', label: 'Fade In', description: 'Smooth opacity transition', icon: '🌅' },
+  { id: 'scale-up', label: 'Scale Up', description: 'Elements grow from center', icon: '🔍' },
+  { id: 'scale-down', label: 'Zoom Reveal', description: 'Camera zooms out to reveal', icon: '🎬' },
+  { id: 'slide-up', label: 'Rise Up', description: 'Elements float up into view', icon: '⬆️' },
+  { id: 'slide-down', label: 'Drop In', description: 'Elements drop down from above', icon: '⬇️' },
+  { id: 'slide-left', label: 'Sweep In', description: 'Scene sweeps in from right', icon: '➡️' },
+  { id: 'blur-fade', label: 'Blur Dissolve', description: 'Blurred to sharp with fade', icon: '💫' },
+  { id: 'spiral-in', label: 'Spiral In', description: 'Rotate and scale into place', icon: '🌀' },
+  { id: 'wipe-right', label: 'Wipe Right', description: 'Progressive reveal left to right', icon: '▶️' },
+  { id: 'wipe-down', label: 'Wipe Down', description: 'Progressive reveal top to bottom', icon: '🔽' },
+  { id: 'radial-reveal', label: 'Radial Reveal', description: 'Circular reveal from center', icon: '⭕' },
+  { id: 'bounce-in', label: 'Bounce In', description: 'Scale with elastic overshoot', icon: '🏀' },
+];
 
 function getResolutionDimensions(resolution: ExportOptions['resolution'], customW?: number, customH?: number): { w: number; h: number } {
   switch (resolution) {
