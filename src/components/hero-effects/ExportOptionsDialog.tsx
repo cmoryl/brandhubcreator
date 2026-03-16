@@ -239,7 +239,7 @@ export function ExportOptionsDialog({ open, onOpenChange, effectName, recordingS
                     <div>
                       <Label className="text-sm font-medium">Intro Background Mode</Label>
                       <p className="text-[10px] text-muted-foreground mt-0.5">
-                        Fade-in animation for use as presentation/website intro
+                        Animate elements into view for presentations or website intros
                       </p>
                     </div>
                   </div>
@@ -249,18 +249,61 @@ export function ExportOptionsDialog({ open, onOpenChange, effectName, recordingS
                   />
                 </div>
                 {options.introMode && (
-                  <div className="space-y-2 pl-5">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs text-muted-foreground">Fade-in Duration</Label>
-                      <span className="text-xs font-mono text-foreground">{options.introDuration}s</span>
+                  <div className="space-y-4 pl-1 pt-1">
+                    {/* Animation Style Picker */}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Animation Style</Label>
+                      <ScrollArea className="h-[180px] rounded-md border bg-muted/20 p-1">
+                        <div className="grid grid-cols-2 gap-1.5 p-1">
+                          {INTRO_ANIMATIONS.map((anim) => {
+                            const isSelected = options.introAnimation === anim.id;
+                            return (
+                              <button
+                                key={anim.id}
+                                onClick={() => updateOption('introAnimation', anim.id)}
+                                className={cn(
+                                  "flex items-start gap-2 p-2 rounded-md border text-left transition-all",
+                                  isSelected
+                                    ? "border-primary bg-primary/10 ring-1 ring-primary/20"
+                                    : "border-transparent hover:bg-muted/50"
+                                )}
+                              >
+                                <span className="text-base leading-none mt-0.5">{anim.icon}</span>
+                                <div className="min-w-0">
+                                  <div className={cn(
+                                    "text-xs font-medium truncate",
+                                    isSelected ? "text-foreground" : "text-muted-foreground"
+                                  )}>
+                                    {anim.label}
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                                    {anim.description}
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
                     </div>
-                    <Slider
-                      value={[options.introDuration]}
-                      onValueChange={([v]) => updateOption('introDuration', v)}
-                      min={0.5}
-                      max={5}
-                      step={0.5}
-                    />
+
+                    {/* Intro Duration */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-muted-foreground">Animation Duration</Label>
+                        <span className="text-xs font-mono text-foreground">{options.introDuration}s</span>
+                      </div>
+                      <Slider
+                        value={[options.introDuration]}
+                        onValueChange={([v]) => updateOption('introDuration', v)}
+                        min={0.5}
+                        max={Math.min(options.duration - 0.5, 8)}
+                        step={0.5}
+                      />
+                      <p className="text-[10px] text-muted-foreground">
+                        Elements will animate in over {options.introDuration}s, then play normally for {Math.max(0, options.duration - options.introDuration).toFixed(1)}s
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
