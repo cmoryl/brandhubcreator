@@ -190,17 +190,24 @@ const HeroEffectsShowcase = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="secondary" size="sm" className="gap-2 bg-white/20 text-white border-0 hover:bg-white/30" disabled={recordingState.isRecording}>
                     <Download className="h-4 w-4" />
-                    {recordingState.isRecording ? `Recording ${recordingState.progress}%` : 'Export for PowerPoint'}
+                    {recordingState.isRecording ? `Recording ${recordingState.progress}%` : 'Export'}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => handleExportPng(selectedEffect!, fullscreenEffectRef.current)}>
                     <Image className="h-4 w-4 mr-2" />
-                    Download as PNG (static background)
+                    Quick PNG (static)
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleExportVideo(selectedEffect!, fullscreenEffectRef.current)}>
                     <Video className="h-4 w-4 mr-2" />
-                    Download as Video (animated background)
+                    Quick Video (5s WebM)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    const config = EFFECTS.find(e => e.id === selectedEffect);
+                    if (config) handleOpenExportDialog(selectedEffect!, fullscreenEffectRef.current);
+                  }}>
+                    <Film className="h-4 w-4 mr-2" />
+                    Animated GIF / Advanced Export…
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
