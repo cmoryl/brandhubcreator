@@ -271,8 +271,9 @@ const RESOLUTION_LABELS: Record<string, string> = {
   'custom': 'Custom',
 };
 
-export function ExportOptionsDialog({ open, onOpenChange, effectName, recordingState, onExport }: ExportOptionsDialogProps) {
+export function ExportOptionsDialog({ open, onOpenChange, effectName, recordingState, onExport, previewContainerRef }: ExportOptionsDialogProps) {
   const [options, setOptions] = useState<ExportOptions>({ ...DEFAULT_EXPORT_OPTIONS });
+  const [showPreview, setShowPreview] = useState(true);
 
   const updateOption = <K extends keyof ExportOptions>(key: K, value: ExportOptions[K]) => {
     setOptions(prev => ({ ...prev, [key]: value }));
