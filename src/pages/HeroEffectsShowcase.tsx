@@ -335,6 +335,14 @@ const HeroEffectsShowcase = () => {
             </Card>
           </div>
         </div>
+
+        <ExportOptionsDialog
+          open={exportDialogOpen}
+          onOpenChange={setExportDialogOpen}
+          effectName={selectedConfig?.name || ''}
+          recordingState={recordingState}
+          onExport={handleAdvancedExport}
+        />
       </div>
     );
   }
