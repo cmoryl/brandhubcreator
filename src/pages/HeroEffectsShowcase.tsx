@@ -16,7 +16,8 @@ import { FloatingOrbsHero } from '@/components/backgrounds/FloatingOrbsHero';
 import { GradientSpheresHero } from '@/components/backgrounds/GradientSpheresHero';
 import { ImageOrbsHero } from '@/components/backgrounds/ImageOrbsHero';
 import { ImagePanelsHero } from '@/components/backgrounds/ImagePanelsHero';
-import { captureEffectAsPng, recordEffectAsVideo, VideoRecordingState } from '@/lib/heroEffectExport';
+import { captureEffectAsPng, recordEffectAsVideo, recordEffectAsGif, VideoRecordingState, ExportOptions } from '@/lib/heroEffectExport';
+import { ExportOptionsDialog } from '@/components/hero-effects/ExportOptionsDialog';
 
 type EffectType = 'gradient-bars' | 'horizon-glow' | 'floating-orbs' | 'gradient-spheres' | 'image-orbs' | 'image-panels';
 
