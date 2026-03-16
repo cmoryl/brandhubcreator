@@ -138,7 +138,51 @@ export const QRCodeCard = ({ qrCode, canEdit, onEdit, onDelete, variant = 'grid'
     setIsDownloading(true);
     try {
       const qr = createQRInstance(qrCode.size);
-      await qr.download({ name: `${qrCode.name.replace(/[^a-z0-9]/gi, '_')}-qr`, extension: 'svg' });
+      
+      // Get the raw SVG blob
+      const blob = await qr.getRawData('svg');
+      if (!blob) throw new Error('Failed to generate SVG');
+      
+      const svgText$ = blob instanceof Blob ? blob.text() : Promise.resolve(new TextDecoder().decode(blob));
+      let svgText = await svgText$;
+      
+      // If there's a logo, embed it as base64 data URI in the SVG
+      const hasValidLogo = qrCode.logoType !== 'none' && qrCode.logoUrl && qrCode.logoUrl.trim() !== '';
+      if (hasValidLogo && qrCode.logoUrl) {
+        try {
+          const logoResponse = await fetch(qrCode.logoUrl, { mode: 'cors' });
+          const logoBlob = await logoResponse.blob();
+          const logoDataUri = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(logoBlob);
+          });
+          
+          // Replace any xlink:href or href pointing to the logo URL with the data URI
+          svgText = svgText.replace(
+            new RegExp(`(xlink:href|href)=["']${qrCode.logoUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`, 'g'),
+            `$1="${logoDataUri}"`
+          );
+          
+          // Also handle cases where the library uses a generic image reference
+          if (!svgText.includes(logoDataUri) && svgText.includes('<image')) {
+            svgText = svgText.replace(
+              /(<image[^>]*(?:xlink:href|href)=["'])((?:blob:|http)[^"']*)(["'])/g,
+              `$1${logoDataUri}$3`
+            );
+          }
+        } catch (logoErr) {
+          console.warn('Could not embed logo in SVG, exporting without:', logoErr);
+        }
+      }
+      
+      const svgBlob = new Blob([svgText], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(svgBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${qrCode.name.replace(/[^a-z0-9]/gi, '_')}-qr.svg`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error('SVG download error:', err);
     } finally {
