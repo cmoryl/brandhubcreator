@@ -369,17 +369,8 @@ export async function recordEffectAsVideo(
         height: h,
       });
 
-      // Apply intro fade if enabled
       ctx.clearRect(0, 0, offscreen.width, offscreen.height);
-      if (options?.introMode) {
-        const introFrames = Math.ceil(((options.introDuration || 2) / (duration / 1000)) * totalFrames);
-        const opacity = i < introFrames ? Math.min(1, i / introFrames) : 1;
-        ctx.globalAlpha = opacity;
-      } else {
-        ctx.globalAlpha = 1;
-      }
-      ctx.drawImage(frameCanvas, 0, 0, offscreen.width, offscreen.height);
-      ctx.globalAlpha = 1;
+      applyIntroAnimation(ctx, offscreen.width, offscreen.height, i, totalFrames, options || {}, frameCanvas);
 
       const track = stream.getVideoTracks()[0] as any;
       if (track?.requestFrame) track.requestFrame();
