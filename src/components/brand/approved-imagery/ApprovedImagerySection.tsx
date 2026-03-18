@@ -38,6 +38,7 @@ export const ApprovedImagerySection = ({
   canEdit = false,
   entityId,
   entityType = 'brand',
+  organizationId,
 }: ApprovedImagerySectionProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [dropboxOpen, setDropboxOpen] = useState(false);
