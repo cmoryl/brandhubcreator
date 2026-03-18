@@ -346,7 +346,12 @@ export const DigitalCollateralSection = ({
   const [uploadingThumbnailFor, setUploadingThumbnailFor] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [showBannerSetDialog, setShowBannerSetDialog] = useState(false);
   const [newLink, setNewLink] = useState({ title: '', url: '', category: 'Other' });
+  const [newBannerSet, setNewBannerSet] = useState({ title: '', canvaUrl: '', platform: 'Social Banner Set — Multi-Platform', description: '' });
+  const bannerSetImageRef = useRef<HTMLInputElement>(null);
+  const [pendingBannerSetImage, setPendingBannerSetImage] = useState<File | null>(null);
+  const [bannerSetImagePreview, setBannerSetImagePreview] = useState<string | null>(null);
   
   const { gridClass } = useLayoutClasses(layout);
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
