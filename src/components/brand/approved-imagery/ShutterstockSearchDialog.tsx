@@ -624,7 +624,7 @@ export const ShutterstockSearchDialog = ({
                               onClick={() => viewLightbox(lb.id)}>
                               <Eye className="h-3 w-3" />
                             </Button>
-                            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px] text-green-600"
+                            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px] text-primary"
                               onClick={() => approveLightbox(lb.id)}
                               disabled={lb.images.length === 0}>
                               <Check className="h-3 w-3" />
