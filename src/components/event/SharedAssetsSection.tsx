@@ -6,18 +6,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Plus, Download, ExternalLink, Trash2, Image, FileText, 
-  Palette, Type, Layout, Share2, Copy, Check, FolderOpen, Upload, Loader2
+  Palette, Type, Layout, Share2, Copy, Check, FolderOpen, Upload, Loader2,
+  Monitor, Printer, Briefcase, ChevronDown, ChevronRight,
+  Globe, Mail, Smartphone, Film, Megaphone, BookOpen,
+  PanelTop, Tag, ShoppingBag, MapPin, Ticket, Presentation,
+  Newspaper, Flag, Star
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { cn } from '@/lib/utils';
 
 export interface SharedAsset {
   id: string;
   name: string;
-  type: 'logo' | 'pattern' | 'template' | 'typography' | 'color-palette' | 'icon' | 'guideline' | 'other';
+  type: string;
+  category?: string;
   url?: string;
   previewUrl?: string;
   description?: string;
@@ -34,34 +40,98 @@ interface SharedAssetsSectionProps {
   eventId?: string;
 }
 
-const ASSET_TYPES = [
-  { value: 'logo', label: 'Logo', icon: Image },
-  { value: 'pattern', label: 'Pattern', icon: Layout },
-  { value: 'template', label: 'Template', icon: FileText },
-  { value: 'typography', label: 'Typography', icon: Type },
-  { value: 'color-palette', label: 'Color Palette', icon: Palette },
-  { value: 'icon', label: 'Icon', icon: Image },
-  { value: 'guideline', label: 'Guideline', icon: FileText },
-  { value: 'other', label: 'Other', icon: FolderOpen },
+// ── Category / Sub-category taxonomy ──────────────────────────────
+interface AssetSubCategory {
+  value: string;
+  label: string;
+  icon: React.ElementType;
+}
+
+interface AssetCategoryGroup {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  description: string;
+  subCategories: AssetSubCategory[];
+}
+
+const ASSET_CATEGORY_GROUPS: AssetCategoryGroup[] = [
+  {
+    id: 'brand',
+    label: 'Brand Identity',
+    icon: Star,
+    description: 'Core brand elements shared across events',
+    subCategories: [
+      { value: 'logo', label: 'Logos', icon: Image },
+      { value: 'color-palette', label: 'Color Palettes', icon: Palette },
+      { value: 'typography', label: 'Typography', icon: Type },
+      { value: 'icon', label: 'Icons & Symbols', icon: Image },
+      { value: 'pattern', label: 'Patterns & Textures', icon: Layout },
+      { value: 'guideline', label: 'Brand Guidelines', icon: BookOpen },
+    ],
+  },
+  {
+    id: 'digital',
+    label: 'Digital Assets',
+    icon: Monitor,
+    description: 'Web, social, email & screen-based materials',
+    subCategories: [
+      { value: 'social-media', label: 'Social Media Graphics', icon: Megaphone },
+      { value: 'email-template', label: 'Email Templates', icon: Mail },
+      { value: 'web-banner', label: 'Web Banners & Ads', icon: PanelTop },
+      { value: 'presentation', label: 'Presentations & Decks', icon: Presentation },
+      { value: 'video', label: 'Video & Motion', icon: Film },
+      { value: 'mobile-asset', label: 'Mobile & App Assets', icon: Smartphone },
+      { value: 'digital-signage', label: 'Digital Signage', icon: Monitor },
+      { value: 'website-asset', label: 'Website Assets', icon: Globe },
+    ],
+  },
+  {
+    id: 'print',
+    label: 'Print & Physical',
+    icon: Printer,
+    description: 'Printed materials, signage & physical assets',
+    subCategories: [
+      { value: 'brochure', label: 'Brochures & Flyers', icon: Newspaper },
+      { value: 'poster', label: 'Posters & Banners', icon: Flag },
+      { value: 'business-card', label: 'Business Cards', icon: Tag },
+      { value: 'stationery', label: 'Stationery & Letterhead', icon: FileText },
+      { value: 'signage', label: 'Event Signage', icon: MapPin },
+      { value: 'badge-lanyard', label: 'Badges & Lanyards', icon: Ticket },
+      { value: 'merchandise', label: 'Merchandise & Swag', icon: ShoppingBag },
+      { value: 'print-ad', label: 'Print Advertisements', icon: Layout },
+      { value: 'packaging', label: 'Packaging & Labels', icon: Tag },
+    ],
+  },
+  {
+    id: 'production',
+    label: 'Production & Templates',
+    icon: Briefcase,
+    description: 'Source files, templates & production-ready assets',
+    subCategories: [
+      { value: 'template', label: 'Design Templates', icon: FileText },
+      { value: 'source-file', label: 'Source Files (AI/PSD/INDD)', icon: FolderOpen },
+      { value: 'photography', label: 'Photography', icon: Image },
+      { value: 'illustration', label: 'Illustrations', icon: Image },
+      { value: 'infographic', label: 'Infographics', icon: Layout },
+      { value: 'other', label: 'Other', icon: FolderOpen },
+    ],
+  },
 ];
 
-const getTypeIcon = (type: SharedAsset['type']) => {
-  const found = ASSET_TYPES.find(t => t.value === type);
-  return found?.icon || FolderOpen;
-};
+// Flat lookup helpers
+const ALL_SUB_CATEGORIES = ASSET_CATEGORY_GROUPS.flatMap(g =>
+  g.subCategories.map(s => ({ ...s, groupId: g.id, groupLabel: g.label }))
+);
 
-const getTypeColor = (type: SharedAsset['type']) => {
-  const colors: Record<string, string> = {
-    'logo': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-    'pattern': 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-    'template': 'bg-green-500/10 text-green-600 border-green-500/20',
-    'typography': 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-    'color-palette': 'bg-pink-500/10 text-pink-600 border-pink-500/20',
-    'icon': 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
-    'guideline': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-    'other': 'bg-slate-500/10 text-slate-600 border-slate-500/20',
-  };
-  return colors[type] || colors.other;
+const getSubCatMeta = (type: string) =>
+  ALL_SUB_CATEGORIES.find(s => s.value === type) || { value: type, label: type, icon: FolderOpen, groupId: 'production', groupLabel: 'Other' };
+
+const TYPE_COLORS: Record<string, string> = {
+  brand: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  digital: 'bg-violet-500/10 text-violet-600 border-violet-500/20',
+  print: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  production: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
 };
 
 export const SharedAssetsSection = ({
@@ -72,13 +142,15 @@ export const SharedAssetsSection = ({
   eventId,
 }: SharedAssetsSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeGroupFilter, setActiveGroupFilter] = useState<string>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [uploadingAssetId, setUploadingAssetId] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(ASSET_CATEGORY_GROUPS.map(g => g.id)));
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [targetAssetId, setTargetAssetId] = useState<string | null>(null);
   const [newAsset, setNewAsset] = useState<Partial<SharedAsset>>({
     type: 'logo',
+    category: 'brand',
     isRequired: false,
   });
 
@@ -93,7 +165,8 @@ export const SharedAssetsSection = ({
     const asset: SharedAsset = {
       id: crypto.randomUUID(),
       name: newAsset.name,
-      type: newAsset.type as SharedAsset['type'] || 'other',
+      type: newAsset.type || 'other',
+      category: newAsset.category || getSubCatMeta(newAsset.type || 'other').groupId,
       url: newAsset.url,
       previewUrl: newAsset.previewUrl,
       description: newAsset.description,
@@ -103,7 +176,7 @@ export const SharedAssetsSection = ({
     };
 
     onAssetsChange([...assets, asset]);
-    setNewAsset({ type: 'logo', isRequired: false });
+    setNewAsset({ type: 'logo', category: 'brand', isRequired: false });
     setIsDialogOpen(false);
     toast.success('Shared asset added');
   };
@@ -117,7 +190,6 @@ export const SharedAssetsSection = ({
   const handleCopyUrl = async (asset: SharedAsset) => {
     const url = asset.url || asset.previewUrl;
     if (!url) return;
-    
     await navigator.clipboard.writeText(url);
     setCopiedId(asset.id);
     toast.success('URL copied to clipboard');
@@ -153,21 +225,34 @@ export const SharedAssetsSection = ({
     }
   };
 
-  // Group assets by type
-  const groupedAssets = ASSET_TYPES.reduce((acc, type) => {
-    acc[type.value] = assets.filter(a => a.type === type.value);
-    return acc;
-  }, {} as Record<string, SharedAsset[]>);
+  const toggleGroup = (id: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
-  const filteredAssets = activeTab === 'all' 
-    ? assets 
-    : assets.filter(a => a.type === activeTab);
+  // Resolve each asset's group (backward compat: use `category` if set, else infer from `type`)
+  const resolveGroup = (a: SharedAsset) => a.category || getSubCatMeta(a.type).groupId;
+
+  // Group assets
+  const groupedData = ASSET_CATEGORY_GROUPS.map(group => {
+    const items = assets.filter(a => resolveGroup(a) === group.id);
+    return { group, items };
+  }).filter(g => activeGroupFilter === 'all' || g.group.id === activeGroupFilter);
 
   const requiredCount = assets.filter(a => a.isRequired).length;
 
+  // Handle category group change in dialog
+  const handleGroupChange = (groupId: string) => {
+    const group = ASSET_CATEGORY_GROUPS.find(g => g.id === groupId);
+    const firstSub = group?.subCategories[0]?.value || 'other';
+    setNewAsset(prev => ({ ...prev, category: groupId, type: firstSub }));
+  };
+
   return (
     <section className="space-y-6">
-      {/* Hidden file input for card image uploads */}
       <input
         ref={fileInputRef}
         type="file"
@@ -189,7 +274,7 @@ export const SharedAssetsSection = ({
                   Add Asset
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-lg">
                 <DialogHeader>
                   <DialogTitle>Add Shared Asset</DialogTitle>
                 </DialogHeader>
@@ -199,27 +284,49 @@ export const SharedAssetsSection = ({
                     <Input
                       value={newAsset.name || ''}
                       onChange={(e) => setNewAsset({ ...newAsset, name: e.target.value })}
-                      placeholder="e.g., GlobalLink NEXT Primary Logo"
+                      placeholder="e.g., Event Primary Logo Pack"
                     />
                   </div>
+
+                  {/* Category group */}
                   <div className="space-y-2">
-                    <Label>Type</Label>
-                    <Select
-                      value={newAsset.type}
-                      onValueChange={(value) => setNewAsset({ ...newAsset, type: value as SharedAsset['type'] })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                    <Label>Category</Label>
+                    <Select value={newAsset.category || 'brand'} onValueChange={handleGroupChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {ASSET_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
+                        {ASSET_CATEGORY_GROUPS.map(g => (
+                          <SelectItem key={g.id} value={g.id}>
+                            <span className="flex items-center gap-2">
+                              <g.icon className="h-3.5 w-3.5" />
+                              {g.label}
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Sub-category type */}
+                  <div className="space-y-2">
+                    <Label>Type</Label>
+                    <Select
+                      value={newAsset.type}
+                      onValueChange={(value) => setNewAsset({ ...newAsset, type: value })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {(ASSET_CATEGORY_GROUPS.find(g => g.id === (newAsset.category || 'brand'))?.subCategories || []).map(s => (
+                          <SelectItem key={s.value} value={s.value}>
+                            <span className="flex items-center gap-2">
+                              <s.icon className="h-3.5 w-3.5" />
+                              {s.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="space-y-2">
                     <Label>Preview/Download URL</Label>
                     <Input
@@ -257,7 +364,7 @@ export const SharedAssetsSection = ({
           )}
         </div>
         <p className="text-sm sm:text-base text-muted-foreground">
-          {subtitle || "Centralized assets that regional events inherit and reference"}
+          {subtitle || 'Centralized assets that regional events inherit and reference'}
         </p>
       </div>
 
@@ -269,33 +376,141 @@ export const SharedAssetsSection = ({
           {requiredCount > 0 && (
             <> • <span className="text-primary">{requiredCount} required</span> for all regions</>
           )}
+          {' • '}
+          {ASSET_CATEGORY_GROUPS.map(g => {
+            const c = assets.filter(a => resolveGroup(a) === g.id).length;
+            return c > 0 ? `${c} ${g.label.toLowerCase()}` : null;
+          }).filter(Boolean).join(', ')}
         </p>
       </div>
 
-      {/* Filter tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex-wrap h-auto gap-1 bg-transparent p-0">
-          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            All ({assets.length})
-          </TabsTrigger>
-          {ASSET_TYPES.map((type) => {
-            const count = groupedAssets[type.value]?.length || 0;
-            if (count === 0) return null;
-            return (
-              <TabsTrigger 
-                key={type.value} 
-                value={type.value}
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                {type.label} ({count})
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-      </Tabs>
+      {/* Category group filter pills */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant={activeGroupFilter === 'all' ? 'default' : 'outline'}
+          onClick={() => setActiveGroupFilter('all')}
+          className="gap-1.5 h-8 text-xs"
+        >
+          All ({assets.length})
+        </Button>
+        {ASSET_CATEGORY_GROUPS.map(g => {
+          const count = assets.filter(a => resolveGroup(a) === g.id).length;
+          return (
+            <Button
+              key={g.id}
+              size="sm"
+              variant={activeGroupFilter === g.id ? 'default' : 'outline'}
+              onClick={() => setActiveGroupFilter(g.id)}
+              className="gap-1.5 h-8 text-xs"
+            >
+              <g.icon className="h-3.5 w-3.5" />
+              {g.label} ({count})
+            </Button>
+          );
+        })}
+      </div>
 
-      {/* Assets grid */}
-      {filteredAssets.length === 0 ? (
+      {/* Grouped collapsible sections */}
+      {groupedData.map(({ group, items }) => {
+        const isExpanded = expandedGroups.has(group.id);
+        const colorClass = TYPE_COLORS[group.id] || TYPE_COLORS.production;
+
+        // Group items by sub-category
+        const subGrouped = group.subCategories
+          .map(sub => ({
+            sub,
+            subItems: items.filter(a => a.type === sub.value),
+          }))
+          .filter(sg => sg.subItems.length > 0);
+
+        // Items with unknown sub-types
+        const knownTypes = new Set(group.subCategories.map(s => s.value));
+        const uncategorized = items.filter(a => !knownTypes.has(a.type));
+
+        return (
+          <Collapsible key={group.id} open={isExpanded} onOpenChange={() => toggleGroup(group.id)}>
+            <CollapsibleTrigger className="w-full">
+              <div className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors hover:bg-muted/50",
+                colorClass
+              )}>
+                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                <group.icon className="h-4.5 w-4.5" />
+                <div className="flex-1 text-left">
+                  <span className="font-semibold text-sm">{group.label}</span>
+                  <span className="text-xs ml-2 opacity-70">{group.description}</span>
+                </div>
+                <Badge variant="secondary" className="text-xs">{items.length}</Badge>
+              </div>
+            </CollapsibleTrigger>
+
+            <CollapsibleContent className="mt-2 space-y-4 pl-2">
+              {items.length === 0 ? (
+                <div className="py-6 text-center">
+                  <FolderOpen className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
+                  <p className="text-sm text-muted-foreground">No {group.label.toLowerCase()} assets yet</p>
+                </div>
+              ) : (
+                <>
+                  {subGrouped.map(({ sub, subItems }) => (
+                    <div key={sub.value} className="space-y-2">
+                      <div className="flex items-center gap-2 px-2">
+                        <sub.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{sub.label}</span>
+                        <Badge variant="outline" className="text-[10px] h-4 px-1.5">{subItems.length}</Badge>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {subItems.map(asset => (
+                          <AssetCard
+                            key={asset.id}
+                            asset={asset}
+                            isEditable={isEditable}
+                            isUploading={uploadingAssetId === asset.id}
+                            isCopied={copiedId === asset.id}
+                            colorClass={colorClass}
+                            eventId={eventId}
+                            onCopy={handleCopyUrl}
+                            onDelete={handleDelete}
+                            onUploadImage={handleUpdateCardImage}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {uncategorized.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 px-2">
+                        <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Other</span>
+                        <Badge variant="outline" className="text-[10px] h-4 px-1.5">{uncategorized.length}</Badge>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {uncategorized.map(asset => (
+                          <AssetCard
+                            key={asset.id}
+                            asset={asset}
+                            isEditable={isEditable}
+                            isUploading={uploadingAssetId === asset.id}
+                            isCopied={copiedId === asset.id}
+                            colorClass={colorClass}
+                            eventId={eventId}
+                            onCopy={handleCopyUrl}
+                            onDelete={handleDelete}
+                            onUploadImage={handleUpdateCardImage}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
+
+      {assets.length === 0 && (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center">
             <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
@@ -307,137 +522,98 @@ export const SharedAssetsSection = ({
             )}
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredAssets.map((asset) => {
-            const TypeIcon = getTypeIcon(asset.type);
-            const isCopied = copiedId === asset.id;
-            const isUploading = uploadingAssetId === asset.id;
-
-            return (
-              <Card key={asset.id} className="group overflow-hidden">
-                {/* Preview area */}
-                <div className="relative h-32 bg-muted/50 flex items-center justify-center overflow-hidden">
-                  {asset.previewUrl ? (
-                    <img
-                      src={asset.previewUrl}
-                      alt={asset.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <TypeIcon className="h-12 w-12 text-muted-foreground/30" />
-                  )}
-                  
-                  {/* Loading overlay */}
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <Loader2 className="h-6 w-6 text-primary-foreground animate-spin" />
-                    </div>
-                  )}
-
-                  {/* Required badge */}
-                  {asset.isRequired && (
-                    <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
-                      Required
-                    </Badge>
-                  )}
-
-                  {/* Type badge */}
-                  <Badge 
-                    variant="outline" 
-                    className={`absolute top-2 right-2 ${getTypeColor(asset.type)}`}
-                  >
-                    {ASSET_TYPES.find(t => t.value === asset.type)?.label}
-                  </Badge>
-
-                  {/* Hover actions */}
-                  {isEditable && !isUploading && (
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        title="Update card image"
-                        onClick={() => handleUpdateCardImage(asset.id)}
-                        disabled={!eventId}
-                      >
-                        <Upload className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        onClick={() => handleCopyUrl(asset)}
-                        disabled={!asset.url && !asset.previewUrl}
-                      >
-                        {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        onClick={() => handleDelete(asset.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                <CardContent className="p-4 space-y-2">
-                  <h3 className="font-medium line-clamp-1">{asset.name}</h3>
-                  {asset.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {asset.description}
-                    </p>
-                  )}
-                  
-                  {/* Action buttons */}
-                  <div className="flex gap-2 pt-2">
-                    {asset.url && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 gap-1.5"
-                          onClick={() => window.open(asset.url, '_blank')}
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          View
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 gap-1.5"
-                          asChild
-                        >
-                          <a href={asset.url} download>
-                            <Download className="h-3 w-3" />
-                            Download
-                          </a>
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
       )}
 
       {/* Quick stats */}
       {assets.length > 0 && (
         <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-2 border-t">
-          {ASSET_TYPES.map((type) => {
-            const count = groupedAssets[type.value]?.length || 0;
+          {ASSET_CATEGORY_GROUPS.map(g => {
+            const count = assets.filter(a => resolveGroup(a) === g.id).length;
             if (count === 0) return null;
             return (
-              <div key={type.value} className="flex items-center gap-1.5">
-                <type.icon className="h-3 w-3" />
-                <span>{count} {type.label.toLowerCase()}{count !== 1 ? 's' : ''}</span>
+              <div key={g.id} className="flex items-center gap-1.5">
+                <g.icon className="h-3 w-3" />
+                <span>{count} {g.label.toLowerCase()}</span>
               </div>
             );
           })}
         </div>
       )}
     </section>
+  );
+};
+
+// ── Asset Card (extracted for clarity) ─────────────────────────────
+interface AssetCardProps {
+  asset: SharedAsset;
+  isEditable: boolean;
+  isUploading: boolean;
+  isCopied: boolean;
+  colorClass: string;
+  eventId?: string;
+  onCopy: (asset: SharedAsset) => void;
+  onDelete: (id: string) => void;
+  onUploadImage: (id: string) => void;
+}
+
+const AssetCard = ({ asset, isEditable, isUploading, isCopied, colorClass, eventId, onCopy, onDelete, onUploadImage }: AssetCardProps) => {
+  const meta = getSubCatMeta(asset.type);
+  const TypeIcon = meta.icon;
+
+  return (
+    <Card className="group overflow-hidden">
+      <div className="relative h-28 bg-muted/50 flex items-center justify-center overflow-hidden">
+        {asset.previewUrl ? (
+          <img src={asset.previewUrl} alt={asset.name} className="w-full h-full object-cover" />
+        ) : (
+          <TypeIcon className="h-10 w-10 text-muted-foreground/30" />
+        )}
+
+        {isUploading && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+            <Loader2 className="h-6 w-6 text-primary-foreground animate-spin" />
+          </div>
+        )}
+
+        {asset.isRequired && (
+          <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px]">Required</Badge>
+        )}
+
+        <Badge variant="outline" className={cn("absolute top-2 right-2 text-[10px]", colorClass)}>
+          {meta.label}
+        </Badge>
+
+        {isEditable && !isUploading && (
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <Button size="icon" variant="secondary" title="Update card image" onClick={() => onUploadImage(asset.id)} disabled={!eventId}>
+              <Upload className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="secondary" onClick={() => onCopy(asset)} disabled={!asset.url && !asset.previewUrl}>
+              {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            </Button>
+            <Button size="icon" variant="destructive" onClick={() => onDelete(asset.id)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <CardContent className="p-3 space-y-1.5">
+        <h3 className="font-medium text-sm line-clamp-1">{asset.name}</h3>
+        {asset.description && (
+          <p className="text-xs text-muted-foreground line-clamp-2">{asset.description}</p>
+        )}
+        {asset.url && (
+          <div className="flex gap-2 pt-1">
+            <Button size="sm" variant="outline" className="flex-1 gap-1.5 h-7 text-xs" onClick={() => window.open(asset.url, '_blank')}>
+              <ExternalLink className="h-3 w-3" /> View
+            </Button>
+            <Button size="sm" variant="outline" className="flex-1 gap-1.5 h-7 text-xs" asChild>
+              <a href={asset.url} download><Download className="h-3 w-3" /> Download</a>
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
