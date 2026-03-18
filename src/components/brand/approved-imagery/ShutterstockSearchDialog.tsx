@@ -694,7 +694,22 @@ export const ShutterstockSearchDialog = ({
               </PopoverContent>
             </Popover>
 
-            {/* Similar search indicator */}
+            {/* Learned Preferences toggle */}
+            <Button
+              variant={showPreferences ? 'default' : 'outline'}
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => setShowPreferences(!showPreferences)}
+            >
+              <Brain className="h-3 w-3" />
+              Preferences
+              {signalCount > 0 && (
+                <Badge variant="secondary" className="h-4 px-1 text-[10px] ml-0.5">
+                  {signalCount}
+                </Badge>
+              )}
+            </Button>
+
             {similarSourceId && (
               <Badge variant="outline" className="text-xs gap-1">
                 Similar to #{similarSourceId}
