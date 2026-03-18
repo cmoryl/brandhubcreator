@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette } from 'lucide-react';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { Textarea } from '@/components/ui/textarea';
 import {
   DndContext,
   closestCenter,
@@ -57,8 +58,30 @@ const CATEGORY_OPTIONS = [
   { value: 'Company Overview', label: 'Company Overview', icon: '🏢' },
   { value: 'Pitch Deck', label: 'Pitch Deck', icon: '🎯' },
   { value: 'Annual Report', label: 'Annual Report', icon: '📅' },
+  { value: 'Social Banner Set — LinkedIn', label: 'Social Banner — LinkedIn', icon: '🔗' },
+  { value: 'Social Banner Set — Facebook', label: 'Social Banner — Facebook', icon: '📘' },
+  { value: 'Social Banner Set — Instagram', label: 'Social Banner — Instagram', icon: '📸' },
+  { value: 'Social Banner Set — X (Twitter)', label: 'Social Banner — X', icon: '🐦' },
+  { value: 'Social Banner Set — YouTube', label: 'Social Banner — YouTube', icon: '🎬' },
+  { value: 'Social Banner Set — TikTok', label: 'Social Banner — TikTok', icon: '🎵' },
+  { value: 'Social Banner Set — Pinterest', label: 'Social Banner — Pinterest', icon: '📌' },
+  { value: 'Social Banner Set — Multi-Platform', label: 'Social Banner — Multi-Platform', icon: '🌐' },
   { value: 'Other', label: 'Other', icon: '📁' },
 ];
+
+// Social banner platform options for quick-add dialog
+const SOCIAL_BANNER_PLATFORMS = [
+  { value: 'Social Banner Set — LinkedIn', label: 'LinkedIn', icon: '🔗' },
+  { value: 'Social Banner Set — Facebook', label: 'Facebook', icon: '📘' },
+  { value: 'Social Banner Set — Instagram', label: 'Instagram', icon: '📸' },
+  { value: 'Social Banner Set — X (Twitter)', label: 'X (Twitter)', icon: '🐦' },
+  { value: 'Social Banner Set — YouTube', label: 'YouTube', icon: '🎬' },
+  { value: 'Social Banner Set — TikTok', label: 'TikTok', icon: '🎵' },
+  { value: 'Social Banner Set — Pinterest', label: 'Pinterest', icon: '📌' },
+  { value: 'Social Banner Set — Multi-Platform', label: 'Multi-Platform', icon: '🌐' },
+];
+
+const isSocialBannerCategory = (category: string) => category.startsWith('Social Banner Set');
 
 // Sortable Item Component
 interface SortableItemProps {
