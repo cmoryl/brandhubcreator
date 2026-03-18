@@ -285,7 +285,7 @@ const SortableCollateralItem = ({
                     title={item.externalUrl}
                   >
                     <ExternalLink className="h-3 w-3" />
-                    <span>Link</span>
+                    <span>{isSocialBannerCategory(item.category) && item.externalUrl.includes('canva.com') ? 'Canva' : 'Link'}</span>
                   </a>
                 )}
               </div>
