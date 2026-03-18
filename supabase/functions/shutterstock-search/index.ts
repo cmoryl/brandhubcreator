@@ -38,9 +38,57 @@ function getToken() {
   return token;
 }
 
+// Fetch a single image by its Shutterstock ID
+async function handleGetById(body: any) {
+  const token = getToken();
+  const { imageId } = body;
+
+  if (!imageId || typeof imageId !== 'string') {
+    throw new Error('Image ID is required');
+  }
+
+  const ssResponse = await fetch(`https://api.shutterstock.com/v2/images/${imageId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!ssResponse.ok) {
+    const errorText = await ssResponse.text();
+    console.error('Shutterstock get-by-id error:', ssResponse.status, errorText);
+    if (ssResponse.status === 404) {
+      throw new Error(`Image ID ${imageId} not found on Shutterstock`);
+    }
+    throw new Error(`Shutterstock API error: ${ssResponse.status}`);
+  }
+
+  const img = await ssResponse.json();
+
+  const result = {
+    id: img.id,
+    description: img.description,
+    url: img.assets?.preview?.url || img.assets?.large_thumb?.url || '',
+    thumbnailUrl: img.assets?.large_thumb?.url || img.assets?.small_thumb?.url || '',
+    previewUrl: img.assets?.preview?.url || '',
+    width: img.assets?.preview?.width || 0,
+    height: img.assets?.preview?.height || 0,
+    contributor: img.contributor?.id,
+    categories: (img.categories || []).map((c: any) => c.name),
+    media_type: img.media_type || 'image',
+  };
+
+  return {
+    results: [result],
+    totalCount: 1,
+    page: 1,
+    perPage: 1,
+  };
+}
+
 async function handleSearch(body: any) {
   const token = getToken();
-  const { query, orientation, category, page = 1, per_page = 20 } = body;
+  const { query, orientation, category, page = 1, per_page = 20, image_type } = body;
 
   if (!query || typeof query !== 'string') {
     throw new Error('Search query is required');
@@ -51,8 +99,16 @@ async function handleSearch(body: any) {
     page: String(page),
     per_page: String(Math.min(per_page, 50)),
     sort: 'popular',
-    image_type: 'photo',
   });
+
+  // image_type filter: photo, vector, illustration (default: photo)
+  if (image_type && ['photo', 'vector', 'illustration'].includes(image_type)) {
+    params.set('image_type', image_type);
+  } else if (!image_type || image_type === 'all') {
+    // Don't set image_type to return all types
+  } else {
+    params.set('image_type', 'photo');
+  }
 
   if (orientation && ['horizontal', 'vertical', 'square'].includes(orientation)) {
     params.set('orientation', orientation);
@@ -86,6 +142,7 @@ async function handleSearch(body: any) {
     height: img.assets?.preview?.height || 0,
     contributor: img.contributor?.id,
     categories: (img.categories || []).map((c: any) => c.name),
+    media_type: img.media_type || 'image',
   }));
 
   return {
@@ -123,7 +180,6 @@ async function handleDownload(body: any) {
 
     // 403 = subscription tier doesn't support licensing API
     if (licenseResponse.status === 403) {
-      // Try to get download URL for already-licensed images first
       const redownloadResponse = await fetch(`https://api.shutterstock.com/v2/images/licenses?image_id=${imageId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -139,7 +195,6 @@ async function handleDownload(body: any) {
         }
       }
 
-      // Return a structured response indicating the tier limitation
       return {
         downloadUrl: null,
         requiresUpgrade: true,
@@ -148,7 +203,6 @@ async function handleDownload(body: any) {
       };
     }
 
-    // For other errors, try re-download fallback
     const redownloadResponse = await fetch(`https://api.shutterstock.com/v2/images/licenses?image_id=${imageId}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -190,6 +244,8 @@ Deno.serve(async (req) => {
     let result;
     if (action === 'download') {
       result = await handleDownload(body);
+    } else if (action === 'get_by_id') {
+      result = await handleGetById(body);
     } else {
       result = await handleSearch(body);
     }
