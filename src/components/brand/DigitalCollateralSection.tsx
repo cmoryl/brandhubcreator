@@ -807,6 +807,106 @@ export const DigitalCollateralSection = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Social Media Banner Set Dialog */}
+      <Dialog open={showBannerSetDialog} onOpenChange={(open) => {
+        setShowBannerSetDialog(open);
+        if (!open) {
+          setNewBannerSet({ title: '', canvaUrl: '', platform: 'Social Banner Set — Multi-Platform', description: '' });
+          setPendingBannerSetImage(null);
+          setBannerSetImagePreview(null);
+        }
+      }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5 text-primary" />
+              Add Social Media Banner Set
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Banner Set Name</label>
+              <Input
+                value={newBannerSet.title}
+                onChange={(e) => setNewBannerSet(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="e.g. Q1 2026 Campaign Banners"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Platform</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {SOCIAL_BANNER_PLATFORMS.map(p => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => setNewBannerSet(prev => ({ ...prev, platform: p.value }))}
+                    className={cn(
+                      'flex flex-col items-center gap-1 p-2 rounded-lg border text-xs transition-colors',
+                      newBannerSet.platform === p.value
+                        ? 'border-primary bg-primary/10 text-primary font-medium'
+                        : 'border-border bg-card hover:border-primary/50 text-muted-foreground'
+                    )}
+                  >
+                    <span className="text-lg">{p.icon}</span>
+                    <span className="truncate w-full text-center">{p.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Canva Template Link</label>
+              <Input
+                value={newBannerSet.canvaUrl}
+                onChange={(e) => setNewBannerSet(prev => ({ ...prev, canvaUrl: e.target.value }))}
+                placeholder="https://www.canva.com/design/..."
+              />
+              <p className="text-xs text-muted-foreground mt-1">Paste the Canva template share link for this banner set</p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Preview Image</label>
+              <input
+                ref={bannerSetImageRef}
+                type="file"
+                accept="image/*"
+                onChange={handleBannerSetImageSelect}
+                className="hidden"
+              />
+              {bannerSetImagePreview ? (
+                <div className="relative rounded-lg overflow-hidden border border-border">
+                  <img src={bannerSetImagePreview} alt="Preview" className="w-full h-40 object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => { setPendingBannerSetImage(null); setBannerSetImagePreview(null); }}
+                    className="absolute top-2 right-2 p-1 rounded-full bg-background/80 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => bannerSetImageRef.current?.click()}
+                  className="w-full h-32 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+                >
+                  <Image className="h-6 w-6" />
+                  <span className="text-xs">Upload a preview of the banner set</span>
+                </button>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowBannerSetDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddBannerSet} disabled={!newBannerSet.title || isUploading}>
+              <Palette className="h-4 w-4 mr-2" />
+              {isUploading ? 'Uploading...' : 'Add Banner Set'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
