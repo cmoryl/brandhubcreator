@@ -17,6 +17,7 @@ import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
 import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
+import { ApprovedImagerySection } from '@/components/brand/approved-imagery/ApprovedImagerySection';
 import { EventDetailsSection } from './EventDetailsSection';
 import { EventLogosSection } from './EventLogosSection';
 import { EventSignageSection } from './EventSignageSection';
