@@ -188,6 +188,17 @@ export const SharedAssetsSection = ({
     toast.success('Asset removed');
   };
 
+  const handleMoveAsset = (id: string, newCategory: string, newType: string) => {
+    if (!onAssetsChange) return;
+    const updated = assets.map(a =>
+      a.id === id ? { ...a, category: newCategory, type: newType } : a
+    );
+    onAssetsChange(updated);
+    const subMeta = getSubCatMeta(newType);
+    const groupMeta = ASSET_CATEGORY_GROUPS.find(g => g.id === newCategory);
+    toast.success(`Moved to ${groupMeta?.label || newCategory} → ${subMeta.label}`);
+  };
+
   const handleCopyUrl = async (asset: SharedAsset) => {
     const url = asset.url || asset.previewUrl;
     if (!url) return;
