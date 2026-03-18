@@ -511,6 +511,7 @@ export const SharedAssetsSection = ({
                             onCopy={handleCopyUrl}
                             onDelete={handleDelete}
                             onUploadImage={handleUpdateCardImage}
+                            onMove={isEditable ? handleMoveAsset : undefined}
                           />
                         ))}
                       </div>
