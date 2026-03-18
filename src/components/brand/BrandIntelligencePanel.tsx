@@ -47,6 +47,7 @@ import { BiasAwarenessPanel } from './BiasAwarenessPanel';
 import { CompetitiveLandscapeSection } from './intelligence/CompetitiveLandscapeSection';
 import { CulturalIntelligenceSection } from './intelligence/CulturalIntelligenceSection';
 import { ImportReportDialog } from './intelligence/ImportReportDialog';
+import { VisualIntelligenceCard } from './approved-imagery/VisualIntelligenceCard';
 import { exportBrandIntelligenceHtml, exportBrandIntelligencePdf } from '@/lib/exportHtml';
 import {
   DropdownMenu,
