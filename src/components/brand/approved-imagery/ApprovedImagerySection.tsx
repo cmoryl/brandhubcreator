@@ -192,6 +192,7 @@ export const ApprovedImagerySection = ({
             targetSectionName={targetSection?.name || ''}
             entityId={entityId}
             entityType={entityType}
+            organizationId={organizationId}
           />
           <DropboxBrowserDialog
             open={dropboxOpen}
