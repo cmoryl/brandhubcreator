@@ -196,6 +196,42 @@ serve(async (req) => {
     // Fetch Oracle context directly via REST (no SDK)
     const oracleContext = await fetchOracleContextRest(db, job.organization_id);
 
+    // Fetch Visual DNA (learned imagery preferences) for cross-pollination
+    let visualDnaContext = '';
+    try {
+      const visualDna = await db.selectSingle('imagery_visual_dna',
+        `entity_id=eq.${job.entity_id}&entity_type=eq.${job.entity_type}&select=preferred_categories,preferred_colors,preferred_styles,mood_keywords,avoid_keywords,approval_patterns,total_approved,total_skipped,total_removed,confidence_score`
+      );
+      if (visualDna && (visualDna.total_approved > 0 || visualDna.total_skipped > 0)) {
+        const parts: string[] = [];
+        parts.push(`VISUAL DNA PROFILE (from ${visualDna.total_approved || 0} approved, ${visualDna.total_skipped || 0} skipped, ${visualDna.total_removed || 0} removed images):`);
+        if (Array.isArray(visualDna.preferred_categories) && visualDna.preferred_categories.length > 0) {
+          parts.push(`Preferred imagery categories: ${visualDna.preferred_categories.slice(0, 5).map((c: any) => c.name || c).join(', ')}`);
+        }
+        if (Array.isArray(visualDna.preferred_colors) && visualDna.preferred_colors.length > 0) {
+          parts.push(`Preferred colors in imagery: ${visualDna.preferred_colors.slice(0, 5).map((c: any) => c.color || c).join(', ')}`);
+        }
+        if (Array.isArray(visualDna.preferred_styles) && visualDna.preferred_styles.length > 0) {
+          parts.push(`Preferred visual styles: ${visualDna.preferred_styles.slice(0, 5).map((s: any) => s.style || s).join(', ')}`);
+        }
+        if (Array.isArray(visualDna.mood_keywords) && visualDna.mood_keywords.length > 0) {
+          parts.push(`Preferred mood/themes: ${visualDna.mood_keywords.slice(0, 8).join(', ')}`);
+        }
+        if (Array.isArray(visualDna.avoid_keywords) && visualDna.avoid_keywords.length > 0) {
+          parts.push(`Imagery to AVOID: ${visualDna.avoid_keywords.slice(0, 6).join(', ')}`);
+        }
+        const patterns = visualDna.approval_patterns as any;
+        if (patterns?.summary) parts.push(`Visual taste summary: ${String(patterns.summary).slice(0, 200)}`);
+        if (Array.isArray(patterns?.rejection_reasons) && patterns.rejection_reasons.length > 0) {
+          parts.push(`Common rejection reasons: ${patterns.rejection_reasons.slice(0, 4).join('; ')}`);
+        }
+        parts.push(`Confidence: ${visualDna.confidence_score || 0}%`);
+        visualDnaContext = `\n${parts.join('\n')}\nIncorporate this visual preference data into your imagery guidelines and brand voice analysis. Note alignment or misalignment between visual preferences and stated brand identity.`;
+      }
+    } catch (e) {
+      console.warn('[worker] Visual DNA fetch failed (non-critical):', e);
+    }
+
     // Build event-specific physical accessibility context
     const isEvent = job.entity_type === 'event';
     const physicalAccessibilityContext = isEvent ? `
