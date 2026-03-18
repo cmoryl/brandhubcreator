@@ -262,7 +262,7 @@ const SortableCollateralItem = ({
             <Input
               value={item.externalUrl || ''}
               onChange={(e) => onUpdate({ externalUrl: e.target.value || undefined })}
-              placeholder="External URL (Dropbox, GlobalLink...)"
+              placeholder={isSocialBannerCategory(item.category) ? "Canva template link..." : "External URL (Dropbox, GlobalLink...)"}
               className="h-8 text-xs"
             />
             <Button size="sm" variant="secondary" onClick={onDoneEditing} className="w-full">
