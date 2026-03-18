@@ -133,6 +133,7 @@ export const ShutterstockSearchDialog = ({
   targetSectionName,
   entityId,
   entityType = 'brand',
+  organizationId,
 }: ShutterstockSearchDialogProps) => {
   const [query, setQuery] = useState('');
   const [orientation, setOrientation] = useState<string>('any');
