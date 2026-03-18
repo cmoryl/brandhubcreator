@@ -19,6 +19,7 @@ interface ApprovedImagerySectionProps {
   canEdit?: boolean;
   entityId?: string;
   entityType?: string;
+  organizationId?: string | null;
 }
 
 const DEFAULT_SUBSECTIONS = [
