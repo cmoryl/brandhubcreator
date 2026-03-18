@@ -67,6 +67,14 @@ Deno.serve(async (req) => {
       .eq('entity_type', entityType === 'brand' ? 'brand' : entityType)
       .maybeSingle();
 
+    // Fetch Visual DNA (learned preferences)
+    const { data: visualDna } = await supabase
+      .from('imagery_visual_dna')
+      .select('*')
+      .eq('entity_id', entityId)
+      .eq('entity_type', entityType === 'brand' ? 'brand' : entityType)
+      .maybeSingle();
+
     // Fetch imagery guidelines from guide_data
     let imageryGuidelines = null;
     const { data: entityData } = await supabase
