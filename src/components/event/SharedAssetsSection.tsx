@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Plus, Download, ExternalLink, Trash2, Image, FileText, 
@@ -13,7 +14,7 @@ import {
   Monitor, Printer, Briefcase, ChevronDown, ChevronRight,
   Globe, Mail, Smartphone, Film, Megaphone, BookOpen,
   PanelTop, Tag, ShoppingBag, MapPin, Ticket, Presentation,
-  Newspaper, Flag, Star
+  Newspaper, Flag, Star, ArrowRightLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
@@ -185,6 +186,17 @@ export const SharedAssetsSection = ({
     if (!onAssetsChange) return;
     onAssetsChange(assets.filter(a => a.id !== id));
     toast.success('Asset removed');
+  };
+
+  const handleMoveAsset = (id: string, newCategory: string, newType: string) => {
+    if (!onAssetsChange) return;
+    const updated = assets.map(a =>
+      a.id === id ? { ...a, category: newCategory, type: newType } : a
+    );
+    onAssetsChange(updated);
+    const subMeta = getSubCatMeta(newType);
+    const groupMeta = ASSET_CATEGORY_GROUPS.find(g => g.id === newCategory);
+    toast.success(`Moved to ${groupMeta?.label || newCategory} → ${subMeta.label}`);
   };
 
   const handleCopyUrl = async (asset: SharedAsset) => {
@@ -473,6 +485,7 @@ export const SharedAssetsSection = ({
                             onCopy={handleCopyUrl}
                             onDelete={handleDelete}
                             onUploadImage={handleUpdateCardImage}
+                            onMove={isEditable ? handleMoveAsset : undefined}
                           />
                         ))}
                       </div>
@@ -498,6 +511,7 @@ export const SharedAssetsSection = ({
                             onCopy={handleCopyUrl}
                             onDelete={handleDelete}
                             onUploadImage={handleUpdateCardImage}
+                            onMove={isEditable ? handleMoveAsset : undefined}
                           />
                         ))}
                       </div>
@@ -554,11 +568,13 @@ interface AssetCardProps {
   onCopy: (asset: SharedAsset) => void;
   onDelete: (id: string) => void;
   onUploadImage: (id: string) => void;
+  onMove?: (id: string, newCategory: string, newType: string) => void;
 }
 
-const AssetCard = ({ asset, isEditable, isUploading, isCopied, colorClass, eventId, onCopy, onDelete, onUploadImage }: AssetCardProps) => {
+const AssetCard = ({ asset, isEditable, isUploading, isCopied, colorClass, eventId, onCopy, onDelete, onUploadImage, onMove }: AssetCardProps) => {
   const meta = getSubCatMeta(asset.type);
   const TypeIcon = meta.icon;
+  const [moveOpen, setMoveOpen] = useState(false);
 
   return (
     <Card className="group overflow-hidden">
@@ -591,6 +607,49 @@ const AssetCard = ({ asset, isEditable, isUploading, isCopied, colorClass, event
             <Button size="icon" variant="secondary" onClick={() => onCopy(asset)} disabled={!asset.url && !asset.previewUrl}>
               {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </Button>
+            {onMove && (
+              <Popover open={moveOpen} onOpenChange={setMoveOpen}>
+                <PopoverTrigger asChild>
+                  <Button size="icon" variant="secondary" title="Move to another category">
+                    <ArrowRightLeft className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-0 max-h-80 overflow-y-auto" align="center" side="top">
+                  <div className="px-3 py-2 border-b">
+                    <p className="text-xs font-semibold text-muted-foreground">Move to…</p>
+                  </div>
+                  {ASSET_CATEGORY_GROUPS.map(group => (
+                    <div key={group.id}>
+                      <div className="px-3 py-1.5 bg-muted/50 flex items-center gap-2">
+                        <group.icon className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{group.label}</span>
+                      </div>
+                      {group.subCategories.map(sub => {
+                        const isCurrentSpot = asset.type === sub.value && (asset.category || meta.groupId) === group.id;
+                        return (
+                          <button
+                            key={`${group.id}-${sub.value}`}
+                            disabled={isCurrentSpot}
+                            onClick={() => {
+                              onMove(asset.id, group.id, sub.value);
+                              setMoveOpen(false);
+                            }}
+                            className={cn(
+                              "w-full flex items-center gap-2 px-4 py-1.5 text-left text-xs hover:bg-accent transition-colors",
+                              isCurrentSpot && "opacity-40 cursor-not-allowed bg-accent/50"
+                            )}
+                          >
+                            <sub.icon className="h-3 w-3 text-muted-foreground" />
+                            <span>{sub.label}</span>
+                            {isCurrentSpot && <Badge variant="outline" className="ml-auto text-[8px] h-4 px-1">Current</Badge>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </PopoverContent>
+              </Popover>
+            )}
             <Button size="icon" variant="destructive" onClick={() => onDelete(asset.id)}>
               <Trash2 className="h-4 w-4" />
             </Button>
