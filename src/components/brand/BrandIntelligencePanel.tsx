@@ -560,6 +560,13 @@ export const BrandIntelligencePanel = ({
       </CardHeader>
 
       <CardContent className="space-y-6 pb-6 flex-1 min-h-0 overflow-y-auto">
+        {/* Visual Intelligence Card */}
+        <VisualIntelligenceCard
+          entityId={entityId}
+          entityType={entityType}
+          organizationId={organizationId}
+        />
+
         {/* AI Analysis Summary */}
         {intelligence?.brand_summary && (
           <Collapsible 
