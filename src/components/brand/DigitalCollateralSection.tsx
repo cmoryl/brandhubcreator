@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette } from 'lucide-react';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
+
 import {
   DndContext,
   closestCenter,
@@ -57,8 +58,30 @@ const CATEGORY_OPTIONS = [
   { value: 'Company Overview', label: 'Company Overview', icon: '🏢' },
   { value: 'Pitch Deck', label: 'Pitch Deck', icon: '🎯' },
   { value: 'Annual Report', label: 'Annual Report', icon: '📅' },
+  { value: 'Social Banner Set — LinkedIn', label: 'Social Banner — LinkedIn', icon: '🔗' },
+  { value: 'Social Banner Set — Facebook', label: 'Social Banner — Facebook', icon: '📘' },
+  { value: 'Social Banner Set — Instagram', label: 'Social Banner — Instagram', icon: '📸' },
+  { value: 'Social Banner Set — X (Twitter)', label: 'Social Banner — X', icon: '🐦' },
+  { value: 'Social Banner Set — YouTube', label: 'Social Banner — YouTube', icon: '🎬' },
+  { value: 'Social Banner Set — TikTok', label: 'Social Banner — TikTok', icon: '🎵' },
+  { value: 'Social Banner Set — Pinterest', label: 'Social Banner — Pinterest', icon: '📌' },
+  { value: 'Social Banner Set — Multi-Platform', label: 'Social Banner — Multi-Platform', icon: '🌐' },
   { value: 'Other', label: 'Other', icon: '📁' },
 ];
+
+// Social banner platform options for quick-add dialog
+const SOCIAL_BANNER_PLATFORMS = [
+  { value: 'Social Banner Set — LinkedIn', label: 'LinkedIn', icon: '🔗' },
+  { value: 'Social Banner Set — Facebook', label: 'Facebook', icon: '📘' },
+  { value: 'Social Banner Set — Instagram', label: 'Instagram', icon: '📸' },
+  { value: 'Social Banner Set — X (Twitter)', label: 'X (Twitter)', icon: '🐦' },
+  { value: 'Social Banner Set — YouTube', label: 'YouTube', icon: '🎬' },
+  { value: 'Social Banner Set — TikTok', label: 'TikTok', icon: '🎵' },
+  { value: 'Social Banner Set — Pinterest', label: 'Pinterest', icon: '📌' },
+  { value: 'Social Banner Set — Multi-Platform', label: 'Multi-Platform', icon: '🌐' },
+];
+
+const isSocialBannerCategory = (category: string) => category.startsWith('Social Banner Set');
 
 // Sortable Item Component
 interface SortableItemProps {
@@ -239,7 +262,7 @@ const SortableCollateralItem = ({
             <Input
               value={item.externalUrl || ''}
               onChange={(e) => onUpdate({ externalUrl: e.target.value || undefined })}
-              placeholder="External URL (Dropbox, GlobalLink...)"
+              placeholder={isSocialBannerCategory(item.category) ? "Canva template link..." : "External URL (Dropbox, GlobalLink...)"}
               className="h-8 text-xs"
             />
             <Button size="sm" variant="secondary" onClick={onDoneEditing} className="w-full">
@@ -262,7 +285,7 @@ const SortableCollateralItem = ({
                     title={item.externalUrl}
                   >
                     <ExternalLink className="h-3 w-3" />
-                    <span>Link</span>
+                    <span>{isSocialBannerCategory(item.category) && item.externalUrl.includes('canva.com') ? 'Canva' : 'Link'}</span>
                   </a>
                 )}
               </div>
@@ -323,7 +346,12 @@ export const DigitalCollateralSection = ({
   const [uploadingThumbnailFor, setUploadingThumbnailFor] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [showBannerSetDialog, setShowBannerSetDialog] = useState(false);
   const [newLink, setNewLink] = useState({ title: '', url: '', category: 'Other' });
+  const [newBannerSet, setNewBannerSet] = useState({ title: '', canvaUrl: '', platform: 'Social Banner Set — Multi-Platform', description: '' });
+  const bannerSetImageRef = useRef<HTMLInputElement>(null);
+  const [pendingBannerSetImage, setPendingBannerSetImage] = useState<File | null>(null);
+  const [bannerSetImagePreview, setBannerSetImagePreview] = useState<string | null>(null);
   
   const { gridClass } = useLayoutClasses(layout);
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
@@ -458,6 +486,46 @@ export const DigitalCollateralSection = ({
     toast.success('External link added — upload a preview thumbnail via the edit overlay');
   };
 
+  const handleAddBannerSet = async () => {
+    if (!newBannerSet.title || !onCollateralChange) return;
+    
+    const newItem: BrandBrochure = {
+      id: crypto.randomUUID(),
+      title: newBannerSet.title,
+      category: newBannerSet.platform,
+      previewUrl: '',
+      externalUrl: newBannerSet.canvaUrl || undefined,
+    };
+
+    // Upload preview image if provided
+    if (pendingBannerSetImage && entityId) {
+      const result = await uploadFile(pendingBannerSetImage, 'asset', `banner-${newItem.id}`);
+      if (result) {
+        newItem.thumbnailUrl = result.url;
+      }
+    } else if (bannerSetImagePreview) {
+      // Fallback base64 if no entityId
+      newItem.thumbnailUrl = bannerSetImagePreview;
+    }
+
+    onCollateralChange([...collateral, newItem]);
+    setShowBannerSetDialog(false);
+    setNewBannerSet({ title: '', canvaUrl: '', platform: 'Social Banner Set — Multi-Platform', description: '' });
+    setPendingBannerSetImage(null);
+    setBannerSetImagePreview(null);
+    toast.success('Social media banner set added');
+  };
+
+  const handleBannerSetImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPendingBannerSetImage(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setBannerSetImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    if (bannerSetImageRef.current) bannerSetImageRef.current.value = '';
+  };
+
   const isPdf = (url: string) => {
     return url?.includes('application/pdf') || url?.endsWith('.pdf');
   };
@@ -539,6 +607,12 @@ export const DigitalCollateralSection = ({
               availableLayouts={['compact', 'grid-3', 'grid-4', 'list']}
               size="sm"
             />
+          )}
+          {canEdit && (
+            <Button onClick={() => setShowBannerSetDialog(true)} size="sm" variant="outline" className="gap-2 shrink-0">
+              <Palette className="h-4 w-4" />
+              Banner Set
+            </Button>
           )}
           {canEdit && (
             <Button onClick={() => setShowLinkDialog(true)} size="sm" variant="outline" className="gap-2 shrink-0">
@@ -729,6 +803,106 @@ export const DigitalCollateralSection = ({
             <Button onClick={handleAddLink} disabled={!newLink.title || !newLink.url}>
               <Link className="h-4 w-4 mr-2" />
               Add Link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Social Media Banner Set Dialog */}
+      <Dialog open={showBannerSetDialog} onOpenChange={(open) => {
+        setShowBannerSetDialog(open);
+        if (!open) {
+          setNewBannerSet({ title: '', canvaUrl: '', platform: 'Social Banner Set — Multi-Platform', description: '' });
+          setPendingBannerSetImage(null);
+          setBannerSetImagePreview(null);
+        }
+      }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5 text-primary" />
+              Add Social Media Banner Set
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Banner Set Name</label>
+              <Input
+                value={newBannerSet.title}
+                onChange={(e) => setNewBannerSet(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="e.g. Q1 2026 Campaign Banners"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Platform</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {SOCIAL_BANNER_PLATFORMS.map(p => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => setNewBannerSet(prev => ({ ...prev, platform: p.value }))}
+                    className={cn(
+                      'flex flex-col items-center gap-1 p-2 rounded-lg border text-xs transition-colors',
+                      newBannerSet.platform === p.value
+                        ? 'border-primary bg-primary/10 text-primary font-medium'
+                        : 'border-border bg-card hover:border-primary/50 text-muted-foreground'
+                    )}
+                  >
+                    <span className="text-lg">{p.icon}</span>
+                    <span className="truncate w-full text-center">{p.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Canva Template Link</label>
+              <Input
+                value={newBannerSet.canvaUrl}
+                onChange={(e) => setNewBannerSet(prev => ({ ...prev, canvaUrl: e.target.value }))}
+                placeholder="https://www.canva.com/design/..."
+              />
+              <p className="text-xs text-muted-foreground mt-1">Paste the Canva template share link for this banner set</p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Preview Image</label>
+              <input
+                ref={bannerSetImageRef}
+                type="file"
+                accept="image/*"
+                onChange={handleBannerSetImageSelect}
+                className="hidden"
+              />
+              {bannerSetImagePreview ? (
+                <div className="relative rounded-lg overflow-hidden border border-border">
+                  <img src={bannerSetImagePreview} alt="Preview" className="w-full h-40 object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => { setPendingBannerSetImage(null); setBannerSetImagePreview(null); }}
+                    className="absolute top-2 right-2 p-1 rounded-full bg-background/80 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => bannerSetImageRef.current?.click()}
+                  className="w-full h-32 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+                >
+                  <Image className="h-6 w-6" />
+                  <span className="text-xs">Upload a preview of the banner set</span>
+                </button>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowBannerSetDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddBannerSet} disabled={!newBannerSet.title || isUploading}>
+              <Palette className="h-4 w-4 mr-2" />
+              {isUploading ? 'Uploading...' : 'Add Banner Set'}
             </Button>
           </DialogFooter>
         </DialogContent>
