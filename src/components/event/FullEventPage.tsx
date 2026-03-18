@@ -17,6 +17,7 @@ import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
 import { ClientLogosSection } from '@/components/brand/ClientLogosSection';
+import { ApprovedImagerySection } from '@/components/brand/approved-imagery/ApprovedImagerySection';
 import { EventDetailsSection } from './EventDetailsSection';
 import { EventLogosSection } from './EventLogosSection';
 import { EventSignageSection } from './EventSignageSection';
@@ -503,6 +504,17 @@ export const FullEventPage = ({
             entityType="event"
             entityId={eventId}
             logos={event.logos}
+          />
+        );
+      case 'approvedimagery':
+        return (
+          <ApprovedImagerySection
+            approvedImagery={(event as any).approvedImagery}
+            onApprovedImageryChange={editHandler((approvedImagery) => updateEvent({ approvedImagery } as any))}
+            canEdit={canEdit}
+            entityId={eventId}
+            entityType="event"
+            organizationId={(event as any).organizationId}
           />
         );
       default:
