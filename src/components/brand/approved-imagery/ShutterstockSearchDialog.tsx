@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash,
   Camera, PenTool, Layers, SlidersHorizontal, X, Palette, Users, Eye,
-  CheckSquare, Square, FolderPlus, Bookmark,
+  CheckSquare, Square, FolderPlus, Bookmark, Brain,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { ApprovedImage } from '@/types/brand';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useImageryPreferenceLearning } from '@/hooks/useImageryPreferenceLearning';
+import { LearnedPreferencesPanel } from './LearnedPreferencesPanel';
 
 interface ShutterstockSearchResult {
   id: string;
