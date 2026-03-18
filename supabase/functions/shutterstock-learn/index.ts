@@ -327,6 +327,59 @@ Extract the visual preferences, patterns, and aversions. Be specific and actiona
           .insert(dnaRow);
       }
 
+      // Auto-feed Visual DNA insights to Oracle Knowledge Base
+      if (organizationId && dnaResult.approval_patterns?.summary) {
+        try {
+          const topCategories = Array.isArray(dnaResult.preferred_categories)
+            ? dnaResult.preferred_categories.slice(0, 5).map((c: any) => c.name || c).join(', ')
+            : '';
+          const avoidList = Array.isArray(dnaResult.avoid_keywords)
+            ? dnaResult.avoid_keywords.slice(0, 5).join(', ')
+            : '';
+          const moodList = Array.isArray(dnaResult.mood_keywords)
+            ? dnaResult.mood_keywords.slice(0, 5).join(', ')
+            : '';
+
+          const kbContent = [
+            `Visual DNA Summary: ${dnaResult.approval_patterns.summary}`,
+            topCategories ? `Preferred imagery: ${topCategories}` : '',
+            moodList ? `Visual mood: ${moodList}` : '',
+            avoidList ? `Avoid in imagery: ${avoidList}` : '',
+            `Based on ${approved.length} approved, ${skipped.length} skipped, ${removed.length} removed images.`,
+            `Confidence: ${dnaResult.confidence_score || 0}%`,
+          ].filter(Boolean).join('\n');
+
+          // Fetch entity name for the title
+          const tableName = entityType === 'product' ? 'products' : entityType === 'event' ? 'events' : 'brands';
+          const { data: entityRow } = await supabase
+            .from(tableName)
+            .select('name')
+            .eq('id', entityId)
+            .maybeSingle();
+
+          const entityLabel = entityRow?.name || entityType;
+
+          await supabase
+            .from('oracle_knowledge_base')
+            .upsert({
+              organization_id: organizationId,
+              title: `🎨 Visual DNA: ${entityLabel}`,
+              content: kbContent,
+              content_type: 'intelligence',
+              source_type: 'visual_dna',
+              category: 'imagery_preferences',
+              source_entity_id: entityId,
+              source_entity_type: entityType,
+              tags: [entityType, 'visual-dna', 'auto-generated', 'imagery'],
+              is_active: true,
+            }, { onConflict: 'organization_id,source_entity_id,source_entity_type' });
+
+          console.log('[shutterstock-learn] Auto-fed Visual DNA to Oracle KB');
+        } catch (oracleErr) {
+          console.warn('[shutterstock-learn] Oracle KB feed failed (non-critical):', oracleErr);
+        }
+      }
+
       return new Response(JSON.stringify({ visual_dna: { ...dnaRow, id: existing?.id } }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
