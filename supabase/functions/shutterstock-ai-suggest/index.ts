@@ -115,6 +115,19 @@ Deno.serve(async (req) => {
       (s.images || []).map((img: any) => img.title)
     ).slice(0, 30); // Recent 30 for pattern learning
 
+    // Build Visual DNA context
+    const dnaContext = visualDna ? `
+LEARNED VISUAL PREFERENCES (from ${visualDna.total_approved || 0} approved, ${visualDna.total_skipped || 0} skipped, ${visualDna.total_removed || 0} removed images):
+- Preferred categories: ${JSON.stringify(visualDna.preferred_categories || [])}
+- Preferred colors: ${JSON.stringify(visualDna.preferred_colors || [])}
+- Preferred styles: ${JSON.stringify(visualDna.preferred_styles || [])}
+- Mood keywords to use: ${JSON.stringify(visualDna.mood_keywords || [])}
+- Keywords to AVOID: ${JSON.stringify(visualDna.avoid_keywords || [])}
+- Approval patterns: ${JSON.stringify((visualDna.approval_patterns as any)?.summary || '')}
+- Top themes: ${JSON.stringify((visualDna.approval_patterns as any)?.top_themes || [])}
+- Rejection reasons: ${JSON.stringify((visualDna.approval_patterns as any)?.rejection_reasons || [])}
+- Confidence: ${visualDna.confidence_score || 0}%` : '';
+
     const systemPrompt = `You are a brand imagery strategist. You help brands find stock photography that perfectly aligns with their visual identity, brand archetype, and strategic positioning.
 
 Your job is to generate highly specific Shutterstock search queries that will find images matching this brand's established look and feel. The queries should be professional stock photography search terms — not generic, but deeply informed by the brand's identity.
@@ -133,6 +146,7 @@ ${brandSummary ? `- Brand Summary: ${brandSummary}` : ''}
 ${Object.keys(voiceProfile).length ? `- Voice Profile: ${JSON.stringify(voiceProfile)}` : ''}
 ${Object.keys(targetAudience).length ? `- Target Audience: ${JSON.stringify(targetAudience)}` : ''}
 ${Object.keys(culturalInsights).length ? `- Cultural Insights: ${JSON.stringify(culturalInsights)}` : ''}
+${dnaContext}
 
 EXISTING IMAGERY CATEGORIES: ${existingCategories.join(', ') || 'None yet'}
 PREVIOUSLY APPROVED IMAGE THEMES: ${allApprovedTitles.join('; ').slice(0, 500) || 'None yet'}
@@ -144,7 +158,8 @@ GUIDELINES:
 - Avoid generic corporate stock imagery — aim for authentic, editorial-quality results
 - Each query should be 3-8 words, specific enough to yield focused results
 - Include mood/style modifiers (e.g., "warm lighting", "aerial perspective", "close-up detail", "diverse team")
-- Learn from previously approved images to suggest similar styles`;
+- Learn from previously approved images to suggest similar styles
+${visualDna ? '- IMPORTANT: Heavily weight the learned visual preferences above — they represent what the brand team actually likes and dislikes' : ''}`;
 
     let userPrompt = '';
     if (userQuery) {
