@@ -491,9 +491,24 @@ export const ShutterstockSearchDialog = ({
       approvedAt: new Date().toISOString(),
     }));
     onApproveImages(approved);
+    
+    // Record preference signals for lightbox approvals
+    recordApproved(
+      lb.images.map(r => ({
+        id: r.id,
+        description: r.description,
+        categories: r.categories,
+        media_type: r.media_type,
+        width: r.width,
+        height: r.height,
+      })),
+      { source: 'lightbox', lightboxName: lb.name },
+      targetSectionName
+    );
+    
     toast.success(`${approved.length} image(s) from "${lb.name}" approved`);
     onOpenChange(false);
-  }, [lightboxes, onApproveImages, onOpenChange]);
+  }, [lightboxes, onApproveImages, onOpenChange, recordApproved, targetSectionName]);
 
   const clearFilters = useCallback(() => {
     setColorFilter('');
