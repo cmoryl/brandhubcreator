@@ -267,6 +267,17 @@ export const ShutterstockSearchDialog = ({
     setLoading(true);
     setShowSuggestions(false);
     setSimilarSourceId(null);
+    
+    // Track search context for preference learning
+    lastSearchContextRef.current = {
+      query: q.trim(),
+      orientation,
+      imageType,
+      colorFilter,
+      peopleNumber,
+      page: searchPage,
+    };
+
     try {
       if (isImageIdQuery(q)) {
         const { data, error } = await supabase.functions.invoke('shutterstock-search', {
