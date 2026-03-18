@@ -836,6 +836,17 @@ export const ShutterstockSearchDialog = ({
             </div>
           )}
 
+          {/* Learned Preferences Panel */}
+          {showPreferences && (
+            <LearnedPreferencesPanel
+              visualDna={visualDna}
+              signalCount={signalCount}
+              isAnalyzing={isAnalyzing}
+              isLoading={dnaLoading}
+              onAnalyze={analyzePreferences}
+            />
+          )}
+
           {/* AI Suggestions */}
           {showSuggestions && (
             <div className="space-y-2">
