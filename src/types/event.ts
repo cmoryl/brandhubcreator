@@ -370,6 +370,7 @@ export const DEFAULT_EVENT_SECTION_ORDER: EventSectionId[] = [
   'insights',
   'clientlogos',
   'assets',
+  'approvedimagery',
   
   'misuse',
 ];

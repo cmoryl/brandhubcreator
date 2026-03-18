@@ -506,6 +506,17 @@ export const FullEventPage = ({
             logos={event.logos}
           />
         );
+      case 'approvedimagery':
+        return (
+          <ApprovedImagerySection
+            approvedImagery={(event as any).approvedImagery}
+            onApprovedImageryChange={editHandler((approvedImagery) => updateEvent({ approvedImagery } as any))}
+            canEdit={canEdit}
+            entityId={eventId}
+            entityType="event"
+            organizationId={(event as any).organizationId}
+          />
+        );
       default:
         return null;
     }
