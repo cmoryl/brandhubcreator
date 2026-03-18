@@ -38,6 +38,21 @@ function getToken() {
   return token;
 }
 
+function mapImageResult(img: any) {
+  return {
+    id: img.id,
+    description: img.description,
+    url: img.assets?.preview?.url || img.assets?.large_thumb?.url || '',
+    thumbnailUrl: img.assets?.large_thumb?.url || img.assets?.small_thumb?.url || '',
+    previewUrl: img.assets?.preview?.url || '',
+    width: img.assets?.preview?.width || 0,
+    height: img.assets?.preview?.height || 0,
+    contributor: img.contributor?.id,
+    categories: (img.categories || []).map((c: any) => c.name),
+    media_type: img.media_type || 'image',
+  };
+}
+
 // Fetch a single image by its Shutterstock ID
 async function handleGetById(body: any) {
   const token = getToken();
@@ -55,8 +70,6 @@ async function handleGetById(body: any) {
   });
 
   if (!ssResponse.ok) {
-    const errorText = await ssResponse.text();
-    console.error('Shutterstock get-by-id error:', ssResponse.status, errorText);
     if (ssResponse.status === 404) {
       throw new Error(`Image ID ${imageId} not found on Shutterstock`);
     }
@@ -65,30 +78,61 @@ async function handleGetById(body: any) {
 
   const img = await ssResponse.json();
 
-  const result = {
-    id: img.id,
-    description: img.description,
-    url: img.assets?.preview?.url || img.assets?.large_thumb?.url || '',
-    thumbnailUrl: img.assets?.large_thumb?.url || img.assets?.small_thumb?.url || '',
-    previewUrl: img.assets?.preview?.url || '',
-    width: img.assets?.preview?.width || 0,
-    height: img.assets?.preview?.height || 0,
-    contributor: img.contributor?.id,
-    categories: (img.categories || []).map((c: any) => c.name),
-    media_type: img.media_type || 'image',
-  };
-
   return {
-    results: [result],
+    results: [mapImageResult(img)],
     totalCount: 1,
     page: 1,
     perPage: 1,
   };
 }
 
+// Find visually similar images
+async function handleSimilar(body: any) {
+  const token = getToken();
+  const { imageId, page = 1, per_page = 20 } = body;
+
+  if (!imageId) {
+    throw new Error('Image ID is required for similar search');
+  }
+
+  const params = new URLSearchParams({
+    page: String(page),
+    per_page: String(Math.min(per_page, 50)),
+  });
+
+  const ssResponse = await fetch(
+    `https://api.shutterstock.com/v2/images/${imageId}/similar?${params.toString()}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    }
+  );
+
+  if (!ssResponse.ok) {
+    const errorText = await ssResponse.text();
+    console.error('Shutterstock similar error:', ssResponse.status, errorText);
+    throw new Error(`Shutterstock API error: ${ssResponse.status}`);
+  }
+
+  const ssData = await ssResponse.json();
+
+  return {
+    results: (ssData.data || []).map(mapImageResult),
+    totalCount: ssData.total_count || 0,
+    page: ssData.page || page,
+    perPage: ssData.per_page || per_page,
+  };
+}
+
 async function handleSearch(body: any) {
   const token = getToken();
-  const { query, orientation, category, page = 1, per_page = 20, image_type } = body;
+  const {
+    query, orientation, category, page = 1, per_page = 20,
+    image_type, color, people_number, people_age, people_ethnicity, people_gender,
+    sort,
+  } = body;
 
   if (!query || typeof query !== 'string') {
     throw new Error('Search query is required');
@@ -98,16 +142,12 @@ async function handleSearch(body: any) {
     query,
     page: String(page),
     per_page: String(Math.min(per_page, 50)),
-    sort: 'popular',
+    sort: sort || 'popular',
   });
 
-  // image_type filter: photo, vector, illustration (default: photo)
+  // image_type filter
   if (image_type && ['photo', 'vector', 'illustration'].includes(image_type)) {
     params.set('image_type', image_type);
-  } else if (!image_type || image_type === 'all') {
-    // Don't set image_type to return all types
-  } else {
-    params.set('image_type', 'photo');
   }
 
   if (orientation && ['horizontal', 'vertical', 'square'].includes(orientation)) {
@@ -115,6 +155,31 @@ async function handleSearch(body: any) {
   }
   if (category) {
     params.set('category', category);
+  }
+
+  // Color filter (hex without #)
+  if (color && /^[0-9A-Fa-f]{6}$/.test(color)) {
+    params.set('color', color);
+  }
+
+  // People filters
+  if (people_number !== undefined && people_number !== null && people_number !== '') {
+    // Shutterstock accepts: 0, 1, 2, 3, 4+
+    params.set('people_number', String(people_number));
+  }
+  if (people_age && typeof people_age === 'string') {
+    // infants, children, teenagers, 20s, 30s, 40s, 50s, 60s, older
+    params.set('people_age', people_age);
+  }
+  if (people_ethnicity && typeof people_ethnicity === 'string') {
+    // african, african_american, black, brazilian, chinese, caucasian, east_asian,
+    // hispanic, japanese, middle_eastern, native_american, pacific_islander,
+    // south_asian, southeast_asian, other, multi_ethnic
+    params.set('people_ethnicity', people_ethnicity);
+  }
+  if (people_gender && typeof people_gender === 'string') {
+    // male, female, both
+    params.set('people_gender', people_gender);
   }
 
   const ssResponse = await fetch(`https://api.shutterstock.com/v2/images/search?${params.toString()}`, {
@@ -132,21 +197,8 @@ async function handleSearch(body: any) {
 
   const ssData = await ssResponse.json();
 
-  const results = (ssData.data || []).map((img: any) => ({
-    id: img.id,
-    description: img.description,
-    url: img.assets?.preview?.url || img.assets?.large_thumb?.url || '',
-    thumbnailUrl: img.assets?.large_thumb?.url || img.assets?.small_thumb?.url || '',
-    previewUrl: img.assets?.preview?.url || '',
-    width: img.assets?.preview?.width || 0,
-    height: img.assets?.preview?.height || 0,
-    contributor: img.contributor?.id,
-    categories: (img.categories || []).map((c: any) => c.name),
-    media_type: img.media_type || 'image',
-  }));
-
   return {
-    results,
+    results: (ssData.data || []).map(mapImageResult),
     totalCount: ssData.total_count || 0,
     page: ssData.page || page,
     perPage: ssData.per_page || per_page,
@@ -161,7 +213,6 @@ async function handleDownload(body: any) {
     throw new Error('Image ID is required');
   }
 
-  // License the image first
   const licenseResponse = await fetch('https://api.shutterstock.com/v2/images/licenses', {
     method: 'POST',
     headers: {
@@ -178,13 +229,9 @@ async function handleDownload(body: any) {
     const errorText = await licenseResponse.text();
     console.error('Shutterstock license error:', licenseResponse.status, errorText);
 
-    // 403 = subscription tier doesn't support licensing API
     if (licenseResponse.status === 403) {
       const redownloadResponse = await fetch(`https://api.shutterstock.com/v2/images/licenses?image_id=${imageId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
       });
 
       if (redownloadResponse.ok) {
@@ -204,10 +251,7 @@ async function handleDownload(body: any) {
     }
 
     const redownloadResponse = await fetch(`https://api.shutterstock.com/v2/images/licenses?image_id=${imageId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-      },
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
     });
 
     if (redownloadResponse.ok) {
@@ -242,12 +286,18 @@ Deno.serve(async (req) => {
     const action = body.action || 'search';
 
     let result;
-    if (action === 'download') {
-      result = await handleDownload(body);
-    } else if (action === 'get_by_id') {
-      result = await handleGetById(body);
-    } else {
-      result = await handleSearch(body);
+    switch (action) {
+      case 'download':
+        result = await handleDownload(body);
+        break;
+      case 'get_by_id':
+        result = await handleGetById(body);
+        break;
+      case 'similar':
+        result = await handleSimilar(body);
+        break;
+      default:
+        result = await handleSearch(body);
     }
 
     return new Response(JSON.stringify(result), {
