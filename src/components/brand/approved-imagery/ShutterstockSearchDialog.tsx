@@ -1,12 +1,17 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash, Camera, PenTool, Layers } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import {
+  Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash,
+  Camera, PenTool, Layers, SlidersHorizontal, X, Palette, Users, Eye,
+  CheckSquare, Square, FolderPlus, Bookmark,
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { ApprovedImage } from '@/types/brand';
 import { toast } from 'sonner';
@@ -30,6 +35,13 @@ interface AISuggestion {
   rationale: string;
 }
 
+interface LightboxItem {
+  id: string;
+  name: string;
+  images: ShutterstockSearchResult[];
+  createdAt: string;
+}
+
 interface ShutterstockSearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -45,6 +57,71 @@ const IMAGE_TYPE_OPTIONS = [
   { value: 'vector', label: 'Vectors', icon: PenTool },
   { value: 'illustration', label: 'Illustrations', icon: ImageIcon },
 ];
+
+const PEOPLE_NUMBER_OPTIONS = [
+  { value: '', label: 'Any' },
+  { value: '0', label: 'No people' },
+  { value: '1', label: '1 person' },
+  { value: '2', label: '2 people' },
+  { value: '3', label: '3 people' },
+  { value: '4', label: '4+ people' },
+];
+
+const PEOPLE_AGE_OPTIONS = [
+  { value: '', label: 'Any age' },
+  { value: 'infants', label: 'Infants' },
+  { value: 'children', label: 'Children' },
+  { value: 'teenagers', label: 'Teenagers' },
+  { value: '20s', label: '20s' },
+  { value: '30s', label: '30s' },
+  { value: '40s', label: '40s' },
+  { value: '50s', label: '50s' },
+  { value: '60s', label: '60s' },
+  { value: 'older', label: 'Older' },
+];
+
+const PEOPLE_ETHNICITY_OPTIONS = [
+  { value: '', label: 'Any ethnicity' },
+  { value: 'african', label: 'African' },
+  { value: 'african_american', label: 'African American' },
+  { value: 'black', label: 'Black' },
+  { value: 'brazilian', label: 'Brazilian' },
+  { value: 'caucasian', label: 'Caucasian' },
+  { value: 'chinese', label: 'Chinese' },
+  { value: 'east_asian', label: 'East Asian' },
+  { value: 'hispanic', label: 'Hispanic' },
+  { value: 'japanese', label: 'Japanese' },
+  { value: 'middle_eastern', label: 'Middle Eastern' },
+  { value: 'native_american', label: 'Native American' },
+  { value: 'pacific_islander', label: 'Pacific Islander' },
+  { value: 'south_asian', label: 'South Asian' },
+  { value: 'southeast_asian', label: 'Southeast Asian' },
+  { value: 'multi_ethnic', label: 'Multi-ethnic' },
+  { value: 'other', label: 'Other' },
+];
+
+const PEOPLE_GENDER_OPTIONS = [
+  { value: '', label: 'Any gender' },
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'both', label: 'Both' },
+];
+
+// Brand color presets for quick color search
+const QUICK_COLORS = [
+  { hex: 'FF0000', label: 'Red' },
+  { hex: 'FF6600', label: 'Orange' },
+  { hex: 'FFCC00', label: 'Yellow' },
+  { hex: '00CC00', label: 'Green' },
+  { hex: '0066FF', label: 'Blue' },
+  { hex: '6600CC', label: 'Purple' },
+  { hex: 'FF0099', label: 'Pink' },
+  { hex: '000000', label: 'Black' },
+  { hex: 'FFFFFF', label: 'White' },
+  { hex: '888888', label: 'Gray' },
+];
+
+const LIGHTBOX_STORAGE_KEY = 'shutterstock-lightboxes';
 
 export const ShutterstockSearchDialog = ({
   open,
@@ -63,6 +140,24 @@ export const ShutterstockSearchDialog = ({
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
 
+  // Advanced filters
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [colorFilter, setColorFilter] = useState('');
+  const [customColor, setCustomColor] = useState('');
+  const [peopleNumber, setPeopleNumber] = useState('');
+  const [peopleAge, setPeopleAge] = useState('');
+  const [peopleEthnicity, setPeopleEthnicity] = useState('');
+  const [peopleGender, setPeopleGender] = useState('');
+
+  // Similar search
+  const [similarSourceId, setSimilarSourceId] = useState<string | null>(null);
+
+  // Lightbox / Collections
+  const [lightboxes, setLightboxes] = useState<LightboxItem[]>([]);
+  const [showLightbox, setShowLightbox] = useState(false);
+  const [activeLightboxId, setActiveLightboxId] = useState<string | null>(null);
+  const [newLightboxName, setNewLightboxName] = useState('');
+
   // AI suggestions state
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
   const [brandProfile, setBrandProfile] = useState('');
@@ -72,6 +167,28 @@ export const ShutterstockSearchDialog = ({
   const [styleNotes, setStyleNotes] = useState('');
   const [aiReasoning, setAiReasoning] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
+
+  // Load lightboxes from localStorage
+  useEffect(() => {
+    if (open) {
+      try {
+        const stored = localStorage.getItem(LIGHTBOX_STORAGE_KEY);
+        if (stored) setLightboxes(JSON.parse(stored));
+      } catch { /* ignore */ }
+    }
+  }, [open]);
+
+  // Save lightboxes to localStorage
+  const saveLightboxes = useCallback((updated: LightboxItem[]) => {
+    setLightboxes(updated);
+    try {
+      localStorage.setItem(LIGHTBOX_STORAGE_KEY, JSON.stringify(updated));
+    } catch { /* ignore */ }
+  }, []);
+
+  // Count active advanced filters
+  const activeFilterCount = [colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender]
+    .filter(Boolean).length;
 
   // Fetch AI suggestions when dialog opens
   useEffect(() => {
@@ -86,6 +203,9 @@ export const ShutterstockSearchDialog = ({
       setStyleNotes('');
       setAiReasoning('');
       setShowSuggestions(true);
+      setSimilarSourceId(null);
+      setShowLightbox(false);
+      setActiveLightboxId(null);
     }
   }, [open, entityId]);
 
@@ -94,16 +214,10 @@ export const ShutterstockSearchDialog = ({
     setLoadingSuggestions(true);
     try {
       const { data, error } = await supabase.functions.invoke('shutterstock-ai-suggest', {
-        body: {
-          entityId,
-          entityType,
-          categoryName: targetSectionName,
-        },
+        body: { entityId, entityType, categoryName: targetSectionName },
       });
-
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-
       if (data?.suggestions) {
         setSuggestions(data.suggestions);
         setBrandProfile(data.brandImageryProfile || '');
@@ -120,14 +234,8 @@ export const ShutterstockSearchDialog = ({
     if (!entityId || !userQuery.trim()) return;
     try {
       const { data, error } = await supabase.functions.invoke('shutterstock-ai-suggest', {
-        body: {
-          entityId,
-          entityType,
-          userQuery: userQuery.trim(),
-          categoryName: targetSectionName,
-        },
+        body: { entityId, entityType, userQuery: userQuery.trim(), categoryName: targetSectionName },
       });
-
       if (error) throw error;
       if (data?.enhancedQueries) {
         setEnhancedQueries(data.enhancedQueries);
@@ -139,29 +247,21 @@ export const ShutterstockSearchDialog = ({
     }
   }, [entityId, entityType, targetSectionName]);
 
-  // Detect if the query is a Shutterstock image ID (numeric string)
-  const isImageIdQuery = useCallback((q: string) => {
-    return /^\d{5,15}$/.test(q.trim());
-  }, []);
+  const isImageIdQuery = useCallback((q: string) => /^\d{5,15}$/.test(q.trim()), []);
 
   const handleSearch = useCallback(async (searchQuery?: string, searchPage = 1) => {
     const q = searchQuery || query;
     if (!q.trim()) return;
     setLoading(true);
     setShowSuggestions(false);
+    setSimilarSourceId(null);
     try {
-      // Check if it's an image ID lookup
       if (isImageIdQuery(q)) {
         const { data, error } = await supabase.functions.invoke('shutterstock-search', {
-          body: {
-            action: 'get_by_id',
-            imageId: q.trim(),
-          },
+          body: { action: 'get_by_id', imageId: q.trim() },
         });
-
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
-
         setResults(data.results || []);
         setTotalCount(data.totalCount || 0);
         setPage(1);
@@ -171,14 +271,17 @@ export const ShutterstockSearchDialog = ({
             query: q.trim(),
             orientation: orientation === 'any' ? undefined : orientation,
             image_type: imageType === 'all' ? undefined : imageType,
+            color: colorFilter || undefined,
+            people_number: peopleNumber || undefined,
+            people_age: peopleAge || undefined,
+            people_ethnicity: peopleEthnicity || undefined,
+            people_gender: peopleGender || undefined,
             page: searchPage,
             per_page: 20,
           },
         });
-
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
-
         if (searchPage === 1) {
           setResults(data.results || []);
           if (entityId) fetchEnhancedQueries(q.trim());
@@ -194,7 +297,28 @@ export const ShutterstockSearchDialog = ({
     } finally {
       setLoading(false);
     }
-  }, [query, orientation, imageType, entityId, fetchEnhancedQueries, isImageIdQuery]);
+  }, [query, orientation, imageType, colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, entityId, fetchEnhancedQueries, isImageIdQuery]);
+
+  const handleSimilarSearch = useCallback(async (imageId: string) => {
+    setLoading(true);
+    setShowSuggestions(false);
+    setSimilarSourceId(imageId);
+    try {
+      const { data, error } = await supabase.functions.invoke('shutterstock-search', {
+        body: { action: 'similar', imageId, page: 1, per_page: 20 },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setResults(data.results || []);
+      setTotalCount(data.totalCount || 0);
+      setPage(1);
+    } catch (err: any) {
+      console.error('Similar search error:', err);
+      toast.error(err.message || 'Failed to find similar images');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const handleSuggestionClick = useCallback((suggestionQuery: string) => {
     setQuery(suggestionQuery);
@@ -209,6 +333,14 @@ export const ShutterstockSearchDialog = ({
     });
   }, []);
 
+  const selectAll = useCallback(() => {
+    if (selectedIds.size === results.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(results.map(r => r.id)));
+    }
+  }, [results, selectedIds.size]);
+
   const handleApprove = useCallback(() => {
     const approved: ApprovedImage[] = results
       .filter(r => selectedIds.has(r.id))
@@ -221,7 +353,6 @@ export const ShutterstockSearchDialog = ({
         category: r.categories?.[0] || '',
         approvedAt: new Date().toISOString(),
       }));
-
     onApproveImages(approved);
     setSelectedIds(new Set());
     toast.success(`${approved.length} image${approved.length !== 1 ? 's' : ''} approved`);
@@ -229,45 +360,138 @@ export const ShutterstockSearchDialog = ({
   }, [results, selectedIds, onApproveImages, onOpenChange]);
 
   const handleLoadMore = useCallback(() => {
-    handleSearch(undefined, page + 1);
-  }, [handleSearch, page]);
+    if (similarSourceId) {
+      // Load more similar
+      setLoading(true);
+      supabase.functions.invoke('shutterstock-search', {
+        body: { action: 'similar', imageId: similarSourceId, page: page + 1, per_page: 20 },
+      }).then(({ data, error }) => {
+        if (!error && !data?.error) {
+          setResults(prev => [...prev, ...(data.results || [])]);
+          setTotalCount(data.totalCount || 0);
+          setPage(data.page || page + 1);
+        }
+        setLoading(false);
+      });
+    } else {
+      handleSearch(undefined, page + 1);
+    }
+  }, [handleSearch, page, similarSourceId]);
+
+  // Lightbox actions
+  const createLightbox = useCallback(() => {
+    if (!newLightboxName.trim()) return;
+    const lb: LightboxItem = {
+      id: crypto.randomUUID(),
+      name: newLightboxName.trim(),
+      images: [],
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [...lightboxes, lb];
+    saveLightboxes(updated);
+    setActiveLightboxId(lb.id);
+    setNewLightboxName('');
+    toast.success(`Lightbox "${lb.name}" created`);
+  }, [newLightboxName, lightboxes, saveLightboxes]);
+
+  const addToLightbox = useCallback((lightboxId: string) => {
+    const selectedImages = results.filter(r => selectedIds.has(r.id));
+    if (selectedImages.length === 0) return;
+    const updated = lightboxes.map(lb => {
+      if (lb.id !== lightboxId) return lb;
+      const existingIds = new Set(lb.images.map(i => i.id));
+      const newImages = selectedImages.filter(i => !existingIds.has(i.id));
+      return { ...lb, images: [...lb.images, ...newImages] };
+    });
+    saveLightboxes(updated);
+    toast.success(`${selectedImages.length} image(s) added to lightbox`);
+  }, [results, selectedIds, lightboxes, saveLightboxes]);
+
+  const viewLightbox = useCallback((lightboxId: string) => {
+    const lb = lightboxes.find(l => l.id === lightboxId);
+    if (!lb) return;
+    setResults(lb.images);
+    setTotalCount(lb.images.length);
+    setPage(1);
+    setShowSuggestions(false);
+    setSimilarSourceId(null);
+    setShowLightbox(false);
+    toast.info(`Viewing lightbox: ${lb.name}`);
+  }, [lightboxes]);
+
+  const deleteLightbox = useCallback((lightboxId: string) => {
+    const updated = lightboxes.filter(l => l.id !== lightboxId);
+    saveLightboxes(updated);
+    if (activeLightboxId === lightboxId) setActiveLightboxId(null);
+    toast.success('Lightbox deleted');
+  }, [lightboxes, saveLightboxes, activeLightboxId]);
+
+  const approveLightbox = useCallback((lightboxId: string) => {
+    const lb = lightboxes.find(l => l.id === lightboxId);
+    if (!lb || lb.images.length === 0) return;
+    const approved: ApprovedImage[] = lb.images.map(r => ({
+      id: r.id,
+      url: r.previewUrl || r.url,
+      thumbnailUrl: r.thumbnailUrl,
+      title: r.description?.slice(0, 100) || 'Untitled',
+      source: 'shutterstock',
+      category: r.categories?.[0] || '',
+      approvedAt: new Date().toISOString(),
+    }));
+    onApproveImages(approved);
+    toast.success(`${approved.length} image(s) from "${lb.name}" approved`);
+    onOpenChange(false);
+  }, [lightboxes, onApproveImages, onOpenChange]);
+
+  const clearFilters = useCallback(() => {
+    setColorFilter('');
+    setCustomColor('');
+    setPeopleNumber('');
+    setPeopleAge('');
+    setPeopleEthnicity('');
+    setPeopleGender('');
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
-        <DialogHeader className="shrink-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5 text-primary" />
-            Search Shutterstock
-          </DialogTitle>
-          <DialogDescription>
-            Search and approve images for <span className="font-medium text-foreground">{targetSectionName}</span>
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-5xl max-h-[92vh] flex flex-col overflow-hidden p-0 gap-0">
+        {/* Header */}
+        <div className="px-6 pt-5 pb-3 border-b border-border shrink-0">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5 text-primary" />
+              Search Shutterstock
+            </DialogTitle>
+            <DialogDescription>
+              Search and approve images for <span className="font-medium text-foreground">{targetSectionName}</span>
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        {/* Brand Imagery Profile */}
-        {brandProfile && showSuggestions && (
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10 shrink-0">
-            <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-            <div className="text-sm">
-              <p className="font-medium text-foreground mb-1">Brand Visual DNA</p>
-              <p className="text-muted-foreground text-xs leading-relaxed">{brandProfile}</p>
-              {moodKeywords.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {moodKeywords.map((kw, i) => (
-                    <Badge key={i} variant="secondary" className="text-[10px] cursor-pointer hover:bg-primary/10"
-                      onClick={() => handleSuggestionClick(kw)}>
-                      {kw}
-                    </Badge>
-                  ))}
-                </div>
-              )}
+        {/* Controls area */}
+        <div className="px-6 py-3 space-y-3 shrink-0 border-b border-border bg-muted/30">
+          {/* Brand Imagery Profile */}
+          {brandProfile && showSuggestions && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+              <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium text-foreground mb-1">Brand Visual DNA</p>
+                <p className="text-muted-foreground text-xs leading-relaxed">{brandProfile}</p>
+                {moodKeywords.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {moodKeywords.map((kw, i) => (
+                      <Badge key={i} variant="secondary" className="text-[10px] cursor-pointer hover:bg-primary/10"
+                        onClick={() => handleSuggestionClick(kw)}>
+                        {kw}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Search controls */}
-        <div className="space-y-2 shrink-0">
+          {/* Search bar */}
           <div className="flex gap-2 items-end">
             <div className="flex-1 relative">
               <Input
@@ -294,7 +518,7 @@ export const ShutterstockSearchDialog = ({
             </Button>
           </div>
 
-          {/* Advanced filters row */}
+          {/* Filter row */}
           <div className="flex gap-2 items-center flex-wrap">
             {/* Image type toggle */}
             <div className="flex items-center rounded-lg border border-border overflow-hidden">
@@ -320,7 +544,7 @@ export const ShutterstockSearchDialog = ({
 
             {/* Orientation */}
             <Select value={orientation} onValueChange={setOrientation}>
-              <SelectTrigger className="w-36 h-8 text-xs">
+              <SelectTrigger className="w-32 h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -331,88 +555,350 @@ export const ShutterstockSearchDialog = ({
               </SelectContent>
             </Select>
 
+            {/* Advanced filters toggle */}
+            <Button
+              variant={showAdvanced ? 'default' : 'outline'}
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+            >
+              <SlidersHorizontal className="h-3 w-3" />
+              Filters
+              {activeFilterCount > 0 && (
+                <Badge variant="secondary" className="h-4 px-1 text-[10px] ml-0.5">
+                  {activeFilterCount}
+                </Badge>
+              )}
+            </Button>
+
+            {/* Lightbox button */}
+            <Popover open={showLightbox} onOpenChange={setShowLightbox}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
+                  <Bookmark className="h-3 w-3" />
+                  Lightbox
+                  {lightboxes.length > 0 && (
+                    <Badge variant="secondary" className="h-4 px-1 text-[10px]">{lightboxes.length}</Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-3" align="start">
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-foreground">Collections</p>
+                  
+                  {/* Create new */}
+                  <div className="flex gap-1.5">
+                    <Input
+                      placeholder="New collection name..."
+                      value={newLightboxName}
+                      onChange={(e) => setNewLightboxName(e.target.value)}
+                      className="h-7 text-xs"
+                      onKeyDown={(e) => e.key === 'Enter' && createLightbox()}
+                    />
+                    <Button size="sm" className="h-7 px-2" onClick={createLightbox} disabled={!newLightboxName.trim()}>
+                      <FolderPlus className="h-3 w-3" />
+                    </Button>
+                  </div>
+
+                  {/* List */}
+                  {lightboxes.length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground text-center py-2">
+                      No collections yet. Create one to save images for review.
+                    </p>
+                  ) : (
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                      {lightboxes.map(lb => (
+                        <div key={lb.id} className="flex items-center gap-2 p-2 rounded-md border border-border hover:bg-accent/50 group">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">{lb.name}</p>
+                            <p className="text-[10px] text-muted-foreground">{lb.images.length} images</p>
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            {selectedIds.size > 0 && (
+                              <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px]"
+                                onClick={() => addToLightbox(lb.id)}>
+                                Add
+                              </Button>
+                            )}
+                            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px]"
+                              onClick={() => viewLightbox(lb.id)}>
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px] text-green-600"
+                              onClick={() => approveLightbox(lb.id)}
+                              disabled={lb.images.length === 0}>
+                              <Check className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px] text-destructive opacity-0 group-hover:opacity-100"
+                              onClick={() => deleteLightbox(lb.id)}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Similar search indicator */}
+            {similarSourceId && (
+              <Badge variant="outline" className="text-xs gap-1">
+                Similar to #{similarSourceId}
+                <button onClick={() => { setSimilarSourceId(null); setResults([]); setShowSuggestions(true); }}>
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )}
+
             {totalCount > 0 && (
               <span className="text-xs text-muted-foreground ml-auto">
                 {totalCount.toLocaleString()} results
               </span>
             )}
           </div>
-        </div>
 
-        {/* AI Suggestions (shown before search or when no results) */}
-        {showSuggestions && (
-          <div className="space-y-2 shrink-0">
-            {loadingSuggestions ? (
-              <div className="flex items-center gap-2 py-4 justify-center text-muted-foreground text-sm">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Analyzing brand identity for smart suggestions...</span>
-              </div>
-            ) : suggestions.length > 0 ? (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  AI-Suggested Searches (based on your brand)
+          {/* Advanced filters panel */}
+          {showAdvanced && (
+            <div className="rounded-lg border border-border bg-card p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  Advanced Filters
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {suggestions.map((s, i) => (
+                {activeFilterCount > 0 && (
+                  <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={clearFilters}>
+                    Clear all
+                  </Button>
+                )}
+              </div>
+
+              {/* Color filter */}
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Palette className="h-3 w-3" />
+                  Dominant Color
+                </p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {QUICK_COLORS.map(c => (
                     <button
-                      key={i}
-                      className="text-left p-2.5 rounded-lg border border-border hover:border-primary/40 hover:bg-primary/5 transition-colors group"
-                      onClick={() => handleSuggestionClick(s.query)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Search className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                        <span className="text-sm font-medium text-foreground">{s.query}</span>
-                        <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-auto shrink-0" />
-                      </div>
-                      <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1 pl-5.5">{s.rationale}</p>
-                    </button>
+                      key={c.hex}
+                      onClick={() => setColorFilter(colorFilter === c.hex ? '' : c.hex)}
+                      className={cn(
+                        'w-6 h-6 rounded-full border-2 transition-all',
+                        colorFilter === c.hex
+                          ? 'border-primary ring-2 ring-primary/30 scale-110'
+                          : 'border-border hover:scale-110'
+                      )}
+                      style={{ backgroundColor: `#${c.hex}` }}
+                      title={c.label}
+                    />
                   ))}
+                  <div className="flex items-center gap-1 ml-1">
+                    <span className="text-[10px] text-muted-foreground">#</span>
+                    <Input
+                      value={customColor}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6);
+                        setCustomColor(val);
+                        if (val.length === 6) setColorFilter(val);
+                      }}
+                      placeholder="HEX"
+                      className="h-6 w-20 text-xs px-1.5"
+                    />
+                    {colorFilter && (
+                      <button onClick={() => { setColorFilter(''); setCustomColor(''); }}
+                        className="p-0.5 rounded hover:bg-destructive/10">
+                        <X className="h-3 w-3 text-muted-foreground" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            ) : null}
-          </div>
-        )}
 
-        {/* Enhanced query suggestions (shown after a search) */}
-        {!showSuggestions && enhancedQueries.length > 0 && (
-          <div className="space-y-1.5 shrink-0">
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <Sparkles className="h-3 w-3" />
-                Brand-aligned refinements
-              </p>
-              {aiReasoning && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-sm text-xs">
-                    {aiReasoning}
-                  </TooltipContent>
-                </Tooltip>
+              {/* People filters */}
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  People & Composition
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <Select value={peopleNumber} onValueChange={setPeopleNumber}>
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder="# People" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PEOPLE_NUMBER_OPTIONS.map(o => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={peopleAge} onValueChange={setPeopleAge}>
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder="Age" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PEOPLE_AGE_OPTIONS.map(o => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={peopleEthnicity} onValueChange={setPeopleEthnicity}>
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder="Ethnicity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PEOPLE_ETHNICITY_OPTIONS.map(o => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={peopleGender} onValueChange={setPeopleGender}>
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder="Gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PEOPLE_GENDER_OPTIONS.map(o => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* AI Suggestions */}
+          {showSuggestions && (
+            <div className="space-y-2">
+              {loadingSuggestions ? (
+                <div className="flex items-center gap-2 py-4 justify-center text-muted-foreground text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Analyzing brand identity for smart suggestions...</span>
+                </div>
+              ) : suggestions.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" />
+                    AI-Suggested Searches (based on your brand)
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {suggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        className="text-left p-2.5 rounded-lg border border-border hover:border-primary/40 hover:bg-primary/5 transition-colors group"
+                        onClick={() => handleSuggestionClick(s.query)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Search className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                          <span className="text-sm font-medium text-foreground">{s.query}</span>
+                          <ArrowRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-auto shrink-0" />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1 pl-5.5">{s.rationale}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          {/* Enhanced query suggestions */}
+          {!showSuggestions && enhancedQueries.length > 0 && (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  Brand-aligned refinements
+                </p>
+                {aiReasoning && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-sm text-xs">
+                      {aiReasoning}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {enhancedQueries.map((eq, i) => (
+                  <Badge
+                    key={i}
+                    variant="outline"
+                    className="cursor-pointer hover:bg-primary/10 hover:border-primary/40 transition-colors text-xs"
+                    onClick={() => handleSuggestionClick(eq)}
+                  >
+                    {eq}
+                  </Badge>
+                ))}
+              </div>
+              {styleNotes && (
+                <p className="text-[10px] text-muted-foreground italic">{styleNotes}</p>
               )}
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {enhancedQueries.map((eq, i) => (
-                <Badge
-                  key={i}
-                  variant="outline"
-                  className="cursor-pointer hover:bg-primary/10 hover:border-primary/40 transition-colors text-xs"
-                  onClick={() => handleSuggestionClick(eq)}
-                >
-                  {eq}
-                </Badge>
-              ))}
-            </div>
-            {styleNotes && (
-              <p className="text-[10px] text-muted-foreground italic">{styleNotes}</p>
+          )}
+        </div>
+
+        {/* Bulk actions bar */}
+        {results.length > 0 && (
+          <div className="px-6 py-2 flex items-center gap-3 border-b border-border bg-card shrink-0">
+            <button
+              onClick={selectAll}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {selectedIds.size === results.length ? (
+                <CheckSquare className="h-3.5 w-3.5 text-primary" />
+              ) : (
+                <Square className="h-3.5 w-3.5" />
+              )}
+              {selectedIds.size === results.length ? 'Deselect All' : 'Select All'}
+            </button>
+
+            {selectedIds.size > 0 && (
+              <>
+                <span className="text-xs text-muted-foreground">|</span>
+                <Badge variant="secondary" className="text-xs">{selectedIds.size} selected</Badge>
+
+                {lightboxes.length > 0 && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-6 text-xs gap-1 px-2">
+                        <Bookmark className="h-3 w-3" />
+                        Save to...
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-2" align="start">
+                      {lightboxes.map(lb => (
+                        <button
+                          key={lb.id}
+                          className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors"
+                          onClick={() => addToLightbox(lb.id)}
+                        >
+                          {lb.name} ({lb.images.length})
+                        </button>
+                      ))}
+                    </PopoverContent>
+                  </Popover>
+                )}
+
+                <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={() => setSelectedIds(new Set())}>
+                  Clear
+                </Button>
+
+                <Button size="sm" className="h-6 text-xs gap-1 px-2 ml-auto" onClick={handleApprove}>
+                  <Check className="h-3 w-3" />
+                  Approve {selectedIds.size}
+                </Button>
+              </>
             )}
           </div>
         )}
 
         {/* Results - scrollable area */}
-        <div className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {results.length === 0 && !loading && !showSuggestions ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <ImageIcon className="h-12 w-12 opacity-30 mb-3" />
@@ -422,8 +908,8 @@ export const ShutterstockSearchDialog = ({
               </Button>
             </div>
           ) : results.length === 0 && !loading && showSuggestions ? null : (
-            <div className="p-2">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="p-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {results.map((result) => {
                   const isSelected = selectedIds.has(result.id);
                   return (
@@ -446,15 +932,27 @@ export const ShutterstockSearchDialog = ({
                           <Check className="h-3 w-3" />
                         </div>
                       )}
-                      {/* Media type badge for vectors/illustrations */}
+                      {/* Media type badge */}
                       {result.media_type && result.media_type !== 'image' && (
                         <Badge variant="secondary" className="absolute top-2 left-2 text-[9px] px-1.5 py-0.5">
                           {result.media_type === 'vector' ? 'Vector' : 'Illustration'}
                         </Badge>
                       )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Hover overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <p className="text-[10px] text-white line-clamp-2">{result.description}</p>
-                        <p className="text-[9px] text-white/60 mt-0.5">ID: {result.id}</p>
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-[9px] text-white/60">ID: {result.id}</p>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSimilarSearch(result.id);
+                            }}
+                            className="text-[9px] text-white/80 hover:text-white underline"
+                          >
+                            Find similar
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -471,11 +969,17 @@ export const ShutterstockSearchDialog = ({
               )}
             </div>
           )}
+
+          {loading && results.length === 0 && (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          )}
         </div>
 
-        {/* Footer */}
+        {/* Footer with approve */}
         {selectedIds.size > 0 && (
-          <div className="flex items-center justify-between border-t pt-3 shrink-0">
+          <div className="px-6 py-3 flex items-center justify-between border-t border-border bg-card shrink-0">
             <Badge variant="secondary">{selectedIds.size} selected</Badge>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
