@@ -486,7 +486,47 @@ export const DigitalCollateralSection = ({
     toast.success('External link added — upload a preview thumbnail via the edit overlay');
   };
 
-  const isPdf = (url: string) => {
+  const handleAddBannerSet = async () => {
+    if (!newBannerSet.title || !onCollateralChange) return;
+    
+    const newItem: BrandBrochure = {
+      id: crypto.randomUUID(),
+      title: newBannerSet.title,
+      category: newBannerSet.platform,
+      previewUrl: '',
+      externalUrl: newBannerSet.canvaUrl || undefined,
+    };
+
+    // Upload preview image if provided
+    if (pendingBannerSetImage && entityId) {
+      const result = await uploadFile(pendingBannerSetImage, 'asset', `banner-${newItem.id}`);
+      if (result) {
+        newItem.thumbnailUrl = result.url;
+      }
+    } else if (bannerSetImagePreview) {
+      // Fallback base64 if no entityId
+      newItem.thumbnailUrl = bannerSetImagePreview;
+    }
+
+    onCollateralChange([...collateral, newItem]);
+    setShowBannerSetDialog(false);
+    setNewBannerSet({ title: '', canvaUrl: '', platform: 'Social Banner Set — Multi-Platform', description: '' });
+    setPendingBannerSetImage(null);
+    setBannerSetImagePreview(null);
+    toast.success('Social media banner set added');
+  };
+
+  const handleBannerSetImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPendingBannerSetImage(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setBannerSetImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    if (bannerSetImageRef.current) bannerSetImageRef.current.value = '';
+  };
+
+
     return url?.includes('application/pdf') || url?.endsWith('.pdf');
   };
 
