@@ -135,6 +135,14 @@ export const ShutterstockSearchDialog = ({
   entityType = 'brand',
   organizationId,
 }: ShutterstockSearchDialogProps) => {
+  // Preference learning
+  const {
+    visualDna, signalCount, isAnalyzing, isLoading: dnaLoading,
+    recordApproved, recordSkipped, analyzePreferences,
+  } = useImageryPreferenceLearning(entityId, entityType, organizationId);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const lastSearchContextRef = useRef<Record<string, unknown>>({});
+
   const [query, setQuery] = useState('');
   const [orientation, setOrientation] = useState<string>('any');
   const [imageType, setImageType] = useState<string>('all');
