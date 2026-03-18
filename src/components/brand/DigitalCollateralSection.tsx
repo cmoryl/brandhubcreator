@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
-import { Textarea } from '@/components/ui/textarea';
+
 import {
   DndContext,
   closestCenter,
