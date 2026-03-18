@@ -365,22 +365,51 @@ export const ShutterstockSearchDialog = ({
   }, [results, selectedIds.size]);
 
   const handleApprove = useCallback(() => {
-    const approved: ApprovedImage[] = results
-      .filter(r => selectedIds.has(r.id))
-      .map(r => ({
-        id: r.id,
-        url: r.previewUrl || r.url,
-        thumbnailUrl: r.thumbnailUrl,
-        title: r.description?.slice(0, 100) || 'Untitled',
-        source: 'shutterstock',
-        category: r.categories?.[0] || '',
-        approvedAt: new Date().toISOString(),
-      }));
+    const selectedResults = results.filter(r => selectedIds.has(r.id));
+    const skippedResults = results.filter(r => !selectedIds.has(r.id));
+    
+    const approved: ApprovedImage[] = selectedResults.map(r => ({
+      id: r.id,
+      url: r.previewUrl || r.url,
+      thumbnailUrl: r.thumbnailUrl,
+      title: r.description?.slice(0, 100) || 'Untitled',
+      source: 'shutterstock',
+      category: r.categories?.[0] || '',
+      approvedAt: new Date().toISOString(),
+    }));
     onApproveImages(approved);
+    
+    // Record preference signals
+    recordApproved(
+      selectedResults.map(r => ({
+        id: r.id,
+        description: r.description,
+        categories: r.categories,
+        media_type: r.media_type,
+        width: r.width,
+        height: r.height,
+      })),
+      lastSearchContextRef.current,
+      targetSectionName
+    );
+    
+    // Record skipped signals (images shown but not selected)
+    if (skippedResults.length > 0 && skippedResults.length <= 40) {
+      recordSkipped(
+        skippedResults.map(r => ({
+          id: r.id,
+          description: r.description,
+          categories: r.categories,
+          media_type: r.media_type,
+        })),
+        lastSearchContextRef.current
+      );
+    }
+    
     setSelectedIds(new Set());
     toast.success(`${approved.length} image${approved.length !== 1 ? 's' : ''} approved`);
     onOpenChange(false);
-  }, [results, selectedIds, onApproveImages, onOpenChange]);
+  }, [results, selectedIds, onApproveImages, onOpenChange, recordApproved, recordSkipped, targetSectionName]);
 
   const handleLoadMore = useCallback(() => {
     if (similarSourceId) {
