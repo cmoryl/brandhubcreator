@@ -319,6 +319,7 @@ Include a "lab_to_launch" object: {"journey_clarity_score":0-100,"stages_covered
     const prompt = `Analyze "${entityName}" ${isEvent ? 'event' : isProduct ? 'product' : 'brand'}. Return compact JSON:
 ${brandContext}
 ${oracleContext ? `\nORACLE BRAIN CONTEXT:\n${oracleContext}` : ''}
+${visualDnaContext}
 ${externalDocContent ? `\nEXTERNAL LINKED DOCUMENTS (fetched from Dropbox/GlobalLink/external sources):\n${externalDocContent}` : ''}
 ${priorAnalysisContext}
 ${physicalAccessibilityContext}
