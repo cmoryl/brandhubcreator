@@ -14,7 +14,7 @@ import {
   Monitor, Printer, Briefcase, ChevronDown, ChevronRight,
   Globe, Mail, Smartphone, Film, Megaphone, BookOpen,
   PanelTop, Tag, ShoppingBag, MapPin, Ticket, Presentation,
-  Newspaper, Flag, Star
+  Newspaper, Flag, Star, ArrowRightLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
