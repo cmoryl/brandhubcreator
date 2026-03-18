@@ -130,3 +130,6 @@ verify_jwt = false
 
 [functions.ad-localizer]
 verify_jwt = false
+
+[functions.shutterstock-learn]
+verify_jwt = false

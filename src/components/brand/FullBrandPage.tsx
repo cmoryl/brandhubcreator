@@ -429,6 +429,7 @@ export const FullBrandPage = ({
           canEdit={canEdit}
           entityId={brandId}
           entityType={entityType}
+          organizationId={organizationId}
         />;
       case 'brief':
       case 'socialmetrics':

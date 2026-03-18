@@ -3271,6 +3271,127 @@ export type Database = {
           },
         ]
       }
+      imagery_preference_signals: {
+        Row: {
+          action: string
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          image_id: string
+          image_metadata: Json | null
+          organization_id: string | null
+          search_context: Json | null
+          section_name: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type?: string
+          id?: string
+          image_id: string
+          image_metadata?: Json | null
+          organization_id?: string | null
+          search_context?: Json | null
+          section_name?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          image_id?: string
+          image_metadata?: Json | null
+          organization_id?: string | null
+          search_context?: Json | null
+          section_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imagery_preference_signals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imagery_visual_dna: {
+        Row: {
+          approval_patterns: Json | null
+          avoid_keywords: Json | null
+          confidence_score: number | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          last_analyzed_at: string | null
+          mood_keywords: Json | null
+          organization_id: string | null
+          preferred_categories: Json | null
+          preferred_colors: Json | null
+          preferred_compositions: Json | null
+          preferred_styles: Json | null
+          total_approved: number | null
+          total_removed: number | null
+          total_skipped: number | null
+          updated_at: string
+        }
+        Insert: {
+          approval_patterns?: Json | null
+          avoid_keywords?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          entity_id: string
+          entity_type?: string
+          id?: string
+          last_analyzed_at?: string | null
+          mood_keywords?: Json | null
+          organization_id?: string | null
+          preferred_categories?: Json | null
+          preferred_colors?: Json | null
+          preferred_compositions?: Json | null
+          preferred_styles?: Json | null
+          total_approved?: number | null
+          total_removed?: number | null
+          total_skipped?: number | null
+          updated_at?: string
+        }
+        Update: {
+          approval_patterns?: Json | null
+          avoid_keywords?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          last_analyzed_at?: string | null
+          mood_keywords?: Json | null
+          organization_id?: string | null
+          preferred_categories?: Json | null
+          preferred_colors?: Json | null
+          preferred_compositions?: Json | null
+          preferred_styles?: Json | null
+          total_approved?: number | null
+          total_removed?: number | null
+          total_skipped?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imagery_visual_dna_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       intelligence_alerts: {
         Row: {
           acknowledged: boolean

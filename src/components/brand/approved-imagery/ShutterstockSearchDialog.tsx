@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash,
   Camera, PenTool, Layers, SlidersHorizontal, X, Palette, Users, Eye,
-  CheckSquare, Square, FolderPlus, Bookmark,
+  CheckSquare, Square, FolderPlus, Bookmark, Brain,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { ApprovedImage } from '@/types/brand';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useImageryPreferenceLearning } from '@/hooks/useImageryPreferenceLearning';
+import { LearnedPreferencesPanel } from './LearnedPreferencesPanel';
 
 interface ShutterstockSearchResult {
   id: string;
@@ -49,6 +51,7 @@ interface ShutterstockSearchDialogProps {
   targetSectionName: string;
   entityId?: string;
   entityType?: string;
+  organizationId?: string | null;
 }
 
 const IMAGE_TYPE_OPTIONS = [
@@ -130,7 +133,16 @@ export const ShutterstockSearchDialog = ({
   targetSectionName,
   entityId,
   entityType = 'brand',
+  organizationId,
 }: ShutterstockSearchDialogProps) => {
+  // Preference learning
+  const {
+    visualDna, signalCount, isAnalyzing, isLoading: dnaLoading,
+    recordApproved, recordSkipped, analyzePreferences,
+  } = useImageryPreferenceLearning(entityId, entityType, organizationId);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const lastSearchContextRef = useRef<Record<string, unknown>>({});
+
   const [query, setQuery] = useState('');
   const [orientation, setOrientation] = useState<string>('any');
   const [imageType, setImageType] = useState<string>('all');
@@ -255,6 +267,17 @@ export const ShutterstockSearchDialog = ({
     setLoading(true);
     setShowSuggestions(false);
     setSimilarSourceId(null);
+    
+    // Track search context for preference learning
+    lastSearchContextRef.current = {
+      query: q.trim(),
+      orientation,
+      imageType,
+      colorFilter,
+      peopleNumber,
+      page: searchPage,
+    };
+
     try {
       if (isImageIdQuery(q)) {
         const { data, error } = await supabase.functions.invoke('shutterstock-search', {
@@ -342,22 +365,51 @@ export const ShutterstockSearchDialog = ({
   }, [results, selectedIds.size]);
 
   const handleApprove = useCallback(() => {
-    const approved: ApprovedImage[] = results
-      .filter(r => selectedIds.has(r.id))
-      .map(r => ({
-        id: r.id,
-        url: r.previewUrl || r.url,
-        thumbnailUrl: r.thumbnailUrl,
-        title: r.description?.slice(0, 100) || 'Untitled',
-        source: 'shutterstock',
-        category: r.categories?.[0] || '',
-        approvedAt: new Date().toISOString(),
-      }));
+    const selectedResults = results.filter(r => selectedIds.has(r.id));
+    const skippedResults = results.filter(r => !selectedIds.has(r.id));
+    
+    const approved: ApprovedImage[] = selectedResults.map(r => ({
+      id: r.id,
+      url: r.previewUrl || r.url,
+      thumbnailUrl: r.thumbnailUrl,
+      title: r.description?.slice(0, 100) || 'Untitled',
+      source: 'shutterstock',
+      category: r.categories?.[0] || '',
+      approvedAt: new Date().toISOString(),
+    }));
     onApproveImages(approved);
+    
+    // Record preference signals
+    recordApproved(
+      selectedResults.map(r => ({
+        id: r.id,
+        description: r.description,
+        categories: r.categories,
+        media_type: r.media_type,
+        width: r.width,
+        height: r.height,
+      })),
+      lastSearchContextRef.current,
+      targetSectionName
+    );
+    
+    // Record skipped signals (images shown but not selected)
+    if (skippedResults.length > 0 && skippedResults.length <= 40) {
+      recordSkipped(
+        skippedResults.map(r => ({
+          id: r.id,
+          description: r.description,
+          categories: r.categories,
+          media_type: r.media_type,
+        })),
+        lastSearchContextRef.current
+      );
+    }
+    
     setSelectedIds(new Set());
     toast.success(`${approved.length} image${approved.length !== 1 ? 's' : ''} approved`);
     onOpenChange(false);
-  }, [results, selectedIds, onApproveImages, onOpenChange]);
+  }, [results, selectedIds, onApproveImages, onOpenChange, recordApproved, recordSkipped, targetSectionName]);
 
   const handleLoadMore = useCallback(() => {
     if (similarSourceId) {
@@ -439,9 +491,24 @@ export const ShutterstockSearchDialog = ({
       approvedAt: new Date().toISOString(),
     }));
     onApproveImages(approved);
+    
+    // Record preference signals for lightbox approvals
+    recordApproved(
+      lb.images.map(r => ({
+        id: r.id,
+        description: r.description,
+        categories: r.categories,
+        media_type: r.media_type,
+        width: r.width,
+        height: r.height,
+      })),
+      { source: 'lightbox', lightboxName: lb.name },
+      targetSectionName
+    );
+    
     toast.success(`${approved.length} image(s) from "${lb.name}" approved`);
     onOpenChange(false);
-  }, [lightboxes, onApproveImages, onOpenChange]);
+  }, [lightboxes, onApproveImages, onOpenChange, recordApproved, targetSectionName]);
 
   const clearFilters = useCallback(() => {
     setColorFilter('');
@@ -642,7 +709,22 @@ export const ShutterstockSearchDialog = ({
               </PopoverContent>
             </Popover>
 
-            {/* Similar search indicator */}
+            {/* Learned Preferences toggle */}
+            <Button
+              variant={showPreferences ? 'default' : 'outline'}
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => setShowPreferences(!showPreferences)}
+            >
+              <Brain className="h-3 w-3" />
+              Preferences
+              {signalCount > 0 && (
+                <Badge variant="secondary" className="h-4 px-1 text-[10px] ml-0.5">
+                  {signalCount}
+                </Badge>
+              )}
+            </Button>
+
             {similarSourceId && (
               <Badge variant="outline" className="text-xs gap-1">
                 Similar to #{similarSourceId}
@@ -767,6 +849,17 @@ export const ShutterstockSearchDialog = ({
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Learned Preferences Panel */}
+          {showPreferences && (
+            <LearnedPreferencesPanel
+              visualDna={visualDna}
+              signalCount={signalCount}
+              isAnalyzing={isAnalyzing}
+              isLoading={dnaLoading}
+              onAnalyze={analyzePreferences}
+            />
           )}
 
           {/* AI Suggestions */}

@@ -19,6 +19,7 @@ interface ApprovedImagerySectionProps {
   canEdit?: boolean;
   entityId?: string;
   entityType?: string;
+  organizationId?: string | null;
 }
 
 const DEFAULT_SUBSECTIONS = [
@@ -37,6 +38,7 @@ export const ApprovedImagerySection = ({
   canEdit = false,
   entityId,
   entityType = 'brand',
+  organizationId,
 }: ApprovedImagerySectionProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [dropboxOpen, setDropboxOpen] = useState(false);
@@ -190,6 +192,7 @@ export const ApprovedImagerySection = ({
             targetSectionName={targetSection?.name || ''}
             entityId={entityId}
             entityType={entityType}
+            organizationId={organizationId}
           />
           <DropboxBrowserDialog
             open={dropboxOpen}
