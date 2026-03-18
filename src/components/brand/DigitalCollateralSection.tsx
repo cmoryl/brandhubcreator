@@ -526,7 +526,7 @@ export const DigitalCollateralSection = ({
     if (bannerSetImageRef.current) bannerSetImageRef.current.value = '';
   };
 
-
+  const isPdf = (url: string) => {
     return url?.includes('application/pdf') || url?.endsWith('.pdf');
   };
 
