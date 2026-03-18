@@ -51,6 +51,7 @@ interface ShutterstockSearchDialogProps {
   targetSectionName: string;
   entityId?: string;
   entityType?: string;
+  organizationId?: string | null;
 }
 
 const IMAGE_TYPE_OPTIONS = [
