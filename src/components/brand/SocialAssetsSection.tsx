@@ -1228,12 +1228,7 @@ export const SocialAssetsSection = ({
           );
           
           const IconComponent = platformIcons[activePlatform.platform] || Monitor;
-          const sizeSpecs = [
-            { label: 'Post', value: activePlatform.postSize },
-            { label: 'Cover/Banner', value: activePlatform.coverSize || activePlatform.altSize },
-            { label: 'Story', value: activePlatform.storySize },
-            { label: 'Reel/Short', value: activePlatform.reelSize },
-          ].filter(s => s.value && s.value !== 'N/A');
+          
 
           return (
             <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -1281,15 +1276,6 @@ export const SocialAssetsSection = ({
                   </div>
                 </div>
 
-                {/* Size specs bar */}
-                <div className="flex items-center gap-3 px-4 py-3 border-t border-border bg-muted/30 overflow-x-auto">
-                  {sizeSpecs.map((spec) => (
-                    <div key={spec.label} className="flex items-center gap-2 shrink-0">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{spec.label}</span>
-                      <Badge variant="outline" className="text-[11px] font-mono px-2 py-0.5">{spec.value}</Badge>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               {/* Platform Sizing Specs Reference */}
