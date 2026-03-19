@@ -535,7 +535,7 @@ const PlatformDetailModal = ({
                   className={cn(
                     "absolute border-4 border-card bg-muted rounded-full flex items-center justify-center overflow-hidden cursor-pointer group/avatar transition-all",
                     asset.platform === 'LinkedIn' && "-top-12 left-4 w-24 h-24",
-                    asset.platform === 'X (Twitter)' && "-top-10 left-4 w-20 h-20",
+                    (asset.platform === 'X' || asset.platform === 'X (Twitter)') && "-top-10 left-4 w-20 h-20",
                     asset.platform === 'Facebook' && "-top-8 left-4 w-[100px] h-[100px]",
                     asset.platform === 'YouTube' && "-top-8 left-4 w-16 h-16",
                     asset.platform === 'Instagram' && "-top-6 left-1/2 -translate-x-1/2 w-20 h-20",
