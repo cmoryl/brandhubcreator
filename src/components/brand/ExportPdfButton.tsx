@@ -217,7 +217,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'socialicons': return guide.socialIcons.length > 0;
       case 'imagery': return guide.imagery.length > 0;
       case 'social': return guide.social.length > 0;
-      case 'socialassets': return (guide.socialAssets?.length ?? 0) > 0 || (guide.displayBanners?.length ?? 0) > 0;
+      case 'socialassets': return (guide.socialAssets?.length ?? 0) > 0;
       case 'website': return (guide.websites?.length ?? 0) > 0;
       case 'signatures': return guide.signatures.length > 0;
       case 'qr': return !!guide.qr.defaultUrl;
