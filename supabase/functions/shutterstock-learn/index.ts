@@ -347,7 +347,7 @@ Extract the visual preferences, patterns, and aversions. Be specific and actiona
         mood_keywords: dnaResult.mood_keywords || [],
         avoid_keywords: dnaResult.avoid_keywords || [],
         approval_patterns: dnaResult.approval_patterns || {},
-        total_approved: approved.length,
+        total_approved: approved.length + allVaultMeta.length,
         total_skipped: skipped.length,
         total_removed: removed.length,
         confidence_score: dnaResult.confidence_score || 0,
