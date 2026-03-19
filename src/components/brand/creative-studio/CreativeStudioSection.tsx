@@ -21,6 +21,7 @@ interface CreativeStudioSectionProps {
   entityName: string;
   organizationId?: string | null;
   guideData: Record<string, unknown>;
+  brochures?: BrandBrochure[];
   isEditing?: boolean;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
