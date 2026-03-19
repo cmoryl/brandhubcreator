@@ -1317,24 +1317,19 @@ export const SocialAssetsSection = ({
                 {(() => {
                   const allTemplates = activePlatform.templates || [];
                   
-                  // Build size categories from the platform's specs
+                  // Consistent size categories across all platforms
                   const sizeCategories: { key: string; label: string; spec: string }[] = [
-                    activePlatform.postSize && activePlatform.postSize !== 'N/A' ? { key: 'post', label: 'Post', spec: activePlatform.postSize } : null,
-                    (activePlatform.coverSize || activePlatform.altSize) && (activePlatform.coverSize || activePlatform.altSize) !== 'N/A' ? { key: 'cover', label: 'Cover / Banner', spec: activePlatform.coverSize || activePlatform.altSize || '' } : null,
-                    activePlatform.storySize && activePlatform.storySize !== 'N/A' ? { key: 'story', label: 'Story', spec: activePlatform.storySize } : null,
-                    activePlatform.reelSize && activePlatform.reelSize !== 'N/A' ? { key: 'reel', label: 'Reel / Short', spec: activePlatform.reelSize } : null,
-                  ].filter(Boolean) as { key: string; label: string; spec: string }[];
+                    { key: 'post', label: 'Post', spec: activePlatform.postSize && activePlatform.postSize !== 'N/A' ? activePlatform.postSize : '' },
+                    { key: 'cover', label: 'Cover / Banner', spec: (activePlatform.coverSize || activePlatform.altSize) && (activePlatform.coverSize || activePlatform.altSize) !== 'N/A' ? (activePlatform.coverSize || activePlatform.altSize || '') : '' },
+                    { key: 'story', label: 'Story', spec: activePlatform.storySize && activePlatform.storySize !== 'N/A' ? activePlatform.storySize : '' },
+                    { key: 'reel', label: 'Reel / Short', spec: activePlatform.reelSize && activePlatform.reelSize !== 'N/A' ? activePlatform.reelSize : '' },
+                  ];
 
                   // Add "Other" if there are uncategorized templates
                   const categorizedKeys = new Set(sizeCategories.map(c => c.key));
                   const hasOther = allTemplates.some(t => !t.sizeCategory || !categorizedKeys.has(t.sizeCategory));
                   if (hasOther && allTemplates.length > 0) {
                     sizeCategories.push({ key: 'other', label: 'Other', spec: 'Custom sizes' });
-                  }
-
-                  // Always show categories even if empty (for add buttons)
-                  if (sizeCategories.length === 0) {
-                    sizeCategories.push({ key: 'other', label: 'Templates', spec: '' });
                   }
 
                   return sizeCategories.map((category) => {
