@@ -1101,5 +1101,19 @@ export const ShutterstockSearchDialog = ({
         )}
       </DialogContent>
     </Dialog>
+
+      <ImageryPreviewDialog
+        open={!!previewImage}
+        onOpenChange={(o) => { if (!o) setPreviewImage(null); }}
+        image={previewImage ? {
+          id: previewImage.id,
+          url: previewImage.previewUrl || previewImage.url,
+          thumbnailUrl: previewImage.thumbnailUrl,
+          title: previewImage.description?.slice(0, 100) || 'Untitled',
+          source: 'shutterstock',
+          category: previewImage.categories?.[0] || '',
+        } : null}
+      />
+    </>
   );
 };
