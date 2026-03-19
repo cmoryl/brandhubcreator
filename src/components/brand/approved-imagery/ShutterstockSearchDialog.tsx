@@ -1038,15 +1038,27 @@ export const ShutterstockSearchDialog = ({
                         <p className="text-[10px] text-white line-clamp-2">{result.description}</p>
                         <div className="flex items-center justify-between mt-1">
                           <p className="text-[9px] text-white/60">ID: {result.id}</p>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSimilarSearch(result.id);
-                            }}
-                            className="text-[9px] text-white/80 hover:text-white underline"
-                          >
-                            Find similar
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewImage(result);
+                              }}
+                              className="text-[9px] text-white/80 hover:text-white flex items-center gap-0.5"
+                              title="Preview larger"
+                            >
+                              <ZoomIn className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSimilarSearch(result.id);
+                              }}
+                              className="text-[9px] text-white/80 hover:text-white underline"
+                            >
+                              Find similar
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
