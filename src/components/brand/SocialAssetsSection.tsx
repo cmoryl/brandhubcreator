@@ -927,13 +927,6 @@ export const SocialAssetsSection = ({
   };
 
 
-  // Group banners by category
-  const bannersByCategory = {
-    desktop: displayBanners.filter(b => b.category === 'desktop' || !b.category),
-    mobile: displayBanners.filter(b => b.category === 'mobile'),
-    video: displayBanners.filter(b => b.category === 'video'),
-    native: displayBanners.filter(b => b.category === 'native'),
-  };
 
   return (
     <section className="space-y-6 sm:space-y-8">
