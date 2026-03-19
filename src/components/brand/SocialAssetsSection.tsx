@@ -1319,6 +1319,15 @@ export const SocialAssetsSection = ({
 
               {/* Template cards grouped by size category */}
               <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Templates by Size</h3>
+                  <LayoutSelector
+                    value={cardLayout}
+                    onChange={setCardLayout}
+                    availableLayouts={['grid-2', 'grid-3', 'grid-4', 'list', 'large-cards']}
+                    size="sm"
+                  />
+                </div>
                 {(() => {
                   const allTemplates = activePlatform.templates || [];
                   
