@@ -156,12 +156,33 @@ function buildSectionSummaryFromRPC(summary: Record<string, unknown>): string {
 }
 
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204 });
+  }
+
   let jobId: string | null = null;
 
   try {
-    const body = await req.json();
-    jobId = body.jobId;
-    const { brandId, entityType, userAuth } = body;
+    const rawText = await req.text();
+    if (!rawText || rawText.trim().length === 0) {
+      console.error('Worker received empty body');
+      return new Response(JSON.stringify({ error: 'Empty request body' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    
+    let body: Record<string, unknown>;
+    try {
+      body = JSON.parse(rawText);
+    } catch (parseErr) {
+      console.error('Worker body parse failed. Raw:', rawText.substring(0, 200));
+      return new Response(JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+    
+    jobId = body.jobId as string;
+    const brandId = body.brandId as string;
+    const entityType = body.entityType as string;
+    const userAuth = body.userAuth as string;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
