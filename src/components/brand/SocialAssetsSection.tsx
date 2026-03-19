@@ -890,6 +890,7 @@ const SizeCategorySection = ({
   entityId,
   updateSocialAsset,
   uploadFile,
+  cardGridClass,
 }: {
   category: { key: string; label: string; spec: string };
   categoryTemplates: SocialAssetTemplate[];
@@ -898,6 +899,7 @@ const SizeCategorySection = ({
   entityId?: string;
   updateSocialAsset: (id: string, updates: Partial<BrandSocialAssetSpec>) => void;
   uploadFile: (file: File, type: string, prefix: string) => Promise<{ url: string } | undefined>;
+  cardGridClass: string;
 }) => {
   const [expanded, setExpanded] = useState(false);
   const maxVisible = DEFAULT_VISIBLE_ROWS * CARDS_PER_ROW;
