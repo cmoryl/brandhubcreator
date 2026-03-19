@@ -50,13 +50,31 @@ export const StudiosSection = ({
   onStudiosChange,
   customSubtitle,
   onSubtitleChange,
+  entityId,
 }: StudiosSectionProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingStudio, setEditingStudio] = useState<BrandStudio | null>(null);
   const [specialtyInput, setSpecialtyInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFile, isUploading } = useStorageUpload({ entityType: 'brand', entityId });
 
   const canEdit = !!onStudiosChange;
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingStudio) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    const result = await uploadFile(file, 'asset', `studio-${editingStudio.id}`);
+    if (result?.url) {
+      setEditingStudio({ ...editingStudio, imageUrl: result.url });
+      toast.success('Image uploaded');
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const openAdd = () => {
     setEditingStudio(emptyStudio());
