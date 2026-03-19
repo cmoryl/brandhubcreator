@@ -207,9 +207,9 @@ export const StudiosSection = ({
                     )}
                   </div>
 
-                  {/* Edit/Delete controls */}
-                  {canEdit && isEditing && (
-                    <div className="flex gap-2 pt-2 border-t border-border/50">
+                  {/* Edit/Delete controls - always visible for admins */}
+                  {canEdit && (
+                    <div className="flex gap-2 pt-2 border-t border-border/50 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => openEdit(studio)}>
                         <Pencil className="h-3 w-3" /> Edit
                       </Button>
@@ -236,7 +236,7 @@ export const StudiosSection = ({
       )}
 
       {/* Add button when studios exist */}
-      {canEdit && isEditing && studios.length > 0 && (
+      {canEdit && studios.length > 0 && (
         <div className="mt-4">
           <Button variant="outline" size="sm" className="gap-1.5" onClick={openAdd}>
             <Plus className="h-3.5 w-3.5" /> Add Studio
