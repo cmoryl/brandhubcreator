@@ -911,12 +911,6 @@ export const SocialAssetsSection = ({
     }
   }, [socialAssets.length, onSocialAssetsChange]);
 
-  useEffect(() => {
-    if (!hasBannerInitialized.current && displayBanners.length === 0 && onDisplayBannersChange) {
-      hasBannerInitialized.current = true;
-      onDisplayBannersChange(bannerPresets.map(b => ({ ...b, id: safeUUID() })));
-    }
-  }, [displayBanners.length, onDisplayBannersChange]);
 
   const updateSocialAsset = (id: string, updates: Partial<BrandSocialAssetSpec>) => {
     if (!onSocialAssetsChange) return;
