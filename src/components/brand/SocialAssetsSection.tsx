@@ -846,35 +846,60 @@ const TemplateCardInfo = ({
     );
   }
 
+  const sizeCategoryOptions: { v: SocialSizeCategory; l: string }[] = [
+    { v: 'post', l: 'Post' }, { v: 'square', l: 'Square' }, { v: 'cover', l: 'Cover / Banner' }, { v: 'story', l: 'Story' }, { v: 'reel', l: 'Reel / Short' }, { v: 'other', l: 'Other' },
+  ];
+  const currentCatLabel = sizeCategoryOptions.find(c => c.v === (template.sizeCategory || 'other'))?.l || 'Other';
+
   return (
-    <div className="p-3 flex items-center justify-between">
-      <div className="min-w-0">
+    <div className="p-3 flex items-center justify-between gap-2">
+      <div className="min-w-0 flex-1">
         <p className="text-sm font-medium truncate">{template.name}</p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <p className="text-[10px] text-muted-foreground">{typeLabel}</p>
           {template.dimensions && (
             <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{template.dimensions}</span>
           )}
         </div>
       </div>
-      {canEdit && (
-        <div className="flex items-center gap-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity shrink-0">
-          <button
-            onClick={() => setEditing(true)}
-            className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-            title="Edit template"
-          >
-            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-1.5 rounded-md hover:bg-destructive/10 text-destructive transition-colors"
-            title="Delete template"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
+      <div className="flex items-center gap-1 shrink-0">
+        {canEdit ? (
+          <Select value={template.sizeCategory || 'other'} onValueChange={(val) => onUpdate({ sizeCategory: val as SocialSizeCategory })}>
+            <SelectTrigger className="h-6 text-[10px] w-auto min-w-[80px] border-dashed gap-1 px-2">
+              <Layers className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sizeCategoryOptions.map(t => (
+                <SelectItem key={t.v} value={t.v}>{t.l}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
+            <Layers className="h-2.5 w-2.5" />
+            {currentCatLabel}
+          </Badge>
+        )}
+        {canEdit && (
+          <div className="flex items-center gap-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity">
+            <button
+              onClick={() => setEditing(true)}
+              className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+              title="Edit template"
+            >
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+            <button
+              onClick={onDelete}
+              className="p-1.5 rounded-md hover:bg-destructive/10 text-destructive transition-colors"
+              title="Delete template"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
