@@ -179,20 +179,6 @@ const platformPresets: BrandSocialAssetSpec[] = [
   },
 ];
 
-const bannerPresets: BrandDisplayBannerSpec[] = [
-  { id: 'preset-mrec', name: 'Medium Rectangle', dimensions: '300 x 250 px', maxMessaging: 'Headline: 25 chars | Body: 70 chars', textLegibility: 'Headline: 18-24pt Bold | Body: 12-14pt', safeZonePolicy: '15px padding all edges. Logo corner (max 60x40px). CTA bottom-right.', aspectRatio: 1.2, category: 'desktop' },
-  { id: 'preset-leaderboard', name: 'Leaderboard', dimensions: '728 x 90 px', maxMessaging: 'Headline: 30 chars | Body: 50 chars', textLegibility: 'Headline: 24-28pt Bold | Body: 14-16pt', safeZonePolicy: 'Center in 650px. Logo left. CTA right.', aspectRatio: 8.09, category: 'desktop' },
-  { id: 'preset-wide-sky', name: 'Wide Skyscraper', dimensions: '160 x 600 px', maxMessaging: 'Headline: 20 chars | Body: 60 chars', textLegibility: 'Headline: 18-22pt Bold | Body: 11-13pt', safeZonePolicy: '10px horizontal. Logo top. Stack vertical.', aspectRatio: 0.27, category: 'desktop' },
-  { id: 'preset-large-rect', name: 'Large Rectangle', dimensions: '336 x 280 px', maxMessaging: 'Headline: 30 chars | Body: 90 chars', textLegibility: 'Headline: 20-26pt Bold | Body: 13-15pt', safeZonePolicy: '20px padding. Logo top-left. CTA center-bottom.', aspectRatio: 1.2, category: 'desktop' },
-  { id: 'preset-billboard', name: 'Billboard', dimensions: '970 x 250 px', maxMessaging: 'Headline: 40 chars | Body: 100 chars', textLegibility: 'Headline: 32-40pt Bold | Body: 16-18pt', safeZonePolicy: 'Center in 800px. Logo left. Multiple CTAs allowed.', aspectRatio: 3.88, category: 'desktop' },
-  { id: 'preset-half-page', name: 'Half Page', dimensions: '300 x 600 px', maxMessaging: 'Headline: 30 chars | Body: 120 chars', textLegibility: 'Headline: 24-30pt Bold | Body: 14-16pt', safeZonePolicy: '20px padding. Logo top. CTA bottom full-width.', aspectRatio: 0.5, category: 'desktop' },
-  { id: 'preset-mobile-lead', name: 'Mobile Leaderboard', dimensions: '320 x 50 px', maxMessaging: 'Headline: 20 chars | CTA: 8 chars', textLegibility: 'Headline: 14-16pt Bold | CTA: 12pt', safeZonePolicy: 'Logo left (40x30px). CTA right. 8px edges.', aspectRatio: 6.4, category: 'mobile' },
-  { id: 'preset-large-mobile', name: 'Large Mobile', dimensions: '320 x 100 px', maxMessaging: 'Headline: 25 chars | Body: 35 chars', textLegibility: 'Headline: 16-18pt Bold | Body: 12pt', safeZonePolicy: 'Two-line layout. CTA bottom-right. 10px padding.', aspectRatio: 3.2, category: 'mobile' },
-  { id: 'preset-mobile-mrec', name: 'Mobile MREC', dimensions: '300 x 250 px', maxMessaging: 'Headline: 25 chars | Body: 60 chars', textLegibility: 'Headline: 20-24pt Bold | Body: 13-15pt', safeZonePolicy: 'Same as desktop MREC. Touch CTA min 44px.', aspectRatio: 1.2, category: 'mobile' },
-  { id: 'preset-interstitial', name: 'Interstitial', dimensions: '320 x 480 px', maxMessaging: 'Headline: 30 chars | Body: 80 chars', textLegibility: 'Headline: 28-34pt Bold | Body: 16-18pt', safeZonePolicy: 'Close button top-right. CTA bottom 80px.', aspectRatio: 0.67, category: 'mobile' },
-  { id: 'preset-video-rect', name: 'Video Rectangle', dimensions: '640 x 360 px', maxMessaging: 'Overlay: 20 chars | End card: 30 chars', textLegibility: 'Overlay: 18-22pt Bold | End card: 24-28pt', safeZonePolicy: 'Controls bottom 50px. Logo watermark top-left.', aspectRatio: 1.78, category: 'video' },
-  { id: 'preset-native', name: 'Native Ad Unit', dimensions: '1200 x 627 px', maxMessaging: 'Headline: 50 chars | Desc: 150 chars', textLegibility: 'Headline: 24-30pt Bold | Desc: 16-18pt', safeZonePolicy: 'Image-focused. Text bottom 30% with gradient.', aspectRatio: 1.91, category: 'native' },
-];
 
 // Compact Platform Card Component
 const PlatformCard = ({
