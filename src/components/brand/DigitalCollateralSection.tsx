@@ -282,7 +282,7 @@ const SortableCollateralItem = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        toast.info(buildBrandContextReminder(entityName || '', guideData || {}), { duration: 6000, icon: '🎨' });
+                        toast.info('Remember to apply your brand colors and fonts in Canva', { duration: 4000, icon: '🎨' });
                         window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
                       }}
                       className="inline-flex items-center gap-1 text-xs text-[hsl(178,100%,30%)] hover:text-[hsl(178,100%,25%)] hover:underline"
