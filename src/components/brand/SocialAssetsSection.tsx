@@ -790,29 +790,47 @@ const PlatformDetailModal = ({
             {(asset.templates?.length || 0) > 0 && (
               <div className="space-y-2">
                 {asset.templates?.map((template) => {
-                  const typeInfo = fileTypeIcons[template.fileType] || fileTypeIcons.other;
-                  const TypeIcon = typeInfo.icon;
-                  return (
-                    <div key={template.id} className="flex items-center justify-between bg-background/50 rounded-lg p-2.5 border border-border/30 group">
-                      <div className="flex items-center gap-2.5">
-                        <div className={cn("w-7 h-7 rounded flex items-center justify-center bg-muted/50", typeInfo.className)}>
-                          <TypeIcon className="h-3.5 w-3.5" />
+                    const isCanva = template.fileType === 'canva' || template.url?.includes('canva.com');
+                    const typeInfo = fileTypeIcons[template.fileType] || fileTypeIcons.other;
+                    const TypeIcon = typeInfo.icon;
+                    return (
+                      <div key={template.id} className="flex items-center justify-between bg-background/50 rounded-lg p-2.5 border border-border/30 group">
+                        <div className="flex items-center gap-2.5">
+                          <div className={cn("w-7 h-7 rounded flex items-center justify-center", isCanva ? "bg-[hsl(178,100%,40%)]/10" : "bg-muted/50", typeInfo.className)}>
+                            {isCanva ? (
+                              <img src={CANVA_LOGO_SVG} alt="Canva" className="w-4 h-4" />
+                            ) : (
+                              <TypeIcon className="h-3.5 w-3.5" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{template.name}</p>
+                            <p className="text-xs text-muted-foreground">{isCanva ? 'Canva Template' : typeInfo.label}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">{template.name}</p>
-                          <p className="text-xs text-muted-foreground">{typeInfo.label}</p>
+                        <div className="flex items-center gap-1">
+                          {isCanva ? (
+                            <button
+                              onClick={() => {
+                                toast.info('Remember to apply your brand colors and fonts in Canva', { duration: 4000, icon: '🎨' });
+                                window.open(template.url, '_blank', 'noopener,noreferrer');
+                              }}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[hsl(178,100%,40%)]/10 text-[hsl(178,100%,30%)] hover:bg-[hsl(178,100%,40%)]/20 transition-colors"
+                            >
+                              <img src={CANVA_LOGO_SVG} alt="" className="w-3.5 h-3.5" />
+                              Open in Canva
+                            </button>
+                          ) : (
+                            <a href={template.url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded hover:bg-primary/10 text-primary">
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+                          <button onClick={() => deleteTemplate(template.id)} className="p-1.5 rounded hover:bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100">
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <a href={template.url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded hover:bg-primary/10 text-primary">
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                        <button onClick={() => deleteTemplate(template.id)} className="p-1.5 rounded hover:bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100">
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  );
+                    );
                 })}
               </div>
             )}
