@@ -33,6 +33,7 @@ export const CreativeStudioSection = ({
   entityName,
   organizationId,
   guideData,
+  brochures = [],
   isEditing = false,
   customSubtitle,
   onSubtitleChange
