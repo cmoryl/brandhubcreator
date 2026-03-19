@@ -3,6 +3,7 @@
 export type SocialPlatform = 
   | 'Instagram' 
   | 'LinkedIn' 
+  | 'X'
   | 'X (Twitter)' 
   | 'Facebook' 
   | 'YouTube' 
