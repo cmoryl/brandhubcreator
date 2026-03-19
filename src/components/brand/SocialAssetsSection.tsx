@@ -1276,15 +1276,6 @@ export const SocialAssetsSection = ({
                   </div>
                 </div>
 
-                {/* Size specs bar */}
-                <div className="flex items-center gap-3 px-4 py-3 border-t border-border bg-muted/30 overflow-x-auto">
-                  {sizeSpecs.map((spec) => (
-                    <div key={spec.label} className="flex items-center gap-2 shrink-0">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{spec.label}</span>
-                      <Badge variant="outline" className="text-[11px] font-mono px-2 py-0.5">{spec.value}</Badge>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               {/* Platform Sizing Specs Reference */}
