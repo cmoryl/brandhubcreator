@@ -621,7 +621,7 @@ const EventEditor = () => {
           <SocialAssetsSection
             socialAssets={event.socialAssets || []}
             onSocialAssetsChange={editHandler((socialAssets) => updateEvent({ socialAssets }))}
-            displayBanners={event.displayBanners || []}
+            
           />
         );
       case 'eventspeakers':

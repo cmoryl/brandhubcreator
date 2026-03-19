@@ -765,7 +765,7 @@ const BrandEditor = () => {
         <SocialAssetsSection
           socialAssets={brand.socialAssets || []}
           onSocialAssetsChange={editHandler((socialAssets) => updateBrand({ socialAssets }))}
-            displayBanners={brand.displayBanners || []}
+            
         />
       );
       case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => updateBrand({ websites }))} entityType="brand" entityId={brand.id} />;
