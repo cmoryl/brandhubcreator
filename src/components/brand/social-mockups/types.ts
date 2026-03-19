@@ -121,6 +121,23 @@ export const platformConfigs: Record<SocialPlatform, PlatformMockupConfig> = {
       ],
     },
   },
+  'X (Twitter)': {
+    name: 'X',
+    supportsStory: false,
+    supportsReel: false,
+    feedAspectRatio: '16:9',
+    storyAspectRatio: 'N/A',
+    reelAspectRatio: 'N/A',
+    primaryColor: '#000000',
+    secondaryColor: '#1DA1F2',
+    sizes: {
+      feed: [
+        { name: 'Single Image', width: 1600, height: 900, aspectRatio: '16:9', description: 'Standard tweet image' },
+        { name: 'Header Photo', width: 1500, height: 500, aspectRatio: '3:1', description: 'Profile header banner' },
+        { name: 'Profile Photo', width: 400, height: 400, aspectRatio: '1:1', description: 'Profile picture' },
+      ],
+    },
+  },
   'Facebook': {
     name: 'Facebook',
     supportsStory: true,
