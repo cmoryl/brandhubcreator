@@ -730,6 +730,7 @@ export interface SocialAssetTemplate {
   url: string;
   description?: string;
   previewImageUrl?: string;
+  dimensions?: string;
 }
 
 // SOCIAL ASSETS - Platform Specifications
