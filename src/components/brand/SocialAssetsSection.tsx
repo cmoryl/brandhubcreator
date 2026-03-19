@@ -892,7 +892,6 @@ export const SocialAssetsSection = ({
   const [activePlatformId, setActivePlatformId] = useState<string | null>(null);
   const [mockupPreviewPlatform, setMockupPreviewPlatform] = useState<BrandSocialAssetSpec | null>(null);
   const { gridClass } = useLayoutClasses(layout);
-  const { gridClass } = useLayoutClasses(layout);
   
   const canEditSocial = !!onSocialAssetsChange;
 

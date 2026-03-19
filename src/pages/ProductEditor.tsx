@@ -646,7 +646,6 @@ const ProductEditor = () => {
             socialAssets={currentProduct.socialAssets || []}
             onSocialAssetsChange={editHandler((socialAssets) => handleUpdateProduct({ socialAssets }))}
             displayBanners={currentProduct.displayBanners || []}
-            onDisplayBannersChange={editHandler((displayBanners) => handleUpdateProduct({ displayBanners }))}
           />
         );
       case 'website': return <WebsiteSection websites={currentProduct.websites} onWebsitesChange={editHandler((websites) => handleUpdateProduct({ websites }))} entityType="product" entityId={currentProduct.id} />;
