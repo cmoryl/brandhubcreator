@@ -894,9 +894,7 @@ export const SocialAssetsSection = ({
   const { gridClass } = useLayoutClasses(layout);
   const { gridClass } = useLayoutClasses(layout);
   
-  // Determine if editing is allowed
   const canEditSocial = !!onSocialAssetsChange;
-  const canEditBanners = !!onDisplayBannersChange;
 
   const { uploadFile } = useStorageUpload({
     entityType: entityType || 'brand',
