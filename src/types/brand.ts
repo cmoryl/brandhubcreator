@@ -1099,9 +1099,27 @@ export interface BaseGuide {
   presentationTemplates?: PresentationTemplate[];
   // Approved Imagery (Shutterstock curated sub-sections)
   approvedImagery?: ApprovedImageryData;
+  // Studios (Owned studios/facilities)
+  studios?: BrandStudio[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Studio / facility owned by the brand
+export interface BrandStudio {
+  id: string;
+  name: string;
+  location: string;
+  description?: string;
+  imageUrl?: string;
+  specialties?: string[];
+  website?: string;
+  email?: string;
+  phone?: string;
+  established?: string;
+  capacity?: string;
+  status?: 'active' | 'coming-soon' | 'archived';
 }
 
 // Default section order - canonical sections only (no deprecated aliases)
