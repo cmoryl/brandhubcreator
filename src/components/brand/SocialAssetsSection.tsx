@@ -974,6 +974,87 @@ const BannerDetailModal = ({
       </DialogContent>
     </Dialog>
   );
+
+// Inline editable template card info
+const TemplateCardInfo = ({
+  template,
+  isCanva,
+  typeLabel,
+  canEdit,
+  onUpdate,
+  onDelete,
+}: {
+  template: SocialAssetTemplate;
+  isCanva: boolean;
+  typeLabel: string;
+  canEdit: boolean;
+  onUpdate: (updates: Partial<SocialAssetTemplate>) => void;
+  onDelete: () => void;
+}) => {
+  const [editing, setEditing] = useState(false);
+
+  if (editing && canEdit) {
+    return (
+      <div className="p-3 space-y-2 border-t border-border bg-muted/20">
+        <Input
+          value={template.name}
+          onChange={(e) => onUpdate({ name: e.target.value })}
+          placeholder="Template name"
+          className="h-7 text-xs"
+          autoFocus
+        />
+        <Input
+          value={template.url}
+          onChange={(e) => {
+            const url = e.target.value;
+            const updates: Partial<SocialAssetTemplate> = { url };
+            if (url.includes('canva.com')) updates.fileType = 'canva';
+            onUpdate(updates);
+          }}
+          placeholder="Template URL"
+          className="h-7 text-xs font-mono"
+        />
+        <div className="flex items-center gap-2">
+          <Select value={template.fileType} onValueChange={(val) => onUpdate({ fileType: val as SocialAssetTemplate['fileType'] })}>
+            <SelectTrigger className="h-7 text-xs flex-1"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {['figma', 'canva', 'psd', 'ai', 'sketch', 'xd', 'other'].map(t => (
+                <SelectItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" variant="secondary" onClick={() => setEditing(false)} className="h-7 text-xs px-3">Done</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-3 flex items-center justify-between">
+      <div className="min-w-0">
+        <p className="text-sm font-medium truncate">{template.name}</p>
+        <p className="text-[10px] text-muted-foreground">{typeLabel}</p>
+      </div>
+      {canEdit && (
+        <div className="flex items-center gap-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity shrink-0">
+          <button
+            onClick={() => setEditing(true)}
+            className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+            title="Edit template"
+          >
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-1.5 rounded-md hover:bg-destructive/10 text-destructive transition-colors"
+            title="Delete template"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export const SocialAssetsSection = ({
