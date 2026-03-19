@@ -1099,9 +1099,27 @@ export interface BaseGuide {
   presentationTemplates?: PresentationTemplate[];
   // Approved Imagery (Shutterstock curated sub-sections)
   approvedImagery?: ApprovedImageryData;
+  // Studios (Owned studios/facilities)
+  studios?: BrandStudio[];
   // Metadata
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Studio / facility owned by the brand
+export interface BrandStudio {
+  id: string;
+  name: string;
+  location: string;
+  description?: string;
+  imageUrl?: string;
+  specialties?: string[];
+  website?: string;
+  email?: string;
+  phone?: string;
+  established?: string;
+  capacity?: string;
+  status?: 'active' | 'coming-soon' | 'archived';
 }
 
 // Default section order - canonical sections only (no deprecated aliases)
@@ -1112,7 +1130,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'iconography', 'socialicons', 'imagery', 
   'social', 'socialassets', 'socialmetrics', 'website', 'signatures', 'qr', 
   'videos', 'assets', 'imageassets', 'misuse',
-  'brochures', 'templatespecs', 'presentations', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage', 'approvedimagery'
+  'brochures', 'templatespecs', 'presentations', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage', 'approvedimagery', 'studios'
 ];
 
 // Section IDs for navigation
@@ -1171,7 +1189,8 @@ export type SectionId =
   | 'eventsignage'
   | 'presentations'
   | 'socialmetrics'
-  | 'approvedimagery';
+  | 'approvedimagery'
+  | 'studios';
 
 // Insight item for the Insights & Updates section
 export interface InsightItem {

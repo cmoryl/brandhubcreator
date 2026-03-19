@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
   Shield, Scroll, Heart, Image, Bookmark, Palette, Blend, Grid3X3, 
   Type, Code, Layers, Share2, Camera, Users, Mail, QrCode, Globe,
-  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp, BarChart3, Presentation, Calendar, Award, ImageIcon, Crown, Maximize, Star
+  FolderArchive, Ban, FileText, BookOpen, FileType, Video, Quote, Package, Briefcase, LayoutGrid, TrendingUp, BarChart3, Presentation, Calendar, Award, ImageIcon, Crown, Maximize, Star, Building2
 } from 'lucide-react';
 import { 
   DndContext, 
@@ -92,6 +92,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   // Deprecated aliases - kept for backwards compatibility with old section orders
   casestudies: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   templates: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },
+  studios: { label: 'Our Studios', icon: Building2, category: 'Ecosystem' },
 };
 
 export const ReorderableBrandSidebar = ({ 

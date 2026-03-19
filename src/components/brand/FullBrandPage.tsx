@@ -45,6 +45,7 @@ import { ClientLogosSection } from './ClientLogosSection';
 import { SponsorLogosSection } from './SponsorLogosSection';
 import { PresentationTemplatesSection } from './PresentationTemplatesSection';
 import { ApprovedImagerySection } from './approved-imagery/ApprovedImagerySection';
+import { StudiosSection } from './StudiosSection';
 import { Separator } from '@/components/ui/separator';
 
 // Framer motion variants for smooth section animations
@@ -430,6 +431,13 @@ export const FullBrandPage = ({
           entityId={brandId}
           entityType={entityType}
           organizationId={organizationId}
+        />;
+      case 'studios':
+        return <StudiosSection
+          studios={brand.studios || []}
+          onStudiosChange={editHandler((studios) => onBrandUpdate({ studios }))}
+          customSubtitle={customSubtitle}
+          onSubtitleChange={onSubtitleChange}
         />;
       case 'brief':
       case 'socialmetrics':

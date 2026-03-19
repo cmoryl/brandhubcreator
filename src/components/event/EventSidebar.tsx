@@ -118,6 +118,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   socialmetrics: { label: 'Social Performance', icon: TrendingUp, category: 'Communication' },
   eventprint: { label: 'Print Collateral', icon: Printer, category: 'Event Assets' },
   approvedimagery: { label: 'Approved Imagery', icon: ImageIcon, category: 'Assets' },
+  studios: { label: 'Our Studios', icon: Building2, category: 'Ecosystem' },
 };
 
 export const EventSidebar = ({ 
