@@ -4,14 +4,16 @@
  */
 
 import { useState } from 'react';
-import { Sparkles, Image, BookOpen, Code, History, Wand2 } from 'lucide-react';
+import { Sparkles, Image, BookOpen, Code, History, Wand2, Palette } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ImageGenerator } from './ImageGenerator';
 import { PromptLibrary } from './PromptLibrary';
 import { DesignTokensExport } from './DesignTokensExport';
 import { GeneratedAssetsGallery } from './GeneratedAssetsGallery';
+import { CanvaTemplateGallery } from './CanvaTemplateGallery';
 import { useCreativeStudio } from '@/hooks/useCreativeStudio';
+import { BrandBrochure } from '@/types/brand';
 
 interface CreativeStudioSectionProps {
   entityId: string;
@@ -19,6 +21,7 @@ interface CreativeStudioSectionProps {
   entityName: string;
   organizationId?: string | null;
   guideData: Record<string, unknown>;
+  brochures?: BrandBrochure[];
   isEditing?: boolean;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
@@ -30,6 +33,7 @@ export const CreativeStudioSection = ({
   entityName,
   organizationId,
   guideData,
+  brochures = [],
   isEditing = false,
   customSubtitle,
   onSubtitleChange
@@ -95,6 +99,15 @@ export const CreativeStudioSection = ({
                   </Badge>
                 )}
               </TabsTrigger>
+              <TabsTrigger value="canva" className="gap-2 data-[state=active]:bg-primary/10">
+                <Palette className="h-4 w-4" />
+                <span className="hidden sm:inline">Canva</span>
+                {brochures.filter(b => b.externalUrl?.includes('canva.com')).length > 0 && (
+                  <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                    {brochures.filter(b => b.externalUrl?.includes('canva.com')).length}
+                  </Badge>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="tokens" className="gap-2 data-[state=active]:bg-primary/10">
                 <Code className="h-4 w-4" />
                 <span className="hidden sm:inline">Export</span>
@@ -136,6 +149,14 @@ export const CreativeStudioSection = ({
                 onApprove={approveAsset}
                 onDelete={deleteAsset}
                 onRefresh={refreshAssets}
+              />
+            </TabsContent>
+
+            <TabsContent value="canva" className="mt-0">
+              <CanvaTemplateGallery
+                brochures={brochures}
+                entityName={entityName}
+                guideData={guideData}
               />
             </TabsContent>
 
