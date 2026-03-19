@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye, LayoutGrid } from 'lucide-react';
+import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye, LayoutGrid, Type } from 'lucide-react';
 import { BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
