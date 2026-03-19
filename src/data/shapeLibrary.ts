@@ -30,6 +30,7 @@ export const SHAPE_INDUSTRIES = [
   { value: 'energy', label: 'Energy & Sustainability' },
   { value: 'legal', label: 'Legal & Professional' },
   { value: 'fashion', label: 'Fashion & Beauty' },
+  { value: 'gaming', label: 'Gaming & Interactive' },
 ] as const;
 
 export const SHAPE_CATEGORIES = [

@@ -1009,6 +1009,120 @@ function genFashion(): LibraryShape[] {
   return s;
 }
 
+// ─── GAMING & INTERACTIVE (50) ──────────────────────────────────────
+function genGaming(): LibraryShape[] {
+  const s: LibraryShape[] = [];
+  const ind = 'gaming';
+
+  // Game controllers (6)
+  for (let i = 0; i < 6; i++) {
+    const c = p(i); const g = uid();
+    const bw = 60 + (i % 3) * 10;
+    s.push(shape(`game-ctrl-${i}`, `Controller ${i + 1}`, 'icons', ind, ['controller', 'gamepad', 'gaming', 'play'],
+      gradSvg(g, c, `<rect x="${50 - bw/2}" y="30" width="${bw}" height="40" rx="18" fill="url(#${g})" opacity="0.8"/><circle cx="35" cy="48" r="6" fill="${c[1]}" opacity="0.5"/><circle cx="65" cy="48" r="6" fill="${c[1]}" opacity="0.5"/><rect x="42" y="42" width="16" height="4" rx="2" fill="${c[1]}" opacity="0.3"/><circle cx="35" cy="48" r="2" fill="${c[1]}"/><circle cx="65" cy="48" r="2" fill="${c[1]}"/>`)));
+  }
+
+  // D-pad crosses (5)
+  for (let i = 0; i < 5; i++) {
+    const c = p(i + 2); const g = uid();
+    const sz = 10 + i * 2;
+    s.push(shape(`game-dpad-${i}`, `D-Pad ${i + 1}`, 'geometric', ind, ['dpad', 'directional', 'controls', 'gaming'],
+      gradSvg(g, c, `<rect x="${50 - sz/2}" y="${50 - sz*1.5}" width="${sz}" height="${sz*3}" rx="3" fill="url(#${g})"/><rect x="${50 - sz*1.5}" y="${50 - sz/2}" width="${sz*3}" height="${sz}" rx="3" fill="url(#${g})"/>`)));
+  }
+
+  // Pixel hearts (6)
+  for (let i = 0; i < 6; i++) {
+    const c = p(i + 4); const g = uid();
+    const px = 6 + i;
+    const heartPixels = [
+      [1,0],[2,0],[4,0],[5,0],
+      [0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],
+      [0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],
+      [1,3],[2,3],[3,3],[4,3],[5,3],
+      [2,4],[3,4],[4,4],
+      [3,5]
+    ];
+    const pixels = heartPixels.map(([x, y]) => 
+      `<rect x="${15 + x * px}" y="${20 + y * px}" width="${px - 1}" height="${px - 1}" fill="url(#${g})"/>`
+    ).join('');
+    s.push(shape(`game-pheart-${i}`, `Pixel Heart ${i + 1}`, 'icons', ind, ['heart', 'pixel', 'retro', 'life', 'health'],
+      gradSvg(g, c, pixels)));
+  }
+
+  // Power-up stars (5)
+  for (let i = 0; i < 5; i++) {
+    const c = p(i); const g = uid();
+    const pts = 5 + i;
+    const outerR = 38, innerR = 16;
+    const starPts = Array.from({ length: pts * 2 }, (_, j) => {
+      const a = (j * Math.PI) / pts - Math.PI / 2;
+      const r = j % 2 === 0 ? outerR : innerR;
+      return `${50 + r * Math.cos(a)},${50 + r * Math.sin(a)}`;
+    }).join(' ');
+    s.push(shape(`game-star-${i}`, `Power Star ${pts}pt`, 'decorative', ind, ['star', 'powerup', 'collectible', 'reward'],
+      gradSvg(g, c, `<polygon points="${starPts}" fill="url(#${g})"/><circle cx="50" cy="50" r="8" fill="${c[1]}" opacity="0.4"/>`)));
+  }
+
+  // Shield / armor badges (5)
+  for (let i = 0; i < 5; i++) {
+    const c = p(i + 6); const g = uid();
+    s.push(shape(`game-shield-${i}`, `Game Shield ${i + 1}`, 'badges', ind, ['shield', 'armor', 'defense', 'protection'],
+      gradSvg(g, c, `<path d="M50 8 L85 25 L85 55 C85 75 68 90 50 95 C32 90 15 75 15 55 L15 25 Z" fill="url(#${g})" opacity="0.8"/><path d="M50 18 L75 30 L75 55 C75 70 63 82 50 86 C37 82 25 70 25 55 L25 30 Z" fill="none" stroke="${c[1]}" stroke-width="1.5" opacity="0.5"/>`)));
+  }
+
+  // Dice faces (4)
+  for (let i = 0; i < 4; i++) {
+    const c = p(i + 8); const g = uid();
+    const face = i + 1;
+    const dots = face === 1 ? `<circle cx="50" cy="50" r="6" fill="${c[1]}"/>` :
+      face === 2 ? `<circle cx="35" cy="35" r="5" fill="${c[1]}"/><circle cx="65" cy="65" r="5" fill="${c[1]}"/>` :
+      face === 3 ? `<circle cx="35" cy="35" r="5" fill="${c[1]}"/><circle cx="50" cy="50" r="5" fill="${c[1]}"/><circle cx="65" cy="65" r="5" fill="${c[1]}"/>` :
+      `<circle cx="35" cy="35" r="5" fill="${c[1]}"/><circle cx="65" cy="35" r="5" fill="${c[1]}"/><circle cx="35" cy="65" r="5" fill="${c[1]}"/><circle cx="65" cy="65" r="5" fill="${c[1]}"/>`;
+    s.push(shape(`game-dice-${i}`, `Dice Face ${face}`, 'icons', ind, ['dice', 'random', 'chance', 'tabletop'],
+      gradSvg(g, c, `<rect x="15" y="15" width="70" height="70" rx="12" fill="url(#${g})" opacity="0.8"/>${dots}`)));
+  }
+
+  // Crosshair / target (4)
+  for (let i = 0; i < 4; i++) {
+    const c = p(i + 1);
+    const r = 30 + i * 5;
+    const sw = 1.5 + i * 0.5;
+    s.push(shape(`game-xhair-${i}`, `Crosshair ${i + 1}`, 'icons', ind, ['crosshair', 'target', 'aim', 'fps'],
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="${c[0]}" stroke-width="${sw}"/><circle cx="50" cy="50" r="${r * 0.5}" fill="none" stroke="${c[0]}" stroke-width="${sw}" opacity="0.5"/><line x1="50" y1="${50 - r - 5}" x2="50" y2="${50 + r + 5}" stroke="${c[0]}" stroke-width="${sw}"/><line x1="${50 - r - 5}" y1="50" x2="${50 + r + 5}" y2="50" stroke="${c[0]}" stroke-width="${sw}"/><circle cx="50" cy="50" r="2" fill="${c[1]}"/></svg>`));
+  }
+
+  // Trophy / cup (4)
+  for (let i = 0; i < 4; i++) {
+    const c = p(i + 5); const g = uid();
+    s.push(shape(`game-trophy-${i}`, `Trophy ${i + 1}`, 'decorative', ind, ['trophy', 'cup', 'winner', 'achievement'],
+      gradSvg(g, c, `<path d="M30 15 L70 15 L65 50 C63 60 55 65 50 65 C45 65 37 60 35 50 Z" fill="url(#${g})" opacity="0.8"/><rect x="45" y="65" width="10" height="12" fill="${c[0]}" opacity="0.6"/><rect x="35" y="77" width="30" height="6" rx="3" fill="url(#${g})" opacity="0.7"/><path d="M30 15 C15 20 10 35 20 45 L35 38" fill="none" stroke="${c[1]}" stroke-width="2" opacity="0.4"/><path d="M70 15 C85 20 90 35 80 45 L65 38" fill="none" stroke="${c[1]}" stroke-width="2" opacity="0.4"/>`)));
+  }
+
+  // Lightning bolt / power (4)
+  for (let i = 0; i < 4; i++) {
+    const c = p(i + 3); const g = uid();
+    const scale = 0.85 + i * 0.05;
+    s.push(shape(`game-bolt-${i}`, `Lightning Bolt ${i + 1}`, 'icons', ind, ['lightning', 'power', 'energy', 'speed'],
+      gradSvg(g, c, `<polygon points="55,5 25,50 45,50 40,95 75,45 52,45" fill="url(#${g})" opacity="0.85" transform="scale(${scale})" transform-origin="50 50"/>`)));
+  }
+
+  // Gem / crystal (4)
+  for (let i = 0; i < 4; i++) {
+    const c = p(i + 7); const g = uid();
+    s.push(shape(`game-gem-${i}`, `Crystal Gem ${i + 1}`, 'decorative', ind, ['gem', 'crystal', 'diamond', 'loot', 'treasure'],
+      gradSvg(g, c, `<polygon points="50,10 80,35 70,85 30,85 20,35" fill="url(#${g})" opacity="0.75"/><polygon points="50,10 65,35 50,85 35,35" fill="${c[1]}" opacity="0.25"/><line x1="20" y1="35" x2="80" y2="35" stroke="${c[1]}" stroke-width="1" opacity="0.4"/>`)));
+  }
+
+  // Pixel sword (3)
+  for (let i = 0; i < 3; i++) {
+    const c = p(i + 9); const g = uid();
+    s.push(shape(`game-sword-${i}`, `Pixel Sword ${i + 1}`, 'icons', ind, ['sword', 'weapon', 'rpg', 'adventure'],
+      gradSvg(g, c, `<rect x="47" y="10" width="6" height="50" fill="url(#${g})" transform="rotate(${-15 + i * 15} 50 50)"/><rect x="35" y="58" width="30" height="6" rx="2" fill="${c[1]}" opacity="0.7" transform="rotate(${-15 + i * 15} 50 50)"/><rect x="46" y="64" width="8" height="16" rx="2" fill="${c[0]}" opacity="0.5" transform="rotate(${-15 + i * 15} 50 50)"/>`)));
+  }
+
+  return s;
+}
+
 // ─── MASTER EXPORT ──────────────────────────────────────
 let _industryShapes: LibraryShape[] | null = null;
 
@@ -1031,6 +1145,7 @@ export function getIndustryShapes(): LibraryShape[] {
     ...genEnergy(),
     ...genLegal(),
     ...genFashion(),
+    ...genGaming(),
   ];
 
   return _industryShapes;
