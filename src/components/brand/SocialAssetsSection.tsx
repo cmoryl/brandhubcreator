@@ -333,67 +333,6 @@ const PlatformCard = ({
   );
 };
 
-// Compact Banner Card Component
-const BannerCard = ({
-  banner,
-  onUpdate,
-  onDelete,
-  onExpand,
-  canEdit = false,
-}: {
-  banner: BrandDisplayBannerSpec;
-  onUpdate: (updates: Partial<BrandDisplayBannerSpec>) => void;
-  onDelete: () => void;
-  onExpand: () => void;
-  canEdit?: boolean;
-}) => {
-  const aspectRatio = banner.aspectRatio || 1.2;
-  const isVertical = aspectRatio < 0.7;
-  const isWide = aspectRatio > 3;
-
-  return (
-    <div 
-      className="group relative bg-card/50 backdrop-blur-sm rounded-lg border border-border/50 overflow-hidden hover:border-accent/30 transition-all cursor-pointer p-3"
-      onClick={onExpand}
-    >
-      <div className="flex items-center gap-3">
-        {/* Aspect ratio preview */}
-        <div 
-          className={cn(
-            "flex-shrink-0 rounded border border-accent/30 bg-accent/5 flex items-center justify-center",
-            isWide ? "w-16 h-4" : isVertical ? "w-6 h-12" : "w-10 h-8"
-          )}
-        >
-          <span className="text-[7px] font-mono text-accent/60">{(banner.dimensions || '').split(' x ')[0] || '—'}</span>
-        </div>
-        
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm truncate">{banner.name}</p>
-          <p className="text-[10px] font-mono text-muted-foreground">{banner.dimensions}</p>
-        </div>
-
-        {/* Quick actions */}
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => { e.stopPropagation(); onExpand(); }}
-            className="p-1.5 rounded hover:bg-secondary transition-colors"
-          >
-            <Info className="h-3 w-3 text-muted-foreground" />
-          </button>
-          {canEdit && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="p-1.5 rounded hover:bg-destructive/10 text-destructive transition-colors"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Detail Modal for Platform
 const PlatformDetailModal = ({
