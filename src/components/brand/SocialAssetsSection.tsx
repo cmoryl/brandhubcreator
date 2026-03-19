@@ -891,8 +891,7 @@ export const SocialAssetsSection = ({
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
   const [activePlatformId, setActivePlatformId] = useState<string | null>(null);
   const [mockupPreviewPlatform, setMockupPreviewPlatform] = useState<BrandSocialAssetSpec | null>(null);
-  const [selectedBanner, setSelectedBanner] = useState<BrandDisplayBannerSpec | null>(null);
-  const [bannerTab, setBannerTab] = useState('desktop');
+  const { gridClass } = useLayoutClasses(layout);
   const { gridClass } = useLayoutClasses(layout);
   
   // Determine if editing is allowed
