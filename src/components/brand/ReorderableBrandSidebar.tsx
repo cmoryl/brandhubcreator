@@ -92,6 +92,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   // Deprecated aliases - kept for backwards compatibility with old section orders
   casestudies: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   templates: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },
+  studios: { label: 'Our Studios', icon: Building2, category: 'Ecosystem' },
 };
 
 export const ReorderableBrandSidebar = ({ 
