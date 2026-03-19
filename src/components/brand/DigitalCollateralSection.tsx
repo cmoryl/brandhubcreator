@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { parseCanvaUrl, refineDesignType, getDesignTypeIcon, buildBrandContextReminder, CANVA_LOGO_SVG } from '@/lib/canvaUtils';
+import { parseCanvaUrl, refineDesignType, CANVA_LOGO_SVG } from '@/lib/canvaUtils';
 import { SectionHeader } from './SectionHeader';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
