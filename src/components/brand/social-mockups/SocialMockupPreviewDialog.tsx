@@ -116,6 +116,7 @@ export const SocialMockupPreviewDialog = ({
         return <InstagramMockup {...props} />;
       case 'LinkedIn':
         return <LinkedInMockup {...props} />;
+      case 'X':
       case 'X (Twitter)':
         return <TwitterMockup {...props} />;
       case 'Facebook':
