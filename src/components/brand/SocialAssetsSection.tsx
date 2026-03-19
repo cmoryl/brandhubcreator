@@ -67,6 +67,18 @@ const platformDefaultImages: Record<string, string> = {
 
 const platformPresets: BrandSocialAssetSpec[] = [
   {
+    id: 'preset-general',
+    platform: 'General',
+    postSize: '1200 x 630 px (Universal)',
+    altSize: '1080 x 1080 px (Square)',
+    storySize: '1080 x 1920 px (9:16)',
+    reelSize: '1920 x 1080 px (16:9)',
+    coverSize: '1500 x 500 px (Banner)',
+    textLegibility: '24pt+ Headlines, 14pt+ Body',
+    directive: 'Universal social sizes. Use as a starting point for cross-platform campaigns. Always verify final dimensions per platform.',
+    templates: [],
+  },
+  {
     id: 'preset-linkedin',
     platform: 'LinkedIn',
     postSize: '1200 x 627 px',
@@ -164,18 +176,6 @@ const platformPresets: BrandSocialAssetSpec[] = [
     directive: 'Similar to Instagram feed. Keep important content centered. Text-based posts often outperform images.',
     templates: [],
     previewImageUrl: '/images/social-defaults/threads-default.jpg',
-  },
-  {
-    id: 'preset-general',
-    platform: 'General',
-    postSize: '1200 x 630 px (Universal)',
-    altSize: '1080 x 1080 px (Square)',
-    storySize: '1080 x 1920 px (9:16)',
-    reelSize: '1920 x 1080 px (16:9)',
-    coverSize: '1500 x 500 px (Banner)',
-    textLegibility: '24pt+ Headlines, 14pt+ Body',
-    directive: 'Universal social sizes. Use as a starting point for cross-platform campaigns. Always verify final dimensions per platform.',
-    templates: [],
   },
 ];
 
