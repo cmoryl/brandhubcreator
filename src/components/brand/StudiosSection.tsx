@@ -292,8 +292,53 @@ export const StudiosSection = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Image URL</label>
-                <Input value={editingStudio.imageUrl || ''} onChange={e => updateField('imageUrl', e.target.value)} placeholder="https://..." />
+                <label className="text-sm font-medium text-foreground">Studio Image</label>
+                {editingStudio.imageUrl && (
+                  <div className="relative rounded-lg overflow-hidden h-32 mb-2 border border-border">
+                    <img src={editingStudio.imageUrl} alt="Studio preview" className="w-full h-full object-cover" />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 h-7 w-7 p-0"
+                      onClick={() => setEditingStudio({ ...editingStudio, imageUrl: '' })}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+                <Tabs defaultValue="upload" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 h-8">
+                    <TabsTrigger value="upload" className="text-xs gap-1"><Upload className="h-3 w-3" />Upload</TabsTrigger>
+                    <TabsTrigger value="library" className="text-xs gap-1"><ImageIcon className="h-3 w-3" />Library</TabsTrigger>
+                    <TabsTrigger value="url" className="text-xs gap-1"><Link className="h-3 w-3" />URL</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="upload" className="mt-2">
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      {isUploading ? 'Uploading...' : 'Choose Image File'}
+                    </Button>
+                  </TabsContent>
+                  <TabsContent value="library" className="mt-2">
+                    <ImageLibraryPicker
+                      onSelect={(url) => setEditingStudio({ ...editingStudio, imageUrl: url })}
+                      trigger={
+                        <Button variant="outline" size="sm" className="w-full gap-2">
+                          <ImageIcon className="h-3.5 w-3.5" /> Pick from Library
+                        </Button>
+                      }
+                    />
+                  </TabsContent>
+                  <TabsContent value="url" className="mt-2">
+                    <Input value={editingStudio.imageUrl || ''} onChange={e => updateField('imageUrl', e.target.value)} placeholder="https://..." />
+                  </TabsContent>
+                </Tabs>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
