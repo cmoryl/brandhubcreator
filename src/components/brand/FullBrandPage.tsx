@@ -438,6 +438,7 @@ export const FullBrandPage = ({
           onStudiosChange={editHandler((studios) => onBrandUpdate({ studios }))}
           customSubtitle={customSubtitle}
           onSubtitleChange={onSubtitleChange}
+          entityId={brandId}
         />;
       case 'brief':
       case 'socialmetrics':
