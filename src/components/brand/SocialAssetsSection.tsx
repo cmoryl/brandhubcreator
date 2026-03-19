@@ -1228,12 +1228,7 @@ export const SocialAssetsSection = ({
           );
           
           const IconComponent = platformIcons[activePlatform.platform] || Monitor;
-          const sizeSpecs = [
-            { label: 'Post', value: activePlatform.postSize },
-            { label: 'Cover/Banner', value: activePlatform.coverSize || activePlatform.altSize },
-            { label: 'Story', value: activePlatform.storySize },
-            { label: 'Reel/Short', value: activePlatform.reelSize },
-          ].filter(s => s.value && s.value !== 'N/A');
+          const IconComponent_unused = null; // sizeSpecs moved to reference panel below
 
           return (
             <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
