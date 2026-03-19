@@ -3,6 +3,7 @@ import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monit
 import { BrandSocialAssetSpec, BrandDisplayBannerSpec, SocialAssetTemplate } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
+import { parseCanvaUrl, CANVA_LOGO_SVG } from '@/lib/canvaUtils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
