@@ -398,6 +398,10 @@ export interface BrandAsset {
   printType?: string;
   /** Dimensions e.g. "10ft x 8ft" */
   dimensions?: string;
+  /** Optional studio association */
+  studioId?: string;
+  /** Cached studio name for display */
+  studioName?: string;
 }
 
 // EVENT SIGNAGE - Booths & Banners for brand events

@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react';
-import { X, Download, Folder, File, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical, Loader2, ExternalLink, Archive } from 'lucide-react';
+import { useState, useCallback, useMemo } from 'react';
+import { X, Download, Folder, File, Upload, Globe, Expand, ChevronDown, ChevronUp, Tag, GripVertical, Loader2, ExternalLink, Archive, Building2 } from 'lucide-react';
 import JSZip from 'jszip';
 import { supabase } from '@/integrations/supabase/client';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
-import { BrandAsset, ASSET_CATEGORIES, AssetCategory, PRINT_SIGNAGE_TYPES } from '@/types/brand';
+import { BrandAsset, ASSET_CATEGORIES, AssetCategory, PRINT_SIGNAGE_TYPES, BrandStudio } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
@@ -26,6 +26,7 @@ interface AssetsSectionProps {
   websiteUrl?: string;
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
+  studios?: BrandStudio[];
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -52,6 +53,8 @@ interface PendingFile {
   category: AssetCategory;
   printType?: string;
   dimensions?: string;
+  studioId?: string;
+  studioName?: string;
 }
 
 // Sortable asset card component
@@ -78,55 +81,62 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
       className="group relative bg-card rounded-lg border border-border overflow-hidden"
     >
       {canEdit && (
-        <button
+        <div
           {...attributes}
           {...listeners}
-          className="absolute top-1 right-1 z-10 h-6 w-6 flex items-center justify-center rounded bg-background/80 border border-border text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+          className="absolute top-1 left-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-background/70 rounded p-0.5"
         >
-          <GripVertical className="h-3 w-3" />
-        </button>
-      )}
-      <div className="aspect-[4/3] relative overflow-hidden bg-muted/30 flex items-center justify-center">
-        {asset.type?.startsWith('image/') ? (
-          <img src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-        ) : asset.type === 'application/pdf' && asset.thumbnailUrl ? (
-          <>
-            <img src={asset.thumbnailUrl} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-            <span className="absolute top-1 left-1 text-[8px] font-bold bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded">PDF</span>
-          </>
-      ) : asset.type === 'application/pdf' ? (
-          <div className="absolute inset-0">
-            <PdfThumbnailCard url={asset.url} name={asset.name} />
-          </div>
-        ) : (
-          <span className="text-2xl">{getFileIcon(asset.type)}</span>
-        )}
-        <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          {(asset.type?.startsWith('image/') || asset.type === 'application/pdf') && (
-            <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => onPreview(asset)}>
-              <Expand className="h-3 w-3" />
-            </Button>
-          )}
-          <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => window.open(asset.url, '_blank')} title="Open in new tab">
-            <ExternalLink className="h-3 w-3" />
-          </Button>
-          <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => onDownload(asset)} title="Download">
-            <Download className="h-3 w-3" />
-          </Button>
-          {canEdit && (
-            <Button variant="destructive" size="icon" className="h-7 w-7" onClick={() => onDelete(asset.id)}>
-              <X className="h-3 w-3" />
-            </Button>
-          )}
+          <GripVertical className="h-3 w-3 text-muted-foreground" />
         </div>
+      )}
+      <div
+        className="cursor-pointer"
+        onClick={() => onPreview(asset)}
+      >
+        {asset.type?.includes('image') ? (
+          <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
+            <img
+              src={asset.url}
+              alt={asset.name}
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+              loading="lazy"
+            />
+          </div>
+        ) : asset.type === 'application/pdf' ? (
+          <PdfThumbnailCard url={asset.url} name={asset.name} />
+        ) : (
+          <div className="aspect-[4/3] bg-muted flex items-center justify-center">
+            <span className="text-3xl">{getFileIcon(asset.type)}</span>
+          </div>
+        )}
       </div>
-      <div className="p-2 space-y-0.5">
-        <p className="text-xs font-medium truncate" title={asset.name}>{asset.name}</p>
-        <p className="text-[10px] text-muted-foreground">{asset.size} • {asset.type?.split('/')[1]?.toUpperCase() || 'FILE'}</p>
+      <div className="p-2">
+        <p className="text-xs font-medium truncate leading-tight">{asset.name}</p>
+        <div className="flex items-center justify-between mt-1">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground">{asset.size}</span>
+            {asset.studioName && (
+              <span className="text-[10px] text-primary/70 flex items-center gap-0.5 mt-0.5">
+                <Building2 className="h-2.5 w-2.5" />
+                {asset.studioName}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={(e) => { e.stopPropagation(); onDownload(asset); }} className="p-1 hover:bg-accent rounded">
+              <Download className="h-3 w-3 text-muted-foreground" />
+            </button>
+            {canEdit && (
+              <button onClick={(e) => { e.stopPropagation(); onDelete(asset.id); }} className="p-1 hover:bg-destructive/20 rounded">
+                <X className="h-3 w-3 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+        </div>
         {asset.printType && (
-          <p className="text-[10px] text-primary/70 font-medium truncate">
+          <p className="text-[10px] text-muted-foreground mt-0.5">
             {PRINT_SIGNAGE_TYPES.find(t => t.value === asset.printType)?.label || asset.printType}
-            {asset.dimensions ? ` · ${asset.dimensions}` : ''}
+            {asset.dimensions ? ` • ${asset.dimensions}` : ''}
           </p>
         )}
       </div>
@@ -134,14 +144,18 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
   );
 };
 
-export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtitleChange, websiteUrl, entityId, entityType = 'brand' }: AssetsSectionProps) => {
+export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtitleChange, websiteUrl, entityId, entityType = 'brand', studios = [] }: AssetsSectionProps) => {
   const canEdit = Boolean(onAssetsChange);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scannerStudioId, setScannerStudioId] = useState<string | undefined>(undefined);
+  const [scannerStudioName, setScannerStudioName] = useState<string | undefined>(undefined);
+  const [scannerDefaultUrl, setScannerDefaultUrl] = useState('');
   const [previewAsset, setPreviewAsset] = useState<BrandAsset | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [pendingFile, setPendingFile] = useState<PendingFile | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterStudio, setFilterStudio] = useState<string>('all');
   const [isConfirming, setIsConfirming] = useState(false);
   const [isZipping, setIsZipping] = useState(false);
 
@@ -151,7 +165,13 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
-  const handleImportImages = useCallback((images: { name: string; url: string; type: string }[]) => {
+  // Active studios (only those with status 'active' or no status)
+  const activeStudios = useMemo(() => 
+    studios.filter(s => !s.status || s.status === 'active'),
+    [studios]
+  );
+
+  const handleImportImages = useCallback((images: { name: string; url: string; type: string }[], studioId?: string, studioName?: string) => {
     if (!onAssetsChange) return;
     const newAssets: BrandAsset[] = images.map((img) => ({
       id: crypto.randomUUID(),
@@ -160,6 +180,8 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
       url: img.url,
       size: 'External',
       category: 'Digital Assets' as AssetCategory,
+      studioId,
+      studioName,
     }));
     onAssetsChange([...assets, ...newAssets]);
   }, [assets, onAssetsChange]);
@@ -170,8 +192,10 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
       file,
       name: file.name,
       category: 'Other',
+      studioId: filterStudio !== 'all' ? filterStudio : undefined,
+      studioName: filterStudio !== 'all' ? activeStudios.find(s => s.id === filterStudio)?.name : undefined,
     });
-  }, [onAssetsChange]);
+  }, [onAssetsChange, filterStudio, activeStudios]);
 
   const generatePdfThumbnailFromFile = useCallback(async (file: File): Promise<Blob | undefined> => {
     try {
@@ -213,12 +237,10 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
       let thumbnailUrl: string | undefined;
 
       if (entityId) {
-        // Upload main file to cloud storage
         const uploaded = await uploadFile(pendingFile.file, 'asset', `vault-${assetId}`);
         if (!uploaded) { setIsConfirming(false); return; }
         fileUrl = uploaded.url;
 
-        // For PDFs, generate thumbnail and upload it too
         if (fileType === 'application/pdf') {
           const thumbBlob = await generatePdfThumbnailFromFile(pendingFile.file);
           if (thumbBlob) {
@@ -228,7 +250,6 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
           }
         }
       } else {
-        // Fallback: use base64 for unsaved entities (rare edge case)
         fileUrl = await new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onload = (e) => resolve(e.target?.result as string);
@@ -246,6 +267,8 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
         thumbnailUrl,
         printType: pendingFile.printType,
         dimensions: pendingFile.dimensions,
+        studioId: pendingFile.studioId || undefined,
+        studioName: pendingFile.studioName || undefined,
       };
       onAssetsChange([...assets, newAsset]);
       setPendingFile(null);
@@ -278,7 +301,6 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
     } catch {
-      // Fallback: open in new tab if fetch fails
       window.open(asset.url, '_blank');
     }
   };
@@ -295,20 +317,17 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
   }, [assets, onAssetsChange]);
 
   const fetchAssetBlob = useCallback(async (url: string): Promise<Blob | null> => {
-    // Try direct fetch first (works for same-origin / CORS-enabled URLs)
     try {
       const res = await fetch(url);
       if (res.ok) return await res.blob();
-    } catch { /* CORS blocked — fall through to proxy */ }
+    } catch { /* CORS blocked */ }
 
-    // Proxy external URLs through edge function to bypass CORS
     try {
       const { data, error } = await supabase.functions.invoke('proxy-download', {
         body: { url },
       });
       if (error) throw error;
       if (data instanceof Blob) return data;
-      // If response is an ArrayBuffer
       if (data instanceof ArrayBuffer) return new Blob([data]);
       return null;
     } catch (err) {
@@ -330,7 +349,6 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
             const blob = await fetchAssetBlob(asset.url);
             if (!blob) return;
 
-            // Organize into category folders, deduplicate filenames
             const folder = asset.category || 'Other';
             let fileName = asset.name || 'file';
             const key = `${folder}/${fileName}`;
@@ -369,19 +387,83 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     }
   }, [assets, fetchAssetBlob]);
 
-  // Group by category
-  const filteredAssets = filterCategory === 'all'
-    ? (assets || [])
-    : (assets || []).filter(a => (a.category || 'Other') === filterCategory);
+  // Open scanner for a specific studio
+  const openStudioScanner = (studio: BrandStudio) => {
+    setScannerStudioId(studio.id);
+    setScannerStudioName(studio.name);
+    setScannerDefaultUrl(studio.website || '');
+    setIsScannerOpen(true);
+  };
 
-  const groupedAssets = filteredAssets.reduce((acc, asset) => {
-    const category = asset.category || 'Other';
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(asset);
-    return acc;
-  }, {} as Record<string, BrandAsset[]>);
+  // Open scanner for general (no studio)
+  const openGeneralScanner = () => {
+    setScannerStudioId(undefined);
+    setScannerStudioName(undefined);
+    setScannerDefaultUrl(websiteUrl || '');
+    setIsScannerOpen(true);
+  };
+
+  // Filter assets by category AND studio
+  const filteredAssets = useMemo(() => {
+    let result = assets || [];
+    if (filterCategory !== 'all') {
+      result = result.filter(a => (a.category || 'Other') === filterCategory);
+    }
+    if (filterStudio !== 'all') {
+      if (filterStudio === '__none__') {
+        result = result.filter(a => !a.studioId);
+      } else {
+        result = result.filter(a => a.studioId === filterStudio);
+      }
+    }
+    return result;
+  }, [assets, filterCategory, filterStudio]);
+
+  // Group by studio first, then by category within each studio
+  const studioGroups = useMemo(() => {
+    const groups: { studioId: string | null; studioName: string; assets: BrandAsset[] }[] = [];
+    
+    // If filtering by specific studio, just show that
+    if (filterStudio !== 'all') {
+      return [{ studioId: filterStudio === '__none__' ? null : filterStudio, studioName: filterStudio === '__none__' ? 'General' : (activeStudios.find(s => s.id === filterStudio)?.name || 'Unknown'), assets: filteredAssets }];
+    }
+
+    // Group general assets
+    const generalAssets = filteredAssets.filter(a => !a.studioId);
+    if (generalAssets.length > 0) {
+      groups.push({ studioId: null, studioName: 'General Assets', assets: generalAssets });
+    }
+
+    // Group by each studio
+    for (const studio of activeStudios) {
+      const studioAssets = filteredAssets.filter(a => a.studioId === studio.id);
+      if (studioAssets.length > 0) {
+        groups.push({ studioId: studio.id, studioName: studio.name, assets: studioAssets });
+      }
+    }
+
+    // Orphaned studio assets (studio was deleted but assets remain)
+    const knownIds = new Set([...activeStudios.map(s => s.id), undefined, null]);
+    const orphaned = filteredAssets.filter(a => a.studioId && !activeStudios.find(s => s.id === a.studioId));
+    if (orphaned.length > 0) {
+      groups.push({ studioId: '__orphaned__', studioName: 'Other Studios', assets: orphaned });
+    }
+
+    return groups;
+  }, [filteredAssets, filterStudio, activeStudios]);
+
+  const groupAssetsByCategory = (assetList: BrandAsset[]) => {
+    return assetList.reduce((acc, asset) => {
+      const category = asset.category || 'Other';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(asset);
+      return acc;
+    }, {} as Record<string, BrandAsset[]>);
+  };
 
   const usedCategories = [...new Set((assets || []).map(a => a.category || 'Other'))];
+  const usedStudios = [...new Set((assets || []).filter(a => a.studioId).map(a => a.studioId!))];
+  const hasStudioAssets = usedStudios.length > 0;
 
   return (
     <section className="space-y-6">
@@ -396,10 +478,9 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
             onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
           />
         </div>
-        {/* Download All button temporarily removed */}
         {canEdit && (
           <div className="flex items-center gap-2 shrink-0">
-            <Button onClick={() => setIsScannerOpen(true)} variant="outline" size="sm" className="gap-2">
+            <Button onClick={openGeneralScanner} variant="outline" size="sm" className="gap-2">
               <Globe className="h-4 w-4" />
               Scan Website
             </Button>
@@ -411,35 +492,121 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
         )}
       </div>
 
-      {/* Category filter */}
-      {usedCategories.length > 1 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <Tag className="h-4 w-4 text-muted-foreground" />
-          <button
-            onClick={() => setFilterCategory('all')}
-            className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-              filterCategory === 'all'
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-secondary text-secondary-foreground border-border hover:border-primary/50'
-            }`}
-          >
-            All ({assets?.length || 0})
-          </button>
-          {usedCategories.sort().map(cat => (
+      {/* Studio sub-sections - quick actions per studio */}
+      {canEdit && activeStudios.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-primary" />
+            <span className="text-xs font-semibold text-primary uppercase tracking-wide">Studio-Specific Actions</span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {activeStudios.map(studio => (
+              <div key={studio.id} className="flex items-center gap-1 bg-secondary/50 border border-border rounded-lg px-3 py-1.5">
+                <span className="text-xs font-medium text-foreground">{studio.name}</span>
+                <span className="text-muted-foreground mx-1">·</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs gap-1"
+                  onClick={() => openStudioScanner(studio)}
+                >
+                  <Globe className="h-3 w-3" />
+                  Scan
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs gap-1"
+                  onClick={() => {
+                    setPendingFile(undefined as any);
+                    setFilterStudio(studio.id);
+                    openFilePicker();
+                  }}
+                >
+                  <Upload className="h-3 w-3" />
+                  Upload
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Filters row */}
+      <div className="flex items-center gap-4 flex-wrap">
+        {/* Category filter */}
+        {usedCategories.length > 1 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <Tag className="h-4 w-4 text-muted-foreground" />
             <button
-              key={cat}
-              onClick={() => setFilterCategory(cat)}
+              onClick={() => setFilterCategory('all')}
               className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-                filterCategory === cat
+                filterCategory === 'all'
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-secondary text-secondary-foreground border-border hover:border-primary/50'
               }`}
             >
-              {cat} ({(assets || []).filter(a => (a.category || 'Other') === cat).length})
+              All ({assets?.length || 0})
             </button>
-          ))}
-        </div>
-      )}
+            {usedCategories.sort().map(cat => (
+              <button
+                key={cat}
+                onClick={() => setFilterCategory(cat)}
+                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                  filterCategory === cat
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-secondary text-secondary-foreground border-border hover:border-primary/50'
+                }`}
+              >
+                {cat} ({(assets || []).filter(a => (a.category || 'Other') === cat).length})
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Studio filter */}
+        {(hasStudioAssets || activeStudios.length > 0) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <button
+              onClick={() => setFilterStudio('all')}
+              className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                filterStudio === 'all'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-secondary text-secondary-foreground border-border hover:border-primary/50'
+              }`}
+            >
+              All Studios
+            </button>
+            <button
+              onClick={() => setFilterStudio('__none__')}
+              className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                filterStudio === '__none__'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-secondary text-secondary-foreground border-border hover:border-primary/50'
+              }`}
+            >
+              General
+            </button>
+            {activeStudios.map(studio => {
+              const count = (assets || []).filter(a => a.studioId === studio.id).length;
+              return (
+                <button
+                  key={studio.id}
+                  onClick={() => setFilterStudio(studio.id)}
+                  className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                    filterStudio === studio.id
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-secondary text-secondary-foreground border-border hover:border-primary/50'
+                  }`}
+                >
+                  {studio.name} {count > 0 ? `(${count})` : ''}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <input
         ref={fileInputRef}
@@ -448,69 +615,94 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
         className="hidden"
       />
 
-      {Object.keys(groupedAssets).length > 0 ? (
+      {studioGroups.length > 0 && filteredAssets.length > 0 ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <div className="space-y-5">
-            {Object.entries(groupedAssets).map(([category, categoryAssets]) => (
-              <div key={category} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Folder className="h-3.5 w-3.5 text-muted-foreground" />
-                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    {category}
-                  </h3>
-                  <span className="text-xs text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
-                    {categoryAssets.length}
-                  </span>
-                </div>
-                {(() => {
-                  const INITIAL_ROWS = 2;
-                  const COLS = 6;
-                  const initialLimit = INITIAL_ROWS * COLS;
-                  const isExpanded = expandedCategories[category];
-                  const visibleAssets = isExpanded ? categoryAssets : categoryAssets.slice(0, initialLimit);
-                  const hasMore = categoryAssets.length > initialLimit;
-
-                  return (
-                    <>
-                      <SortableContext items={visibleAssets.map(a => a.id)} strategy={rectSortingStrategy}>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
-                          {visibleAssets.map((asset) => (
-                            <SortableAssetCard
-                              key={asset.id}
-                              asset={asset}
-                              canEdit={canEdit}
-                              onPreview={setPreviewAsset}
-                              onDownload={downloadAsset}
-                              onDelete={deleteAsset}
-                            />
-                          ))}
-                        </div>
-                      </SortableContext>
-                      {hasMore && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full mt-2 gap-2 text-xs h-8"
-                          onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }))}
-                        >
-                          {isExpanded ? (
-                            <>
-                              <ChevronUp className="h-3 w-3" />
-                              Show Less
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="h-3 w-3" />
-                              View More ({categoryAssets.length - initialLimit} more)
-                            </>
-                          )}
-                        </Button>
+          <div className="space-y-8">
+            {studioGroups.map(({ studioId, studioName, assets: groupAssets }) => {
+              const categorized = groupAssetsByCategory(groupAssets);
+              return (
+                <div key={studioId || '__general__'} className="space-y-4">
+                  {/* Studio header - only show if we have multiple groups */}
+                  {studioGroups.length > 1 && (
+                    <div className="flex items-center gap-2 border-b border-border pb-2">
+                      {studioId && studioId !== '__orphaned__' ? (
+                        <Building2 className="h-4 w-4 text-primary" />
+                      ) : (
+                        <Folder className="h-4 w-4 text-muted-foreground" />
                       )}
-                    </>
-                  );
-                })()}
-              </div>
-            ))}
+                      <h3 className="text-sm font-semibold text-foreground">{studioName}</h3>
+                      <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                        {groupAssets.length} asset{groupAssets.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="space-y-5">
+                    {Object.entries(categorized).map(([category, categoryAssets]) => (
+                      <div key={`${studioId}-${category}`} className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Folder className="h-3.5 w-3.5 text-muted-foreground" />
+                          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            {category}
+                          </h3>
+                          <span className="text-xs text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
+                            {categoryAssets.length}
+                          </span>
+                        </div>
+                        {(() => {
+                          const INITIAL_ROWS = 2;
+                          const COLS = 6;
+                          const initialLimit = INITIAL_ROWS * COLS;
+                          const expandKey = `${studioId}-${category}`;
+                          const isExpanded = expandedCategories[expandKey];
+                          const visibleAssets = isExpanded ? categoryAssets : categoryAssets.slice(0, initialLimit);
+                          const hasMore = categoryAssets.length > initialLimit;
+
+                          return (
+                            <>
+                              <SortableContext items={visibleAssets.map(a => a.id)} strategy={rectSortingStrategy}>
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
+                                  {visibleAssets.map((asset) => (
+                                    <SortableAssetCard
+                                      key={asset.id}
+                                      asset={asset}
+                                      canEdit={canEdit}
+                                      onPreview={setPreviewAsset}
+                                      onDownload={downloadAsset}
+                                      onDelete={deleteAsset}
+                                    />
+                                  ))}
+                                </div>
+                              </SortableContext>
+                              {hasMore && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full mt-2 gap-2 text-xs h-8"
+                                  onClick={() => setExpandedCategories(prev => ({ ...prev, [expandKey]: !prev[expandKey] }))}
+                                >
+                                  {isExpanded ? (
+                                    <>
+                                      <ChevronUp className="h-3 w-3" />
+                                      Show Less
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ChevronDown className="h-3 w-3" />
+                                      View More ({categoryAssets.length - initialLimit} more)
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </DndContext>
       ) : canEdit ? (
@@ -572,6 +764,37 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
                 </Select>
               </div>
 
+              {/* Studio assignment */}
+              {activeStudios.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5">
+                    <Building2 className="h-3.5 w-3.5" />
+                    Studio
+                  </Label>
+                  <Select
+                    value={pendingFile.studioId || '__none__'}
+                    onValueChange={(val) => {
+                      const studio = activeStudios.find(s => s.id === val);
+                      setPendingFile(prev => prev ? { 
+                        ...prev, 
+                        studioId: val === '__none__' ? undefined : val,
+                        studioName: studio?.name || undefined,
+                      } : null);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="No studio (general)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">General (no studio)</SelectItem>
+                      {activeStudios.map(studio => (
+                        <SelectItem key={studio.id} value={studio.id}>{studio.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {/* Sub-type picker for print & signage categories */}
               {PRINT_CATEGORIES.includes(pendingFile.category as typeof PRINT_CATEGORIES[number]) && (
                 <>
@@ -619,9 +842,15 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
       {canEdit && (
         <WebsiteImageScanner
           open={isScannerOpen}
-          onOpenChange={setIsScannerOpen}
-          defaultUrl={websiteUrl || ''}
-          onImportImages={handleImportImages}
+          onOpenChange={(open) => {
+            setIsScannerOpen(open);
+            if (!open) {
+              setScannerStudioId(undefined);
+              setScannerStudioName(undefined);
+            }
+          }}
+          defaultUrl={scannerDefaultUrl}
+          onImportImages={(images) => handleImportImages(images, scannerStudioId, scannerStudioName)}
         />
       )}
 
