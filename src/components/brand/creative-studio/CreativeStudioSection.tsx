@@ -152,6 +152,14 @@ export const CreativeStudioSection = ({
               />
             </TabsContent>
 
+            <TabsContent value="canva" className="mt-0">
+              <CanvaTemplateGallery
+                brochures={brochures}
+                entityName={entityName}
+                guideData={guideData}
+              />
+            </TabsContent>
+
             <TabsContent value="tokens" className="mt-0">
               <DesignTokensExport
                 entityName={entityName}
