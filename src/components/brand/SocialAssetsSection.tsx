@@ -990,6 +990,7 @@ export const SocialAssetsSection = ({
 }: SocialAssetsProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
+  const [activePlatformId, setActivePlatformId] = useState<string | null>(null);
   const [mockupPreviewPlatform, setMockupPreviewPlatform] = useState<BrandSocialAssetSpec | null>(null);
   const [selectedBanner, setSelectedBanner] = useState<BrandDisplayBannerSpec | null>(null);
   const [bannerTab, setBannerTab] = useState('desktop');
@@ -1095,7 +1096,7 @@ export const SocialAssetsSection = ({
         )}
       </div>
 
-      {/* Social Platforms - Compact Grid */}
+      {/* Social Platforms - Horizontal Selector */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -1123,28 +1124,216 @@ export const SocialAssetsSection = ({
                   })}
                 </SelectContent>
               </Select>
-              <Button onClick={() => addSocialAsset()} size="sm" variant="outline" className="h-8 text-xs">
-                <Plus className="h-3.5 w-3.5 mr-1" />Custom
-              </Button>
             </div>
           )}
         </div>
 
-        <div className={gridClass}>
-          {socialAssets.map((asset) => (
-            <PlatformCard
-              key={asset.id}
-              asset={asset}
-              onUpdate={(updates) => updateSocialAsset(asset.id, updates)}
-              onDelete={() => deleteSocialAsset(asset.id)}
-              onExpand={() => setSelectedPlatform(asset)}
-              onMockupPreview={() => setMockupPreviewPlatform(asset)}
-              canEdit={canEditSocial}
-              entityId={entityId}
-              entityType={entityType}
-            />
-          ))}
+        {/* Horizontal platform pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+          {socialAssets.map((asset) => {
+            const IconComponent = platformIcons[asset.platform] || Monitor;
+            const isActive = activePlatformId === asset.id;
+            const templateCount = asset.templates?.length || 0;
+            return (
+              <button
+                key={asset.id}
+                onClick={() => setActivePlatformId(isActive ? null : asset.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium whitespace-nowrap transition-all shrink-0",
+                  isActive
+                    ? "bg-primary text-primary-foreground border-primary shadow-md"
+                    : "bg-card border-border hover:border-primary/40 hover:bg-primary/5 text-foreground"
+                )}
+              >
+                <IconComponent className="h-4 w-4" />
+                {asset.platform}
+                {templateCount > 0 && (
+                  <Badge variant={isActive ? "outline" : "secondary"} className={cn("text-[10px] px-1.5 py-0", isActive && "border-primary-foreground/30 text-primary-foreground")}>
+                    {templateCount}
+                  </Badge>
+                )}
+              </button>
+            );
+          })}
         </div>
+
+        {/* Active platform content */}
+        {(() => {
+          const activePlatform = socialAssets.find(a => a.id === activePlatformId);
+          if (!activePlatform) return (
+            <div className="text-center py-8 text-muted-foreground text-sm border border-dashed border-border rounded-xl">
+              Select a platform above to view specs and templates
+            </div>
+          );
+          
+          const IconComponent = platformIcons[activePlatform.platform] || Monitor;
+          const sizeSpecs = [
+            { label: 'Post', value: activePlatform.postSize },
+            { label: 'Cover/Banner', value: activePlatform.coverSize || activePlatform.altSize },
+            { label: 'Story', value: activePlatform.storySize },
+            { label: 'Reel/Short', value: activePlatform.reelSize },
+          ].filter(s => s.value && s.value !== 'N/A');
+
+          return (
+            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+              {/* Platform header with specs */}
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                {/* Hero area */}
+                <div className="relative h-32 bg-gradient-to-br from-primary/15 via-primary/5 to-accent/10 overflow-hidden">
+                  {activePlatform.previewImageUrl && (
+                    <img src={activePlatform.previewImageUrl} alt={activePlatform.platform} className="w-full h-full object-cover opacity-40" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/20 backdrop-blur-sm flex items-center justify-center border border-primary/30">
+                      <IconComponent className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">{activePlatform.platform}</h4>
+                      <p className="text-xs text-muted-foreground">{activePlatform.directive?.slice(0, 80)}{(activePlatform.directive?.length || 0) > 80 ? '...' : ''}</p>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 flex gap-1.5">
+                    <button
+                      onClick={() => setMockupPreviewPlatform(activePlatform)}
+                      className="p-2 rounded-lg bg-background/80 backdrop-blur-sm hover:bg-background border border-border/50 transition-colors"
+                      title="View Mockup"
+                    >
+                      <Eye className="h-3.5 w-3.5 text-foreground" />
+                    </button>
+                    <button
+                      onClick={() => setSelectedPlatform(activePlatform)}
+                      className="p-2 rounded-lg bg-background/80 backdrop-blur-sm hover:bg-background border border-border/50 transition-colors"
+                      title="Edit Details"
+                    >
+                      <Pencil className="h-3.5 w-3.5 text-foreground" />
+                    </button>
+                    {canEditSocial && (
+                      <button
+                        onClick={() => deleteSocialAsset(activePlatform.id)}
+                        className="p-2 rounded-lg bg-destructive/80 backdrop-blur-sm hover:bg-destructive transition-colors"
+                        title="Delete Platform"
+                      >
+                        <X className="h-3.5 w-3.5 text-destructive-foreground" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Size specs bar */}
+                <div className="flex items-center gap-3 px-4 py-3 border-t border-border bg-muted/30 overflow-x-auto">
+                  {sizeSpecs.map((spec) => (
+                    <div key={spec.label} className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{spec.label}</span>
+                      <Badge variant="outline" className="text-[11px] font-mono px-2 py-0.5">{spec.value}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Template cards grid */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Layers className="h-4 w-4 text-primary" />
+                    Design Templates
+                    {(activePlatform.templates?.length || 0) > 0 && (
+                      <Badge variant="secondary" className="text-[10px]">{activePlatform.templates?.length}</Badge>
+                    )}
+                  </h4>
+                  {canEditSocial && (
+                    <Button size="sm" variant="outline" onClick={() => setSelectedPlatform(activePlatform)} className="h-8 text-xs gap-1.5">
+                      <Plus className="h-3.5 w-3.5" />
+                      Add Template
+                    </Button>
+                  )}
+                </div>
+
+                {(activePlatform.templates?.length || 0) > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {activePlatform.templates?.map((template) => {
+                      const isCanva = template.fileType === 'canva' || template.url?.includes('canva.com');
+                      const typeInfo = fileTypeIcons[template.fileType] || fileTypeIcons.other;
+                      const TypeIcon = typeInfo.icon;
+                      return (
+                        <div key={template.id} className="group/card bg-card rounded-xl border border-border overflow-hidden hover:border-primary/30 hover:shadow-md transition-all">
+                          {/* Template preview area */}
+                          <div className="relative aspect-video bg-muted/30 flex items-center justify-center overflow-hidden">
+                            {isCanva ? (
+                              <div className="flex flex-col items-center gap-2 text-center p-4">
+                                <img src={CANVA_LOGO_SVG} alt="Canva" className="w-10 h-10" />
+                                <span className="text-xs text-muted-foreground">Canva Template</span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center gap-2 text-center p-4">
+                                <TypeIcon className={cn("h-8 w-8", typeInfo.className)} />
+                                <span className="text-xs text-muted-foreground">{typeInfo.label}</span>
+                              </div>
+                            )}
+                            {/* Hover overlay with open action */}
+                            <div className="absolute inset-0 bg-foreground/0 group-hover/card:bg-foreground/5 transition-colors flex items-center justify-center">
+                              <div className="opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                {isCanva ? (
+                                  <button
+                                    onClick={() => {
+                                      toast.info('Remember to apply your brand colors and fonts in Canva', { duration: 4000, icon: '🎨' });
+                                      window.open(template.url, '_blank', 'noopener,noreferrer');
+                                    }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[hsl(178,100%,40%)] text-white hover:bg-[hsl(178,100%,35%)] shadow-lg transition-colors"
+                                  >
+                                    <img src={CANVA_LOGO_SVG} alt="" className="w-4 h-4" />
+                                    Open in Canva
+                                  </button>
+                                ) : (
+                                  <a
+                                    href={template.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg transition-colors"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                    Open Template
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          {/* Template info */}
+                          <div className="p-3 flex items-center justify-between">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate">{template.name}</p>
+                              <p className="text-[10px] text-muted-foreground">{isCanva ? 'Canva Template' : typeInfo.label}</p>
+                            </div>
+                            {canEditSocial && (
+                              <button
+                                onClick={() => {
+                                  updateSocialAsset(activePlatform.id, {
+                                    templates: (activePlatform.templates || []).filter(t => t.id !== template.id),
+                                  });
+                                }}
+                                className="p-1.5 rounded-md hover:bg-destructive/10 text-destructive opacity-0 group-hover/card:opacity-100 transition-opacity shrink-0"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-border rounded-xl py-10 flex flex-col items-center gap-3 text-muted-foreground">
+                    <Layers className="h-8 w-8 opacity-40" />
+                    <div className="text-center">
+                      <p className="font-medium text-sm">No templates yet</p>
+                      <p className="text-xs">Click "Add Template" to link Canva designs or upload files</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Display Banners - Tabbed by Category */}
