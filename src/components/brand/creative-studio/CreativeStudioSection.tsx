@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { Sparkles, Image, BookOpen, Code, History, Wand2 } from 'lucide-react';
+import { Sparkles, Image, BookOpen, Code, History, Wand2, Palette } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ImageGenerator } from './ImageGenerator';
