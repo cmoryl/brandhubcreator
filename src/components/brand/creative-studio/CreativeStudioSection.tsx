@@ -99,6 +99,15 @@ export const CreativeStudioSection = ({
                   </Badge>
                 )}
               </TabsTrigger>
+              <TabsTrigger value="canva" className="gap-2 data-[state=active]:bg-primary/10">
+                <Palette className="h-4 w-4" />
+                <span className="hidden sm:inline">Canva</span>
+                {brochures.filter(b => b.externalUrl?.includes('canva.com')).length > 0 && (
+                  <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                    {brochures.filter(b => b.externalUrl?.includes('canva.com')).length}
+                  </Badge>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="tokens" className="gap-2 data-[state=active]:bg-primary/10">
                 <Code className="h-4 w-4" />
                 <span className="hidden sm:inline">Export</span>
