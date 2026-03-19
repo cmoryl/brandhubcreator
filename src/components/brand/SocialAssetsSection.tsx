@@ -833,9 +833,9 @@ const TemplateCardInfo = ({
             </SelectContent>
           </Select>
           <Select value={template.sizeCategory || 'other'} onValueChange={(val) => onUpdate({ sizeCategory: val as SocialSizeCategory })}>
-            <SelectTrigger className="h-7 text-xs flex-1"><SelectValue placeholder="Size type" /></SelectTrigger>
+            <SelectTrigger className="h-7 text-xs flex-1"><SelectValue placeholder="Size category" /></SelectTrigger>
             <SelectContent>
-              {[{ v: 'post', l: 'Post' }, { v: 'cover', l: 'Cover' }, { v: 'story', l: 'Story' }, { v: 'reel', l: 'Reel' }, { v: 'other', l: 'Other' }].map(t => (
+              {[{ v: 'post', l: 'Post' }, { v: 'square', l: 'Square' }, { v: 'cover', l: 'Cover / Banner' }, { v: 'story', l: 'Story' }, { v: 'reel', l: 'Reel / Short' }, { v: 'other', l: 'Other' }].map(t => (
                 <SelectItem key={t.v} value={t.v}>{t.l}</SelectItem>
               ))}
             </SelectContent>
