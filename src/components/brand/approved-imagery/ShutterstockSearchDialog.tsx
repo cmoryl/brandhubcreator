@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { ImageryPreviewDialog } from './ImageryPreviewDialog';
 import {
   Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash,
   Camera, PenTool, Layers, SlidersHorizontal, X, Palette, Users, Eye,
-  CheckSquare, Square, FolderPlus, Bookmark, Brain,
+  CheckSquare, Square, FolderPlus, Bookmark, Brain, ZoomIn,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -163,6 +164,7 @@ export const ShutterstockSearchDialog = ({
 
   // Similar search
   const [similarSourceId, setSimilarSourceId] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<ShutterstockSearchResult | null>(null);
 
   // Lightbox / Collections
   const [lightboxes, setLightboxes] = useState<LightboxItem[]>([]);
@@ -520,6 +522,7 @@ export const ShutterstockSearchDialog = ({
   }, []);
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[92vh] flex flex-col overflow-hidden p-0 gap-0">
         {/* Header */}
@@ -1036,15 +1039,27 @@ export const ShutterstockSearchDialog = ({
                         <p className="text-[10px] text-white line-clamp-2">{result.description}</p>
                         <div className="flex items-center justify-between mt-1">
                           <p className="text-[9px] text-white/60">ID: {result.id}</p>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSimilarSearch(result.id);
-                            }}
-                            className="text-[9px] text-white/80 hover:text-white underline"
-                          >
-                            Find similar
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewImage(result);
+                              }}
+                              className="text-[9px] text-white/80 hover:text-white flex items-center gap-0.5"
+                              title="Preview larger"
+                            >
+                              <ZoomIn className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSimilarSearch(result.id);
+                              }}
+                              className="text-[9px] text-white/80 hover:text-white underline"
+                            >
+                              Find similar
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1087,5 +1102,19 @@ export const ShutterstockSearchDialog = ({
         )}
       </DialogContent>
     </Dialog>
+
+      <ImageryPreviewDialog
+        open={!!previewImage}
+        onOpenChange={(o) => { if (!o) setPreviewImage(null); }}
+        image={previewImage ? {
+          id: previewImage.id,
+          url: previewImage.previewUrl || previewImage.url,
+          thumbnailUrl: previewImage.thumbnailUrl,
+          title: previewImage.description?.slice(0, 100) || 'Untitled',
+          source: 'shutterstock',
+          category: previewImage.categories?.[0] || '',
+        } : null}
+      />
+    </>
   );
 };
