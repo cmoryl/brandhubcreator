@@ -205,6 +205,7 @@ export const SECTION_METADATA: SectionMeta[] = [
   { id: 'templates', label: 'Templates', category: 'assets' },
   { id: 'templatespecs', label: 'Template Specifications', category: 'assets' },
   { id: 'products', label: 'Linked Products', category: 'assets' },
+  { id: 'studios', label: 'Our Studios', category: 'assets' },
 ];
 
 export const CATEGORY_LABELS: Record<string, string> = {

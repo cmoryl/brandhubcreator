@@ -432,6 +432,13 @@ export const FullBrandPage = ({
           entityType={entityType}
           organizationId={organizationId}
         />;
+      case 'studios':
+        return <StudiosSection
+          studios={brand.studios || []}
+          onStudiosChange={editHandler((studios) => onBrandUpdate({ studios }))}
+          customSubtitle={customSubtitle}
+          onSubtitleChange={onSubtitleChange}
+        />;
       case 'brief':
       case 'socialmetrics':
         // These sections are either not yet implemented or excluded from rendering
