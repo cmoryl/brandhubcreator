@@ -1342,167 +1342,190 @@ export const SocialAssetsSection = ({
                 </div>
               </div>
 
-              {/* Template cards grid */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-primary" />
-                    Design Templates
-                    {(activePlatform.templates?.length || 0) > 0 && (
-                      <Badge variant="secondary" className="text-[10px]">{activePlatform.templates?.length}</Badge>
-                    )}
-                  </h4>
-                  {canEditSocial && (
-                    <Button size="sm" variant="outline" onClick={() => setSelectedPlatform(activePlatform)} className="h-8 text-xs gap-1.5">
-                      <Plus className="h-3.5 w-3.5" />
-                      Add Template
-                    </Button>
-                  )}
-                </div>
+              {/* Template cards grouped by size category */}
+              <div className="space-y-5">
+                {(() => {
+                  const allTemplates = activePlatform.templates || [];
+                  
+                  // Build size categories from the platform's specs
+                  const sizeCategories: { key: string; label: string; spec: string }[] = [
+                    activePlatform.postSize && activePlatform.postSize !== 'N/A' ? { key: 'post', label: 'Post', spec: activePlatform.postSize } : null,
+                    (activePlatform.coverSize || activePlatform.altSize) && (activePlatform.coverSize || activePlatform.altSize) !== 'N/A' ? { key: 'cover', label: 'Cover / Banner', spec: activePlatform.coverSize || activePlatform.altSize || '' } : null,
+                    activePlatform.storySize && activePlatform.storySize !== 'N/A' ? { key: 'story', label: 'Story', spec: activePlatform.storySize } : null,
+                    activePlatform.reelSize && activePlatform.reelSize !== 'N/A' ? { key: 'reel', label: 'Reel / Short', spec: activePlatform.reelSize } : null,
+                  ].filter(Boolean) as { key: string; label: string; spec: string }[];
 
-                {(activePlatform.templates?.length || 0) > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {activePlatform.templates?.map((template) => {
-                      const isCanva = template.fileType === 'canva' || template.url?.includes('canva.com');
-                      const typeInfo = fileTypeIcons[template.fileType] || fileTypeIcons.other;
-                      const TypeIcon = typeInfo.icon;
-                      const hasPreview = !!template.previewImageUrl;
+                  // Add "Other" if there are uncategorized templates
+                  const categorizedKeys = new Set(sizeCategories.map(c => c.key));
+                  const hasOther = allTemplates.some(t => !t.sizeCategory || !categorizedKeys.has(t.sizeCategory));
+                  if (hasOther && allTemplates.length > 0) {
+                    sizeCategories.push({ key: 'other', label: 'Other', spec: 'Custom sizes' });
+                  }
 
-                      const handleTemplateImageUpload = async (file: File) => {
-                        if (!entityId) {
-                          // Fallback to base64
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            const updatedTemplates = (activePlatform.templates || []).map(t =>
-                              t.id === template.id ? { ...t, previewImageUrl: ev.target?.result as string } : t
-                            );
-                            updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
-                          };
-                          reader.readAsDataURL(file);
-                          return;
-                        }
-                        try {
-                          const result = await uploadFile(file, 'asset', `template-preview-${template.id}`);
-                          if (result?.url) {
-                            const updatedTemplates = (activePlatform.templates || []).map(t =>
-                              t.id === template.id ? { ...t, previewImageUrl: result.url } : t
-                            );
-                            updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
-                            toast.success('Template preview updated');
-                          }
-                        } catch {
-                          toast.error('Failed to upload preview image');
-                        }
-                      };
+                  // Always show categories even if empty (for add buttons)
+                  if (sizeCategories.length === 0) {
+                    sizeCategories.push({ key: 'other', label: 'Templates', spec: '' });
+                  }
 
-                      return (
-                        <div key={template.id} className="group/card bg-card rounded-xl border border-border overflow-hidden hover:border-primary/30 hover:shadow-md transition-all">
-                          {/* Template preview area */}
-                          <div className="relative aspect-video bg-muted/30 flex items-center justify-center overflow-hidden">
-                            {hasPreview ? (
-                              <img src={template.previewImageUrl} alt={template.name} className="w-full h-full object-cover" />
-                            ) : isCanva ? (
-                              <div className="flex flex-col items-center gap-2 text-center p-4">
-                                <img src={CANVA_LOGO_SVG} alt="Canva" className="w-10 h-10" />
-                                <span className="text-xs text-muted-foreground">Canva Template</span>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center gap-2 text-center p-4">
-                                <TypeIcon className={cn("h-8 w-8", typeInfo.className)} />
-                                <span className="text-xs text-muted-foreground">{typeInfo.label}</span>
-                              </div>
+                  return sizeCategories.map((category) => {
+                    const categoryTemplates = allTemplates.filter(t => 
+                      t.sizeCategory === category.key || 
+                      (!t.sizeCategory && category.key === 'other') ||
+                      (t.sizeCategory && !categorizedKeys.has(t.sizeCategory) && category.key === 'other')
+                    );
+
+                    return (
+                      <div key={category.key} className="space-y-3">
+                        {/* Sub-section header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <h4 className="text-sm font-semibold text-foreground">{category.label}</h4>
+                            {category.spec && (
+                              <Badge variant="outline" className="text-[10px] font-mono px-2 py-0.5">{category.spec}</Badge>
                             )}
-                            {/* Hover overlay */}
-                            <div className="absolute inset-0 bg-foreground/0 group-hover/card:bg-foreground/10 transition-colors flex flex-col items-center justify-center gap-2">
-                              <div className="opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center gap-2">
-                                {isCanva ? (
-                                  <button
-                                    onClick={() => {
-                                      toast.info('Remember to apply your brand colors and fonts in Canva', { duration: 4000, icon: '🎨' });
-                                      window.open(template.url, '_blank', 'noopener,noreferrer');
-                                    }}
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[hsl(178,100%,40%)] text-white hover:bg-[hsl(178,100%,35%)] shadow-lg transition-colors"
-                                  >
-                                    <img src={CANVA_LOGO_SVG} alt="" className="w-4 h-4" />
-                                    Open in Canva
-                                  </button>
-                                ) : (
-                                  <a
-                                    href={template.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg transition-colors"
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                    Open Template
-                                  </a>
-                                )}
-                                {canEditSocial && (
-                                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-background/90 backdrop-blur-sm text-foreground hover:bg-background shadow-lg cursor-pointer transition-colors">
-                                    <Upload className="h-3 w-3" />
-                                    {hasPreview ? 'Replace Image' : 'Add Image'}
-                                    <input
-                                      type="file"
-                                      accept="image/*"
-                                      className="hidden"
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleTemplateImageUpload(file);
-                                        e.target.value = '';
-                                      }}
-                                    />
-                                  </label>
-                                )}
-                              </div>
-                            </div>
-                            {/* Remove image button */}
-                            {hasPreview && canEditSocial && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const updatedTemplates = (activePlatform.templates || []).map(t =>
-                                    t.id === template.id ? { ...t, previewImageUrl: undefined } : t
-                                  );
-                                  updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
-                                  toast.success('Preview image removed');
-                                }}
-                                className="absolute top-2 right-2 p-1 rounded-full bg-destructive/80 text-destructive-foreground opacity-0 group-hover/card:opacity-100 transition-opacity"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
+                            {categoryTemplates.length > 0 && (
+                              <Badge variant="secondary" className="text-[10px]">{categoryTemplates.length}</Badge>
                             )}
                           </div>
-                          {/* Template info */}
-                          <TemplateCardInfo
-                            template={template}
-                            isCanva={isCanva}
-                            typeLabel={isCanva ? 'Canva Template' : typeInfo.label}
-                            canEdit={canEditSocial}
-                            onUpdate={(updates) => {
-                              const updatedTemplates = (activePlatform.templates || []).map(t =>
-                                t.id === template.id ? { ...t, ...updates } : t
-                              );
-                              updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
-                            }}
-                            onDelete={() => {
-                              updateSocialAsset(activePlatform.id, {
-                                templates: (activePlatform.templates || []).filter(t => t.id !== template.id),
-                              });
-                            }}
-                          />
+                          {canEditSocial && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                // Add a new empty template in this category
+                                const newTemplate: SocialAssetTemplate = {
+                                  id: safeUUID(),
+                                  name: `${activePlatform.platform} ${category.label}`,
+                                  fileType: 'canva',
+                                  url: '',
+                                  sizeCategory: category.key as SocialSizeCategory,
+                                  dimensions: category.spec || '',
+                                };
+                                updateSocialAsset(activePlatform.id, {
+                                  templates: [...(activePlatform.templates || []), newTemplate],
+                                });
+                              }}
+                              className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                            >
+                              <Plus className="h-3 w-3" />
+                              Add
+                            </Button>
+                          )}
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-border rounded-xl py-10 flex flex-col items-center gap-3 text-muted-foreground">
-                    <Layers className="h-8 w-8 opacity-40" />
-                    <div className="text-center">
-                      <p className="font-medium text-sm">No templates yet</p>
-                      <p className="text-xs">Click "Add Template" to link Canva designs or upload files</p>
-                    </div>
-                  </div>
-                )}
+
+                        {categoryTemplates.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {categoryTemplates.map((template) => {
+                              const isCanva = template.fileType === 'canva' || template.url?.includes('canva.com');
+                              const typeInfo = fileTypeIcons[template.fileType] || fileTypeIcons.other;
+                              const TypeIcon = typeInfo.icon;
+                              const hasPreview = !!template.previewImageUrl;
+
+                              const handleTemplateImageUpload = async (file: File) => {
+                                if (!entityId) {
+                                  const reader = new FileReader();
+                                  reader.onload = (ev) => {
+                                    const updatedTemplates = (activePlatform.templates || []).map(t =>
+                                      t.id === template.id ? { ...t, previewImageUrl: ev.target?.result as string } : t
+                                    );
+                                    updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+                                  };
+                                  reader.readAsDataURL(file);
+                                  return;
+                                }
+                                try {
+                                  const result = await uploadFile(file, 'asset', `template-preview-${template.id}`);
+                                  if (result?.url) {
+                                    const updatedTemplates = (activePlatform.templates || []).map(t =>
+                                      t.id === template.id ? { ...t, previewImageUrl: result.url } : t
+                                    );
+                                    updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+                                    toast.success('Template preview updated');
+                                  }
+                                } catch {
+                                  toast.error('Failed to upload preview image');
+                                }
+                              };
+
+                              return (
+                                <div key={template.id} className="group/card bg-card rounded-xl border border-border overflow-hidden hover:border-primary/30 hover:shadow-md transition-all">
+                                  <div className="relative aspect-video bg-muted/30 flex items-center justify-center overflow-hidden">
+                                    {hasPreview ? (
+                                      <img src={template.previewImageUrl} alt={template.name} className="w-full h-full object-cover" />
+                                    ) : isCanva ? (
+                                      <div className="flex flex-col items-center gap-2 text-center p-4">
+                                        <img src={CANVA_LOGO_SVG} alt="Canva" className="w-10 h-10" />
+                                        <span className="text-xs text-muted-foreground">Canva Template</span>
+                                      </div>
+                                    ) : (
+                                      <div className="flex flex-col items-center gap-2 text-center p-4">
+                                        <TypeIcon className={cn("h-8 w-8", typeInfo.className)} />
+                                        <span className="text-xs text-muted-foreground">{typeInfo.label}</span>
+                                      </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-foreground/0 group-hover/card:bg-foreground/10 transition-colors flex flex-col items-center justify-center gap-2">
+                                      <div className="opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center gap-2">
+                                        {template.url ? (isCanva ? (
+                                          <button
+                                            onClick={() => {
+                                              toast.info('Remember to apply your brand colors and fonts in Canva', { duration: 4000, icon: '🎨' });
+                                              window.open(template.url, '_blank', 'noopener,noreferrer');
+                                            }}
+                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[hsl(178,100%,40%)] text-white hover:bg-[hsl(178,100%,35%)] shadow-lg transition-colors"
+                                          >
+                                            <img src={CANVA_LOGO_SVG} alt="" className="w-4 h-4" />
+                                            Open in Canva
+                                          </button>
+                                        ) : (
+                                          <a href={template.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg transition-colors">
+                                            <ExternalLink className="h-4 w-4" />
+                                            Open Template
+                                          </a>
+                                        )) : null}
+                                        {canEditSocial && (
+                                          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-background/90 backdrop-blur-sm text-foreground hover:bg-background shadow-lg cursor-pointer transition-colors">
+                                            <Upload className="h-3 w-3" />
+                                            {hasPreview ? 'Replace Image' : 'Add Image'}
+                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleTemplateImageUpload(file); e.target.value = ''; }} />
+                                          </label>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {hasPreview && canEditSocial && (
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); const updatedTemplates = (activePlatform.templates || []).map(t => t.id === template.id ? { ...t, previewImageUrl: undefined } : t); updateSocialAsset(activePlatform.id, { templates: updatedTemplates }); toast.success('Preview image removed'); }}
+                                        className="absolute top-2 right-2 p-1 rounded-full bg-destructive/80 text-destructive-foreground opacity-0 group-hover/card:opacity-100 transition-opacity"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    )}
+                                  </div>
+                                  <TemplateCardInfo
+                                    template={template}
+                                    isCanva={isCanva}
+                                    typeLabel={isCanva ? 'Canva Template' : typeInfo.label}
+                                    canEdit={canEditSocial}
+                                    onUpdate={(updates) => {
+                                      const updatedTemplates = (activePlatform.templates || []).map(t => t.id === template.id ? { ...t, ...updates } : t);
+                                      updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+                                    }}
+                                    onDelete={() => {
+                                      updateSocialAsset(activePlatform.id, { templates: (activePlatform.templates || []).filter(t => t.id !== template.id) });
+                                    }}
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="border border-dashed border-border rounded-lg py-6 flex flex-col items-center gap-1.5 text-muted-foreground">
+                            <span className="text-xs">No {category.label.toLowerCase()} templates yet</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
           );
