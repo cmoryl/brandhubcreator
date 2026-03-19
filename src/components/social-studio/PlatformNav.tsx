@@ -57,4 +57,6 @@ export const PlatformNav = ({ selected, onSelect, placementCounts }: PlatformNav
           </button>
         );
       })}
-      
+    </div>
+  );
+};
