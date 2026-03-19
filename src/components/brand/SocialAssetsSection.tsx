@@ -925,7 +925,14 @@ export const SocialAssetsSection = ({
     if (selectedPlatform?.id === id) setSelectedPlatform(null);
   };
 
-
+  const addSocialAsset = (preset?: BrandSocialAssetSpec) => {
+    if (!onSocialAssetsChange) return;
+    const newAsset: BrandSocialAssetSpec = preset
+      ? { ...preset, id: safeUUID(), templates: [] }
+      : { id: safeUUID(), platform: 'LinkedIn', postSize: '1200 x 627 px', altSize: '', textLegibility: '', directive: '', templates: [], previewImageUrl: platformDefaultImages['LinkedIn'] };
+    onSocialAssetsChange([...socialAssets, newAsset]);
+    if (!preset) setSelectedPlatform(newAsset);
+  };
 
   return (
     <section className="space-y-6 sm:space-y-8">
