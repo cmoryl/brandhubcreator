@@ -1063,7 +1063,7 @@ const SizeCategorySection = ({
   );
 };
 
-
+export const SocialAssetsSection = ({
   socialAssets,
   onSocialAssetsChange,
   customSubtitle,
