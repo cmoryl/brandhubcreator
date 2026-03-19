@@ -1331,12 +1331,13 @@ export const SocialAssetsSection = ({
                   const allTemplates = activePlatform.templates || [];
                   
                   // Consistent size categories across all platforms
-                  const sizeCategories: { key: string; label: string; spec: string }[] = [
-                    { key: 'post', label: 'Post', spec: activePlatform.postSize && activePlatform.postSize !== 'N/A' ? activePlatform.postSize : '' },
-                    { key: 'cover', label: 'Cover / Banner', spec: (activePlatform.coverSize || activePlatform.altSize) && (activePlatform.coverSize || activePlatform.altSize) !== 'N/A' ? (activePlatform.coverSize || activePlatform.altSize || '') : '' },
-                    { key: 'story', label: 'Story', spec: activePlatform.storySize && activePlatform.storySize !== 'N/A' ? activePlatform.storySize : '' },
-                    { key: 'reel', label: 'Reel / Short', spec: activePlatform.reelSize && activePlatform.reelSize !== 'N/A' ? activePlatform.reelSize : '' },
-                  ];
+                   const sizeCategories: { key: string; label: string; spec: string }[] = [
+                     { key: 'post', label: 'Post', spec: activePlatform.postSize && activePlatform.postSize !== 'N/A' ? activePlatform.postSize : '' },
+                     { key: 'square', label: 'Square', spec: (activePlatform as any).squareSize && (activePlatform as any).squareSize !== 'N/A' ? (activePlatform as any).squareSize : (activePlatform.platform === 'General' ? '1080 x 1080 px (1:1)' : '') },
+                     { key: 'cover', label: 'Cover / Banner', spec: (activePlatform.coverSize || activePlatform.altSize) && (activePlatform.coverSize || activePlatform.altSize) !== 'N/A' ? (activePlatform.coverSize || activePlatform.altSize || '') : '' },
+                     { key: 'story', label: 'Story', spec: activePlatform.storySize && activePlatform.storySize !== 'N/A' ? activePlatform.storySize : '' },
+                     { key: 'reel', label: 'Reel / Short', spec: activePlatform.reelSize && activePlatform.reelSize !== 'N/A' ? activePlatform.reelSize : '' },
+                   ];
 
                   // Add "Other" if there are uncategorized templates
                   const categorizedKeys = new Set(sizeCategories.map(c => c.key));
