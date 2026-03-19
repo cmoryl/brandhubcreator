@@ -586,7 +586,7 @@ const PlatformDetailModal = ({
                       asset.platform === 'YouTube' && "-top-8 left-16 translate-x-1",
                       asset.platform === 'Instagram' && "-top-6 left-1/2 translate-x-8",
                       asset.platform === 'TikTok' && "-top-6 left-1/2 translate-x-10",
-                      !['LinkedIn', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-16 translate-x-1"
+                      !['LinkedIn', 'X', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-16 translate-x-1"
                     )}
                   >
                     <X className="h-3 w-3" />
