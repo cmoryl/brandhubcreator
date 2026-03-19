@@ -1277,78 +1277,8 @@ export const SocialAssetsSection = ({
         })()}
       </div>
 
-      {/* Display Banners - Tabbed by Category */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-            Display Banner Specs
-            <Badge variant="secondary" className="text-[10px]">{displayBanners.length}</Badge>
-          </h3>
-          {canEditBanners && (
-            <Button onClick={() => addDisplayBanner()} size="sm" variant="outline" className="h-8 text-xs">
-              <Plus className="h-3.5 w-3.5 mr-1" />Custom Banner
-            </Button>
-          )}
-        </div>
-
-        <Tabs value={bannerTab} onValueChange={setBannerTab} className="w-full">
-          <TabsList className="h-9 w-full justify-start bg-muted/50 rounded-lg p-1">
-            {[
-              { id: 'desktop', label: 'Desktop', count: bannersByCategory.desktop.length },
-              { id: 'mobile', label: 'Mobile', count: bannersByCategory.mobile.length },
-              { id: 'video', label: 'Video', count: bannersByCategory.video.length },
-              { id: 'native', label: 'Native', count: bannersByCategory.native.length },
-            ].map(tab => (
-              <TabsTrigger key={tab.id} value={tab.id} className="text-xs data-[state=active]:bg-background gap-1.5 px-3">
-                {tab.label}
-                <span className="text-[10px] text-muted-foreground">({tab.count})</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {Object.entries(bannersByCategory).map(([category, banners]) => (
-            <TabsContent key={category} value={category} className="mt-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {banners.map((banner) => (
-                  <BannerCard
-                    key={banner.id}
-                    banner={banner}
-                    onUpdate={(updates) => updateDisplayBanner(banner.id, updates)}
-                    onDelete={() => deleteDisplayBanner(banner.id)}
-                    onExpand={() => setSelectedBanner(banner)}
-                    canEdit={canEditBanners}
-                  />
-                ))}
-              </div>
-              {banners.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  No {category} banners configured
-                </div>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
 
       {/* Detail Modals */}
-      <PlatformDetailModal
-        asset={selectedPlatform}
-        open={!!selectedPlatform}
-        onOpenChange={(open) => !open && setSelectedPlatform(null)}
-        onUpdate={updateSocialAsset}
-        entityId={entityId}
-        entityType={entityType}
-      />
-
-      <BannerDetailModal
-        banner={selectedBanner}
-        open={!!selectedBanner}
-        onOpenChange={(open) => !open && setSelectedBanner(null)}
-        onUpdate={updateDisplayBanner}
-        entityId={entityId}
-        entityType={entityType}
-      />
 
       {/* Mockup Preview Dialog */}
       <SocialMockupPreviewDialog
