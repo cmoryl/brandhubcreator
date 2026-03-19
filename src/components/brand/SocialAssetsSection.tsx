@@ -890,6 +890,7 @@ const SizeCategorySection = ({
   entityId,
   updateSocialAsset,
   uploadFile,
+  cardGridClass,
 }: {
   category: { key: string; label: string; spec: string };
   categoryTemplates: SocialAssetTemplate[];
@@ -898,6 +899,7 @@ const SizeCategorySection = ({
   entityId?: string;
   updateSocialAsset: (id: string, updates: Partial<BrandSocialAssetSpec>) => void;
   uploadFile: (file: File, type: string, prefix: string) => Promise<{ url: string } | undefined>;
+  cardGridClass: string;
 }) => {
   const [expanded, setExpanded] = useState(false);
   const maxVisible = DEFAULT_VISIBLE_ROWS * CARDS_PER_ROW;
@@ -943,7 +945,7 @@ const SizeCategorySection = ({
       </div>
 
       {visibleTemplates.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className={cardGridClass}>
           {visibleTemplates.map((template) => {
             const isCanva = template.fileType === 'canva' || template.url?.includes('canva.com');
             const typeInfo = fileTypeIcons[template.fileType] || fileTypeIcons.other;
@@ -1079,7 +1081,9 @@ export const SocialAssetsSection = ({
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
   const [activePlatformId, setActivePlatformId] = useState<string | null>(null);
   const [mockupPreviewPlatform, setMockupPreviewPlatform] = useState<BrandSocialAssetSpec | null>(null);
+  const [cardLayout, setCardLayout] = useState<LayoutPreset>('grid-3');
   const { gridClass } = useLayoutClasses(layout);
+  const { gridClass: cardGridClass } = useLayoutClasses(cardLayout);
   
   const canEditSocial = !!onSocialAssetsChange;
 
@@ -1315,6 +1319,15 @@ export const SocialAssetsSection = ({
 
               {/* Template cards grouped by size category */}
               <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Templates by Size</h3>
+                  <LayoutSelector
+                    value={cardLayout}
+                    onChange={setCardLayout}
+                    availableLayouts={['grid-2', 'grid-3', 'grid-4', 'list', 'large-cards']}
+                    size="sm"
+                  />
+                </div>
                 {(() => {
                   const allTemplates = activePlatform.templates || [];
                   
@@ -1351,6 +1364,7 @@ export const SocialAssetsSection = ({
                         entityId={entityId}
                         updateSocialAsset={updateSocialAsset}
                         uploadFile={uploadFile}
+                        cardGridClass={cardGridClass}
                       />
                     );
                   });
