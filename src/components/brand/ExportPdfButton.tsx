@@ -962,19 +962,6 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                 </div>
               </div>
             )}
-            {displayBanners.length > 0 && (
-              <div>
-                <h3 className={cn("font-semibold text-sm mb-2", t.text)}>Display Banner Sizes</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {displayBanners.map((banner: BrandDisplayBannerSpec) => (
-                    <div key={banner.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
-                      <p className={cn("font-medium text-xs", t.text)}>{banner.name}</p>
-                      <p className={cn("text-xs font-mono", t.textMuted)}>{banner.dimensions}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         );
 
