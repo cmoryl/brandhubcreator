@@ -62,7 +62,7 @@ const IMAGE_TYPE_OPTIONS = [
 ];
 
 const PEOPLE_NUMBER_OPTIONS = [
-  { value: '', label: 'Any' },
+  { value: '_any', label: 'Any' },
   { value: '0', label: 'No people' },
   { value: '1', label: '1 person' },
   { value: '2', label: '2 people' },
@@ -71,7 +71,7 @@ const PEOPLE_NUMBER_OPTIONS = [
 ];
 
 const PEOPLE_AGE_OPTIONS = [
-  { value: '', label: 'Any age' },
+  { value: '_any', label: 'Any age' },
   { value: 'infants', label: 'Infants' },
   { value: 'children', label: 'Children' },
   { value: 'teenagers', label: 'Teenagers' },
@@ -84,7 +84,7 @@ const PEOPLE_AGE_OPTIONS = [
 ];
 
 const PEOPLE_ETHNICITY_OPTIONS = [
-  { value: '', label: 'Any ethnicity' },
+  { value: '_any', label: 'Any ethnicity' },
   { value: 'african', label: 'African' },
   { value: 'african_american', label: 'African American' },
   { value: 'black', label: 'Black' },
@@ -104,7 +104,7 @@ const PEOPLE_ETHNICITY_OPTIONS = [
 ];
 
 const PEOPLE_GENDER_OPTIONS = [
-  { value: '', label: 'Any gender' },
+  { value: '_any', label: 'Any gender' },
   { value: 'male', label: 'Male' },
   { value: 'female', label: 'Female' },
   { value: 'both', label: 'Both' },
@@ -295,10 +295,10 @@ export const ShutterstockSearchDialog = ({
             orientation: orientation === 'any' ? undefined : orientation,
             image_type: imageType === 'all' ? undefined : imageType,
             color: colorFilter || undefined,
-            people_number: peopleNumber || undefined,
-            people_age: peopleAge || undefined,
-            people_ethnicity: peopleEthnicity || undefined,
-            people_gender: peopleGender || undefined,
+            people_number: peopleNumber && peopleNumber !== '_any' ? peopleNumber : undefined,
+            people_age: peopleAge && peopleAge !== '_any' ? peopleAge : undefined,
+            people_ethnicity: peopleEthnicity && peopleEthnicity !== '_any' ? peopleEthnicity : undefined,
+            people_gender: peopleGender && peopleGender !== '_any' ? peopleGender : undefined,
             page: searchPage,
             per_page: 20,
           },
