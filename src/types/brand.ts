@@ -729,6 +729,7 @@ export interface SocialAssetTemplate {
   fileType: 'psd' | 'figma' | 'canva' | 'ai' | 'sketch' | 'xd' | 'other';
   url: string;
   description?: string;
+  previewImageUrl?: string;
 }
 
 // SOCIAL ASSETS - Platform Specifications
