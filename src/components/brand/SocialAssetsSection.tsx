@@ -1178,7 +1178,7 @@ export const SocialAssetsSection = ({
 
         {/* Horizontal platform pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
-          {socialAssets.map((asset) => {
+          {[...socialAssets].sort((a, b) => a.platform === 'General' ? -1 : b.platform === 'General' ? 1 : 0).map((asset) => {
             const IconComponent = platformIcons[asset.platform] || Monitor;
             const isActive = activePlatformId === asset.id;
             const templateCount = asset.templates?.length || 0;
