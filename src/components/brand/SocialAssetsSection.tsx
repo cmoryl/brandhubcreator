@@ -974,6 +974,7 @@ const BannerDetailModal = ({
       </DialogContent>
     </Dialog>
   );
+};
 
 // Inline editable template card info
 const TemplateCardInfo = ({
