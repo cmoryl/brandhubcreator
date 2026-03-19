@@ -942,7 +942,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         if (socialAssets.length === 0) return null;
         return (
           <div id="pdf-section-socialassets" className={cn("py-6 border-b", t.border)} key="socialassets">
-            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Assets & Banner Specifications</h2>
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Assets & Specifications</h2>
             {socialAssets.length > 0 && (
               <div className="mb-4">
                 <h3 className={cn("font-semibold text-sm mb-2", t.text)}>Platform Specifications</h3>
