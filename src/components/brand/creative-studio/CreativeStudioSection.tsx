@@ -11,7 +11,9 @@ import { ImageGenerator } from './ImageGenerator';
 import { PromptLibrary } from './PromptLibrary';
 import { DesignTokensExport } from './DesignTokensExport';
 import { GeneratedAssetsGallery } from './GeneratedAssetsGallery';
+import { CanvaTemplateGallery } from './CanvaTemplateGallery';
 import { useCreativeStudio } from '@/hooks/useCreativeStudio';
+import { BrandBrochure } from '@/types/brand';
 
 interface CreativeStudioSectionProps {
   entityId: string;
