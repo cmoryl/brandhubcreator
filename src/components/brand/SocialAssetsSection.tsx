@@ -33,6 +33,7 @@ interface SocialAssetsProps {
 
 const platformIcons: Record<string, React.ElementType> = {
   'LinkedIn': Linkedin,
+  'X': Twitter,
   'X (Twitter)': Twitter,
   'Instagram': Instagram,
   'Facebook': Facebook,
