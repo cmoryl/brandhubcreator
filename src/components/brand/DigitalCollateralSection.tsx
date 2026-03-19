@@ -276,19 +276,35 @@ const SortableCollateralItem = ({
               <h3 className="font-medium text-foreground truncate">{item.title}</h3>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <p className="text-xs text-muted-foreground">{item.category}</p>
-                {item.externalUrl && (
-                  <a
-                    href={item.externalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
-                    title={item.externalUrl}
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    <span>{isSocialBannerCategory(item.category) && item.externalUrl.includes('canva.com') ? 'Canva' : 'Link'}</span>
-                  </a>
-                )}
+                {item.externalUrl && (() => {
+                  const canvaInfo = refineDesignType(parseCanvaUrl(item.externalUrl), item.category, item.title);
+                  return canvaInfo.isCanva ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast.info(buildBrandContextReminder(entityName || '', guideData || {}), { duration: 6000, icon: '🎨' });
+                        window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
+                      }}
+                      className="inline-flex items-center gap-1 text-xs text-[hsl(178,100%,30%)] hover:text-[hsl(178,100%,25%)] hover:underline"
+                      title={`Open in Canva — ${canvaInfo.displayLabel}`}
+                    >
+                      <img src={CANVA_LOGO_SVG} alt="" className="w-3.5 h-3.5" />
+                      <span>{canvaInfo.displayLabel}</span>
+                    </button>
+                  ) : (
+                    <a
+                      href={item.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
+                      title={item.externalUrl}
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      <span>Link</span>
+                    </a>
+                  );
+                })()}
               </div>
             </div>
             <button
