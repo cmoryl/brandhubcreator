@@ -43,6 +43,7 @@ const platformIcons: Record<string, React.ElementType> = {
   'Pinterest': Image,
   'Threads': Monitor,
   'Snapchat': Smartphone,
+  'General': LayoutGrid,
 };
 
 const fileTypeIcons: Record<string, { icon: React.ElementType; className: string; label: string }> = {
