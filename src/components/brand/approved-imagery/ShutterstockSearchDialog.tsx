@@ -164,6 +164,7 @@ export const ShutterstockSearchDialog = ({
 
   // Similar search
   const [similarSourceId, setSimilarSourceId] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<ShutterstockSearchResult | null>(null);
 
   // Lightbox / Collections
   const [lightboxes, setLightboxes] = useState<LightboxItem[]>([]);
