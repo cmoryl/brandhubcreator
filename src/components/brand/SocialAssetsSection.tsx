@@ -1000,6 +1000,11 @@ export const SocialAssetsSection = ({
   const canEditSocial = !!onSocialAssetsChange;
   const canEditBanners = !!onDisplayBannersChange;
 
+  const { uploadFile } = useStorageUpload({
+    entityType: entityType || 'brand',
+    entityId: entityId || '',
+  });
+
   const hasSocialInitialized = useRef(false);
   const hasBannerInitialized = useRef(false);
 
