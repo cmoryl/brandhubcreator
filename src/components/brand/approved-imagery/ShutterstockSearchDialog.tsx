@@ -522,6 +522,7 @@ export const ShutterstockSearchDialog = ({
   }, []);
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[92vh] flex flex-col overflow-hidden p-0 gap-0">
         {/* Header */}
