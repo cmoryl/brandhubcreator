@@ -723,7 +723,7 @@ export interface BrandService {
 }
 
 // SOCIAL ASSET TEMPLATE - Downloadable design files for social platforms
-export type SocialSizeCategory = 'post' | 'story' | 'reel' | 'cover' | 'other';
+export type SocialSizeCategory = 'post' | 'square' | 'story' | 'reel' | 'cover' | 'other';
 
 export interface SocialAssetTemplate {
   id: string;
