@@ -765,8 +765,19 @@ const PlatformDetailModal = ({
                 </div>
                 <Input
                   value={newTemplate.url || ''}
-                  onChange={(e) => setNewTemplate({ ...newTemplate, url: e.target.value })}
-                  placeholder="Template URL"
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    const updates: Partial<SocialAssetTemplate> = { ...newTemplate, url };
+                    // Auto-detect Canva URLs and set fileType
+                    if (url.includes('canva.com')) {
+                      updates.fileType = 'canva';
+                      if (!newTemplate.name) {
+                        updates.name = 'Canva Template';
+                      }
+                    }
+                    setNewTemplate(updates);
+                  }}
+                  placeholder="Paste Canva link or template URL..."
                   className="h-8"
                 />
                 <div className="flex gap-2">
