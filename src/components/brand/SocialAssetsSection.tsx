@@ -57,6 +57,7 @@ const fileTypeIcons: Record<string, { icon: React.ElementType; className: string
 
 const platformDefaultImages: Record<string, string> = {
   'LinkedIn': '/images/social-defaults/linkedin-default.jpg',
+  'X': '/images/social-defaults/twitter-default.jpg',
   'X (Twitter)': '/images/social-defaults/twitter-default.jpg',
   'Instagram': '/images/social-defaults/instagram-default.jpg',
   'Facebook': '/images/social-defaults/facebook-default.jpg',
