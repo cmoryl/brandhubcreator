@@ -540,7 +540,7 @@ const PlatformDetailModal = ({
                     asset.platform === 'YouTube' && "-top-8 left-4 w-16 h-16",
                     asset.platform === 'Instagram' && "-top-6 left-1/2 -translate-x-1/2 w-20 h-20",
                     asset.platform === 'TikTok' && "-top-6 left-1/2 -translate-x-1/2 w-24 h-24",
-                    !['LinkedIn', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-4 w-16 h-16",
+                    !['LinkedIn', 'X', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-4 w-16 h-16",
                     profileIconDropZone.isDragging && "ring-2 ring-primary ring-offset-2"
                   )}
                   onClick={profileIconDropZone.openFilePicker}
