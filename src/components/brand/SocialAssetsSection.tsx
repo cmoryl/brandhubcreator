@@ -1366,6 +1366,14 @@ export const SocialAssetsSection = ({
 
 
       {/* Detail Modals */}
+      <PlatformDetailModal
+        asset={selectedPlatform}
+        open={!!selectedPlatform}
+        onOpenChange={(open) => !open && setSelectedPlatform(null)}
+        onUpdate={updateSocialAsset}
+        entityId={entityId}
+        entityType={entityType}
+      />
 
       {/* Mockup Preview Dialog */}
       <SocialMockupPreviewDialog
