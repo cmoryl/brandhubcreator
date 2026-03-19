@@ -115,6 +115,20 @@ Deno.serve(async (req) => {
       (s.images || []).map((img: any) => img.title)
     ).slice(0, 30); // Recent 30 for pattern learning
 
+    // Extract Operational Vault (imageAssets) metadata for style context
+    const vaultImages = imageryGuidelines?.imageAssets || [];
+    const vaultContext = vaultImages.length > 0 ? `
+OPERATIONAL VAULT IMAGES (${vaultImages.length} curated assets — these represent the brand's intentionally selected visual style):
+${vaultImages.slice(0, 40).map((img: any) => {
+  const parts = [
+    img.title || img.name || img.fileName || '',
+    img.description || img.alt || '',
+    img.category || '',
+    img.tags?.join(', ') || '',
+  ].filter(Boolean);
+  return `- ${parts.join(' | ')}`;
+}).join('\n')}` : '';
+
     // Build Visual DNA context
     const dnaContext = visualDna ? `
 LEARNED VISUAL PREFERENCES (from ${visualDna.total_approved || 0} approved, ${visualDna.total_skipped || 0} skipped, ${visualDna.total_removed || 0} removed images):
