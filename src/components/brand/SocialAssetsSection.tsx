@@ -880,8 +880,6 @@ const TemplateCardInfo = ({
 export const SocialAssetsSection = ({
   socialAssets,
   onSocialAssetsChange,
-  displayBanners,
-  onDisplayBannersChange,
   customSubtitle,
   onSubtitleChange,
   layout = 'grid-3',
