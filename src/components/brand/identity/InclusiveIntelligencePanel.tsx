@@ -74,8 +74,8 @@ const DIMENSIONS = [
 ];
 
 export const InclusiveIntelligencePanel = () => {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [expandedDimensions, setExpandedDimensions] = useState<Set<number>>(new Set([0, 1, 2, 3]));
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [expandedDimensions, setExpandedDimensions] = useState<Set<number>>(new Set());
 
   const toggleDimension = (index: number) => {
     setExpandedDimensions(prev => {
