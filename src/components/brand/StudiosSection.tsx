@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Building2, Globe, Mail, Phone, Trash2, MapPin, Calendar, Users, Pencil, Check, X, ExternalLink } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, Building2, Globe, Mail, Phone, Trash2, MapPin, Calendar, Users, Pencil, Check, X, ExternalLink, Upload, ImageIcon, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,12 +17,17 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
+import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { toast } from 'sonner';
 
 interface StudiosSectionProps {
   studios: BrandStudio[];
   onStudiosChange?: (studios: BrandStudio[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  entityId?: string;
 }
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
