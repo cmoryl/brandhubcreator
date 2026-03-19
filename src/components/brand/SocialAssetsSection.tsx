@@ -581,7 +581,7 @@ const PlatformDetailModal = ({
                     className={cn(
                       "absolute z-10 p-1 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors",
                       asset.platform === 'LinkedIn' && "-top-12 left-24 translate-x-1",
-                      asset.platform === 'X (Twitter)' && "-top-10 left-20 translate-x-1",
+                      (asset.platform === 'X' || asset.platform === 'X (Twitter)') && "-top-10 left-20 translate-x-1",
                       asset.platform === 'Facebook' && "-top-8 left-[100px] translate-x-1",
                       asset.platform === 'YouTube' && "-top-8 left-16 translate-x-1",
                       asset.platform === 'Instagram' && "-top-6 left-1/2 translate-x-8",
