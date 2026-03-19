@@ -23,8 +23,6 @@ import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewD
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
   onSocialAssetsChange?: (assets: BrandSocialAssetSpec[]) => void;
-  displayBanners: BrandDisplayBannerSpec[];
-  onDisplayBannersChange?: (banners: BrandDisplayBannerSpec[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
