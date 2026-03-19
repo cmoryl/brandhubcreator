@@ -161,6 +161,7 @@ ${Object.keys(voiceProfile).length ? `- Voice Profile: ${JSON.stringify(voicePro
 ${Object.keys(targetAudience).length ? `- Target Audience: ${JSON.stringify(targetAudience)}` : ''}
 ${Object.keys(culturalInsights).length ? `- Cultural Insights: ${JSON.stringify(culturalInsights)}` : ''}
 ${dnaContext}
+${vaultContext}
 
 EXISTING IMAGERY CATEGORIES: ${existingCategories.join(', ') || 'None yet'}
 PREVIOUSLY APPROVED IMAGE THEMES: ${allApprovedTitles.join('; ').slice(0, 500) || 'None yet'}
@@ -173,6 +174,7 @@ GUIDELINES:
 - Each query should be 3-8 words, specific enough to yield focused results
 - Include mood/style modifiers (e.g., "warm lighting", "aerial perspective", "close-up detail", "diverse team")
 - Learn from previously approved images to suggest similar styles
+${vaultImages.length > 0 ? '- IMPORTANT: The Operational Vault images represent intentionally curated brand assets — use their themes, subjects, and visual style as strong indicators of the brand\'s preferred aesthetic' : ''}
 ${visualDna ? '- IMPORTANT: Heavily weight the learned visual preferences above — they represent what the brand team actually likes and dislikes' : ''}`;
 
     let userPrompt = '';
