@@ -1367,24 +1367,23 @@ export const SocialAssetsSection = ({
                             )}
                           </div>
                           {/* Template info */}
-                          <div className="p-3 flex items-center justify-between">
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium truncate">{template.name}</p>
-                              <p className="text-[10px] text-muted-foreground">{isCanva ? 'Canva Template' : typeInfo.label}</p>
-                            </div>
-                            {canEditSocial && (
-                              <button
-                                onClick={() => {
-                                  updateSocialAsset(activePlatform.id, {
-                                    templates: (activePlatform.templates || []).filter(t => t.id !== template.id),
-                                  });
-                                }}
-                                className="p-1.5 rounded-md hover:bg-destructive/10 text-destructive opacity-0 group-hover/card:opacity-100 transition-opacity shrink-0"
-                              >
-                                <X className="h-3.5 w-3.5" />
-                              </button>
-                            )}
-                          </div>
+                          <TemplateCardInfo
+                            template={template}
+                            isCanva={isCanva}
+                            typeLabel={isCanva ? 'Canva Template' : typeInfo.label}
+                            canEdit={canEditSocial}
+                            onUpdate={(updates) => {
+                              const updatedTemplates = (activePlatform.templates || []).map(t =>
+                                t.id === template.id ? { ...t, ...updates } : t
+                              );
+                              updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+                            }}
+                            onDelete={() => {
+                              updateSocialAsset(activePlatform.id, {
+                                templates: (activePlatform.templates || []).filter(t => t.id !== template.id),
+                              });
+                            }}
+                          />
                         </div>
                       );
                     })}
