@@ -680,6 +680,47 @@ export const DigitalCollateralSection = ({
         </>
       )}
 
+      {/* Canva Templates Strip */}
+      {(() => {
+        const canvaItems = collateral.filter(b => b.externalUrl?.includes('canva.com'));
+        if (canvaItems.length === 0) return null;
+        return (
+          <div className="rounded-lg border bg-card p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <img src={CANVA_LOGO_SVG} alt="Canva" className="w-5 h-5" />
+              <h3 className="text-sm font-semibold text-foreground">Canva Templates</h3>
+              <Badge variant="secondary" className="text-xs">{canvaItems.length}</Badge>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {canvaItems.map(item => {
+                const info = refineDesignType(parseCanvaUrl(item.externalUrl), item.category, item.title);
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      toast.info('Remember to apply your brand colors and fonts in Canva', { duration: 4000, icon: '🎨' });
+                      window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-background hover:border-[hsl(178,100%,40%)]/50 hover:bg-[hsl(178,100%,40%)]/5 transition-colors shrink-0 group"
+                  >
+                    {item.thumbnailUrl ? (
+                      <img src={item.thumbnailUrl} alt="" className="w-8 h-8 rounded object-cover" />
+                    ) : (
+                      <img src={CANVA_LOGO_SVG} alt="" className="w-5 h-5 opacity-60" />
+                    )}
+                    <div className="text-left">
+                      <p className="text-xs font-medium text-foreground truncate max-w-[140px]">{item.title}</p>
+                      <p className="text-[10px] text-muted-foreground">{info.displayLabel}</p>
+                    </div>
+                    <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-[hsl(178,100%,30%)] ml-1" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {sortedCategories.length > 0 ? (
         <DndContext
           sensors={sensors}
