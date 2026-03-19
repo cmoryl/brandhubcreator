@@ -100,8 +100,8 @@ export const platformConfigs: Record<SocialPlatform, PlatformMockupConfig> = {
       ],
     },
   },
-  'X (Twitter)': {
-    name: 'X (Twitter)',
+  'X': {
+    name: 'X',
     supportsStory: false,
     supportsReel: false,
     feedAspectRatio: '16:9',
