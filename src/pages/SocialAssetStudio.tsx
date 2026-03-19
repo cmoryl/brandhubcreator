@@ -335,7 +335,7 @@ const SocialAssetStudio = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {['Instagram', 'LinkedIn', 'X (Twitter)', 'Facebook', 'YouTube', 'TikTok', 'Pinterest', 'Threads'].map(p => (
+                {['Instagram', 'LinkedIn', 'X', 'Facebook', 'YouTube', 'TikTok', 'Pinterest', 'Threads'].map(p => (
                   <SelectItem key={p} value={p}>{p}</SelectItem>
                 ))}
               </SelectContent>

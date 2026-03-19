@@ -573,6 +573,7 @@ export const ProfilePageMockup = (props: ProfilePageMockupProps) => {
   switch (props.platform) {
     case 'Instagram': return <InstagramProfile {...props} />;
     case 'LinkedIn': return <LinkedInProfile {...props} />;
+    case 'X':
     case 'X (Twitter)': return <TwitterProfile {...props} />;
     case 'Facebook': return <FacebookProfile {...props} />;
     case 'YouTube': return <YouTubeProfile {...props} />;

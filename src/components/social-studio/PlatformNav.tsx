@@ -13,7 +13,7 @@ interface PlatformNavProps {
 const platforms: { id: SocialPlatform; label: string; color: string; icon: string }[] = [
   { id: 'Instagram', label: 'Instagram', color: '#E1306C', icon: '📸' },
   { id: 'LinkedIn', label: 'LinkedIn', color: '#0A66C2', icon: '💼' },
-  { id: 'X (Twitter)', label: 'X (Twitter)', color: '#000000', icon: '𝕏' },
+  { id: 'X', label: 'X', color: '#000000', icon: '𝕏' },
   { id: 'Facebook', label: 'Facebook', color: '#1877F2', icon: '📘' },
   { id: 'YouTube', label: 'YouTube', color: '#FF0000', icon: '▶️' },
   { id: 'TikTok', label: 'TikTok', color: '#000000', icon: '🎵' },

@@ -3,6 +3,7 @@
 export type SocialPlatform = 
   | 'Instagram' 
   | 'LinkedIn' 
+  | 'X'
   | 'X (Twitter)' 
   | 'Facebook' 
   | 'YouTube' 
@@ -99,8 +100,8 @@ export const platformConfigs: Record<SocialPlatform, PlatformMockupConfig> = {
       ],
     },
   },
-  'X (Twitter)': {
-    name: 'X (Twitter)',
+  'X': {
+    name: 'X',
     supportsStory: false,
     supportsReel: false,
     feedAspectRatio: '16:9',
@@ -117,6 +118,23 @@ export const platformConfigs: Record<SocialPlatform, PlatformMockupConfig> = {
         { name: 'Header Photo', width: 1500, height: 500, aspectRatio: '3:1', description: 'Profile header banner' },
         { name: 'Profile Photo', width: 400, height: 400, aspectRatio: '1:1', description: 'Profile picture' },
         { name: 'In-stream Video', width: 1920, height: 1080, aspectRatio: '16:9', description: 'Landscape video' },
+      ],
+    },
+  },
+  'X (Twitter)': {
+    name: 'X',
+    supportsStory: false,
+    supportsReel: false,
+    feedAspectRatio: '16:9',
+    storyAspectRatio: 'N/A',
+    reelAspectRatio: 'N/A',
+    primaryColor: '#000000',
+    secondaryColor: '#1DA1F2',
+    sizes: {
+      feed: [
+        { name: 'Single Image', width: 1600, height: 900, aspectRatio: '16:9', description: 'Standard tweet image' },
+        { name: 'Header Photo', width: 1500, height: 500, aspectRatio: '3:1', description: 'Profile header banner' },
+        { name: 'Profile Photo', width: 400, height: 400, aspectRatio: '1:1', description: 'Profile picture' },
       ],
     },
   },

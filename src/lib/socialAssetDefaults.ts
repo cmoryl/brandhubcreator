@@ -16,7 +16,7 @@ export const DEFAULT_SOCIAL_ASSETS: BrandSocialAssetSpec[] = [
   },
   {
     id: 'preset-x',
-    platform: 'X (Twitter)',
+    platform: 'X',
     postSize: '1600 x 900 px',
     altSize: '1500 x 500 px (Header)',
     storySize: 'N/A',

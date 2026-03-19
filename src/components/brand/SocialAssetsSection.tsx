@@ -33,6 +33,7 @@ interface SocialAssetsProps {
 
 const platformIcons: Record<string, React.ElementType> = {
   'LinkedIn': Linkedin,
+  'X': Twitter,
   'X (Twitter)': Twitter,
   'Instagram': Instagram,
   'Facebook': Facebook,
@@ -56,6 +57,7 @@ const fileTypeIcons: Record<string, { icon: React.ElementType; className: string
 
 const platformDefaultImages: Record<string, string> = {
   'LinkedIn': '/images/social-defaults/linkedin-default.jpg',
+  'X': '/images/social-defaults/twitter-default.jpg',
   'X (Twitter)': '/images/social-defaults/twitter-default.jpg',
   'Instagram': '/images/social-defaults/instagram-default.jpg',
   'Facebook': '/images/social-defaults/facebook-default.jpg',
@@ -92,7 +94,7 @@ const platformPresets: BrandSocialAssetSpec[] = [
   },
   {
     id: 'preset-x',
-    platform: 'X (Twitter)',
+    platform: 'X',
     postSize: '1600 x 900 px',
     altSize: '1500 x 500 px (Header)',
     storySize: 'N/A',
@@ -533,12 +535,12 @@ const PlatformDetailModal = ({
                   className={cn(
                     "absolute border-4 border-card bg-muted rounded-full flex items-center justify-center overflow-hidden cursor-pointer group/avatar transition-all",
                     asset.platform === 'LinkedIn' && "-top-12 left-4 w-24 h-24",
-                    asset.platform === 'X (Twitter)' && "-top-10 left-4 w-20 h-20",
+                    (asset.platform === 'X' || asset.platform === 'X (Twitter)') && "-top-10 left-4 w-20 h-20",
                     asset.platform === 'Facebook' && "-top-8 left-4 w-[100px] h-[100px]",
                     asset.platform === 'YouTube' && "-top-8 left-4 w-16 h-16",
                     asset.platform === 'Instagram' && "-top-6 left-1/2 -translate-x-1/2 w-20 h-20",
                     asset.platform === 'TikTok' && "-top-6 left-1/2 -translate-x-1/2 w-24 h-24",
-                    !['LinkedIn', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-4 w-16 h-16",
+                    !['LinkedIn', 'X', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-4 w-16 h-16",
                     profileIconDropZone.isDragging && "ring-2 ring-primary ring-offset-2"
                   )}
                   onClick={profileIconDropZone.openFilePicker}
@@ -579,12 +581,12 @@ const PlatformDetailModal = ({
                     className={cn(
                       "absolute z-10 p-1 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors",
                       asset.platform === 'LinkedIn' && "-top-12 left-24 translate-x-1",
-                      asset.platform === 'X (Twitter)' && "-top-10 left-20 translate-x-1",
+                      (asset.platform === 'X' || asset.platform === 'X (Twitter)') && "-top-10 left-20 translate-x-1",
                       asset.platform === 'Facebook' && "-top-8 left-[100px] translate-x-1",
                       asset.platform === 'YouTube' && "-top-8 left-16 translate-x-1",
                       asset.platform === 'Instagram' && "-top-6 left-1/2 translate-x-8",
                       asset.platform === 'TikTok' && "-top-6 left-1/2 translate-x-10",
-                      !['LinkedIn', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-16 translate-x-1"
+                      !['LinkedIn', 'X', 'X (Twitter)', 'Facebook', 'YouTube', 'Instagram', 'TikTok'].includes(asset.platform) && "-top-8 left-16 translate-x-1"
                     )}
                   >
                     <X className="h-3 w-3" />

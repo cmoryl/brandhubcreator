@@ -30,6 +30,7 @@ interface SocialMockupPreviewDialogProps {
 
 const platformIcons: Record<string, React.ElementType> = {
   'LinkedIn': Linkedin,
+  'X': Twitter,
   'X (Twitter)': Twitter,
   'Instagram': Instagram,
   'Facebook': Facebook,
@@ -115,6 +116,7 @@ export const SocialMockupPreviewDialog = ({
         return <InstagramMockup {...props} />;
       case 'LinkedIn':
         return <LinkedInMockup {...props} />;
+      case 'X':
       case 'X (Twitter)':
         return <TwitterMockup {...props} />;
       case 'Facebook':
