@@ -102,8 +102,8 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
               loading="lazy"
             />
           </div>
-        ) : asset.type === 'application/pdf' && asset.thumbnailUrl ? (
-          <PdfThumbnailCard thumbnailUrl={asset.thumbnailUrl} />
+        ) : asset.type === 'application/pdf' ? (
+          <PdfThumbnailCard url={asset.url} name={asset.name} />
         ) : (
           <div className="aspect-[4/3] bg-muted flex items-center justify-center">
             <span className="text-3xl">{getFileIcon(asset.type)}</span>
