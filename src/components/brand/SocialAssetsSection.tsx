@@ -990,6 +990,7 @@ export const SocialAssetsSection = ({
 }: SocialAssetsProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
+  const [activePlatformId, setActivePlatformId] = useState<string | null>(null);
   const [mockupPreviewPlatform, setMockupPreviewPlatform] = useState<BrandSocialAssetSpec | null>(null);
   const [selectedBanner, setSelectedBanner] = useState<BrandDisplayBannerSpec | null>(null);
   const [bannerTab, setBannerTab] = useState('desktop');
