@@ -1364,6 +1364,7 @@ export const SocialAssetsSection = ({
                         entityId={entityId}
                         updateSocialAsset={updateSocialAsset}
                         uploadFile={uploadFile}
+                        cardGridClass={cardGridClass}
                       />
                     );
                   });
