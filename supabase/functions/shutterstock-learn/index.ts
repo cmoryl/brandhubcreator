@@ -141,18 +141,32 @@ Deno.serve(async (req) => {
         });
       }
 
-      if (!signals || signals.length === 0) {
+      // Fetch Operational Vault images (imageAssets) as implicit approved signals
+      const tableName = entityType === 'product' ? 'products' : entityType === 'event' ? 'events' : 'brands';
+      const { data: entityData } = await supabase
+        .from(tableName)
+        .select('guide_data')
+        .eq('id', entityId)
+        .maybeSingle();
+
+      const vaultImages: any[] = (entityData?.guide_data as any)?.imageAssets || [];
+      const vaultImageryItems: any[] = (entityData?.guide_data as any)?.imagery || [];
+
+      const hasSignals = signals && signals.length > 0;
+      const hasVaultImages = vaultImages.length > 0 || vaultImageryItems.length > 0;
+
+      if (!hasSignals && !hasVaultImages) {
         return new Response(JSON.stringify({ 
           visual_dna: null, 
-          message: 'No signals recorded yet. Approve or skip images to start learning.' 
+          message: 'No signals recorded yet. Approve or skip images, or add images to the Operational Vault to start learning.' 
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      const approved = signals.filter(s => s.action === 'approved');
-      const skipped = signals.filter(s => s.action === 'skipped');
-      const removed = signals.filter(s => s.action === 'removed');
+      const approved = (signals || []).filter(s => s.action === 'approved');
+      const skipped = (signals || []).filter(s => s.action === 'skipped');
+      const removed = (signals || []).filter(s => s.action === 'removed');
 
       // Use AI to analyze patterns
       const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -181,11 +195,35 @@ Deno.serve(async (req) => {
         description: ((s.image_metadata as any)?.description || '').slice(0, 80),
       }));
 
+      // Build vault image summaries (treated as strong implicit approvals)
+      const vaultMeta = vaultImages.slice(0, 40).map((img: any) => ({
+        title: img.title || img.name || img.fileName || '',
+        description: (img.description || img.alt || '').slice(0, 100),
+        category: img.category || '',
+        tags: img.tags || [],
+        source: 'operational_vault',
+      }));
+
+      const imageryMeta = vaultImageryItems.slice(0, 20).map((img: any) => ({
+        title: img.title || img.name || '',
+        description: (img.description || img.alt || '').slice(0, 100),
+        category: img.category || '',
+        tags: img.tags || [],
+        source: 'imagery_guidelines',
+      }));
+
+      const allVaultMeta = [...vaultMeta, ...imageryMeta];
+
       // Search context patterns
-      const searchQueries = [...new Set(signals
+      const searchQueries = [...new Set((signals || [])
         .map(s => (s.search_context as any)?.query)
         .filter(Boolean)
       )].slice(0, 20);
+
+      const vaultSection = allVaultMeta.length > 0 ? `
+OPERATIONAL VAULT & IMAGERY GUIDELINES (${allVaultMeta.length} curated assets — these are intentionally selected brand images and should be weighted as STRONG implicit approvals):
+${JSON.stringify(allVaultMeta, null, 1)}
+` : '';
 
       const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -198,7 +236,7 @@ Deno.serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: `You are a visual preference analyst. Analyze imagery selection patterns to build a Visual DNA profile. Focus on identifying clear preferences vs. dislikes from the approved, skipped, and removed image data.`
+              content: `You are a visual preference analyst. Analyze imagery selection patterns to build a Visual DNA profile. Focus on identifying clear preferences vs. dislikes from the approved, skipped, removed, and curated vault image data. Operational Vault images are intentionally curated brand assets — treat them as strong indicators of preferred visual style, equivalent to explicitly approved images.`
             },
             {
               role: 'user',
@@ -212,10 +250,10 @@ ${JSON.stringify(skippedMeta, null, 1)}
 
 REMOVED (${removed.length} total, showing ${removedMeta.length}):
 ${JSON.stringify(removedMeta, null, 1)}
-
+${vaultSection}
 SEARCH QUERIES USED: ${searchQueries.join(', ')}
 
-Extract the visual preferences, patterns, and aversions. Be specific and actionable.`
+Extract the visual preferences, patterns, and aversions. Be specific and actionable. Consider the vault images as strong evidence of preferred visual style.`
             }
           ],
           tools: [{
@@ -309,7 +347,7 @@ Extract the visual preferences, patterns, and aversions. Be specific and actiona
         mood_keywords: dnaResult.mood_keywords || [],
         avoid_keywords: dnaResult.avoid_keywords || [],
         approval_patterns: dnaResult.approval_patterns || {},
-        total_approved: approved.length,
+        total_approved: approved.length + allVaultMeta.length,
         total_skipped: skipped.length,
         total_removed: removed.length,
         confidence_score: dnaResult.confidence_score || 0,

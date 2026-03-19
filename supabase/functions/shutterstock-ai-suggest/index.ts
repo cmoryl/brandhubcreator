@@ -115,6 +115,20 @@ Deno.serve(async (req) => {
       (s.images || []).map((img: any) => img.title)
     ).slice(0, 30); // Recent 30 for pattern learning
 
+    // Extract Operational Vault (imageAssets) metadata for style context
+    const vaultImages = imageryGuidelines?.imageAssets || [];
+    const vaultContext = vaultImages.length > 0 ? `
+OPERATIONAL VAULT IMAGES (${vaultImages.length} curated assets — these represent the brand's intentionally selected visual style):
+${vaultImages.slice(0, 40).map((img: any) => {
+  const parts = [
+    img.title || img.name || img.fileName || '',
+    img.description || img.alt || '',
+    img.category || '',
+    img.tags?.join(', ') || '',
+  ].filter(Boolean);
+  return `- ${parts.join(' | ')}`;
+}).join('\n')}` : '';
+
     // Build Visual DNA context
     const dnaContext = visualDna ? `
 LEARNED VISUAL PREFERENCES (from ${visualDna.total_approved || 0} approved, ${visualDna.total_skipped || 0} skipped, ${visualDna.total_removed || 0} removed images):
@@ -147,6 +161,7 @@ ${Object.keys(voiceProfile).length ? `- Voice Profile: ${JSON.stringify(voicePro
 ${Object.keys(targetAudience).length ? `- Target Audience: ${JSON.stringify(targetAudience)}` : ''}
 ${Object.keys(culturalInsights).length ? `- Cultural Insights: ${JSON.stringify(culturalInsights)}` : ''}
 ${dnaContext}
+${vaultContext}
 
 EXISTING IMAGERY CATEGORIES: ${existingCategories.join(', ') || 'None yet'}
 PREVIOUSLY APPROVED IMAGE THEMES: ${allApprovedTitles.join('; ').slice(0, 500) || 'None yet'}
@@ -159,6 +174,7 @@ GUIDELINES:
 - Each query should be 3-8 words, specific enough to yield focused results
 - Include mood/style modifiers (e.g., "warm lighting", "aerial perspective", "close-up detail", "diverse team")
 - Learn from previously approved images to suggest similar styles
+${vaultImages.length > 0 ? '- IMPORTANT: The Operational Vault images represent intentionally curated brand assets — use their themes, subjects, and visual style as strong indicators of the brand\'s preferred aesthetic' : ''}
 ${visualDna ? '- IMPORTANT: Heavily weight the learned visual preferences above — they represent what the brand team actually likes and dislikes' : ''}`;
 
     let userPrompt = '';
