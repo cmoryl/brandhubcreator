@@ -926,37 +926,6 @@ export const SocialAssetsSection = ({
     if (selectedPlatform?.id === id) setSelectedPlatform(null);
   };
 
-  const updateDisplayBanner = (id: string, updates: Partial<BrandDisplayBannerSpec>) => {
-    if (!onDisplayBannersChange) return;
-    onDisplayBannersChange(displayBanners.map(b => b.id === id ? { ...b, ...updates } : b));
-    if (selectedBanner?.id === id) {
-      setSelectedBanner({ ...selectedBanner, ...updates });
-    }
-  };
-
-  const deleteDisplayBanner = (id: string) => {
-    if (!onDisplayBannersChange) return;
-    onDisplayBannersChange(displayBanners.filter(b => b.id !== id));
-    if (selectedBanner?.id === id) setSelectedBanner(null);
-  };
-
-  const addSocialAsset = (preset?: BrandSocialAssetSpec) => {
-    if (!onSocialAssetsChange) return;
-    const newAsset: BrandSocialAssetSpec = preset
-      ? { ...preset, id: safeUUID(), templates: [] }
-      : { id: safeUUID(), platform: 'LinkedIn', postSize: '1200 x 627 px', altSize: '', textLegibility: '', directive: '', templates: [], previewImageUrl: platformDefaultImages['LinkedIn'] };
-    onSocialAssetsChange([...socialAssets, newAsset]);
-    if (!preset) setSelectedPlatform(newAsset);
-  };
-
-  const addDisplayBanner = (preset?: BrandDisplayBannerSpec) => {
-    if (!onDisplayBannersChange) return;
-    const newBanner: BrandDisplayBannerSpec = preset
-      ? { ...preset, id: safeUUID() }
-      : { id: safeUUID(), name: 'Custom Banner', dimensions: '300 x 250 px', maxMessaging: '', textLegibility: '', safeZonePolicy: '', aspectRatio: 1.2, category: 'desktop' };
-    onDisplayBannersChange([...displayBanners, newBanner]);
-    if (!preset) setSelectedBanner(newBanner);
-  };
 
   // Group banners by category
   const bannersByCategory = {
