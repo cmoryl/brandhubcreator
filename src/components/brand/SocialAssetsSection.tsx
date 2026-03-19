@@ -902,7 +902,6 @@ export const SocialAssetsSection = ({
   });
 
   const hasSocialInitialized = useRef(false);
-  const hasBannerInitialized = useRef(false);
 
   // Auto-populate presets (only when editable)
   useEffect(() => {
