@@ -1228,7 +1228,7 @@ export const SocialAssetsSection = ({
           );
           
           const IconComponent = platformIcons[activePlatform.platform] || Monitor;
-          const IconComponent_unused = null; // sizeSpecs moved to reference panel below
+          
 
           return (
             <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
