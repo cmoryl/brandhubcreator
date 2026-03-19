@@ -315,13 +315,6 @@ const schemaSections: SchemaSection[] = [
     description: "Pre-approved layouts and template specifications",
     fields: [
       {
-        name: "displayBanners",
-        type: "Array<BannerObject>",
-        description: "Display ad banner specifications",
-        example: [{ id: "uuid", name: "Leaderboard", dimensions: "728x90", aspectRatio: "8:1", previewImageUrl: "..." }],
-        eventKitUse: "Ad banner generation"
-      },
-      {
         name: "templates",
         type: "Array<TemplateObject>",
         description: "Editable template references",

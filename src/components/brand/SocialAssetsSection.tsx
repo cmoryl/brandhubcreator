@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye, LayoutGrid } from 'lucide-react';
-import { BrandSocialAssetSpec, BrandDisplayBannerSpec, SocialAssetTemplate, SocialSizeCategory } from '@/types/brand';
+import { BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 import { parseCanvaUrl, CANVA_LOGO_SVG } from '@/lib/canvaUtils';
@@ -23,8 +23,6 @@ import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewD
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
   onSocialAssetsChange?: (assets: BrandSocialAssetSpec[]) => void;
-  displayBanners: BrandDisplayBannerSpec[];
-  onDisplayBannersChange?: (banners: BrandDisplayBannerSpec[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   layout?: LayoutPreset;
@@ -181,20 +179,6 @@ const platformPresets: BrandSocialAssetSpec[] = [
   },
 ];
 
-const bannerPresets: BrandDisplayBannerSpec[] = [
-  { id: 'preset-mrec', name: 'Medium Rectangle', dimensions: '300 x 250 px', maxMessaging: 'Headline: 25 chars | Body: 70 chars', textLegibility: 'Headline: 18-24pt Bold | Body: 12-14pt', safeZonePolicy: '15px padding all edges. Logo corner (max 60x40px). CTA bottom-right.', aspectRatio: 1.2, category: 'desktop' },
-  { id: 'preset-leaderboard', name: 'Leaderboard', dimensions: '728 x 90 px', maxMessaging: 'Headline: 30 chars | Body: 50 chars', textLegibility: 'Headline: 24-28pt Bold | Body: 14-16pt', safeZonePolicy: 'Center in 650px. Logo left. CTA right.', aspectRatio: 8.09, category: 'desktop' },
-  { id: 'preset-wide-sky', name: 'Wide Skyscraper', dimensions: '160 x 600 px', maxMessaging: 'Headline: 20 chars | Body: 60 chars', textLegibility: 'Headline: 18-22pt Bold | Body: 11-13pt', safeZonePolicy: '10px horizontal. Logo top. Stack vertical.', aspectRatio: 0.27, category: 'desktop' },
-  { id: 'preset-large-rect', name: 'Large Rectangle', dimensions: '336 x 280 px', maxMessaging: 'Headline: 30 chars | Body: 90 chars', textLegibility: 'Headline: 20-26pt Bold | Body: 13-15pt', safeZonePolicy: '20px padding. Logo top-left. CTA center-bottom.', aspectRatio: 1.2, category: 'desktop' },
-  { id: 'preset-billboard', name: 'Billboard', dimensions: '970 x 250 px', maxMessaging: 'Headline: 40 chars | Body: 100 chars', textLegibility: 'Headline: 32-40pt Bold | Body: 16-18pt', safeZonePolicy: 'Center in 800px. Logo left. Multiple CTAs allowed.', aspectRatio: 3.88, category: 'desktop' },
-  { id: 'preset-half-page', name: 'Half Page', dimensions: '300 x 600 px', maxMessaging: 'Headline: 30 chars | Body: 120 chars', textLegibility: 'Headline: 24-30pt Bold | Body: 14-16pt', safeZonePolicy: '20px padding. Logo top. CTA bottom full-width.', aspectRatio: 0.5, category: 'desktop' },
-  { id: 'preset-mobile-lead', name: 'Mobile Leaderboard', dimensions: '320 x 50 px', maxMessaging: 'Headline: 20 chars | CTA: 8 chars', textLegibility: 'Headline: 14-16pt Bold | CTA: 12pt', safeZonePolicy: 'Logo left (40x30px). CTA right. 8px edges.', aspectRatio: 6.4, category: 'mobile' },
-  { id: 'preset-large-mobile', name: 'Large Mobile', dimensions: '320 x 100 px', maxMessaging: 'Headline: 25 chars | Body: 35 chars', textLegibility: 'Headline: 16-18pt Bold | Body: 12pt', safeZonePolicy: 'Two-line layout. CTA bottom-right. 10px padding.', aspectRatio: 3.2, category: 'mobile' },
-  { id: 'preset-mobile-mrec', name: 'Mobile MREC', dimensions: '300 x 250 px', maxMessaging: 'Headline: 25 chars | Body: 60 chars', textLegibility: 'Headline: 20-24pt Bold | Body: 13-15pt', safeZonePolicy: 'Same as desktop MREC. Touch CTA min 44px.', aspectRatio: 1.2, category: 'mobile' },
-  { id: 'preset-interstitial', name: 'Interstitial', dimensions: '320 x 480 px', maxMessaging: 'Headline: 30 chars | Body: 80 chars', textLegibility: 'Headline: 28-34pt Bold | Body: 16-18pt', safeZonePolicy: 'Close button top-right. CTA bottom 80px.', aspectRatio: 0.67, category: 'mobile' },
-  { id: 'preset-video-rect', name: 'Video Rectangle', dimensions: '640 x 360 px', maxMessaging: 'Overlay: 20 chars | End card: 30 chars', textLegibility: 'Overlay: 18-22pt Bold | End card: 24-28pt', safeZonePolicy: 'Controls bottom 50px. Logo watermark top-left.', aspectRatio: 1.78, category: 'video' },
-  { id: 'preset-native', name: 'Native Ad Unit', dimensions: '1200 x 627 px', maxMessaging: 'Headline: 50 chars | Desc: 150 chars', textLegibility: 'Headline: 24-30pt Bold | Desc: 16-18pt', safeZonePolicy: 'Image-focused. Text bottom 30% with gradient.', aspectRatio: 1.91, category: 'native' },
-];
 
 // Compact Platform Card Component
 const PlatformCard = ({
@@ -349,67 +333,6 @@ const PlatformCard = ({
   );
 };
 
-// Compact Banner Card Component
-const BannerCard = ({
-  banner,
-  onUpdate,
-  onDelete,
-  onExpand,
-  canEdit = false,
-}: {
-  banner: BrandDisplayBannerSpec;
-  onUpdate: (updates: Partial<BrandDisplayBannerSpec>) => void;
-  onDelete: () => void;
-  onExpand: () => void;
-  canEdit?: boolean;
-}) => {
-  const aspectRatio = banner.aspectRatio || 1.2;
-  const isVertical = aspectRatio < 0.7;
-  const isWide = aspectRatio > 3;
-
-  return (
-    <div 
-      className="group relative bg-card/50 backdrop-blur-sm rounded-lg border border-border/50 overflow-hidden hover:border-accent/30 transition-all cursor-pointer p-3"
-      onClick={onExpand}
-    >
-      <div className="flex items-center gap-3">
-        {/* Aspect ratio preview */}
-        <div 
-          className={cn(
-            "flex-shrink-0 rounded border border-accent/30 bg-accent/5 flex items-center justify-center",
-            isWide ? "w-16 h-4" : isVertical ? "w-6 h-12" : "w-10 h-8"
-          )}
-        >
-          <span className="text-[7px] font-mono text-accent/60">{(banner.dimensions || '').split(' x ')[0] || '—'}</span>
-        </div>
-        
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm truncate">{banner.name}</p>
-          <p className="text-[10px] font-mono text-muted-foreground">{banner.dimensions}</p>
-        </div>
-
-        {/* Quick actions */}
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => { e.stopPropagation(); onExpand(); }}
-            className="p-1.5 rounded hover:bg-secondary transition-colors"
-          >
-            <Info className="h-3 w-3 text-muted-foreground" />
-          </button>
-          {canEdit && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="p-1.5 rounded hover:bg-destructive/10 text-destructive transition-colors"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Detail Modal for Platform
 const PlatformDetailModal = ({
@@ -854,142 +777,6 @@ const PlatformDetailModal = ({
   );
 };
 
-// Detail Modal for Banner
-const BannerDetailModal = ({
-  banner,
-  open,
-  onOpenChange,
-  onUpdate,
-  entityId,
-  entityType,
-}: {
-  banner: BrandDisplayBannerSpec | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onUpdate: (id: string, updates: Partial<BrandDisplayBannerSpec>) => void;
-  entityId?: string;
-  entityType?: 'brand' | 'product' | 'event';
-}) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [uploadingBanner, setUploadingBanner] = useState(false);
-
-  const { uploadFile } = useStorageUpload({
-    entityType: entityType || 'brand',
-    entityId: entityId || '',
-  });
-
-  const handleFileDrop = useCallback(async (file: File) => {
-    if (!banner) return;
-    if (entityId) {
-      setUploadingBanner(true);
-      try {
-        const result = await uploadFile(file, 'asset', `banner-preview-${banner.id}`);
-        if (result?.url) onUpdate(banner.id, { previewImageUrl: result.url });
-      } catch { toast.error('Failed to upload banner preview'); }
-      finally { setUploadingBanner(false); }
-    } else {
-      const reader = new FileReader();
-      reader.onload = (event) => { onUpdate(banner.id, { previewImageUrl: event.target?.result as string }); };
-      reader.readAsDataURL(file);
-    }
-  }, [banner, onUpdate, entityId, uploadFile]);
-
-  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
-    onFileDrop: handleFileDrop,
-    accept: 'image/*',
-    maxSize: 10 * 1024 * 1024, // 10MB limit
-  });
-
-  if (!banner) return null;
-
-  const aspectRatio = banner.aspectRatio || 1.2;
-  const isVertical = aspectRatio < 0.7;
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-              <Layers className="h-4 w-4 text-accent" />
-            </div>
-            <span>{banner.name}</span>
-            <Badge variant="outline" className="ml-2 text-xs font-mono">{banner.dimensions}</Badge>
-            <Button variant="ghost" size="sm" onClick={() => setIsEditing(!isEditing)} className="ml-auto">
-              <Pencil className="h-3.5 w-3.5 mr-1" />
-              {isEditing ? 'Done' : 'Edit'}
-            </Button>
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-5 pt-4">
-          {/* Preview */}
-          <div 
-            className={cn(
-              "relative rounded-lg overflow-hidden border-2 border-dashed transition-colors mx-auto",
-              isDragging ? "border-accent bg-accent/5" : "border-border/50",
-              isVertical ? "w-32 h-64" : "w-full h-32"
-            )}
-            onDragOver={dragHandlers.onDragOver}
-            onDragLeave={dragHandlers.onDragLeave}
-            onDrop={dragHandlers.onDrop}
-          >
-            {banner.previewImageUrl ? (
-              <>
-                <img src={banner.previewImageUrl} alt={banner.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <Button size="sm" variant="secondary" onClick={openFilePicker}><Upload className="h-3 w-3" /></Button>
-                  <Button size="sm" variant="destructive" onClick={() => onUpdate(banner.id, { previewImageUrl: '' })}><X className="h-3 w-3" /></Button>
-                </div>
-              </>
-            ) : (
-              <button onClick={openFilePicker} className="w-full h-full flex flex-col items-center justify-center bg-accent/5">
-                <Image className="h-6 w-6 text-muted-foreground mb-1" />
-                <span className="text-xs text-muted-foreground">Add preview</span>
-              </button>
-            )}
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleInputChange} className="hidden" />
-          </div>
-
-          {/* Specs Grid */}
-          <div className="grid grid-cols-1 gap-4">
-            {[
-              { label: 'Dimensions', key: 'dimensions', value: banner.dimensions },
-              { label: 'Max Messaging', key: 'maxMessaging', value: banner.maxMessaging },
-              { label: 'Text Legibility', key: 'textLegibility', value: banner.textLegibility },
-              { label: 'Safe Zone Policy', key: 'safeZonePolicy', value: banner.safeZonePolicy },
-            ].map(({ label, key, value }) => (
-              <div key={key} className="space-y-1">
-                <label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{label}</label>
-                {isEditing ? (
-                  key === 'safeZonePolicy' ? (
-                    <Textarea
-                      value={value || ''}
-                      onChange={(e) => onUpdate(banner.id, { [key]: e.target.value })}
-                      className="min-h-[60px] resize-none"
-                    />
-                  ) : (
-                    <Input
-                      value={value || ''}
-                      onChange={(e) => onUpdate(banner.id, { [key]: e.target.value })}
-                      className="h-9"
-                    />
-                  )
-                ) : (
-                  <div className="bg-muted/50 rounded-lg p-2.5">
-                    <p className="text-sm">{value || '—'}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-// Inline editable template card info
 const TemplateCardInfo = ({
   template,
   isCanva,
@@ -1093,8 +880,6 @@ const TemplateCardInfo = ({
 export const SocialAssetsSection = ({
   socialAssets,
   onSocialAssetsChange,
-  displayBanners,
-  onDisplayBannersChange,
   customSubtitle,
   onSubtitleChange,
   layout = 'grid-3',
@@ -1106,13 +891,9 @@ export const SocialAssetsSection = ({
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
   const [activePlatformId, setActivePlatformId] = useState<string | null>(null);
   const [mockupPreviewPlatform, setMockupPreviewPlatform] = useState<BrandSocialAssetSpec | null>(null);
-  const [selectedBanner, setSelectedBanner] = useState<BrandDisplayBannerSpec | null>(null);
-  const [bannerTab, setBannerTab] = useState('desktop');
   const { gridClass } = useLayoutClasses(layout);
   
-  // Determine if editing is allowed
   const canEditSocial = !!onSocialAssetsChange;
-  const canEditBanners = !!onDisplayBannersChange;
 
   const { uploadFile } = useStorageUpload({
     entityType: entityType || 'brand',
@@ -1120,7 +901,6 @@ export const SocialAssetsSection = ({
   });
 
   const hasSocialInitialized = useRef(false);
-  const hasBannerInitialized = useRef(false);
 
   // Auto-populate presets (only when editable)
   useEffect(() => {
@@ -1130,12 +910,6 @@ export const SocialAssetsSection = ({
     }
   }, [socialAssets.length, onSocialAssetsChange]);
 
-  useEffect(() => {
-    if (!hasBannerInitialized.current && displayBanners.length === 0 && onDisplayBannersChange) {
-      hasBannerInitialized.current = true;
-      onDisplayBannersChange(bannerPresets.map(b => ({ ...b, id: safeUUID() })));
-    }
-  }, [displayBanners.length, onDisplayBannersChange]);
 
   const updateSocialAsset = (id: string, updates: Partial<BrandSocialAssetSpec>) => {
     if (!onSocialAssetsChange) return;
@@ -1151,20 +925,6 @@ export const SocialAssetsSection = ({
     if (selectedPlatform?.id === id) setSelectedPlatform(null);
   };
 
-  const updateDisplayBanner = (id: string, updates: Partial<BrandDisplayBannerSpec>) => {
-    if (!onDisplayBannersChange) return;
-    onDisplayBannersChange(displayBanners.map(b => b.id === id ? { ...b, ...updates } : b));
-    if (selectedBanner?.id === id) {
-      setSelectedBanner({ ...selectedBanner, ...updates });
-    }
-  };
-
-  const deleteDisplayBanner = (id: string) => {
-    if (!onDisplayBannersChange) return;
-    onDisplayBannersChange(displayBanners.filter(b => b.id !== id));
-    if (selectedBanner?.id === id) setSelectedBanner(null);
-  };
-
   const addSocialAsset = (preset?: BrandSocialAssetSpec) => {
     if (!onSocialAssetsChange) return;
     const newAsset: BrandSocialAssetSpec = preset
@@ -1172,23 +932,6 @@ export const SocialAssetsSection = ({
       : { id: safeUUID(), platform: 'LinkedIn', postSize: '1200 x 627 px', altSize: '', textLegibility: '', directive: '', templates: [], previewImageUrl: platformDefaultImages['LinkedIn'] };
     onSocialAssetsChange([...socialAssets, newAsset]);
     if (!preset) setSelectedPlatform(newAsset);
-  };
-
-  const addDisplayBanner = (preset?: BrandDisplayBannerSpec) => {
-    if (!onDisplayBannersChange) return;
-    const newBanner: BrandDisplayBannerSpec = preset
-      ? { ...preset, id: safeUUID() }
-      : { id: safeUUID(), name: 'Custom Banner', dimensions: '300 x 250 px', maxMessaging: '', textLegibility: '', safeZonePolicy: '', aspectRatio: 1.2, category: 'desktop' };
-    onDisplayBannersChange([...displayBanners, newBanner]);
-    if (!preset) setSelectedBanner(newBanner);
-  };
-
-  // Group banners by category
-  const bannersByCategory = {
-    desktop: displayBanners.filter(b => b.category === 'desktop' || !b.category),
-    mobile: displayBanners.filter(b => b.category === 'mobile'),
-    video: displayBanners.filter(b => b.category === 'video'),
-    native: displayBanners.filter(b => b.category === 'native'),
   };
 
   return (
@@ -1540,78 +1283,8 @@ export const SocialAssetsSection = ({
         })()}
       </div>
 
-      {/* Display Banners - Tabbed by Category */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-            Display Banner Specs
-            <Badge variant="secondary" className="text-[10px]">{displayBanners.length}</Badge>
-          </h3>
-          {canEditBanners && (
-            <Button onClick={() => addDisplayBanner()} size="sm" variant="outline" className="h-8 text-xs">
-              <Plus className="h-3.5 w-3.5 mr-1" />Custom Banner
-            </Button>
-          )}
-        </div>
-
-        <Tabs value={bannerTab} onValueChange={setBannerTab} className="w-full">
-          <TabsList className="h-9 w-full justify-start bg-muted/50 rounded-lg p-1">
-            {[
-              { id: 'desktop', label: 'Desktop', count: bannersByCategory.desktop.length },
-              { id: 'mobile', label: 'Mobile', count: bannersByCategory.mobile.length },
-              { id: 'video', label: 'Video', count: bannersByCategory.video.length },
-              { id: 'native', label: 'Native', count: bannersByCategory.native.length },
-            ].map(tab => (
-              <TabsTrigger key={tab.id} value={tab.id} className="text-xs data-[state=active]:bg-background gap-1.5 px-3">
-                {tab.label}
-                <span className="text-[10px] text-muted-foreground">({tab.count})</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {Object.entries(bannersByCategory).map(([category, banners]) => (
-            <TabsContent key={category} value={category} className="mt-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {banners.map((banner) => (
-                  <BannerCard
-                    key={banner.id}
-                    banner={banner}
-                    onUpdate={(updates) => updateDisplayBanner(banner.id, updates)}
-                    onDelete={() => deleteDisplayBanner(banner.id)}
-                    onExpand={() => setSelectedBanner(banner)}
-                    canEdit={canEditBanners}
-                  />
-                ))}
-              </div>
-              {banners.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  No {category} banners configured
-                </div>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
 
       {/* Detail Modals */}
-      <PlatformDetailModal
-        asset={selectedPlatform}
-        open={!!selectedPlatform}
-        onOpenChange={(open) => !open && setSelectedPlatform(null)}
-        onUpdate={updateSocialAsset}
-        entityId={entityId}
-        entityType={entityType}
-      />
-
-      <BannerDetailModal
-        banner={selectedBanner}
-        open={!!selectedBanner}
-        onOpenChange={(open) => !open && setSelectedBanner(null)}
-        onUpdate={updateDisplayBanner}
-        entityId={entityId}
-        entityType={entityType}
-      />
 
       {/* Mockup Preview Dialog */}
       <SocialMockupPreviewDialog

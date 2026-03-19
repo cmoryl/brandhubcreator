@@ -57,25 +57,6 @@ export const PlatformNav = ({ selected, onSelect, placementCounts }: PlatformNav
           </button>
         );
       })}
-      
-      {/* Display Ads separator */}
-      <div className="pt-4 pb-2">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-3">Display Ads (IAB)</p>
-      </div>
-      {['Desktop', 'Mobile', 'Video', 'Native'].map((cat) => (
-        <button
-          key={cat}
-          disabled
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground/50 cursor-not-allowed text-left"
-          title="Coming soon"
-        >
-          <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/60 text-muted-foreground/50 text-sm flex-shrink-0">
-            {cat === 'Desktop' ? '🖥️' : cat === 'Mobile' ? '📱' : cat === 'Video' ? '🎬' : '📰'}
-          </span>
-          <span className="flex-1">{cat} Banners</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Soon</span>
-        </button>
-      ))}
     </div>
   );
 };

@@ -217,7 +217,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'socialicons': return guide.socialIcons.length > 0;
       case 'imagery': return guide.imagery.length > 0;
       case 'social': return guide.social.length > 0;
-      case 'socialassets': return (guide.socialAssets?.length ?? 0) > 0 || (guide.displayBanners?.length ?? 0) > 0;
+      case 'socialassets': return (guide.socialAssets?.length ?? 0) > 0;
       case 'website': return (guide.websites?.length ?? 0) > 0;
       case 'signatures': return guide.signatures.length > 0;
       case 'qr': return !!guide.qr.defaultUrl;
@@ -939,11 +939,10 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
 
       case 'socialassets':
         const socialAssets = guide.socialAssets || [];
-        const displayBanners = guide.displayBanners || [];
-        if (socialAssets.length === 0 && displayBanners.length === 0) return null;
+        if (socialAssets.length === 0) return null;
         return (
           <div id="pdf-section-socialassets" className={cn("py-6 border-b", t.border)} key="socialassets">
-            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Assets & Banner Specifications</h2>
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Assets & Specifications</h2>
             {socialAssets.length > 0 && (
               <div className="mb-4">
                 <h3 className={cn("font-semibold text-sm mb-2", t.text)}>Platform Specifications</h3>
@@ -958,19 +957,6 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                         </div>
                         <p className={cn("text-xs", t.textSubtle)}>{asset.textLegibility}</p>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {displayBanners.length > 0 && (
-              <div>
-                <h3 className={cn("font-semibold text-sm mb-2", t.text)}>Display Banner Sizes</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {displayBanners.map((banner: BrandDisplayBannerSpec) => (
-                    <div key={banner.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
-                      <p className={cn("font-medium text-xs", t.text)}>{banner.name}</p>
-                      <p className={cn("text-xs font-mono", t.textMuted)}>{banner.dimensions}</p>
                     </div>
                   ))}
                 </div>
