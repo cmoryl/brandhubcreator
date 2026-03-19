@@ -326,6 +326,9 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     linkedBooths: safeArray(g.linkedBooths),
     presentationTemplates: safeArray(g.presentationTemplates),
     
+    // Studios
+    studios: safeArray(g.studios),
+    
     // Timestamps
     createdAt: g.createdAt instanceof Date ? g.createdAt : (g.createdAt ? new Date(g.createdAt) : new Date()),
     updatedAt: g.updatedAt instanceof Date ? g.updatedAt : (g.updatedAt ? new Date(g.updatedAt) : new Date()),
