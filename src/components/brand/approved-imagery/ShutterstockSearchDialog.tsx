@@ -3,7 +3,7 @@ import { ImageryPreviewDialog } from './ImageryPreviewDialog';
 import {
   Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash,
   Camera, PenTool, Layers, SlidersHorizontal, X, Palette, Users, Eye,
-  CheckSquare, Square, FolderPlus, Bookmark, Brain,
+  CheckSquare, Square, FolderPlus, Bookmark, Brain, ZoomIn,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
