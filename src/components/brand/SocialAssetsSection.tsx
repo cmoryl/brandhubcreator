@@ -1255,11 +1255,42 @@ export const SocialAssetsSection = ({
                       const isCanva = template.fileType === 'canva' || template.url?.includes('canva.com');
                       const typeInfo = fileTypeIcons[template.fileType] || fileTypeIcons.other;
                       const TypeIcon = typeInfo.icon;
+                      const hasPreview = !!template.previewImageUrl;
+
+                      const handleTemplateImageUpload = async (file: File) => {
+                        if (!entityId) {
+                          // Fallback to base64
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            const updatedTemplates = (activePlatform.templates || []).map(t =>
+                              t.id === template.id ? { ...t, previewImageUrl: ev.target?.result as string } : t
+                            );
+                            updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+                          };
+                          reader.readAsDataURL(file);
+                          return;
+                        }
+                        try {
+                          const result = await uploadFile(file, 'asset', `template-preview-${template.id}`);
+                          if (result?.url) {
+                            const updatedTemplates = (activePlatform.templates || []).map(t =>
+                              t.id === template.id ? { ...t, previewImageUrl: result.url } : t
+                            );
+                            updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+                            toast.success('Template preview updated');
+                          }
+                        } catch {
+                          toast.error('Failed to upload preview image');
+                        }
+                      };
+
                       return (
                         <div key={template.id} className="group/card bg-card rounded-xl border border-border overflow-hidden hover:border-primary/30 hover:shadow-md transition-all">
                           {/* Template preview area */}
                           <div className="relative aspect-video bg-muted/30 flex items-center justify-center overflow-hidden">
-                            {isCanva ? (
+                            {hasPreview ? (
+                              <img src={template.previewImageUrl} alt={template.name} className="w-full h-full object-cover" />
+                            ) : isCanva ? (
                               <div className="flex flex-col items-center gap-2 text-center p-4">
                                 <img src={CANVA_LOGO_SVG} alt="Canva" className="w-10 h-10" />
                                 <span className="text-xs text-muted-foreground">Canva Template</span>
@@ -1270,9 +1301,9 @@ export const SocialAssetsSection = ({
                                 <span className="text-xs text-muted-foreground">{typeInfo.label}</span>
                               </div>
                             )}
-                            {/* Hover overlay with open action */}
-                            <div className="absolute inset-0 bg-foreground/0 group-hover/card:bg-foreground/5 transition-colors flex items-center justify-center">
-                              <div className="opacity-0 group-hover/card:opacity-100 transition-opacity">
+                            {/* Hover overlay */}
+                            <div className="absolute inset-0 bg-foreground/0 group-hover/card:bg-foreground/10 transition-colors flex flex-col items-center justify-center gap-2">
+                              <div className="opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center gap-2">
                                 {isCanva ? (
                                   <button
                                     onClick={() => {
@@ -1295,8 +1326,40 @@ export const SocialAssetsSection = ({
                                     Open Template
                                   </a>
                                 )}
+                                {canEditSocial && (
+                                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-background/90 backdrop-blur-sm text-foreground hover:bg-background shadow-lg cursor-pointer transition-colors">
+                                    <Upload className="h-3 w-3" />
+                                    {hasPreview ? 'Replace Image' : 'Add Image'}
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) handleTemplateImageUpload(file);
+                                        e.target.value = '';
+                                      }}
+                                    />
+                                  </label>
+                                )}
                               </div>
                             </div>
+                            {/* Remove image button */}
+                            {hasPreview && canEditSocial && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const updatedTemplates = (activePlatform.templates || []).map(t =>
+                                    t.id === template.id ? { ...t, previewImageUrl: undefined } : t
+                                  );
+                                  updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+                                  toast.success('Preview image removed');
+                                }}
+                                className="absolute top-2 right-2 p-1 rounded-full bg-destructive/80 text-destructive-foreground opacity-0 group-hover/card:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
                           </div>
                           {/* Template info */}
                           <div className="p-3 flex items-center justify-between">
