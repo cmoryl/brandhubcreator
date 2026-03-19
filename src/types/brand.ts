@@ -1171,7 +1171,8 @@ export type SectionId =
   | 'eventsignage'
   | 'presentations'
   | 'socialmetrics'
-  | 'approvedimagery';
+  | 'approvedimagery'
+  | 'studios';
 
 // Insight item for the Insights & Updates section
 export interface InsightItem {
