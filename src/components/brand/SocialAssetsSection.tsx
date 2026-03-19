@@ -1207,7 +1207,20 @@ export const SocialAssetsSection = ({
 
         {/* Active platform content */}
         {(() => {
-          const activePlatform = socialAssets.find(a => a.id === activePlatformId);
+          const rawPlatform = socialAssets.find(a => a.id === activePlatformId);
+          // Merge with preset defaults so size specs are always available
+          const presetDefaults = platformPresets.find(p => p.platform === rawPlatform?.platform);
+          const activePlatform = rawPlatform ? {
+            ...presetDefaults,
+            ...rawPlatform,
+            postSize: rawPlatform.postSize || presetDefaults?.postSize || '',
+            altSize: rawPlatform.altSize || presetDefaults?.altSize || '',
+            storySize: rawPlatform.storySize || presetDefaults?.storySize || '',
+            reelSize: rawPlatform.reelSize || presetDefaults?.reelSize || '',
+            coverSize: rawPlatform.coverSize || presetDefaults?.coverSize || '',
+            textLegibility: rawPlatform.textLegibility || presetDefaults?.textLegibility || '',
+            directive: rawPlatform.directive || presetDefaults?.directive || '',
+          } : null;
           if (!activePlatform) return (
             <div className="text-center py-8 text-muted-foreground text-sm border border-dashed border-border rounded-xl">
               Select a platform above to view specs and templates
