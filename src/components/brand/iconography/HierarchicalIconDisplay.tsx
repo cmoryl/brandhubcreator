@@ -1,6 +1,6 @@
 /**
- * HierarchicalIconDisplay - Unified flat grid showing all available icons for a brand
- * Replaces multiple collapsible sections with a clean single view + source filter chips
+ * HierarchicalIconDisplay - Collapsible grid showing all available icons for a brand
+ * Defaults to collapsed accordion state for cleaner layouts
  */
 
 import { useState, useMemo } from 'react';
@@ -10,12 +10,13 @@ import {
   Layers,
   Link2,
   Filter,
+  ChevronRight,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { BrandIconography } from '@/types/brand';
-// Note: getLinkedLibraryIds is kept for backward compat but getLinkedLibraryIdsForEntity is used
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
 
@@ -29,6 +30,7 @@ interface HierarchicalIconDisplayProps {
   iconColor?: string;
   onIconClick?: (icon: BrandIconography, library?: IconLibrary) => void;
   showEmptyGroups?: boolean;
+  defaultOpen?: boolean;
 }
 
 type SourceFilter = 'all' | 'core' | 'product_line' | 'assigned' | 'brand';
@@ -51,30 +53,28 @@ export const HierarchicalIconDisplay = ({
   iconColor = 'currentColor',
   onIconClick,
   showEmptyGroups = false,
+  defaultOpen = false,
 }: HierarchicalIconDisplayProps) => {
   const { libraries, coreLibraries, productLineLibraries, isLoading } = useIconLibraries(organizationId);
   const { links, getLinkedLibraryIdsForEntity } = useIconLibraryBrandLinks(organizationId);
   const [activeFilter, setActiveFilter] = useState<SourceFilter>('all');
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  // Organize all icons with source tags
   const allIcons = useMemo(() => {
     const items: { icon: BrandIconography; source: SourceFilter; libraryName?: string; library?: IconLibrary }[] = [];
 
-    // Core
     coreLibraries.forEach(lib => {
       if (lib.is_active) {
         lib.icons.forEach(icon => items.push({ icon, source: 'core', libraryName: lib.name, library: lib }));
       }
     });
 
-    // Product line
     productLineLibraries.forEach(lib => {
       if (lib.is_active && (!productLineId || lib.id === productLineId)) {
         lib.icons.forEach(icon => items.push({ icon, source: 'product_line', libraryName: lib.name, library: lib }));
       }
     });
 
-    // Assigned/linked - check all entity types
     const entityId = brandId || productId || eventId;
     const entityType = brandId ? 'brand' : productId ? 'product' : eventId ? 'event' : null;
     if (entityId && entityType) {
@@ -89,7 +89,6 @@ export const HierarchicalIconDisplay = ({
       });
     }
 
-    // Brand-specific
     brandIcons.forEach(icon => items.push({ icon, source: 'brand' }));
 
     return items;
@@ -100,7 +99,6 @@ export const HierarchicalIconDisplay = ({
     return allIcons.filter(i => i.source === activeFilter);
   }, [allIcons, activeFilter]);
 
-  // Count per source
   const counts = useMemo(() => {
     const c: Record<SourceFilter, number> = { all: allIcons.length, core: 0, product_line: 0, assigned: 0, brand: 0 };
     allIcons.forEach(i => c[i.source]++);
@@ -155,73 +153,75 @@ export const HierarchicalIconDisplay = ({
   }
 
   return (
-    <div className="space-y-3">
-      {/* Header with count */}
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-muted-foreground">
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger className="flex items-center justify-between w-full group py-1">
+        <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <ChevronRight className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-90')} />
           Organization Icon Library
-          <span className="ml-2 text-xs font-normal">({allIcons.length} icons)</span>
+          <span className="text-xs font-normal">({allIcons.length} icons)</span>
         </h4>
-      </div>
+      </CollapsibleTrigger>
 
-      {/* Source filter chips */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        {SOURCE_CHIPS.map(chip => {
-          const count = counts[chip.key];
-          if (count === 0 && chip.key !== 'all') return null;
-          const Icon = chip.icon;
-          const isActive = activeFilter === chip.key;
+      <CollapsibleContent className="space-y-3 pt-2">
+        {/* Source filter chips */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {SOURCE_CHIPS.map(chip => {
+            const count = counts[chip.key];
+            if (count === 0 && chip.key !== 'all') return null;
+            const Icon = chip.icon;
+            const isActive = activeFilter === chip.key;
 
-          return (
-            <button
-              key={chip.key}
-              onClick={() => setActiveFilter(chip.key)}
-              className={cn(
-                'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-              )}
-            >
-              <Icon className={cn('h-3 w-3', !isActive && chip.color)} />
-              {chip.label}
-              <span className={cn('text-[10px]', isActive ? 'opacity-80' : 'opacity-60')}>{count}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Unified icon grid */}
-      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
-        {filteredIcons.map((item, idx) => {
-          const sourceColor = item.source === 'core' ? 'border-blue-500/30' 
-            : item.source === 'product_line' ? 'border-purple-500/30'
-            : item.source === 'assigned' ? 'border-emerald-500/30'
-            : 'border-sky-500/30';
-
-          return (
-            <button
-              key={`${item.icon.id}-${idx}`}
-              onClick={() => onIconClick?.(item.icon, item.library)}
-              className={cn(
-                'aspect-square rounded-lg border-2 flex items-center justify-center',
-                'bg-muted/30 hover:bg-muted hover:shadow-sm transition-all',
-                'group relative',
-                sourceColor
-              )}
-              title={`${item.icon.name}${item.libraryName ? ` (${item.libraryName})` : item.source === 'brand' ? ' (Brand)' : ''}`}
-            >
-              {renderIcon(item.icon)}
-            </button>
-          );
-        })}
-      </div>
-
-      {filteredIcons.length === 0 && (
-        <div className="text-center py-6 text-sm text-muted-foreground">
-          No icons in this category
+            return (
+              <button
+                key={chip.key}
+                onClick={() => setActiveFilter(chip.key)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors',
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <Icon className={cn('h-3 w-3', !isActive && chip.color)} />
+                {chip.label}
+                <span className={cn('text-[10px]', isActive ? 'opacity-80' : 'opacity-60')}>{count}</span>
+              </button>
+            );
+          })}
         </div>
-      )}
-    </div>
+
+        {/* Unified icon grid */}
+        <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
+          {filteredIcons.map((item, idx) => {
+            const sourceColor = item.source === 'core' ? 'border-blue-500/30' 
+              : item.source === 'product_line' ? 'border-purple-500/30'
+              : item.source === 'assigned' ? 'border-emerald-500/30'
+              : 'border-sky-500/30';
+
+            return (
+              <button
+                key={`${item.icon.id}-${idx}`}
+                onClick={() => onIconClick?.(item.icon, item.library)}
+                className={cn(
+                  'aspect-square rounded-lg border-2 flex items-center justify-center',
+                  'bg-muted/30 hover:bg-muted hover:shadow-sm transition-all',
+                  'group relative',
+                  sourceColor
+                )}
+                title={`${item.icon.name}${item.libraryName ? ` (${item.libraryName})` : item.source === 'brand' ? ' (Brand)' : ''}`}
+              >
+                {renderIcon(item.icon)}
+              </button>
+            );
+          })}
+        </div>
+
+        {filteredIcons.length === 0 && (
+          <div className="text-center py-6 text-sm text-muted-foreground">
+            No icons in this category
+          </div>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
