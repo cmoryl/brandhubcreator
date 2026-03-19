@@ -1017,6 +1017,12 @@ const TemplateCardInfo = ({
           autoFocus
         />
         <Input
+          value={template.dimensions || ''}
+          onChange={(e) => onUpdate({ dimensions: e.target.value })}
+          placeholder="Dimensions (e.g. 1080 x 1080 px)"
+          className="h-7 text-xs font-mono"
+        />
+        <Input
           value={template.url}
           onChange={(e) => {
             const url = e.target.value;
@@ -1046,7 +1052,12 @@ const TemplateCardInfo = ({
     <div className="p-3 flex items-center justify-between">
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">{template.name}</p>
-        <p className="text-[10px] text-muted-foreground">{typeLabel}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-[10px] text-muted-foreground">{typeLabel}</p>
+          {template.dimensions && (
+            <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{template.dimensions}</span>
+          )}
+        </div>
       </div>
       {canEdit && (
         <div className="flex items-center gap-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity shrink-0">
