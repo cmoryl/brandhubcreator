@@ -1079,7 +1079,9 @@ export const SocialAssetsSection = ({
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
   const [activePlatformId, setActivePlatformId] = useState<string | null>(null);
   const [mockupPreviewPlatform, setMockupPreviewPlatform] = useState<BrandSocialAssetSpec | null>(null);
+  const [cardLayout, setCardLayout] = useState<LayoutPreset>('grid-3');
   const { gridClass } = useLayoutClasses(layout);
+  const { gridClass: cardGridClass } = useLayoutClasses(cardLayout);
   
   const canEditSocial = !!onSocialAssetsChange;
 
