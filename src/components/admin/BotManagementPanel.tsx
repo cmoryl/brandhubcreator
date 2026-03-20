@@ -93,20 +93,27 @@ const RESPONSE_STYLES = [
   { value: 'professional', label: 'Professional', description: 'Formal, business tone' },
 ];
 
-function getDefaultConfig(botType: BotType): BotConfig {
+const DEFAULT_BRAND_AGENT_PROMPT = `You are a dedicated brand agent. You have deep knowledge of this specific brand's guidelines, identity, colors, typography, and voice. Help users understand and apply the brand correctly.`;
+
+function getDefaultConfig(botType: BotType, brandName?: string): BotConfig {
+  const isBrandAgent = botType === 'brand_agent';
   return {
     bot_type: botType,
-    display_name: botType === 'help_agent' ? 'Help Assistant' : 'Brand Assistant',
-    system_prompt: botType === 'help_agent' ? DEFAULT_HELP_PROMPT : DEFAULT_ASSISTANT_PROMPT,
+    display_name: isBrandAgent ? `${brandName || 'Brand'} Assistant` : botType === 'help_agent' ? 'Help Assistant' : 'Brand Assistant',
+    system_prompt: isBrandAgent ? DEFAULT_BRAND_AGENT_PROMPT : botType === 'help_agent' ? DEFAULT_HELP_PROMPT : DEFAULT_ASSISTANT_PROMPT,
     model: 'google/gemini-2.5-flash-lite',
     temperature: 0.7,
     max_tokens: 2048,
-    welcome_message: botType === 'help_agent' 
-      ? "Hi! I'm your BrandHub assistant. Ask me anything about the platform."
-      : "Hello! I'm your Brand Assistant. Ask me about your brand guidelines.",
-    suggested_questions: botType === 'help_agent'
-      ? ['How do I create a brand?', 'What is Brand Health?', 'How do sections work?']
-      : ['What are our brand colors?', 'Describe our brand voice', 'Show typography guidelines'],
+    welcome_message: isBrandAgent 
+      ? `Hello! I'm the ${brandName || 'brand'} assistant. Ask me anything about this brand.`
+      : botType === 'help_agent' 
+        ? "Hi! I'm your BrandHub assistant. Ask me anything about the platform."
+        : "Hello! I'm your Brand Assistant. Ask me about your brand guidelines.",
+    suggested_questions: isBrandAgent
+      ? ['What are our brand colors?', 'Describe our brand voice', 'What is our mission?']
+      : botType === 'help_agent'
+        ? ['How do I create a brand?', 'What is Brand Health?', 'How do sections work?']
+        : ['What are our brand colors?', 'Describe our brand voice', 'Show typography guidelines'],
     is_active: true,
     personality_traits: ['helpful', 'knowledgeable', 'friendly'],
     response_style: 'concise',
