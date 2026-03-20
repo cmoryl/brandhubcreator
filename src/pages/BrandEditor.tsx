@@ -1353,7 +1353,7 @@ const BrandEditor = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Brand Assistant Floating Button */}
+      {/* Brand Assistant Floating Button (admin) */}
       {canEdit && (
         <>
           <Button
@@ -1374,6 +1374,15 @@ const BrandEditor = () => {
           </Suspense>
         </>
       )}
+
+      {/* Per-Brand Agent Widget (all authenticated users) */}
+      <Suspense fallback={null}>
+        <BrandAgentWidget
+          brandId={brand.id}
+          brandName={brand.hero.name}
+          primaryColor={brand.colors?.[0]?.hex}
+        />
+      </Suspense>
     </TooltipProvider>
   );
 };
