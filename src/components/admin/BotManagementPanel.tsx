@@ -45,6 +45,7 @@ interface BotConfig {
   id?: string;
   bot_type: BotType;
   organization_id?: string;
+  brand_id?: string;
   display_name: string;
   system_prompt: string;
   model: string;
