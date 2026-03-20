@@ -1,12 +1,11 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { SectionId, BrandBackgroundType } from '@/types/brand';
 import { sectionMeta as defaultSectionMeta } from './ReorderableBrandSidebar';
 import { HeroBackground } from '@/components/HeroBackground';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown, Upload, Sun, Moon, BarChart3, Brain, Shield, ChevronRight, Star } from 'lucide-react';
+import { Paintbrush, Sparkles, Waves, LayoutGrid, X, ArrowUpDown, Upload, Sun, Moon, BarChart3, Brain, Shield, Star } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { useSectionFavorites } from '@/hooks/useSectionFavorites';
@@ -51,48 +50,6 @@ const SECTION_DESCRIPTIONS: Record<string, string> = {
   sponsorlogos: 'Partner and sponsor logo placement guidelines.',
   clientlogos: 'Client logo downloads with multi-format variants.',
   eventsignage: 'Event booth, banner, and signage specifications.',
-};
-
-// Capabilities per section for expanded view
-const SECTION_CAPABILITIES: Record<string, string[]> = {
-  tagline: ['Primary tagline', 'Variants', 'Usage rules'],
-  identity: ['Mission & vision', 'Values', 'Personality'],
-  values: ['Core values', 'Principles', 'Culture pillars'],
-  bythenumbers: ['Infographics', 'Statistics', 'Metrics'],
-  services: ['Service catalog', 'Capabilities', 'Descriptions'],
-  revenue: ['Growth charts', 'Milestones', 'Financial data'],
-  awards: ['Certifications', 'Recognition', 'Badges'],
-  locations: ['Global map', 'Office directory', 'Region stats'],
-  webinars: ['Recordings', 'Series', 'Thumbnails'],
-  colors: ['Palette management', 'Contrast checker', 'Tint generator'],
-  typography: ['Font pairing', 'Scale system', 'Web fonts'],
-  logos: ['Multi-format export', 'Clear space', 'Usage rules'],
-  brandicon: ['Min sizes', 'Placement', 'Color rules'],
-  gradients: ['Gradient builder', 'CSS export', 'Palette-derived'],
-  patterns: ['Shape library', 'Construction', 'Proportions'],
-  textstyles: ['CSS hierarchy', 'Code export', 'Specifications'],
-  iconography: ['Icon grid', 'Style presets', 'Generator'],
-  socialicons: ['Platform icons', 'Variants', 'Downloads'],
-  imagery: ['Photo direction', 'Illustration', 'Treatments'],
-  social: ['Profile links', 'Platforms', 'Handles'],
-  socialassets: ['Platform sizing', 'Calendar', 'Templates'],
-  website: ['Components', 'SEO audit', 'Performance'],
-  signatures: ['Email templates', 'Cards', 'HTML export'],
-  qr: ['Branded codes', 'Dynamic links', 'Analytics'],
-  videos: ['Video library', 'Guidelines', 'Embed codes'],
-  assets: ['File vault', 'Downloads', 'Categories'],
-  imageassets: ['Image library', 'Galleries', 'Downloads'],
-  misuse: ['Misuse gallery', 'Corrections', 'Approvals'],
-  insights: ['Reports', 'Analytics', 'Updates'],
-  brochures: ['Layouts', 'Content blocks', 'Print-ready'],
-  templatespecs: ['Annotations', 'Dimensions', 'Grids'],
-  presentations: ['Slide decks', 'Templates', 'Downloads'],
-  products: ['Sub-brands', 'Product lines', 'Packaging'],
-  events: ['Event branding', 'Signage', 'Swag guidelines'],
-  universe: ['Ecosystem map', 'Linked guides', 'Connections'],
-  sponsorlogos: ['Logo variants', 'Placement', 'Downloads'],
-  clientlogos: ['Client assets', 'Formats', 'Bulk download'],
-  eventsignage: ['Booth design', 'Banners', 'Specifications'],
 };
 
 interface SectionCardGridProps {
@@ -224,10 +181,7 @@ const sortSections = (sections: string[], mode: SortMode, meta: Record<string, {
   }
 };
 
-// Unified spring config for consistent motion rhythm
-const CARD_SPRING = { type: 'spring' as const, stiffness: 140, damping: 28, mass: 0.9 };
-
-// Extracted card grid with expanding hover cards
+// Simplified card grid — uniform size, hover only scales icon
 const CardGrid = React.forwardRef<HTMLDivElement, {
   sections: string[];
   sectionMeta: Record<string, { label: string; icon: React.ElementType; category: string }>;
@@ -251,25 +205,10 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
   favoritedIds,
   onToggleFavorite,
 }, ref) {
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleMouseEnter = useCallback((id: string) => {
-    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-    // Reduced delay for snappier response
-    hoverTimeout.current = setTimeout(() => setHoveredId(id), 80);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-    setHoveredId(null);
-  }, []);
-
   return (
-    <motion.div
+    <div
       ref={ref}
-      className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-1.5 sm:gap-2"
-      style={{ alignItems: 'start' }}
+      className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-2"
     >
       {sections.map((sectionId, index) => {
         const meta = sectionMeta[sectionId];
@@ -278,238 +217,77 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
         const isActive = activeSection === sectionId;
         const isHidden = hiddenSections.includes(sectionId);
         const tint = CARD_TINTS[index % CARD_TINTS.length];
-        const isHovered = hoveredId === sectionId;
-        const isExpanded = isHovered || isActive;
-        const isShrunk = hoveredId !== null && hoveredId !== sectionId && !isActive;
         const description = (sectionId === 'tagline' && entityTagline)
           ? `"${entityTagline}"`
           : (SECTION_DESCRIPTIONS[sectionId] || `Manage ${meta.label.toLowerCase()} settings and guidelines.`);
-        const capabilities = SECTION_CAPABILITIES[sectionId] || ['Configure', 'Manage', 'Export'];
 
         return (
-          <motion.button
+          <button
             key={sectionId}
-            layout="position"
             onClick={() => onSectionSelect(sectionId)}
-            onMouseEnter={() => handleMouseEnter(sectionId)}
-            onMouseLeave={handleMouseLeave}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{
-              opacity: isShrunk ? 0.65 : 1,
-              scale: isShrunk ? 0.94 : 1,
-              filter: isShrunk ? (isDark ? 'brightness(0.8)' : 'brightness(0.95)') : 'brightness(1)',
-            }}
-            whileTap={{ scale: 0.97 }}
-            transition={CARD_SPRING}
+            title={description}
             className={cn(
-              'section-card-shimmer group relative flex flex-col items-center justify-center rounded-xl',
-              'transition-[background,box-shadow,border-color,ring-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] origin-center overflow-hidden',
-              isExpanded ? 'col-span-3 row-span-2 z-30 p-3 gap-2' : 'col-span-1 p-2 gap-1 aspect-square',
+              'group relative flex flex-col items-center justify-center rounded-xl aspect-square p-2 gap-1',
+              'transition-all duration-200 ease-out overflow-hidden',
               isActive
                 ? 'text-white ring-2'
                 : isDark
                   ? 'bg-card/80 backdrop-blur-sm text-card-foreground'
-                  : 'bg-white/90 backdrop-blur-sm text-foreground shadow-sm border border-border/30',
+                  : 'bg-white/90 backdrop-blur-sm text-foreground shadow-sm border border-border/30 hover:shadow-md hover:border-border/50',
               isHidden && isAdmin && 'opacity-40 grayscale'
             )}
             style={{
-              '--shimmer-color': tint.bg,
               backgroundColor: isActive ? undefined : (isDark ? tint.tint : tint.tintLight),
               ...(isActive ? {
                 background: `linear-gradient(135deg, ${tint.bg}, ${tint.bg.replace(')', ' / 0.7)')})`,
                 boxShadow: `0 0 12px ${tint.bg.replace(')', ' / 0.2)')}, 0 0 24px ${tint.bg.replace(')', ' / 0.08)')}`,
                 ringColor: tint.bg.replace(')', ' / 0.6)'),
-              } : isExpanded ? {
-                boxShadow: isDark
-                  ? `0 2px 16px ${tint.bg.replace(')', ' / 0.12)')}`
-                  : `0 2px 12px ${tint.bg.replace(')', ' / 0.08)')}, 0 4px 16px rgba(0,0,0,0.05)`,
-                border: `1px solid ${tint.bg.replace(')', isDark ? ' / 0.2)' : ' / 0.15)')}`,
               } : {}),
             } as any}
           >
-            {/* Hover/expanded glow background */}
-            {isExpanded && !isActive && (
-              <motion.div
+            {/* Active subtle overlay */}
+            {isActive && (
+              <div
                 className="absolute inset-0 rounded-xl pointer-events-none"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
                 style={{
-                  background: `radial-gradient(ellipse at center, ${tint.bg.replace(')', ' / 0.12)')}, transparent 70%)`,
+                  background: 'linear-gradient(160deg, rgba(255,255,255,0.15) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.08) 100%)',
                 }}
               />
             )}
 
-            {/* Active liquid metal overlay */}
-            {isActive && (
-              <>
-                {/* Base chrome sheen */}
-                <motion.div
-                  className="absolute inset-0 rounded-xl pointer-events-none opacity-30"
-                  style={{
-                    background: `
-                      radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.4) 0%, transparent 50%),
-                      radial-gradient(ellipse at 70% 80%, rgba(255,255,255,0.25) 0%, transparent 45%)
-                    `,
-                  }}
-                  animate={{
-                    backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
-                  }}
-                  transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-                />
-                {/* Slow liquid morph blob */}
-                <motion.div
-                  className="absolute pointer-events-none rounded-full blur-2xl"
-                  style={{
-                    width: '120%',
-                    height: '120%',
-                    left: '-10%',
-                    top: '-10%',
-                    background: `radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 60%)`,
-                  }}
-                  animate={{
-                    x: [0, 15, -10, 5, 0],
-                    y: [0, -10, 8, -5, 0],
-                    scale: [1, 1.05, 0.97, 1.03, 1],
-                  }}
-                  transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-                />
-                {/* Subtle edge highlight */}
-                <div
-                  className="absolute inset-0 rounded-xl pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(160deg, rgba(255,255,255,0.15) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.08) 100%)',
-                  }}
-                />
-              </>
-            )}
-
-            {/* Icon — larger when expanded */}
-            <motion.div
-              animate={isExpanded ? { scale: 1.15 } : { scale: 1 }}
-              transition={CARD_SPRING}
-              className="relative z-10"
-            >
-              <Icon className={cn(
-                'h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300',
-                isExpanded && 'h-7 w-7 sm:h-8 sm:w-8',
-                isActive && 'drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]'
-              )} />
-            </motion.div>
+            {/* Icon */}
+            <Icon className={cn(
+              'h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-200 relative z-10',
+              'group-hover:scale-110',
+              isActive && 'drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]'
+            )} />
 
             {/* Label + favorite star */}
-            <div className="relative z-10 flex items-center gap-1">
+            <div className="relative z-10 flex items-center gap-0.5">
               <span className={cn(
-                'leading-tight text-center font-normal tracking-wide',
-                isExpanded ? 'text-xs font-semibold' : 'text-[9px] sm:text-[10px] line-clamp-2',
-                isActive ? 'text-white' : 'text-foreground/70 group-hover:text-foreground'
+                'text-[9px] sm:text-[10px] leading-tight text-center font-normal tracking-wide line-clamp-2',
+                isActive ? 'text-white font-medium' : 'text-foreground/70 group-hover:text-foreground'
               )}>
                 {meta.label}
               </span>
-              {favoritedIds?.has(sectionId) && !isExpanded && (
+              {favoritedIds?.has(sectionId) && (
                 <Star className="h-2.5 w-2.5 text-amber-500 fill-current shrink-0" />
               )}
             </div>
 
-            {/* Expanded detail content */}
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative z-10 w-full space-y-1.5 overflow-hidden"
-                >
-                  {/* Category badge */}
-                  <div className="flex justify-center">
-                    <span
-                      className={cn("text-[9px] font-semibold px-2 py-0.5 rounded-full")}
-                      style={{
-                        backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : tint.bg.replace(')', ' / 0.15)'),
-                        color: isActive ? 'rgba(255,255,255,0.9)' : tint.bg,
-                      }}
-                    >
-                      {meta.category}
-                    </span>
-                  </div>
-
-                  {/* Description */}
-                  <p className={cn(
-                    "text-[10px] leading-relaxed text-center line-clamp-2 px-1",
-                    isActive ? "text-white/70" : "text-muted-foreground"
-                  )}>
-                    {description}
-                  </p>
-
-                  {/* Capabilities */}
-                  <div className="flex flex-wrap gap-1 justify-center pt-0.5">
-                    {capabilities.map((cap, i) => (
-                      <motion.span
-                        key={cap}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.04, duration: 0.25, ease: 'easeOut' }}
-                        className={cn(
-                          "text-[8px] px-1.5 py-0.5 rounded-md border",
-                          isActive
-                            ? "bg-white/10 text-white/80 border-white/20"
-                            : "bg-muted/50 text-muted-foreground border-border/40"
-                        )}
-                      >
-                        {cap}
-                      </motion.span>
-                    ))}
-                  </div>
-
-                  {/* Action row — favorite toggle + open hint */}
-                  {isHovered && !isActive && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.15 }}
-                      className="flex items-center justify-center gap-2 text-[9px] font-medium pt-1"
-                    >
-                      {onToggleFavorite && (
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); onToggleFavorite(sectionId); }}
-                          className={cn(
-                            "flex items-center gap-0.5 px-1.5 py-0.5 rounded-md transition-colors",
-                            favoritedIds?.has(sectionId)
-                              ? "text-amber-500 hover:text-amber-600"
-                              : "text-muted-foreground hover:text-amber-500"
-                          )}
-                          title={favoritedIds?.has(sectionId) ? 'Remove from favorites' : 'Add to favorites'}
-                        >
-                          <Star className={cn("h-2.5 w-2.5", favoritedIds?.has(sectionId) && "fill-current")} />
-                        </button>
-                      )}
-                      <span style={{ color: tint.bg }} className="flex items-center gap-0.5">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                        Open
-                      </span>
-                    </motion.div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Subtle bottom accent bar */}
+            {/* Subtle bottom accent bar for active */}
             {isActive && (
-              <motion.div
+              <div
                 className="absolute bottom-0.5 left-2 right-2 h-[2px] rounded-full"
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
                 style={{
                   background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent)',
                 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               />
             )}
-          </motion.button>
+          </button>
         );
       })}
-    </motion.div>
+    </div>
   );
 });
 
