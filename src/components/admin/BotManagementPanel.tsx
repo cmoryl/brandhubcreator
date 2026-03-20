@@ -39,7 +39,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, subDays } from 'date-fns';
 import { useOrganization } from '@/contexts/OrganizationContext';
 
-type BotType = 'help_agent' | 'brand_assistant';
+type BotType = 'help_agent' | 'brand_assistant' | 'brand_agent';
 
 interface BotConfig {
   id?: string;
