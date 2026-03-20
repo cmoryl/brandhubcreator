@@ -116,6 +116,7 @@ const CompetitiveReportCardLazy = lazy(() =>
   import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
 );
 const BrandAssistant = lazy(() => import('@/components/dataforce/BrandAssistant').then(m => ({ default: m.BrandAssistant })));
+const BrandAgentWidget = lazy(() => import('@/components/brand/BrandAgentWidget').then(m => ({ default: m.BrandAgentWidget })));
 
 const BrandEditor = () => {
   const { brandSlug } = useParams<{ brandSlug: string }>();
