@@ -1200,6 +1200,7 @@ export type Database = {
       bot_config: {
         Row: {
           bot_type: string
+          brand_id: string | null
           created_at: string
           display_name: string
           id: string
@@ -1217,6 +1218,7 @@ export type Database = {
         }
         Insert: {
           bot_type: string
+          brand_id?: string | null
           created_at?: string
           display_name?: string
           id?: string
@@ -1234,6 +1236,7 @@ export type Database = {
         }
         Update: {
           bot_type?: string
+          brand_id?: string | null
           created_at?: string
           display_name?: string
           id?: string
@@ -1250,6 +1253,13 @@ export type Database = {
           welcome_message?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "bot_config_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bot_config_organization_id_fkey"
             columns: ["organization_id"]
