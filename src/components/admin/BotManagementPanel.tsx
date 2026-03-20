@@ -39,12 +39,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, subDays } from 'date-fns';
 import { useOrganization } from '@/contexts/OrganizationContext';
 
-type BotType = 'help_agent' | 'brand_assistant';
+type BotType = 'help_agent' | 'brand_assistant' | 'brand_agent';
 
 interface BotConfig {
   id?: string;
   bot_type: BotType;
   organization_id?: string;
+  brand_id?: string;
   display_name: string;
   system_prompt: string;
   model: string;
@@ -92,20 +93,27 @@ const RESPONSE_STYLES = [
   { value: 'professional', label: 'Professional', description: 'Formal, business tone' },
 ];
 
-function getDefaultConfig(botType: BotType): BotConfig {
+const DEFAULT_BRAND_AGENT_PROMPT = `You are a dedicated brand agent. You have deep knowledge of this specific brand's guidelines, identity, colors, typography, and voice. Help users understand and apply the brand correctly.`;
+
+function getDefaultConfig(botType: BotType, brandName?: string): BotConfig {
+  const isBrandAgent = botType === 'brand_agent';
   return {
     bot_type: botType,
-    display_name: botType === 'help_agent' ? 'Help Assistant' : 'Brand Assistant',
-    system_prompt: botType === 'help_agent' ? DEFAULT_HELP_PROMPT : DEFAULT_ASSISTANT_PROMPT,
+    display_name: isBrandAgent ? `${brandName || 'Brand'} Assistant` : botType === 'help_agent' ? 'Help Assistant' : 'Brand Assistant',
+    system_prompt: isBrandAgent ? DEFAULT_BRAND_AGENT_PROMPT : botType === 'help_agent' ? DEFAULT_HELP_PROMPT : DEFAULT_ASSISTANT_PROMPT,
     model: 'google/gemini-2.5-flash-lite',
     temperature: 0.7,
     max_tokens: 2048,
-    welcome_message: botType === 'help_agent' 
-      ? "Hi! I'm your BrandHub assistant. Ask me anything about the platform."
-      : "Hello! I'm your Brand Assistant. Ask me about your brand guidelines.",
-    suggested_questions: botType === 'help_agent'
-      ? ['How do I create a brand?', 'What is Brand Health?', 'How do sections work?']
-      : ['What are our brand colors?', 'Describe our brand voice', 'Show typography guidelines'],
+    welcome_message: isBrandAgent 
+      ? `Hello! I'm the ${brandName || 'brand'} assistant. Ask me anything about this brand.`
+      : botType === 'help_agent' 
+        ? "Hi! I'm your BrandHub assistant. Ask me anything about the platform."
+        : "Hello! I'm your Brand Assistant. Ask me about your brand guidelines.",
+    suggested_questions: isBrandAgent
+      ? ['What are our brand colors?', 'Describe our brand voice', 'What is our mission?']
+      : botType === 'help_agent'
+        ? ['How do I create a brand?', 'What is Brand Health?', 'How do sections work?']
+        : ['What are our brand colors?', 'Describe our brand voice', 'Show typography guidelines'],
     is_active: true,
     personality_traits: ['helpful', 'knowledgeable', 'friendly'],
     response_style: 'concise',
@@ -760,9 +768,76 @@ export function BotManagementPanel() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Brand agent state
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
+  const [brandAgentConfigs, setBrandAgentConfigs] = useState<Map<string, BotConfig>>(new Map());
+
+  // Load org brands for brand agent picker
   useEffect(() => {
-    loadConfig(selectedBot);
-  }, [selectedBot, organization?.id]);
+    if (!organization?.id) return;
+    supabase
+      .from('brands')
+      .select('id, name')
+      .eq('organization_id', organization.id)
+      .order('name')
+      .then(({ data }) => {
+        if (data) setBrands(data);
+      });
+  }, [organization?.id]);
+
+  // Load all brand agent configs for this org
+  useEffect(() => {
+    if (!organization?.id || selectedBot !== 'brand_agent') return;
+    supabase
+      .from('bot_config')
+      .select('*')
+      .eq('bot_type', 'brand_agent')
+      .eq('organization_id', organization.id)
+      .then(({ data }) => {
+        if (data) {
+          const map = new Map<string, BotConfig>();
+          data.forEach((d: any) => {
+            if (d.brand_id) {
+              map.set(d.brand_id, {
+                id: d.id,
+                bot_type: d.bot_type as BotType,
+                organization_id: d.organization_id || undefined,
+                brand_id: d.brand_id,
+                display_name: d.display_name,
+                system_prompt: d.system_prompt || '',
+                model: d.model,
+                temperature: Number(d.temperature) || 0.7,
+                max_tokens: d.max_tokens || 2048,
+                welcome_message: d.welcome_message || '',
+                suggested_questions: Array.isArray(d.suggested_questions) ? d.suggested_questions as string[] : [],
+                is_active: d.is_active ?? true,
+                personality_traits: Array.isArray(d.personality_traits) ? d.personality_traits as string[] : [],
+                response_style: d.response_style || 'concise',
+              });
+            }
+          });
+          setBrandAgentConfigs(map);
+        }
+      });
+  }, [organization?.id, selectedBot]);
+
+  useEffect(() => {
+    if (selectedBot === 'brand_agent') {
+      if (selectedBrandId && brandAgentConfigs.has(selectedBrandId)) {
+        setConfig(brandAgentConfigs.get(selectedBrandId)!);
+        setIsLoading(false);
+      } else if (selectedBrandId) {
+        const brand = brands.find(b => b.id === selectedBrandId);
+        setConfig(getDefaultConfig('brand_agent', brand?.name));
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+      }
+    } else {
+      loadConfig(selectedBot);
+    }
+  }, [selectedBot, organization?.id, selectedBrandId, brandAgentConfigs]);
 
   const loadConfig = async (botType: BotType) => {
     setIsLoading(true);
@@ -783,6 +858,7 @@ export function BotManagementPanel() {
           id: data.id,
           bot_type: data.bot_type as BotType,
           organization_id: data.organization_id || undefined,
+          brand_id: data.brand_id || undefined,
           display_name: data.display_name,
           system_prompt: data.system_prompt || '',
           model: data.model,
@@ -808,7 +884,7 @@ export function BotManagementPanel() {
   const saveConfig = async () => {
     setIsSaving(true);
     try {
-      const payload = {
+      const payload: any = {
         bot_type: config.bot_type,
         organization_id: organization?.id || null,
         display_name: config.display_name,
@@ -822,6 +898,11 @@ export function BotManagementPanel() {
         personality_traits: config.personality_traits,
         response_style: config.response_style,
       };
+
+      // For brand agents, attach brand_id
+      if (config.bot_type === 'brand_agent' && selectedBrandId) {
+        payload.brand_id = selectedBrandId;
+      }
 
       if (config.id) {
         const { error } = await supabase
@@ -837,6 +918,10 @@ export function BotManagementPanel() {
           .single();
         if (error) throw error;
         setConfig(prev => ({ ...prev, id: data.id }));
+        // Update local cache
+        if (config.bot_type === 'brand_agent' && selectedBrandId) {
+          setBrandAgentConfigs(prev => new Map(prev).set(selectedBrandId, { ...config, id: data.id }));
+        }
       }
 
       toast.success(`${config.display_name} configuration saved`);
@@ -848,15 +933,17 @@ export function BotManagementPanel() {
     }
   };
 
+  const effectiveBotType = selectedBot === 'brand_agent' ? 'brand_agent' : selectedBot;
+
   return (
     <div className="space-y-6">
       {/* Bot Selector */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <div className="flex gap-2">
           <Button
             variant={selectedBot === 'help_agent' ? 'default' : 'outline'}
             className="gap-2"
-            onClick={() => setSelectedBot('help_agent')}
+            onClick={() => { setSelectedBot('help_agent'); setSelectedBrandId(null); }}
           >
             <Bot className="h-4 w-4" />
             Help Agent
@@ -864,10 +951,18 @@ export function BotManagementPanel() {
           <Button
             variant={selectedBot === 'brand_assistant' ? 'default' : 'outline'}
             className="gap-2"
-            onClick={() => setSelectedBot('brand_assistant')}
+            onClick={() => { setSelectedBot('brand_assistant'); setSelectedBrandId(null); }}
           >
             <Sparkles className="h-4 w-4" />
             Brand Assistant
+          </Button>
+          <Button
+            variant={selectedBot === 'brand_agent' ? 'default' : 'outline'}
+            className="gap-2"
+            onClick={() => setSelectedBot('brand_agent')}
+          >
+            <Zap className="h-4 w-4" />
+            Brand Agents
           </Button>
         </div>
         <Separator orientation="vertical" className="h-8" />
@@ -877,7 +972,47 @@ export function BotManagementPanel() {
         </Badge>
       </div>
 
-      {isLoading ? (
+      {/* Brand picker for brand agents */}
+      {selectedBot === 'brand_agent' && (
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-4">
+              <Label className="whitespace-nowrap font-medium">Select Brand:</Label>
+              <Select value={selectedBrandId || ''} onValueChange={(val) => setSelectedBrandId(val)}>
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Choose a brand..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands.map(b => (
+                    <SelectItem key={b.id} value={b.id}>
+                      <div className="flex items-center gap-2">
+                        {b.name}
+                        {brandAgentConfigs.has(b.id) && (
+                          <Badge variant="outline" className="text-[10px] px-1">configured</Badge>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {brands.length === 0 && (
+                <p className="text-xs text-muted-foreground">No brands found in this organization</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedBot === 'brand_agent' && !selectedBrandId ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+          <Zap className="h-8 w-8 text-muted-foreground" />
+          <p className="text-muted-foreground">Select a brand above to configure its dedicated AI agent</p>
+          <p className="text-xs text-muted-foreground">
+            Each brand can have its own system prompt, personality, model, and suggested questions.
+            The agent will automatically have context about the brand's guidelines.
+          </p>
+        </div>
+      ) : isLoading ? (
         <div className="flex items-center justify-center py-12 text-muted-foreground">
           <RefreshCw className="h-5 w-5 animate-spin mr-2" />
           Loading configuration...
@@ -909,11 +1044,11 @@ export function BotManagementPanel() {
           </TabsContent>
 
           <TabsContent value="conversations">
-            <BotConversationsTab botType={selectedBot} />
+            <BotConversationsTab botType={effectiveBotType} />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <BotAnalyticsTab botType={selectedBot} />
+            <BotAnalyticsTab botType={effectiveBotType} />
           </TabsContent>
         </Tabs>
       )}

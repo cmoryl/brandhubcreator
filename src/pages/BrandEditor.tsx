@@ -116,6 +116,7 @@ const CompetitiveReportCardLazy = lazy(() =>
   import('@/components/brand/CompetitiveReportCard').then((m) => ({ default: m.CompetitiveReportCard }))
 );
 const BrandAssistant = lazy(() => import('@/components/dataforce/BrandAssistant').then(m => ({ default: m.BrandAssistant })));
+const BrandAgentWidget = lazy(() => import('@/components/brand/BrandAgentWidget').then(m => ({ default: m.BrandAgentWidget })));
 
 const BrandEditor = () => {
   const { brandSlug } = useParams<{ brandSlug: string }>();
@@ -1352,7 +1353,7 @@ const BrandEditor = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Brand Assistant Floating Button */}
+      {/* Brand Assistant Floating Button (admin) */}
       {canEdit && (
         <>
           <Button
@@ -1373,6 +1374,15 @@ const BrandEditor = () => {
           </Suspense>
         </>
       )}
+
+      {/* Per-Brand Agent Widget (all authenticated users) */}
+      <Suspense fallback={null}>
+        <BrandAgentWidget
+          brandId={brand.id}
+          brandName={brand.hero.name}
+          primaryColor={brand.colors?.[0]?.hex}
+        />
+      </Suspense>
     </TooltipProvider>
   );
 };

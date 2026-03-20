@@ -575,19 +575,38 @@ serve(async (req) => {
     }
 
     // Get DataForce config for persona and mode
-    const [{ data: config }, { data: botConfig }] = await Promise.all([
-      supabase
-        .from('dataforce_config')
-        .select('assistant_persona, api_mode')
-        .eq('organization_id', organization_id)
-        .maybeSingle(),
-      supabase
+    // Try per-brand agent config first, then fall back to generic brand_assistant
+    const configPromise = supabase
+      .from('dataforce_config')
+      .select('assistant_persona, api_mode')
+      .eq('organization_id', organization_id)
+      .maybeSingle();
+
+    let brandBotPromise;
+    if (entity_type === 'brand' && entity_id) {
+      brandBotPromise = supabase
         .from('bot_config')
         .select('system_prompt, model, temperature, max_tokens, is_active, welcome_message, personality_traits, response_style, display_name')
-        .eq('bot_type', 'brand_assistant')
-        .eq('organization_id', organization_id)
-        .maybeSingle(),
+        .eq('bot_type', 'brand_agent')
+        .eq('brand_id', entity_id)
+        .maybeSingle();
+    } else {
+      brandBotPromise = Promise.resolve({ data: null });
+    }
+
+    const genericBotPromise = supabase
+      .from('bot_config')
+      .select('system_prompt, model, temperature, max_tokens, is_active, welcome_message, personality_traits, response_style, display_name')
+      .eq('bot_type', 'brand_assistant')
+      .eq('organization_id', organization_id)
+      .maybeSingle();
+
+    const [{ data: config }, { data: brandBotConfig }, { data: genericBotConfig }] = await Promise.all([
+      configPromise, brandBotPromise, genericBotPromise,
     ]);
+
+    // Per-brand agent config takes priority over generic brand_assistant config
+    const botConfig = brandBotConfig || genericBotConfig;
 
     const isDemo = !config || config.api_mode === 'demo';
     // Bot Manager config takes priority over DataForce config
