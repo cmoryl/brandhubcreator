@@ -544,11 +544,22 @@ export const DigitalCollateralSection = ({
   };
 
   const isPdf = (url: string) => {
-    return url?.includes('application/pdf') || url?.endsWith('.pdf');
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    return lower.includes('application/pdf') || lower.endsWith('.pdf') || lower.includes('.pdf?');
   };
 
   const isImage = (url: string) => {
-    return url?.includes('image') || url?.includes('data:image');
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    // Check for data URIs
+    if (lower.startsWith('data:image')) return true;
+    // Check for common image extensions (handles Supabase storage URLs)
+    const imageExts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp', '.avif'];
+    if (imageExts.some(ext => lower.includes(ext))) return true;
+    // Check for MIME type in URL
+    if (lower.includes('image/')) return true;
+    return false;
   };
 
   // Group by category
