@@ -765,6 +765,12 @@ export const DigitalCollateralSection = ({
             />
           )}
           {canEdit && (
+            <Button onClick={() => setShowCategoryDialog(true)} size="sm" variant="outline" className="gap-2 shrink-0">
+              <FolderPlus className="h-4 w-4" />
+              Add Category
+            </Button>
+          )}
+          {canEdit && (
             <Button onClick={() => setShowBannerSetDialog(true)} size="sm" variant="outline" className="gap-2 shrink-0">
               <Palette className="h-4 w-4" />
               Banner Set
