@@ -821,6 +821,17 @@ export const DigitalCollateralSection = ({
                 <Plus className="h-3 w-3 opacity-50" />
               </button>
             ))}
+            {customCategories.map(cat => (
+              <button
+                key={cat.value}
+                onClick={() => triggerUploadForCategory(cat.value)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 text-foreground transition-colors"
+              >
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
+                <Plus className="h-3 w-3 opacity-50" />
+              </button>
+            ))}
           </div>
         </>
       )}
