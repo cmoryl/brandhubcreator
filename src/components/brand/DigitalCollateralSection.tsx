@@ -125,6 +125,9 @@ const SortableCollateralItem = ({
   onRemoveThumbnail,
   onDoneEditing,
   isImage,
+  allCategoryOptions,
+  isDragging,
+}: SortableItemProps) => {
   isDragging,
 }: SortableItemProps) => {
   const {
