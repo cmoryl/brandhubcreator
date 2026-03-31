@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2 } from 'lucide-react';
 import { generatePdfThumbnail } from '@/lib/pdfThumbnail';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
@@ -85,6 +85,17 @@ const SOCIAL_BANNER_PLATFORMS = [
 
 const isSocialBannerCategory = (category: string) => category.startsWith('Social Banner Set');
 
+// Check if a category is a built-in one
+const isBuiltInCategory = (category: string) => CATEGORY_OPTIONS.some(c => c.value === category);
+
+interface CustomCategory {
+  value: string;
+  label: string;
+  icon: string;
+}
+
+const EMOJI_OPTIONS = ['📂', '🗂️', '📑', '📝', '🎯', '💡', '🔖', '🏷️', '⭐', '🔧', '📌', '🎨', '📐', '🧩', '🚀', '✨'];
+
 // Sortable Item Component
 interface SortableItemProps {
   item: BrandBrochure;
@@ -98,6 +109,7 @@ interface SortableItemProps {
   onRemoveThumbnail: () => void;
   onDoneEditing: () => void;
   isImage: (url: string) => boolean;
+  allCategoryOptions: { value: string; label: string; icon: string }[];
   isDragging?: boolean;
 }
 
@@ -113,6 +125,7 @@ const SortableCollateralItem = ({
   onRemoveThumbnail,
   onDoneEditing,
   isImage,
+  allCategoryOptions,
   isDragging,
 }: SortableItemProps) => {
   const {
@@ -275,7 +288,7 @@ const SortableCollateralItem = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORY_OPTIONS.map(cat => (
+                {allCategoryOptions.map(cat => (
                   <SelectItem key={cat.value} value={cat.value}>
                     <span className="flex items-center gap-2">
                       <span>{cat.icon}</span>
@@ -394,12 +407,79 @@ export const DigitalCollateralSection = ({
   const bannerSetImageRef = useRef<HTMLInputElement>(null);
   const [pendingBannerSetImage, setPendingBannerSetImage] = useState<File | null>(null);
   const [bannerSetImagePreview, setBannerSetImagePreview] = useState<string | null>(null);
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [newCategory, setNewCategory] = useState({ name: '', icon: '📂' });
   
   const { gridClass } = useLayoutClasses(layout);
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
   
   // Determine if editing is allowed
   const canEdit = !!onCollateralChange;
+
+  // Derive custom categories from existing items (categories not in CATEGORY_OPTIONS)
+  const customCategories = useMemo<CustomCategory[]>(() => {
+    const customCats = new Map<string, CustomCategory>();
+    collateral.forEach(item => {
+      if (!isBuiltInCategory(item.category) && !isSocialBannerCategory(item.category)) {
+        if (!customCats.has(item.category)) {
+          customCats.set(item.category, {
+            value: item.category,
+            label: item.category,
+            icon: '📂',
+          });
+        }
+      }
+    });
+    return Array.from(customCats.values());
+  }, [collateral]);
+
+  // Merged category options: built-in + custom
+  const allCategoryOptions = useMemo(() => {
+    const merged = [...CATEGORY_OPTIONS];
+    customCategories.forEach(cc => {
+      if (!merged.some(m => m.value === cc.value)) {
+        // Insert before "Other"
+        const otherIdx = merged.findIndex(m => m.value === 'Other');
+        if (otherIdx >= 0) {
+          merged.splice(otherIdx, 0, cc);
+        } else {
+          merged.push(cc);
+        }
+      }
+    });
+    return merged;
+  }, [customCategories]);
+
+  const handleAddCustomCategory = () => {
+    if (!newCategory.name.trim()) return;
+    const catValue = newCategory.name.trim();
+    if (allCategoryOptions.some(c => c.value === catValue)) {
+      toast.error('This category already exists');
+      return;
+    }
+    // Add a placeholder item so the category persists
+    if (onCollateralChange) {
+      // Just trigger upload for the new category
+      setSelectedCategory(catValue);
+      fileInputRef.current?.click();
+    }
+    setShowCategoryDialog(false);
+    setNewCategory({ name: '', icon: '📂' });
+    toast.success(`Category "${catValue}" created — upload a file to add it`);
+  };
+
+  const handleDeleteCustomCategory = (categoryName: string) => {
+    if (!onCollateralChange) return;
+    const itemsInCategory = collateral.filter(i => i.category === categoryName);
+    if (itemsInCategory.length > 0) {
+      // Move items to "Other" instead of deleting
+      const updated = collateral.map(i => i.category === categoryName ? { ...i, category: 'Other' } : i);
+      onCollateralChange(updated);
+      toast.success(`Moved ${itemsInCategory.length} item(s) to "Other" and removed category`);
+    } else {
+      toast.success('Category removed');
+    }
+  };
 
   // DnD sensors
   const sensors = useSensors(
@@ -685,6 +765,12 @@ export const DigitalCollateralSection = ({
             />
           )}
           {canEdit && (
+            <Button onClick={() => setShowCategoryDialog(true)} size="sm" variant="outline" className="gap-2 shrink-0">
+              <FolderPlus className="h-4 w-4" />
+              Add Category
+            </Button>
+          )}
+          {canEdit && (
             <Button onClick={() => setShowBannerSetDialog(true)} size="sm" variant="outline" className="gap-2 shrink-0">
               <Palette className="h-4 w-4" />
               Banner Set
@@ -729,6 +815,17 @@ export const DigitalCollateralSection = ({
                 key={cat.value}
                 onClick={() => triggerUploadForCategory(cat.value)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
+                <Plus className="h-3 w-3 opacity-50" />
+              </button>
+            ))}
+            {customCategories.map(cat => (
+              <button
+                key={cat.value}
+                onClick={() => triggerUploadForCategory(cat.value)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 text-foreground transition-colors"
               >
                 <span>{cat.icon}</span>
                 <span>{cat.label}</span>
@@ -790,7 +887,8 @@ export const DigitalCollateralSection = ({
           <div className="space-y-8">
             {sortedCategories.map(category => {
               const categoryItems = groupedCollateral[category];
-              const categoryInfo = CATEGORY_OPTIONS.find(c => c.value === category);
+              const categoryInfo = allCategoryOptions.find(c => c.value === category);
+              const isCustom = !isBuiltInCategory(category) && !isSocialBannerCategory(category);
               const itemIds = categoryItems.map(item => item.id);
               
               return (
@@ -800,12 +898,26 @@ export const DigitalCollateralSection = ({
                     <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
                       {category}
                     </h3>
+                    {isCustom && (
+                      <Badge variant="outline" className="text-[10px] text-muted-foreground">Custom</Badge>
+                    )}
                     <Badge variant="secondary" className="text-xs">
                       {categoryItems.length}
                     </Badge>
-                    <span className="text-xs text-muted-foreground ml-2">
-                      (drag to reorder)
-                    </span>
+                    {canEdit && (
+                      <span className="text-xs text-muted-foreground ml-2">
+                        (drag to reorder)
+                      </span>
+                    )}
+                    {canEdit && isCustom && (
+                      <button
+                        onClick={() => handleDeleteCustomCategory(category)}
+                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors ml-auto"
+                        title="Remove custom category"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                   
                   <SortableContext items={itemIds} strategy={rectSortingStrategy}>
@@ -824,6 +936,7 @@ export const DigitalCollateralSection = ({
                           onRemoveThumbnail={() => removeThumbnail(item.id)}
                           onDoneEditing={() => setEditingId(null)}
                           isImage={isImage}
+                          allCategoryOptions={allCategoryOptions}
                         />
                       ))}
                     </div>
@@ -916,7 +1029,7 @@ export const DigitalCollateralSection = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORY_OPTIONS.map(cat => (
+                {allCategoryOptions.map(cat => (
                   <SelectItem key={cat.value} value={cat.value}>
                     <span className="flex items-center gap-2">
                       <span>{cat.icon}</span>
@@ -1032,6 +1145,72 @@ export const DigitalCollateralSection = ({
             <Button onClick={handleAddBannerSet} disabled={!newBannerSet.title || isUploading}>
               <Palette className="h-4 w-4 mr-2" />
               {isUploading ? 'Uploading...' : 'Add Banner Set'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Custom Category Dialog */}
+      <Dialog open={showCategoryDialog} onOpenChange={(open) => {
+        setShowCategoryDialog(open);
+        if (!open) setNewCategory({ name: '', icon: '📂' });
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderPlus className="h-5 w-5 text-primary" />
+              Create Custom Category
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Category Name</label>
+              <Input
+                value={newCategory.name}
+                onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g. RFP Responses, Sales Sheets, Training Materials..."
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Icon</label>
+              <div className="flex flex-wrap gap-1.5">
+                {EMOJI_OPTIONS.map(emoji => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => setNewCategory(prev => ({ ...prev, icon: emoji }))}
+                    className={cn(
+                      'w-9 h-9 flex items-center justify-center rounded-lg border text-lg transition-colors',
+                      newCategory.icon === emoji
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    )}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {customCategories.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Existing Custom Categories</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {customCategories.map(cc => (
+                    <Badge key={cc.value} variant="outline" className="gap-1">
+                      <span>{cc.icon}</span>
+                      <span>{cc.label}</span>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowCategoryDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddCustomCategory} disabled={!newCategory.name.trim()}>
+              <FolderPlus className="h-4 w-4 mr-2" />
+              Create & Upload
             </Button>
           </DialogFooter>
         </DialogContent>
