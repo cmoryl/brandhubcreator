@@ -128,8 +128,6 @@ const SortableCollateralItem = ({
   allCategoryOptions,
   isDragging,
 }: SortableItemProps) => {
-  isDragging,
-}: SortableItemProps) => {
   const {
     attributes,
     listeners,
