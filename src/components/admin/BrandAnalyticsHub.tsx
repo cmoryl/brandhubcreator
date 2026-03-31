@@ -197,7 +197,8 @@ export function BrandAnalyticsHub() {
       toast.success(`Analyzed ${brandCount} brands, ${productCount} products, ${eventCount} events`);
     } catch (error) {
       console.error('Error analyzing entities:', error);
-      toast.error('Failed to analyze entities');
+      console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error as object)));
+      toast.error(`Failed to analyze entities: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
