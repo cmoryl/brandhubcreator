@@ -109,6 +109,7 @@ interface SortableItemProps {
   onRemoveThumbnail: () => void;
   onDoneEditing: () => void;
   isImage: (url: string) => boolean;
+  allCategoryOptions: { value: string; label: string; icon: string }[];
   isDragging?: boolean;
 }
 
