@@ -925,6 +925,7 @@ export const DigitalCollateralSection = ({
                           onRemoveThumbnail={() => removeThumbnail(item.id)}
                           onDoneEditing={() => setEditingId(null)}
                           isImage={isImage}
+                          allCategoryOptions={allCategoryOptions}
                         />
                       ))}
                     </div>
