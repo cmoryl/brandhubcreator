@@ -288,7 +288,7 @@ const SortableCollateralItem = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORY_OPTIONS.map(cat => (
+                {allCategoryOptions.map(cat => (
                   <SelectItem key={cat.value} value={cat.value}>
                     <span className="flex items-center gap-2">
                       <span>{cat.icon}</span>
