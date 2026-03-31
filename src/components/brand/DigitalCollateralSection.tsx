@@ -407,12 +407,79 @@ export const DigitalCollateralSection = ({
   const bannerSetImageRef = useRef<HTMLInputElement>(null);
   const [pendingBannerSetImage, setPendingBannerSetImage] = useState<File | null>(null);
   const [bannerSetImagePreview, setBannerSetImagePreview] = useState<string | null>(null);
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [newCategory, setNewCategory] = useState({ name: '', icon: '📂' });
   
   const { gridClass } = useLayoutClasses(layout);
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
   
   // Determine if editing is allowed
   const canEdit = !!onCollateralChange;
+
+  // Derive custom categories from existing items (categories not in CATEGORY_OPTIONS)
+  const customCategories = useMemo<CustomCategory[]>(() => {
+    const customCats = new Map<string, CustomCategory>();
+    collateral.forEach(item => {
+      if (!isBuiltInCategory(item.category) && !isSocialBannerCategory(item.category)) {
+        if (!customCats.has(item.category)) {
+          customCats.set(item.category, {
+            value: item.category,
+            label: item.category,
+            icon: '📂',
+          });
+        }
+      }
+    });
+    return Array.from(customCats.values());
+  }, [collateral]);
+
+  // Merged category options: built-in + custom
+  const allCategoryOptions = useMemo(() => {
+    const merged = [...CATEGORY_OPTIONS];
+    customCategories.forEach(cc => {
+      if (!merged.some(m => m.value === cc.value)) {
+        // Insert before "Other"
+        const otherIdx = merged.findIndex(m => m.value === 'Other');
+        if (otherIdx >= 0) {
+          merged.splice(otherIdx, 0, cc);
+        } else {
+          merged.push(cc);
+        }
+      }
+    });
+    return merged;
+  }, [customCategories]);
+
+  const handleAddCustomCategory = () => {
+    if (!newCategory.name.trim()) return;
+    const catValue = newCategory.name.trim();
+    if (allCategoryOptions.some(c => c.value === catValue)) {
+      toast.error('This category already exists');
+      return;
+    }
+    // Add a placeholder item so the category persists
+    if (onCollateralChange) {
+      // Just trigger upload for the new category
+      setSelectedCategory(catValue);
+      fileInputRef.current?.click();
+    }
+    setShowCategoryDialog(false);
+    setNewCategory({ name: '', icon: '📂' });
+    toast.success(`Category "${catValue}" created — upload a file to add it`);
+  };
+
+  const handleDeleteCustomCategory = (categoryName: string) => {
+    if (!onCollateralChange) return;
+    const itemsInCategory = collateral.filter(i => i.category === categoryName);
+    if (itemsInCategory.length > 0) {
+      // Move items to "Other" instead of deleting
+      const updated = collateral.map(i => i.category === categoryName ? { ...i, category: 'Other' } : i);
+      onCollateralChange(updated);
+      toast.success(`Moved ${itemsInCategory.length} item(s) to "Other" and removed category`);
+    } else {
+      toast.success('Category removed');
+    }
+  };
 
   // DnD sensors
   const sensors = useSensors(
