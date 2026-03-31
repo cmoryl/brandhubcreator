@@ -152,7 +152,12 @@ const SortableCollateralItem = ({
       <div 
         className="aspect-[4/3] bg-muted relative flex items-center justify-center overflow-hidden cursor-pointer"
         onClick={() => {
-          if (item.thumbnailUrl || item.previewUrl) {
+          // For PDFs without thumbnails, open directly in a new tab
+          const url = item.previewUrl || '';
+          const hasPdf = url.toLowerCase().endsWith('.pdf') || url.toLowerCase().includes('.pdf?') || url.includes('application/pdf');
+          if (hasPdf && !item.thumbnailUrl) {
+            window.open(item.previewUrl, '_blank', 'noopener,noreferrer');
+          } else if (item.thumbnailUrl || item.previewUrl) {
             onPreview();
           } else if (item.externalUrl) {
             window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
