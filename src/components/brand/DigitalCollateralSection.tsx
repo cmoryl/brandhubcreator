@@ -827,14 +827,26 @@ export const DigitalCollateralSection = ({
       )}
 
       {/* Preview Dialog */}
-      <PreviewDialog
-        open={!!previewItem}
-        onOpenChange={(open) => !open && setPreviewItem(null)}
-        title={previewItem?.title || ''}
-        previewUrl={previewItem?.thumbnailUrl || previewItem?.previewUrl}
-        type={isPdf(previewItem?.previewUrl || '') ? 'iframe' : 'image'}
-        aspectRatio="portrait"
-      />
+      {previewItem && isPdf(previewItem.previewUrl || '') ? (
+        <PreviewDialog
+          open={!!previewItem}
+          onOpenChange={(open) => !open && setPreviewItem(null)}
+          title={previewItem.title}
+          previewUrl={previewItem.thumbnailUrl || undefined}
+          externalUrl={previewItem.previewUrl}
+          type={previewItem.thumbnailUrl ? 'image' : 'iframe'}
+          aspectRatio="portrait"
+        />
+      ) : (
+        <PreviewDialog
+          open={!!previewItem}
+          onOpenChange={(open) => !open && setPreviewItem(null)}
+          title={previewItem?.title || ''}
+          previewUrl={previewItem?.thumbnailUrl || previewItem?.previewUrl}
+          type="image"
+          aspectRatio="portrait"
+        />
+      )}
 
       {/* Add External Link Dialog */}
       <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
