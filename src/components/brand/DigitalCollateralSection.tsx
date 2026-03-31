@@ -1138,6 +1138,72 @@ export const DigitalCollateralSection = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Custom Category Dialog */}
+      <Dialog open={showCategoryDialog} onOpenChange={(open) => {
+        setShowCategoryDialog(open);
+        if (!open) setNewCategory({ name: '', icon: '📂' });
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderPlus className="h-5 w-5 text-primary" />
+              Create Custom Category
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Category Name</label>
+              <Input
+                value={newCategory.name}
+                onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g. RFP Responses, Sales Sheets, Training Materials..."
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Icon</label>
+              <div className="flex flex-wrap gap-1.5">
+                {EMOJI_OPTIONS.map(emoji => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => setNewCategory(prev => ({ ...prev, icon: emoji }))}
+                    className={cn(
+                      'w-9 h-9 flex items-center justify-center rounded-lg border text-lg transition-colors',
+                      newCategory.icon === emoji
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    )}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {customCategories.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Existing Custom Categories</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {customCategories.map(cc => (
+                    <Badge key={cc.value} variant="outline" className="gap-1">
+                      <span>{cc.icon}</span>
+                      <span>{cc.label}</span>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowCategoryDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddCustomCategory} disabled={!newCategory.name.trim()}>
+              <FolderPlus className="h-4 w-4 mr-2" />
+              Create & Upload
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
