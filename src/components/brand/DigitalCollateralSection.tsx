@@ -876,7 +876,8 @@ export const DigitalCollateralSection = ({
           <div className="space-y-8">
             {sortedCategories.map(category => {
               const categoryItems = groupedCollateral[category];
-              const categoryInfo = CATEGORY_OPTIONS.find(c => c.value === category);
+              const categoryInfo = allCategoryOptions.find(c => c.value === category);
+              const isCustom = !isBuiltInCategory(category) && !isSocialBannerCategory(category);
               const itemIds = categoryItems.map(item => item.id);
               
               return (
@@ -886,12 +887,26 @@ export const DigitalCollateralSection = ({
                     <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
                       {category}
                     </h3>
+                    {isCustom && (
+                      <Badge variant="outline" className="text-[10px] text-muted-foreground">Custom</Badge>
+                    )}
                     <Badge variant="secondary" className="text-xs">
                       {categoryItems.length}
                     </Badge>
-                    <span className="text-xs text-muted-foreground ml-2">
-                      (drag to reorder)
-                    </span>
+                    {canEdit && (
+                      <span className="text-xs text-muted-foreground ml-2">
+                        (drag to reorder)
+                      </span>
+                    )}
+                    {canEdit && isCustom && (
+                      <button
+                        onClick={() => handleDeleteCustomCategory(category)}
+                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors ml-auto"
+                        title="Remove custom category"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                   
                   <SortableContext items={itemIds} strategy={rectSortingStrategy}>
