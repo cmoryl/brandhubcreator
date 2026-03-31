@@ -182,15 +182,24 @@ const SortableCollateralItem = ({
         ) : (
           <div className="flex flex-col items-center gap-2 p-3">
             <div className="p-2 rounded-lg bg-primary/10">
-              {item.externalUrl ? (
+              {item.externalUrl && !item.previewUrl ? (
                 <ExternalLink className="h-8 w-8 text-primary" />
+              ) : (item.previewUrl || '').toLowerCase().includes('.pdf') ? (
+                <FileImage className="h-8 w-8 text-primary" />
               ) : (
                 <FileText className="h-8 w-8 text-primary" />
               )}
             </div>
             <span className="text-xs text-muted-foreground text-center">
-              {item.externalUrl ? 'External Link' : 'Preview'}
+              {item.externalUrl && !item.previewUrl ? 'External Link' : (item.previewUrl || '').toLowerCase().includes('.pdf') ? 'PDF Document' : 'Preview'}
             </span>
+          </div>
+        )}
+
+        {/* PDF Badge */}
+        {(item.previewUrl || '').toLowerCase().includes('.pdf') && (
+          <div className="absolute top-2 left-10 px-1.5 py-0.5 rounded bg-destructive/90 text-destructive-foreground text-[10px] font-bold uppercase tracking-wider">
+            PDF
           </div>
         )}
         
