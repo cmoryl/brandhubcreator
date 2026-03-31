@@ -205,10 +205,20 @@ const SortableCollateralItem = ({
         
         {/* Hover Actions */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          {/* For PDFs: show "Open PDF" button that opens in new tab */}
+          {(item.previewUrl || '').toLowerCase().includes('.pdf') && (
+            <button
+              onClick={(e) => { e.stopPropagation(); window.open(item.previewUrl, '_blank', 'noopener,noreferrer'); }}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              title="Open PDF"
+            >
+              <FileText className="h-5 w-5" />
+            </button>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
             className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
-            title="Preview"
+            title={item.thumbnailUrl ? 'View thumbnail' : 'Preview'}
           >
             <Eye className="h-5 w-5" />
           </button>
