@@ -400,16 +400,39 @@ export const DigitalCollateralSection = ({
 
     if (fileInputRef.current) fileInputRef.current.value = '';
 
+    const isPdfFile = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
     // Upload to cloud storage if entityId available, else fallback to base64
     if (entityId) {
       const result = await uploadFile(file, 'asset', `collateral-${Date.now()}`);
       if (!result) return;
+
+      const newItemId = crypto.randomUUID();
       const newItem: BrandBrochure = {
-        id: crypto.randomUUID(),
+        id: newItemId,
         title: file.name.replace(/\.[^/.]+$/, ''),
         category: selectedCategory || 'Other',
         previewUrl: result.url,
       };
+
+      // Generate PDF thumbnail automatically
+      if (isPdfFile) {
+        try {
+          toast.info('Generating PDF preview thumbnail...');
+          const thumbnailBlob = await generatePdfThumbnail(file);
+          if (thumbnailBlob) {
+            const thumbFile = new File([thumbnailBlob], `pdf-thumb-${newItemId}.jpg`, { type: 'image/jpeg' });
+            const thumbResult = await uploadFile(thumbFile, 'asset', `pdf-thumb-${newItemId}`);
+            if (thumbResult) {
+              newItem.thumbnailUrl = thumbResult.url;
+              toast.success('PDF thumbnail generated');
+            }
+          }
+        } catch (err) {
+          console.warn('PDF thumbnail generation failed:', err);
+        }
+      }
+
       onCollateralChange([...collateral, newItem]);
       setEditingId(newItem.id);
       setSelectedCategory(null);
