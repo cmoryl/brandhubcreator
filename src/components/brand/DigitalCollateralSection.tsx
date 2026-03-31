@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage } from 'lucide-react';
+import { generatePdfThumbnail } from '@/lib/pdfThumbnail';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -152,7 +153,12 @@ const SortableCollateralItem = ({
       <div 
         className="aspect-[4/3] bg-muted relative flex items-center justify-center overflow-hidden cursor-pointer"
         onClick={() => {
-          if (item.thumbnailUrl || item.previewUrl) {
+          // For PDFs without thumbnails, open directly in a new tab
+          const url = item.previewUrl || '';
+          const hasPdf = url.toLowerCase().endsWith('.pdf') || url.toLowerCase().includes('.pdf?') || url.includes('application/pdf');
+          if (hasPdf && !item.thumbnailUrl) {
+            window.open(item.previewUrl, '_blank', 'noopener,noreferrer');
+          } else if (item.thumbnailUrl || item.previewUrl) {
             onPreview();
           } else if (item.externalUrl) {
             window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
@@ -176,24 +182,43 @@ const SortableCollateralItem = ({
         ) : (
           <div className="flex flex-col items-center gap-2 p-3">
             <div className="p-2 rounded-lg bg-primary/10">
-              {item.externalUrl ? (
+              {item.externalUrl && !item.previewUrl ? (
                 <ExternalLink className="h-8 w-8 text-primary" />
+              ) : (item.previewUrl || '').toLowerCase().includes('.pdf') ? (
+                <FileImage className="h-8 w-8 text-primary" />
               ) : (
                 <FileText className="h-8 w-8 text-primary" />
               )}
             </div>
             <span className="text-xs text-muted-foreground text-center">
-              {item.externalUrl ? 'External Link' : 'Preview'}
+              {item.externalUrl && !item.previewUrl ? 'External Link' : (item.previewUrl || '').toLowerCase().includes('.pdf') ? 'PDF Document' : 'Preview'}
             </span>
+          </div>
+        )}
+
+        {/* PDF Badge */}
+        {(item.previewUrl || '').toLowerCase().includes('.pdf') && (
+          <div className="absolute top-2 left-10 px-1.5 py-0.5 rounded bg-destructive/90 text-destructive-foreground text-[10px] font-bold uppercase tracking-wider">
+            PDF
           </div>
         )}
         
         {/* Hover Actions */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          {/* For PDFs: show "Open PDF" button that opens in new tab */}
+          {(item.previewUrl || '').toLowerCase().includes('.pdf') && (
+            <button
+              onClick={(e) => { e.stopPropagation(); window.open(item.previewUrl, '_blank', 'noopener,noreferrer'); }}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              title="Open PDF"
+            >
+              <FileText className="h-5 w-5" />
+            </button>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
             className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
-            title="Preview"
+            title={item.thumbnailUrl ? 'View thumbnail' : 'Preview'}
           >
             <Eye className="h-5 w-5" />
           </button>
@@ -394,16 +419,39 @@ export const DigitalCollateralSection = ({
 
     if (fileInputRef.current) fileInputRef.current.value = '';
 
+    const isPdfFile = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
     // Upload to cloud storage if entityId available, else fallback to base64
     if (entityId) {
       const result = await uploadFile(file, 'asset', `collateral-${Date.now()}`);
       if (!result) return;
+
+      const newItemId = crypto.randomUUID();
       const newItem: BrandBrochure = {
-        id: crypto.randomUUID(),
+        id: newItemId,
         title: file.name.replace(/\.[^/.]+$/, ''),
         category: selectedCategory || 'Other',
         previewUrl: result.url,
       };
+
+      // Generate PDF thumbnail automatically
+      if (isPdfFile) {
+        try {
+          toast.info('Generating PDF preview thumbnail...');
+          const thumbnailBlob = await generatePdfThumbnail(file);
+          if (thumbnailBlob) {
+            const thumbFile = new File([thumbnailBlob], `pdf-thumb-${newItemId}.jpg`, { type: 'image/jpeg' });
+            const thumbResult = await uploadFile(thumbFile, 'asset', `pdf-thumb-${newItemId}`);
+            if (thumbResult) {
+              newItem.thumbnailUrl = thumbResult.url;
+              toast.success('PDF thumbnail generated');
+            }
+          }
+        } catch (err) {
+          console.warn('PDF thumbnail generation failed:', err);
+        }
+      }
+
       onCollateralChange([...collateral, newItem]);
       setEditingId(newItem.id);
       setSelectedCategory(null);
@@ -544,11 +592,22 @@ export const DigitalCollateralSection = ({
   };
 
   const isPdf = (url: string) => {
-    return url?.includes('application/pdf') || url?.endsWith('.pdf');
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    return lower.includes('application/pdf') || lower.endsWith('.pdf') || lower.includes('.pdf?');
   };
 
   const isImage = (url: string) => {
-    return url?.includes('image') || url?.includes('data:image');
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    // Check for data URIs
+    if (lower.startsWith('data:image')) return true;
+    // Check for common image extensions (handles Supabase storage URLs)
+    const imageExts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp', '.avif'];
+    if (imageExts.some(ext => lower.includes(ext))) return true;
+    // Check for MIME type in URL
+    if (lower.includes('image/')) return true;
+    return false;
   };
 
   // Group by category
@@ -811,14 +870,26 @@ export const DigitalCollateralSection = ({
       )}
 
       {/* Preview Dialog */}
-      <PreviewDialog
-        open={!!previewItem}
-        onOpenChange={(open) => !open && setPreviewItem(null)}
-        title={previewItem?.title || ''}
-        previewUrl={previewItem?.thumbnailUrl || previewItem?.previewUrl}
-        type={isPdf(previewItem?.previewUrl || '') ? 'iframe' : 'image'}
-        aspectRatio="portrait"
-      />
+      {previewItem && isPdf(previewItem.previewUrl || '') ? (
+        <PreviewDialog
+          open={!!previewItem}
+          onOpenChange={(open) => !open && setPreviewItem(null)}
+          title={previewItem.title}
+          previewUrl={previewItem.thumbnailUrl || undefined}
+          externalUrl={previewItem.previewUrl}
+          type={previewItem.thumbnailUrl ? 'image' : 'iframe'}
+          aspectRatio="portrait"
+        />
+      ) : (
+        <PreviewDialog
+          open={!!previewItem}
+          onOpenChange={(open) => !open && setPreviewItem(null)}
+          title={previewItem?.title || ''}
+          previewUrl={previewItem?.thumbnailUrl || previewItem?.previewUrl}
+          type="image"
+          aspectRatio="portrait"
+        />
+      )}
 
       {/* Add External Link Dialog */}
       <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
