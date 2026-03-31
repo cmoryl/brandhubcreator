@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage } from 'lucide-react';
+import { generatePdfThumbnail } from '@/lib/pdfThumbnail';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
