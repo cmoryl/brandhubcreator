@@ -85,6 +85,17 @@ const SOCIAL_BANNER_PLATFORMS = [
 
 const isSocialBannerCategory = (category: string) => category.startsWith('Social Banner Set');
 
+// Check if a category is a built-in one
+const isBuiltInCategory = (category: string) => CATEGORY_OPTIONS.some(c => c.value === category);
+
+interface CustomCategory {
+  value: string;
+  label: string;
+  icon: string;
+}
+
+const EMOJI_OPTIONS = ['📂', '🗂️', '📑', '📝', '🎯', '💡', '🔖', '🏷️', '⭐', '🔧', '📌', '🎨', '📐', '🧩', '🚀', '✨'];
+
 // Sortable Item Component
 interface SortableItemProps {
   item: BrandBrochure;
