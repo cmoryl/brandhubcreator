@@ -546,7 +546,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
         </div>
         )}
 
-        {/* Tagline Variations - Creative Display */}
+        {/* Tagline Variations - Editorial Masonry Display */}
         {(showVariations || isEditing) && (
         <div className={cn("relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-muted/30", !showVariations && "opacity-40 border-dashed")}>
           {/* Decorative background elements */}
@@ -581,99 +581,182 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
             
             {/* Variations display */}
             {normalizedVariations.length > 0 ? (
-              <div className="space-y-3">
-                {normalizedVariations.map((variation, index) => {
-                  const currentStyle = variation.style || 'gradient';
-                  
-                  const styleClasses: Record<NonNullable<VariationStyle>, string> = {
-                    'gradient': 'relative group pl-8 pr-6 py-4 rounded-xl bg-gradient-to-r from-primary/5 via-transparent to-accent/5 border border-primary/20 hover:border-primary/40 hover:from-primary/10 hover:to-accent/10',
-                    'accent-bar': 'relative group pl-6 pr-6 py-4 rounded-xl bg-muted/50 border-l-4 border-l-accent border border-transparent hover:border-accent/30 hover:bg-muted/80',
-                    'floating-card': 'relative group px-6 py-4 rounded-xl bg-card shadow-md hover:shadow-lg border border-border/50 hover:border-primary/30 hover:-translate-y-0.5',
-                    'glass': 'relative group px-6 py-4 rounded-xl bg-background/60 backdrop-blur-sm border border-border/50 hover:border-primary/40 hover:bg-background/80',
-                    'outlined': 'relative group pl-8 pr-6 py-4 rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-primary/40 bg-transparent hover:bg-primary/5',
-                  };
-                  
-                  const decorations: Record<NonNullable<VariationStyle>, React.ReactNode> = {
-                    'gradient': <span className="absolute left-3 top-1/2 -translate-y-1/2 text-3xl font-serif text-primary/30 group-hover:text-primary/50 transition-colors">"</span>,
-                    'accent-bar': null,
-                    'floating-card': <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-primary/40 group-hover:text-primary/60 transition-colors" />,
-                    'glass': <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-gradient-to-br from-primary to-accent opacity-60 group-hover:opacity-100 transition-opacity" />,
-                    'outlined': <div className="absolute left-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />,
-                  };
-                  
-                  return (
-                    <div
-                      key={variation.text}
-                      className={cn(styleClasses[currentStyle], 'transition-all duration-300')}
-                      style={{ animationDelay: `${index * 100}ms` }}
-                    >
-                      {decorations[currentStyle]}
-                      <div className="flex items-center justify-between gap-4">
-                        <p className="text-base md:text-lg font-medium text-foreground/90 group-hover:text-foreground transition-colors italic">
-                          {variation.text}
-                        </p>
-                        <div className="flex items-center gap-2 shrink-0">
-                          {isEditing ? (
-                            <>
-                              {/* Style selector dropdown */}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-                                  >
-                                    <span>{styleLabels[currentStyle].icon}</span>
-                                    <span className="hidden sm:inline">{styleLabels[currentStyle].label}</span>
-                                    <ChevronDown className="h-3 w-3" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-40">
-                                  {(Object.keys(styleLabels) as NonNullable<VariationStyle>[]).map((styleKey) => (
-                                    <DropdownMenuItem
-                                      key={styleKey}
-                                      onClick={() => updateVariationStyle(variation.text, styleKey)}
-                                      className={cn(
-                                        "gap-2 cursor-pointer",
-                                        currentStyle === styleKey && "bg-accent"
-                                      )}
-                                    >
-                                      <span>{styleLabels[styleKey].icon}</span>
-                                      <span>{styleLabels[styleKey].label}</span>
-                                      {currentStyle === styleKey && (
-                                        <Check className="h-3 w-3 ml-auto" />
-                                      )}
-                                    </DropdownMenuItem>
-                                  ))}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                              
-                              <button
-                                onClick={() => removeVariation(variation.text)}
-                                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                            </>
-                          ) : (
-                            <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
-                              #{index + 1}
-                            </span>
-                          )}
+              <>
+                {/* Featured variation - displayed prominently at top */}
+                {normalizedVariations.some(v => v.isFeatured) && (
+                  <div className="mb-6">
+                    {normalizedVariations.filter(v => v.isFeatured).map((variation) => (
+                      <div
+                        key={`featured-${variation.text}`}
+                        className="relative group rounded-2xl p-6 md:p-8 bg-gradient-to-br from-primary/8 via-primary/4 to-accent/8 border border-primary/30 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.15)] animate-fade-in"
+                      >
+                        {/* Featured badge */}
+                        <div className="absolute -top-3 left-6 flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold uppercase tracking-wider shadow-md">
+                          <Star className="h-3 w-3 fill-current" />
+                          Featured
                         </div>
+                        {/* Glow corners */}
+                        <div className="absolute top-0 left-0 w-16 h-16 bg-gradient-to-br from-primary/20 to-transparent rounded-tl-2xl pointer-events-none" />
+                        <div className="absolute bottom-0 right-0 w-16 h-16 bg-gradient-to-tl from-accent/20 to-transparent rounded-br-2xl pointer-events-none" />
+                        
+                        {variation.context && (
+                          <div className="mb-3 mt-1">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
+                              <Tag className="h-2.5 w-2.5" />
+                              {variation.context}
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-xl md:text-2xl font-semibold text-foreground italic leading-relaxed">
+                          "{variation.text}"
+                        </p>
+                        {isEditing && (
+                          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-primary/10">
+                            <Input
+                              value={variation.context || ''}
+                              onChange={(e) => updateVariationContext(variation.text, e.target.value)}
+                              placeholder="Context (e.g., Social Media)"
+                              className="h-7 text-xs max-w-[200px] bg-background/50"
+                            />
+                            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-primary" onClick={() => toggleVariationFeatured(variation.text)}>
+                              <Star className="h-3 w-3 fill-current" /> Unfeature
+                            </Button>
+                            <button onClick={() => removeVariation(variation.text)} className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors ml-auto">
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Masonry 2-column grid for remaining variations */}
+                {(() => {
+                  const nonFeatured = normalizedVariations.filter(v => !v.isFeatured);
+                  if (nonFeatured.length === 0) return null;
+                  const col1 = nonFeatured.filter((_, i) => i % 2 === 0);
+                  const col2 = nonFeatured.filter((_, i) => i % 2 === 1);
+
+                  const renderCard = (variation: TaglineVariation, globalIndex: number) => {
+                    const currentStyle = variation.style || 'gradient';
+                    const styleClasses: Record<NonNullable<VariationStyle>, string> = {
+                      'gradient': 'bg-gradient-to-r from-primary/5 via-transparent to-accent/5 border border-primary/20 hover:border-primary/40 hover:from-primary/10 hover:to-accent/10',
+                      'accent-bar': 'bg-muted/50 border-l-4 border-l-accent border border-transparent hover:border-accent/30 hover:bg-muted/80',
+                      'floating-card': 'bg-card shadow-md hover:shadow-lg border border-border/50 hover:border-primary/30 hover:-translate-y-0.5',
+                      'glass': 'bg-background/60 backdrop-blur-sm border border-border/50 hover:border-primary/40 hover:bg-background/80',
+                      'outlined': 'border-2 border-dashed border-muted-foreground/20 hover:border-primary/40 bg-transparent hover:bg-primary/5',
+                    };
+
+                    return (
+                      <div
+                        key={variation.text}
+                        className={cn(
+                          'relative group rounded-xl p-5 transition-all duration-300',
+                          styleClasses[currentStyle],
+                        )}
+                        style={{
+                          animationDelay: `${globalIndex * 75}ms`,
+                          animation: 'fade-in 0.4s ease-out both',
+                        }}
+                      >
+                        {/* Index badge */}
+                        <div className="absolute -top-2.5 -left-2.5 w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-sm z-10">
+                          {String(globalIndex + 1).padStart(2, '0')}
+                        </div>
+
+                        {/* Context chip */}
+                        {variation.context && (
+                          <div className="mb-2.5 pl-3">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-accent/10 text-accent-foreground/70 border border-accent/20">
+                              <Tag className="h-2.5 w-2.5" />
+                              {variation.context}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="pl-3">
+                          <p className="text-base md:text-lg font-medium text-foreground/90 group-hover:text-foreground transition-colors italic leading-relaxed">
+                            "{variation.text}"
+                          </p>
+                        </div>
+
+                        {/* Edit controls */}
+                        {isEditing && (
+                          <div className="flex items-center gap-1.5 mt-3 pt-2.5 pl-3 border-t border-border/30">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-6 px-1.5 gap-1 text-[10px] text-muted-foreground hover:text-foreground">
+                                  <span>{styleLabels[currentStyle].icon}</span>
+                                  <span className="hidden sm:inline">{styleLabels[currentStyle].label}</span>
+                                  <ChevronDown className="h-2.5 w-2.5" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start" className="w-40">
+                                {(Object.keys(styleLabels) as NonNullable<VariationStyle>[]).map((styleKey) => (
+                                  <DropdownMenuItem
+                                    key={styleKey}
+                                    onClick={() => updateVariationStyle(variation.text, styleKey)}
+                                    className={cn("gap-2 cursor-pointer", currentStyle === styleKey && "bg-accent")}
+                                  >
+                                    <span>{styleLabels[styleKey].icon}</span>
+                                    <span>{styleLabels[styleKey].label}</span>
+                                    {currentStyle === styleKey && <Check className="h-3 w-3 ml-auto" />}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Input
+                              value={variation.context || ''}
+                              onChange={(e) => updateVariationContext(variation.text, e.target.value)}
+                              placeholder="Context..."
+                              className="h-6 text-[10px] max-w-[120px] bg-background/50 px-2"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn("h-6 w-6 p-0", variation.isFeatured && "text-primary")}
+                              onClick={() => toggleVariationFeatured(variation.text)}
+                              title="Set as featured"
+                            >
+                              <Star className={cn("h-3 w-3", variation.isFeatured && "fill-current")} />
+                            </Button>
+                            <button onClick={() => removeVariation(variation.text)} className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors ml-auto">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  };
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                      <div className="flex flex-col gap-4 md:gap-5">
+                        {col1.map((v) => renderCard(v, normalizedVariations.indexOf(v)))}
+                      </div>
+                      <div className="flex flex-col gap-4 md:gap-5 md:mt-6">
+                        {col2.map((v) => renderCard(v, normalizedVariations.indexOf(v)))}
                       </div>
                     </div>
                   );
-                })}
-              </div>
+                })()}
+              </>
             ) : (
               !isEditing && (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="p-4 rounded-2xl bg-muted/50 mb-4">
-                    <Quote className="h-8 w-8 text-muted-foreground/50" />
+                <div className="flex flex-col items-center justify-center py-14 text-center">
+                  {/* Overlapping quote marks illustration */}
+                  <div className="relative mb-6">
+                    <div className="absolute -left-3 -top-1 text-5xl font-serif text-primary/10 select-none animate-pulse">"</div>
+                    <div className="absolute left-1 top-1 text-5xl font-serif text-primary/20 select-none">"</div>
+                    <div className="relative p-4 rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/10">
+                      <Quote className="h-8 w-8 text-primary/30" />
+                    </div>
                   </div>
-                  <p className="text-muted-foreground font-medium">No variations added yet</p>
-                  <p className="text-sm text-muted-foreground/70 mt-1">Add campaign-specific taglines to see them here</p>
+                  <p className="text-foreground font-semibold text-sm">No tagline variations yet</p>
+                  <p className="text-xs text-muted-foreground mt-1.5 max-w-[260px] leading-relaxed">
+                    Campaign-specific and contextual tagline alternatives will appear here
+                  </p>
                 </div>
               )
             )}
