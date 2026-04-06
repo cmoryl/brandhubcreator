@@ -294,9 +294,23 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       }
 
       try {
-        await exportToPdf(exportRef.current, guide, pdfTheme, paperSize, (status) => {
+        // Temporarily make the hidden export container visible for html2canvas
+        const el = exportRef.current;
+        const prevStyle = el.style.cssText;
+        el.style.position = 'fixed';
+        el.style.left = '0';
+        el.style.top = '0';
+        el.style.zIndex = '-1';
+        el.style.opacity = '0.01';
+        el.style.pointerEvents = 'none';
+        el.style.overflow = 'visible';
+        
+        await exportToPdf(el, guide, pdfTheme, paperSize, (status) => {
           logger.debug('PDF export status:', status);
         });
+        
+        // Restore hidden positioning
+        el.style.cssText = prevStyle;
         
         // Log the export to audit_logs for tracking
         try {
