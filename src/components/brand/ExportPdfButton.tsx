@@ -1420,7 +1420,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-2 gap-3">
               {guide.presentationTemplates.map((pres) => (
                 <div key={pres.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
-                  {pres.slides?.[0]?.imageUrl && (
+                  {(pres.cardImageUrl || pres.thumbnailUrl || pres.slides?.[0]?.thumbnailUrl) && (
                     <div className="aspect-[16/10] w-full overflow-hidden rounded mb-2">
                       <img src={pres.slides[0].thumbnailUrl} alt={pres.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
                     </div>
