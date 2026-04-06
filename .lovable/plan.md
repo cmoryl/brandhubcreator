@@ -1,71 +1,34 @@
 
 
-# Per-Brand AI Agent: Config + Widget
+# Fix: Icon Kit — Import Created Icons to Brand/Product/Event
 
-## What We're Building
+## Problem
 
-Each brand gets its own dedicated AI agent with customizable configuration (system prompt, personality, model) managed from the admin panel, plus a brand-specific chat widget embedded on each brand's page that automatically loads that brand's context.
+The Icon Studio wizard creates and manages icons at the **organization library level** only. When you finish the process, there's no way to push the created icon set into the specific brand, product, or event you're working on. The Export step only offers file downloads (SVG ZIP, PNG sprite, etc.) — not an "Import to this Brand" action.
 
-## Architecture
+## Solution
 
-```text
-┌─────────────────────────┐     ┌──────────────────────┐
-│  Bot Management Panel   │     │  Brand Page (e.g.    │
-│  (Admin)                │     │  /brand/games)       │
-│                         │     │                      │
-│  ┌─ Help Agent ───────┐ │     │  ┌────────────────┐  │
-│  ├─ Brand Assistant ──┤ │     │  │ BrandAgentChat │  │
-│  ├─ Games Agent ──────┤ │     │  │ (widget)       │  │
-│  ├─ Legal Agent ──────┤ │     │  │ Uses brand's   │  │
-│  └─ Media Agent ──────┘ │     │  │ bot_config     │  │
-│                         │     │  └────────────────┘  │
-│  Each with own prompt,  │     │                      │
-│  model, personality     │     │                      │
-└─────────────────────────┘     └──────────────────────┘
-```
+Add an **"Import to Entity"** action at the end of the wizard that lets admins select which icons from the organization libraries to push into the current brand, product, or event's `guide_data.iconography` array.
 
-## Plan
+## Changes
 
-### 1. Extend `bot_config` table with brand linking
-- Add `brand_id` UUID column (nullable, FK to brands) to `bot_config`
-- Add `bot_type` value `'brand_agent'` support
-- This lets each brand have its own independent agent config
+### 1. Pass entity context into IconStudio
+- Update `IconStudioProps` to accept `entityId`, `entityType` (`brand` | `product` | `event`), and `entityName` so the wizard knows which entity it's being opened from.
+- Thread these from `IconographySection.tsx` (which already has this context).
 
-### 2. Update Bot Management Panel to support per-brand agents
-- Add a third bot type selector: "Brand Agents" alongside Help Agent and Brand Assistant
-- When selected, show a brand picker dropdown listing all org brands
-- Each brand loads/saves its own `bot_config` row with `bot_type = 'brand_agent'` and `brand_id` set
-- Reuse existing Settings/Conversations/Analytics tabs per brand agent
-- "Create Agent" button for brands that don't have one yet (pre-populates with brand name, colors, identity from `guide_data`)
+### 2. Add "Import to Brand/Product/Event" panel on the Export step
+- Add a new section at the top of `IconStudioExport.tsx` (or as a separate card) with:
+  - A checkbox grid of all icons across libraries (reusing existing selection UI)
+  - A "Select All" toggle
+  - An **"Import to [Entity Name]"** button that calls the `onIconsCreated` callback with no `libraryId` — triggering the existing `onIconographyChange` path in `IconographySection.tsx`
+- Show the entity name and type in the button label for clarity (e.g., "Import 12 icons to GlobalLink")
 
-### 3. Update `dataforce-assistant` edge function to use per-brand config
-- When a request includes `entity_type = 'brand'` and `entity_id`, fetch matching `bot_config` row where `brand_id = entity_id` and `bot_type = 'brand_agent'`
-- If found, use its `system_prompt`, `model`, `temperature`, `max_tokens`, and `response_style` instead of defaults
-- Fall back to the generic `brand_assistant` config or hardcoded defaults if no brand-specific config exists
+### 3. Update handleSaveIcons flow
+- Add a new dedicated `onImportToEntity` callback prop to `IconStudio` that explicitly pushes selected icons into the entity's guide_data, bypassing the library save path.
+- Alternatively, reuse the existing `onIconsCreated` callback with `libraryId = undefined` which already triggers `onIconographyChange` in `IconographySection.tsx`.
 
-### 4. Create `BrandAgentWidget` component for brand pages
-- Floating chat widget (similar to `HelpAgentChat` but brand-aware)
-- Auto-loads the brand's agent config (welcome message, suggested questions, display name)
-- Passes `entity_type: 'brand'` and `entity_id` to `dataforce-assistant`
-- Styled with the brand's primary color from `guide_data`
-- Shows the brand-specific agent name (e.g., "Games Assistant")
-- Placed on brand detail pages alongside existing content
-
-### 5. Wire widget into brand page layout
-- Import and render `BrandAgentWidget` on the brand detail view, passing brand ID and slug
-- Widget only appears if a brand agent config exists and `is_active = true`
-
-## Technical Details
-
-**Database migration:**
-```sql
-ALTER TABLE bot_config ADD COLUMN brand_id UUID REFERENCES brands(id) ON DELETE CASCADE;
-CREATE UNIQUE INDEX idx_bot_config_brand ON bot_config(brand_id) WHERE brand_id IS NOT NULL;
-```
-
-**Edge function config lookup** (added to `dataforce-assistant`):
-- Query `bot_config` with `brand_id` match before building system prompt
-- Merge custom prompt as prefix to the existing context-enrichment pipeline
-
-**Widget auto-theming**: Reads brand's primary color from `guide_data.colors[0].hex` and applies it to the chat header and send button.
+### 4. Files to modify
+- `src/components/brand/iconography/IconStudio.tsx` — add entity props, pass to Export step
+- `src/components/brand/iconography/studio/IconStudioExport.tsx` — add "Import to Entity" section with icon selection and import button
+- `src/components/brand/IconographySection.tsx` — pass `entityId`, `entityType`, `entityName` to IconStudio
 
