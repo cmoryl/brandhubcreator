@@ -212,8 +212,8 @@ const SortableCollateralItem = ({
           </div>
         )}
 
-        {/* PDF Badge */}
-        {(item.previewUrl || '').toLowerCase().includes('.pdf') && (
+        {/* PDF Badge - only show if not using PdfThumbnailCard (which has its own badge) */}
+        {(item.previewUrl || '').toLowerCase().includes('.pdf') && (item.thumbnailUrl || isImage(item.previewUrl)) && (
           <div className="absolute top-2 left-10 px-1.5 py-0.5 rounded bg-destructive/90 text-destructive-foreground text-[10px] font-bold uppercase tracking-wider">
             PDF
           </div>
