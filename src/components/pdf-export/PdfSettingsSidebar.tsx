@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { 
   Sun, Moon, Printer, List, Layout, ChevronDown, Image, Type, Calendar, Eye, EyeOff,
-  Minus, Briefcase, Sparkles, Palette
+  Minus, Briefcase, Sparkles, Palette, Newspaper
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
