@@ -205,7 +205,9 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'bythenumbers': return (guide.statistics?.length ?? 0) > 0;
       case 'services': return (guide.services?.length ?? 0) > 0;
       case 'revenue': return (guide.revenueData?.length ?? 0) > 0;
+      case 'awards': return (guide.awards?.length ?? 0) > 0;
       case 'brief': return !!(intelligence?.brand_summary || intelligence?.market_position || (intelligence?.growth_recommendations?.length ?? 0) > 0);
+      case 'insights': return (guide.insights?.length ?? 0) > 0;
       case 'logos': return guide.logos.length > 0;
       case 'brandicon': return guide.brandIcons.length > 0;
       case 'colors': return guide.colors.length > 0;
@@ -222,13 +224,24 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'signatures': return guide.signatures.length > 0;
       case 'qr': return !!guide.qr.defaultUrl;
       case 'videos': return (guide.videos?.length ?? 0) > 0;
+      case 'webinars': return (guide.webinars?.length ?? 0) > 0;
       case 'assets': return guide.assets.length > 0;
+      case 'imageassets': return (guide.imageAssets?.length ?? 0) > 0;
       case 'misuse': return guide.misuse.length > 0;
       case 'casestudies': return guide.caseStudies.length > 0;
       case 'brochures': return guide.brochures.length > 0;
       case 'templates': return guide.templates.length > 0;
       case 'templatespecs': return (guide.templateSpecs?.length ?? 0) > 0;
+      case 'presentations': return (guide.presentationTemplates?.length ?? 0) > 0;
+      case 'eventsignage': return (guide.eventSignage?.length ?? 0) > 0;
+      case 'sponsorlogos': return (guide.sponsorLogos?.length ?? 0) > 0;
+      case 'clientlogos': return (guide.clientLogos?.length ?? 0) > 0;
+      case 'locations': return (guide.locations?.length ?? 0) > 0;
+      case 'studios': return (guide.studios?.length ?? 0) > 0;
+      case 'approvedimagery': return !!(guide.approvedImagery && Object.keys(guide.approvedImagery).length > 0);
       case 'products': return (guide.linkedGuides?.length ?? 0) > 0;
+      case 'events': return (guide.linkedGuides?.filter(g => g.type === 'event')?.length ?? 0) > 0;
+      case 'universe': return (guide.linkedGuides?.length ?? 0) > 0;
       case 'socialmetrics': return !!(socialMetrics.aggregated && socialMetrics.aggregated.platforms_count > 0);
       default: return false;
     }
