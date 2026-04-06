@@ -36,6 +36,7 @@ const PresetIcons: Record<PdfLayoutPreset, React.ComponentType<{ className?: str
   minimal: Minus,
   professional: Briefcase,
   creative: Sparkles,
+  magazine: Newspaper,
 };
 
 export const PdfSettingsSidebar = ({
