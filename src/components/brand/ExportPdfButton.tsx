@@ -2029,6 +2029,44 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               <ScrollArea className="flex-1">
                 <div className="p-8 flex justify-center" style={{ background: 'radial-gradient(circle at center, hsl(var(--muted)/0.3) 0%, hsl(var(--muted)/0.6) 100%)' }}>
                   <PrintPreviewContainer zoom={previewZoom}>
+                    {/* Hidden export container that wraps ALL content for PDF generation */}
+                    <div 
+                      ref={exportRef}
+                      className={cn(
+                        "pdf-export-container",
+                        `pdf-preset-${layoutPreset}`,
+                        pdfTheme === 'dark' ? 'pdf-theme-dark' : '',
+                        t.bg
+                      )}
+                      style={{ position: 'absolute', left: '-9999px', top: 0, width: `${Math.round((PAPER_SIZES[paperSize].width - PAPER_SIZES[paperSize].margins[1] - PAPER_SIZES[paperSize].margins[3]) * 3.78)}px` }}
+                    >
+                      {/* Hero / Cover */}
+                      {selectedSections.has('hero') && renderSection('hero')}
+                      
+                      {/* Table of Contents */}
+                      {includeToc && includedSections.length > 0 && renderTableOfContents()}
+                      
+                      {/* All remaining sections */}
+                      {sectionOrder.filter(id => id !== 'hero').map((sectionId) => {
+                        const hasForcedPageBreak = pageBreaksBefore.has(sectionId) && selectedSections.has(sectionId);
+                        const section = renderSection(sectionId);
+                        if (!section) return null;
+                        return (
+                          <div key={`export-${sectionId}`}>
+                            {hasForcedPageBreak && <div className="pdf-page-break-before" />}
+                            {section}
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Footer */}
+                      <div className="pdf-footer">
+                        <p>Generated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        <p className="mt-1">© {new Date().getFullYear()} {guide.hero.name}. All rights reserved.</p>
+                      </div>
+                    </div>
+
+                    {/* Visible preview pages (for user display only) */}
                     {/* Cover Page (Page 1) */}
                     {selectedSections.has('hero') && (
                       <>
@@ -2041,14 +2079,11 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                           totalPages={Math.ceil(selectedCount / 3) + (includeToc ? 2 : 1)}
                           brandName={guide.hero.name}
                         >
-                          <div 
-                            ref={exportRef}
-                            className={cn(
-                              "pdf-export-container",
-                              `pdf-preset-${layoutPreset}`,
-                              pdfTheme === 'dark' ? 'pdf-theme-dark' : '',
-                            )}
-                          >
+                          <div className={cn(
+                            "pdf-export-container",
+                            `pdf-preset-${layoutPreset}`,
+                            pdfTheme === 'dark' ? 'pdf-theme-dark' : '',
+                          )}>
                             {renderSection('hero')}
                           </div>
                         </PrintPageSimulator>
@@ -2102,7 +2137,6 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                         {/* Render remaining sections with page break hints */}
                         {sectionOrder.filter(id => id !== 'hero').map((sectionId, idx) => {
                           const section = renderSection(sectionId);
-                          // Show page break if user forced it OR every ~4 sections for visual feedback
                           const hasForcedPageBreak = pageBreaksBefore.has(sectionId) && selectedSections.has(sectionId);
                           const hasAutoPageBreak = idx > 0 && idx % 4 === 0 && selectedSections.has(sectionId);
                           const showPageBreak = hasForcedPageBreak || hasAutoPageBreak;
@@ -2116,7 +2150,6 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                                   className={hasForcedPageBreak ? 'border-primary/40 bg-primary/5' : undefined}
                                 />
                               )}
-                              {/* Add forced page break CSS class for export */}
                               {hasForcedPageBreak && (
                                 <div className="pdf-page-break-before" />
                               )}
