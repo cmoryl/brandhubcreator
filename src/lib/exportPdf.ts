@@ -3,6 +3,43 @@ import { BaseGuide } from '@/types/brand';
 
 export type PdfTheme = 'light' | 'dark';
 export type PaperSize = 'a4' | 'letter';
+export type PdfQuality = 'draft' | 'standard' | 'print';
+
+export interface QualityConfig {
+  scale: number;
+  imageQuality: number;
+  maxImageWidth: number; // px — images wider than this are downsampled in onclone
+  label: string;
+  description: string;
+  estimatedSizeFactor: string;
+}
+
+export const PDF_QUALITY_PRESETS: Record<PdfQuality, QualityConfig> = {
+  draft: {
+    scale: 1,
+    imageQuality: 0.5,
+    maxImageWidth: 600,
+    label: 'Draft',
+    description: 'Smaller file, faster export (~3–8 MB)',
+    estimatedSizeFactor: '~40%',
+  },
+  standard: {
+    scale: 1.5,
+    imageQuality: 0.75,
+    maxImageWidth: 1000,
+    label: 'Standard',
+    description: 'Balanced quality & size (~8–20 MB)',
+    estimatedSizeFactor: '~100%',
+  },
+  print: {
+    scale: 2,
+    imageQuality: 0.92,
+    maxImageWidth: 2000,
+    label: 'Print',
+    description: 'Maximum quality for printing (~20–40 MB)',
+    estimatedSizeFactor: '~200%',
+  },
+};
 
 export interface PaperConfig {
   width: number; // mm
@@ -58,8 +95,10 @@ export const exportToPdf = async (
   guide: BaseGuide,
   theme: PdfTheme = 'light',
   paperSize: PaperSize = 'a4',
-  onProgress?: (status: string) => void
+  onProgress?: (status: string) => void,
+  quality: PdfQuality = 'standard',
 ) => {
+  const qualityConfig = PDF_QUALITY_PRESETS[quality];
   onProgress?.('Preparing PDF...');
   
   const paper = PAPER_SIZES[paperSize];
