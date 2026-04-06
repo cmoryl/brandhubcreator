@@ -166,10 +166,12 @@ const SortableCollateralItem = ({
       <div 
         className="aspect-[4/3] bg-muted relative flex items-center justify-center overflow-hidden cursor-pointer"
         onClick={() => {
-          // For PDFs without thumbnails, open directly in a new tab
           const url = item.previewUrl || '';
           const hasPdf = url.toLowerCase().endsWith('.pdf') || url.toLowerCase().includes('.pdf?') || url.includes('application/pdf');
-          if (hasPdf && !item.thumbnailUrl) {
+          // External-only items (Dropbox, etc.) — always open externally
+          if (item.externalUrl && !item.previewUrl && !item.thumbnailUrl) {
+            window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
+          } else if (hasPdf && !item.thumbnailUrl) {
             window.open(item.previewUrl, '_blank', 'noopener,noreferrer');
           } else if (item.thumbnailUrl || item.previewUrl) {
             onPreview();
@@ -226,6 +228,15 @@ const SortableCollateralItem = ({
               title="Open PDF"
             >
               <FileText className="h-5 w-5" />
+            </button>
+          )}
+          {item.externalUrl && (
+            <button
+              onClick={(e) => { e.stopPropagation(); window.open(item.externalUrl, '_blank', 'noopener,noreferrer'); }}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              title="Open external link"
+            >
+              <ExternalLink className="h-5 w-5" />
             </button>
           )}
           <button
