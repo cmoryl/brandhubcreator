@@ -574,6 +574,33 @@ Return ONLY valid JSON:
       result: { success: true, summary: analysis.summary },
     });
 
+    // Fire-and-forget: trigger asset content extraction in background
+    if (job.organization_id) {
+      try {
+        const extractUrl = `${supabaseUrl}/functions/v1/extract-asset-content`;
+        const extractPromise = fetch(extractUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${supabaseServiceKey}`,
+            apikey: supabaseServiceKey,
+          },
+          body: JSON.stringify({
+            entityId: job.entity_id,
+            entityType: job.entity_type,
+            organizationId: job.organization_id,
+          }),
+        }).catch(e => console.warn('[worker] Asset extraction trigger failed (non-critical):', e));
+
+        // Use waitUntil if available, otherwise just fire and forget
+        if (typeof (globalThis as any).EdgeRuntime?.waitUntil === 'function') {
+          (globalThis as any).EdgeRuntime.waitUntil(extractPromise);
+        }
+      } catch (triggerErr) {
+        console.warn('[worker] Asset extraction trigger error (non-critical):', triggerErr);
+      }
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
