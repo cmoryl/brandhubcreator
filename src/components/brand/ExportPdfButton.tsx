@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, SplitSquareVertical, BarChart3 } from 'lucide-react';
+import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, SplitSquareVertical, BarChart3, Newspaper, ExternalLink, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
@@ -1626,7 +1626,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                 <Label className="text-xs font-medium">Layout Style</Label>
                 <RadioGroup value={layoutPreset} onValueChange={(v) => setLayoutPreset(v as PdfLayoutPreset)} className="space-y-2">
                   {Object.values(PDF_PRESETS).map((preset) => {
-                    const PresetIcon = preset.id === 'minimal' ? Minus : preset.id === 'professional' ? Briefcase : Sparkles;
+                    const PresetIcon = preset.id === 'minimal' ? Minus : preset.id === 'professional' ? Briefcase : preset.id === 'magazine' ? Newspaper : Sparkles;
                     return (
                       <label
                         key={preset.id}
