@@ -548,12 +548,13 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
 
         {/* Tagline Variations - Editorial Masonry Display */}
         {(showVariations || isEditing) && (
-        <div className={cn("relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-muted/30", !showVariations && "opacity-40 border-dashed")}>
+        <div className={cn("relative overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-card via-card to-primary/5", !showVariations && "opacity-40 border-dashed")}>
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-primary/5 blur-3xl" />
-            <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-accent/5 blur-3xl" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-gradient-to-br from-primary/3 to-accent/3 blur-3xl" />
+            <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-primary/8 blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-accent/8 blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-gradient-to-br from-primary/5 to-accent/5 blur-3xl" />
+            <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
           </div>
           
           <div className="relative z-10 p-6 md:p-8">
@@ -588,10 +589,10 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                     {normalizedVariations.filter(v => v.isFeatured).map((variation) => (
                       <div
                         key={`featured-${variation.text}`}
-                        className="relative group rounded-2xl p-6 md:p-8 bg-gradient-to-br from-primary/8 via-primary/4 to-accent/8 border border-primary/30 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.15)] animate-fade-in"
+                        className="relative group rounded-2xl p-6 md:p-8 bg-gradient-to-br from-primary/12 via-primary/6 to-accent/12 border border-primary/35 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.2)] animate-fade-in ring-1 ring-primary/10"
                       >
                         {/* Featured badge */}
-                        <div className="absolute -top-3 left-6 flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold uppercase tracking-wider shadow-md">
+                        <div className="absolute -top-3 left-6 flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-[10px] font-semibold uppercase tracking-wider shadow-lg shadow-primary/30">
                           <Star className="h-3 w-3 fill-current" />
                           Featured
                         </div>
@@ -641,11 +642,11 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                   const renderCard = (variation: TaglineVariation, globalIndex: number) => {
                     const currentStyle = variation.style || 'gradient';
                     const styleClasses: Record<NonNullable<VariationStyle>, string> = {
-                      'gradient': 'bg-gradient-to-r from-primary/5 via-transparent to-accent/5 border border-primary/20 hover:border-primary/40 hover:from-primary/10 hover:to-accent/10',
-                      'accent-bar': 'bg-muted/50 border-l-4 border-l-accent border border-transparent hover:border-accent/30 hover:bg-muted/80',
-                      'floating-card': 'bg-card shadow-md hover:shadow-lg border border-border/50 hover:border-primary/30 hover:-translate-y-0.5',
-                      'glass': 'bg-background/60 backdrop-blur-sm border border-border/50 hover:border-primary/40 hover:bg-background/80',
-                      'outlined': 'border-2 border-dashed border-muted-foreground/20 hover:border-primary/40 bg-transparent hover:bg-primary/5',
+                      'gradient': 'bg-gradient-to-br from-primary/15 via-accent/8 to-primary/10 border border-primary/30 hover:border-primary/50 hover:from-primary/20 hover:to-accent/15 hover:shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.2)]',
+                      'accent-bar': 'bg-gradient-to-r from-accent/10 to-muted/30 border-l-4 border-l-accent border border-accent/15 hover:border-accent/40 hover:from-accent/15 hover:shadow-[0_4px_20px_-4px_hsl(var(--accent)/0.15)]',
+                      'floating-card': 'bg-card shadow-lg hover:shadow-xl border border-border/60 hover:border-primary/40 hover:-translate-y-1 ring-1 ring-primary/5 hover:ring-primary/15',
+                      'glass': 'bg-gradient-to-br from-background/70 to-primary/5 backdrop-blur-md border border-primary/20 hover:border-primary/40 hover:from-background/80 hover:to-primary/10 shadow-[inset_0_1px_0_0_hsl(var(--primary)/0.1)]',
+                      'outlined': 'border-2 border-primary/20 hover:border-primary/50 bg-gradient-to-br from-transparent to-primary/3 hover:to-primary/8 hover:shadow-[0_0_20px_-5px_hsl(var(--primary)/0.15)]',
                     };
 
                     return (
@@ -661,14 +662,14 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                         }}
                       >
                         {/* Index badge */}
-                        <div className="absolute -top-2.5 -left-2.5 w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-sm z-10">
+                        <div className="absolute -top-2.5 -left-2.5 w-8 h-8 rounded-full bg-gradient-to-br from-primary via-primary/90 to-accent text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.5)] z-10 ring-2 ring-background">
                           {String(globalIndex + 1).padStart(2, '0')}
                         </div>
 
                         {/* Context chip */}
                         {variation.context && (
                           <div className="mb-2.5 pl-3">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-accent/10 text-accent-foreground/70 border border-accent/20">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-gradient-to-r from-primary/15 to-accent/15 text-primary border border-primary/25 shadow-sm">
                               <Tag className="h-2.5 w-2.5" />
                               {variation.context}
                             </span>
@@ -677,7 +678,9 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
 
                         <div className="pl-3">
                           <p className="text-base md:text-lg font-medium text-foreground/90 group-hover:text-foreground transition-colors italic leading-relaxed">
-                            "{variation.text}"
+                            <span className="text-primary/40 font-serif text-xl mr-0.5">"</span>
+                            {variation.text}
+                            <span className="text-primary/40 font-serif text-xl ml-0.5">"</span>
                           </p>
                         </div>
 
