@@ -128,7 +128,7 @@ export function ResearchBriefingsPanel() {
     queryFn: async () => {
       let query = supabase
         .from('research_briefings')
-        .select('id, entity_id, entity_type, title, summary, confidence_score, urgency_level, status, created_at')
+        .select('id, entity_id, entity_type, title, summary, confidence_score, urgency_level, status, created_at, knowledge_extracted, cross_entity_insights')
         .order('created_at', { ascending: false })
         .limit(50);
 
