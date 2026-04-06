@@ -15,7 +15,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { PdfTheme, PaperSize, PdfQuality, PDF_QUALITY_PRESETS } from '@/lib/exportPdf';
+import { PdfTheme, PaperSize, PdfQuality, PDF_QUALITY_PRESETS, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
 import { PdfLayoutPreset, PDF_PRESETS, CoverPageConfig, COVER_LAYOUTS, COVER_PATTERNS } from '@/lib/pdfPresets';
 import { BaseGuide, SectionId } from '@/types/brand';
 import { PdfExportSettings } from './types';
