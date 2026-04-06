@@ -49,10 +49,3 @@ export {
   IconBrowser,
 } from './studio';
 
-// ============================================
-// LEGACY STANDALONE DIALOGS
-// @deprecated Use IconStudio instead - these are kept for backward compatibility
-// ============================================
-export { IconCreatorDialog } from './IconCreatorDialog';
-export { IconSetGeneratorDialog } from './IconSetGeneratorDialog';
-export { AppIconGenerator } from './AppIconGenerator';
