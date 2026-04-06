@@ -1,5 +1,6 @@
 /**
  * ResearchBriefingsPanel - Admin dashboard panel for viewing research briefings across all entities
+ * Now with: auto-scheduling, external sources, cross-entity synthesis, and knowledge pipeline badges
  */
 
 import React, { useState, useCallback } from 'react';
@@ -7,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { 
   Microscope, Brain, RefreshCw, Search, Filter, Clock, 
   TrendingUp, AlertTriangle, Sparkles, ChevronRight, Building2,
-  Loader2, Zap
+  Loader2, Zap, Calendar, Link2, BookOpen, Globe, Plus, Trash2, X
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,10 +16,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { BrandResearchBriefing } from './BrandResearchBriefing';
 import { ReportEntitySelector } from './ReportEntitySelector';
+import { useResearchSchedules, useExternalSources } from '@/hooks/useResearchBriefings';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
