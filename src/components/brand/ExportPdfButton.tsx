@@ -1248,10 +1248,10 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   )}
                   <p className={cn("font-medium text-xs", t.text)}>{brochure.title}</p>
                   <p className={cn("text-xs", t.textMuted)}>{brochure.category}</p>
-                  {brochure.url && (
+                  {brochure.externalUrl && (
                     <span className="pdf-link-url mt-1">
                       <ExternalLink className="pdf-link-icon" />
-                      {brochure.url}
+                      {brochure.externalUrl}
                     </span>
                   )}
                 </div>
@@ -1437,10 +1437,10 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   <p className={cn("font-semibold text-sm", t.text)}>{webinar.title}</p>
                   {webinar.date && <p className={cn("text-xs", t.textMuted)}>{webinar.date}{webinar.duration ? ` · ${webinar.duration}` : ''}</p>}
                   {webinar.description && <p className={cn("text-xs mt-1", t.textSubtle)}>{webinar.description}</p>}
-                  {webinar.url && (
+                  {(webinar.recordingUrl || webinar.registrationUrl) && (
                     <span className="pdf-link-url mt-1">
                       <Link2 className="pdf-link-icon" />
-                      {webinar.url}
+                      {webinar.recordingUrl || webinar.registrationUrl}
                     </span>
                   )}
                 </div>
