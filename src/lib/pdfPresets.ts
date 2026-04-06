@@ -1,6 +1,6 @@
 // PDF Layout Presets - Different styling themes for exports
 
-export type PdfLayoutPreset = 'minimal' | 'professional' | 'creative';
+export type PdfLayoutPreset = 'minimal' | 'professional' | 'creative' | 'magazine';
 
 // Cover Page Configuration
 export type CoverLayout = 'centered' | 'left-aligned' | 'split' | 'full-bleed';
