@@ -147,6 +147,28 @@ export const PDF_PRESETS: Record<PdfLayoutPreset, PresetConfig> = {
       cornerRadius: 'large',
     },
   },
+  magazine: {
+    id: 'magazine',
+    label: 'Magazine',
+    description: 'Multi-column editorial layout with rich visuals',
+    icon: 'newspaper',
+    styles: {
+      headingStyle: 'decorative',
+      bodyFont: 'Inter, sans-serif',
+      headingFont: 'Inter, sans-serif',
+      sectionSpacing: 'compact',
+      cardPadding: 'normal',
+      showSectionNumbers: false,
+      showDividers: true,
+      showAccentBorders: true,
+      cardStyle: 'elevated',
+      gridStyle: 'dense',
+      heroStyle: 'dramatic',
+      showPatterns: false,
+      accentShape: 'line',
+      cornerRadius: 'medium',
+    },
+  },
 };
 
 // CSS class generators based on preset
