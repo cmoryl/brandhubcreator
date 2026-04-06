@@ -1285,9 +1285,9 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-2 gap-3">
               {productGuides.map((linked) => (
                 <div key={linked.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
-                  {(linked.coverImage || linked.cardImage) && (
+                  {(linked.coverImage || undefined) && (
                     <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
-                      <img src={linked.coverImage || linked.cardImage} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                      <img src={linked.coverImage || undefined} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
                     </div>
                   )}
                   <p className={cn("font-medium text-sm", t.text)}>{linked.name}</p>
@@ -1308,14 +1308,14 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-2 gap-3">
               {eventGuides.map((linked) => (
                 <div key={linked.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
-                  {(linked.coverImage || linked.cardImage) && (
+                  {(linked.coverImage || undefined) && (
                     <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
-                      <img src={linked.coverImage || linked.cardImage} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                      <img src={linked.coverImage || undefined} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
                     </div>
                   )}
                   <p className={cn("font-medium text-sm", t.text)}>{linked.name}</p>
                   {linked.dates && <p className={cn("text-xs", t.textMuted)}>{linked.dates}</p>}
-                  {linked.venue && <p className={cn("text-xs", t.textSubtle)}>{linked.venue}</p>}
+                  {linked.location && <p className={cn("text-xs", t.textSubtle)}>{linked.location}</p>}
                 </div>
               ))}
             </div>
@@ -1333,9 +1333,9 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-3 gap-2">
               {guide.linkedGuides.map((linked) => (
                 <div key={linked.id} className={cn("p-2 rounded-lg text-center pdf-avoid-break", t.card)}>
-                  {(linked.coverImage || linked.cardImage) && (
+                  {(linked.coverImage || undefined) && (
                     <div className="aspect-square w-full overflow-hidden rounded mb-1">
-                      <img src={linked.coverImage || linked.cardImage} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                      <img src={linked.coverImage || undefined} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
                     </div>
                   )}
                   <p className={cn("font-medium text-xs", t.text)}>{linked.name}</p>
@@ -1382,7 +1382,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                     </div>
                   )}
                   <p className={cn("font-semibold text-sm", t.text)}>{insight.title}</p>
-                  {insight.description && <p className={cn("text-xs mt-1", t.textMuted)}>{insight.description}</p>}
+                  {insight.summary && <p className={cn("text-xs mt-1", t.textMuted)}>{insight.summary}</p>}
                   {insight.date && <p className={cn("text-xs mt-1", t.textSubtle)}>{insight.date}</p>}
                 </div>
               ))}
@@ -1422,7 +1422,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                 <div key={pres.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
                   {pres.slides?.[0]?.imageUrl && (
                     <div className="aspect-[16/10] w-full overflow-hidden rounded mb-2">
-                      <img src={pres.slides[0].imageUrl} alt={pres.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                      <img src={pres.slides[0].thumbnailUrl} alt={pres.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
                     </div>
                   )}
                   <p className={cn("font-semibold text-sm", t.text)}>{pres.name}</p>
