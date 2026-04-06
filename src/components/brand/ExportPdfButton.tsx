@@ -59,6 +59,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [layoutPreset, setLayoutPreset] = useState<PdfLayoutPreset>('professional');
   const [coverConfig, setCoverConfig] = useState<CoverPageConfig>(DEFAULT_COVER_CONFIG);
   const [showCoverOptions, setShowCoverOptions] = useState(false);
+  const [pdfQuality, setPdfQuality] = useState<PdfQuality>('standard');
   const [includeToc, setIncludeToc] = useState(true);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [selectedSections, setSelectedSections] = useState<Set<SectionId>>(new Set(DEFAULT_SECTION_ORDER));
