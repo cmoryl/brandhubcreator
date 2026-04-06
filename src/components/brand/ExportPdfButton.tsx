@@ -1596,7 +1596,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
 
       case 'approvedimagery':
         if (!guide.approvedImagery || Object.keys(guide.approvedImagery).length === 0) return null;
-        const imageryCategories = guide.approvedImagery as Record<string, { images?: { url: string; caption?: string }[]; description?: string }>;
+        const imageryCategories = guide.approvedImagery as unknown as Record<string, { images?: { url: string; caption?: string }[]; description?: string }>;
         return (
           <div id="pdf-section-approvedimagery" className={cn("py-6 border-b", t.border)} key="approvedimagery">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Approved Imagery</h2>
