@@ -63,6 +63,32 @@ export interface ResearchBriefing {
   updated_at: string;
   expires_at: string | null;
   created_by: string | null;
+  cross_entity_insights: Record<string, unknown> | null;
+  knowledge_extracted: boolean;
+}
+
+export interface ResearchSchedule {
+  id: string;
+  entity_id: string;
+  entity_type: string;
+  organization_id: string | null;
+  cadence: 'weekly' | 'biweekly' | 'monthly';
+  briefing_type: 'daily' | 'weekly' | 'deep-dive';
+  next_run_at: string;
+  last_run_at: string | null;
+  is_active: boolean;
+  created_by: string | null;
+}
+
+export interface ExternalSource {
+  id: string;
+  entity_id: string;
+  entity_type: string;
+  url: string;
+  title: string;
+  source_type: 'url' | 'rss';
+  last_fetched_at: string | null;
+  is_active: boolean;
 }
 
 interface GenerateBriefingParams {
@@ -97,7 +123,7 @@ export function useResearchBriefings(entityId: string, entityType: 'brand' | 'pr
         .limit(10);
 
       if (error) throw error;
-      return data as ResearchBriefing[];
+      return data as unknown as ResearchBriefing[];
     },
     enabled: !!entityId && !!entityType,
   });
@@ -175,7 +201,7 @@ export function useResearchBriefings(entityId: string, entityType: 'brand' | 'pr
         .update({ 
           status: 'read', 
           read_at: new Date().toISOString() 
-        })
+        } as any)
         .eq('id', briefingId);
 
       if (error) throw error;
@@ -195,7 +221,7 @@ export function useResearchBriefings(entityId: string, entityType: 'brand' | 'pr
         .update({ 
           status: 'actioned', 
           actioned_at: new Date().toISOString() 
-        })
+        } as any)
         .eq('id', briefingId);
 
       if (error) throw error;
@@ -213,7 +239,7 @@ export function useResearchBriefings(entityId: string, entityType: 'brand' | 'pr
     mutationFn: async (briefingId: string) => {
       const { error } = await supabase
         .from('research_briefings')
-        .update({ status: 'archived' })
+        .update({ status: 'archived' } as any)
         .eq('id', briefingId);
 
       if (error) throw error;
@@ -236,5 +262,152 @@ export function useResearchBriefings(entityId: string, entityType: 'brand' | 'pr
     markAsRead: markAsRead.mutate,
     markAsActioned: markAsActioned.mutate,
     archiveBriefing: archiveBriefing.mutate,
+  };
+}
+
+/**
+ * Hook for managing research schedules
+ */
+export function useResearchSchedules(organizationId: string | null) {
+  const queryClient = useQueryClient();
+
+  const { data: schedules, isLoading } = useQuery({
+    queryKey: ['research-schedules', organizationId],
+    queryFn: async () => {
+      if (!organizationId) return [];
+      const { data, error } = await supabase
+        .from('research_schedules')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as unknown as ResearchSchedule[];
+    },
+    enabled: !!organizationId,
+  });
+
+  const upsertSchedule = useMutation({
+    mutationFn: async (params: {
+      entityId: string;
+      entityType: 'brand' | 'product' | 'event';
+      cadence: 'weekly' | 'biweekly' | 'monthly';
+      briefingType: 'daily' | 'weekly' | 'deep-dive';
+      isActive: boolean;
+    }) => {
+      const nextRun = new Date();
+      switch (params.cadence) {
+        case 'weekly': nextRun.setDate(nextRun.getDate() + 7); break;
+        case 'biweekly': nextRun.setDate(nextRun.getDate() + 14); break;
+        case 'monthly': nextRun.setMonth(nextRun.getMonth() + 1); break;
+      }
+
+      const { error } = await supabase
+        .from('research_schedules')
+        .upsert({
+          entity_id: params.entityId,
+          entity_type: params.entityType,
+          organization_id: organizationId,
+          cadence: params.cadence,
+          briefing_type: params.briefingType,
+          next_run_at: nextRun.toISOString(),
+          is_active: params.isActive,
+        } as any, { onConflict: 'entity_id,entity_type' });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['research-schedules', organizationId] });
+      toast.success('Schedule updated');
+    },
+    onError: (err: Error) => {
+      toast.error('Failed to update schedule', { description: err.message });
+    },
+  });
+
+  const deleteSchedule = useMutation({
+    mutationFn: async (scheduleId: string) => {
+      const { error } = await supabase
+        .from('research_schedules')
+        .delete()
+        .eq('id', scheduleId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['research-schedules', organizationId] });
+      toast.success('Schedule removed');
+    },
+  });
+
+  return {
+    schedules,
+    isLoading,
+    upsertSchedule: upsertSchedule.mutate,
+    deleteSchedule: deleteSchedule.mutate,
+  };
+}
+
+/**
+ * Hook for managing external research sources
+ */
+export function useExternalSources(entityId: string, entityType: string) {
+  const queryClient = useQueryClient();
+
+  const { data: sources, isLoading } = useQuery({
+    queryKey: ['research-external-sources', entityId, entityType],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('research_external_sources')
+        .select('*')
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as unknown as ExternalSource[];
+    },
+    enabled: !!entityId && !!entityType,
+  });
+
+  const addSource = useMutation({
+    mutationFn: async (params: { url: string; title: string; sourceType: 'url' | 'rss'; organizationId?: string }) => {
+      const { error } = await supabase
+        .from('research_external_sources')
+        .insert({
+          entity_id: entityId,
+          entity_type: entityType,
+          url: params.url,
+          title: params.title,
+          source_type: params.sourceType,
+          organization_id: params.organizationId || null,
+        } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['research-external-sources', entityId, entityType] });
+      toast.success('Source added');
+    },
+    onError: (err: Error) => {
+      toast.error('Failed to add source', { description: err.message });
+    },
+  });
+
+  const removeSource = useMutation({
+    mutationFn: async (sourceId: string) => {
+      const { error } = await supabase
+        .from('research_external_sources')
+        .delete()
+        .eq('id', sourceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['research-external-sources', entityId, entityType] });
+      toast.success('Source removed');
+    },
+  });
+
+  return {
+    sources,
+    isLoading,
+    addSource: addSource.mutate,
+    removeSource: removeSource.mutate,
   };
 }

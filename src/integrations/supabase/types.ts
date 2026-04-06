@@ -4804,11 +4804,13 @@ export type Database = {
           confidence_score: number | null
           created_at: string
           created_by: string | null
+          cross_entity_insights: Json | null
           entity_id: string
           entity_type: string
           expires_at: string | null
           growth_opportunities: Json | null
           id: string
+          knowledge_extracted: boolean
           market_intelligence: Json | null
           organization_id: string | null
           priority_actions: Json | null
@@ -4831,11 +4833,13 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string
           created_by?: string | null
+          cross_entity_insights?: Json | null
           entity_id: string
           entity_type?: string
           expires_at?: string | null
           growth_opportunities?: Json | null
           id?: string
+          knowledge_extracted?: boolean
           market_intelligence?: Json | null
           organization_id?: string | null
           priority_actions?: Json | null
@@ -4858,11 +4862,13 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string
           created_by?: string | null
+          cross_entity_insights?: Json | null
           entity_id?: string
           entity_type?: string
           expires_at?: string | null
           growth_opportunities?: Json | null
           id?: string
+          knowledge_extracted?: boolean
           market_intelligence?: Json | null
           organization_id?: string | null
           priority_actions?: Json | null
@@ -4881,6 +4887,112 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "research_briefings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_external_sources: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          is_active: boolean
+          last_fetched_at: string | null
+          organization_id: string | null
+          source_type: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type?: string
+          id?: string
+          is_active?: boolean
+          last_fetched_at?: string | null
+          organization_id?: string | null
+          source_type?: string
+          title?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_active?: boolean
+          last_fetched_at?: string | null
+          organization_id?: string | null
+          source_type?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_external_sources_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_schedules: {
+        Row: {
+          briefing_type: string
+          cadence: string
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          next_run_at: string
+          organization_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          briefing_type?: string
+          cadence?: string
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type?: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          next_run_at?: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          briefing_type?: string
+          cadence?: string
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          next_run_at?: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_schedules_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"

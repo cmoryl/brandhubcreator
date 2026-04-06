@@ -1,5 +1,6 @@
 /**
  * ResearchBriefingsPanel - Admin dashboard panel for viewing research briefings across all entities
+ * Now with: auto-scheduling, external sources, cross-entity synthesis, and knowledge pipeline badges
  */
 
 import React, { useState, useCallback } from 'react';
@@ -7,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { 
   Microscope, Brain, RefreshCw, Search, Filter, Clock, 
   TrendingUp, AlertTriangle, Sparkles, ChevronRight, Building2,
-  Loader2, Zap
+  Loader2, Zap, Calendar, Link2, BookOpen, Globe, Plus, Trash2, X
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,10 +16,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { BrandResearchBriefing } from './BrandResearchBriefing';
 import { ReportEntitySelector } from './ReportEntitySelector';
+import { useResearchSchedules, useExternalSources } from '@/hooks/useResearchBriefings';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -33,13 +37,33 @@ interface BriefingSummary {
   status: string;
   created_at: string;
   entity_name?: string;
+  knowledge_extracted?: boolean;
+  cross_entity_insights?: Record<string, unknown> | null;
 }
 
 export function ResearchBriefingsPanel() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedBriefing, setSelectedBriefing] = useState<BriefingSummary | null>(null);
+  const [showSchedules, setShowSchedules] = useState(false);
+
+  // Fetch org id from membership
+  const { data: orgData } = useQuery({
+    queryKey: ['user-org-id', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', user!.id)
+        .limit(1)
+        .single();
+      return data?.organization_id || null;
+    },
+    enabled: !!user?.id,
+  });
+  const orgId = orgData || null;
 
   // Generate briefing state
   const [generateEntityType, setGenerateEntityType] = useState<'brands' | 'products' | 'events'>('brands');
@@ -47,6 +71,10 @@ export function ResearchBriefingsPanel() {
   const [briefingType, setBriefingType] = useState<'daily' | 'weekly' | 'deep-dive'>('daily');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingEntityId, setGeneratingEntityId] = useState<string | null>(null);
+
+  // Schedule management
+  const { schedules, upsertSchedule } = useResearchSchedules(orgId);
+  const activeSchedules = schedules?.filter(s => s.is_active) || [];
 
   const entityTypeMap: Record<string, 'brand' | 'product' | 'event'> = {
     brands: 'brand',
@@ -100,7 +128,7 @@ export function ResearchBriefingsPanel() {
     queryFn: async () => {
       let query = supabase
         .from('research_briefings')
-        .select('id, entity_id, entity_type, title, summary, confidence_score, urgency_level, status, created_at')
+        .select('id, entity_id, entity_type, title, summary, confidence_score, urgency_level, status, created_at, knowledge_extracted, cross_entity_insights')
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -222,10 +250,18 @@ export function ResearchBriefingsPanel() {
             AI-powered research intelligence across all brands, products, and events
           </p>
         </div>
-        <Button onClick={() => refetch()} disabled={isLoading} variant="outline">
-          <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          {activeSchedules.length > 0 && (
+            <Badge variant="outline" className="gap-1">
+              <Calendar className="h-3 w-3" />
+              {activeSchedules.length} scheduled
+            </Badge>
+          )}
+          <Button onClick={() => refetch()} disabled={isLoading} variant="outline" size="sm">
+            <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -436,6 +472,18 @@ export function ResearchBriefingsPanel() {
                         <span className="font-medium truncate">{briefing.title}</span>
                         {briefing.status === 'new' && (
                           <Badge variant="default" className="text-xs">New</Badge>
+                        )}
+                        {briefing.knowledge_extracted && (
+                          <Badge variant="outline" className="text-xs gap-1 border-primary/30 text-primary">
+                            <BookOpen className="h-2.5 w-2.5" />
+                            Knowledge
+                          </Badge>
+                        )}
+                        {briefing.cross_entity_insights && (
+                          <Badge variant="outline" className="text-xs gap-1 border-accent/50">
+                            <Globe className="h-2.5 w-2.5" />
+                            Cross-Entity
+                          </Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -1,55 +1,51 @@
 
+# Research Briefings — Continuous Knowledge Intake Expansion
 
-# Phantom Code Cleanup Audit
+## 1. Briefing-to-Knowledge Pipeline
+**Goal**: Every completed research briefing automatically extracts key facts and persists them into the Oracle Knowledge Base.
 
-## Confirmed Dead Code
+**Changes**:
+- **Modify** `brand-research-worker` edge function to add a post-completion step that extracts key findings, market insights, and strategic recommendations from the briefing result
+- Insert extracted knowledge entries into `oracle_knowledge_base` with `source_type = 'research_briefing'` and a reference to the briefing job ID
+- Deduplicates against existing entries using semantic hashing (same pattern as brand intelligence)
+- UI: Show a "Knowledge captured" badge on completed briefings in the Research Briefings panel
 
-### 1. Unused Component: `RealtimeIndicator.tsx`
-- **File**: `src/components/RealtimeIndicator.tsx`
-- **Status**: Zero imports anywhere in the codebase. Completely orphaned.
-- **Action**: Delete file.
+## 2. External Source Ingestion
+**Goal**: Pull in industry news, competitor updates, or user-provided URLs as research inputs.
 
-### 2. Unused Hook: `useKeyboardShortcuts.ts`
-- **File**: `src/hooks/useKeyboardShortcuts.ts`
-- **Status**: Zero imports anywhere. Never used.
-- **Action**: Delete file.
+**Changes**:
+- **Add** an "External Sources" input area to the Research Briefings panel — users can paste URLs or RSS feed links
+- **Create** `research_external_sources` table to persist saved sources per entity (url, title, source_type: 'url'|'rss', last_fetched_at)
+- **Modify** `brand-research` edge function to fetch and include content from saved external sources when generating briefings (uses existing download-proxy pattern for URL content extraction)
+- Fetched content is summarized and injected into the research prompt context (capped at 10KB per source, max 5 sources)
 
-### 3. Unused Hook: `usePortalKeyboard.ts`
-- **File**: `src/hooks/usePortalKeyboard.ts`
-- **Status**: Zero imports anywhere. Never used.
-- **Action**: Delete file.
+## 3. Cross-Entity Research Synthesis
+**Goal**: When a briefing runs for one brand, automatically surface relevant findings for sibling products/events.
 
-### 4. Unused Component + Hook: `scroll-animate.tsx` + `useScrollAnimation.ts`
-- **Files**: `src/components/ui/scroll-animate.tsx`, `src/hooks/useScrollAnimation.ts`
-- **Status**: `scroll-animate` imports `useScrollAnimation`, but nothing imports `scroll-animate`. Both are dead.
-- **Action**: Delete both files.
+**Changes**:
+- **Modify** `brand-research-worker` to query sibling entity briefings (same org) and include a "Cross-Portfolio Relevance" section in the output
+- Worker fetches the 3 most recent briefings from sibling entities and injects summaries into the prompt
+- Output includes a `cross_entity_insights` JSON field identifying which findings apply to other entities
+- UI: Add a "Cross-Portfolio Insights" expandable section to the briefing result card
 
-### 5. Legacy Icon Dialogs (deprecated, unused)
-- **Files**: `src/components/brand/iconography/IconCreatorDialog.tsx`, `IconSetGeneratorDialog.tsx`, `AppIconGenerator.tsx`
-- **Status**: Marked `@deprecated` in the barrel export (`index.ts`). The barrel re-exports them, but nothing in the app imports them from the barrel or directly. The IconStudio replaced all three.
-- **Action**: Delete the three files and remove their exports from `index.ts`.
+## 4. Auto-Schedule Recurring Briefings
+**Goal**: Briefings can run on a cadence without manual triggers.
 
-## Borderline / Keep for Now
+**Changes**:
+- **Add** `research_schedules` table: entity_id, entity_type, organization_id, cadence ('weekly'|'biweekly'|'monthly'), next_run_at, is_active, created_by
+- **Create** `scheduled-research-trigger` edge function — lightweight cron handler that queries due schedules and fires `brand-research` for each
+- **Add** cron job via pg_cron to invoke the trigger function daily at 9 AM UTC
+- UI: Add a "Schedule" toggle/dropdown in the Research Briefings panel header allowing admins to set cadence per entity
 
-### Deprecated `gradientBars*` type fields
-- Still actively used as fallback values in `HeroSection.tsx` for backward compatibility with existing saved data. These cannot be removed without a data migration. **Keep**.
+## Implementation Order
+1. Briefing-to-Knowledge Pipeline (foundation — makes all future briefings accumulate)
+2. External Source Ingestion (enriches input quality)
+3. Cross-Entity Synthesis (leverages accumulated knowledge)
+4. Auto-Schedule (automates everything)
 
-### `src/test/` directory
-- Contains test files. Not dead code, just unused test infrastructure. **Keep**.
-
-## Summary
-
-| Item | Type | Action |
-|------|------|--------|
-| `RealtimeIndicator.tsx` | Component | Delete |
-| `useKeyboardShortcuts.ts` | Hook | Delete |
-| `usePortalKeyboard.ts` | Hook | Delete |
-| `scroll-animate.tsx` | Component | Delete |
-| `useScrollAnimation.ts` | Hook | Delete |
-| `IconCreatorDialog.tsx` | Component | Delete |
-| `IconSetGeneratorDialog.tsx` | Component | Delete |
-| `AppIconGenerator.tsx` | Component | Delete |
-| Barrel exports in `iconography/index.ts` | Exports | Remove 3 legacy lines |
-
-**Total**: 8 files to delete, 1 file to edit. Reduces bundle surface and eliminates dead code paths from the build.
-
+## Files to modify/create
+- `supabase/functions/brand-research-worker/index.ts` — add knowledge extraction + cross-entity context
+- `supabase/functions/scheduled-research-trigger/index.ts` — new cron handler
+- Migration: `research_external_sources` + `research_schedules` tables with RLS
+- `src/components/admin/research/ResearchBriefingsPanel.tsx` — schedule UI + external sources + cross-entity display
+- `src/hooks/useResearchBriefings.ts` — add schedule management + external sources CRUD

@@ -156,6 +156,41 @@ Return ONLY valid JSON (no markdown):
       }
     }
 
+    // === CROSS-ENTITY SYNTHESIS ===
+    // Fetch recent sibling briefings from the same org for cross-portfolio insights
+    let crossEntityInsights: Record<string, unknown> | null = null;
+    if (organizationId) {
+      try {
+        const { data: siblingBriefings } = await adminSupabase
+          .from('research_briefings')
+          .select('entity_id, entity_type, title, summary, priority_actions, strategic_recommendations')
+          .eq('organization_id', organizationId)
+          .neq('entity_id', entityId)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (siblingBriefings && siblingBriefings.length > 0) {
+          const siblingContext = siblingBriefings.map((sb: any) => 
+            `${sb.entity_type}:"${sb.title}" — ${sb.summary || ''}`
+          ).join('\n');
+          
+          // Inject sibling context into the briefing result
+          crossEntityInsights = {
+            siblingCount: siblingBriefings.length,
+            entities: siblingBriefings.map((sb: any) => ({
+              entityId: sb.entity_id,
+              entityType: sb.entity_type,
+              title: sb.title,
+              summary: sb.summary,
+            })),
+            sharedThemes: [],  // Will be enriched by future AI pass
+          };
+        }
+      } catch (e) {
+        console.warn('[brand-research] Cross-entity fetch failed (non-critical):', e);
+      }
+    }
+
     // Save briefing
     const { data: saved } = await adminSupabase
       .from('research_briefings')
@@ -177,12 +212,67 @@ Return ONLY valid JSON (no markdown):
         suggested_updates: briefing.suggestedUpdates,
         confidence_score: briefing.confidenceScore,
         urgency_level: briefing.urgencyLevel,
+        cross_entity_insights: crossEntityInsights,
         created_by: userId,
       })
       .select('id')
       .single();
 
     await adminSupabase.from('brand_intelligence_jobs').update({ progress: 85 }).eq('id', jobId);
+
+    // === BRIEFING-TO-KNOWLEDGE PIPELINE ===
+    // Extract key facts and persist to oracle_knowledge_base
+    let knowledgeExtracted = false;
+    if (organizationId && saved?.id) {
+      try {
+        const recs = Array.isArray(briefing.strategicRecommendations) ? briefing.strategicRecommendations : [];
+        const risks = Array.isArray(briefing.riskAlerts) ? briefing.riskAlerts : [];
+        const trends = (briefing.trendAnalysis as any)?.risingTrends || [];
+        const growthOps = Array.isArray(briefing.growthOpportunities) ? briefing.growthOpportunities : [];
+
+        // Build knowledge content from all key findings
+        const knowledgeParts: string[] = [];
+        if (briefing.summary) knowledgeParts.push(`Summary: ${briefing.summary}`);
+        if (recs.length > 0) knowledgeParts.push(`Key Recommendations: ${recs.slice(0, 3).map((r: any) => `${r.action} (${r.priority})`).join('; ')}`);
+        if (risks.length > 0) knowledgeParts.push(`Risks: ${risks.slice(0, 2).map((r: any) => `${r.risk} [${r.severity}]`).join('; ')}`);
+        if (trends.length > 0) knowledgeParts.push(`Rising Trends: ${trends.slice(0, 3).join(', ')}`);
+        if (growthOps.length > 0) knowledgeParts.push(`Growth: ${growthOps.slice(0, 2).map((g: any) => g.opportunity).join('; ')}`);
+
+        const knowledgeContent = knowledgeParts.join('\n');
+        const knowledgeTitle = `📊 Research: ${entityName} (${briefingType}) — ${new Date().toISOString().split('T')[0]}`;
+
+        // Hash for deduplication
+        const encoder = new TextEncoder();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(knowledgeContent));
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const embeddingHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+
+        await adminSupabase.from('oracle_knowledge_base').upsert({
+          organization_id: organizationId,
+          title: knowledgeTitle,
+          content: knowledgeContent,
+          content_type: 'research',
+          source_type: 'research_briefing',
+          source_entity_id: entityId,
+          source_entity_type: entityType,
+          embedding_hash: embeddingHash,
+          tags: [`research-${briefingType}`, entityType, entityName.toLowerCase().replace(/\s+/g, '-')],
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'organization_id,embedding_hash' });
+
+        // Mark briefing as knowledge-extracted
+        await adminSupabase
+          .from('research_briefings')
+          .update({ knowledge_extracted: true })
+          .eq('id', saved.id);
+
+        knowledgeExtracted = true;
+        console.log(`[brand-research] Knowledge extracted for ${entityName}`);
+      } catch (e) {
+        console.warn('[brand-research] Knowledge extraction failed (non-critical):', e);
+      }
+    }
 
     // Lightweight learning feedback — add top insights to brand intelligence
     try {
@@ -230,10 +320,10 @@ Return ONLY valid JSON (no markdown):
       status: 'completed',
       progress: 100,
       completed_at: new Date().toISOString(),
-      result: { briefing, briefingId: saved?.id },
+      result: { briefing, briefingId: saved?.id, knowledgeExtracted, crossEntityInsights: !!crossEntityInsights },
     }).eq('id', jobId);
 
-    console.log(`[brand-research] Completed for ${entityName}`);
+    console.log(`[brand-research] Completed for ${entityName} (knowledge: ${knowledgeExtracted}, cross-entity: ${!!crossEntityInsights})`);
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
     console.error(`[brand-research] Job ${jobId} failed:`, msg);
@@ -300,19 +390,20 @@ Deno.serve(async (req) => {
     const guideData = entityData.guide_data as Record<string, unknown>;
     const { text: brandContext, imageUrls: brandImageUrls } = extractBrandContext(guideData, entityData.name, entityType);
 
-    // Fetch document content, social metrics, and Oracle context in parallel
+    // Fetch document content, social metrics, Oracle context, and external sources in parallel
     const adminSupabaseForOracle = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-    const [docResult, socialResult, oracleCtx] = await Promise.all([
+    const [docResult, socialResult, oracleCtx, externalSourcesCtx] = await Promise.all([
       fetchDocumentContext(supabaseClient, entityId, entityType, guideData, 1500),
       fetchSocialMetricsContext(supabaseClient, entityId, entityType),
       fetchOracleContextForResearch(adminSupabaseForOracle, entityData.organization_id),
+      fetchExternalSourcesContext(adminSupabaseForOracle, entityId, entityType),
     ]);
     const { text: docContext, imageUrls: docImageUrls, documentCount } = docResult;
     const { text: socialContext, platformCount: socialPlatformCount, hasMetrics: hasSocialMetrics } = socialResult;
-    const combinedContext = [brandContext, docContext, socialContext, oracleCtx].filter(Boolean).join('\n');
+    const combinedContext = [brandContext, docContext, socialContext, oracleCtx, externalSourcesCtx].filter(Boolean).join('\n');
     const combinedImages = [...brandImageUrls, ...docImageUrls.slice(0, 5)];
 
     // Fetch minimal intelligence summary
@@ -423,6 +514,72 @@ async function fetchOracleContextForResearch(supabase: any, organizationId: stri
     return parts.join('\n');
   } catch (err) {
     console.warn('[brand-research] Oracle context failed (non-critical):', err);
+    return null;
+  }
+}
+
+/**
+ * Fetch external sources configured for this entity
+ */
+async function fetchExternalSourcesContext(supabase: any, entityId: string, entityType: string): Promise<string | null> {
+  try {
+    const { data: sources } = await supabase
+      .from('research_external_sources')
+      .select('url, title, source_type')
+      .eq('entity_id', entityId)
+      .eq('entity_type', entityType)
+      .eq('is_active', true)
+      .limit(5);
+
+    if (!sources || sources.length === 0) return null;
+
+    // Fetch content from each source (lightweight — just titles/URLs for context)
+    const parts: string[] = ['\nEXTERNAL RESEARCH SOURCES:'];
+    
+    for (const source of sources) {
+      try {
+        // Try to fetch page content via proxy-download for URL sources
+        const proxyUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/proxy-download?url=${encodeURIComponent(source.url)}`;
+        const response = await fetch(proxyUrl, {
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          },
+        });
+
+        if (response.ok) {
+          const text = await response.text();
+          // Extract meaningful text (strip HTML if present)
+          const cleanText = text
+            .replace(/<script[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 2000);
+
+          if (cleanText.length > 50) {
+            parts.push(`[${source.title}] (${source.source_type}): ${cleanText.slice(0, 1500)}`);
+          }
+        } else {
+          await response.text(); // consume
+          parts.push(`[${source.title}] URL: ${source.url} (content unavailable)`);
+        }
+
+        // Update last_fetched_at
+        await supabase
+          .from('research_external_sources')
+          .update({ last_fetched_at: new Date().toISOString() })
+          .eq('entity_id', entityId)
+          .eq('entity_type', entityType)
+          .eq('url', source.url);
+      } catch (e) {
+        parts.push(`[${source.title}] URL: ${source.url} (fetch failed)`);
+      }
+    }
+
+    return parts.length > 1 ? parts.join('\n') : null;
+  } catch (err) {
+    console.warn('[brand-research] External sources fetch failed (non-critical):', err);
     return null;
   }
 }
