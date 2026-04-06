@@ -16,6 +16,9 @@ export interface CoverPageConfig {
   showDate: boolean;
   showCoverImage: boolean;
   patternOpacity: number;
+  confidentialityLevel: 'none' | 'confidential' | 'internal' | 'draft';
+  showPageNumbers: boolean;
+  showRunningFooter: boolean;
 }
 
 export const DEFAULT_COVER_CONFIG: CoverPageConfig = {
@@ -28,7 +31,17 @@ export const DEFAULT_COVER_CONFIG: CoverPageConfig = {
   showDate: true,
   showCoverImage: true,
   patternOpacity: 0.05,
+  confidentialityLevel: 'none',
+  showPageNumbers: true,
+  showRunningFooter: true,
 };
+
+export const CONFIDENTIALITY_LEVELS = [
+  { id: 'none' as const, label: 'None', color: '' },
+  { id: 'confidential' as const, label: 'Confidential', color: '#dc2626' },
+  { id: 'internal' as const, label: 'Internal Only', color: '#d97706' },
+  { id: 'draft' as const, label: 'Draft', color: '#6b7280' },
+];
 
 export const COVER_LAYOUTS: { id: CoverLayout; label: string; description: string }[] = [
   { id: 'centered', label: 'Centered', description: 'Classic centered layout' },

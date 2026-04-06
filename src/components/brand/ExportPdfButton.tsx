@@ -3,7 +3,7 @@ import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, Li
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
-import { PdfLayoutPreset, PDF_PRESETS, CoverPageConfig, DEFAULT_COVER_CONFIG, COVER_LAYOUTS, COVER_PATTERNS, getCoverPatternSvg } from '@/lib/pdfPresets';
+import { PdfLayoutPreset, PDF_PRESETS, CoverPageConfig, DEFAULT_COVER_CONFIG, COVER_LAYOUTS, COVER_PATTERNS, CONFIDENTIALITY_LEVELS, getCoverPatternSvg } from '@/lib/pdfPresets';
 import { getAllColorFormats } from '@/lib/colorUtils';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
@@ -521,6 +521,27 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
                 </div>
               )}
+              
+              {/* Confidentiality Badge */}
+              {coverConfig.confidentialityLevel !== 'none' && (
+                <div style={{
+                  marginTop: '20px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 16px',
+                  borderRadius: '20px',
+                  border: `2px solid ${CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.color || '#dc2626'}`,
+                  color: CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.color || '#dc2626',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                }}>
+                  {coverConfig.confidentialityLevel === 'confidential' ? '🔒 ' : coverConfig.confidentialityLevel === 'draft' ? '📝 ' : '🔐 '}
+                  {CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.label}
+                </div>
+              )}
             </div>
             
             {/* Cover image for non-full-bleed layouts */}
@@ -971,10 +992,34 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
 
       case 'socialassets':
         const socialAssets = guide.socialAssets || [];
-        if (socialAssets.length === 0) return null;
+        const displayBanners = (guide as any).displayBannerSets || (guide as any).socialBannerSets || [];
+        if (socialAssets.length === 0 && displayBanners.length === 0) return null;
         return (
           <div id="pdf-section-socialassets" className={cn("py-6 border-b", t.border)} key="socialassets">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Assets & Specifications</h2>
+            
+            {/* Display banner sets with images */}
+            {displayBanners.length > 0 && (
+              <div className="mb-4">
+                <h3 className={cn("font-semibold text-sm mb-2", t.text)}>Social Media Banner Sets</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {displayBanners.map((banner: any) => (
+                    <div key={banner.id} className={cn("rounded-lg overflow-hidden pdf-avoid-break", t.card)}>
+                      {banner.previewUrl && (
+                        <div className="aspect-[16/9] w-full overflow-hidden">
+                          <img src={banner.previewUrl} alt={banner.name || 'Banner'} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                        </div>
+                      )}
+                      <div className="p-2">
+                        <p className={cn("font-medium text-xs", t.text)}>{banner.name || banner.platform}</p>
+                        {banner.dimensions && <p className={cn("text-xs", t.textMuted)}>{banner.dimensions}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             {socialAssets.length > 0 && (
               <div className="mb-4">
                 <h3 className={cn("font-semibold text-sm mb-2", t.text)}>Platform Specifications</h3>
@@ -1596,12 +1641,28 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
 
       case 'approvedimagery':
         if (!guide.approvedImagery || Object.keys(guide.approvedImagery).length === 0) return null;
+        const imageryCategories = guide.approvedImagery as unknown as Record<string, { images?: { url: string; caption?: string }[]; description?: string }>;
         return (
           <div id="pdf-section-approvedimagery" className={cn("py-6 border-b", t.border)} key="approvedimagery">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Approved Imagery</h2>
-            <p className={cn("text-sm", t.textMuted)}>
-              Curated approved imagery collections are available in the digital brand portal.
-            </p>
+            {Object.entries(imageryCategories).map(([category, data]) => (
+              <div key={category} className="mb-4">
+                <h3 className={cn("font-semibold text-sm mb-2 capitalize", t.text)}>{category}</h3>
+                {data?.description && <p className={cn("text-xs mb-2", t.textMuted)}>{data.description}</p>}
+                {data?.images && data.images.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {data.images.map((img, idx) => (
+                      <div key={idx} className={cn("rounded-lg overflow-hidden pdf-avoid-break", t.card)}>
+                        <div className="aspect-[4/3] w-full overflow-hidden">
+                          <img src={img.url} alt={img.caption || category} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                        </div>
+                        {img.caption && <p className={cn("text-xs p-1.5 text-center", t.textMuted)}>{img.caption}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         );
 
@@ -1918,6 +1979,47 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                       ))}
                     </div>
                   </div>
+                  
+                  {/* Confidentiality Level */}
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Confidentiality Badge</Label>
+                    <div className="flex flex-wrap gap-1">
+                      {CONFIDENTIALITY_LEVELS.map((level) => (
+                        <button
+                          key={level.id}
+                          onClick={() => setCoverConfig(prev => ({ ...prev, confidentialityLevel: level.id }))}
+                          className={cn(
+                            "text-xs py-1 px-2 rounded border transition-all",
+                            coverConfig.confidentialityLevel === level.id 
+                              ? "border-primary bg-primary/10 text-primary" 
+                              : "border-border hover:border-primary/50"
+                          )}
+                        >
+                          {level.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Running Footer Toggle */}
+                  <div className="flex items-center justify-between py-1.5">
+                    <Label htmlFor="running-footer" className="text-xs text-muted-foreground cursor-pointer">Running Footer</Label>
+                    <Switch
+                      id="running-footer"
+                      checked={coverConfig.showRunningFooter}
+                      onCheckedChange={(checked) => setCoverConfig(prev => ({ ...prev, showRunningFooter: checked }))}
+                    />
+                  </div>
+                  
+                  {/* Page Numbers Toggle */}
+                  <div className="flex items-center justify-between py-1.5">
+                    <Label htmlFor="page-numbers" className="text-xs text-muted-foreground cursor-pointer">Page Numbers</Label>
+                    <Switch
+                      id="page-numbers"
+                      checked={coverConfig.showPageNumbers}
+                      onCheckedChange={(checked) => setCoverConfig(prev => ({ ...prev, showPageNumbers: checked }))}
+                    />
+                  </div>
                 </CollapsibleContent>
               </Collapsible>
 
@@ -2162,6 +2264,31 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                           </div>
                         );
                       })()}
+                      
+                      {/* Running footer for every page */}
+                      {coverConfig.showRunningFooter && (
+                        <div className="pdf-running-footer" style={{
+                          position: 'relative',
+                          marginTop: '32px',
+                          paddingTop: '8px',
+                          borderTop: '1px solid rgba(128,128,128,0.2)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: '8px',
+                          opacity: 0.4,
+                        }}>
+                          <span>{guide.hero.name} — {guide.type === 'brand' ? 'Brand' : 'Product'} Guidelines</span>
+                          <span>
+                            {coverConfig.confidentialityLevel !== 'none' && (
+                              <span style={{ color: CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.color, fontWeight: 700, marginRight: '8px', opacity: 1 }}>
+                                {CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.label?.toUpperCase()}
+                              </span>
+                            )}
+                            {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+                          </span>
+                        </div>
+                      )}
                       
                       {/* Footer */}
                       <div className="pdf-footer">
