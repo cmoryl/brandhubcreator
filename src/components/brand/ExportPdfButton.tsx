@@ -1066,14 +1066,52 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         return (
           <div id="pdf-section-assets" className={cn("py-6 border-b", t.border)} key="assets">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Brand Assets</h2>
-            <div className="space-y-1">
+            <div className="grid grid-cols-2 gap-3">
               {guide.assets.map((asset) => (
-                <div key={asset.id} className={cn("p-2 rounded-lg flex justify-between items-center pdf-avoid-break", t.card)}>
-                  <div>
-                    <p className={cn("font-medium text-sm", t.text)}>{asset.name}</p>
-                    <p className={cn("text-xs", t.textMuted)}>{asset.type}</p>
+                <div key={asset.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {asset.downloadUrl && /\.(jpe?g|png|gif|webp|svg)$/i.test(asset.downloadUrl) && (
+                    <div className="aspect-[16/10] w-full overflow-hidden rounded mb-2">
+                      <img 
+                        src={asset.downloadUrl} 
+                        alt={asset.name}
+                        className="w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                        loading="eager"
+                      />
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className={cn("font-medium text-sm", t.text)}>{asset.name}</p>
+                      <p className={cn("text-xs", t.textMuted)}>{asset.type}</p>
+                    </div>
+                    <span className={cn("text-xs", t.textSubtle)}>{asset.size}</span>
                   </div>
-                  <span className={cn("text-xs", t.textSubtle)}>{asset.size}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'imageassets':
+        if (!guide.imageAssets || guide.imageAssets.length === 0) return null;
+        return (
+          <div id="pdf-section-imageassets" className={cn("py-6 border-b", t.border)} key="imageassets">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Image Library</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {guide.imageAssets.map((img) => (
+                <div key={img.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
+                  <div className="aspect-[4/3] w-full overflow-hidden rounded mb-1">
+                    <img 
+                      src={img.url} 
+                      alt={img.name}
+                      className="w-full h-full object-cover"
+                      crossOrigin="anonymous"
+                      loading="eager"
+                    />
+                  </div>
+                  <p className={cn("font-medium text-xs text-center", t.text)}>{img.name}</p>
+                  <p className={cn("text-xs text-center", t.textMuted)}>{img.type} · {img.size}</p>
                 </div>
               ))}
             </div>
