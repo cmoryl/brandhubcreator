@@ -42,10 +42,12 @@ interface BriefingSummary {
 }
 
 export function ResearchBriefingsPanel() {
+  const { organizationId } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedBriefing, setSelectedBriefing] = useState<BriefingSummary | null>(null);
+  const [showSchedules, setShowSchedules] = useState(false);
 
   // Generate briefing state
   const [generateEntityType, setGenerateEntityType] = useState<'brands' | 'products' | 'events'>('brands');
@@ -53,6 +55,10 @@ export function ResearchBriefingsPanel() {
   const [briefingType, setBriefingType] = useState<'daily' | 'weekly' | 'deep-dive'>('daily');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingEntityId, setGeneratingEntityId] = useState<string | null>(null);
+
+  // Schedule management
+  const { schedules, upsertSchedule } = useResearchSchedules(organizationId || null);
+  const activeSchedules = schedules?.filter(s => s.is_active) || [];
 
   const entityTypeMap: Record<string, 'brand' | 'product' | 'event'> = {
     brands: 'brand',
