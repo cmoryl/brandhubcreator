@@ -1979,6 +1979,47 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                       ))}
                     </div>
                   </div>
+                  
+                  {/* Confidentiality Level */}
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Confidentiality Badge</Label>
+                    <div className="flex flex-wrap gap-1">
+                      {CONFIDENTIALITY_LEVELS.map((level) => (
+                        <button
+                          key={level.id}
+                          onClick={() => setCoverConfig(prev => ({ ...prev, confidentialityLevel: level.id }))}
+                          className={cn(
+                            "text-xs py-1 px-2 rounded border transition-all",
+                            coverConfig.confidentialityLevel === level.id 
+                              ? "border-primary bg-primary/10 text-primary" 
+                              : "border-border hover:border-primary/50"
+                          )}
+                        >
+                          {level.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Running Footer Toggle */}
+                  <div className="flex items-center justify-between py-1.5">
+                    <Label htmlFor="running-footer" className="text-xs text-muted-foreground cursor-pointer">Running Footer</Label>
+                    <Switch
+                      id="running-footer"
+                      checked={coverConfig.showRunningFooter}
+                      onCheckedChange={(checked) => setCoverConfig(prev => ({ ...prev, showRunningFooter: checked }))}
+                    />
+                  </div>
+                  
+                  {/* Page Numbers Toggle */}
+                  <div className="flex items-center justify-between py-1.5">
+                    <Label htmlFor="page-numbers" className="text-xs text-muted-foreground cursor-pointer">Page Numbers</Label>
+                    <Switch
+                      id="page-numbers"
+                      checked={coverConfig.showPageNumbers}
+                      onCheckedChange={(checked) => setCoverConfig(prev => ({ ...prev, showPageNumbers: checked }))}
+                    />
+                  </div>
                 </CollapsibleContent>
               </Collapsible>
 
