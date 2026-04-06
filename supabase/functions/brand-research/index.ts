@@ -517,3 +517,69 @@ async function fetchOracleContextForResearch(supabase: any, organizationId: stri
     return null;
   }
 }
+
+/**
+ * Fetch external sources configured for this entity
+ */
+async function fetchExternalSourcesContext(supabase: any, entityId: string, entityType: string): Promise<string | null> {
+  try {
+    const { data: sources } = await supabase
+      .from('research_external_sources')
+      .select('url, title, source_type')
+      .eq('entity_id', entityId)
+      .eq('entity_type', entityType)
+      .eq('is_active', true)
+      .limit(5);
+
+    if (!sources || sources.length === 0) return null;
+
+    // Fetch content from each source (lightweight — just titles/URLs for context)
+    const parts: string[] = ['\nEXTERNAL RESEARCH SOURCES:'];
+    
+    for (const source of sources) {
+      try {
+        // Try to fetch page content via proxy-download for URL sources
+        const proxyUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/proxy-download?url=${encodeURIComponent(source.url)}`;
+        const response = await fetch(proxyUrl, {
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          },
+        });
+
+        if (response.ok) {
+          const text = await response.text();
+          // Extract meaningful text (strip HTML if present)
+          const cleanText = text
+            .replace(/<script[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 2000);
+
+          if (cleanText.length > 50) {
+            parts.push(`[${source.title}] (${source.source_type}): ${cleanText.slice(0, 1500)}`);
+          }
+        } else {
+          await response.text(); // consume
+          parts.push(`[${source.title}] URL: ${source.url} (content unavailable)`);
+        }
+
+        // Update last_fetched_at
+        await supabase
+          .from('research_external_sources')
+          .update({ last_fetched_at: new Date().toISOString() })
+          .eq('entity_id', entityId)
+          .eq('entity_type', entityType)
+          .eq('url', source.url);
+      } catch (e) {
+        parts.push(`[${source.title}] URL: ${source.url} (fetch failed)`);
+      }
+    }
+
+    return parts.length > 1 ? parts.join('\n') : null;
+  } catch (err) {
+    console.warn('[brand-research] External sources fetch failed (non-critical):', err);
+    return null;
+  }
+}
