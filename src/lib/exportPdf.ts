@@ -174,7 +174,9 @@ export const SECTION_METADATA: SectionMeta[] = [
   { id: 'bythenumbers', label: 'By the Numbers', category: 'core' },
   { id: 'services', label: 'Services', category: 'core' },
   { id: 'revenue', label: 'Revenue Growth', category: 'core' },
+  { id: 'awards', label: 'Awards & Recognition', category: 'core' },
   { id: 'brief', label: 'Brand Brief & Intelligence', category: 'core' },
+  { id: 'insights', label: 'Insights & Updates', category: 'core' },
   
   // Visual Identity
   { id: 'logos', label: 'Logo Variations', category: 'visual' },
@@ -188,6 +190,7 @@ export const SECTION_METADATA: SectionMeta[] = [
   { id: 'socialicons', label: 'Social Icons', category: 'visual' },
   { id: 'imagery', label: 'Imagery Guidelines', category: 'visual' },
   { id: 'misuse', label: 'Logo Misuse', category: 'visual' },
+  { id: 'approvedimagery', label: 'Approved Imagery', category: 'visual' },
   
   // Content & Communication
   { id: 'social', label: 'Social Profiles', category: 'content' },
@@ -197,15 +200,24 @@ export const SECTION_METADATA: SectionMeta[] = [
   { id: 'signatures', label: 'Email Signatures', category: 'content' },
   { id: 'qr', label: 'QR Code', category: 'content' },
   { id: 'videos', label: 'Videos', category: 'content' },
+  { id: 'webinars', label: 'Webinars', category: 'content' },
   
   // Assets & Resources
   { id: 'assets', label: 'Brand Assets', category: 'assets' },
+  { id: 'imageassets', label: 'Image Library', category: 'assets' },
   { id: 'casestudies', label: 'Case Studies', category: 'assets' },
-  { id: 'brochures', label: 'Brochures', category: 'assets' },
+  { id: 'brochures', label: 'Digital Collateral', category: 'assets' },
   { id: 'templates', label: 'Templates', category: 'assets' },
   { id: 'templatespecs', label: 'Template Specifications', category: 'assets' },
-  { id: 'products', label: 'Linked Products', category: 'assets' },
+  { id: 'presentations', label: 'Presentations', category: 'assets' },
+  { id: 'eventsignage', label: 'Event Signage', category: 'assets' },
+  { id: 'sponsorlogos', label: 'Sponsor Logos', category: 'assets' },
+  { id: 'clientlogos', label: 'Client Logos', category: 'assets' },
+  { id: 'locations', label: 'Locations', category: 'assets' },
   { id: 'studios', label: 'Our Studios', category: 'assets' },
+  { id: 'products', label: 'Linked Products', category: 'assets' },
+  { id: 'events', label: 'Linked Events', category: 'assets' },
+  { id: 'universe', label: 'Brand Universe', category: 'assets' },
 ];
 
 export const CATEGORY_LABELS: Record<string, string> = {

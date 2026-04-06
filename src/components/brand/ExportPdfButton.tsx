@@ -205,7 +205,9 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'bythenumbers': return (guide.statistics?.length ?? 0) > 0;
       case 'services': return (guide.services?.length ?? 0) > 0;
       case 'revenue': return (guide.revenueData?.length ?? 0) > 0;
+      case 'awards': return (guide.awards?.length ?? 0) > 0;
       case 'brief': return !!(intelligence?.brand_summary || intelligence?.market_position || (intelligence?.growth_recommendations?.length ?? 0) > 0);
+      case 'insights': return (guide.insights?.length ?? 0) > 0;
       case 'logos': return guide.logos.length > 0;
       case 'brandicon': return guide.brandIcons.length > 0;
       case 'colors': return guide.colors.length > 0;
@@ -222,13 +224,24 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       case 'signatures': return guide.signatures.length > 0;
       case 'qr': return !!guide.qr.defaultUrl;
       case 'videos': return (guide.videos?.length ?? 0) > 0;
+      case 'webinars': return (guide.webinars?.length ?? 0) > 0;
       case 'assets': return guide.assets.length > 0;
+      case 'imageassets': return (guide.imageAssets?.length ?? 0) > 0;
       case 'misuse': return guide.misuse.length > 0;
       case 'casestudies': return guide.caseStudies.length > 0;
       case 'brochures': return guide.brochures.length > 0;
       case 'templates': return guide.templates.length > 0;
       case 'templatespecs': return (guide.templateSpecs?.length ?? 0) > 0;
+      case 'presentations': return (guide.presentationTemplates?.length ?? 0) > 0;
+      case 'eventsignage': return (guide.eventSignage?.length ?? 0) > 0;
+      case 'sponsorlogos': return (guide.sponsorLogos?.length ?? 0) > 0;
+      case 'clientlogos': return (guide.clientLogos?.length ?? 0) > 0;
+      case 'locations': return (guide.locations?.length ?? 0) > 0;
+      case 'studios': return (guide.studios?.length ?? 0) > 0;
+      case 'approvedimagery': return !!(guide.approvedImagery && Object.keys(guide.approvedImagery).length > 0);
       case 'products': return (guide.linkedGuides?.length ?? 0) > 0;
+      case 'events': return (guide.linkedGuides?.filter(g => g.type === 'event')?.length ?? 0) > 0;
+      case 'universe': return (guide.linkedGuides?.length ?? 0) > 0;
       case 'socialmetrics': return !!(socialMetrics.aggregated && socialMetrics.aggregated.platforms_count > 0);
       default: return false;
     }
@@ -281,9 +294,23 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
       }
 
       try {
-        await exportToPdf(exportRef.current, guide, pdfTheme, paperSize, (status) => {
+        // Temporarily make the hidden export container visible for html2canvas
+        const el = exportRef.current;
+        const prevStyle = el.style.cssText;
+        el.style.position = 'fixed';
+        el.style.left = '0';
+        el.style.top = '0';
+        el.style.zIndex = '-1';
+        el.style.opacity = '0.01';
+        el.style.pointerEvents = 'none';
+        el.style.overflow = 'visible';
+        
+        await exportToPdf(el, guide, pdfTheme, paperSize, (status) => {
           logger.debug('PDF export status:', status);
         });
+        
+        // Restore hidden positioning
+        el.style.cssText = prevStyle;
         
         // Log the export to audit_logs for tracking
         try {
@@ -1053,14 +1080,52 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         return (
           <div id="pdf-section-assets" className={cn("py-6 border-b", t.border)} key="assets">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Brand Assets</h2>
-            <div className="space-y-1">
+            <div className="grid grid-cols-2 gap-3">
               {guide.assets.map((asset) => (
-                <div key={asset.id} className={cn("p-2 rounded-lg flex justify-between items-center pdf-avoid-break", t.card)}>
-                  <div>
-                    <p className={cn("font-medium text-sm", t.text)}>{asset.name}</p>
-                    <p className={cn("text-xs", t.textMuted)}>{asset.type}</p>
+                <div key={asset.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {(asset.thumbnailUrl || (asset.url && /\.(jpe?g|png|gif|webp|svg)$/i.test(asset.url))) && (
+                    <div className="aspect-[16/10] w-full overflow-hidden rounded mb-2">
+                      <img 
+                        src={asset.thumbnailUrl || asset.url} 
+                        alt={asset.name}
+                        className="w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                        loading="eager"
+                      />
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className={cn("font-medium text-sm", t.text)}>{asset.name}</p>
+                      <p className={cn("text-xs", t.textMuted)}>{asset.type}{asset.category ? ` · ${asset.category}` : ''}</p>
+                    </div>
+                    <span className={cn("text-xs", t.textSubtle)}>{asset.size}</span>
                   </div>
-                  <span className={cn("text-xs", t.textSubtle)}>{asset.size}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'imageassets':
+        if (!guide.imageAssets || guide.imageAssets.length === 0) return null;
+        return (
+          <div id="pdf-section-imageassets" className={cn("py-6 border-b", t.border)} key="imageassets">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Image Library</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {guide.imageAssets.map((img) => (
+                <div key={img.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
+                  <div className="aspect-[4/3] w-full overflow-hidden rounded mb-1">
+                    <img 
+                      src={img.url} 
+                      alt={img.name}
+                      className="w-full h-full object-cover"
+                      crossOrigin="anonymous"
+                      loading="eager"
+                    />
+                  </div>
+                  <p className={cn("font-medium text-xs text-center", t.text)}>{img.name}</p>
+                  <p className={cn("text-xs text-center", t.textMuted)}>{img.type} · {img.size}</p>
                 </div>
               ))}
             </div>
@@ -1226,11 +1291,281 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
 
       case 'products':
         if (!guide.linkedGuides || guide.linkedGuides.length === 0) return null;
+        const productGuides = guide.linkedGuides.filter(g => g.type !== 'event');
+        if (productGuides.length === 0) return null;
         return (
-          <div id="pdf-section-products" className={cn("py-6 border-b pdf-avoid-break", t.border)} key="products">
+          <div id="pdf-section-products" className={cn("py-6 border-b", t.border)} key="products">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Linked Products</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {productGuides.map((linked) => (
+                <div key={linked.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {(linked.coverImage || undefined) && (
+                    <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
+                      <img src={linked.coverImage || undefined} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-medium text-sm", t.text)}>{linked.name}</p>
+                  {linked.slug && <p className={cn("text-xs", t.textMuted)}>/{linked.slug}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'events':
+        if (!guide.linkedGuides) return null;
+        const eventGuides = guide.linkedGuides.filter(g => g.type === 'event');
+        if (eventGuides.length === 0) return null;
+        return (
+          <div id="pdf-section-events" className={cn("py-6 border-b", t.border)} key="events">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Linked Events</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {eventGuides.map((linked) => (
+                <div key={linked.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {(linked.coverImage || undefined) && (
+                    <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
+                      <img src={linked.coverImage || undefined} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-medium text-sm", t.text)}>{linked.name}</p>
+                  {linked.dates && <p className={cn("text-xs", t.textMuted)}>{linked.dates}</p>}
+                  {linked.location && <p className={cn("text-xs", t.textSubtle)}>{linked.location}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'universe':
+        if (!guide.linkedGuides || guide.linkedGuides.length === 0) return null;
+        return (
+          <div id="pdf-section-universe" className={cn("py-6 border-b pdf-avoid-break", t.border)} key="universe">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Brand Universe</h2>
+            <p className={cn("text-sm mb-3", t.textMuted)}>
+              {guide.linkedGuides.length} connected {guide.linkedGuides.length === 1 ? 'entity' : 'entities'} across the brand ecosystem.
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {guide.linkedGuides.map((linked) => (
+                <div key={linked.id} className={cn("p-2 rounded-lg text-center pdf-avoid-break", t.card)}>
+                  {(linked.coverImage || undefined) && (
+                    <div className="aspect-square w-full overflow-hidden rounded mb-1">
+                      <img src={linked.coverImage || undefined} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-medium text-xs", t.text)}>{linked.name}</p>
+                  <p className={cn("text-xs capitalize", t.textMuted)}>{linked.type}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'awards':
+        if (!guide.awards || guide.awards.length === 0) return null;
+        return (
+          <div id="pdf-section-awards" className={cn("py-6 border-b", t.border)} key="awards">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Awards & Recognition</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {guide.awards.map((award) => (
+                <div key={award.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {award.imageUrl && (
+                    <div className="h-16 flex items-center justify-center mb-2">
+                      <img src={award.imageUrl} alt={award.title} className="max-h-full max-w-full object-contain" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-semibold text-sm", t.text)}>{award.title}</p>
+                  <p className={cn("text-xs", t.textMuted)}>{award.organization} · {award.year}</p>
+                  {award.description && <p className={cn("text-xs mt-1", t.textSubtle)}>{award.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'insights':
+        if (!guide.insights || guide.insights.length === 0) return null;
+        return (
+          <div id="pdf-section-insights" className={cn("py-6 border-b", t.border)} key="insights">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Insights & Updates</h2>
+            <div className="space-y-3">
+              {guide.insights.slice(0, 8).map((insight) => (
+                <div key={insight.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {insight.imageUrl && (
+                    <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
+                      <img src={insight.imageUrl} alt={insight.title} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-semibold text-sm", t.text)}>{insight.title}</p>
+                  {insight.summary && <p className={cn("text-xs mt-1", t.textMuted)}>{insight.summary}</p>}
+                  {insight.date && <p className={cn("text-xs mt-1", t.textSubtle)}>{insight.date}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'webinars':
+        if (!guide.webinars || guide.webinars.length === 0) return null;
+        return (
+          <div id="pdf-section-webinars" className={cn("py-6 border-b", t.border)} key="webinars">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Webinars</h2>
+            <div className="space-y-2">
+              {guide.webinars.map((webinar) => (
+                <div key={webinar.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {webinar.thumbnailUrl && (
+                    <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
+                      <img src={webinar.thumbnailUrl} alt={webinar.title} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-semibold text-sm", t.text)}>{webinar.title}</p>
+                  {webinar.date && <p className={cn("text-xs", t.textMuted)}>{webinar.date}{webinar.duration ? ` · ${webinar.duration}` : ''}</p>}
+                  {webinar.description && <p className={cn("text-xs mt-1", t.textSubtle)}>{webinar.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'presentations':
+        if (!guide.presentationTemplates || guide.presentationTemplates.length === 0) return null;
+        return (
+          <div id="pdf-section-presentations" className={cn("py-6 border-b", t.border)} key="presentations">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Presentations</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {guide.presentationTemplates.map((pres) => (
+                <div key={pres.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {(pres.cardImageUrl || pres.thumbnailUrl || pres.slides?.[0]?.thumbnailUrl) && (
+                    <div className="aspect-[16/10] w-full overflow-hidden rounded mb-2">
+                      <img src={pres.cardImageUrl || pres.thumbnailUrl || pres.slides?.[0]?.thumbnailUrl} alt={pres.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-semibold text-sm", t.text)}>{pres.name}</p>
+                  <p className={cn("text-xs", t.textMuted)}>
+                    {pres.slides?.length || 0} slide{(pres.slides?.length || 0) !== 1 ? 's' : ''}
+                    {pres.fileSize ? ` · ${pres.fileSize}` : ''}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'eventsignage':
+        if (!guide.eventSignage || guide.eventSignage.length === 0) return null;
+        return (
+          <div id="pdf-section-eventsignage" className={cn("py-6 border-b", t.border)} key="eventsignage">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Event Signage</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {guide.eventSignage.map((sign) => (
+                <div key={sign.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {sign.previewUrl && (
+                    <div className="aspect-[16/10] w-full overflow-hidden rounded mb-2">
+                      <img src={sign.previewUrl} alt={sign.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-semibold text-sm", t.text)}>{sign.name}</p>
+                  <p className={cn("text-xs", t.textMuted)}>{sign.type.replace(/-/g, ' ')} · {sign.dimensions}</p>
+                  {sign.notes && <p className={cn("text-xs mt-1", t.textSubtle)}>{sign.notes}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'sponsorlogos':
+        if (!guide.sponsorLogos || guide.sponsorLogos.length === 0) return null;
+        return (
+          <div id="pdf-section-sponsorlogos" className={cn("py-6 border-b", t.border)} key="sponsorlogos">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Sponsor & Partner Logos</h2>
+            <div className="grid grid-cols-4 gap-3">
+              {guide.sponsorLogos.map((logo) => (
+                <div key={logo.id} className={cn("p-3 rounded-lg text-center pdf-avoid-break", t.card)}>
+                  <div className="h-12 flex items-center justify-center mb-2">
+                    <img src={logo.url} alt={logo.name} className="max-h-full max-w-full object-contain" crossOrigin="anonymous" loading="eager" />
+                  </div>
+                  <p className={cn("font-medium text-xs", t.text)}>{logo.name}</p>
+                  <p className={cn("text-xs capitalize", t.textMuted)}>{logo.tier}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'clientlogos':
+        if (!guide.clientLogos || guide.clientLogos.length === 0) return null;
+        return (
+          <div id="pdf-section-clientlogos" className={cn("py-6 border-b", t.border)} key="clientlogos">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Client Logos</h2>
+            <div className="grid grid-cols-4 gap-3">
+              {guide.clientLogos.map((client) => (
+                <div key={client.id} className={cn("p-3 rounded-lg text-center pdf-avoid-break", t.card)}>
+                  {client.files?.[0]?.url && (
+                    <div className="h-12 flex items-center justify-center mb-2">
+                      <img src={client.files[0].url} alt={client.name} className="max-h-full max-w-full object-contain" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-medium text-xs", t.text)}>{client.name}</p>
+                  <p className={cn("text-xs", t.textMuted)}>{client.files?.length || 0} variant{(client.files?.length || 0) !== 1 ? 's' : ''}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'locations':
+        if (!guide.locations || guide.locations.length === 0) return null;
+        return (
+          <div id="pdf-section-locations" className={cn("py-6 border-b", t.border)} key="locations">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Locations</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {guide.locations.map((loc) => (
+                <div key={loc.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {loc.imageUrl && (
+                    <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
+                      <img src={loc.imageUrl} alt={loc.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-semibold text-sm", t.text)}>{loc.name}</p>
+                  <p className={cn("text-xs", t.textMuted)}>{loc.city}, {loc.country}</p>
+                  <p className={cn("text-xs capitalize", t.textSubtle)}>{loc.category}</p>
+                  {loc.description && <p className={cn("text-xs mt-1", t.textSubtle)}>{loc.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'studios':
+        if (!guide.studios || guide.studios.length === 0) return null;
+        return (
+          <div id="pdf-section-studios" className={cn("py-6 border-b", t.border)} key="studios">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Our Studios</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {guide.studios.map((studio) => (
+                <div key={studio.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
+                  {studio.imageUrl && (
+                    <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
+                      <img src={studio.imageUrl} alt={studio.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                    </div>
+                  )}
+                  <p className={cn("font-semibold text-sm", t.text)}>{studio.name}</p>
+                  <p className={cn("text-xs", t.textMuted)}>{studio.location}</p>
+                  {studio.specialties && studio.specialties.length > 0 && (
+                    <p className={cn("text-xs mt-1", t.textSubtle)}>{studio.specialties.join(', ')}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'approvedimagery':
+        if (!guide.approvedImagery || Object.keys(guide.approvedImagery).length === 0) return null;
+        return (
+          <div id="pdf-section-approvedimagery" className={cn("py-6 border-b", t.border)} key="approvedimagery">
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Approved Imagery</h2>
             <p className={cn("text-sm", t.textMuted)}>
-              {guide.linkedGuides.length} linked {guide.linkedGuides.length === 1 ? 'guide' : 'guides'} available in the digital brand portal.
+              Curated approved imagery collections are available in the digital brand portal.
             </p>
           </div>
         );
@@ -1708,6 +2043,44 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               <ScrollArea className="flex-1">
                 <div className="p-8 flex justify-center" style={{ background: 'radial-gradient(circle at center, hsl(var(--muted)/0.3) 0%, hsl(var(--muted)/0.6) 100%)' }}>
                   <PrintPreviewContainer zoom={previewZoom}>
+                    {/* Hidden export container that wraps ALL content for PDF generation */}
+                    <div 
+                      ref={exportRef}
+                      className={cn(
+                        "pdf-export-container",
+                        `pdf-preset-${layoutPreset}`,
+                        pdfTheme === 'dark' ? 'pdf-theme-dark' : '',
+                        t.bg
+                      )}
+                      style={{ position: 'absolute', left: '-9999px', top: 0, width: `${Math.round((PAPER_SIZES[paperSize].width - PAPER_SIZES[paperSize].margins[1] - PAPER_SIZES[paperSize].margins[3]) * 3.78)}px` }}
+                    >
+                      {/* Hero / Cover */}
+                      {selectedSections.has('hero') && renderSection('hero')}
+                      
+                      {/* Table of Contents */}
+                      {includeToc && includedSections.length > 0 && renderTableOfContents()}
+                      
+                      {/* All remaining sections */}
+                      {sectionOrder.filter(id => id !== 'hero').map((sectionId) => {
+                        const hasForcedPageBreak = pageBreaksBefore.has(sectionId) && selectedSections.has(sectionId);
+                        const section = renderSection(sectionId);
+                        if (!section) return null;
+                        return (
+                          <div key={`export-${sectionId}`}>
+                            {hasForcedPageBreak && <div className="pdf-page-break-before" />}
+                            {section}
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Footer */}
+                      <div className="pdf-footer">
+                        <p>Generated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        <p className="mt-1">© {new Date().getFullYear()} {guide.hero.name}. All rights reserved.</p>
+                      </div>
+                    </div>
+
+                    {/* Visible preview pages (for user display only) */}
                     {/* Cover Page (Page 1) */}
                     {selectedSections.has('hero') && (
                       <>
@@ -1720,14 +2093,11 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                           totalPages={Math.ceil(selectedCount / 3) + (includeToc ? 2 : 1)}
                           brandName={guide.hero.name}
                         >
-                          <div 
-                            ref={exportRef}
-                            className={cn(
-                              "pdf-export-container",
-                              `pdf-preset-${layoutPreset}`,
-                              pdfTheme === 'dark' ? 'pdf-theme-dark' : '',
-                            )}
-                          >
+                          <div className={cn(
+                            "pdf-export-container",
+                            `pdf-preset-${layoutPreset}`,
+                            pdfTheme === 'dark' ? 'pdf-theme-dark' : '',
+                          )}>
                             {renderSection('hero')}
                           </div>
                         </PrintPageSimulator>
@@ -1781,7 +2151,6 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                         {/* Render remaining sections with page break hints */}
                         {sectionOrder.filter(id => id !== 'hero').map((sectionId, idx) => {
                           const section = renderSection(sectionId);
-                          // Show page break if user forced it OR every ~4 sections for visual feedback
                           const hasForcedPageBreak = pageBreaksBefore.has(sectionId) && selectedSections.has(sectionId);
                           const hasAutoPageBreak = idx > 0 && idx % 4 === 0 && selectedSections.has(sectionId);
                           const showPageBreak = hasForcedPageBreak || hasAutoPageBreak;
@@ -1795,7 +2164,6 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                                   className={hasForcedPageBreak ? 'border-primary/40 bg-primary/5' : undefined}
                                 />
                               )}
-                              {/* Add forced page break CSS class for export */}
                               {hasForcedPageBreak && (
                                 <div className="pdf-page-break-before" />
                               )}
