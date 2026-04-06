@@ -548,12 +548,13 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
 
         {/* Tagline Variations - Editorial Masonry Display */}
         {(showVariations || isEditing) && (
-        <div className={cn("relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-muted/30", !showVariations && "opacity-40 border-dashed")}>
+        <div className={cn("relative overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-br from-card via-card to-primary/5", !showVariations && "opacity-40 border-dashed")}>
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-primary/5 blur-3xl" />
-            <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-accent/5 blur-3xl" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-gradient-to-br from-primary/3 to-accent/3 blur-3xl" />
+            <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-primary/8 blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-accent/8 blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-gradient-to-br from-primary/5 to-accent/5 blur-3xl" />
+            <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
           </div>
           
           <div className="relative z-10 p-6 md:p-8">
@@ -588,10 +589,10 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
                     {normalizedVariations.filter(v => v.isFeatured).map((variation) => (
                       <div
                         key={`featured-${variation.text}`}
-                        className="relative group rounded-2xl p-6 md:p-8 bg-gradient-to-br from-primary/8 via-primary/4 to-accent/8 border border-primary/30 shadow-[0_0_20px_-5px_hsl(var(--primary)/0.15)] animate-fade-in"
+                        className="relative group rounded-2xl p-6 md:p-8 bg-gradient-to-br from-primary/12 via-primary/6 to-accent/12 border border-primary/35 shadow-[0_0_30px_-5px_hsl(var(--primary)/0.2)] animate-fade-in ring-1 ring-primary/10"
                       >
                         {/* Featured badge */}
-                        <div className="absolute -top-3 left-6 flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold uppercase tracking-wider shadow-md">
+                        <div className="absolute -top-3 left-6 flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-[10px] font-semibold uppercase tracking-wider shadow-lg shadow-primary/30">
                           <Star className="h-3 w-3 fill-current" />
                           Featured
                         </div>
