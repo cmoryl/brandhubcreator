@@ -1,6 +1,6 @@
 // PDF Layout Presets - Different styling themes for exports
 
-export type PdfLayoutPreset = 'minimal' | 'professional' | 'creative';
+export type PdfLayoutPreset = 'minimal' | 'professional' | 'creative' | 'magazine';
 
 // Cover Page Configuration
 export type CoverLayout = 'centered' | 'left-aligned' | 'split' | 'full-bleed';
@@ -145,6 +145,28 @@ export const PDF_PRESETS: Record<PdfLayoutPreset, PresetConfig> = {
       showPatterns: true,
       accentShape: 'circle',
       cornerRadius: 'large',
+    },
+  },
+  magazine: {
+    id: 'magazine',
+    label: 'Magazine',
+    description: 'Multi-column editorial layout with rich visuals',
+    icon: 'newspaper',
+    styles: {
+      headingStyle: 'decorative',
+      bodyFont: 'Inter, sans-serif',
+      headingFont: 'Inter, sans-serif',
+      sectionSpacing: 'compact',
+      cardPadding: 'normal',
+      showSectionNumbers: false,
+      showDividers: true,
+      showAccentBorders: true,
+      cardStyle: 'elevated',
+      gridStyle: 'dense',
+      heroStyle: 'dramatic',
+      showPatterns: false,
+      accentShape: 'line',
+      cornerRadius: 'medium',
     },
   },
 };

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, SplitSquareVertical, BarChart3 } from 'lucide-react';
+import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, SplitSquareVertical, BarChart3, Newspaper, ExternalLink, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
@@ -947,17 +947,22 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Profiles</h2>
             <div className="grid grid-cols-2 gap-2">
               {guide.social.map((profile) => (
-                <div key={profile.id} className={cn("p-2 rounded-lg flex items-center gap-2 pdf-avoid-break", t.card)}>
-                  <div 
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    style={{ backgroundColor: profile.color }}
-                  >
-                    {profile.platform.charAt(0)}
+                <div key={profile.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div 
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                      style={{ backgroundColor: profile.color }}
+                    >
+                      {profile.platform.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className={cn("font-medium text-xs", t.text)}>{profile.platform}</p>
+                      <p className={cn("text-xs truncate", t.textMuted)}>{profile.handle}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className={cn("font-medium text-xs", t.text)}>{profile.platform}</p>
-                    <p className={cn("text-xs truncate", t.textMuted)}>{profile.handle}</p>
-                  </div>
+                  {profile.url && (
+                    <span className="pdf-link-url">{profile.url}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1001,7 +1006,10 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               {guide.websites.map((site) => (
                 <div key={site.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
                   <p className={cn("font-medium text-sm", t.text)}>{site.label}</p>
-                  <p className={cn("text-xs font-mono break-all", t.textMuted)}>{site.url}</p>
+                  <span className="pdf-link-url">
+                    <ExternalLink className="pdf-link-icon" />
+                    {site.url}
+                  </span>
                 </div>
               ))}
             </div>
@@ -1067,7 +1075,10 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               {guide.videos.map((video) => (
                 <div key={video.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
                   <p className={cn("font-medium text-sm", t.text)}>{video.title}</p>
-                  <p className={cn("text-xs font-mono break-all", t.textMuted)}>{video.url}</p>
+                  <span className="pdf-link-url">
+                    <Link2 className="pdf-link-icon" />
+                    {video.url}
+                  </span>
                   {video.description && <p className={cn("text-xs mt-1", t.textSubtle)}>{video.description}</p>}
                 </div>
               ))}
@@ -1220,7 +1231,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         if (guide.brochures.length === 0) return null;
         return (
           <div id="pdf-section-brochures" className={cn("py-6 border-b", t.border)} key="brochures">
-            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Brochures</h2>
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Digital Collateral</h2>
             <div className="grid grid-cols-2 gap-3">
               {guide.brochures.map((brochure) => (
                 <div key={brochure.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
@@ -1237,6 +1248,12 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   )}
                   <p className={cn("font-medium text-xs", t.text)}>{brochure.title}</p>
                   <p className={cn("text-xs", t.textMuted)}>{brochure.category}</p>
+                  {brochure.externalUrl && (
+                    <span className="pdf-link-url mt-1">
+                      <ExternalLink className="pdf-link-icon" />
+                      {brochure.externalUrl}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1299,13 +1316,19 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-2 gap-3">
               {productGuides.map((linked) => (
                 <div key={linked.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
-                  {(linked.coverImage || undefined) && (
+                  {linked.coverImage && (
                     <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
-                      <img src={linked.coverImage || undefined} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                      <img src={linked.coverImage} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
                     </div>
                   )}
                   <p className={cn("font-medium text-sm", t.text)}>{linked.name}</p>
-                  {linked.slug && <p className={cn("text-xs", t.textMuted)}>/{linked.slug}</p>}
+                  {(linked as any).tagline && <p className={cn("text-xs italic", t.textMuted)}>{(linked as any).tagline}</p>}
+                  {linked.slug && (
+                    <span className="pdf-link-url mt-1">
+                      <Link2 className="pdf-link-icon" />
+                      View in Brand Portal: /{linked.slug}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1322,14 +1345,20 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-2 gap-3">
               {eventGuides.map((linked) => (
                 <div key={linked.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
-                  {(linked.coverImage || undefined) && (
+                  {linked.coverImage && (
                     <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
-                      <img src={linked.coverImage || undefined} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                      <img src={linked.coverImage} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
                     </div>
                   )}
                   <p className={cn("font-medium text-sm", t.text)}>{linked.name}</p>
                   {linked.dates && <p className={cn("text-xs", t.textMuted)}>{linked.dates}</p>}
                   {linked.location && <p className={cn("text-xs", t.textSubtle)}>{linked.location}</p>}
+                  {linked.slug && (
+                    <span className="pdf-link-url mt-1">
+                      <Link2 className="pdf-link-icon" />
+                      View in Brand Portal: /{linked.slug}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1420,6 +1449,12 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   <p className={cn("font-semibold text-sm", t.text)}>{webinar.title}</p>
                   {webinar.date && <p className={cn("text-xs", t.textMuted)}>{webinar.date}{webinar.duration ? ` · ${webinar.duration}` : ''}</p>}
                   {webinar.description && <p className={cn("text-xs mt-1", t.textSubtle)}>{webinar.description}</p>}
+                  {(webinar.recordingUrl || webinar.registrationUrl) && (
+                    <span className="pdf-link-url mt-1">
+                      <Link2 className="pdf-link-icon" />
+                      {webinar.recordingUrl || webinar.registrationUrl}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1626,7 +1661,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                 <Label className="text-xs font-medium">Layout Style</Label>
                 <RadioGroup value={layoutPreset} onValueChange={(v) => setLayoutPreset(v as PdfLayoutPreset)} className="space-y-2">
                   {Object.values(PDF_PRESETS).map((preset) => {
-                    const PresetIcon = preset.id === 'minimal' ? Minus : preset.id === 'professional' ? Briefcase : Sparkles;
+                    const PresetIcon = preset.id === 'minimal' ? Minus : preset.id === 'professional' ? Briefcase : preset.id === 'magazine' ? Newspaper : Sparkles;
                     return (
                       <label
                         key={preset.id}
@@ -2072,6 +2107,61 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                           </div>
                         );
                       })}
+                      
+                      {/* Resource Appendix — collects all linkable URLs */}
+                      {(() => {
+                        const resources: { name: string; url: string; type: string }[] = [];
+                        
+                        // Websites
+                        if (selectedSections.has('website') && guide.websites) {
+                          guide.websites.forEach(s => resources.push({ name: s.label, url: s.url, type: 'Website' }));
+                        }
+                        // Social profiles
+                        if (selectedSections.has('social')) {
+                          guide.social.forEach(s => {
+                            if (s.url) resources.push({ name: `${s.platform} (${s.handle})`, url: s.url, type: 'Social' });
+                          });
+                        }
+                        // Videos
+                        if (selectedSections.has('videos') && guide.videos) {
+                          guide.videos.forEach(v => resources.push({ name: v.title, url: v.url, type: 'Video' }));
+                        }
+                        // Webinars
+                        if (selectedSections.has('webinars') && guide.webinars) {
+                          guide.webinars.forEach(w => {
+                            const url = w.recordingUrl || w.registrationUrl;
+                            if (url) resources.push({ name: w.title, url, type: 'Webinar' });
+                          });
+                        }
+                        // Brochures
+                        if (selectedSections.has('brochures')) {
+                          guide.brochures.forEach(b => {
+                            if (b.externalUrl) resources.push({ name: b.title, url: b.externalUrl, type: 'Collateral' });
+                          });
+                        }
+                        // QR
+                        if (selectedSections.has('qr') && guide.qr.defaultUrl) {
+                          resources.push({ name: 'Brand QR Code', url: guide.qr.defaultUrl, type: 'QR' });
+                        }
+
+                        if (resources.length === 0) return null;
+
+                        return (
+                          <div className="pdf-resource-appendix pdf-page-break-before pdf-avoid-break">
+                            <h3 className={t.text}>Digital Resource Links</h3>
+                            <p className={cn("text-xs mb-3", t.textMuted)}>
+                              All external URLs referenced in this brand guide for easy access.
+                            </p>
+                            {resources.map((r, i) => (
+                              <div key={i} className="pdf-resource-row">
+                                <span className={cn("pdf-resource-name", t.text)}>{r.name}</span>
+                                <span className="text-xs opacity-50">{r.type}</span>
+                                <span className="pdf-resource-url">{r.url}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
                       
                       {/* Footer */}
                       <div className="pdf-footer">
