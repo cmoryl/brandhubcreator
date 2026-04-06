@@ -42,12 +42,28 @@ interface BriefingSummary {
 }
 
 export function ResearchBriefingsPanel() {
-  const { organizationId } = useAuth();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedBriefing, setSelectedBriefing] = useState<BriefingSummary | null>(null);
   const [showSchedules, setShowSchedules] = useState(false);
+
+  // Fetch org id from membership
+  const { data: orgData } = useQuery({
+    queryKey: ['user-org-id', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', user!.id)
+        .limit(1)
+        .single();
+      return data?.organization_id || null;
+    },
+    enabled: !!user?.id,
+  });
+  const orgId = orgData || null;
 
   // Generate briefing state
   const [generateEntityType, setGenerateEntityType] = useState<'brands' | 'products' | 'events'>('brands');
@@ -57,7 +73,7 @@ export function ResearchBriefingsPanel() {
   const [generatingEntityId, setGeneratingEntityId] = useState<string | null>(null);
 
   // Schedule management
-  const { schedules, upsertSchedule } = useResearchSchedules(organizationId || null);
+  const { schedules, upsertSchedule } = useResearchSchedules(orgId);
   const activeSchedules = schedules?.filter(s => s.is_active) || [];
 
   const entityTypeMap: Record<string, 'brand' | 'product' | 'event'> = {
