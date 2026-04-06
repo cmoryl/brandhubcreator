@@ -1231,7 +1231,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         if (guide.brochures.length === 0) return null;
         return (
           <div id="pdf-section-brochures" className={cn("py-6 border-b", t.border)} key="brochures">
-            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Brochures</h2>
+            <h2 className={cn("text-xl font-bold mb-3", t.text)}>Digital Collateral</h2>
             <div className="grid grid-cols-2 gap-3">
               {guide.brochures.map((brochure) => (
                 <div key={brochure.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
@@ -1248,6 +1248,12 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   )}
                   <p className={cn("font-medium text-xs", t.text)}>{brochure.title}</p>
                   <p className={cn("text-xs", t.textMuted)}>{brochure.category}</p>
+                  {brochure.url && (
+                    <span className="pdf-link-url mt-1">
+                      <ExternalLink className="pdf-link-icon" />
+                      {brochure.url}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1431,6 +1437,12 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   <p className={cn("font-semibold text-sm", t.text)}>{webinar.title}</p>
                   {webinar.date && <p className={cn("text-xs", t.textMuted)}>{webinar.date}{webinar.duration ? ` · ${webinar.duration}` : ''}</p>}
                   {webinar.description && <p className={cn("text-xs mt-1", t.textSubtle)}>{webinar.description}</p>}
+                  {webinar.url && (
+                    <span className="pdf-link-url mt-1">
+                      <Link2 className="pdf-link-icon" />
+                      {webinar.url}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
