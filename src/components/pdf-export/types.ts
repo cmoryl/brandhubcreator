@@ -1,12 +1,13 @@
 // PDF Export Types & Shared Interfaces
 
 import { SectionId } from '@/types/brand';
-import { PdfTheme, PaperSize } from '@/lib/exportPdf';
+import { PdfTheme, PaperSize, PdfQuality } from '@/lib/exportPdf';
 import { PdfLayoutPreset, CoverPageConfig } from '@/lib/pdfPresets';
 
 export interface PdfExportSettings {
   theme: PdfTheme;
   paperSize: PaperSize;
+  quality: PdfQuality;
   layoutPreset: PdfLayoutPreset;
   coverConfig: CoverPageConfig;
   includeToc: boolean;
