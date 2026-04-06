@@ -38,7 +38,7 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, ent
   const [isEditing, setIsEditing] = useState(false);
   const [editingAward, setEditingAward] = useState<BrandAward | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('year-desc');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('timeline');
   const [isExpanded, setIsExpanded] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
