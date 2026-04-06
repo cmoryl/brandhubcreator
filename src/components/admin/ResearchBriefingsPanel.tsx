@@ -37,6 +37,8 @@ interface BriefingSummary {
   status: string;
   created_at: string;
   entity_name?: string;
+  knowledge_extracted?: boolean;
+  cross_entity_insights?: Record<string, unknown> | null;
 }
 
 export function ResearchBriefingsPanel() {
