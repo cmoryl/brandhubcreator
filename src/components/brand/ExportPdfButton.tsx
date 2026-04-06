@@ -947,17 +947,22 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Profiles</h2>
             <div className="grid grid-cols-2 gap-2">
               {guide.social.map((profile) => (
-                <div key={profile.id} className={cn("p-2 rounded-lg flex items-center gap-2 pdf-avoid-break", t.card)}>
-                  <div 
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    style={{ backgroundColor: profile.color }}
-                  >
-                    {profile.platform.charAt(0)}
+                <div key={profile.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div 
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                      style={{ backgroundColor: profile.color }}
+                    >
+                      {profile.platform.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className={cn("font-medium text-xs", t.text)}>{profile.platform}</p>
+                      <p className={cn("text-xs truncate", t.textMuted)}>{profile.handle}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className={cn("font-medium text-xs", t.text)}>{profile.platform}</p>
-                    <p className={cn("text-xs truncate", t.textMuted)}>{profile.handle}</p>
-                  </div>
+                  {profile.url && (
+                    <span className="pdf-link-url">{profile.url}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1001,7 +1006,10 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               {guide.websites.map((site) => (
                 <div key={site.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
                   <p className={cn("font-medium text-sm", t.text)}>{site.label}</p>
-                  <p className={cn("text-xs font-mono break-all", t.textMuted)}>{site.url}</p>
+                  <span className="pdf-link-url">
+                    <ExternalLink className="pdf-link-icon" />
+                    {site.url}
+                  </span>
                 </div>
               ))}
             </div>
@@ -1067,7 +1075,10 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               {guide.videos.map((video) => (
                 <div key={video.id} className={cn("p-2 rounded-lg pdf-avoid-break", t.card)}>
                   <p className={cn("font-medium text-sm", t.text)}>{video.title}</p>
-                  <p className={cn("text-xs font-mono break-all", t.textMuted)}>{video.url}</p>
+                  <span className="pdf-link-url">
+                    <Link2 className="pdf-link-icon" />
+                    {video.url}
+                  </span>
                   {video.description && <p className={cn("text-xs mt-1", t.textSubtle)}>{video.description}</p>}
                 </div>
               ))}
