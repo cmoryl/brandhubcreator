@@ -135,12 +135,11 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
       if (!alreadyExists) {
         const newVar: TaglineVariation = {
           text: newVariation.trim(),
-          style: 'gradient', // Default style
+          style: 'gradient',
         };
         onTaglineChange({ 
           ...tagline, 
           variationsV2: [...normalizedVariations, newVar],
-          // Keep legacy array in sync for backwards compatibility
           variations: [...(tagline.variations || []), newVariation.trim()],
         });
         setNewVariation('');
@@ -162,10 +161,23 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
     const updated = normalizedVariations.map(v => 
       v.text === text ? { ...v, style } : v
     );
-    onTaglineChange({ 
-      ...tagline, 
-      variationsV2: updated,
-    });
+    onTaglineChange({ ...tagline, variationsV2: updated });
+  };
+
+  const updateVariationContext = (text: string, context: string) => {
+    if (!onTaglineChange) return;
+    const updated = normalizedVariations.map(v => 
+      v.text === text ? { ...v, context: context || undefined } : v
+    );
+    onTaglineChange({ ...tagline, variationsV2: updated });
+  };
+
+  const toggleVariationFeatured = (text: string) => {
+    if (!onTaglineChange) return;
+    const updated = normalizedVariations.map(v => 
+      v.text === text ? { ...v, isFeatured: !v.isFeatured } : { ...v, isFeatured: false }
+    );
+    onTaglineChange({ ...tagline, variationsV2: updated });
   };
 
   const getBackgroundStyles = () => {
