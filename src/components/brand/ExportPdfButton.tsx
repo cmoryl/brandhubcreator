@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, SplitSquareVertical, BarChart3, Newspaper, ExternalLink, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
-import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
+import { exportToPdf, PdfTheme, PaperSize, PdfQuality, PDF_QUALITY_PRESETS, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
 import { PdfLayoutPreset, PDF_PRESETS, CoverPageConfig, DEFAULT_COVER_CONFIG, COVER_LAYOUTS, COVER_PATTERNS, CONFIDENTIALITY_LEVELS, getCoverPatternSvg } from '@/lib/pdfPresets';
 import { getAllColorFormats } from '@/lib/colorUtils';
 import { toast } from 'sonner';
