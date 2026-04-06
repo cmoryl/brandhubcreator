@@ -1322,7 +1322,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                     </div>
                   )}
                   <p className={cn("font-medium text-sm", t.text)}>{linked.name}</p>
-                  {linked.tagline && <p className={cn("text-xs italic", t.textMuted)}>{linked.tagline}</p>}
+                  {(linked as any).tagline && <p className={cn("text-xs italic", t.textMuted)}>{(linked as any).tagline}</p>}
                   {linked.slug && (
                     <span className="pdf-link-url mt-1">
                       <Link2 className="pdf-link-icon" />
