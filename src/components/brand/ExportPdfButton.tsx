@@ -2096,6 +2096,61 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                         );
                       })}
                       
+                      {/* Resource Appendix — collects all linkable URLs */}
+                      {(() => {
+                        const resources: { name: string; url: string; type: string }[] = [];
+                        
+                        // Websites
+                        if (selectedSections.has('website') && guide.websites) {
+                          guide.websites.forEach(s => resources.push({ name: s.label, url: s.url, type: 'Website' }));
+                        }
+                        // Social profiles
+                        if (selectedSections.has('social')) {
+                          guide.social.forEach(s => {
+                            if (s.url) resources.push({ name: `${s.platform} (${s.handle})`, url: s.url, type: 'Social' });
+                          });
+                        }
+                        // Videos
+                        if (selectedSections.has('videos') && guide.videos) {
+                          guide.videos.forEach(v => resources.push({ name: v.title, url: v.url, type: 'Video' }));
+                        }
+                        // Webinars
+                        if (selectedSections.has('webinars') && guide.webinars) {
+                          guide.webinars.forEach(w => {
+                            const url = w.recordingUrl || w.registrationUrl;
+                            if (url) resources.push({ name: w.title, url, type: 'Webinar' });
+                          });
+                        }
+                        // Brochures
+                        if (selectedSections.has('brochures')) {
+                          guide.brochures.forEach(b => {
+                            if (b.externalUrl) resources.push({ name: b.title, url: b.externalUrl, type: 'Collateral' });
+                          });
+                        }
+                        // QR
+                        if (selectedSections.has('qr') && guide.qr.defaultUrl) {
+                          resources.push({ name: 'Brand QR Code', url: guide.qr.defaultUrl, type: 'QR' });
+                        }
+
+                        if (resources.length === 0) return null;
+
+                        return (
+                          <div className="pdf-resource-appendix pdf-page-break-before pdf-avoid-break">
+                            <h3 className={t.text}>Digital Resource Links</h3>
+                            <p className={cn("text-xs mb-3", t.textMuted)}>
+                              All external URLs referenced in this brand guide for easy access.
+                            </p>
+                            {resources.map((r, i) => (
+                              <div key={i} className="pdf-resource-row">
+                                <span className={cn("pdf-resource-name", t.text)}>{r.name}</span>
+                                <span className="text-xs opacity-50">{r.type}</span>
+                                <span className="pdf-resource-url">{r.url}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                      
                       {/* Footer */}
                       <div className="pdf-footer">
                         <p>Generated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
