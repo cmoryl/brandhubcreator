@@ -1596,12 +1596,28 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
 
       case 'approvedimagery':
         if (!guide.approvedImagery || Object.keys(guide.approvedImagery).length === 0) return null;
+        const imageryCategories = guide.approvedImagery as Record<string, { images?: { url: string; caption?: string }[]; description?: string }>;
         return (
           <div id="pdf-section-approvedimagery" className={cn("py-6 border-b", t.border)} key="approvedimagery">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Approved Imagery</h2>
-            <p className={cn("text-sm", t.textMuted)}>
-              Curated approved imagery collections are available in the digital brand portal.
-            </p>
+            {Object.entries(imageryCategories).map(([category, data]) => (
+              <div key={category} className="mb-4">
+                <h3 className={cn("font-semibold text-sm mb-2 capitalize", t.text)}>{category}</h3>
+                {data?.description && <p className={cn("text-xs mb-2", t.textMuted)}>{data.description}</p>}
+                {data?.images && data.images.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {data.images.map((img, idx) => (
+                      <div key={idx} className={cn("rounded-lg overflow-hidden pdf-avoid-break", t.card)}>
+                        <div className="aspect-[4/3] w-full overflow-hidden">
+                          <img src={img.url} alt={img.caption || category} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                        </div>
+                        {img.caption && <p className={cn("text-xs p-1.5 text-center", t.textMuted)}>{img.caption}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         );
 
