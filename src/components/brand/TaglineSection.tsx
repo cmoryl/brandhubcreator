@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, X, Quote, Sparkles, Palette, Type, Pencil, Check, ChevronDown, Eye, EyeOff } from 'lucide-react';
+import { Plus, X, Quote, Sparkles, Palette, Type, Pencil, Check, ChevronDown, Eye, EyeOff, Star, Tag } from 'lucide-react';
 import { BrandTagline, TaglineFontSettings, TaglineVariation } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
