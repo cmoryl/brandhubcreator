@@ -1316,13 +1316,19 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-2 gap-3">
               {productGuides.map((linked) => (
                 <div key={linked.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
-                  {(linked.coverImage || undefined) && (
+                  {linked.coverImage && (
                     <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
-                      <img src={linked.coverImage || undefined} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                      <img src={linked.coverImage} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
                     </div>
                   )}
                   <p className={cn("font-medium text-sm", t.text)}>{linked.name}</p>
-                  {linked.slug && <p className={cn("text-xs", t.textMuted)}>/{linked.slug}</p>}
+                  {linked.tagline && <p className={cn("text-xs italic", t.textMuted)}>{linked.tagline}</p>}
+                  {linked.slug && (
+                    <span className="pdf-link-url mt-1">
+                      <Link2 className="pdf-link-icon" />
+                      View in Brand Portal: /{linked.slug}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1339,14 +1345,20 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-2 gap-3">
               {eventGuides.map((linked) => (
                 <div key={linked.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
-                  {(linked.coverImage || undefined) && (
+                  {linked.coverImage && (
                     <div className="aspect-[16/9] w-full overflow-hidden rounded mb-2">
-                      <img src={linked.coverImage || undefined} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                      <img src={linked.coverImage} alt={linked.name} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
                     </div>
                   )}
                   <p className={cn("font-medium text-sm", t.text)}>{linked.name}</p>
                   {linked.dates && <p className={cn("text-xs", t.textMuted)}>{linked.dates}</p>}
                   {linked.location && <p className={cn("text-xs", t.textSubtle)}>{linked.location}</p>}
+                  {linked.slug && (
+                    <span className="pdf-link-url mt-1">
+                      <Link2 className="pdf-link-icon" />
+                      View in Brand Portal: /{linked.slug}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
