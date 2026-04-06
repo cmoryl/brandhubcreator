@@ -58,6 +58,9 @@ interface IconStudioProps {
   brandColors?: Array<{ hex: string; name: string }>;
   initialTab?: IconStudioTab;
   onIconsCreated?: (icons: BrandIconography[], libraryId?: string) => void;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
+  entityName?: string;
   brandIdentity?: {
     archetype?: string;
     services?: Array<{ name: string }>;
@@ -89,6 +92,9 @@ export const IconStudio = ({
   brandColors = [],
   initialTab = 'library',
   onIconsCreated,
+  entityId,
+  entityType,
+  entityName,
   brandIdentity,
 }: IconStudioProps) => {
   const initialStepIndex = useMemo(() => {
@@ -257,6 +263,10 @@ export const IconStudio = ({
             libraries={libraries}
             brandColors={brandColors}
             organizationName={organizationName}
+            entityId={entityId}
+            entityType={entityType}
+            entityName={entityName}
+            onImportToEntity={entityId && onIconsCreated ? (icons) => onIconsCreated(icons) : undefined}
           />
         );
       case 'app-icons':

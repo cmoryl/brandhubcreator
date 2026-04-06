@@ -848,11 +848,14 @@ ${innerContent}
         organizationName={entityName}
         brandColors={brandColors}
         initialTab={iconStudioInitialTab}
+        entityId={brandId}
+        entityType={entityType}
+        entityName={entityName}
         onIconsCreated={(newIcons, libraryId) => {
           // If saved to a specific library, don't also add to brand iconography
           // The icons live in org libraries and are inherited automatically
           if (!libraryId) {
-            onIconographyChange([...iconography, ...newIcons]);
+            onIconographyChange?.([...iconography, ...newIcons]);
           } else {
             toast.success(`${newIcons.length} icon(s) saved to library`);
           }
