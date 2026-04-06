@@ -133,3 +133,6 @@ verify_jwt = false
 
 [functions.shutterstock-learn]
 verify_jwt = false
+
+[functions.extract-asset-content]
+verify_jwt = false
