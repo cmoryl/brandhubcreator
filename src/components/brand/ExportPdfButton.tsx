@@ -3,7 +3,7 @@ import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, Li
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
 import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
-import { PdfLayoutPreset, PDF_PRESETS, CoverPageConfig, DEFAULT_COVER_CONFIG, COVER_LAYOUTS, COVER_PATTERNS, getCoverPatternSvg } from '@/lib/pdfPresets';
+import { PdfLayoutPreset, PDF_PRESETS, CoverPageConfig, DEFAULT_COVER_CONFIG, COVER_LAYOUTS, COVER_PATTERNS, CONFIDENTIALITY_LEVELS, getCoverPatternSvg } from '@/lib/pdfPresets';
 import { getAllColorFormats } from '@/lib/colorUtils';
 import { toast } from 'sonner';
 import QRCode from 'qrcode';
