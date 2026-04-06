@@ -126,13 +126,27 @@ export const exportToPdf = async (
       onclone: (clonedDoc: Document) => {
         // Ensure all images in cloned doc have proper styling for PDF
         const imgs = clonedDoc.querySelectorAll('img');
+        const maxW = qualityConfig.maxImageWidth;
         imgs.forEach((img) => {
           img.style.maxWidth = '100%';
           img.style.height = 'auto';
           img.crossOrigin = 'anonymous';
-          // Ensure images don't break across pages
           img.style.pageBreakInside = 'avoid';
           img.style.breakInside = 'avoid';
+          // Downsample oversized images to reduce file size
+          if (img.naturalWidth > maxW && img.complete) {
+            try {
+              const canvas = clonedDoc.createElement('canvas');
+              const ratio = maxW / img.naturalWidth;
+              canvas.width = maxW;
+              canvas.height = Math.round(img.naturalHeight * ratio);
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                img.src = canvas.toDataURL('image/jpeg', qualityConfig.imageQuality);
+              }
+            } catch { /* CORS or tainted canvas — keep original */ }
+          }
         });
         
         // Apply orphan control to all section headers
