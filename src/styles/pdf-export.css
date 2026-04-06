@@ -142,37 +142,98 @@
    ======================================== */
 
 /* Hero Section - Full page cover */
+/* ========================================
+   Cover / Title Page — Full-Page Design
+   ======================================== */
+
 .pdf-section-hero {
-  min-height: 200px;
+  min-height: 680px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 48px 24px;
-  border-bottom: 4px solid currentColor;
-  margin-bottom: 24px;
+  padding: 72px 48px 64px;
   position: relative;
   overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+}
+
+/* Decorative top accent bar */
+.pdf-section-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: currentColor;
+  opacity: 0.8;
+}
+
+/* Bottom rule */
+.pdf-section-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 48px;
+  left: 48px;
+  right: 48px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.12;
 }
 
 .pdf-section-hero .pdf-logo {
-  max-height: 80px;
-  max-width: 200px;
+  max-height: 72px;
+  max-width: 220px;
   object-fit: contain;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
 }
 
 .pdf-section-hero .pdf-title {
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 12px;
 }
 
 .pdf-section-hero .pdf-tagline {
   font-size: 16px;
-  opacity: 0.7;
+  opacity: 0.6;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+.pdf-section-hero .pdf-cover-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.pdf-section-hero .pdf-cover-divider {
+  width: 48px;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.2;
+  margin: 20px auto;
+}
+
+.pdf-section-hero .pdf-cover-doc-type {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  opacity: 0.4;
+}
+
+.pdf-section-hero .pdf-cover-date {
+  font-size: 10px;
+  opacity: 0.35;
+  letter-spacing: 0.04em;
 }
 
 /* ========================================
@@ -189,7 +250,20 @@
 .pdf-cover-left-aligned {
   align-items: flex-start;
   text-align: left;
-  padding-left: 40px;
+  padding-left: 56px;
+  padding-right: 56px;
+}
+
+.pdf-cover-left-aligned::before {
+  left: 0;
+  right: auto;
+  width: 6px;
+  height: 100%;
+}
+
+.pdf-cover-left-aligned::after {
+  left: 56px;
+  right: 56px;
 }
 
 .pdf-cover-left-aligned .pdf-logo {
@@ -204,11 +278,28 @@
   text-align: left;
 }
 
+.pdf-cover-left-aligned .pdf-cover-meta {
+  align-items: flex-start;
+}
+
+.pdf-cover-left-aligned .pdf-cover-divider {
+  margin-left: 0;
+  margin-right: auto;
+}
+
 /* Split Layout */
 .pdf-cover-split {
   flex-direction: row;
   padding: 0;
   gap: 0;
+}
+
+.pdf-cover-split::before {
+  display: none;
+}
+
+.pdf-cover-split::after {
+  display: none;
 }
 
 .pdf-cover-split-content {
@@ -218,26 +309,48 @@
   justify-content: center;
   align-items: flex-start;
   text-align: left;
-  padding: 48px 32px;
+  padding: 64px 40px;
+  position: relative;
+}
+
+.pdf-cover-split-content::after {
+  content: '';
+  position: absolute;
+  top: 32px;
+  bottom: 32px;
+  right: 0;
+  width: 1px;
+  background: currentColor;
+  opacity: 0.1;
 }
 
 .pdf-cover-split-content .pdf-logo {
   margin-left: 0;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
 }
 
 .pdf-cover-split-content .pdf-title {
   text-align: left;
+  font-size: 36px;
 }
 
 .pdf-cover-split-content .pdf-tagline {
   text-align: left;
 }
 
+.pdf-cover-split-content .pdf-cover-meta {
+  align-items: flex-start;
+}
+
+.pdf-cover-split-content .pdf-cover-divider {
+  margin-left: 0;
+  margin-right: auto;
+}
+
 .pdf-cover-split .pdf-cover-split-image {
   flex: 0 0 45%;
   height: auto;
-  min-height: 280px;
+  min-height: 680px;
   margin: 0;
   border-radius: 0;
 }
@@ -250,21 +363,36 @@
 
 /* Full Bleed Layout */
 .pdf-cover-full-bleed {
-  min-height: 300px;
+  min-height: 680px;
   justify-content: center;
   align-items: center;
   position: relative;
 }
 
+.pdf-cover-full-bleed::before {
+  z-index: 1;
+}
+
 .pdf-cover-full-bleed .pdf-title {
-  font-size: 40px;
+  font-size: 48px;
   font-weight: 800;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+  color: #ffffff;
 }
 
 .pdf-cover-full-bleed .pdf-tagline {
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
   opacity: 0.9;
+  color: #ffffff;
+}
+
+.pdf-cover-full-bleed .pdf-cover-doc-type,
+.pdf-cover-full-bleed .pdf-cover-date {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.pdf-cover-full-bleed .pdf-cover-divider {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Section Headers - ALWAYS keep with content (orphan prevention) */
@@ -984,7 +1112,21 @@
 
 .pdf-preset-minimal .pdf-section-hero {
   border-bottom: none;
-  padding: 32px 24px;
+  padding: 72px 48px 64px;
+}
+
+.pdf-preset-minimal .pdf-section-hero::before {
+  display: none;
+}
+
+.pdf-preset-minimal .pdf-section-hero::after {
+  display: none;
+}
+
+.pdf-preset-minimal .pdf-section-hero .pdf-cover-divider {
+  width: 32px;
+  height: 1px;
+  opacity: 0.15;
 }
 
 .pdf-preset-minimal .pdf-section-header {
@@ -1048,9 +1190,18 @@
    ======================================== */
 
 .pdf-preset-professional .pdf-section-hero {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, transparent 100%);
-  border-bottom-width: 3px;
-  padding: 48px 32px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.03) 0%, transparent 60%);
+  border-bottom-width: 0;
+  padding: 72px 48px 64px;
+}
+
+.pdf-preset-professional .pdf-section-hero::before {
+  height: 4px;
+}
+
+.pdf-preset-professional .pdf-section-hero .pdf-cover-divider {
+  width: 56px;
+  height: 3px;
 }
 
 .pdf-preset-professional .pdf-section-header {
@@ -1118,7 +1269,7 @@
 
 /* Professional Dark Theme */
 .pdf-preset-professional.pdf-theme-dark .pdf-section-hero {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
 }
 
 .pdf-preset-professional.pdf-theme-dark .pdf-card,
@@ -1136,28 +1287,33 @@
 
 .pdf-preset-creative .pdf-section-hero {
   position: relative;
-  padding: 64px 32px;
+  padding: 72px 48px 64px;
   border-bottom: none;
   overflow: hidden;
 }
 
 .pdf-preset-creative .pdf-section-hero::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 60%;
-  height: 200%;
-  background: linear-gradient(135deg, currentColor 0%, transparent 60%);
-  opacity: 0.03;
-  border-radius: 50%;
-  pointer-events: none;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(135deg, currentColor 0%, transparent 50%);
+  opacity: 0.04;
+  border-radius: 0;
+}
+
+.pdf-preset-creative .pdf-section-hero::after {
+  display: none;
 }
 
 .pdf-preset-creative .pdf-section-hero .pdf-title {
-  font-size: 40px;
+  font-size: 48px;
   font-weight: 800;
   letter-spacing: -0.03em;
+}
+
+.pdf-preset-creative .pdf-section-hero .pdf-cover-divider {
+  width: 64px;
+  height: 4px;
+  border-radius: 2px;
 }
 
 .pdf-preset-creative .pdf-section-header {
@@ -1450,14 +1606,23 @@
 }
 
 .pdf-preset-magazine .pdf-section-hero {
-  min-height: 260px;
+  min-height: 680px;
+}
+
+.pdf-preset-magazine .pdf-section-hero::before {
+  height: 8px;
 }
 
 .pdf-preset-magazine .pdf-section-hero .pdf-title {
-  font-size: 38px;
-  font-weight: 800;
+  font-size: 44px;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+}
+
+.pdf-preset-magazine .pdf-section-hero .pdf-cover-divider {
+  width: 80px;
+  height: 3px;
 }
 
 .pdf-preset-magazine .pdf-color-swatch {

@@ -510,36 +510,39 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               {coverConfig.showTagline && guide.hero.tagline && (
                 <p className="pdf-tagline">{guide.hero.tagline}</p>
               )}
+
+              {/* Visual divider */}
+              <div className="pdf-cover-divider" style={{ backgroundColor: accentColor }} />
               
-              {/* Document type label */}
-              <div style={{ marginTop: '16px', fontSize: '11px', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                {guide.type === 'brand' ? 'Brand' : 'Product'} Guidelines
-              </div>
-              
-              {/* Date */}
-              {coverConfig.showDate && (
-                <div style={{ marginTop: '12px', fontSize: '10px', opacity: 0.4 }}>
-                  {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+              {/* Cover metadata block */}
+              <div className="pdf-cover-meta">
+                <div className="pdf-cover-doc-type">
+                  {guide.type === 'brand' ? 'Brand' : 'Product'} Guidelines
                 </div>
-              )}
+                
+                {coverConfig.showDate && (
+                  <div className="pdf-cover-date">
+                    {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                )}
+              </div>
               
               {/* Confidentiality Badge */}
               {coverConfig.confidentialityLevel !== 'none' && (
                 <div style={{
-                  marginTop: '20px',
+                  marginTop: '28px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '6px 16px',
+                  padding: '6px 18px',
                   borderRadius: '20px',
                   border: `2px solid ${CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.color || '#dc2626'}`,
                   color: CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.color || '#dc2626',
-                  fontSize: '10px',
+                  fontSize: '9px',
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.12em',
+                  letterSpacing: '0.14em',
                 }}>
-                  {coverConfig.confidentialityLevel === 'confidential' ? '🔒 ' : coverConfig.confidentialityLevel === 'draft' ? '📝 ' : '🔐 '}
                   {CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.label}
                 </div>
               )}
@@ -550,7 +553,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               <div className={cn(
                 "pdf-image-container",
                 coverConfig.layout === 'split' ? 'pdf-cover-split-image' : 'pdf-image-16-9'
-              )} style={{ marginTop: coverConfig.layout !== 'split' ? '24px' : 0, width: coverConfig.layout !== 'split' ? '100%' : undefined }}>
+              )} style={{ marginTop: coverConfig.layout !== 'split' ? '32px' : 0, width: coverConfig.layout !== 'split' ? '100%' : undefined }}>
                 <img 
                   src={guide.hero.coverImage} 
                   alt="Cover"
@@ -558,14 +561,6 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   loading="eager"
                 />
               </div>
-            )}
-            
-            {/* Accent decoration */}
-            {coverConfig.layout === 'left-aligned' && (
-              <div 
-                className="absolute left-0 top-0 bottom-0 w-1"
-                style={{ backgroundColor: accentColor }}
-              />
             )}
           </div>
         );
