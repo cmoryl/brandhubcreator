@@ -390,19 +390,20 @@ Deno.serve(async (req) => {
     const guideData = entityData.guide_data as Record<string, unknown>;
     const { text: brandContext, imageUrls: brandImageUrls } = extractBrandContext(guideData, entityData.name, entityType);
 
-    // Fetch document content, social metrics, and Oracle context in parallel
+    // Fetch document content, social metrics, Oracle context, and external sources in parallel
     const adminSupabaseForOracle = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-    const [docResult, socialResult, oracleCtx] = await Promise.all([
+    const [docResult, socialResult, oracleCtx, externalSourcesCtx] = await Promise.all([
       fetchDocumentContext(supabaseClient, entityId, entityType, guideData, 1500),
       fetchSocialMetricsContext(supabaseClient, entityId, entityType),
       fetchOracleContextForResearch(adminSupabaseForOracle, entityData.organization_id),
+      fetchExternalSourcesContext(adminSupabaseForOracle, entityId, entityType),
     ]);
     const { text: docContext, imageUrls: docImageUrls, documentCount } = docResult;
     const { text: socialContext, platformCount: socialPlatformCount, hasMetrics: hasSocialMetrics } = socialResult;
-    const combinedContext = [brandContext, docContext, socialContext, oracleCtx].filter(Boolean).join('\n');
+    const combinedContext = [brandContext, docContext, socialContext, oracleCtx, externalSourcesCtx].filter(Boolean).join('\n');
     const combinedImages = [...brandImageUrls, ...docImageUrls.slice(0, 5)];
 
     // Fetch minimal intelligence summary
