@@ -250,10 +250,18 @@ export function ResearchBriefingsPanel() {
             AI-powered research intelligence across all brands, products, and events
           </p>
         </div>
-        <Button onClick={() => refetch()} disabled={isLoading} variant="outline">
-          <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          {activeSchedules.length > 0 && (
+            <Badge variant="outline" className="gap-1">
+              <Calendar className="h-3 w-3" />
+              {activeSchedules.length} scheduled
+            </Badge>
+          )}
+          <Button onClick={() => refetch()} disabled={isLoading} variant="outline" size="sm">
+            <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
