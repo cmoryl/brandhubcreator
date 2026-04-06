@@ -1,51 +1,35 @@
 
-# Research Briefings — Continuous Knowledge Intake Expansion
 
-## 1. Briefing-to-Knowledge Pipeline
-**Goal**: Every completed research briefing automatically extracts key facts and persists them into the Oracle Knowledge Base.
+# Tagline Variations Visual Upgrade
 
-**Changes**:
-- **Modify** `brand-research-worker` edge function to add a post-completion step that extracts key findings, market insights, and strategic recommendations from the briefing result
-- Insert extracted knowledge entries into `oracle_knowledge_base` with `source_type = 'research_briefing'` and a reference to the briefing job ID
-- Deduplicates against existing entries using semantic hashing (same pattern as brand intelligence)
-- UI: Show a "Knowledge captured" badge on completed briefings in the Research Briefings panel
+## Current State
+The variations area is a vertical stacked list of styled cards (gradient, accent-bar, floating-card, glass, outlined). While functional, it reads like a flat list and lacks visual hierarchy, contextual richness, and editorial polish.
 
-## 2. External Source Ingestion
-**Goal**: Pull in industry news, competitor updates, or user-provided URLs as research inputs.
+## Proposed Enhancements
 
-**Changes**:
-- **Add** an "External Sources" input area to the Research Briefings panel — users can paste URLs or RSS feed links
-- **Create** `research_external_sources` table to persist saved sources per entity (url, title, source_type: 'url'|'rss', last_fetched_at)
-- **Modify** `brand-research` edge function to fetch and include content from saved external sources when generating briefings (uses existing download-proxy pattern for URL content extraction)
-- Fetched content is summarized and injected into the research prompt context (capped at 10KB per source, max 5 sources)
+### 1. Masonry/Staggered Grid Layout
+Replace the single-column `space-y-3` stack with a responsive 2-column masonry-style grid on desktop. Variations alternate between columns with staggered entry animations, creating a more dynamic, magazine-like feel. Single column on mobile.
 
-## 3. Cross-Entity Research Synthesis
-**Goal**: When a briefing runs for one brand, automatically surface relevant findings for sibling products/events.
+### 2. Context Labels & Use-Case Tags
+Add an optional "context" field to each variation (e.g., "Social Media", "Print Campaign", "Internal"). Display as a small colored chip above the tagline text. Gives each variation purpose and makes the section feel like a strategic asset, not just a list.
 
-**Changes**:
-- **Modify** `brand-research-worker` to query sibling entity briefings (same org) and include a "Cross-Portfolio Relevance" section in the output
-- Worker fetches the 3 most recent briefings from sibling entities and injects summaries into the prompt
-- Output includes a `cross_entity_insights` JSON field identifying which findings apply to other entities
-- UI: Add a "Cross-Portfolio Insights" expandable section to the briefing result card
+### 3. Numbered Index Badges
+Show a styled circular index badge (01, 02, 03...) on each card that's always visible (not just on hover). Uses a gradient primary circle, giving the section a curated editorial look.
 
-## 4. Auto-Schedule Recurring Briefings
-**Goal**: Briefings can run on a cadence without manual triggers.
+### 4. Featured/Primary Variation Highlight
+Allow one variation to be marked as "featured" — displayed larger at the top with a subtle glow border and a star badge. This creates visual hierarchy and signals the preferred alternative tagline.
 
-**Changes**:
-- **Add** `research_schedules` table: entity_id, entity_type, organization_id, cadence ('weekly'|'biweekly'|'monthly'), next_run_at, is_active, created_by
-- **Create** `scheduled-research-trigger` edge function — lightweight cron handler that queries due schedules and fires `brand-research` for each
-- **Add** cron job via pg_cron to invoke the trigger function daily at 9 AM UTC
-- UI: Add a "Schedule" toggle/dropdown in the Research Briefings panel header allowing admins to set cadence per entity
+### 5. Animated Stagger on Scroll
+Add a fade-up stagger animation when the section enters view. Each card animates in with a 75ms delay, creating a cascading reveal effect.
 
-## Implementation Order
-1. Briefing-to-Knowledge Pipeline (foundation — makes all future briefings accumulate)
-2. External Source Ingestion (enriches input quality)
-3. Cross-Entity Synthesis (leverages accumulated knowledge)
-4. Auto-Schedule (automates everything)
+### 6. Enhanced Empty State
+Upgrade the empty state with a more editorial illustration — overlapping quote marks in brand colors, a subtle pulse animation, and more inviting copy.
 
-## Files to modify/create
-- `supabase/functions/brand-research-worker/index.ts` — add knowledge extraction + cross-entity context
-- `supabase/functions/scheduled-research-trigger/index.ts` — new cron handler
-- Migration: `research_external_sources` + `research_schedules` tables with RLS
-- `src/components/admin/research/ResearchBriefingsPanel.tsx` — schedule UI + external sources + cross-entity display
-- `src/hooks/useResearchBriefings.ts` — add schedule management + external sources CRUD
+## Technical Details
+
+**Files to modify:**
+- `src/types/brand.ts` — Add `context?: string` and `isFeatured?: boolean` to `TaglineVariation`
+- `src/components/brand/TaglineSection.tsx` — Refactor variations display: 2-col grid, featured card, index badges, context chips, stagger animations, enhanced empty state. Add context input and featured toggle in edit mode.
+
+**No new dependencies.** Uses existing Tailwind utilities and CSS animations. The `TaglineVariation` type changes are additive (optional fields), so no migration needed.
+
