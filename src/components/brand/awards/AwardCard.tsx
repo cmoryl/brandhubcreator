@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, ExternalLink, Building2, Award } from 'lucide-react';
+import { Trash2, ExternalLink, Building2, Award, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,6 @@ const AwardCard = React.forwardRef<HTMLDivElement, AwardCardProps>(
     const [imageError, setImageError] = useState(false);
     const hasImage = !!award.imageUrl && !imageError;
 
-    // Validate image URL
     const isValidImageUrl = (url: string | undefined): boolean => {
       if (!url || typeof url !== 'string') return false;
       try {
@@ -38,9 +37,10 @@ const AwardCard = React.forwardRef<HTMLDivElement, AwardCardProps>(
         ref={ref}
         className={cn(
           "group relative overflow-hidden transition-all duration-300",
-          "hover:shadow-md hover:-translate-y-0.5",
-          "border-border/60 hover:border-primary/30",
+          "hover:shadow-lg hover:-translate-y-1",
+          "border-border/60 hover:border-primary/40",
           "animate-fade-in opacity-0",
+          "bg-gradient-to-b from-card to-muted/20",
           canEdit && "cursor-pointer"
         )}
         style={{ 
@@ -49,29 +49,31 @@ const AwardCard = React.forwardRef<HTMLDivElement, AwardCardProps>(
         }}
         onClick={() => canEdit && onEdit(award)}
       >
-        {/* Subtle gradient overlay on hover */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {/* Top accent bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/60 via-accent/40 to-primary/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
         <CardContent className={cn("relative", compact ? "p-3" : "p-4")}>
           <div className="space-y-2">
-            {/* Logo/Image Section */}
+            {/* Award Badge Image - Large and prominent */}
             {showImage ? (
               <div className={cn(
-                "relative flex items-center justify-center rounded-md overflow-hidden bg-white",
-                compact ? "h-12 mb-2" : "h-16 mb-3"
+                "relative flex items-center justify-center rounded-lg overflow-hidden bg-white border border-border/40 shadow-sm group-hover:shadow-md transition-shadow",
+                compact ? "h-20 mb-2" : "h-24 mb-3"
               )}>
                 <img
                   src={award.imageUrl}
-                  alt={`${award.organization} logo`}
-                  className="max-h-full max-w-full object-contain p-1.5"
+                  alt={`${award.title} badge`}
+                  className="max-h-full max-w-full object-contain p-2"
                   loading="lazy"
                   onError={() => setImageError(true)}
                 />
+                {/* Subtle shine effect on hover */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 {canEdit && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-0.5 right-0.5 h-5 w-5 opacity-0 group-hover:opacity-100 transition-all bg-background/80 hover:bg-destructive/10"
+                    className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-all bg-background/80 hover:bg-destructive/10"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(award.id);
@@ -82,28 +84,27 @@ const AwardCard = React.forwardRef<HTMLDivElement, AwardCardProps>(
                 )}
               </div>
             ) : (
-              /* Header with icon and delete - no image */
-              <div className="flex items-start gap-2">
-                <div className={cn(
-                  "shrink-0 rounded-md p-1.5 transition-colors",
-                  "bg-primary/10 text-primary group-hover:bg-primary/15"
-                )}>
-                  <Award className="h-3.5 w-3.5" />
+              /* Decorative placeholder when no image */
+              <div className={cn(
+                "relative flex items-center justify-center rounded-lg overflow-hidden border border-primary/15",
+                "bg-gradient-to-br from-primary/8 via-accent/5 to-primary/8",
+                compact ? "h-16 mb-2" : "h-20 mb-3"
+              )}>
+                <div className="relative">
+                  <Award className="h-8 w-8 text-primary/30" />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-accent/40 animate-pulse" />
                 </div>
-                
-                <div className="flex-1" />
-
                 {canEdit && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-all shrink-0 hover:bg-destructive/10"
+                    className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-all bg-background/80 hover:bg-destructive/10"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(award.id);
                     }}
                   >
-                    <Trash2 className="h-3 w-3 text-destructive" />
+                    <Trash2 className="h-2.5 w-2.5 text-destructive" />
                   </Button>
                 )}
               </div>
@@ -119,29 +120,30 @@ const AwardCard = React.forwardRef<HTMLDivElement, AwardCardProps>(
             
             {/* Organization */}
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Building2 className="h-3 w-3 shrink-0" />
+              <Building2 className="h-3 w-3 shrink-0 text-primary/50" />
               <span className="truncate">{award.organization}</span>
             </div>
 
-            {/* Year badge */}
+            {/* Year & Category badges */}
             <div className="flex items-center gap-1.5 flex-wrap">
               <Badge 
                 variant="secondary" 
-                className="text-[10px] px-1.5 py-0 font-semibold bg-primary/10 text-primary border-0"
+                className="text-[10px] px-2 py-0.5 font-bold bg-gradient-to-r from-primary/15 to-primary/10 text-primary border border-primary/20"
               >
+                <Calendar className="h-2.5 w-2.5 mr-1" />
                 {award.year}
               </Badge>
               {award.category && (
                 <Badge 
                   variant="outline" 
-                  className="text-[10px] px-1.5 py-0 font-normal"
+                  className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground"
                 >
                   {award.category}
                 </Badge>
               )}
             </div>
 
-            {/* Description - only show if not compact */}
+            {/* Description */}
             {award.description && !compact && (
               <p className="text-xs text-muted-foreground line-clamp-2">
                 {award.description}
