@@ -971,10 +971,34 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
 
       case 'socialassets':
         const socialAssets = guide.socialAssets || [];
-        if (socialAssets.length === 0) return null;
+        const displayBanners = (guide as any).displayBannerSets || (guide as any).socialBannerSets || [];
+        if (socialAssets.length === 0 && displayBanners.length === 0) return null;
         return (
           <div id="pdf-section-socialassets" className={cn("py-6 border-b", t.border)} key="socialassets">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Social Assets & Specifications</h2>
+            
+            {/* Display banner sets with images */}
+            {displayBanners.length > 0 && (
+              <div className="mb-4">
+                <h3 className={cn("font-semibold text-sm mb-2", t.text)}>Social Media Banner Sets</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {displayBanners.map((banner: any) => (
+                    <div key={banner.id} className={cn("rounded-lg overflow-hidden pdf-avoid-break", t.card)}>
+                      {banner.previewUrl && (
+                        <div className="aspect-[16/9] w-full overflow-hidden">
+                          <img src={banner.previewUrl} alt={banner.name || 'Banner'} className="w-full h-full object-cover" crossOrigin="anonymous" loading="eager" />
+                        </div>
+                      )}
+                      <div className="p-2">
+                        <p className={cn("font-medium text-xs", t.text)}>{banner.name || banner.platform}</p>
+                        {banner.dimensions && <p className={cn("text-xs", t.textMuted)}>{banner.dimensions}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             {socialAssets.length > 0 && (
               <div className="mb-4">
                 <h3 className={cn("font-semibold text-sm mb-2", t.text)}>Platform Specifications</h3>
