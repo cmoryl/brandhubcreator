@@ -1069,10 +1069,10 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             <div className="grid grid-cols-2 gap-3">
               {guide.assets.map((asset) => (
                 <div key={asset.id} className={cn("p-3 rounded-lg pdf-avoid-break", t.card)}>
-                  {asset.downloadUrl && /\.(jpe?g|png|gif|webp|svg)$/i.test(asset.downloadUrl) && (
+                  {(asset.thumbnailUrl || (asset.url && /\.(jpe?g|png|gif|webp|svg)$/i.test(asset.url))) && (
                     <div className="aspect-[16/10] w-full overflow-hidden rounded mb-2">
                       <img 
-                        src={asset.downloadUrl} 
+                        src={asset.thumbnailUrl || asset.url} 
                         alt={asset.name}
                         className="w-full h-full object-cover"
                         crossOrigin="anonymous"
@@ -1083,7 +1083,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   <div className="flex justify-between items-center">
                     <div>
                       <p className={cn("font-medium text-sm", t.text)}>{asset.name}</p>
-                      <p className={cn("text-xs", t.textMuted)}>{asset.type}</p>
+                      <p className={cn("text-xs", t.textMuted)}>{asset.type}{asset.category ? ` · ${asset.category}` : ''}</p>
                     </div>
                     <span className={cn("text-xs", t.textSubtle)}>{asset.size}</span>
                   </div>
