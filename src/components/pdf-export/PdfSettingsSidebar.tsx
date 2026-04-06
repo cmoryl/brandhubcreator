@@ -50,7 +50,7 @@ export const PdfSettingsSidebar = ({
   showCoverOptions,
   onShowCoverOptionsChange,
 }: PdfSettingsSidebarProps) => {
-  const { theme, paperSize, layoutPreset, coverConfig, includeToc, selectedSections } = settings;
+  const { theme, paperSize, quality, layoutPreset, coverConfig, includeToc, selectedSections } = settings;
   const sectionOrder = guide.sectionOrder || [];
 
   const groupedSections = useMemo(() => {
