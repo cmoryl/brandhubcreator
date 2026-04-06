@@ -113,6 +113,10 @@ export interface TaglineFontSettings {
 export interface TaglineVariation {
   text: string;
   style?: 'gradient' | 'accent-bar' | 'floating-card' | 'glass' | 'outlined';
+  /** Optional use-case context label (e.g., "Social Media", "Print Campaign") */
+  context?: string;
+  /** Whether this is the featured/primary variation */
+  isFeatured?: boolean;
 }
 
 export interface BrandTagline {
