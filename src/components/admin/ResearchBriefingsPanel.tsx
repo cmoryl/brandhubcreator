@@ -473,6 +473,18 @@ export function ResearchBriefingsPanel() {
                         {briefing.status === 'new' && (
                           <Badge variant="default" className="text-xs">New</Badge>
                         )}
+                        {briefing.knowledge_extracted && (
+                          <Badge variant="outline" className="text-xs gap-1 border-primary/30 text-primary">
+                            <BookOpen className="h-2.5 w-2.5" />
+                            Knowledge
+                          </Badge>
+                        )}
+                        {briefing.cross_entity_insights && (
+                          <Badge variant="outline" className="text-xs gap-1 border-accent/50">
+                            <Globe className="h-2.5 w-2.5" />
+                            Cross-Entity
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Badge variant="outline" className="text-xs">
