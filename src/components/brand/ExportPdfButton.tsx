@@ -308,7 +308,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         
         await exportToPdf(el, guide, pdfTheme, paperSize, (status) => {
           logger.debug('PDF export status:', status);
-        });
+        }, pdfQuality);
         
         // Restore hidden positioning
         el.style.cssText = prevStyle;
