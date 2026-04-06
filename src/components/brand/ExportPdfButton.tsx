@@ -2224,6 +2224,31 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                         );
                       })()}
                       
+                      {/* Running footer for every page */}
+                      {coverConfig.showRunningFooter && (
+                        <div className="pdf-running-footer" style={{
+                          position: 'relative',
+                          marginTop: '32px',
+                          paddingTop: '8px',
+                          borderTop: '1px solid rgba(128,128,128,0.2)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: '8px',
+                          opacity: 0.4,
+                        }}>
+                          <span>{guide.hero.name} — {guide.type === 'brand' ? 'Brand' : 'Product'} Guidelines</span>
+                          <span>
+                            {coverConfig.confidentialityLevel !== 'none' && (
+                              <span style={{ color: CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.color, fontWeight: 700, marginRight: '8px', opacity: 1 }}>
+                                {CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.label?.toUpperCase()}
+                              </span>
+                            )}
+                            {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+                          </span>
+                        </div>
+                      )}
+                      
                       {/* Footer */}
                       <div className="pdf-footer">
                         <p>Generated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
