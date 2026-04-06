@@ -15,7 +15,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { PdfTheme, PaperSize, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
+import { PdfTheme, PaperSize, PdfQuality, PDF_QUALITY_PRESETS, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
 import { PdfLayoutPreset, PDF_PRESETS, CoverPageConfig, COVER_LAYOUTS, COVER_PATTERNS } from '@/lib/pdfPresets';
 import { BaseGuide, SectionId } from '@/types/brand';
 import { PdfExportSettings } from './types';
@@ -50,7 +50,7 @@ export const PdfSettingsSidebar = ({
   showCoverOptions,
   onShowCoverOptionsChange,
 }: PdfSettingsSidebarProps) => {
-  const { theme, paperSize, layoutPreset, coverConfig, includeToc, selectedSections } = settings;
+  const { theme, paperSize, quality, layoutPreset, coverConfig, includeToc, selectedSections } = settings;
   const sectionOrder = guide.sectionOrder || [];
 
   const groupedSections = useMemo(() => {
@@ -187,7 +187,30 @@ export const PdfSettingsSidebar = ({
               </div>
             </div>
 
-            {/* Table of Contents Toggle */}
+            {/* Export Quality */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Export Quality</Label>
+              <div className="space-y-1">
+                {(Object.entries(PDF_QUALITY_PRESETS) as [PdfQuality, typeof PDF_QUALITY_PRESETS[PdfQuality]][]).map(([key, preset]) => (
+                  <button
+                    key={key}
+                    onClick={() => onSettingsChange({ quality: key })}
+                    className={cn(
+                      "w-full flex items-start gap-2 p-2 rounded-lg border text-left transition-all",
+                      quality === key
+                        ? "border-primary bg-primary/5"
+                        : "border-transparent bg-card hover:border-border"
+                    )}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs font-medium">{preset.label}</span>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{preset.description}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-card border">
               <div className="flex items-center gap-2">
                 <List className="h-4 w-4 text-muted-foreground" />

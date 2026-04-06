@@ -3,6 +3,43 @@ import { BaseGuide } from '@/types/brand';
 
 export type PdfTheme = 'light' | 'dark';
 export type PaperSize = 'a4' | 'letter';
+export type PdfQuality = 'draft' | 'standard' | 'print';
+
+export interface QualityConfig {
+  scale: number;
+  imageQuality: number;
+  maxImageWidth: number; // px — images wider than this are downsampled in onclone
+  label: string;
+  description: string;
+  estimatedSizeFactor: string;
+}
+
+export const PDF_QUALITY_PRESETS: Record<PdfQuality, QualityConfig> = {
+  draft: {
+    scale: 1,
+    imageQuality: 0.5,
+    maxImageWidth: 600,
+    label: 'Draft',
+    description: 'Smaller file, faster export (~3–8 MB)',
+    estimatedSizeFactor: '~40%',
+  },
+  standard: {
+    scale: 1.5,
+    imageQuality: 0.75,
+    maxImageWidth: 1000,
+    label: 'Standard',
+    description: 'Balanced quality & size (~8–20 MB)',
+    estimatedSizeFactor: '~100%',
+  },
+  print: {
+    scale: 2,
+    imageQuality: 0.92,
+    maxImageWidth: 2000,
+    label: 'Print',
+    description: 'Maximum quality for printing (~20–40 MB)',
+    estimatedSizeFactor: '~200%',
+  },
+};
 
 export interface PaperConfig {
   width: number; // mm
@@ -58,8 +95,10 @@ export const exportToPdf = async (
   guide: BaseGuide,
   theme: PdfTheme = 'light',
   paperSize: PaperSize = 'a4',
-  onProgress?: (status: string) => void
+  onProgress?: (status: string) => void,
+  quality: PdfQuality = 'standard',
 ) => {
+  const qualityConfig = PDF_QUALITY_PRESETS[quality];
   onProgress?.('Preparing PDF...');
   
   const paper = PAPER_SIZES[paperSize];
@@ -74,9 +113,9 @@ export const exportToPdf = async (
   const opt = {
     margin: paper.margins,
     filename: `${guide.hero.name.replace(/\s+/g, '_')}_Brand_Guide_${theme}_${paperSize.toUpperCase()}.pdf`,
-    image: { type: 'jpeg' as const, quality: 0.75 },
+    image: { type: 'jpeg' as const, quality: qualityConfig.imageQuality },
     html2canvas: { 
-      scale: 1.5,
+      scale: qualityConfig.scale,
       useCORS: true,
       allowTaint: true,
       logging: false,
@@ -87,13 +126,27 @@ export const exportToPdf = async (
       onclone: (clonedDoc: Document) => {
         // Ensure all images in cloned doc have proper styling for PDF
         const imgs = clonedDoc.querySelectorAll('img');
+        const maxW = qualityConfig.maxImageWidth;
         imgs.forEach((img) => {
           img.style.maxWidth = '100%';
           img.style.height = 'auto';
           img.crossOrigin = 'anonymous';
-          // Ensure images don't break across pages
           img.style.pageBreakInside = 'avoid';
           img.style.breakInside = 'avoid';
+          // Downsample oversized images to reduce file size
+          if (img.naturalWidth > maxW && img.complete) {
+            try {
+              const canvas = clonedDoc.createElement('canvas');
+              const ratio = maxW / img.naturalWidth;
+              canvas.width = maxW;
+              canvas.height = Math.round(img.naturalHeight * ratio);
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                img.src = canvas.toDataURL('image/jpeg', qualityConfig.imageQuality);
+              }
+            } catch { /* CORS or tainted canvas — keep original */ }
+          }
         });
         
         // Apply orphan control to all section headers

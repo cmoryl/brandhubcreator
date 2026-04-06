@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { FileDown, Loader2, Sun, Moon, Check, ChevronDown, FileText, Printer, List, Brain, Target, Users, TrendingUp, Lightbulb, Minus, Briefcase, Sparkles, Palette, Layout, Image, Calendar, Type, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, SplitSquareVertical, BarChart3, Newspaper, ExternalLink, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseGuide, DEFAULT_SECTION_ORDER, SectionId, BrandSocialAssetSpec, BrandDisplayBannerSpec, TemplateSpec } from '@/types/brand';
-import { exportToPdf, PdfTheme, PaperSize, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
+import { exportToPdf, PdfTheme, PaperSize, PdfQuality, PDF_QUALITY_PRESETS, PAPER_SIZES, SECTION_METADATA, CATEGORY_LABELS } from '@/lib/exportPdf';
 import { PdfLayoutPreset, PDF_PRESETS, CoverPageConfig, DEFAULT_COVER_CONFIG, COVER_LAYOUTS, COVER_PATTERNS, CONFIDENTIALITY_LEVELS, getCoverPatternSvg } from '@/lib/pdfPresets';
 import { getAllColorFormats } from '@/lib/colorUtils';
 import { toast } from 'sonner';
@@ -59,6 +59,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [layoutPreset, setLayoutPreset] = useState<PdfLayoutPreset>('professional');
   const [coverConfig, setCoverConfig] = useState<CoverPageConfig>(DEFAULT_COVER_CONFIG);
   const [showCoverOptions, setShowCoverOptions] = useState(false);
+  const [pdfQuality, setPdfQuality] = useState<PdfQuality>('standard');
   const [includeToc, setIncludeToc] = useState(true);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [selectedSections, setSelectedSections] = useState<Set<SectionId>>(new Set(DEFAULT_SECTION_ORDER));
@@ -307,7 +308,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         
         await exportToPdf(el, guide, pdfTheme, paperSize, (status) => {
           logger.debug('PDF export status:', status);
-        });
+        }, pdfQuality);
         
         // Restore hidden positioning
         el.style.cssText = prevStyle;
@@ -1775,6 +1776,30 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                       Letter
                     </ToggleGroupItem>
                   </ToggleGroup>
+                </div>
+
+                {/* Export Quality */}
+                <div>
+                  <Label className="text-xs font-medium mb-1.5 block">Export Quality</Label>
+                  <div className="space-y-1">
+                    {(Object.entries(PDF_QUALITY_PRESETS) as [PdfQuality, typeof PDF_QUALITY_PRESETS[PdfQuality]][]).map(([key, preset]) => (
+                      <button
+                        key={key}
+                        onClick={() => setPdfQuality(key)}
+                        className={cn(
+                          "w-full flex items-start gap-2 p-2 rounded-lg border text-left transition-all",
+                          pdfQuality === key
+                            ? "border-primary bg-primary/5"
+                            : "border-transparent bg-card hover:border-border"
+                        )}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium">{preset.label}</span>
+                          <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{preset.description}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Table of Contents Toggle */}
