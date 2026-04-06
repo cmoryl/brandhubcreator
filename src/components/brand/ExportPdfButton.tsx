@@ -521,6 +521,27 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
                   {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
                 </div>
               )}
+              
+              {/* Confidentiality Badge */}
+              {coverConfig.confidentialityLevel !== 'none' && (
+                <div style={{
+                  marginTop: '20px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 16px',
+                  borderRadius: '20px',
+                  border: `2px solid ${CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.color || '#dc2626'}`,
+                  color: CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.color || '#dc2626',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                }}>
+                  {coverConfig.confidentialityLevel === 'confidential' ? '🔒 ' : coverConfig.confidentialityLevel === 'draft' ? '📝 ' : '🔐 '}
+                  {CONFIDENTIALITY_LEVELS.find(l => l.id === coverConfig.confidentialityLevel)?.label}
+                </div>
+              )}
             </div>
             
             {/* Cover image for non-full-bleed layouts */}
