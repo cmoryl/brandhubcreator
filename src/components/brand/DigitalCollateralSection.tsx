@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2 } from 'lucide-react';
 import { generatePdfThumbnail } from '@/lib/pdfThumbnail';
+import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -194,19 +195,19 @@ const SortableCollateralItem = ({
             className="w-full h-full" 
             objectFit="cover" 
           />
+        ) : (item.previewUrl || '').toLowerCase().includes('.pdf') ? (
+          <PdfThumbnailCard url={item.previewUrl!} name={item.title} />
         ) : (
           <div className="flex flex-col items-center gap-2 p-3">
             <div className="p-2 rounded-lg bg-primary/10">
               {item.externalUrl && !item.previewUrl ? (
                 <ExternalLink className="h-8 w-8 text-primary" />
-              ) : (item.previewUrl || '').toLowerCase().includes('.pdf') ? (
-                <FileImage className="h-8 w-8 text-primary" />
               ) : (
                 <FileText className="h-8 w-8 text-primary" />
               )}
             </div>
             <span className="text-xs text-muted-foreground text-center">
-              {item.externalUrl && !item.previewUrl ? 'External Link' : (item.previewUrl || '').toLowerCase().includes('.pdf') ? 'PDF Document' : 'Preview'}
+              {item.externalUrl && !item.previewUrl ? 'External Link' : 'Preview'}
             </span>
           </div>
         )}

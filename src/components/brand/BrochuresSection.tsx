@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Plus, X, Pencil, Upload, Download, FileText, Image, Expand } from 'lucide-react';
+import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { BrandBrochure } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -180,6 +181,8 @@ export const BrochuresSection = ({ brochures: brochuresProp, onBrochuresChange, 
                         <OptimizedImage src={brochure.thumbnailUrl} alt={brochure.title} className="w-full h-full" objectFit="cover" />
                       ) : brochure.previewUrl?.includes('image') || brochure.previewUrl?.includes('data:image') ? (
                         <OptimizedImage src={brochure.previewUrl} alt={brochure.title} className="w-full h-full" objectFit="cover" />
+                      ) : brochure.previewUrl?.toLowerCase().includes('.pdf') ? (
+                        <PdfThumbnailCard url={brochure.previewUrl} name={brochure.title} />
                       ) : (
                         <div className="flex flex-col items-center gap-2">
                           <FileText className="h-16 w-16 text-muted-foreground" />
