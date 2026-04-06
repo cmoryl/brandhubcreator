@@ -97,7 +97,7 @@ export function useResearchBriefings(entityId: string, entityType: 'brand' | 'pr
         .limit(10);
 
       if (error) throw error;
-      return data as ResearchBriefing[];
+      return data as unknown as ResearchBriefing[];
     },
     enabled: !!entityId && !!entityType,
   });
