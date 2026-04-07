@@ -283,6 +283,7 @@ export const TemplateSpecsSection = ({
   const [showPreview, setShowPreview] = useState(true);
   const [isDragMode, setIsDragMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const spotlightInputRef = useRef<HTMLInputElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   
   const [newSpecForm, setNewSpecForm] = useState({
