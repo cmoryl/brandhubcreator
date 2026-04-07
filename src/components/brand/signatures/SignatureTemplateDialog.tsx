@@ -70,8 +70,8 @@ function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?:
 }
 
 /** Generates preview HTML for the template card */
-function renderTemplatePreview(template: SignatureTemplate): string {
-  const mockSig = createSignatureFromTemplate(template);
+function renderTemplatePreview(template: SignatureTemplate, emailBanners?: BrandEmailBanner[]): string {
+  const mockSig = createSignatureFromTemplate(template, emailBanners);
   const html = renderSignatureHtml(mockSig);
   return DOMPurify.sanitize(html, SANITIZE_CONFIG);
 }
@@ -93,7 +93,7 @@ const LAYOUT_TEMPLATE_LABELS: Record<string, string> = {
   'banner-top': '▀ Banner Top',
 };
 
-export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: SignatureTemplateDialogProps) => {
+export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect, emailBanners }: SignatureTemplateDialogProps) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
