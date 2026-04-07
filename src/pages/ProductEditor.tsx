@@ -62,6 +62,8 @@ import { ImageAssetsSection } from '@/components/brand/ImageAssetsSection';
 import { EventsSection } from '@/components/brand/EventsSection';
 import { BrandEventSignageSection } from '@/components/brand/BrandEventSignageSection';
 import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
+import { ApprovedImagerySection } from '@/components/brand/approved-imagery/ApprovedImagerySection';
+import { StudiosSection } from '@/components/brand/StudiosSection';
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
@@ -686,6 +688,8 @@ const ProductEditor = () => {
       case 'universe': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><GlobalLinkUniverseSection linkedGuides={currentProduct.linkedGuides || []} primaryColor={currentProduct.colors?.[0]?.hex} /></Suspense>;
       case 'eventsignage': return <BrandEventSignageSection eventSignage={(currentProduct as any).eventSignage || []} onEventSignageChange={editHandler((eventSignage) => handleUpdateProduct({ eventSignage } as any))} isAdmin={isGuideAdmin} />;
       case 'presentations': return <PresentationTemplatesSection presentations={(currentProduct as any).presentations || []} onUpdate={canEdit ? (presentations) => handleUpdateProduct({ presentations } as any) : undefined} isEditable={canEdit} />;
+      case 'approvedimagery': return <ApprovedImagerySection approvedImagery={(currentProduct as any).approvedImagery} onApprovedImageryChange={editHandler((approvedImagery) => handleUpdateProduct({ approvedImagery } as any))} canEdit={canEdit} entityId={currentProduct.id} entityType="product" organizationId={currentProduct.organizationId} />;
+      case 'studios': return <StudiosSection studios={(currentProduct as any).studios || []} onStudiosChange={editHandler((studios) => handleUpdateProduct({ studios } as any))} entityId={currentProduct.id} />;
       case 'locations': return (
         <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading map...</div>}>
           <LeafletLocationsSection

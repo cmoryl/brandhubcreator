@@ -79,6 +79,8 @@ import { ByTheNumbersSection } from '@/components/brand/ByTheNumbersSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
 import { EventsSection } from '@/components/brand/EventsSection';
 import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
+import { ApprovedImagerySection } from '@/components/brand/approved-imagery/ApprovedImagerySection';
+import { StudiosSection } from '@/components/brand/StudiosSection';
 import { ValuesSection } from '@/components/brand/ValuesSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ShareButton } from '@/components/brand/ShareButton';
@@ -756,6 +758,8 @@ const EventEditor = () => {
       case 'events': return <EventsSection brandId={event.id} />;
       case 'universe': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><GlobalLinkUniverseSection linkedGuides={(event as any).linkedGuides || []} primaryColor={event.colors?.[0]?.hex} /></Suspense>;
       case 'presentations': return <PresentationTemplatesSection entityType="event" entityId={event.id} isEditable={canEdit} />;
+      case 'approvedimagery': return <ApprovedImagerySection approvedImagery={(event as any).approvedImagery} onApprovedImageryChange={editHandler((approvedImagery) => updateEvent({ approvedImagery } as any))} canEdit={canEdit} entityId={event.id} entityType="event" organizationId={event.organizationId} />;
+      case 'studios': return <StudiosSection studios={(event as any).studios || []} onStudiosChange={editHandler((studios) => updateEvent({ studios } as any))} entityId={event.id} />;
       case 'locations': return (
         <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading map...</div>}>
           <LeafletLocationsSection
