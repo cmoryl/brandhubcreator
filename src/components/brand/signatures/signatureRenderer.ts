@@ -391,7 +391,8 @@ function renderBannerTop(sig: BrandSignature): string {
 /* ─── Helpers ─── */
 
 function renderBannerRow(sig: BrandSignature, st: ReturnType<typeof getStyles>): string {
-  const bannerSrc = sig.bannerUrl || (sig.variant === 'full' ? demoBannerSrc : '');
+  const effectiveVariant = sig.variant || 'full';
+  const bannerSrc = sig.bannerUrl || (effectiveVariant === 'full' ? demoBannerSrc : '');
   if (!bannerSrc) return '';
   const bW = sig.bannerWidth || 600;
   const bH = sig.bannerHeight || 150;
