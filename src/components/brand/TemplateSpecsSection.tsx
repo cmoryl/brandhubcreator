@@ -482,6 +482,41 @@ export const TemplateSpecsSection = ({
     onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
   }, [selectedSpec, templateSpecs, onTemplateSpecsChange]);
 
+  // Spotlight example upload
+  const handleSpotlightUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedSpec || !onTemplateSpecsChange) return;
+    if (spotlightInputRef.current) spotlightInputRef.current.value = '';
+
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `spotlight-${selectedSpec.id}`);
+      if (result) {
+        const updatedSpec = { ...selectedSpec, spotlightExample: { ...selectedSpec.spotlightExample, imageUrl: result.url } };
+        onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+      }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const url = event.target?.result as string;
+        const updatedSpec = { ...selectedSpec, spotlightExample: { ...selectedSpec.spotlightExample, imageUrl: url } };
+        onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+      };
+      reader.readAsDataURL(file);
+    }
+  }, [selectedSpec, templateSpecs, onTemplateSpecsChange, entityId, uploadFile]);
+
+  const handleSpotlightUpdate = useCallback((updates: Partial<TemplateSpecSpotlight>) => {
+    if (!selectedSpec || !onTemplateSpecsChange) return;
+    const updatedSpec = { ...selectedSpec, spotlightExample: { ...(selectedSpec.spotlightExample || { imageUrl: '' }), ...updates } };
+    onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+  }, [selectedSpec, templateSpecs, onTemplateSpecsChange]);
+
+  const handleRemoveSpotlight = useCallback(() => {
+    if (!selectedSpec || !onTemplateSpecsChange) return;
+    const { spotlightExample, ...rest } = selectedSpec;
+    onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? rest as TemplateSpec : s));
+  }, [selectedSpec, templateSpecs, onTemplateSpecsChange]);
+
   const canEdit = !!onTemplateSpecsChange;
 
   return (
