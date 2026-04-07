@@ -1001,9 +1001,9 @@ export const DigitalCollateralSection = ({
           onDrop={(e) => {
             e.preventDefault();
             e.currentTarget.classList.remove('border-primary', 'bg-primary/5', 'text-primary');
-            const file = e.dataTransfer.files?.[0];
-            if (file) {
-              const fakeEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+              const fakeEvent = { target: { files } } as unknown as React.ChangeEvent<HTMLInputElement>;
               handleFileUpload(fakeEvent);
             }
           }}
