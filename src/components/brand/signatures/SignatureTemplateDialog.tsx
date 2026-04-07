@@ -9,6 +9,16 @@ import { DEFAULT_CONFIDENTIALITY } from './signatureConstants';
 import { renderSignatureHtml } from './signatureRenderer';
 import { safeUUID } from '@/lib/safeUUID';
 import DOMPurify from 'dompurify';
+import demoBannerSrc from '@/assets/demo-email-banner.jpg';
+
+/** Fallback demo banner used when no brand banners exist */
+const DEMO_BANNER: BrandEmailBanner = {
+  id: 'demo-banner',
+  name: 'Demo Banner',
+  imageUrl: demoBannerSrc,
+  width: 600,
+  height: 150,
+};
 
 interface SignatureTemplateDialogProps {
   open: boolean;
@@ -40,8 +50,8 @@ const SANITIZE_CONFIG = {
 };
 
 function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?: BrandEmailBanner[]): BrandSignature {
-  // Auto-populate with the first brand banner if available
-  const primaryBanner = emailBanners?.[0];
+  // Use brand banner if available, otherwise use demo placeholder for full variants
+  const primaryBanner = emailBanners?.[0] || (template.variant === 'full' ? DEMO_BANNER : undefined);
   return {
     id: safeUUID(),
     name: 'John Doe',
@@ -60,10 +70,10 @@ function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?:
       { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/johndoe' },
       { id: safeUUID(), platform: 'twitter', url: 'https://x.com/johndoe' },
     ] : undefined,
-    // Auto-attach brand banner
+    // Auto-attach banner (brand or demo)
     bannerUrl: primaryBanner?.imageUrl || '',
     bannerLinkUrl: primaryBanner?.linkUrl || '',
-    bannerWidth: primaryBanner?.width || 550,
+    bannerWidth: primaryBanner?.width || 600,
     bannerHeight: primaryBanner?.height || 150,
     templateId: template.id,
   };
