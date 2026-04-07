@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { LayoutTemplate, Grid3X3, List, Sparkles, Eye } from 'lucide-react';
-import { BrandSignature } from '@/types/brand';
+import { BrandSignature, BrandEmailBanner } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -14,6 +14,8 @@ interface SignatureTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (signature: BrandSignature) => void;
+  /** Brand/product email banners to auto-populate in templates */
+  emailBanners?: BrandEmailBanner[];
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -37,7 +39,9 @@ const SANITIZE_CONFIG = {
   ALLOWED_ATTR: ['style', 'src', 'alt', 'width', 'height', 'href', 'cellpadding', 'cellspacing', 'border', 'align', 'valign', 'target', 'rel', 'colspan'],
 };
 
-function createSignatureFromTemplate(template: SignatureTemplate): BrandSignature {
+function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?: BrandEmailBanner[]): BrandSignature {
+  // Auto-populate with the first brand banner if available
+  const primaryBanner = emailBanners?.[0];
   return {
     id: safeUUID(),
     name: 'John Doe',
@@ -56,6 +60,11 @@ function createSignatureFromTemplate(template: SignatureTemplate): BrandSignatur
       { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/johndoe' },
       { id: safeUUID(), platform: 'twitter', url: 'https://x.com/johndoe' },
     ] : undefined,
+    // Auto-attach brand banner
+    bannerUrl: primaryBanner?.imageUrl || '',
+    bannerLinkUrl: primaryBanner?.linkUrl || '',
+    bannerWidth: primaryBanner?.width || 550,
+    bannerHeight: primaryBanner?.height || 150,
     templateId: template.id,
   };
 }
