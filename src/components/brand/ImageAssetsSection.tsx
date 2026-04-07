@@ -128,6 +128,7 @@ export const ImageAssetsSection = ({
     accept: 'image/png,image/jpeg,image/jpg,image/webp',
     maxSize: 10 * 1024 * 1024, // 10MB for images
     disabled: !canEdit || isUploading,
+    multiple: true,
   });
 
   const deleteAsset = (id: string) => {
