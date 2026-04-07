@@ -16,6 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { PDF_COLORS, PDF_TYPOGRAPHY, PDF_SPACING, PDF_FONTS, PDF_HTML2PDF_BASE_OPTIONS, applyPdfContainerStyles, generatePdfFooter } from '@/lib/pdfStyleConfig';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import type { SalesDeckSlide, SalesDeckData, SalesDeckGenerateRequest } from './salesDeckTypes';
@@ -144,45 +145,43 @@ export function SalesDeckPanel({
     try {
       const html2pdf = (await import('html2pdf.js')).default;
       const container = document.createElement('div');
-      container.style.cssText = 'position:fixed;top:0;left:0;width:800px;z-index:-1;opacity:0.01;pointer-events:none;background:#fff;color:#111;';
+      applyPdfContainerStyles(container, 'a4');
+      container.style.width = '1050px';
       
       const includedSlides = deckData.slides.filter(s => s.included);
       
       container.innerHTML = `
-        <div style="font-family:'Segoe UI',system-ui,sans-serif;padding:40px;">
-          <div style="text-align:center;margin-bottom:60px;padding:60px 40px;background:linear-gradient(135deg,#1e293b,#334155);border-radius:16px;">
-            <h1 style="font-size:36px;font-weight:700;color:#fff;margin:0 0 12px;">${deckData.title}</h1>
-            <p style="font-size:18px;color:#94a3b8;margin:0;">${deckData.subtitle}</p>
-            <p style="font-size:13px;color:#64748b;margin-top:24px;">${new Date(deckData.generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <div style="font-family:${PDF_FONTS.primary};padding:${PDF_SPACING['4xl']};">
+          <div style="text-align:center;margin-bottom:60px;padding:60px 40px;background:linear-gradient(135deg,${PDF_COLORS.background.dark},${PDF_COLORS.text.secondary});border-radius:16px;">
+            <h1 style="font-size:${PDF_TYPOGRAPHY.title.size};font-weight:${PDF_TYPOGRAPHY.title.weight};color:#fff;margin:0 0 12px;">${deckData.title}</h1>
+            <p style="font-size:${PDF_TYPOGRAPHY.h3.size};color:${PDF_COLORS.text.subtle};margin:0;">${deckData.subtitle}</p>
+            <p style="font-size:${PDF_TYPOGRAPHY.small.size};color:${PDF_COLORS.text.muted};margin-top:${PDF_SPACING['2xl']};">${new Date(deckData.generatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
           </div>
           ${includedSlides.map((slide, i) => `
-            <div style="page-break-inside:avoid;margin-bottom:40px;${i > 0 ? 'page-break-before:always;' : ''}">
-              <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-                <span style="background:#3b82f6;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;">${i + 1}</span>
-                <h2 style="font-size:24px;font-weight:600;color:#1e293b;margin:0;">${slide.title}</h2>
+            <div style="page-break-inside:avoid;margin-bottom:${PDF_SPACING['4xl']};${i > 0 ? 'page-break-before:always;' : ''}">
+              <div style="display:flex;align-items:center;gap:${PDF_SPACING.md};margin-bottom:${PDF_SPACING.lg};">
+                <span style="background:${PDF_COLORS.accent.primary};color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${PDF_TYPOGRAPHY.body.size};">${i + 1}</span>
+                <h2 style="font-size:${PDF_TYPOGRAPHY.h2.size};font-weight:${PDF_TYPOGRAPHY.h2.weight};color:${PDF_COLORS.text.primary};margin:0;">${slide.title}</h2>
               </div>
-              <div style="background:#f8fafc;border-radius:12px;padding:24px;border:1px solid #e2e8f0;">
-                <p style="font-size:18px;font-weight:600;color:#334155;margin:0 0 16px;">${slide.content.headline}</p>
+              <div style="background:${PDF_COLORS.background.light};border-radius:12px;padding:${PDF_SPACING['2xl']};border:1px solid ${PDF_COLORS.border.light};">
+                <p style="font-size:${PDF_TYPOGRAPHY.h3.size};font-weight:${PDF_TYPOGRAPHY.h3.weight};color:${PDF_COLORS.text.secondary};margin:0 0 ${PDF_SPACING.lg};">${slide.content.headline}</p>
                 <ul style="margin:0;padding-left:20px;list-style:disc;">
-                  ${slide.content.bullets.map(b => `<li style="font-size:14px;color:#475569;margin-bottom:8px;line-height:1.6;">${b}</li>`).join('')}
+                  ${slide.content.bullets.map(b => `<li style="font-size:${PDF_TYPOGRAPHY.body.size};color:${PDF_COLORS.text.secondary};margin-bottom:${PDF_SPACING.sm};line-height:${PDF_TYPOGRAPHY.body.lineHeight};">${b}</li>`).join('')}
                 </ul>
-                ${slide.content.notes ? `<p style="font-size:12px;color:#94a3b8;margin-top:16px;font-style:italic;border-top:1px solid #e2e8f0;padding-top:12px;">Speaker Notes: ${slide.content.notes}</p>` : ''}
+                ${slide.content.notes ? `<p style="font-size:${PDF_TYPOGRAPHY.caption.size};color:${PDF_COLORS.text.subtle};margin-top:${PDF_SPACING.lg};font-style:italic;border-top:1px solid ${PDF_COLORS.border.light};padding-top:${PDF_SPACING.md};">Speaker Notes: ${slide.content.notes}</p>` : ''}
               </div>
             </div>
           `).join('')}
-          <div style="text-align:center;padding-top:20px;border-top:1px solid #e2e8f0;margin-top:40px;">
-            <p style="font-size:11px;color:#94a3b8;">Generated by BrandHub • ${new Date().toLocaleDateString()}</p>
-          </div>
+          ${generatePdfFooter()}
         </div>
       `;
 
       document.body.appendChild(container);
 
       await html2pdf().set({
+        ...PDF_HTML2PDF_BASE_OPTIONS,
         margin: [10, 10, 10, 10],
         filename: `${divisionName.replace(/\s+/g, '_')}_Booth_Sales_Deck.pdf`,
-        image: { type: 'jpeg', quality: 0.85 },
-        html2canvas: { scale: 1.5, useCORS: true, logging: false, backgroundColor: '#ffffff' },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
       }).from(container).save();
 
