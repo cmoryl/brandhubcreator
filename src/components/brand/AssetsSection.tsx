@@ -35,6 +35,12 @@ const formatFileSize = (bytes: number): string => {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 };
 
+const isSvgAsset = (asset: { type?: string; url?: string; name?: string }) => {
+  if (asset.type?.includes('svg')) return true;
+  const urlOrName = asset.url || asset.name || '';
+  return /\.svg(\?|$)/i.test(urlOrName);
+};
+
 const getFileIcon = (type?: string) => {
   if (!type) return '📁';
   if (type.includes('zip') || type.includes('rar')) return '📦';
