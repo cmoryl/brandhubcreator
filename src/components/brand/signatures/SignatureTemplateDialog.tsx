@@ -142,12 +142,12 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect, emailBan
           </DialogHeader>
 
           {/* Brand context info */}
-          {emailBanners && emailBanners.length > 0 && (
-            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
-              Templates will include your brand's email banner and legal notice
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
+            {emailBanners && emailBanners.length > 0
+              ? 'Templates will include your brand's email banner and legal notice'
+              : 'Templates include a demo banner placeholder — replace it with your brand banner'}
+          </p>
 
           {/* Category Filter + View Toggle */}
           <div className="flex items-center justify-between gap-4 mt-4">
