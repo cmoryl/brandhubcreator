@@ -93,7 +93,16 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
         className="cursor-pointer"
         onClick={() => onPreview(asset)}
       >
-        {asset.type?.includes('image') ? (
+        {asset.type?.includes('svg') ? (
+          <div className="aspect-[4/3] bg-[length:16px_16px] bg-[linear-gradient(45deg,hsl(var(--muted))_25%,transparent_25%,transparent_75%,hsl(var(--muted))_75%),linear-gradient(45deg,hsl(var(--muted))_25%,transparent_25%,transparent_75%,hsl(var(--muted))_75%)] bg-[position:0_0,8px_8px] bg-background flex items-center justify-center p-3 overflow-hidden">
+            <img
+              src={asset.url}
+              alt={asset.name}
+              className="max-w-full max-h-full object-contain transition-transform group-hover:scale-105"
+              loading="lazy"
+            />
+          </div>
+        ) : asset.type?.includes('image') ? (
           <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
             <img
               src={asset.url}
