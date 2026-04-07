@@ -9,6 +9,16 @@ import { DEFAULT_CONFIDENTIALITY } from './signatureConstants';
 import { renderSignatureHtml } from './signatureRenderer';
 import { safeUUID } from '@/lib/safeUUID';
 import DOMPurify from 'dompurify';
+import demoBannerSrc from '@/assets/demo-email-banner.jpg';
+
+/** Fallback demo banner used when no brand banners exist */
+const DEMO_BANNER: BrandEmailBanner = {
+  id: 'demo-banner',
+  name: 'Demo Banner',
+  imageUrl: demoBannerSrc,
+  width: 600,
+  height: 150,
+};
 
 interface SignatureTemplateDialogProps {
   open: boolean;
@@ -40,8 +50,8 @@ const SANITIZE_CONFIG = {
 };
 
 function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?: BrandEmailBanner[]): BrandSignature {
-  // Auto-populate with the first brand banner if available
-  const primaryBanner = emailBanners?.[0];
+  // Use brand banner if available, otherwise use demo placeholder for full variants
+  const primaryBanner = emailBanners?.[0] || (template.variant === 'full' ? DEMO_BANNER : undefined);
   return {
     id: safeUUID(),
     name: 'John Doe',
@@ -60,10 +70,10 @@ function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?:
       { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/johndoe' },
       { id: safeUUID(), platform: 'twitter', url: 'https://x.com/johndoe' },
     ] : undefined,
-    // Auto-attach brand banner
+    // Auto-attach banner (brand or demo)
     bannerUrl: primaryBanner?.imageUrl || '',
     bannerLinkUrl: primaryBanner?.linkUrl || '',
-    bannerWidth: primaryBanner?.width || 550,
+    bannerWidth: primaryBanner?.width || 600,
     bannerHeight: primaryBanner?.height || 150,
     templateId: template.id,
   };
@@ -132,12 +142,12 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect, emailBan
           </DialogHeader>
 
           {/* Brand context info */}
-          {emailBanners && emailBanners.length > 0 && (
-            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
-              Templates will include your brand's email banner and legal notice
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
+            {emailBanners && emailBanners.length > 0
+              ? 'Templates will include your brand\u2019s email banner and legal notice'
+              : 'Templates include a demo banner placeholder \u2014 replace it with your brand banner'}
+          </p>
 
           {/* Category Filter + View Toggle */}
           <div className="flex items-center justify-between gap-4 mt-4">
@@ -249,8 +259,8 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect, emailBan
                       {template.includeSocialPlaceholders && (
                         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">+Social</span>
                       )}
-                      {emailBanners && emailBanners.length > 0 && template.variant === 'full' && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">+Banner</span>
+                      {template.variant === 'full' && (
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${emailBanners && emailBanners.length > 0 ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>+Banner</span>
                       )}
                     </div>
                   </div>
