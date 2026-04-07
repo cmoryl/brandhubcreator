@@ -131,6 +131,14 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect, emailBan
             </DialogTitle>
           </DialogHeader>
 
+          {/* Brand context info */}
+          {emailBanners && emailBanners.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
+              Templates will include your brand's email banner and legal notice
+            </p>
+          )}
+
           {/* Category Filter + View Toggle */}
           <div className="flex items-center justify-between gap-4 mt-4">
             <div className="flex flex-wrap gap-1.5">
