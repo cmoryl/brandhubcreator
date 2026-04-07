@@ -1,5 +1,6 @@
 import { BrandSignature } from '@/types/brand';
 import { SOCIAL_PLATFORMS, DEFAULT_DARK, DEFAULT_ACCENT } from './signatureConstants';
+import demoBannerSrc from '@/assets/demo-email-banner.jpg';
 
 /**
  * Programmatic HTML renderer for email signatures.
@@ -138,7 +139,7 @@ function renderClassic(sig: BrandSignature): string {
   }
 
   rows.push(renderSocialIcons(sig, st.linkColor, st.font));
-  if (sig.bannerUrl) rows.push(renderBannerRow(sig, st));
+  rows.push(renderBannerRow(sig, st));
   rows.push(renderConfidentiality(sig));
 
   return wrap(rows, st.font);
@@ -384,10 +385,11 @@ function renderBannerTop(sig: BrandSignature): string {
 /* ─── Helpers ─── */
 
 function renderBannerRow(sig: BrandSignature, st: ReturnType<typeof getStyles>): string {
-  if (!sig.bannerUrl) return '';
-  const bW = sig.bannerWidth || 550;
+  const bannerSrc = sig.bannerUrl || (sig.variant === 'full' ? demoBannerSrc : '');
+  if (!bannerSrc) return '';
+  const bW = sig.bannerWidth || 600;
   const bH = sig.bannerHeight || 150;
-  const bannerImg = `<img src="${sig.bannerUrl}" alt="Banner" width="${bW}" height="${bH}" style="display:block;max-width:100%;">`;
+  const bannerImg = `<img src="${bannerSrc}" alt="Banner" width="${bW}" height="${bH}" style="display:block;max-width:100%;">`;
   const bannerHtml = sig.bannerLinkUrl
     ? `<a href="${esc(sig.bannerLinkUrl)}" target="_blank" rel="noopener noreferrer">${bannerImg}</a>`
     : bannerImg;
