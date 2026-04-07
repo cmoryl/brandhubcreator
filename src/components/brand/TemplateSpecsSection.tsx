@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2, Move, Loader2, Download, ExternalLink, Pencil, Link } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2, Move, Loader2, Download, ExternalLink, Pencil, Link, Star, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
