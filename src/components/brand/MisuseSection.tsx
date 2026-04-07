@@ -67,6 +67,7 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: 'image/*',
+    multiple: true,
   });
 
   const updateMisuse = (id: string, updates: Partial<BrandMisuse>) => {
