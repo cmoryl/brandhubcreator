@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2, ClipboardList, Sparkles, BookOpen, BarChart3, BookMarked, TrendingUp, Briefcase, Package, Building2, Target, CalendarDays, Link2, Facebook, Instagram, Twitter, Youtube, Music, MapPin, Globe, Folder, type LucideIcon } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2, ClipboardList, Sparkles, BookOpen, BarChart3, BookMarked, TrendingUp, Briefcase, Package, Building2, Target, CalendarDays, Link2, Globe, Folder, type LucideIcon } from 'lucide-react';
 import { generatePdfThumbnail } from '@/lib/pdfThumbnail';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { BrandBrochure } from '@/types/brand';
@@ -48,28 +48,52 @@ interface DigitalCollateralSectionProps {
   entityType?: 'brand' | 'product' | 'event';
 }
 
+// Lucide icon map for built-in categories
+const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
+  'Brief': ClipboardList,
+  'Spotlight': Sparkles,
+  'Whitepaper': FileText,
+  'Case Study': BarChart3,
+  'eBrochure': BookMarked,
+  'Infographic': TrendingUp,
+  'Capability Statement': Briefcase,
+  'Product Brochure': Package,
+  'Company Overview': Building2,
+  'Pitch Deck': Target,
+  'Annual Report': CalendarDays,
+  'Social Banner Set — LinkedIn': Link2,
+  'Social Banner Set — Facebook': Globe,
+  'Social Banner Set — Instagram': Globe,
+  'Social Banner Set — X (Twitter)': Globe,
+  'Social Banner Set — YouTube': Globe,
+  'Social Banner Set — TikTok': Globe,
+  'Social Banner Set — Pinterest': Globe,
+  'Social Banner Set — Multi-Platform': Globe,
+  'Other': Folder,
+};
+
 // Extended category options with all content types
-const CATEGORY_OPTIONS: { value: string; label: string; icon: LucideIcon }[] = [
-  { value: 'Brief', label: 'Brief', icon: ClipboardList },
-  { value: 'Spotlight', label: 'Spotlight', icon: Sparkles },
-  { value: 'Whitepaper', label: 'Whitepaper', icon: FileText },
-  { value: 'Case Study', label: 'Case Study', icon: BarChart3 },
-  { value: 'eBrochure', label: 'eBrochure', icon: BookMarked },
-  { value: 'Infographic', label: 'Infographic', icon: TrendingUp },
-  { value: 'Capability Statement', label: 'Capability Statement', icon: Briefcase },
-  { value: 'Product Brochure', label: 'Product Brochure', icon: Package },
-  { value: 'Company Overview', label: 'Company Overview', icon: Building2 },
-  { value: 'Pitch Deck', label: 'Pitch Deck', icon: Target },
-  { value: 'Annual Report', label: 'Annual Report', icon: CalendarDays },
-  { value: 'Social Banner Set — LinkedIn', label: 'Social Banner — LinkedIn', icon: Link2 },
-  { value: 'Social Banner Set — Facebook', label: 'Social Banner — Facebook', icon: Facebook },
-  { value: 'Social Banner Set — Instagram', label: 'Social Banner — Instagram', icon: Instagram },
-  { value: 'Social Banner Set — X (Twitter)', label: 'Social Banner — X', icon: Twitter },
-  { value: 'Social Banner Set — YouTube', label: 'Social Banner — YouTube', icon: Youtube },
-  { value: 'Social Banner Set — TikTok', label: 'Social Banner — TikTok', icon: Music },
-  { value: 'Social Banner Set — Pinterest', label: 'Social Banner — Pinterest', icon: MapPin },
-  { value: 'Social Banner Set — Multi-Platform', label: 'Social Banner — Multi-Platform', icon: Globe },
-  { value: 'Other', label: 'Other', icon: Folder },
+const CATEGORY_OPTIONS = [
+  { value: 'Brief', label: 'Brief', icon: '📋' },
+  { value: 'Spotlight', label: 'Spotlight', icon: '🔦' },
+  { value: 'Whitepaper', label: 'Whitepaper', icon: '📄' },
+  { value: 'Case Study', label: 'Case Study', icon: '📊' },
+  { value: 'eBrochure', label: 'eBrochure', icon: '📖' },
+  { value: 'Infographic', label: 'Infographic', icon: '📈' },
+  { value: 'Capability Statement', label: 'Capability Statement', icon: '💼' },
+  { value: 'Product Brochure', label: 'Product Brochure', icon: '📦' },
+  { value: 'Company Overview', label: 'Company Overview', icon: '🏢' },
+  { value: 'Pitch Deck', label: 'Pitch Deck', icon: '🎯' },
+  { value: 'Annual Report', label: 'Annual Report', icon: '📅' },
+  { value: 'Social Banner Set — LinkedIn', label: 'Social Banner — LinkedIn', icon: '🔗' },
+  { value: 'Social Banner Set — Facebook', label: 'Social Banner — Facebook', icon: '📘' },
+  { value: 'Social Banner Set — Instagram', label: 'Social Banner — Instagram', icon: '📸' },
+  { value: 'Social Banner Set — X (Twitter)', label: 'Social Banner — X', icon: '🐦' },
+  { value: 'Social Banner Set — YouTube', label: 'Social Banner — YouTube', icon: '🎬' },
+  { value: 'Social Banner Set — TikTok', label: 'Social Banner — TikTok', icon: '🎵' },
+  { value: 'Social Banner Set — Pinterest', label: 'Social Banner — Pinterest', icon: '📌' },
+  { value: 'Social Banner Set — Multi-Platform', label: 'Social Banner — Multi-Platform', icon: '🌐' },
+  { value: 'Other', label: 'Other', icon: '📁' },
 ];
 
 // Social banner platform options for quick-add dialog
