@@ -368,6 +368,7 @@ export const PatternsSection = ({
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={handleInputChange}
         className="hidden"
       />
