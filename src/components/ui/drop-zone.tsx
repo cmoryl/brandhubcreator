@@ -270,7 +270,8 @@ export const useDropZone = ({
   accept = 'image/*',
   maxSize = 2 * 1024 * 1024,
   disabled = false,
-}: Pick<DropZoneProps, 'onFileDrop' | 'accept' | 'maxSize' | 'disabled'>) => {
+  multiple = false,
+}: Pick<DropZoneProps, 'onFileDrop' | 'accept' | 'maxSize' | 'disabled'> & { multiple?: boolean }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -325,7 +326,11 @@ export const useDropZone = ({
       if (disabled) return;
 
       const files = e.dataTransfer.files;
-      if (files.length > 0) {
+      if (multiple && files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          await handleFile(files[i]);
+        }
+      } else if (files.length > 0) {
         await handleFile(files[0]);
       }
     },
@@ -336,9 +341,17 @@ export const useDropZone = ({
   };
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await handleFile(file);
+    const files = e.target.files;
+    if (!files) return;
+    if (multiple && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        await handleFile(files[i]);
+      }
+    } else {
+      const file = files[0];
+      if (file) {
+        await handleFile(file);
+      }
     }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -351,5 +364,6 @@ export const useDropZone = ({
     dragHandlers,
     openFilePicker,
     handleInputChange,
+    multiple,
   };
 };

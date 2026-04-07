@@ -83,12 +83,13 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
     onImageryChange([...imagery, newImagery]);
   }, [imagery, onImageryChange, pendingType, entityId, uploadFile]);
 
-  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
+  const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange, multiple } = useDropZone({
     onFileDrop: handleFileDrop,
     // Accept both images and SVGs
     accept: 'image/*,.svg',
     // Many photography examples/screenshots exceed 2MB; allow up to 20MB (Lovable upload limit)
     maxSize: 20 * 1024 * 1024,
+    multiple: true,
   });
 
   const triggerUpload = (type: 'do' | 'dont') => {
@@ -211,6 +212,7 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
         ref={fileInputRef}
         type="file"
         accept="image/*,.svg,image/svg+xml"
+        multiple
         onChange={handleInputChange}
         className="hidden"
       />

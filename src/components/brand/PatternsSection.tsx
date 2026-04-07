@@ -185,6 +185,7 @@ export const PatternsSection = ({
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: 'image/*',
+    multiple: true,
   });
 
   const updatePattern = (id: string, updates: Partial<BrandPattern>) => {
@@ -367,6 +368,7 @@ export const PatternsSection = ({
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={handleInputChange}
         className="hidden"
       />
