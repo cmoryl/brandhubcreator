@@ -819,7 +819,7 @@ export const DigitalCollateralSection = ({
           {canEdit && (
             <Button onClick={() => fileInputRef.current?.click()} size="sm" className="gap-2 shrink-0" disabled={isUploading}>
               <Upload className="h-4 w-4" />
-              {isUploading ? 'Uploading...' : 'Upload'}
+              {isUploading ? 'Uploading...' : 'Upload Files'}
             </Button>
           )}
         </div>
