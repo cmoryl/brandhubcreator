@@ -35,6 +35,12 @@ const formatFileSize = (bytes: number): string => {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 };
 
+const isSvgAsset = (asset: { type?: string; url?: string; name?: string }) => {
+  if (asset.type?.includes('svg')) return true;
+  const urlOrName = asset.url || asset.name || '';
+  return /\.svg(\?|$)/i.test(urlOrName);
+};
+
 const getFileIcon = (type?: string) => {
   if (!type) return '📁';
   if (type.includes('zip') || type.includes('rar')) return '📦';
@@ -93,7 +99,7 @@ const SortableAssetCard = ({ asset, canEdit, onPreview, onDownload, onDelete }: 
         className="cursor-pointer"
         onClick={() => onPreview(asset)}
       >
-        {asset.type?.includes('svg') ? (
+        {isSvgAsset(asset) ? (
           <div className="aspect-[4/3] bg-[length:16px_16px] bg-[linear-gradient(45deg,hsl(var(--muted))_25%,transparent_25%,transparent_75%,hsl(var(--muted))_75%),linear-gradient(45deg,hsl(var(--muted))_25%,transparent_25%,transparent_75%,hsl(var(--muted))_75%)] bg-[position:0_0,8px_8px] bg-background flex items-center justify-center p-3 overflow-hidden">
             <img
               src={asset.url}
@@ -240,7 +246,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     try {
       const assetId = crypto.randomUUID();
       const sizeLabel = formatFileSize(pendingFile.file.size);
-      const fileType = pendingFile.file.type || 'unknown';
+      let fileType = pendingFile.file.type || (/\.svg$/i.test(pendingFile.file.name) ? 'image/svg+xml' : 'unknown');
 
       let fileUrl: string;
       let thumbnailUrl: string | undefined;
