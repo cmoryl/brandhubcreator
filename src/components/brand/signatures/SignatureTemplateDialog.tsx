@@ -109,12 +109,12 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect, emailBan
     return counts;
   }, []);
 
-  // Pre-render all previews for current filter
+  // Pre-render all previews for current filter (includes brand banners if available)
   const previews = useMemo(() => {
     const map: Record<string, string> = {};
-    filteredTemplates.forEach(t => { map[t.id] = renderTemplatePreview(t); });
+    filteredTemplates.forEach(t => { map[t.id] = renderTemplatePreview(t, emailBanners); });
     return map;
-  }, [filteredTemplates]);
+  }, [filteredTemplates, emailBanners]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
