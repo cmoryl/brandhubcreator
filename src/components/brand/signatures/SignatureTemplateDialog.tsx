@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { LayoutTemplate, Grid3X3, List, Sparkles, Eye } from 'lucide-react';
-import { BrandSignature } from '@/types/brand';
+import { BrandSignature, BrandEmailBanner } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -14,6 +14,8 @@ interface SignatureTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (signature: BrandSignature) => void;
+  /** Brand/product email banners to auto-populate in templates */
+  emailBanners?: BrandEmailBanner[];
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -37,7 +39,9 @@ const SANITIZE_CONFIG = {
   ALLOWED_ATTR: ['style', 'src', 'alt', 'width', 'height', 'href', 'cellpadding', 'cellspacing', 'border', 'align', 'valign', 'target', 'rel', 'colspan'],
 };
 
-function createSignatureFromTemplate(template: SignatureTemplate): BrandSignature {
+function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?: BrandEmailBanner[]): BrandSignature {
+  // Auto-populate with the first brand banner if available
+  const primaryBanner = emailBanners?.[0];
   return {
     id: safeUUID(),
     name: 'John Doe',
@@ -56,13 +60,18 @@ function createSignatureFromTemplate(template: SignatureTemplate): BrandSignatur
       { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/johndoe' },
       { id: safeUUID(), platform: 'twitter', url: 'https://x.com/johndoe' },
     ] : undefined,
+    // Auto-attach brand banner
+    bannerUrl: primaryBanner?.imageUrl || '',
+    bannerLinkUrl: primaryBanner?.linkUrl || '',
+    bannerWidth: primaryBanner?.width || 550,
+    bannerHeight: primaryBanner?.height || 150,
     templateId: template.id,
   };
 }
 
 /** Generates preview HTML for the template card */
-function renderTemplatePreview(template: SignatureTemplate): string {
-  const mockSig = createSignatureFromTemplate(template);
+function renderTemplatePreview(template: SignatureTemplate, emailBanners?: BrandEmailBanner[]): string {
+  const mockSig = createSignatureFromTemplate(template, emailBanners);
   const html = renderSignatureHtml(mockSig);
   return DOMPurify.sanitize(html, SANITIZE_CONFIG);
 }
@@ -84,7 +93,7 @@ const LAYOUT_TEMPLATE_LABELS: Record<string, string> = {
   'banner-top': '▀ Banner Top',
 };
 
-export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: SignatureTemplateDialogProps) => {
+export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect, emailBanners }: SignatureTemplateDialogProps) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -100,12 +109,12 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: Signat
     return counts;
   }, []);
 
-  // Pre-render all previews for current filter
+  // Pre-render all previews for current filter (includes brand banners if available)
   const previews = useMemo(() => {
     const map: Record<string, string> = {};
-    filteredTemplates.forEach(t => { map[t.id] = renderTemplatePreview(t); });
+    filteredTemplates.forEach(t => { map[t.id] = renderTemplatePreview(t, emailBanners); });
     return map;
-  }, [filteredTemplates]);
+  }, [filteredTemplates, emailBanners]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -121,6 +130,14 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: Signat
               <Badge variant="secondary" className="text-xs font-medium ml-1">{SIGNATURE_TEMPLATES.length} templates</Badge>
             </DialogTitle>
           </DialogHeader>
+
+          {/* Brand context info */}
+          {emailBanners && emailBanners.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />
+              Templates will include your brand's email banner and legal notice
+            </p>
+          )}
 
           {/* Category Filter + View Toggle */}
           <div className="flex items-center justify-between gap-4 mt-4">
@@ -163,7 +180,7 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: Signat
                 <button
                   key={template.id}
                   onClick={() => {
-                    onSelect(createSignatureFromTemplate(template));
+                    onSelect(createSignatureFromTemplate(template, emailBanners));
                     onOpenChange(false);
                   }}
                   onMouseEnter={() => setHoveredId(template.id)}
@@ -231,6 +248,9 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect }: Signat
                       )}
                       {template.includeSocialPlaceholders && (
                         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">+Social</span>
+                      )}
+                      {emailBanners && emailBanners.length > 0 && template.variant === 'full' && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">+Banner</span>
                       )}
                     </div>
                   </div>
