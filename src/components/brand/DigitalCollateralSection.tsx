@@ -960,7 +960,16 @@ export const DigitalCollateralSection = ({
               return (
                 <div key={category} className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">{categoryInfo?.icon || '📁'}</span>
+                    {(() => {
+                      const CatIcon = CATEGORY_ICON_MAP[category];
+                      return CatIcon ? (
+                        <span className="flex items-center justify-center w-7 h-7 rounded-md bg-primary/10 text-primary">
+                          <CatIcon className="h-4 w-4" />
+                        </span>
+                      ) : (
+                        <span className="text-xl">{categoryInfo?.icon || '📁'}</span>
+                      );
+                    })()}
                     <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
                       {category}
                     </h3>
