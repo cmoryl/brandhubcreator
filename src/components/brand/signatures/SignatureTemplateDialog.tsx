@@ -259,8 +259,8 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect, emailBan
                       {template.includeSocialPlaceholders && (
                         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">+Social</span>
                       )}
-                      {emailBanners && emailBanners.length > 0 && template.variant === 'full' && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">+Banner</span>
+                      {template.variant === 'full' && (
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${emailBanners && emailBanners.length > 0 ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>+Banner</span>
                       )}
                     </div>
                   </div>
