@@ -239,28 +239,39 @@ const CardGrid = React.forwardRef<HTMLDivElement, {
             style={{
               backgroundColor: isActive ? undefined : (isDark ? tint.tint : tint.tintLight),
               ...(isActive ? {
-                background: `linear-gradient(135deg, ${tint.bg}, ${tint.bg.replace(')', ' / 0.7)')})`,
-                boxShadow: `0 0 12px ${tint.bg.replace(')', ' / 0.2)')}, 0 0 24px ${tint.bg.replace(')', ' / 0.08)')}`,
+                background: `linear-gradient(135deg, ${tint.bg}, ${tint.bg.replace(')', ' / 0.85)')})`,
+                boxShadow: `0 0 20px ${tint.bg.replace(')', ' / 0.35)')}, 0 0 40px ${tint.bg.replace(')', ' / 0.15)')}, 0 0 60px ${tint.bg.replace(')', ' / 0.08)')}`,
                 ringColor: tint.bg.replace(')', ' / 0.6)'),
+                transform: 'scale(1.04)',
               } : {}),
             } as any}
           >
-            {/* Active subtle overlay */}
+            {/* Active hero-style glassmorphic overlay */}
             {isActive && (
               <div
-                className="absolute inset-0 rounded-xl pointer-events-none"
+                className="absolute inset-0 rounded-xl pointer-events-none animate-aurora"
                 style={{
-                  background: 'linear-gradient(160deg, rgba(255,255,255,0.15) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.08) 100%)',
+                  background: `
+                    radial-gradient(ellipse at 20% 30%, rgba(255,255,255,0.2) 0%, transparent 50%),
+                    radial-gradient(ellipse at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 40%)
+                  `,
+                  backgroundSize: '200% 200%',
                 }}
               />
             )}
 
             {/* Icon */}
-            <Icon className={cn(
-              'h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-200 relative z-10',
-              'group-hover:scale-110',
-              isActive && 'drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]'
-            )} />
+            {isActive ? (
+              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg flex items-center justify-center relative z-10"
+                style={{ backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
+                <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]" />
+              </div>
+            ) : (
+              <Icon className={cn(
+                'h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-200 relative z-10',
+                'group-hover:scale-110',
+              )} />
+            )}
 
             {/* Label + favorite star */}
             <div className="relative z-10 flex items-center gap-0.5">
