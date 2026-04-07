@@ -16,6 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { PDF_COLORS, PDF_TYPOGRAPHY, PDF_SPACING, PDF_FONTS, PDF_HTML2PDF_BASE_OPTIONS, applyPdfContainerStyles, generatePdfFooter } from '@/lib/pdfStyleConfig';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import type { SalesDeckSlide, SalesDeckData, SalesDeckGenerateRequest } from './salesDeckTypes';
