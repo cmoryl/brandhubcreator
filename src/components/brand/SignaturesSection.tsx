@@ -434,7 +434,7 @@ export const SignaturesSection = ({
       </Tabs>
 
       {/* Template Dialog */}
-      <SignatureTemplateDialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen} onSelect={addSignatureFromTemplate} />
+      <SignatureTemplateDialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen} onSelect={addSignatureFromTemplate} emailBanners={emailBanners} />
     </section>
   );
 };
