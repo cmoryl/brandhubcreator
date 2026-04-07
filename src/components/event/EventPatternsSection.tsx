@@ -141,6 +141,7 @@ export const EventPatternsSection = ({
   const { isDragging, fileInputRef, dragHandlers, openFilePicker, handleInputChange } = useDropZone({
     onFileDrop: handleFileDrop,
     accept: 'image/*',
+    multiple: true,
   });
 
   const deletePattern = (id: string) => {
@@ -304,6 +305,7 @@ export const EventPatternsSection = ({
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={handleInputChange}
         className="hidden"
       />
