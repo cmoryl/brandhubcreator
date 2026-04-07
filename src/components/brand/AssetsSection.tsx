@@ -246,7 +246,7 @@ export const AssetsSection = ({ assets, onAssetsChange, customSubtitle, onSubtit
     try {
       const assetId = crypto.randomUUID();
       const sizeLabel = formatFileSize(pendingFile.file.size);
-      const fileType = pendingFile.file.type || 'unknown';
+      let fileType = pendingFile.file.type || (/\.svg$/i.test(pendingFile.file.name) ? 'image/svg+xml' : 'unknown');
 
       let fileUrl: string;
       let thumbnailUrl: string | undefined;
