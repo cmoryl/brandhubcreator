@@ -1,35 +1,33 @@
 
 
-# Tagline Variations Visual Upgrade
+## Hero Treatment for Active/Selected Card
 
-## Current State
-The variations area is a vertical stacked list of styled cards (gradient, accent-bar, floating-card, glass, outlined). While functional, it reads like a flat list and lacks visual hierarchy, contextual richness, and editorial polish.
+### What Changes
 
-## Proposed Enhancements
+When a card is selected, it transforms into a mini "hero" tile with the full gradient background, glassmorphic shine overlay, ambient glow shadow, and a white icon with drop-shadow — matching the existing ActiveSectionHeader's hero aesthetic. All other cards remain minimal (subtle tint wash, muted icon, clean border).
 
-### 1. Masonry/Staggered Grid Layout
-Replace the single-column `space-y-3` stack with a responsive 2-column masonry-style grid on desktop. Variations alternate between columns with staggered entry animations, creating a more dynamic, magazine-like feel. Single column on mobile.
+The active state already has a gradient and glow (lines 241-256), but it's understated. This upgrade intensifies it to match the hero section feel.
 
-### 2. Context Labels & Use-Case Tags
-Add an optional "context" field to each variation (e.g., "Social Media", "Print Campaign", "Internal"). Display as a small colored chip above the tagline text. Gives each variation purpose and makes the section feel like a strategic asset, not just a list.
+### Enhancements to Active Card
 
-### 3. Numbered Index Badges
-Show a styled circular index badge (01, 02, 03...) on each card that's always visible (not just on hover). Uses a gradient primary circle, giving the section a curated editorial look.
+1. **Stronger gradient fill** — deeper saturation, more prominent two-tone gradient
+2. **Glassmorphic radial shine overlay** — matching the `ActiveSectionHeader`'s dual radial-gradient overlay with animated sheen
+3. **Amplified ambient glow** — larger, more visible box-shadow halo using the tint color
+4. **Icon glow ring** — icon gets a frosted circular backdrop (`bg-white/15 backdrop-blur`) like the hero header's icon container
+5. **Subtle scale bump** — active card scales to `scale-[1.04]` to physically stand out from neighbors
 
-### 4. Featured/Primary Variation Highlight
-Allow one variation to be marked as "featured" — displayed larger at the top with a subtle glow border and a star badge. This creates visual hierarchy and signals the preferred alternative tagline.
+### Non-Active Cards Stay Minimal
 
-### 5. Animated Stagger on Scroll
-Add a fade-up stagger animation when the section enters view. Each card animates in with a 75ms delay, creating a cascading reveal effect.
+No changes to inactive cards — they keep the current subtle tint wash, clean border, and hover shadow behavior.
 
-### 6. Enhanced Empty State
-Upgrade the empty state with a more editorial illustration — overlapping quote marks in brand colors, a subtle pulse animation, and more inviting copy.
+### Technical Details
 
-## Technical Details
+**File**: `src/components/brand/SectionCardGrid.tsx` — `CardGrid` component (lines 224-287)
 
-**Files to modify:**
-- `src/types/brand.ts` — Add `context?: string` and `isFeatured?: boolean` to `TaglineVariation`
-- `src/components/brand/TaglineSection.tsx` — Refactor variations display: 2-col grid, featured card, index badges, context chips, stagger animations, enhanced empty state. Add context input and featured toggle in edit mode.
-
-**No new dependencies.** Uses existing Tailwind utilities and CSS animations. The `TaglineVariation` type changes are additive (optional fields), so no migration needed.
+Changes scoped to the active card's styling:
+- Increase `boxShadow` spread and add a second layer for deeper glow
+- Add `transform: scale(1.04)` to the active card's inline style
+- Enhance the overlay div (line 250-256) with the dual radial-gradient pattern from `ActiveSectionHeader`
+- Wrap the `<Icon>` in a small frosted container (`rounded-lg bg-white/15 backdrop-blur-sm p-1.5`) when active
+- Add a subtle animated shimmer keyframe on the overlay for the active card
 
