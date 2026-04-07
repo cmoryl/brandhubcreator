@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { SectionHeader } from './SectionHeader';
-import { TemplateSpec, TemplateSpecItem, BrandColor } from '@/types/brand';
+import { TemplateSpec, TemplateSpecItem, TemplateSpecSpotlight, BrandColor } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import {
   Select,
