@@ -66,6 +66,8 @@ import { GlobalLinkUniverseSection } from '@/components/brand/GlobalLinkUniverse
 import { BrandUniverseOrbit } from '@/components/brand/BrandUniverseOrbit';
 import { BrandEventSignageSection } from '@/components/brand/BrandEventSignageSection';
 import { PresentationTemplatesSection } from '@/components/brand/PresentationTemplatesSection';
+import { ApprovedImagerySection } from '@/components/brand/approved-imagery/ApprovedImagerySection';
+import { StudiosSection } from '@/components/brand/StudiosSection';
 const LeafletLocationsSection = lazy(() => import('@/components/brand/LeafletLocationsSection').then(m => ({ default: m.LeafletLocationsSection })));
 import { ExportPdfButton } from '@/components/brand/ExportPdfButton';
 import { BrandAuditButton } from '@/components/brand/BrandAuditButton';
@@ -830,6 +832,10 @@ const BrandEditor = () => {
         }
         return <BrandUniverseOrbit organizationId={brand.organizationId} brandColors={brand.colors} organizationName={brand.hero?.name} />;
       case 'presentations': return <PresentationTemplatesSection presentations={brand.presentationTemplates || []} onUpdate={editHandler((presentationTemplates) => updateBrand({ presentationTemplates }))} />;
+      case 'approvedimagery':
+        return <ApprovedImagerySection approvedImagery={brand.approvedImagery} onApprovedImageryChange={editHandler((approvedImagery) => updateBrand({ approvedImagery }))} canEdit={canEdit} entityId={brand.id} entityType="brand" organizationId={brand.organizationId} />;
+      case 'studios':
+        return <StudiosSection studios={brand.studios || []} onStudiosChange={editHandler((studios) => updateBrand({ studios }))} entityId={brand.id} />;
       default: return null;
     }
   };
