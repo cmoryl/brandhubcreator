@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2 } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2, ClipboardList, Sparkles, BookOpen, BarChart3, BookMarked, TrendingUp, Briefcase, Package, Building2, Target, CalendarDays, Link2, Globe, Folder, type LucideIcon } from 'lucide-react';
 import { generatePdfThumbnail } from '@/lib/pdfThumbnail';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { BrandBrochure } from '@/types/brand';
@@ -47,6 +47,30 @@ interface DigitalCollateralSectionProps {
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
 }
+
+// Lucide icon map for built-in categories
+const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
+  'Brief': ClipboardList,
+  'Spotlight': Sparkles,
+  'Whitepaper': FileText,
+  'Case Study': BarChart3,
+  'eBrochure': BookMarked,
+  'Infographic': TrendingUp,
+  'Capability Statement': Briefcase,
+  'Product Brochure': Package,
+  'Company Overview': Building2,
+  'Pitch Deck': Target,
+  'Annual Report': CalendarDays,
+  'Social Banner Set — LinkedIn': Link2,
+  'Social Banner Set — Facebook': Globe,
+  'Social Banner Set — Instagram': Globe,
+  'Social Banner Set — X (Twitter)': Globe,
+  'Social Banner Set — YouTube': Globe,
+  'Social Banner Set — TikTok': Globe,
+  'Social Banner Set — Pinterest': Globe,
+  'Social Banner Set — Multi-Platform': Globe,
+  'Other': Folder,
+};
 
 // Extended category options with all content types
 const CATEGORY_OPTIONS = [
@@ -844,27 +868,34 @@ export const DigitalCollateralSection = ({
           />
 
           {/* Category Quick-Add Chips */}
-          <div className="flex flex-wrap gap-2">
-            {CATEGORY_OPTIONS.slice(0, 6).map(cat => (
-              <button
-                key={cat.value}
-                onClick={() => triggerUploadForCategory(cat.value)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                <span>{cat.icon}</span>
-                <span>{cat.label}</span>
-                <Plus className="h-3 w-3 opacity-50" />
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-2.5">
+            {CATEGORY_OPTIONS.slice(0, 6).map(cat => {
+              const IconComp = CATEGORY_ICON_MAP[cat.value];
+              return (
+                <button
+                  key={cat.value}
+                  onClick={() => triggerUploadForCategory(cat.value)}
+                  className="group/chip inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-border/60 bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.25)] text-foreground transition-all duration-200"
+                >
+                  <span className="flex items-center justify-center w-5 h-5 rounded-md bg-primary/10 text-primary group-hover/chip:bg-primary/20 group-hover/chip:scale-110 transition-all duration-200">
+                    {IconComp ? <IconComp className="h-3.5 w-3.5" /> : <span className="text-xs">{cat.icon}</span>}
+                  </span>
+                  <span>{cat.label}</span>
+                  <Plus className="h-3 w-3 opacity-40 group-hover/chip:opacity-70 transition-opacity" />
+                </button>
+              );
+            })}
             {customCategories.map(cat => (
               <button
                 key={cat.value}
                 onClick={() => triggerUploadForCategory(cat.value)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 text-foreground transition-colors"
+                className="group/chip inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.25)] text-foreground transition-all duration-200"
               >
-                <span>{cat.icon}</span>
+                <span className="flex items-center justify-center w-5 h-5 rounded-md bg-primary/15 text-primary group-hover/chip:scale-110 transition-all duration-200">
+                  <span className="text-xs">{cat.icon}</span>
+                </span>
                 <span>{cat.label}</span>
-                <Plus className="h-3 w-3 opacity-50" />
+                <Plus className="h-3 w-3 opacity-40 group-hover/chip:opacity-70 transition-opacity" />
               </button>
             ))}
           </div>
@@ -929,7 +960,16 @@ export const DigitalCollateralSection = ({
               return (
                 <div key={category} className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">{categoryInfo?.icon || '📁'}</span>
+                    {(() => {
+                      const CatIcon = CATEGORY_ICON_MAP[category];
+                      return CatIcon ? (
+                        <span className="flex items-center justify-center w-7 h-7 rounded-md bg-primary/10 text-primary">
+                          <CatIcon className="h-4 w-4" />
+                        </span>
+                      ) : (
+                        <span className="text-xl">{categoryInfo?.icon || '📁'}</span>
+                      );
+                    })()}
                     <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
                       {category}
                     </h3>
