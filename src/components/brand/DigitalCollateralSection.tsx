@@ -831,6 +831,7 @@ export const DigitalCollateralSection = ({
             ref={fileInputRef}
             type="file"
             accept=".pdf,image/*"
+            multiple
             onChange={handleFileUpload}
             className="hidden"
           />
