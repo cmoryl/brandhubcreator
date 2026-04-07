@@ -1,11 +1,11 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2, Move, Loader2, Download, ExternalLink, Pencil, Link } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, Upload, GripVertical, Eye, EyeOff, FileText, BookOpen, File, Newspaper, Settings2, Move, Loader2, Download, ExternalLink, Pencil, Link, Star, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { SectionHeader } from './SectionHeader';
-import { TemplateSpec, TemplateSpecItem, BrandColor } from '@/types/brand';
+import { TemplateSpec, TemplateSpecItem, TemplateSpecSpotlight, BrandColor } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import {
   Select,
@@ -283,6 +283,7 @@ export const TemplateSpecsSection = ({
   const [showPreview, setShowPreview] = useState(true);
   const [isDragMode, setIsDragMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const spotlightInputRef = useRef<HTMLInputElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   
   const [newSpecForm, setNewSpecForm] = useState({
@@ -479,6 +480,41 @@ export const TemplateSpecsSection = ({
       ),
     };
     onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+  }, [selectedSpec, templateSpecs, onTemplateSpecsChange]);
+
+  // Spotlight example upload
+  const handleSpotlightUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedSpec || !onTemplateSpecsChange) return;
+    if (spotlightInputRef.current) spotlightInputRef.current.value = '';
+
+    if (entityId) {
+      const result = await uploadFile(file, 'asset', `spotlight-${selectedSpec.id}`);
+      if (result) {
+        const updatedSpec = { ...selectedSpec, spotlightExample: { ...selectedSpec.spotlightExample, imageUrl: result.url } };
+        onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+      }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const url = event.target?.result as string;
+        const updatedSpec = { ...selectedSpec, spotlightExample: { ...selectedSpec.spotlightExample, imageUrl: url } };
+        onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+      };
+      reader.readAsDataURL(file);
+    }
+  }, [selectedSpec, templateSpecs, onTemplateSpecsChange, entityId, uploadFile]);
+
+  const handleSpotlightUpdate = useCallback((updates: Partial<TemplateSpecSpotlight>) => {
+    if (!selectedSpec || !onTemplateSpecsChange) return;
+    const updatedSpec = { ...selectedSpec, spotlightExample: { ...(selectedSpec.spotlightExample || { imageUrl: '' }), ...updates } };
+    onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? updatedSpec : s));
+  }, [selectedSpec, templateSpecs, onTemplateSpecsChange]);
+
+  const handleRemoveSpotlight = useCallback(() => {
+    if (!selectedSpec || !onTemplateSpecsChange) return;
+    const { spotlightExample, ...rest } = selectedSpec;
+    onTemplateSpecsChange(templateSpecs.map(s => s.id === selectedSpec.id ? rest as TemplateSpec : s));
   }, [selectedSpec, templateSpecs, onTemplateSpecsChange]);
 
   const canEdit = !!onTemplateSpecsChange;
@@ -904,6 +940,87 @@ export const TemplateSpecsSection = ({
                   ))}
                 </div>
               </div>
+
+              {/* Spotlight Example */}
+              <div className="rounded-lg border-2 border-dashed border-border overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-b border-border">
+                  <Star className="h-4 w-4 text-amber-500" />
+                  <h4 className="text-sm font-semibold">Spotlight Example</h4>
+                  <span className="text-[10px] text-muted-foreground ml-auto">Completed sample</span>
+                </div>
+                {selectedSpec.spotlightExample?.imageUrl ? (
+                  <div className="relative group/spotlight">
+                    <img
+                      src={selectedSpec.spotlightExample.imageUrl}
+                      alt={selectedSpec.spotlightExample.caption || 'Spotlight example'}
+                      className="w-full h-auto object-contain"
+                      draggable={false}
+                    />
+                    {(selectedSpec.spotlightExample.caption || selectedSpec.spotlightExample.clientName) && (
+                      <div className="px-4 py-3 bg-card border-t border-border">
+                        {selectedSpec.spotlightExample.clientName && (
+                          <p className="text-xs font-semibold" style={{ color: primaryColor }}>{selectedSpec.spotlightExample.clientName}</p>
+                        )}
+                        {selectedSpec.spotlightExample.caption && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{selectedSpec.spotlightExample.caption}</p>
+                        )}
+                      </div>
+                    )}
+                    {canEdit && (
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/spotlight:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => spotlightInputRef.current?.click()}
+                          className="p-1.5 rounded-md bg-background/80 backdrop-blur-sm hover:bg-background"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={handleRemoveSpotlight}
+                          className="p-1.5 rounded-md bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
+                    {canEdit && (
+                      <div className="px-4 py-3 border-t border-border space-y-2">
+                        <Input
+                          value={selectedSpec.spotlightExample.clientName || ''}
+                          onChange={(e) => handleSpotlightUpdate({ clientName: e.target.value })}
+                          placeholder="Client name (e.g., Moderna)"
+                          className="h-7 text-xs"
+                        />
+                        <Input
+                          value={selectedSpec.spotlightExample.caption || ''}
+                          onChange={(e) => handleSpotlightUpdate({ caption: e.target.value })}
+                          placeholder="Caption (e.g., Q4 2025 Case Study)"
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    className={cn(
+                      "flex flex-col items-center justify-center py-10 text-muted-foreground",
+                      canEdit && "cursor-pointer hover:text-foreground hover:bg-muted/30 transition-colors"
+                    )}
+                    onClick={canEdit ? () => spotlightInputRef.current?.click() : undefined}
+                  >
+                    <ImageIcon className="h-8 w-8 mb-2" />
+                    <p className="text-xs font-medium">{canEdit ? 'Upload a completed example' : 'No spotlight example'}</p>
+                    <p className="text-[10px] mt-0.5">Show a finished, real-world sample</p>
+                  </div>
+                )}
+              </div>
+
+              <input
+                ref={spotlightInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handleSpotlightUpload}
+                className="hidden"
+              />
             </CardContent>
           </Card>
         </div>
