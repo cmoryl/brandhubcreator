@@ -173,6 +173,7 @@ function renderCentered(sig: BrandSignature): string {
   </td></tr>`);
 
   rows.push(renderSocialIcons(sig, st.linkColor, st.font, 'center'));
+  rows.push(renderBannerRow(sig, st));
   rows.push(renderConfidentiality(sig));
 
   return wrap(rows, st.font);
@@ -294,6 +295,7 @@ function renderStacked(sig: BrandSignature): string {
   if (sig.website) rows.push(`<tr><td><p style="margin:2px 0;font-size:${st.textFontSize}px;"><a href="https://${esc(sig.website)}" style="color:${st.linkColor};text-decoration:none;">${esc(sig.website)}</a></p></td></tr>`);
 
   rows.push(renderSocialIcons(sig, st.linkColor, st.font));
+  rows.push(renderBannerRow(sig, st));
   rows.push(renderConfidentiality(sig));
 
   return wrap(rows, st.font);
@@ -377,6 +379,7 @@ function renderBannerTop(sig: BrandSignature): string {
   }
 
   rows.push(renderSocialIcons(sig, st.linkColor, st.font));
+  rows.push(renderBannerRow(sig, st));
   rows.push(renderConfidentiality(sig));
 
   return wrap(rows, st.font);
