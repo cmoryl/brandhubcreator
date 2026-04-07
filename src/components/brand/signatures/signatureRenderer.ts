@@ -334,8 +334,11 @@ function renderTwoColumn(sig: BrandSignature): string {
       ${socialHtml ? `<div style="padding-top:10px;">${socialHtml}</div>` : ''}
     </td>`;
 
+  const bannerRow = renderBannerRow(sig, st);
+
   return `<table cellpadding="0" cellspacing="0" style="font-family:${st.font};max-width:600px;">
     <tr>${leftCol}${rightCol}</tr>
+    ${bannerRow}
     ${renderConfidentiality(sig)}
   </table>`;
 }
