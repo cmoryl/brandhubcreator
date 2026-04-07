@@ -693,6 +693,12 @@ export interface TemplateSpecItem {
   position?: { x: number; y: number }; // Position on preview (0-100 percentage)
 }
 
+export interface TemplateSpecSpotlight {
+  imageUrl: string;
+  caption?: string;
+  clientName?: string;
+}
+
 export interface TemplateSpec {
   id: string;
   name: string;
@@ -701,6 +707,7 @@ export interface TemplateSpec {
   items: TemplateSpecItem[];
   notes?: string;
   downloadUrl?: string;
+  spotlightExample?: TemplateSpecSpotlight;
 }
 
 // LINKED GUIDES - References to other brand/product/event guides
