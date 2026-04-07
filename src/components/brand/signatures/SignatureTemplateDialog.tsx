@@ -172,7 +172,7 @@ export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect, emailBan
                 <button
                   key={template.id}
                   onClick={() => {
-                    onSelect(createSignatureFromTemplate(template));
+                    onSelect(createSignatureFromTemplate(template, emailBanners));
                     onOpenChange(false);
                   }}
                   onMouseEnter={() => setHoveredId(template.id)}
