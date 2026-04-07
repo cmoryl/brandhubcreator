@@ -506,63 +506,85 @@ export const DigitalCollateralSection = ({
   );
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !onCollateralChange) return;
+    const files = e.target.files;
+    if (!files || files.length === 0 || !onCollateralChange) return;
 
     if (fileInputRef.current) fileInputRef.current.value = '';
 
-    const isPdfFile = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const fileArray = Array.from(files);
+    const category = selectedCategory || 'Other';
+
+    if (fileArray.length > 1) {
+      toast.info(`Uploading ${fileArray.length} files...`);
+    }
 
     // Upload to cloud storage if entityId available, else fallback to base64
     if (entityId) {
-      const result = await uploadFile(file, 'asset', `collateral-${Date.now()}`);
-      if (!result) return;
+      const newItems: BrandBrochure[] = [];
 
-      const newItemId = crypto.randomUUID();
-      const newItem: BrandBrochure = {
-        id: newItemId,
-        title: file.name.replace(/\.[^/.]+$/, ''),
-        category: selectedCategory || 'Other',
-        previewUrl: result.url,
-      };
+      for (const file of fileArray) {
+        const isPdfFile = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        const result = await uploadFile(file, 'asset', `collateral-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
+        if (!result) continue;
 
-      // Generate PDF thumbnail automatically
-      if (isPdfFile) {
-        try {
-          toast.info('Generating PDF preview thumbnail...');
-          const thumbnailBlob = await generatePdfThumbnail(file);
-          if (thumbnailBlob) {
-            const thumbFile = new File([thumbnailBlob], `pdf-thumb-${newItemId}.jpg`, { type: 'image/jpeg' });
-            const thumbResult = await uploadFile(thumbFile, 'asset', `pdf-thumb-${newItemId}`);
-            if (thumbResult) {
-              newItem.thumbnailUrl = thumbResult.url;
-              toast.success('PDF thumbnail generated');
+        const newItemId = crypto.randomUUID();
+        const newItem: BrandBrochure = {
+          id: newItemId,
+          title: file.name.replace(/\.[^/.]+$/, ''),
+          category,
+          previewUrl: result.url,
+        };
+
+        // Generate PDF thumbnail automatically
+        if (isPdfFile) {
+          try {
+            const thumbnailBlob = await generatePdfThumbnail(file);
+            if (thumbnailBlob) {
+              const thumbFile = new File([thumbnailBlob], `pdf-thumb-${newItemId}.jpg`, { type: 'image/jpeg' });
+              const thumbResult = await uploadFile(thumbFile, 'asset', `pdf-thumb-${newItemId}`);
+              if (thumbResult) {
+                newItem.thumbnailUrl = thumbResult.url;
+              }
             }
+          } catch (err) {
+            console.warn('PDF thumbnail generation failed:', err);
           }
-        } catch (err) {
-          console.warn('PDF thumbnail generation failed:', err);
         }
+
+        newItems.push(newItem);
       }
 
-      onCollateralChange([...collateral, newItem]);
-      setEditingId(newItem.id);
+      if (newItems.length > 0) {
+        onCollateralChange([...collateral, ...newItems]);
+        if (newItems.length === 1) {
+          setEditingId(newItems[0].id);
+        }
+        toast.success(`${newItems.length} file${newItems.length > 1 ? 's' : ''} uploaded successfully`);
+      }
       setSelectedCategory(null);
     } else {
       // Fallback: base64 (no entityId yet — entity not yet saved)
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const url = event.target?.result as string;
-        const newItem: BrandBrochure = {
+      const newItems: BrandBrochure[] = [];
+      for (const file of fileArray) {
+        const url = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target?.result as string);
+          reader.readAsDataURL(file);
+        });
+        newItems.push({
           id: crypto.randomUUID(),
           title: file.name.replace(/\.[^/.]+$/, ''),
-          category: selectedCategory || 'Other',
+          category,
           previewUrl: url,
-        };
-        onCollateralChange([...collateral, newItem]);
-        setEditingId(newItem.id);
-        setSelectedCategory(null);
-      };
-      reader.readAsDataURL(file);
+        });
+      }
+      if (newItems.length > 0) {
+        onCollateralChange([...collateral, ...newItems]);
+        if (newItems.length === 1) {
+          setEditingId(newItems[0].id);
+        }
+      }
+      setSelectedCategory(null);
     }
   };
 
