@@ -136,7 +136,7 @@ export const iconKitFaqs = [
       },
       {
         q: "How do I refine generated icons?",
-        a: "After generation, review each icon in the preview grid. Icons with low IQS scores can be regenerated individually with adjusted prompts. You can also use the Stylizer tab to further optimize or restyle generated icons, and the Shape Editor for manual fill/stroke/opacity adjustments."
+        a: "After generation, review each icon in the preview grid. Icons with low IQS scores can be regenerated individually with adjusted prompts. You can also use the Style tab → Colorize to apply brand colors, or the Shape Editor for manual fill/stroke/opacity adjustments."
       }
     ]
   },
