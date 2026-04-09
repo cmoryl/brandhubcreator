@@ -15,7 +15,11 @@ import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import { sanitizeSvg, cleanSvg, extractViewBox, detectFillMode } from '@/lib/svgUtils';
 
-export const CustomSvgImporter = ({
+interface CustomSvgImporterProps {
+  selectedLibraryId: string;
+  onSaveIcons: (icons: BrandIconography[], libraryId?: string) => void;
+}
+
   selectedLibraryId,
   onSaveIcons,
 }: CustomSvgImporterProps) => {
