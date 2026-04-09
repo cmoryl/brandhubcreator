@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
 import JSZip from 'jszip';
-import { buildSvgString, cleanSvg, detectFillMode, extractViewBox } from '@/lib/svgUtils';
+import { buildSvgString, cleanSvg, detectFillMode, extractViewBox, recolorSvg } from '@/lib/svgUtils';
 
 // SVG sanitization config - used at upload time for defense-in-depth
 const SVG_SANITIZE_CONFIG = {
@@ -225,8 +225,39 @@ export const IconographySection = ({
     }
 
     if (newIcons.length > 0) {
-      onIconographyChange([...iconography, ...newIcons]);
-      toast.success(`Added ${newIcons.length} icon(s)`);
+      // Auto-generate black and white color variants for each uploaded icon
+      const allIcons: BrandIconography[] = [];
+      for (const icon of newIcons) {
+        allIcons.push(icon); // original
+
+        // Detect if the icon is predominantly black or white to create the inverse
+        const svgForVariants = buildSvgString(icon);
+        
+        // Generate black variant
+        const blackSvg = recolorSvg(svgForVariants, '#000000');
+        allIcons.push({
+          id: crypto.randomUUID(),
+          name: `${icon.name} (Black)`,
+          svgPath: blackSvg,
+          category: icon.category,
+          viewBox: icon.viewBox,
+          fillMode: icon.fillMode,
+        });
+
+        // Generate white variant
+        const whiteSvg = recolorSvg(svgForVariants, '#FFFFFF');
+        allIcons.push({
+          id: crypto.randomUUID(),
+          name: `${icon.name} (White)`,
+          svgPath: whiteSvg,
+          category: icon.category,
+          viewBox: icon.viewBox,
+          fillMode: icon.fillMode,
+        });
+      }
+
+      onIconographyChange([...iconography, ...allIcons]);
+      toast.success(`Added ${newIcons.length} icon(s) + ${newIcons.length * 2} color variants (Black & White)`);
     }
 
     if (fileInputRef.current) {
