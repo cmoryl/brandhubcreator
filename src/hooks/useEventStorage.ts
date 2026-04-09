@@ -89,6 +89,7 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
     typography: asArray(guideData.typography, []) as EventGuide['typography'],
     textStyles: asArray(guideData.textStyles, []) as EventGuide['textStyles'],
     iconography: asArray(guideData.iconography, []) as EventGuide['iconography'],
+    defaultIconColor: guideData.defaultIconColor as EventGuide['defaultIconColor'],
     socialIcons: asArray(guideData.socialIcons, []) as EventGuide['socialIcons'],
     imagery: asArray(guideData.imagery, []) as EventGuide['imagery'],
     
