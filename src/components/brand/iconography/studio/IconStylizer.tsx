@@ -117,14 +117,15 @@ export const IconStylizer = ({
       }
     }
     if (icons.length > 0) {
-      icons.forEach(icon => onIconCreated(icon));
+      // Store pending imports — don't call onIconCreated yet to avoid parent re-render resetting our state
+      pendingImportsRef.current = icons;
       setLastImportedSvgs(icons);
-      setStage('upload'); // Stay on upload but show confirmation
+      setStage('upload');
       toast.success(`Added ${icons.length} SVG icon${icons.length > 1 ? 's' : ''} to library`);
     } else {
       toast.error('No valid SVG files found');
     }
-  }, [onIconCreated]);
+  }, []);
 
   // ── Handle Files (mixed SVG + raster) ──
   const handleFiles = useCallback(async (files: File[]) => {
