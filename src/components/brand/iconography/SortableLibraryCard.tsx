@@ -29,6 +29,7 @@ import { IconLibrary } from '@/hooks/useIconLibraries';
 import { BrandIconography, BrandGuide } from '@/types/brand';
 import { IconPreviewDialog } from './IconPreviewDialog';
 import { cn } from '@/lib/utils';
+import DOMPurify from 'dompurify';
 
 const LEVEL_CONFIG = {
   core: {
