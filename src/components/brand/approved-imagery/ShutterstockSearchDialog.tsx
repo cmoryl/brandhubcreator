@@ -869,6 +869,11 @@ export const ShutterstockSearchDialog = ({
               isAnalyzing={isAnalyzing}
               isLoading={dnaLoading}
               onAnalyze={analyzePreferences}
+              onApplyToSearch={(q) => {
+                setQuery(q);
+                handleSearch(q, 1);
+              }}
+              maxHeight="400px"
             />
           )}
 
