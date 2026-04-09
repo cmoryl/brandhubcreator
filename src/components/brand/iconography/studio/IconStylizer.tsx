@@ -53,6 +53,7 @@ export const IconStylizer = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [lastImportedSvgs, setLastImportedSvgs] = useState<BrandIconography[]>([]);
+  const pendingImportsRef = useRef<BrandIconography[]>([]);
 
   // Batch raster queue
   const [rasterQueue, setRasterQueue] = useState<Array<{ file: File; previewUrl: string }>>([]);
