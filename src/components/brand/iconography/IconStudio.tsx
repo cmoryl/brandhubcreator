@@ -1,13 +1,11 @@
 /**
- * IconStudio - Guided wizard for icon creation, management, and export
+ * IconStudio - Tab-based icon creation, management, and export hub
  * 
- * Step-by-step flow:
- * 1. Library - Manage or start icon collections
- * 2. AI Generator - Generate icon sets with AI
- * 3. Stylizer - Convert PNG images to SVG icons
- * 4. Colorizer - AI colors, gradients & duotone
- * 5. Hierarchy - Brand inheritance & overrides
- * 6. Export - Batch export in multiple formats
+ * Simplified from 6 sequential wizard steps to 4 clear tabs:
+ * 1. Library  - Browse, manage, upload & import icons
+ * 2. AI Generate - AI-powered icon generation
+ * 3. Style    - Colorize, brand hierarchy, app icons
+ * 4. Export   - Batch export in multiple formats
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
@@ -21,34 +19,43 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Library,
   Wand2,
   Sparkles,
   Palette,
-  Paintbrush,
-  GitBranch,
   Package,
-  ChevronLeft,
-  ChevronRight,
   Smartphone,
 } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 // Import sub-components
 import { IconStudioLibrary } from './studio/IconStudioLibrary';
 import { IconStudioAIGenerator } from './studio/IconStudioAIGenerator';
-// IconStylizer is now embedded inside IconStudioCreator
 import { IconStudioColorizer } from './studio/IconStudioColorizer';
 import { IconBrandHierarchy } from './studio/IconBrandHierarchy';
 import { IconStudioAppIcons } from './studio/IconStudioAppIcons';
 import { IconStudioCreator } from './studio/IconStudioCreator';
 import { IconStudioExport } from './studio/IconStudioExport';
-import { IconStudioStepper, WizardStep } from './studio/IconStudioStepper';
 
 export type IconStudioTab = 'library' | 'ai-generator' | 'colorizer' | 'hierarchy' | 'app-icons' | 'creator' | 'export';
+
+// Map old tab IDs to new simplified tabs
+type SimplifiedTab = 'library' | 'generate' | 'style' | 'export';
+
+const TAB_MAPPING: Record<IconStudioTab, SimplifiedTab> = {
+  'library': 'library',
+  'creator': 'library',
+  'ai-generator': 'generate',
+  'colorizer': 'style',
+  'hierarchy': 'style',
+  'app-icons': 'style',
+  'export': 'export',
+};
 
 interface IconStudioProps {
   open: boolean;
@@ -70,20 +77,6 @@ interface IconStudioProps {
   };
 }
 
-const WIZARD_STEPS: WizardStep[] = [
-  { id: 'library', label: 'Library', icon: Library, description: 'Manage icon collections' },
-  { id: 'ai-generator', label: 'Generate', icon: Wand2, description: 'AI icon generation' },
-  { id: 'creator', label: 'Create', icon: Palette, description: 'Add & import icons' },
-  { id: 'colorizer', label: 'Colorize', icon: Paintbrush, description: 'Colors & gradients' },
-  { id: 'hierarchy', label: 'Organize', icon: GitBranch, description: 'Brand hierarchy' },
-  { id: 'export', label: 'Export', icon: Package, description: 'Batch export' },
-];
-
-// Additional tools accessible from a "More tools" area
-const EXTRA_TOOLS = [
-  { id: 'app-icons' as const, label: 'App Icons', icon: Smartphone, description: 'iOS, Android & PWA' },
-];
-
 export const IconStudio = ({
   open,
   onOpenChange,
@@ -97,22 +90,20 @@ export const IconStudio = ({
   entityName,
   brandIdentity,
 }: IconStudioProps) => {
-  const initialStepIndex = useMemo(() => {
-    const idx = WIZARD_STEPS.findIndex(s => s.id === initialTab);
-    return idx >= 0 ? idx : 0;
-  }, [initialTab]);
-
-  const [currentStep, setCurrentStep] = useState(initialStepIndex);
-  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  // Track if user navigated to a bonus tool
-  const [activeBonusTool, setActiveBonusTool] = useState<'app-icons' | null>(null);
+  const mappedInitial = TAB_MAPPING[initialTab] || 'library';
+  const [activeTab, setActiveTab] = useState<SimplifiedTab>(mappedInitial);
+  // Sub-view within the Style tab
+  const [styleSubView, setStyleSubView] = useState<'colorize' | 'hierarchy' | 'app-icons'>('colorize');
 
   // Sync when dialog opens
   useEffect(() => {
     if (open) {
-      const idx = WIZARD_STEPS.findIndex(s => s.id === initialTab);
-      setCurrentStep(idx >= 0 ? idx : 0);
-      setActiveBonusTool(null);
+      const mapped = TAB_MAPPING[initialTab] || 'library';
+      setActiveTab(mapped);
+      // If initial tab maps to a style sub-view, set it
+      if (initialTab === 'colorizer') setStyleSubView('colorize');
+      else if (initialTab === 'hierarchy') setStyleSubView('hierarchy');
+      else if (initialTab === 'app-icons') setStyleSubView('app-icons');
     }
   }, [open, initialTab]);
 
@@ -128,7 +119,9 @@ export const IconStudio = ({
     deleteLibrary,
   } = useIconLibraries(organizationId);
 
-  // Fetch brands, products, and events for the Hierarchy tab
+  const totalIcons = useMemo(() => libraries.reduce((sum, l) => sum + l.icons.length, 0), [libraries]);
+
+  // Fetch brands, products, and events for the Hierarchy sub-view
   const { data: hierarchyBrands = [] } = useQuery({
     queryKey: ['hierarchy-brands', organizationId],
     queryFn: async () => {
@@ -174,59 +167,45 @@ export const IconStudio = ({
     onIconsCreated?.(icons, libraryId);
   }, [libraries, coreLibraries, updateLibrary, createLibrary, organizationId, onIconsCreated]);
 
-  const markStepComplete = useCallback((stepIndex: number) => {
-    setCompletedSteps(prev => new Set([...prev, stepIndex]));
-  }, []);
-
-  const goNext = () => {
-    markStepComplete(currentStep);
-    setActiveBonusTool(null);
-    if (currentStep < WIZARD_STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const goBack = () => {
-    setActiveBonusTool(null);
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
   const handleNavigateToTab = useCallback((tab: IconStudioTab) => {
-    // Check if it's a bonus tool
-    if (tab === 'app-icons') {
-      setActiveBonusTool(tab);
-      return;
-    }
-    const idx = WIZARD_STEPS.findIndex(s => s.id === tab);
-    if (idx >= 0) {
-      setActiveBonusTool(null);
-      setCurrentStep(idx);
+    const mapped = TAB_MAPPING[tab];
+    if (mapped) {
+      setActiveTab(mapped);
+      if (tab === 'colorizer') setStyleSubView('colorize');
+      else if (tab === 'hierarchy') setStyleSubView('hierarchy');
+      else if (tab === 'app-icons') setStyleSubView('app-icons');
     }
   }, []);
 
-  const currentStepId = activeBonusTool || WIZARD_STEPS[currentStep]?.id;
-  const currentStepConfig = WIZARD_STEPS[currentStep];
-
-  const renderStepContent = () => {
-    switch (currentStepId) {
+  const renderTabContent = () => {
+    switch (activeTab) {
       case 'library':
         return (
-          <IconStudioLibrary
-            organizationId={organizationId}
-            libraries={libraries}
-            coreLibraries={coreLibraries}
-            productLineLibraries={productLineLibraries}
-            brandLibraries={brandLibraries}
-            isLoading={librariesLoading}
-            createLibrary={createLibrary}
-            updateLibrary={updateLibrary}
-            deleteLibrary={deleteLibrary}
-            onNavigateToTab={handleNavigateToTab}
-          />
+          <div className="space-y-6">
+            <IconStudioLibrary
+              organizationId={organizationId}
+              libraries={libraries}
+              coreLibraries={coreLibraries}
+              productLineLibraries={productLineLibraries}
+              brandLibraries={brandLibraries}
+              isLoading={librariesLoading}
+              createLibrary={createLibrary}
+              updateLibrary={updateLibrary}
+              deleteLibrary={deleteLibrary}
+              onNavigateToTab={handleNavigateToTab}
+            />
+            {/* Upload & Import section embedded here */}
+            <div className="border-t pt-6">
+              <IconStudioCreator
+                organizationId={organizationId}
+                brandColors={brandColors}
+                libraries={libraries}
+                onSaveIcons={handleSaveIcons}
+              />
+            </div>
+          </div>
         );
-      case 'ai-generator':
+      case 'generate':
         return (
           <IconStudioAIGenerator
             organizationId={organizationId}
@@ -237,25 +216,60 @@ export const IconStudio = ({
             brandIdentity={brandIdentity}
           />
         );
-      
-      case 'colorizer':
+      case 'style':
         return (
-          <IconStudioColorizer
-            brandColors={brandColors}
-            libraries={libraries}
-            onSaveIcons={handleSaveIcons}
-          />
-        );
-      case 'hierarchy':
-        return (
-          <IconBrandHierarchy
-            organizationId={organizationId}
-            organizationName={organizationName}
-            brands={hierarchyBrands}
-            brandColors={brandColors}
-            icons={libraries.flatMap(l => l.icons)}
-            onExportCSS={(css) => { navigator.clipboard.writeText(css); }}
-          />
+          <div className="space-y-4">
+            {/* Sub-navigation for Style tab */}
+            <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg w-fit">
+              <Button
+                variant={styleSubView === 'colorize' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="gap-1.5 text-xs h-8"
+                onClick={() => setStyleSubView('colorize')}
+              >
+                <Palette className="h-3.5 w-3.5" />
+                Colorize
+              </Button>
+              <Button
+                variant={styleSubView === 'hierarchy' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="gap-1.5 text-xs h-8"
+                onClick={() => setStyleSubView('hierarchy')}
+              >
+                Brand Rules
+              </Button>
+              <Button
+                variant={styleSubView === 'app-icons' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="gap-1.5 text-xs h-8"
+                onClick={() => setStyleSubView('app-icons')}
+              >
+                <Smartphone className="h-3.5 w-3.5" />
+                App Icons
+              </Button>
+            </div>
+
+            {styleSubView === 'colorize' && (
+              <IconStudioColorizer
+                brandColors={brandColors}
+                libraries={libraries}
+                onSaveIcons={handleSaveIcons}
+              />
+            )}
+            {styleSubView === 'hierarchy' && (
+              <IconBrandHierarchy
+                organizationId={organizationId}
+                organizationName={organizationName}
+                brands={hierarchyBrands}
+                brandColors={brandColors}
+                icons={libraries.flatMap(l => l.icons)}
+                onExportCSS={(css) => { navigator.clipboard.writeText(css); }}
+              />
+            )}
+            {styleSubView === 'app-icons' && (
+              <IconStudioAppIcons brandColors={brandColors} />
+            )}
+          </div>
         );
       case 'export':
         return (
@@ -267,17 +281,6 @@ export const IconStudio = ({
             entityType={entityType}
             entityName={entityName}
             onImportToEntity={entityId && onIconsCreated ? (icons) => onIconsCreated(icons) : undefined}
-          />
-        );
-      case 'app-icons':
-        return <IconStudioAppIcons brandColors={brandColors} />;
-      case 'creator':
-        return (
-          <IconStudioCreator
-            organizationId={organizationId}
-            brandColors={brandColors}
-            libraries={libraries}
-            onSaveIcons={handleSaveIcons}
           />
         );
       default:
@@ -294,76 +297,50 @@ export const IconStudio = ({
             Icon Studio
           </DialogTitle>
           <DialogDescription>
-            Create, manage, and export icons — step by step
+            Create, manage, and export brand icons
           </DialogDescription>
         </DialogHeader>
 
-        {/* Wizard Stepper */}
-        <div className="px-6 py-4 border-b bg-muted/30">
-          <IconStudioStepper
-            steps={WIZARD_STEPS}
-            currentStepIndex={currentStep}
-            onStepClick={(idx) => {
-              setActiveBonusTool(null);
-              setCurrentStep(idx);
-            }}
-            completedSteps={completedSteps}
-          />
+        {/* Tab Navigation */}
+        <div className="px-6 py-3 border-b bg-muted/20">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {([
+              { id: 'library' as const, label: 'Library', icon: Library, badge: totalIcons },
+              { id: 'generate' as const, label: 'AI Generate', icon: Wand2 },
+              { id: 'style' as const, label: 'Style', icon: Palette },
+              { id: 'export' as const, label: 'Export', icon: Package },
+            ]).map((tab) => {
+              const Icon = tab.icon;
+              const isActive = tab.id === activeTab;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap',
+                    'hover:bg-accent/50',
+                    isActive
+                      ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <span>{tab.label}</span>
+                  {'badge' in tab && tab.badge !== undefined && tab.badge > 0 && (
+                    <Badge variant="secondary" className="h-5 px-1.5 text-[10px] ml-0.5">
+                      {tab.badge}
+                    </Badge>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Step Content */}
+        {/* Tab Content */}
         <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="p-6">
-            {renderStepContent()}
-          </div>
-        </div>
-
-        {/* Navigation Footer */}
-        <div className="px-6 py-4 border-t bg-muted/20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goBack}
-              disabled={currentStep === 0 && !activeBonusTool}
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              {activeBonusTool ? 'Back to steps' : 'Back'}
-            </Button>
-
-            {/* Bonus tools */}
-            {!activeBonusTool && (
-              <div className="flex items-center gap-1 ml-3">
-                {EXTRA_TOOLS.map(tool => {
-                  const Icon = tool.icon;
-                  return (
-                    <Button
-                      key={tool.id}
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs text-muted-foreground gap-1.5"
-                      onClick={() => setActiveBonusTool(tool.id)}
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                      {tool.label}
-                    </Button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">
-              Step {currentStep + 1} of {WIZARD_STEPS.length}
-              {activeBonusTool && ' (bonus tool)'}
-            </span>
-            {!activeBonusTool && currentStep < WIZARD_STEPS.length - 1 && (
-              <Button size="sm" onClick={goNext}>
-                {currentStep === WIZARD_STEPS.length - 2 ? 'Go to Export' : 'Next Step'}
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            )}
+            {renderTabContent()}
           </div>
         </div>
       </DialogContent>
