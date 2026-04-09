@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
 import JSZip from 'jszip';
-import { buildSvgString } from '@/lib/svgUtils';
+import { buildSvgString, cleanSvg, detectFillMode, extractViewBox } from '@/lib/svgUtils';
 ...
   const getSVGString = (icon: BrandIconography) => {
     const normalizedSvg = buildSvgString(icon);
@@ -160,61 +160,49 @@ ${innerContent}
   };
 
   const renderIcon = (icon: BrandIconography, sizeClass: string) => {
-    const viewBox = icon.viewBox || '0 0 100 100';
-    const isFullContent = icon.svgPath.includes('<');
     const fillMode = icon.fillMode || 'fill';
     const colorStyle = iconColor === 'currentColor' ? undefined : iconColor;
-    
+    const isFullContent = icon.svgPath.includes('<');
+
     if (isFullContent) {
-      let cleanedContent = icon.svgPath;
-      
-      cleanedContent = cleanedContent
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-        .replace(/style="[^"]*"/gi, '')
-        .replace(/fill="#[0-9a-fA-F]{3,6}"/gi, 'fill="currentColor"')
-        .replace(/fill:'#[0-9a-fA-F]{3,6}'/gi, "fill='currentColor'")
-        .replace(/stroke="#[0-9a-fA-F]{3,6}"/gi, 'stroke="currentColor"')
-        .replace(/stroke:'#[0-9a-fA-F]{3,6}'/gi, "stroke='currentColor'")
-        .replace(/class="[^"]*"/gi, '');
-      
-      const sanitizedContent = DOMPurify.sanitize(cleanedContent, { 
+      const normalizedSvg = buildSvgString(icon);
+      const sanitizedSvg = DOMPurify.sanitize(normalizedSvg, {
         USE_PROFILES: { svg: true, svgFilters: true },
         FORBID_TAGS: ['script', 'foreignObject', 'use', 'animate', 'animateTransform', 'set'],
-        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout', 'onmousemove', 'onfocus', 'onblur', 'onanimationend', 'onanimationiteration', 'onanimationstart', 'ontransitionend']
+        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout', 'onmousemove', 'onfocus', 'onblur', 'onanimationend', 'onanimationiteration', 'onanimationstart', 'ontransitionend'],
       });
-      
+
       return (
         <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
-          <svg
-            className="w-full h-full"
+          <div
+            className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:block"
             style={{ color: colorStyle }}
-            viewBox={viewBox}
-            preserveAspectRatio="xMidYMid meet"
-            fill="currentColor"
-            dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+            dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
           />
         </div>
       );
-    } else {
-      const isFillMode = fillMode === 'fill';
-      return (
-        <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
-          <svg
-            className="w-full h-full"
-            style={{ color: colorStyle }}
-            viewBox={viewBox}
-            preserveAspectRatio="xMidYMid meet"
-            fill={isFillMode ? 'currentColor' : 'none'}
-            stroke={isFillMode ? 'none' : 'currentColor'}
-            strokeWidth={isFillMode ? undefined : '2'}
-            strokeLinecap={isFillMode ? undefined : 'round'}
-            strokeLinejoin={isFillMode ? undefined : 'round'}
-          >
-            <path d={icon.svgPath} />
-          </svg>
-        </div>
-      );
     }
+
+    const viewBox = icon.viewBox || '0 0 100 100';
+    const isFillMode = fillMode === 'fill';
+
+    return (
+      <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
+        <svg
+          className="w-full h-full"
+          style={{ color: colorStyle }}
+          viewBox={viewBox}
+          preserveAspectRatio="xMidYMid meet"
+          fill={isFillMode ? 'currentColor' : 'none'}
+          stroke={isFillMode ? 'none' : 'currentColor'}
+          strokeWidth={isFillMode ? undefined : '2'}
+          strokeLinecap={isFillMode ? undefined : 'round'}
+          strokeLinejoin={isFillMode ? undefined : 'round'}
+        >
+          <path d={icon.svgPath} />
+        </svg>
+      </div>
+    );
   };
 
   const groupedIcons = iconography.reduce((acc, icon) => {
