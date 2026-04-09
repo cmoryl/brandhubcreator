@@ -79,12 +79,20 @@ export const IconLibraryBrandLinker = ({ organizationId, libraries }: IconLibrar
       <div className="flex items-center gap-1">
         {previewIcons.map((icon, i) => {
           const isFullSvg = icon.svgPath.includes('<');
+          const isComplete = isFullSvg && icon.svgPath.trim().startsWith('<svg');
           return (
-            <div key={i} className="w-5 h-5 text-foreground/70" 
-              dangerouslySetInnerHTML={isFullSvg ? { __html: DOMPurify.sanitize(icon.svgPath) } : undefined}
-            >
-              {!isFullSvg && (
-                <svg viewBox={icon.viewBox || '0 0 24 24'} fill="none" stroke="currentColor" strokeWidth="2">
+            <div key={i} className="w-5 h-5 text-foreground/70">
+              {isComplete ? (
+                <div
+                  className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:block"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(icon.svgPath, { USE_PROFILES: { svg: true, svgFilters: true }, FORBID_TAGS: ['script', 'foreignObject'] }) }}
+                />
+              ) : isFullSvg ? (
+                <svg viewBox={icon.viewBox || '0 0 24 24'} className="w-full h-full" fill="currentColor">
+                  <g dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(icon.svgPath) }} />
+                </svg>
+              ) : (
+                <svg viewBox={icon.viewBox || '0 0 24 24'} fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
                   <path d={icon.svgPath} />
                 </svg>
               )}
