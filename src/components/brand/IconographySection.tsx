@@ -234,12 +234,9 @@ export const IconographySection = ({
     }
 
     if (newIcons.length > 0) {
-      // Auto-generate black and white color variants for each uploaded icon
+      // Auto-generate only black and white color variants (no original kept)
       const allIcons: BrandIconography[] = [];
       for (const icon of newIcons) {
-        allIcons.push(icon); // original
-
-        // Detect if the icon is predominantly black or white to create the inverse
         const svgForVariants = buildSvgString(icon);
         
         // Generate black variant
@@ -266,7 +263,7 @@ export const IconographySection = ({
       }
 
       onIconographyChange([...iconography, ...allIcons]);
-      toast.success(`Added ${newIcons.length} icon(s) + ${newIcons.length * 2} color variants (Black & White)`);
+      toast.success(`Added ${newIcons.length * 2} icons (Black & White variants)`);
     }
 
     if (fileInputRef.current) {
