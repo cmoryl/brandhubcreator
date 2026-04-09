@@ -49,16 +49,17 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, bran
   const [recolorHex, setRecolorHex] = useState('');
   const [showRecolor, setShowRecolor] = useState(false);
 
-  if (!icon) return null;
-
-  const viewBox = icon.viewBox || '0 0 24 24';
-  const isFullSvg = icon.svgPath.includes('<');
-  const isCompleteSvg = isFullSvg && icon.svgPath.trim().startsWith('<svg');
+  const viewBox = icon?.viewBox || '0 0 24 24';
+  const isFullSvg = icon?.svgPath?.includes('<') ?? false;
+  const isCompleteSvg = isFullSvg && (icon?.svgPath?.trim().startsWith('<svg') ?? false);
 
   const displaySvg = useMemo(() => {
+    if (!icon?.svgPath) return '';
     if (!recolorHex) return icon.svgPath;
     return recolorSvg(icon.svgPath, recolorHex);
-  }, [icon.svgPath, recolorHex]);
+  }, [icon?.svgPath, recolorHex]);
+
+  if (!icon) return null;
 
   const generateSvgString = () => {
     const source = displaySvg;
