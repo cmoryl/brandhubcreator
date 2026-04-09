@@ -57,6 +57,7 @@ export const IconStylizer = ({
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [lastImportedSvgs, setLastImportedSvgs] = useState<BrandIconography[]>([]);
 
   // Batch raster queue
   const [rasterQueue, setRasterQueue] = useState<Array<{ file: File; previewUrl: string }>>([]);
@@ -118,6 +119,8 @@ export const IconStylizer = ({
     }
     if (icons.length > 0) {
       icons.forEach(icon => onIconCreated(icon));
+      setLastImportedSvgs(icons);
+      setStage('upload'); // Stay on upload but show confirmation
       toast.success(`Added ${icons.length} SVG icon${icons.length > 1 ? 's' : ''} to library`);
     } else {
       toast.error('No valid SVG files found');
@@ -319,7 +322,49 @@ export const IconStylizer = ({
       </div>
 
       {/* ──────── Stage 1: Upload ──────── */}
-      {stage === 'upload' && (
+      {stage === 'upload' && lastImportedSvgs.length > 0 ? (
+        <Card>
+          <CardContent className="p-8 text-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+              <Check className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <p className="text-base font-medium">
+                {lastImportedSvgs.length} SVG{lastImportedSvgs.length > 1 ? 's' : ''} added to library
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Your icons have been imported and are ready to use.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 flex-wrap max-w-md mx-auto">
+              {lastImportedSvgs.slice(0, 12).map((icon, idx) => (
+                <div
+                  key={idx}
+                  className="w-10 h-10 rounded-lg border bg-muted/30 flex items-center justify-center p-1.5"
+                >
+                  <div
+                    className="w-full h-full [&>svg]:w-full [&>svg]:h-full"
+                    dangerouslySetInnerHTML={{ __html: icon.svgPath }}
+                  />
+                </div>
+              ))}
+              {lastImportedSvgs.length > 12 && (
+                <Badge variant="secondary" className="text-xs">+{lastImportedSvgs.length - 12} more</Badge>
+              )}
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setLastImportedSvgs([])}
+                className="gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                Upload More
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : stage === 'upload' && (
         <Card className="border-dashed border-2">
           <CardContent className="p-0">
             <div
