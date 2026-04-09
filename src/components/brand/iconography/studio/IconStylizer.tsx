@@ -7,7 +7,7 @@
  * - Drag-and-drop for all supported file types
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -53,6 +53,7 @@ export const IconStylizer = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [lastImportedSvgs, setLastImportedSvgs] = useState<BrandIconography[]>([]);
+  const pendingImportsRef = useRef<BrandIconography[]>([]);
 
   // Batch raster queue
   const [rasterQueue, setRasterQueue] = useState<Array<{ file: File; previewUrl: string }>>([]);
@@ -83,6 +84,18 @@ export const IconStylizer = ({
     triggerSimplification,
     reset,
   } = useStylizer(brandColors);
+
+  // Flush pending SVG imports to library on unmount (e.g. navigating away)
+  const onIconCreatedRef = useRef(onIconCreated);
+  onIconCreatedRef.current = onIconCreated;
+  useEffect(() => {
+    return () => {
+      if (pendingImportsRef.current.length > 0) {
+        pendingImportsRef.current.forEach(icon => onIconCreatedRef.current(icon));
+        pendingImportsRef.current = [];
+      }
+    };
+  }, []);
 
   // ── File Classification ──
   const isSvgFile = (file: File) =>
@@ -116,14 +129,15 @@ export const IconStylizer = ({
       }
     }
     if (icons.length > 0) {
-      icons.forEach(icon => onIconCreated(icon));
+      // Store pending imports — don't call onIconCreated yet to avoid parent re-render resetting our state
+      pendingImportsRef.current = icons;
       setLastImportedSvgs(icons);
-      setStage('upload'); // Stay on upload but show confirmation
+      setStage('upload');
       toast.success(`Added ${icons.length} SVG icon${icons.length > 1 ? 's' : ''} to library`);
     } else {
       toast.error('No valid SVG files found');
     }
-  }, [onIconCreated]);
+  }, []);
 
   // ── Handle Files (mixed SVG + raster) ──
   const handleFiles = useCallback(async (files: File[]) => {
@@ -353,7 +367,14 @@ export const IconStylizer = ({
             <div className="flex items-center justify-center gap-3 pt-2">
               <Button
                 variant="outline"
-                onClick={() => setLastImportedSvgs([])}
+                onClick={() => {
+                  // Flush pending imports to library before resetting
+                  if (pendingImportsRef.current.length > 0) {
+                    pendingImportsRef.current.forEach(icon => onIconCreated(icon));
+                    pendingImportsRef.current = [];
+                  }
+                  setLastImportedSvgs([]);
+                }}
                 className="gap-2"
               >
                 <Upload className="h-4 w-4" />
