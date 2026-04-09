@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { buildSvgString } from '@/lib/svgUtils';
 import { BrandIconography } from '@/types/brand';
 import { IconLibrary } from '@/hooks/useIconLibraries';
 import { supabase } from '@/integrations/supabase/client';
@@ -105,11 +106,16 @@ const buildColorizedSvg = (
 ): string => {
   if (!originalSvg) return originalSvg;
 
+   const normalizedSvg = buildSvgString({
+    svgPath: originalSvg,
+    fillMode: 'fill',
+  });
+
   // Parse the SVG to modify it
   const parser = new DOMParser();
-  const doc = parser.parseFromString(originalSvg, 'image/svg+xml');
+  const doc = parser.parseFromString(normalizedSvg, 'image/svg+xml');
   const svgEl = doc.querySelector('svg');
-  if (!svgEl) return originalSvg;
+  if (!svgEl) return normalizedSvg;
 
   // Remove existing defs gradient definitions
   const existingDefs = svgEl.querySelector('defs');
@@ -299,7 +305,7 @@ export const IconStudioColorizer = ({
     allIcons.forEach((icon, idx) => {
       if (!selectedIconIds.has(icon.id)) return;
       const gId = `${gradientIdBase}-${idx}`;
-      const newSvg = buildColorizedSvg(icon.svgPath, colorConfig, gId);
+      const newSvg = buildColorizedSvg(buildSvgString(icon), colorConfig, gId);
       colorizedIcons.push({
         id: `colorized-${icon.id}-${Date.now()}`,
         name: `${icon.name} (colorized)`,
@@ -775,10 +781,11 @@ export const IconStudioColorizer = ({
                   <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-7 gap-1.5">
                     {lib.icons.map(icon => {
                       const isSelected = selectedIconIds.has(icon.id);
+                      const normalizedSvg = buildSvgString(icon);
                       // Show colorized preview if selected
                       const displaySvg = isSelected
-                        ? buildColorizedSvg(icon.svgPath, colorConfig, `sel-${icon.id}`)
-                        : icon.svgPath;
+                        ? buildColorizedSvg(normalizedSvg, colorConfig, `sel-${icon.id}`)
+                        : normalizedSvg;
                       return (
                         <button
                           key={icon.id}
