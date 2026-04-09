@@ -143,7 +143,7 @@ export const iconKitHelpSections = {
   // Creator
   'icon-creator': {
     title: 'Icon Creator',
-    description: 'Search and add icons from the Lucide library of 3,480+ icons to your collections.',
+    description: 'Built into the Library tab — search 50K+ icons, browse Lucide, paste custom SVGs, or upload images to add to your collections.',
     category: 'Icon Studio Overview',
   },
 } as const;

@@ -272,7 +272,7 @@ export const iconKitFaqs = [
       },
       {
         q: "How do I create a new icon library?",
-        a: "In the Library tab, click 'Create Library'. Name it, select the hierarchy level (Core/Product Line/Brand), and optionally link it to a parent library for inheritance. New libraries start empty — add icons via AI Generation, Creator tab (3,480+ Lucide icons), Stylizer, or the Shape Manager."
+        a: "In the Library tab, click 'Create Library'. Name it, select the hierarchy level (Core/Product Line/Brand), and optionally link it to a parent library for inheritance. New libraries start empty — add icons via the built-in Icon Creator (browse 50K+, Lucide, custom SVG, upload), AI Generate tab, or the Shape Manager."
       },
       {
         q: "Can I drag and drop icons between libraries?",
