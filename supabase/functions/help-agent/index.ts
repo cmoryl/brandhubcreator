@@ -200,7 +200,7 @@ Brands have many configurable sections: Hero, Identity, Colors, Typography, Logo
 - **DataForce AI**: Brand compliance scanning, AI assistant, cultural validation, and GenAI training.
 - **GlobalLink**: Translation and cultural adaptation with regional variants.
 - **Brand Creative Studio**: AI image generation using brand context.
-- **Icon Studio (IconKIT)**: AI icon generation with style presets and brand DNA locking.
+- **Icon Studio (IconKIT)**: A streamlined 4-tab hub for iconography: Library & Import (browse 50K+ icons, upload SVGs, manage collections), AI Generate (AI-powered icon creation with style presets), Style (colorize with brand colors, set Brand DNA rules, generate app icons), and Export (batch download and entity import). Supports brand DNA locking across sub-brands.
 - **Research Briefings**: AI-generated strategic briefings covering trends, risks, and opportunities.
 - **Knowledge Base**: Import PDFs, documents, and manual entries to feed the brand brains.
 
