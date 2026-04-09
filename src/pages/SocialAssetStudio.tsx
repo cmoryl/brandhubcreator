@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { useSocialAssetPlacements } from '@/hooks/useSocialAssetPlacements';
 import { PlatformNav } from '@/components/social-studio/PlatformNav';
