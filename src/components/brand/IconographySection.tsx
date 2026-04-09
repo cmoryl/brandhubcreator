@@ -293,7 +293,14 @@ export const IconographySection = ({
       ? sanitizedPath 
       : `<path d="${sanitizedPath}" ${icon.fillMode === 'fill' ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2"'}/>`;
     
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${innerContent}</svg>`;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${innerContent}</svg>`;
+    
+    // Apply current preview color if set
+    const colorStyle = iconColor === 'currentColor' ? undefined : iconColor;
+    if (colorStyle) {
+      svg = recolorSvg(svg, colorStyle);
+    }
+    return svg;
   };
 
   const copySVG = async (icon: BrandIconography) => {
@@ -360,21 +367,28 @@ export const IconographySection = ({
     const isFullContent = icon.svgPath.includes('<');
     const sanitizedPath = DOMPurify.sanitize(icon.svgPath, SVG_SANITIZE_CONFIG);
     
-    // Build a complete, standalone SVG with proper styling for export
+    // Use current preview color, fallback to black for standalone export
+    const exportColor = iconColor === 'currentColor' ? '#000000' : iconColor;
+    
     let innerContent: string;
     if (isFullContent) {
-      // Replace currentColor with black for standalone export
-      innerContent = sanitizedPath.replace(/currentColor/gi, '#000000');
+      innerContent = sanitizedPath.replace(/currentColor/gi, exportColor);
     } else {
       innerContent = icon.fillMode === 'fill' 
-        ? `<path d="${sanitizedPath}" fill="#000000"/>`
-        : `<path d="${sanitizedPath}" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+        ? `<path d="${sanitizedPath}" fill="${exportColor}"/>`
+        : `<path d="${sanitizedPath}" fill="none" stroke="${exportColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
     }
     
-    return `<?xml version="1.0" encoding="UTF-8"?>
+    let svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="512" height="512">
 ${innerContent}
 </svg>`;
+    
+    // For full SVG content with hardcoded colors, use recolorSvg for reliable recoloring
+    if (isFullContent && exportColor !== '#000000') {
+      svg = recolorSvg(svg, exportColor);
+    }
+    return svg;
   };
 
   const downloadAllIcons = async () => {
