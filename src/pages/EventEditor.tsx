@@ -561,7 +561,7 @@ const EventEditor = () => {
         logger.events('EventEditor: Rendering hero section with canEdit:', canEdit);
         return <HeroSection hero={event.hero} onHeroChange={editHandler((hero) => updateEvent({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={event as unknown as Record<string, unknown>} entityType="event" entityId={event.id} hiddenSections={hiddenSections} sectionOrder={sectionOrder} />;
       case 'eventdetails':
-        return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={(eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } })} isEditable={canEdit || false} />;
+        return <EventDetailsSection eventDetails={event.eventDetails} onUpdate={canEdit ? (eventDetails) => updateEvent({ eventDetails: { ...event.eventDetails, ...eventDetails } }) : () => {}} isEditable={canEdit || false} />;
       case 'tagline': 
         return <TaglineSection tagline={event.tagline} onTaglineChange={editHandler((tagline) => updateEvent({ tagline }))} />;
       case 'identity':
@@ -598,16 +598,16 @@ const EventEditor = () => {
           </div>
         );
       case 'eventwebsites':
-        return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={(websites) => updateEvent({ websites })} isEditable={canEdit || false} entityId={event.id} />;
+        return <EventWebsiteSection websites={event.websites || []} onWebsitesChange={canEdit ? (websites) => updateEvent({ websites }) : undefined} isEditable={canEdit || false} entityId={event.id} />;
       case 'eventlogos':
-        return <EventLogosSection logos={event.eventLogos || []} onUpdate={(eventLogos) => updateEvent({ eventLogos })} isEditable={canEdit || false} entityId={event.id} entityType="event" />;
+        return <EventLogosSection logos={event.eventLogos || []} onUpdate={canEdit ? (eventLogos) => updateEvent({ eventLogos }) : () => {}} isEditable={canEdit || false} entityId={event.id} entityType="event" />;
       case 'eventsignage':
-        return <EventSignageSection signage={event.eventSignage || []} onUpdate={(eventSignage) => updateEvent({ eventSignage })} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} brandName={event.hero?.name} brandColors={event.colors?.map(c => c.hex)} eventId={event.id} />;
+        return <EventSignageSection signage={event.eventSignage || []} onUpdate={canEdit ? (eventSignage) => updateEvent({ eventSignage }) : () => {}} isEditable={canEdit || false} layout={getSectionLayout('eventsignage')} onLayoutChange={canEdit ? (layout) => handleSectionLayoutChange('eventsignage', layout) : undefined} brandName={event.hero?.name} brandColors={event.colors?.map(c => c.hex)} eventId={event.id} />;
       case 'eventprint':
         return <EventPrintCollateralSection items={event.eventPrintMaterials || []} onItemsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined} isEditable={canEdit || false} eventId={event.id} />;
       case 'eventbanners':
       case 'eventdigital':
-        return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={(eventDigitalMaterials) => updateEvent({ eventDigitalMaterials })} banners={event.eventBanners || []} onBannersChange={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : undefined} printMaterials={event.eventPrintMaterials || []} onPrintMaterialsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined} sponsorshipMaterials={event.eventSponsorshipMaterials || []} onSponsorshipMaterialsChange={canEdit ? (eventSponsorshipMaterials) => updateEvent({ eventSponsorshipMaterials }) : undefined} emailBanners={event.emailBanners || []} onEmailBannersChange={canEdit ? (emailBanners) => updateEvent({ emailBanners }) : undefined} infographics={event.eventInfographics || []} onInfographicsChange={canEdit ? (eventInfographics) => updateEvent({ eventInfographics }) : undefined} applications={event.eventApplications || []} onApplicationsChange={canEdit ? (eventApplications) => updateEvent({ eventApplications }) : undefined} digitalAssets={event.eventDigitalAssets || []} onDigitalAssetsChange={canEdit ? (eventDigitalAssets) => updateEvent({ eventDigitalAssets }) : undefined} isEditable={canEdit || false} eventId={event.id} />;
+        return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={canEdit ? (eventDigitalMaterials) => updateEvent({ eventDigitalMaterials }) : () => {}} banners={event.eventBanners || []} onBannersChange={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : undefined} printMaterials={event.eventPrintMaterials || []} onPrintMaterialsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined} sponsorshipMaterials={event.eventSponsorshipMaterials || []} onSponsorshipMaterialsChange={canEdit ? (eventSponsorshipMaterials) => updateEvent({ eventSponsorshipMaterials }) : undefined} emailBanners={event.emailBanners || []} onEmailBannersChange={canEdit ? (emailBanners) => updateEvent({ emailBanners }) : undefined} infographics={event.eventInfographics || []} onInfographicsChange={canEdit ? (eventInfographics) => updateEvent({ eventInfographics }) : undefined} applications={event.eventApplications || []} onApplicationsChange={canEdit ? (eventApplications) => updateEvent({ eventApplications }) : undefined} digitalAssets={event.eventDigitalAssets || []} onDigitalAssetsChange={canEdit ? (eventDigitalAssets) => updateEvent({ eventDigitalAssets }) : undefined} isEditable={canEdit || false} eventId={event.id} />;
       case 'colors': 
         return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
       case 'gradients': 
@@ -630,21 +630,21 @@ const EventEditor = () => {
         return (
           <EventSpeakersSection
             speakers={event.eventSpeakers || []}
-            onUpdate={(eventSpeakers) => updateEvent({ eventSpeakers })}
+            onUpdate={canEdit ? (eventSpeakers) => updateEvent({ eventSpeakers }) : () => {}}
             isEditable={canEdit || false}
             eventId={event?.id}
           />
         );
       case 'eventsponsors':
-        return <EventSponsorsSection sponsors={event.eventSponsors || []} onUpdate={(eventSponsors) => updateEvent({ eventSponsors })} isEditable={canEdit || false} />;
+        return <EventSponsorsSection sponsors={event.eventSponsors || []} onUpdate={canEdit ? (eventSponsors) => updateEvent({ eventSponsors }) : () => {}} isEditable={canEdit || false} />;
       case 'eventschedule':
-        return <EventScheduleSection schedule={event.eventSchedule || []} onUpdate={(eventSchedule) => updateEvent({ eventSchedule })} speakers={event.eventSpeakers || []} isEditable={canEdit || false} eventName={event.hero.name || event.eventDetails?.eventName || 'Event'} eventDates={event.eventDetails?.eventDates} eventLocation={event.eventDetails?.location} />;
+        return <EventScheduleSection schedule={event.eventSchedule || []} onUpdate={canEdit ? (eventSchedule) => updateEvent({ eventSchedule }) : () => {}} speakers={event.eventSpeakers || []} isEditable={canEdit || false} eventName={event.hero.name || event.eventDetails?.eventName || 'Event'} eventDates={event.eventDetails?.eventDates} eventLocation={event.eventDetails?.location} />;
       case 'eventhistory':
-        return <EventHistorySection history={event.eventHistory || []} onUpdate={(eventHistory) => updateEvent({ eventHistory })} isEditable={canEdit || false} />;
+        return <EventHistorySection history={event.eventHistory || []} onUpdate={canEdit ? (eventHistory) => updateEvent({ eventHistory }) : () => {}} isEditable={canEdit || false} />;
       case 'eventvideos':
-        return <EventVideosSection videos={event.eventVideos || []} onUpdate={(eventVideos) => updateEvent({ eventVideos })} isEditable={canEdit || false} />;
+        return <EventVideosSection videos={event.eventVideos || []} onUpdate={canEdit ? (eventVideos) => updateEvent({ eventVideos }) : () => {}} isEditable={canEdit || false} />;
       case 'eventlocation':
-        return <EventLocationSection location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} onUpdate={(eventLocation) => updateEvent({ eventLocation })} isEditable={canEdit || false} />;
+        return <EventLocationSection location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} onUpdate={canEdit ? (eventLocation) => updateEvent({ eventLocation }) : () => {}} isEditable={canEdit || false} />;
       case 'assets': 
         return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} websiteUrl={(event as any).websites?.[0]?.url} entityId={event.id} entityType="event" />;
       case 'misuse': 

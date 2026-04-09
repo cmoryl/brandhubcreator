@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { useSocialAssetPlacements } from '@/hooks/useSocialAssetPlacements';
 import { PlatformNav } from '@/components/social-studio/PlatformNav';
@@ -115,7 +116,7 @@ const SocialAssetStudio = () => {
   const totalDraft = placements.filter(p => p.status === 'draft').length;
   const totalWithAssets = placements.filter(p => p.image_url).length;
 
-  const isAdmin = true; // TODO: wire to useGuideAdmin
+  const { canEdit: isAdmin } = useGuideAdmin({ entityOrgId: organization?.id });
 
   // Extract brand context for AI analysis
   const brandContext: BrandContext | undefined = useMemo(() => {
