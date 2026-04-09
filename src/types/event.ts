@@ -424,6 +424,7 @@ export interface EventGuide {
   typography: BrandTypography[];
   textStyles: BrandTextStyle[];
   iconography: BrandIconography[];
+  defaultIconColor?: string;
   socialIcons: BrandSocialIcon[];
   imagery: BrandImagery[];
   
