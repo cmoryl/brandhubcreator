@@ -127,7 +127,9 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, bran
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${icon.name.toLowerCase().replace(/\s+/g, '-')}-${size}x${size}.png`;
+        const colorLabel = getColorLabel(recolorHex);
+        const safeName = icon.name.toLowerCase().replace(/\s+/g, '-');
+        a.download = `${safeName}-${colorLabel}-${size}x${size}.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
