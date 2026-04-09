@@ -126,12 +126,14 @@ export const cleanSvg = (svg: string, iconName?: string): string => {
   if (iconName) {
     svgEl.setAttribute('aria-label', iconName);
     // Add or update <title>
-    let titleEl = svgEl.querySelector('title');
-    if (!titleEl) {
-      titleEl = doc.createElementNS('http://www.w3.org/2000/svg', 'title');
-      svgEl.insertBefore(titleEl, svgEl.firstChild);
+    const existingTitle = svgEl.querySelector('title');
+    if (existingTitle) {
+      existingTitle.textContent = iconName;
+    } else {
+      const newTitle = doc.createElementNS('http://www.w3.org/2000/svg', 'title');
+      newTitle.textContent = iconName;
+      svgEl.insertBefore(newTitle, svgEl.firstChild);
     }
-    titleEl.textContent = iconName;
   }
 
   return new XMLSerializer().serializeToString(svgEl);
