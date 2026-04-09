@@ -1,6 +1,7 @@
 /**
  * HierarchicalIconDisplay - Collapsible grid showing all available icons for a brand
  * Defaults to collapsed accordion state for cleaner layouts
+ * Auto-generates black & white variants for every icon
  */
 
 import { useState, useMemo } from 'react';
@@ -11,6 +12,9 @@ import {
   Link2,
   Filter,
   ChevronRight,
+  Sun,
+  Moon,
+  Circle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -19,6 +23,7 @@ import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
+import { buildSvgString, applyColorVariant, type IconColorVariant } from '@/lib/svgUtils';
 
 interface HierarchicalIconDisplayProps {
   organizationId: string | undefined;
@@ -43,6 +48,12 @@ const SOURCE_CHIPS: { key: SourceFilter; label: string; icon: typeof Building2; 
   { key: 'brand', label: 'This Brand', icon: Layers, color: 'text-sky-500' },
 ];
 
+const VARIANT_CHIPS: { key: IconColorVariant; label: string; icon: typeof Circle; bgClass: string }[] = [
+  { key: 'original', label: 'Original', icon: Circle, bgClass: '' },
+  { key: 'black', label: 'Black', icon: Moon, bgClass: 'bg-background' },
+  { key: 'white', label: 'White', icon: Sun, bgClass: 'bg-zinc-900' },
+];
+
 export const HierarchicalIconDisplay = ({
   organizationId,
   brandId,
@@ -58,6 +69,7 @@ export const HierarchicalIconDisplay = ({
   const { libraries, coreLibraries, productLineLibraries, isLoading } = useIconLibraries(organizationId);
   const { links, getLinkedLibraryIdsForEntity } = useIconLibraryBrandLinks(organizationId);
   const [activeFilter, setActiveFilter] = useState<SourceFilter>('all');
+  const [colorVariant, setColorVariant] = useState<IconColorVariant>('original');
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const allIcons = useMemo(() => {
@@ -108,29 +120,29 @@ export const HierarchicalIconDisplay = ({
   const renderIcon = (icon: BrandIconography, size: number = 20) => {
     const viewBox = icon.viewBox || '0 0 24 24';
     const isFullContent = icon.svgPath.includes('<');
-    const colorStyle = iconColor === 'currentColor' ? undefined : iconColor;
 
-    if (isFullContent) {
-      const sanitized = DOMPurify.sanitize(icon.svgPath, {
-        USE_PROFILES: { svg: true, svgFilters: true },
-      });
-      return (
-        <div className="flex items-center justify-center" style={{ width: size, height: size, color: colorStyle }}>
-          <svg viewBox={viewBox} className="w-full h-full" fill="currentColor" dangerouslySetInnerHTML={{ __html: sanitized }} />
-        </div>
-      );
-    }
+    // Build normalized SVG and apply color variant
+    const fullSvg = buildSvgString(icon);
+    const variantSvg = colorVariant === 'original'
+      ? fullSvg
+      : applyColorVariant(fullSvg, colorVariant);
+
+    const sanitized = DOMPurify.sanitize(variantSvg, {
+      USE_PROFILES: { svg: true, svgFilters: true },
+    });
+
+    // For white variant on light bg, we need dark bg
+    const needsDarkBg = colorVariant === 'white';
 
     return (
-      <svg
-        viewBox={viewBox}
-        style={{ width: size, height: size, color: colorStyle }}
-        fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
-        stroke={icon.fillMode === 'stroke' ? 'currentColor' : 'none'}
-        strokeWidth={icon.fillMode === 'stroke' ? 2 : undefined}
-      >
-        <path d={icon.svgPath} />
-      </svg>
+      <div
+        className={cn(
+          'flex items-center justify-center rounded',
+          needsDarkBg && 'bg-zinc-800'
+        )}
+        style={{ width: size, height: size }}
+        dangerouslySetInnerHTML={{ __html: sanitized }}
+      />
     );
   };
 
@@ -163,31 +175,57 @@ export const HierarchicalIconDisplay = ({
       </CollapsibleTrigger>
 
       <CollapsibleContent className="space-y-3 pt-2">
-        {/* Source filter chips */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {SOURCE_CHIPS.map(chip => {
-            const count = counts[chip.key];
-            if (count === 0 && chip.key !== 'all') return null;
-            const Icon = chip.icon;
-            const isActive = activeFilter === chip.key;
+        {/* Source filter chips + color variant toggle */}
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {SOURCE_CHIPS.map(chip => {
+              const count = counts[chip.key];
+              if (count === 0 && chip.key !== 'all') return null;
+              const Icon = chip.icon;
+              const isActive = activeFilter === chip.key;
 
-            return (
-              <button
-                key={chip.key}
-                onClick={() => setActiveFilter(chip.key)}
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors',
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                )}
-              >
-                <Icon className={cn('h-3 w-3', !isActive && chip.color)} />
-                {chip.label}
-                <span className={cn('text-[10px]', isActive ? 'opacity-80' : 'opacity-60')}>{count}</span>
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={chip.key}
+                  onClick={() => setActiveFilter(chip.key)}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors',
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <Icon className={cn('h-3 w-3', !isActive && chip.color)} />
+                  {chip.label}
+                  <span className={cn('text-[10px]', isActive ? 'opacity-80' : 'opacity-60')}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Color variant toggle */}
+          <div className="flex items-center gap-1 bg-muted/50 rounded-full p-0.5">
+            {VARIANT_CHIPS.map(chip => {
+              const Icon = chip.icon;
+              const isActive = colorVariant === chip.key;
+              return (
+                <button
+                  key={chip.key}
+                  onClick={() => setColorVariant(chip.key)}
+                  title={`${chip.label} variant`}
+                  className={cn(
+                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all',
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <Icon className="h-3 w-3" />
+                  {chip.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Unified icon grid */}
@@ -204,9 +242,10 @@ export const HierarchicalIconDisplay = ({
                 onClick={() => onIconClick?.(item.icon, item.library)}
                 className={cn(
                   'aspect-square rounded-lg border-2 flex items-center justify-center',
-                  'bg-muted/30 hover:bg-muted hover:shadow-sm transition-all',
+                  'hover:shadow-sm transition-all',
                   'group relative',
-                  sourceColor
+                  sourceColor,
+                  colorVariant === 'white' ? 'bg-zinc-800' : 'bg-muted/30 hover:bg-muted'
                 )}
                 title={`${item.icon.name}${item.libraryName ? ` (${item.libraryName})` : item.source === 'brand' ? ' (Brand)' : ''}`}
               >
