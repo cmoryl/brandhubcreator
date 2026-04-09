@@ -254,6 +254,10 @@ export const ShutterstockSearchDialog = ({
         body: { entityId, entityType, userQuery: userQuery.trim(), categoryName: targetSectionName },
       });
       if (error) throw error;
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
       if (data?.enhancedQueries) {
         setEnhancedQueries(data.enhancedQueries);
         setStyleNotes(data.styleNotes || '');
