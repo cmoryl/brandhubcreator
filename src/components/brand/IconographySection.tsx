@@ -311,18 +311,26 @@ export const IconographySection = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const getColorLabel = (color: string) => {
+    if (color === 'currentColor' || color === '#000000') return 'black';
+    if (color === '#FFFFFF' || color === '#ffffff') return 'white';
+    return color.replace('#', '').toLowerCase();
+  };
+
   const downloadIcon = (icon: BrandIconography) => {
     const svg = getSVGString(icon);
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${icon.name}.svg`;
+    const colorLabel = getColorLabel(iconColor);
+    const safeName = icon.name.toLowerCase().replace(/\s+/g, '-');
+    link.download = `${safeName}-${colorLabel}.svg`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast.success(`Downloaded ${icon.name}.svg`);
+    toast.success(`Downloaded ${safeName}-${colorLabel}.svg`);
   };
 
   const svgToPng = async (svgString: string, size: number = 512): Promise<Blob> => {
