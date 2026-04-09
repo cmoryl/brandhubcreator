@@ -18,7 +18,8 @@ import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
 import JSZip from 'jszip';
-import { buildSvgString, cleanSvg, detectFillMode, extractViewBox, recolorSvg } from '@/lib/svgUtils';
+import { buildSvgString, cleanSvg, detectFillMode, extractSvgColors, extractViewBox, recolorSvg } from '@/lib/svgUtils';
+import { cn } from '@/lib/utils';
 
 // SVG sanitization config - used at upload time for defense-in-depth
 const SVG_SANITIZE_CONFIG = {
@@ -65,6 +66,14 @@ const gridSizeConfig: Record<GridSize, { grid: string; padding: string; fontSize
 };
 
 const categoryOptions = ['Navigation', 'Actions', 'Social', 'Status', 'Commerce', 'Media', 'Communication', 'Other'];
+
+const WHITE_ICON_VALUES = new Set(['#fff', '#ffffff', 'white', 'rgb(255,255,255)', 'rgb(255, 255, 255)']);
+const WHITE_ICON_BG_CLASS = 'bg-[length:16px_16px] bg-[linear-gradient(45deg,hsl(var(--muted))_25%,transparent_25%,transparent_75%,hsl(var(--muted))_75%),linear-gradient(45deg,hsl(var(--muted))_25%,transparent_25%,transparent_75%,hsl(var(--muted))_75%)] bg-[position:0_0,8px_8px] bg-background';
+
+const isWhiteLike = (value?: string) => {
+  if (!value) return false;
+  return WHITE_ICON_VALUES.has(value.replace(/\s+/g, '').toLowerCase());
+};
 
 export const IconographySection = ({ 
   iconography, 
@@ -428,9 +437,12 @@ ${innerContent}
     const fillMode = icon.fillMode || 'fill';
     const colorStyle = iconColor === 'currentColor' ? undefined : iconColor;
     const isFullContent = icon.svgPath.includes('<');
+    const fullSvg = buildSvgString(icon);
+    const svgColors = iconColor === 'currentColor' ? extractSvgColors(fullSvg) : [];
+    const needsContrastBg = isWhiteLike(iconColor) || (svgColors.length > 0 && svgColors.every(color => isWhiteLike(color)));
 
     if (isFullContent) {
-      const sanitizedSvg = DOMPurify.sanitize(buildSvgString(icon), {
+      const sanitizedSvg = DOMPurify.sanitize(fullSvg, {
         USE_PROFILES: { svg: true, svgFilters: true },
         FORBID_TAGS: ['script', 'foreignObject', 'use', 'animate', 'animateTransform', 'set'],
         FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout', 'onmousemove', 'onfocus', 'onblur', 'onanimationend', 'onanimationiteration', 'onanimationstart', 'ontransitionend'],
@@ -439,7 +451,10 @@ ${innerContent}
       return (
         <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
           <div
-            className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:block"
+            className={cn(
+              'w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:block rounded-md',
+              needsContrastBg && WHITE_ICON_BG_CLASS,
+            )}
             style={{ color: colorStyle }}
             dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
           />
@@ -453,7 +468,7 @@ ${innerContent}
     return (
       <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
         <svg
-          className="w-full h-full"
+          className={cn('w-full h-full rounded-md', needsContrastBg && WHITE_ICON_BG_CLASS)}
           style={{ color: colorStyle }}
           viewBox={viewBox}
           preserveAspectRatio="xMidYMid meet"
