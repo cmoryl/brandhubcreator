@@ -156,23 +156,7 @@ export const IconStudioExport = ({
     setImportSelectedIds(new Set());
   };
 
-  const sanitizeSvg = (icon: BrandIconography): string => {
-    const viewBox = icon.viewBox || '0 0 24 24';
-    const isFullSvg = icon.svgPath.trim().startsWith('<');
-
-    if (isFullSvg && icon.svgPath.trim().startsWith('<svg')) {
-      return DOMPurify.sanitize(icon.svgPath, {
-        USE_PROFILES: { svg: true, svgFilters: true },
-        FORBID_TAGS: ['script', 'foreignObject'],
-      });
-    }
-
-    const inner = isFullSvg
-      ? DOMPurify.sanitize(icon.svgPath, { USE_PROFILES: { svg: true, svgFilters: true }, FORBID_TAGS: ['script'] })
-      : `<path d="${icon.svgPath}" fill="${icon.fillMode === 'fill' ? 'currentColor' : 'none'}" stroke="${icon.fillMode === 'stroke' ? 'currentColor' : 'none'}" stroke-width="2"/>`;
-
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="24" height="24">${inner}</svg>`;
-  };
+  const buildIconSvg = (icon: BrandIconography): string => buildSvgString(icon);
 
   const slugify = (name: string) =>
     name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -397,14 +381,9 @@ export const IconStudioExport = ({
                       </div>
                     )}
                     <div
-                      className="w-6 h-6 flex items-center justify-center"
+                      className="w-6 h-6 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
                       dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(
-                          icon.svgPath.trim().startsWith('<')
-                            ? icon.svgPath
-                            : `<svg viewBox="${icon.viewBox || '0 0 24 24'}" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><path d="${icon.svgPath}" fill="${icon.fillMode === 'fill' ? 'currentColor' : 'none'}" stroke="${icon.fillMode === 'stroke' ? 'currentColor' : 'none'}" stroke-width="2"/></svg>`,
-                          { USE_PROFILES: { svg: true, svgFilters: true }, FORBID_TAGS: ['script'] }
-                        ),
+                        __html: sanitizeSvg(buildSvgString(icon)),
                       }}
                     />
                   </button>
