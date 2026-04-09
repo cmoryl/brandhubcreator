@@ -119,6 +119,8 @@ export const IconStylizer = ({
     }
     if (icons.length > 0) {
       icons.forEach(icon => onIconCreated(icon));
+      setLastImportedSvgs(icons);
+      setStage('upload'); // Stay on upload but show confirmation
       toast.success(`Added ${icons.length} SVG icon${icons.length > 1 ? 's' : ''} to library`);
     } else {
       toast.error('No valid SVG files found');
