@@ -1,13 +1,13 @@
 /**
  * IconStylizer - Upload & Convert: Image to Brand-Ready SVG Icon
  * 
- * Streamlined 3-stage pipeline within the wizard:
- * 1. Upload - Drop or select an image
- * 2. Adjust - Tune conversion settings with live preview
- * 3. Review - Score, validate, and add to library
+ * Supports:
+ * - Single & batch image upload (PNG, JPG, WebP) with AI conversion to SVG
+ * - Direct SVG file upload (single or batch) — added to library immediately
+ * - Drag-and-drop for all supported file types
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -26,6 +26,9 @@ import {
   RotateCcw,
   Copy,
   ChevronLeft,
+  X,
+  FileUp,
+  Files,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
@@ -40,6 +43,12 @@ interface IconStylizerProps {
 
 type StylizerStage = 'upload' | 'adjust' | 'review';
 
+const sanitizeSvg = (raw: string): string =>
+  DOMPurify.sanitize(raw.trim(), {
+    USE_PROFILES: { svg: true, svgFilters: true },
+    FORBID_TAGS: ['script', 'foreignObject'],
+  });
+
 export const IconStylizer = ({
   brandColors,
   onIconCreated,
@@ -48,6 +57,13 @@ export const IconStylizer = ({
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Batch raster queue
+  const [rasterQueue, setRasterQueue] = useState<Array<{ file: File; previewUrl: string }>>([]);
+  const [currentBatchIndex, setCurrentBatchIndex] = useState(0);
+  const [batchResults, setBatchResults] = useState<BrandIconography[]>([]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [options, setOptions] = useState<StylizerOptions>({
     removeBackground: true,
@@ -72,27 +88,98 @@ export const IconStylizer = ({
     reset,
   } = useStylizer(brandColors);
 
+  // ── File Classification ──
+  const isSvgFile = (file: File) =>
+    file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg');
+
+  const isRasterFile = (file: File) =>
+    file.type.startsWith('image/') && !isSvgFile(file);
+
+  // ── Direct SVG Import ──
+  const importSvgFiles = useCallback(async (files: File[]) => {
+    const icons: BrandIconography[] = [];
+    for (const file of files) {
+      try {
+        const text = await file.text();
+        const sanitized = sanitizeSvg(text);
+        if (sanitized.includes('<svg') || sanitized.includes('<path')) {
+          icons.push({
+            id: `svg-upload-${Date.now()}-${icons.length}`,
+            name: file.name.replace(/\.svg$/i, '').replace(/[-_]/g, ' '),
+            svgPath: sanitized,
+            category: 'Custom / Uploaded',
+            viewBox: '0 0 24 24',
+            fillMode: 'fill' as const,
+          });
+        }
+      } catch {
+        console.warn('Failed to read SVG file:', file.name);
+      }
+    }
+    if (icons.length > 0) {
+      icons.forEach(icon => onIconCreated(icon));
+      toast.success(`Added ${icons.length} SVG icon${icons.length > 1 ? 's' : ''} to library`);
+    } else {
+      toast.error('No valid SVG files found');
+    }
+  }, [onIconCreated]);
+
+  // ── Handle Files (mixed SVG + raster) ──
+  const handleFiles = useCallback(async (files: File[]) => {
+    const svgFiles = files.filter(isSvgFile);
+    const rasterFiles = files.filter(isRasterFile);
+
+    // Import SVGs directly
+    if (svgFiles.length > 0) {
+      await importSvgFiles(svgFiles);
+    }
+
+    // Queue raster files for conversion
+    if (rasterFiles.length === 1 && svgFiles.length === 0) {
+      // Single raster → existing flow
+      const file = rasterFiles[0];
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setRasterQueue([]);
+      reset();
+      setStage('adjust');
+    } else if (rasterFiles.length > 1) {
+      // Batch raster → queue mode
+      const queue = rasterFiles.map(file => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+      setRasterQueue(queue);
+      setCurrentBatchIndex(0);
+      setBatchResults([]);
+      // Start with the first one
+      setSelectedFile(queue[0].file);
+      setPreviewUrl(queue[0].previewUrl);
+      reset();
+      setStage('adjust');
+      toast.info(`${rasterFiles.length} images queued for conversion`);
+    } else if (svgFiles.length === 0 && rasterFiles.length === 0) {
+      toast.error('No supported image files found (PNG, JPG, WebP, SVG)');
+    }
+  }, [importSvgFiles, reset]);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      handleFileSelect(file);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.name.toLowerCase().endsWith('.svg'));
+    if (files.length > 0) {
+      handleFiles(files);
     } else {
-      toast.error('Please drop a valid image file (PNG, JPG, WebP)');
+      toast.error('Please drop valid image files (PNG, JPG, WebP, SVG)');
     }
-  }, []);
-
-  const handleFileSelect = useCallback((file: File) => {
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-    reset();
-    setStage('adjust');
-  }, [reset]);
+  }, [handleFiles]);
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleFileSelect(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFiles(Array.from(files));
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleProcess = async () => {
@@ -113,6 +200,25 @@ export const IconStylizer = ({
     };
     onIconCreated(icon);
     toast.success('Icon added to library');
+
+    // If batch, advance to next
+    if (rasterQueue.length > 1) {
+      const nextIndex = currentBatchIndex + 1;
+      if (nextIndex < rasterQueue.length) {
+        setBatchResults(prev => [...prev, icon]);
+        setCurrentBatchIndex(nextIndex);
+        setSelectedFile(rasterQueue[nextIndex].file);
+        setPreviewUrl(rasterQueue[nextIndex].previewUrl);
+        reset();
+        setStage('adjust');
+        toast.info(`Processing ${nextIndex + 1} of ${rasterQueue.length}`);
+      } else {
+        // Batch complete
+        setBatchResults(prev => [...prev, icon]);
+        toast.success(`Batch complete! ${nextIndex + 1} icons added.`);
+        handleStartOver();
+      }
+    }
   };
 
   const handleCopySvg = () => {
@@ -126,6 +232,9 @@ export const IconStylizer = ({
     setStage('upload');
     setPreviewUrl(null);
     setSelectedFile(null);
+    setRasterQueue([]);
+    setCurrentBatchIndex(0);
+    setBatchResults([]);
     reset();
   };
 
@@ -165,6 +274,7 @@ export const IconStylizer = ({
   ];
 
   const stageIndex = stages.findIndex(s => s.id === stage);
+  const isBatchMode = rasterQueue.length > 1;
 
   return (
     <div className="space-y-6">
@@ -176,12 +286,18 @@ export const IconStylizer = ({
             Upload & Convert
           </h3>
           <p className="text-sm text-muted-foreground">
-            Turn any image into a brand-ready SVG icon
+            Turn any image into a brand-ready SVG icon — or upload SVGs directly
           </p>
         </div>
 
         {/* Mini sub-stepper */}
         <div className="flex items-center gap-1 shrink-0">
+          {isBatchMode && (
+            <Badge variant="secondary" className="mr-2 text-[10px]">
+              <Files className="h-3 w-3 mr-1" />
+              {currentBatchIndex + 1}/{rasterQueue.length}
+            </Badge>
+          )}
           {stages.map((s, i) => (
             <div key={s.id} className="flex items-center gap-1">
               <div
@@ -214,25 +330,38 @@ export const IconStylizer = ({
               onDrop={handleDrop}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
-              onClick={() => document.getElementById('stylizer-file-input')?.click()}
+              onClick={() => fileInputRef.current?.click()}
             >
               <input
-                id="stylizer-file-input"
+                ref={fileInputRef}
                 type="file"
-                accept="image/png,image/jpeg,image/webp"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg"
+                multiple
                 className="hidden"
                 onChange={handleFileInputChange}
               />
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <Upload className="h-8 w-8 text-primary" />
               </div>
-              <p className="text-base font-medium">Drop your image here</p>
+              <p className="text-base font-medium">Drop your images here</p>
               <p className="text-sm text-muted-foreground mt-1">
-                PNG, JPG, or WebP — logos, sketches, icons
+                PNG, JPG, WebP, or SVG — select multiple files for batch upload
               </p>
-              <Button variant="outline" size="sm" className="mt-4" onClick={(e) => e.stopPropagation()}>
-                Browse files
-              </Button>
+              <div className="flex items-center justify-center gap-3 mt-4">
+                <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
+                  Browse files
+                </Button>
+              </div>
+              <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <FileUp className="h-3 w-3" />
+                  SVGs added directly
+                </span>
+                <span className="flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  Rasters converted to SVG
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -259,6 +388,31 @@ export const IconStylizer = ({
                 </div>
               </CardContent>
             </Card>
+
+            {/* Batch queue preview */}
+            {isBatchMode && (
+              <Card>
+                <CardContent className="p-4">
+                  <Label className="text-xs text-muted-foreground mb-2 block">
+                    Batch Queue ({currentBatchIndex + 1} of {rasterQueue.length})
+                  </Label>
+                  <div className="flex gap-1.5 flex-wrap max-h-[100px] overflow-y-auto">
+                    {rasterQueue.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={cn(
+                          'w-10 h-10 rounded border overflow-hidden flex-shrink-0',
+                          idx === currentBatchIndex && 'ring-2 ring-primary',
+                          idx < currentBatchIndex && 'opacity-40'
+                        )}
+                      >
+                        <img src={item.previewUrl} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Quick Settings */}
             <Card>
@@ -503,13 +657,18 @@ export const IconStylizer = ({
                 <Copy className="h-3 w-3 mr-1" /> Copy SVG
               </Button>
               <Button size="sm" className="flex-1" onClick={handleSaveIcon}>
-                <Check className="h-3 w-3 mr-1" /> Add to Library
+                <Check className="h-3 w-3 mr-1" />
+                {isBatchMode
+                  ? currentBatchIndex < rasterQueue.length - 1
+                    ? `Save & Next (${currentBatchIndex + 2}/${rasterQueue.length})`
+                    : 'Save & Finish'
+                  : 'Add to Library'}
               </Button>
             </div>
 
             {/* Convert another */}
             <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={handleStartOver}>
-              Convert another image
+              {isBatchMode ? 'Cancel batch & start over' : 'Convert another image'}
             </Button>
           </div>
         </div>
