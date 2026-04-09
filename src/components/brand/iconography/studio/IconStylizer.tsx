@@ -31,23 +31,10 @@ import {
   Files,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import DOMPurify from 'dompurify';
 import { cn } from '@/lib/utils';
+import { sanitizeSvg, extractViewBox, detectFillMode, cleanSvg } from '@/lib/svgUtils';
 import { useStylizer, StylizerOptions } from '@/hooks/useStylizer';
 import { BrandIconography } from '@/types/brand';
-
-interface IconStylizerProps {
-  brandColors: string[];
-  onIconCreated: (icon: BrandIconography) => void;
-}
-
-type StylizerStage = 'upload' | 'adjust' | 'review';
-
-const sanitizeSvg = (raw: string): string =>
-  DOMPurify.sanitize(raw.trim(), {
-    USE_PROFILES: { svg: true, svgFilters: true },
-    FORBID_TAGS: ['script', 'foreignObject'],
-  });
 
 export const IconStylizer = ({
   brandColors,
@@ -104,14 +91,18 @@ export const IconStylizer = ({
         const text = await file.text();
         const sanitized = sanitizeSvg(text);
         if (sanitized.includes('<svg') || sanitized.includes('<path')) {
+          const cleaned = cleanSvg(sanitized, file.name.replace(/\.svg$/i, '').replace(/[-_]/g, ' '));
+          const viewBox = extractViewBox(cleaned);
+          const fillMode = detectFillMode(cleaned);
           icons.push({
             id: `svg-upload-${Date.now()}-${icons.length}`,
             name: file.name.replace(/\.svg$/i, '').replace(/[-_]/g, ' '),
-            svgPath: sanitized,
+            svgPath: cleaned,
             category: 'Custom / Uploaded',
-            viewBox: '0 0 24 24',
-            fillMode: 'fill' as const,
+            viewBox,
+            fillMode: fillMode === 'auto' ? 'fill' : fillMode,
           });
+        }
         }
       } catch {
         console.warn('Failed to read SVG file:', file.name);
