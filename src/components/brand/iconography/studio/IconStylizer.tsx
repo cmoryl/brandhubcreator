@@ -110,7 +110,9 @@ export const IconStylizer = ({
     for (const file of files) {
       try {
         const text = await file.text();
+        console.log('[IconStylizer] Raw SVG length:', text.length, 'file:', file.name);
         const sanitized = sanitizeSvg(text);
+        console.log('[IconStylizer] Sanitized SVG length:', sanitized.length, 'has <svg>:', sanitized.includes('<svg'));
         if (sanitized.includes('<svg') || sanitized.includes('<path')) {
           const cleaned = cleanSvg(sanitized, file.name.replace(/\.svg$/i, '').replace(/[-_]/g, ' '));
           const viewBox = extractViewBox(cleaned);
@@ -128,11 +130,14 @@ export const IconStylizer = ({
         console.warn('Failed to read SVG file:', file.name);
       }
     }
+    console.log('[IconStylizer] Total valid icons parsed:', icons.length);
     if (icons.length > 0) {
       // Store pending imports — don't call onIconCreated yet to avoid parent re-render resetting our state
       pendingImportsRef.current = icons;
       setLastImportedSvgs(icons);
+      // Force stage to upload to show confirmation view
       setStage('upload');
+      console.log('[IconStylizer] Set lastImportedSvgs, length:', icons.length);
       toast.success(`Added ${icons.length} SVG icon${icons.length > 1 ? 's' : ''} to library`);
     } else {
       toast.error('No valid SVG files found');
@@ -412,7 +417,10 @@ export const IconStylizer = ({
                 PNG, JPG, WebP, or SVG — select multiple files for batch upload
               </p>
               <div className="flex items-center justify-center gap-3 mt-4">
-                <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
+                <Button variant="outline" size="sm" onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}>
                   Browse files
                 </Button>
               </div>
