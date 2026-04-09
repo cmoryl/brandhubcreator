@@ -20,6 +20,7 @@ interface CustomSvgImporterProps {
   onSaveIcons: (icons: BrandIconography[], libraryId?: string) => void;
 }
 
+export const CustomSvgImporter = ({
   selectedLibraryId,
   onSaveIcons,
 }: CustomSvgImporterProps) => {
