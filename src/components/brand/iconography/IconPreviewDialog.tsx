@@ -212,59 +212,198 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, bran
               <Button variant={bgMode === 'dark' ? 'secondary' : 'ghost'} size="sm" onClick={() => setBgMode('dark')} className="h-7 px-3 text-xs">Dark</Button>
               <Button variant={bgMode === 'checker' ? 'secondary' : 'ghost'} size="sm" onClick={() => setBgMode('checker')} className="h-7 px-3 text-xs">Checker</Button>
             </div>
-            <Button
-              variant={showRecolor ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setShowRecolor(!showRecolor)}
-              className="gap-1.5 h-7 text-xs"
-            >
-              <Palette className="h-3.5 w-3.5" />
-              Recolor
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant={showRecolor ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowRecolor(!showRecolor)}
+                className="gap-1.5 h-7 text-xs"
+              >
+                <Palette className="h-3.5 w-3.5" />
+                Recolor
+              </Button>
+              {validation && (
+                <Button
+                  variant={showValidation ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setShowValidation(!showValidation)}
+                  className="gap-1.5 h-7 text-xs"
+                >
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      'text-[9px] px-1.5 py-0',
+                      validation.score >= 85 ? 'border-green-500 text-green-600' :
+                      validation.score >= 70 ? 'border-blue-500 text-blue-600' :
+                      validation.score >= 50 ? 'border-amber-500 text-amber-600' :
+                      'border-red-500 text-red-600'
+                    )}
+                  >
+                    {validation.score}
+                  </Badge>
+                  Quality
+                </Button>
+              )}
+            </div>
           </div>
+
+          {/* Validation Panel */}
+          {showValidation && validation && (
+            <div className="p-3 rounded-lg border bg-muted/30 space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium">SVG Quality Report</Label>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-xs',
+                    validation.score >= 85 ? 'border-green-500 text-green-600' :
+                    validation.score >= 70 ? 'border-blue-500 text-blue-600' :
+                    validation.score >= 50 ? 'border-amber-500 text-amber-600' :
+                    'border-red-500 text-red-600'
+                  )}
+                >
+                  Score: {validation.score}/100
+                </Badge>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="p-2 rounded bg-background border">
+                  <span className="text-muted-foreground">Points</span>
+                  <p className="font-medium">{validation.anchorPoints}</p>
+                </div>
+                <div className="p-2 rounded bg-background border">
+                  <span className="text-muted-foreground">Size</span>
+                  <p className="font-medium">{(validation.fileSize / 1024).toFixed(1)}KB</p>
+                </div>
+                <div className="p-2 rounded bg-background border">
+                  <span className="text-muted-foreground">Colors</span>
+                  <p className="font-medium">{validation.colorCount}</p>
+                </div>
+              </div>
+              <div className="space-y-1">
+                {validation.issues.map((issue, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs">
+                    <span className={cn(
+                      'w-1.5 h-1.5 rounded-full shrink-0',
+                      issue.severity === 'pass' ? 'bg-green-500' :
+                      issue.severity === 'warn' ? 'bg-amber-500' : 'bg-red-500'
+                    )} />
+                    <span className="font-medium">{issue.label}</span>
+                    {issue.detail && <span className="text-muted-foreground">{issue.detail}</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Recolor Panel */}
           {showRecolor && (
             <div className="p-3 rounded-lg border bg-muted/30 space-y-3">
-              <Label className="text-xs font-medium">Choose a color</Label>
-              <div className="flex items-center gap-2 flex-wrap">
-                {swatches.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setRecolorHex(color)}
-                    className={cn(
-                      'w-7 h-7 rounded-full border-2 transition-all',
-                      recolorHex === color ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110' : 'border-border hover:scale-105'
-                    )}
-                    style={{ backgroundColor: color }}
-                    title={color}
-                  />
-                ))}
-                <div className="flex items-center gap-1.5 ml-2">
-                  <Input
-                    type="color"
-                    value={recolorHex || '#000000'}
-                    onChange={(e) => setRecolorHex(e.target.value)}
-                    className="w-8 h-7 p-0 border-0 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    placeholder="#hex"
-                    value={recolorHex}
-                    onChange={(e) => setRecolorHex(e.target.value)}
-                    className="w-20 h-7 text-xs font-mono"
-                  />
+              {/* Mode toggle */}
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium">Recolor Mode</Label>
+                <div className="flex items-center gap-1 p-0.5 rounded-md bg-muted">
+                  <Button
+                    variant={recolorMode === 'uniform' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => { setRecolorMode('uniform'); setColorMap({}); }}
+                    className="h-6 px-2 text-[10px]"
+                  >
+                    Uniform
+                  </Button>
+                  <Button
+                    variant={recolorMode === 'multi' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => { setRecolorMode('multi'); setRecolorHex(''); }}
+                    className="h-6 px-2 text-[10px] gap-1"
+                    disabled={svgColors.length < 2}
+                  >
+                    <ArrowRightLeft className="h-3 w-3" />
+                    Multi ({svgColors.length})
+                  </Button>
                 </div>
               </div>
+
+              {recolorMode === 'uniform' ? (
+                <>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {swatches.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => setRecolorHex(color)}
+                        className={cn(
+                          'w-7 h-7 rounded-full border-2 transition-all',
+                          recolorHex === color ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110' : 'border-border hover:scale-105'
+                        )}
+                        style={{ backgroundColor: color }}
+                        title={color}
+                      />
+                    ))}
+                    <div className="flex items-center gap-1.5 ml-2">
+                      <Input
+                        type="color"
+                        value={recolorHex || '#000000'}
+                        onChange={(e) => setRecolorHex(e.target.value)}
+                        className="w-8 h-7 p-0 border-0 cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        placeholder="#hex"
+                        value={recolorHex}
+                        onChange={(e) => setRecolorHex(e.target.value)}
+                        className="w-20 h-7 text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-[10px] text-muted-foreground">Map each source color to a new color</p>
+                  {svgColors.map((srcColor) => (
+                    <div key={srcColor} className="flex items-center gap-2">
+                      <div
+                        className="w-6 h-6 rounded border shrink-0"
+                        style={{ backgroundColor: srcColor }}
+                        title={srcColor}
+                      />
+                      <span className="text-[10px] font-mono text-muted-foreground w-16 truncate">{srcColor}</span>
+                      <span className="text-[10px] text-muted-foreground">→</span>
+                      <Input
+                        type="color"
+                        value={colorMap[srcColor] || srcColor}
+                        onChange={(e) => setColorMap(prev => ({ ...prev, [srcColor]: e.target.value }))}
+                        className="w-7 h-6 p-0 border-0 cursor-pointer shrink-0"
+                      />
+                      <Input
+                        type="text"
+                        placeholder={srcColor}
+                        value={colorMap[srcColor] || ''}
+                        onChange={(e) => setColorMap(prev => ({ ...prev, [srcColor]: e.target.value }))}
+                        className="w-20 h-6 text-[10px] font-mono"
+                      />
+                      {/* Brand color quick-picks */}
+                      {brandColors.slice(0, 4).map(bc => (
+                        <button
+                          key={bc}
+                          onClick={() => setColorMap(prev => ({ ...prev, [srcColor]: bc }))}
+                          className="w-5 h-5 rounded-full border hover:scale-110 transition-transform shrink-0"
+                          style={{ backgroundColor: bc }}
+                          title={bc}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="flex items-center gap-2">
-                {recolorHex && onUpdateIcon && (
+                {((recolorMode === 'uniform' && recolorHex) || (recolorMode === 'multi' && Object.keys(colorMap).length > 0)) && onUpdateIcon && (
                   <Button size="sm" onClick={handleApplyColor} className="h-7 text-xs gap-1">
                     <Check className="h-3 w-3" />
                     Save Color
                   </Button>
                 )}
-                {recolorHex && (
-                  <Button variant="ghost" size="sm" onClick={() => setRecolorHex('')} className="h-7 text-xs">
+                {(recolorHex || Object.keys(colorMap).length > 0) && (
+                  <Button variant="ghost" size="sm" onClick={() => { setRecolorHex(''); setColorMap({}); }} className="h-7 text-xs">
                     Reset
                   </Button>
                 )}
