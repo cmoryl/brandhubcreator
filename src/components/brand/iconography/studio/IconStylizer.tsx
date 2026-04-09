@@ -103,7 +103,6 @@ export const IconStylizer = ({
             fillMode: fillMode === 'auto' ? 'fill' : fillMode,
           });
         }
-        }
       } catch {
         console.warn('Failed to read SVG file:', file.name);
       }
