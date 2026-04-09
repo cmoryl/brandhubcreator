@@ -19,7 +19,7 @@ export const iconKitHelpSections = {
   // Icon Studio Overview
   'icon-studio': {
     title: 'Icon Studio',
-    description: 'The unified 7-tab hub for all iconography tasks including library management, AI generation, and advanced features.',
+    description: 'A streamlined 4-tab hub: Library (browse & import), AI Generate, Style (colorize, brand rules, app icons), and Export.',
     category: 'Icon Studio Overview',
   },
   'library-tab': {
@@ -143,7 +143,7 @@ export const iconKitHelpSections = {
   // Creator
   'icon-creator': {
     title: 'Icon Creator',
-    description: 'Search and add icons from the Lucide library of 3,480+ icons to your collections.',
+    description: 'Built into the Library tab — search 50K+ icons, browse Lucide, paste custom SVGs, or upload images to add to your collections.',
     category: 'Icon Studio Overview',
   },
 } as const;
