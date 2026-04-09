@@ -89,18 +89,26 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, bran
     }
   };
 
+  const getColorLabel = (color: string) => {
+    if (!color || color === 'currentColor' || color === '#000000') return 'black';
+    if (color === '#FFFFFF' || color === '#ffffff') return 'white';
+    return color.replace('#', '').toLowerCase();
+  };
+
   const handleDownloadSvg = () => {
     const svgString = generateSvgString();
     const blob = new Blob([svgString], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${icon.name.toLowerCase().replace(/\s+/g, '-')}.svg`;
+    const colorLabel = getColorLabel(recolorHex);
+    const safeName = icon.name.toLowerCase().replace(/\s+/g, '-');
+    a.download = `${safeName}-${colorLabel}.svg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success('SVG downloaded');
+    toast.success(`Downloaded ${safeName}-${colorLabel}.svg`);
   };
 
   const handleDownloadPng = (size: number) => {
@@ -119,7 +127,9 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, bran
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${icon.name.toLowerCase().replace(/\s+/g, '-')}-${size}x${size}.png`;
+        const colorLabel = getColorLabel(recolorHex);
+        const safeName = icon.name.toLowerCase().replace(/\s+/g, '-');
+        a.download = `${safeName}-${colorLabel}-${size}x${size}.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
