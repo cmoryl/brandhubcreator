@@ -199,7 +199,7 @@ export const IconStudioExport = ({
         const x = col * (size + padding);
         const y = row * (size + padding);
 
-        const svgStr = sanitizeSvg(icon);
+        const svgStr = buildSvgString(icon);
         const img = new window.Image();
         const svgBlob = new Blob([svgStr], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(svgBlob);
@@ -234,7 +234,7 @@ export const IconStudioExport = ({
 
     allIcons.forEach(icon => {
       const className = `${prefix}-${slugify(icon.name)}`;
-      const svgEncoded = btoa(sanitizeSvg(icon));
+      const svgEncoded = btoa(buildSvgString(icon));
       css += `.${className} {\n`;
       css += `  background-image: url("data:image/svg+xml;base64,${svgEncoded}");\n`;
       css += `  background-size: contain;\n  background-repeat: no-repeat;\n  background-position: center;\n`;
