@@ -8,14 +8,17 @@ import { Palette, Wand2, Layers, Sparkles, GitBranch, Smartphone, PenTool, Shape
 
 export const iconKitArchitecture = `
 graph TB
-    subgraph Entry["🎨 Icon Studio (7 Tabs)"]
-        Library["📚 Library Tab"]
-        AIGen["🤖 AI Generator"]
-        Stylizer["✨ Stylizer"]
-        Advanced["⚡ Advanced"]
-        Hierarchy["🌳 Hierarchy"]
+    subgraph Entry["🎨 Icon Studio (4 Tabs)"]
+        LibraryTab["📚 Library & Import"]
+        AIGen["🤖 AI Generate"]
+        StyleTab["🎨 Style"]
+        ExportTab["📦 Export"]
+    end
+
+    subgraph StyleSub["Style Sub-Views"]
+        Colorize["🎨 Colorize"]
+        BrandRules["🌳 Brand Rules"]
         AppIcons["📱 App Icons"]
-        Creator["✏️ Creator"]
     end
 
     subgraph ShapeEngine["🔷 Shape Manager"]
@@ -53,15 +56,15 @@ graph TB
         ShapeExport["Custom Shapes (JSONB)"]
     end
 
-    Library --> useIconLibraries
+    LibraryTab --> useIconLibraries
     AIGen --> useIconOptimizer
-    Stylizer --> useStylizer
-    Advanced --> useResponsiveIcon
-    Advanced --> useIconStateSystem
-    Advanced --> useKineticBranding
-    Hierarchy --> useIconHierarchy
+    StyleTab --> Colorize
+    StyleTab --> BrandRules
+    StyleTab --> AppIcons
+    Colorize --> useStylizer
+    BrandRules --> useIconHierarchy
     AppIcons --> useIconOptimizer
-    Creator --> useIconLibraries
+    ExportTab --> useIconOptimizer
 
     ShapeEngine --> ShapeEditor
     ShapeEditor --> ShapeExport
@@ -91,15 +94,15 @@ export const iconKitFaqs = [
     questions: [
       {
         q: "What is the Icon Studio?",
-        a: "The Icon Studio (IconKIT) is a unified 7-tab hub for all iconography tasks. It consolidates Library Management, AI Generation, PNG-to-SVG Stylization, Advanced Features (Responsive/Stateful/Kinetic), Brand Hierarchy mapping, App Icon Generation, and SVG Creation into one cohesive brand-building system."
+        a: "The Icon Studio (IconKIT) is a streamlined 4-tab hub for all iconography tasks: Library (browse, manage, upload & import icons), AI Generate (AI-powered icon creation), Style (colorize, brand rules, app icons), and Export (batch export in multiple formats). Everything is freely navigable — no forced sequential steps."
       },
       {
         q: "How do I access the Icon Studio?",
-        a: "Navigate to any brand guide, scroll to the Iconography section, and click 'Open Icon Studio'. The studio opens as a full-screen modal with all seven tabs accessible from the top navigation."
+        a: "Navigate to any brand guide, scroll to the Iconography section, and click 'Open Icon Studio'. The studio opens as a full-screen modal with four clear tabs accessible from the top navigation."
       },
       {
-        q: "What's the difference between the Library and Creator tabs?",
-        a: "The Library tab manages your organized icon collections with a 3-level hierarchy (Core → Product Line → Brand). The Creator tab is for quickly adding individual icons from the Lucide library of 3,480+ icons to your collections."
+        q: "How is the Library tab organized?",
+        a: "The Library tab combines collection management and icon importing in one view. Browse your organized icon collections with a 3-level hierarchy (Core → Product Line → Brand), and below that, add icons from Lucide (3,480+), browse 50K+ icons, paste custom SVGs, upload images, or get AI suggestions — all without switching tabs."
       },
       {
         q: "What is the Icon Quality Score (IQS)?",
@@ -321,37 +324,32 @@ export const iconKitQuickStart = [
   },
   {
     step: 2,
-    title: "Set Brand DNA",
-    description: "Go to Hierarchy tab → Define your global stroke width, caps, and corner rules"
-  },
-  {
-    step: 3,
     title: "Create a Library",
     description: "Library tab → Create Library → Choose hierarchy level (Core/Product/Brand)"
   },
   {
+    step: 3,
+    title: "Add Icons",
+    description: "Library tab → Use the Icon Creator panel to browse 50K+ icons, upload SVGs, or paste custom code"
+  },
+  {
     step: 4,
-    title: "Generate Icons",
-    description: "AI Generator tab → Select style preset → Describe icons → Generate batch (up to 100)"
+    title: "Generate Icons with AI",
+    description: "AI Generate tab → Select style preset → Describe icons → Generate batch (up to 100)"
   },
   {
     step: 5,
-    title: "Browse Design Elements",
-    description: "Shape Manager → Browse 1,300+ shapes → Customize fill, stroke, opacity → Save to brand"
+    title: "Style & Customize",
+    description: "Style tab → Colorize icons with brand colors, set Brand DNA rules, or generate App Icons"
   },
   {
     step: 6,
-    title: "Add Advanced Features",
-    description: "Advanced tab → Apply optical sizing, semantic states, or kinetic animations"
-  },
-  {
-    step: 7,
     title: "Multi-Scale Preview",
     description: "Click 'View Larger' on any icon to verify legibility from 16px to 64px"
   },
   {
-    step: 8,
+    step: 7,
     title: "Export",
-    description: "Export icons for web, iOS, Android, or generate a Brand Book PDF"
+    description: "Export tab → Download icons for web, iOS, Android, or import directly to entity guides"
   }
 ];
