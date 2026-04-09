@@ -2,8 +2,8 @@
  * IconPreviewDialog - Full-size icon preview with zoom controls & recoloring
  */
 
-import { useState, useMemo } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, Download, Copy, Check, Image, FileCode, Palette } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { ZoomIn, ZoomOut, RotateCcw, Download, Copy, Check, Image, FileCode, Palette, ArrowRightLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
-import { sanitizeSvg, recolorSvg } from '@/lib/svgUtils';
+import { sanitizeSvg, recolorSvg, extractSvgColors, recolorSvgMulti, validateSvg, type SvgValidationResult, type SvgIssue } from '@/lib/svgUtils';
 import { toast } from 'sonner';
 
 interface IconPreviewDialogProps {
@@ -30,17 +30,37 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, bran
   const [bgMode, setBgMode] = useState<'light' | 'dark' | 'checker'>('checker');
   const [recolorHex, setRecolorHex] = useState('');
   const [showRecolor, setShowRecolor] = useState(false);
+  const [recolorMode, setRecolorMode] = useState<'uniform' | 'multi'>('uniform');
+  const [colorMap, setColorMap] = useState<Record<string, string>>({});
+  const [showValidation, setShowValidation] = useState(false);
 
   const viewBox = icon?.viewBox || '0 0 24 24';
   const isFullSvg = icon?.svgPath?.includes('<') ?? false;
   const isCompleteSvg = isFullSvg && (icon?.svgPath?.trim().startsWith('<svg') ?? false);
   const sanitize = sanitizeSvg;
 
+  // Extract unique colors from the SVG
+  const svgColors = useMemo(() => {
+    if (!icon?.svgPath) return [];
+    return extractSvgColors(icon.svgPath);
+  }, [icon?.svgPath]);
+
+  // Validation results
+  const validation = useMemo(() => {
+    if (!icon?.svgPath) return null;
+    return validateSvg(icon.svgPath);
+  }, [icon?.svgPath]);
+
   const displaySvg = useMemo(() => {
     if (!icon?.svgPath) return '';
-    if (!recolorHex) return icon.svgPath;
-    return recolorSvg(icon.svgPath, recolorHex);
-  }, [icon?.svgPath, recolorHex]);
+    // Multi-color mode
+    if (recolorMode === 'multi' && Object.keys(colorMap).length > 0) {
+      return recolorSvgMulti(icon.svgPath, colorMap);
+    }
+    // Uniform mode
+    if (recolorHex) return recolorSvg(icon.svgPath, recolorHex);
+    return icon.svgPath;
+  }, [icon?.svgPath, recolorHex, recolorMode, colorMap]);
 
   if (!icon) return null;
 
@@ -112,14 +132,20 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, bran
   };
 
   const handleApplyColor = () => {
-    if (!recolorHex || !onUpdateIcon) return;
-    const updated: BrandIconography = {
-      ...icon,
-      svgPath: recolorSvg(icon.svgPath, recolorHex),
-    };
+    if (!onUpdateIcon) return;
+    let newSvg: string;
+    if (recolorMode === 'multi' && Object.keys(colorMap).length > 0) {
+      newSvg = recolorSvgMulti(icon.svgPath, colorMap);
+    } else if (recolorHex) {
+      newSvg = recolorSvg(icon.svgPath, recolorHex);
+    } else {
+      return;
+    }
+    const updated: BrandIconography = { ...icon, svgPath: newSvg };
     onUpdateIcon(updated);
     toast.success('Icon color updated');
     setRecolorHex('');
+    setColorMap({});
     setShowRecolor(false);
   };
 
