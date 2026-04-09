@@ -1731,7 +1731,7 @@ export const helpSections: HelpSection[] = [
       {
         id: 'step-4',
         title: 'Upload Custom Assets',
-        description: 'Upload your own images to Supabase storage for persistent, high-quality display.',
+        description: 'Upload your own images to cloud storage for persistent, high-quality display.',
         tips: [
           'Images are stored in organization-assets bucket',
           'Use candid, authentic imagery for best results',
