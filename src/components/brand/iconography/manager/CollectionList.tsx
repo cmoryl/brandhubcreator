@@ -199,23 +199,11 @@ export const CollectionList = ({
 
                 {/* Icon previews */}
                 {library.icons.length > 0 && (
-                  <div className="flex items-center gap-1.5 mt-3 overflow-hidden">
-                    {library.icons.slice(0, 12).map((icon) => (
-                      <button
-                        key={icon.id}
-                        onClick={() => onPreviewIcon(icon)}
-                        className="w-7 h-7 shrink-0 border rounded flex items-center justify-center bg-muted/30 hover:bg-muted transition-colors"
-                        title={icon.name}
-                      >
-                        <div className="w-4 h-4">
-                          {renderIconPreview(icon)}
-                        </div>
-                      </button>
-                    ))}
-                    {library.icons.length > 12 && (
-                      <span className="text-xs text-muted-foreground shrink-0">+{library.icons.length - 12}</span>
-                    )}
-                  </div>
+                  <IconPreviewGrid
+                    icons={library.icons}
+                    onPreviewIcon={onPreviewIcon}
+                    renderIconPreview={renderIconPreview}
+                  />
                 )}
 
                 {/* Actions row */}
