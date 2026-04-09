@@ -392,6 +392,7 @@ const OrganizationPortal = () => {
             items={[]}
             currentPage={organization.name}
             currentIcon={Building2}
+            showHome={false}
           />
         </div>
 
