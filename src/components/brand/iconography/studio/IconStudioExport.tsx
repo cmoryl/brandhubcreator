@@ -170,7 +170,7 @@ export const IconStudioExport = ({
       .forEach(lib => {
         const folder = zip.folder(slugify(lib.name)) || zip;
         lib.icons.forEach(icon => {
-          folder.file(`${slugify(icon.name)}.svg`, sanitizeSvg(icon));
+          folder.file(`${slugify(icon.name)}.svg`, buildSvgString(icon));
         });
       });
 
