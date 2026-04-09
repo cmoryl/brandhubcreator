@@ -227,9 +227,16 @@ export const SortableLibraryCard = ({
                   >
                     <div className="w-5 h-5 flex items-center justify-center">
                       {isFullSvg ? (
-                        <svg viewBox={viewBox} className="w-full h-full" fill="currentColor">
-                          <g dangerouslySetInnerHTML={{ __html: icon.svgPath }} />
-                        </svg>
+                        icon.svgPath.trim().startsWith('<svg') ? (
+                          <div
+                            className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:block"
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(icon.svgPath, { USE_PROFILES: { svg: true, svgFilters: true }, FORBID_TAGS: ['script', 'foreignObject'] }) }}
+                          />
+                        ) : (
+                          <svg viewBox={viewBox} className="w-full h-full" fill="currentColor">
+                            <g dangerouslySetInnerHTML={{ __html: icon.svgPath }} />
+                          </svg>
+                        )
                       ) : (
                         <svg 
                           viewBox={viewBox} 
