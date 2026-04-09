@@ -355,7 +355,14 @@ export const IconStylizer = ({
             <div className="flex items-center justify-center gap-3 pt-2">
               <Button
                 variant="outline"
-                onClick={() => setLastImportedSvgs([])}
+                onClick={() => {
+                  // Flush pending imports to library before resetting
+                  if (pendingImportsRef.current.length > 0) {
+                    pendingImportsRef.current.forEach(icon => onIconCreated(icon));
+                    pendingImportsRef.current = [];
+                  }
+                  setLastImportedSvgs([]);
+                }}
                 className="gap-2"
               >
                 <Upload className="h-4 w-4" />
