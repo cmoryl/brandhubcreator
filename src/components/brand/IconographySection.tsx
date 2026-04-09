@@ -439,20 +439,23 @@ ${innerContent}
     const needsContrastBg = isWhiteLike(iconColor) || (svgColors.length > 0 && svgColors.every(color => isWhiteLike(color)));
 
     if (isFullContent) {
-      const sanitizedSvg = DOMPurify.sanitize(fullSvg, {
+      // If a specific preview color is selected, recolor the SVG markup directly
+      const svgToRender = colorStyle ? recolorSvg(fullSvg, colorStyle) : fullSvg;
+      const sanitizedSvg = DOMPurify.sanitize(svgToRender, {
         USE_PROFILES: { svg: true, svgFilters: true },
         FORBID_TAGS: ['script', 'foreignObject', 'use', 'animate', 'animateTransform', 'set'],
         FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout', 'onmousemove', 'onfocus', 'onblur', 'onanimationend', 'onanimationiteration', 'onanimationstart', 'ontransitionend'],
       });
+      // Recalculate contrast bg based on actual preview color
+      const previewNeedsContrast = colorStyle ? isWhiteLike(colorStyle) : needsContrastBg;
 
       return (
         <div className={`${sizeClass} flex items-center justify-center mb-2 flex-shrink-0`}>
           <div
             className={cn(
               'w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:block rounded-md',
-              needsContrastBg && WHITE_ICON_BG_CLASS,
+              previewNeedsContrast && WHITE_ICON_BG_CLASS,
             )}
-            style={{ color: colorStyle }}
             dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
           />
         </div>
