@@ -7,6 +7,17 @@
 
 import DOMPurify from 'dompurify';
 
+const SVG_DRAWABLE_TAGS = new Set([
+  'path',
+  'circle',
+  'rect',
+  'line',
+  'polyline',
+  'polygon',
+  'ellipse',
+  'text',
+]);
+
 // ── Sanitization ──
 
 /** Sanitize SVG markup for safe rendering */
@@ -152,10 +163,32 @@ export const recolorSvg = (svg: string, color: string): string => {
   const svgEl = doc.querySelector('svg');
   if (!svgEl) return svg;
 
+  const fillMode = detectFillMode(svg);
+
+  const hasStyleProperty = (style: string | null, property: 'fill' | 'stroke' | 'color') =>
+    Boolean(style && new RegExp(`${property}\\s*:`, 'i').test(style));
+
+  const setOrAppendStyleProperty = (style: string | null, property: 'fill' | 'stroke' | 'color', value: string) => {
+    if (!style?.trim()) return `${property}: ${value};`;
+    if (hasStyleProperty(style, property)) {
+      return style.replace(new RegExp(`${property}\\s*:\\s*([^;]+)`, 'i'), `${property}: ${value}`);
+    }
+
+    const separator = style.trim().endsWith(';') ? ' ' : '; ';
+    return `${style}${separator}${property}: ${value};`;
+  };
+
   const recolorElement = (el: Element) => {
+    const tagName = el.tagName.toLowerCase();
+    const isDrawable = SVG_DRAWABLE_TAGS.has(tagName);
+
     // Handle fill attribute
     const fill = el.getAttribute('fill');
     if (fill && fill !== 'none' && !fill.startsWith('url(')) {
+      el.setAttribute('fill', color);
+    } else if (isDrawable && fillMode !== 'stroke' && !el.hasAttribute('stroke') && !hasStyleProperty(el.getAttribute('style'), 'stroke') && !hasStyleProperty(el.getAttribute('style'), 'fill')) {
+      // Many imported SVGs rely on the browser's default black fill with no explicit fill attribute.
+      // Set an explicit fill so generated white variants actually become white.
       el.setAttribute('fill', color);
     }
 
@@ -163,6 +196,9 @@ export const recolorSvg = (svg: string, color: string): string => {
     const stroke = el.getAttribute('stroke');
     if (stroke && stroke !== 'none' && !stroke.startsWith('url(')) {
       el.setAttribute('stroke', color);
+    } else if (isDrawable && fillMode === 'stroke' && !el.hasAttribute('fill') && !hasStyleProperty(el.getAttribute('style'), 'fill') && !hasStyleProperty(el.getAttribute('style'), 'stroke')) {
+      el.setAttribute('stroke', color);
+      el.setAttribute('fill', 'none');
     }
 
     // Handle inline style
@@ -178,9 +214,32 @@ export const recolorSvg = (svg: string, color: string): string => {
         /stroke\s*:\s*(?!none|url\()([^;}"]+)/gi,
         `stroke: ${color}`
       );
+
+      if (isDrawable && fillMode !== 'stroke' && !hasStyleProperty(style, 'fill') && !el.hasAttribute('fill') && !el.hasAttribute('stroke') && !hasStyleProperty(style, 'stroke')) {
+        newStyle = setOrAppendStyleProperty(newStyle, 'fill', color);
+      }
+
+      if (isDrawable && fillMode === 'stroke' && !hasStyleProperty(style, 'stroke') && !el.hasAttribute('fill') && !el.hasAttribute('stroke') && !hasStyleProperty(style, 'fill')) {
+        newStyle = setOrAppendStyleProperty(newStyle, 'stroke', color);
+        newStyle = setOrAppendStyleProperty(newStyle, 'fill', 'none');
+      }
+
       el.setAttribute('style', newStyle);
     }
   };
+
+  // Ensure inherited currentColor/default-fill SVGs still get recolored.
+  const rootStyle = svgEl.getAttribute('style');
+  svgEl.setAttribute('style', setOrAppendStyleProperty(rootStyle, 'color', color));
+
+  if (fillMode !== 'stroke' && !svgEl.getAttribute('fill') && !svgEl.getAttribute('stroke') && !hasStyleProperty(rootStyle, 'fill') && !hasStyleProperty(rootStyle, 'stroke')) {
+    svgEl.setAttribute('fill', color);
+  }
+
+  if (fillMode === 'stroke' && !svgEl.getAttribute('stroke') && !svgEl.getAttribute('fill') && !hasStyleProperty(rootStyle, 'stroke')) {
+    svgEl.setAttribute('stroke', color);
+    svgEl.setAttribute('fill', 'none');
+  }
 
   // Recolor root SVG element
   recolorElement(svgEl);
