@@ -19,10 +19,244 @@ import DOMPurify from 'dompurify';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
 import JSZip from 'jszip';
 import { buildSvgString, cleanSvg, detectFillMode, extractViewBox } from '@/lib/svgUtils';
-...
+
+// SVG sanitization config - used at upload time for defense-in-depth
+const SVG_SANITIZE_CONFIG = {
+  USE_PROFILES: { svg: true, svgFilters: true },
+  FORBID_TAGS: ['script', 'foreignObject', 'use', 'animate', 'animateTransform', 'set'],
+  FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'onkeydown', 'onkeyup', 'onkeypress'],
+};
+
+const ICON_COLORS = [
+  { name: 'Default', value: 'currentColor', bg: 'bg-foreground' },
+  { name: 'Black', value: '#000000', bg: 'bg-black' },
+  { name: 'White', value: '#FFFFFF', bg: 'bg-white border' },
+  { name: 'Red', value: '#EF4444', bg: 'bg-red-500' },
+  { name: 'Orange', value: '#F97316', bg: 'bg-orange-500' },
+  { name: 'Yellow', value: '#EAB308', bg: 'bg-yellow-500' },
+  { name: 'Green', value: '#22C55E', bg: 'bg-green-500' },
+  { name: 'Blue', value: '#3B82F6', bg: 'bg-blue-500' },
+  { name: 'Purple', value: '#A855F7', bg: 'bg-purple-500' },
+  { name: 'Pink', value: '#EC4899', bg: 'bg-pink-500' },
+];
+
+interface IconographySectionProps {
+  iconography: BrandIconography[];
+  onIconographyChange?: (iconography: BrandIconography[]) => void;
+  customSubtitle?: string;
+  onSubtitleChange?: (subtitle: string) => void;
+  defaultIconColor?: string;
+  onDefaultIconColorChange?: (color: string) => void;
+  brandColors?: Array<{ hex: string; name: string }>;
+  organizationId?: string;
+  brandId?: string;
+  productLineId?: string;
+  entityType?: 'brand' | 'product' | 'event';
+  entityName?: string;
+  industry?: string;
+}
+
+type GridSize = 'compact' | 'medium' | 'large';
+
+const gridSizeConfig: Record<GridSize, { grid: string; padding: string; fontSize: string; iconSize: string }> = {
+  compact: { grid: 'grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10', padding: 'p-2', fontSize: 'text-[8px]', iconSize: 'w-8 h-8' },
+  medium: { grid: 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8', padding: 'p-3', fontSize: 'text-[10px]', iconSize: 'w-10 h-10' },
+  large: { grid: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6', padding: 'p-4', fontSize: 'text-xs', iconSize: 'w-12 h-12' },
+};
+
+const categoryOptions = ['Navigation', 'Actions', 'Social', 'Status', 'Commerce', 'Media', 'Communication', 'Other'];
+
+export const IconographySection = ({ 
+  iconography, 
+  onIconographyChange, 
+  customSubtitle, 
+  onSubtitleChange,
+  defaultIconColor,
+  onDefaultIconColorChange,
+  brandColors = [],
+  organizationId,
+  brandId,
+  productLineId,
+  entityType = 'brand',
+  entityName = '',
+  industry,
+}: IconographySectionProps) => {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isHeaderEditing, setIsHeaderEditing] = useState(false);
+  const [gridSize, setGridSize] = useState<GridSize>('medium');
+  const [iconColor, setIconColor] = useState<string>(defaultIconColor || 'currentColor');
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [showIconStudio, setShowIconStudio] = useState(false);
+  const [iconStudioInitialTab, setIconStudioInitialTab] = useState<IconStudioTab>('library');
+  const [previewIcon, setPreviewIcon] = useState<BrandIconography | null>(null);
+  const [showAddToLibrary, setShowAddToLibrary] = useState(false);
+  const [addToLibraryTargetId, setAddToLibraryTargetId] = useState<string>('');
+  const [showLibraryPicker, setShowLibraryPicker] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const ICONS_PREVIEW_LIMIT = 8;
+
+  // Fetch inherited icon libraries
+  const { libraries, coreLibraries, productLineLibraries, brandLibraries, isLoading: librariesLoading, updateLibrary: updateOrgLibrary, createLibrary: createOrgLibrary } = useIconLibraries(organizationId);
+
+  // Calculate inherited icons summary
+  const inheritedSummary = useMemo(() => {
+    const coreIconCount = coreLibraries.reduce((sum, lib) => sum + lib.icons.length, 0);
+    const productLineIconCount = productLineLibraries
+      .filter(lib => !productLineId || lib.id === productLineId)
+      .reduce((sum, lib) => sum + lib.icons.length, 0);
+    
+    return {
+      coreCount: coreIconCount,
+      productLineCount: productLineIconCount,
+      totalInherited: coreIconCount + productLineIconCount,
+      coreLibraryNames: coreLibraries.map(l => l.name),
+      productLineLibraryNames: productLineLibraries
+        .filter(lib => !productLineId || lib.id === productLineId)
+        .map(l => l.name),
+    };
+  }, [coreLibraries, productLineLibraries, productLineId]);
+  
+  const toggleCategoryExpanded = (category: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(category)) {
+        next.delete(category);
+      } else {
+        next.add(category);
+      }
+      return next;
+    });
+  };
+  
+  // Handle color change and persist to brand settings
+  const handleColorChange = (color: string) => {
+    setIconColor(color);
+    onDefaultIconColorChange?.(color);
+  };
+
+  // Determine if editing is allowed
+  const canEdit = !!onIconographyChange;
+
+  // Add brand icons to an org library
+  const handleAddToOrgLibrary = useCallback(async () => {
+    if (iconography.length === 0) {
+      toast.error('No icons to add');
+      return;
+    }
+    
+    if (addToLibraryTargetId === '__new__') {
+      // Create new core library with current brand icons
+      createOrgLibrary.mutate({
+        organization_id: organizationId || '',
+        name: `${entityName || 'Brand'} Icons`,
+        level: 'core' as const,
+        description: `Icons imported from ${entityName || 'brand'} guide`,
+        icons: iconography,
+      });
+      toast.success(`Created new library with ${iconography.length} icons`);
+    } else if (addToLibraryTargetId) {
+      const targetLib = libraries.find(l => l.id === addToLibraryTargetId);
+      if (targetLib) {
+        // Deduplicate by name to avoid duplicates
+        const existingNames = new Set(targetLib.icons.map(i => i.name));
+        const newIcons = iconography.filter(i => !existingNames.has(i.name));
+        if (newIcons.length === 0) {
+          toast.info('All icons already exist in this library');
+        } else {
+          updateOrgLibrary.mutate({
+            id: addToLibraryTargetId,
+            updates: { icons: [...targetLib.icons, ...newIcons] },
+          });
+          toast.success(`Added ${newIcons.length} icon(s) to ${targetLib.name}`);
+        }
+      }
+    }
+    setShowAddToLibrary(false);
+    setAddToLibraryTargetId('');
+  }, [iconography, addToLibraryTargetId, libraries, organizationId, entityName, updateOrgLibrary, createOrgLibrary]);
+
+  const addIcon = () => {
+    if (!onIconographyChange) return;
+    const newIcon: BrandIconography = {
+      id: crypto.randomUUID(),
+      name: 'New Icon',
+      svgPath: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+      category: 'Other',
+      viewBox: '0 0 24 24',
+      fillMode: 'stroke',
+    };
+    onIconographyChange([...iconography, newIcon]);
+    setEditingId(newIcon.id);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newIcons: BrandIconography[] = [];
+
+    for (const file of Array.from(files)) {
+      if (!file.name.endsWith('.svg')) {
+        toast.error(`${file.name} is not an SVG file`);
+        continue;
+      }
+
+      try {
+        const rawText = await file.text();
+        const cleanedSvg = cleanSvg(rawText, file.name.replace('.svg', ''));
+        const viewBox = extractViewBox(cleanedSvg);
+        const detectedFillMode = detectFillMode(cleanedSvg);
+        const fillMode: 'stroke' | 'fill' = detectedFillMode === 'stroke' ? 'stroke' : 'fill';
+
+        newIcons.push({
+          id: crypto.randomUUID(),
+          name: file.name.replace('.svg', ''),
+          svgPath: cleanedSvg,
+          category: 'Other',
+          viewBox,
+          fillMode,
+        });
+      } catch (err) {
+        toast.error(`Failed to parse ${file.name}`);
+        console.error(err);
+      }
+    }
+
+    if (newIcons.length > 0) {
+      onIconographyChange([...iconography, ...newIcons]);
+      toast.success(`Added ${newIcons.length} icon(s)`);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const updateIcon = (id: string, updates: Partial<BrandIconography>) => {
+    if (!onIconographyChange) return;
+    onIconographyChange(iconography.map(i => i.id === id ? { ...i, ...updates } : i));
+  };
+
+  const deleteIcon = (id: string) => {
+    if (!onIconographyChange) return;
+    onIconographyChange(iconography.filter(i => i.id !== id));
+    if (editingId === id) setEditingId(null);
+  };
+
   const getSVGString = (icon: BrandIconography) => {
-    const normalizedSvg = buildSvgString(icon);
-    return DOMPurify.sanitize(normalizedSvg, SVG_SANITIZE_CONFIG);
+    const viewBox = icon.viewBox || '0 0 24 24';
+    const isFullContent = icon.svgPath.includes('<');
+    
+    // SECURITY: Sanitize content before export (belt-and-suspenders)
+    const sanitizedPath = DOMPurify.sanitize(icon.svgPath, SVG_SANITIZE_CONFIG);
+    
+    const innerContent = isFullContent 
+      ? sanitizedPath 
+      : `<path d="${sanitizedPath}" ${icon.fillMode === 'fill' ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2"'}/>`;
+    
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${innerContent}</svg>`;
   };
 
   const copySVG = async (icon: BrandIconography) => {
@@ -165,8 +399,7 @@ ${innerContent}
     const isFullContent = icon.svgPath.includes('<');
 
     if (isFullContent) {
-      const normalizedSvg = buildSvgString(icon);
-      const sanitizedSvg = DOMPurify.sanitize(normalizedSvg, {
+      const sanitizedSvg = DOMPurify.sanitize(buildSvgString(icon), {
         USE_PROFILES: { svg: true, svgFilters: true },
         FORBID_TAGS: ['script', 'foreignObject', 'use', 'animate', 'animateTransform', 'set'],
         FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout', 'onmousemove', 'onfocus', 'onblur', 'onanimationend', 'onanimationiteration', 'onanimationstart', 'ontransitionend'],
