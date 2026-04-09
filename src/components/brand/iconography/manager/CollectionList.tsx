@@ -32,6 +32,7 @@ import { IconLibrary } from '@/hooks/useIconLibraries';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
 import DOMPurify from 'dompurify';
+import { IconPreviewGrid } from './IconPreviewGrid';
 import { LEVEL_BADGES } from './constants';
 
 interface CollectionListProps {
