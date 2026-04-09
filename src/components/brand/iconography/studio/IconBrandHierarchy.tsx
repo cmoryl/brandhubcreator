@@ -44,6 +44,7 @@ import {
   PartyPopper,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { buildSvgString } from '@/lib/svgUtils';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import { 
@@ -122,7 +123,7 @@ export const IconBrandHierarchy: React.FC<IconBrandHierarchyProps> = ({
 
   // Render sanitized SVG
   const renderSvg = (svg: string, size: number = 32) => {
-    const sanitized = DOMPurify.sanitize(svg, {
+    const sanitized = DOMPurify.sanitize(buildSvgString({ svgPath: svg, fillMode: 'fill' }), {
       USE_PROFILES: { svg: true, svgFilters: true },
       FORBID_TAGS: ['script', 'foreignObject'],
     });
