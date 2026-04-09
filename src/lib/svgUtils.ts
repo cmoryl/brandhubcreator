@@ -437,3 +437,39 @@ export const buildSvgString = (icon: { svgPath: string; viewBox?: string; fillMo
   const strokeWidth = icon.fillMode === 'stroke' ? ' stroke-width="2"' : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="${fill}" stroke="${stroke}"${strokeWidth}><path d="${icon.svgPath}"/></svg>`;
 };
+
+// ── Color Variant Generation ──
+
+export type IconColorVariant = 'original' | 'black' | 'white';
+
+export interface IconColorVariants {
+  original: string;
+  black: string;
+  white: string;
+}
+
+/**
+ * Generate black and white color variants of an SVG icon.
+ * Uses DOM-based recoloring for accurate results on complex multi-element SVGs.
+ */
+export const generateColorVariants = (svgOrPath: string, icon?: { viewBox?: string; fillMode?: 'fill' | 'stroke' }): IconColorVariants => {
+  // Normalize to full SVG first
+  const fullSvg = svgOrPath.trim().startsWith('<svg')
+    ? svgOrPath
+    : buildSvgString({ svgPath: svgOrPath, viewBox: icon?.viewBox, fillMode: icon?.fillMode });
+
+  return {
+    original: fullSvg,
+    black: recolorSvg(fullSvg, '#000000'),
+    white: recolorSvg(fullSvg, '#FFFFFF'),
+  };
+};
+
+/**
+ * Apply a color variant to an SVG string.
+ * Returns the original SVG if variant is 'original', otherwise recolors.
+ */
+export const applyColorVariant = (svg: string, variant: IconColorVariant): string => {
+  if (variant === 'original') return svg;
+  return recolorSvg(svg, variant === 'black' ? '#000000' : '#FFFFFF');
+};
