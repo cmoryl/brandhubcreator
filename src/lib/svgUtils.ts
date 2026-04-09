@@ -97,13 +97,15 @@ export const cleanSvg = (svg: string, iconName?: string): string => {
 
   // Strip editor metadata attributes
   const metadataAttrs = ['data-name', 'data-old-hPosition', 'data-old-vPosition', 'xml:space', 'enable-background'];
+  const allElements = [svgEl, ...Array.from(svgEl.querySelectorAll('*'))];
   metadataAttrs.forEach(attr => {
-    svgEl.querySelectorAll(`[${attr}]`).forEach(el => el.removeAttribute(attr));
-    svgEl.removeAttribute(attr);
+    allElements.forEach(el => el.removeAttribute(attr));
   });
 
   // Remove Illustrator/Sketch metadata elements
-  svgEl.querySelectorAll('metadata, sodipodi\\:namedview, inkscape\\:grid').forEach(el => el.remove());
+  svgEl.querySelectorAll('metadata').forEach(el => el.remove());
+  Array.from(svgEl.getElementsByTagNameNS('*', 'namedview')).forEach(el => el.remove());
+  Array.from(svgEl.getElementsByTagNameNS('*', 'grid')).forEach(el => el.remove());
 
   // Remove empty <g> groups (no children after cleanup)
   const removeEmptyGroups = (parent: Element) => {

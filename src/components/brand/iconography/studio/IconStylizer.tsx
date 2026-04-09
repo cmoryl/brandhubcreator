@@ -117,6 +117,7 @@ export const IconStylizer = ({
           const cleaned = cleanSvg(sanitized, file.name.replace(/\.svg$/i, '').replace(/[-_]/g, ' '));
           const viewBox = extractViewBox(cleaned);
           const fillMode = detectFillMode(cleaned);
+          console.log('[IconStylizer] Parsed SVG ok:', file.name, { viewBox, fillMode, cleanedLength: cleaned.length });
           icons.push({
             id: `svg-upload-${Date.now()}-${icons.length}`,
             name: file.name.replace(/\.svg$/i, '').replace(/[-_]/g, ' '),
@@ -126,8 +127,8 @@ export const IconStylizer = ({
             fillMode: fillMode === 'auto' ? 'fill' : fillMode,
           });
         }
-      } catch {
-        console.warn('Failed to read SVG file:', file.name);
+      } catch (err) {
+        console.warn('[IconStylizer] Failed to read SVG file:', file.name, err);
       }
     }
     console.log('[IconStylizer] Total valid icons parsed:', icons.length);
