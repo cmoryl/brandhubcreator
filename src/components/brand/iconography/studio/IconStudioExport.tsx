@@ -27,7 +27,7 @@ import {
 import { cn } from '@/lib/utils';
 import { BrandIconography } from '@/types/brand';
 import { IconLibrary } from '@/hooks/useIconLibraries';
-import DOMPurify from 'dompurify';
+import { sanitizeSvg, buildSvgString } from '@/lib/svgUtils';
 import { toast } from 'sonner';
 
 interface IconStudioExportProps {

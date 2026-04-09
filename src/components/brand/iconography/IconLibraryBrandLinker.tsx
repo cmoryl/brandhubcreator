@@ -17,7 +17,7 @@ import { IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { useBrands } from '@/contexts/BrandContext';
 import { cn } from '@/lib/utils';
-import DOMPurify from 'dompurify';
+import { sanitizeSvg } from '@/lib/svgUtils';
 
 interface IconLibraryBrandLinkerProps {
   organizationId: string;
