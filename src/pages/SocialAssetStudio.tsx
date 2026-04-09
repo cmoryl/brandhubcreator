@@ -115,7 +115,7 @@ const SocialAssetStudio = () => {
   const totalDraft = placements.filter(p => p.status === 'draft').length;
   const totalWithAssets = placements.filter(p => p.image_url).length;
 
-  const isAdmin = true; // TODO: wire to useGuideAdmin
+  const { canEdit: isAdmin } = useGuideAdmin({ entityOrgId: organization?.id });
 
   // Extract brand context for AI analysis
   const brandContext: BrandContext | undefined = useMemo(() => {
