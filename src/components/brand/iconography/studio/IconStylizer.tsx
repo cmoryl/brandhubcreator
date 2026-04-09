@@ -35,6 +35,14 @@ import { cn } from '@/lib/utils';
 import { sanitizeSvg, extractViewBox, detectFillMode, cleanSvg } from '@/lib/svgUtils';
 import { useStylizer, StylizerOptions } from '@/hooks/useStylizer';
 import { BrandIconography } from '@/types/brand';
+import DOMPurify from 'dompurify';
+
+interface IconStylizerProps {
+  brandColors: string[];
+  onIconCreated: (icon: BrandIconography) => void;
+}
+
+type StylizerStage = 'upload' | 'adjust' | 'review';
 
 export const IconStylizer = ({
   brandColors,

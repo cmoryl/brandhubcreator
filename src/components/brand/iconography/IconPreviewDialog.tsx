@@ -16,6 +16,14 @@ import { cn } from '@/lib/utils';
 import { sanitizeSvg, recolorSvg } from '@/lib/svgUtils';
 import { toast } from 'sonner';
 
+interface IconPreviewDialogProps {
+  icon: BrandIconography | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpdateIcon?: (icon: BrandIconography) => void;
+  brandColors?: string[];
+}
+
 export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, brandColors = [] }: IconPreviewDialogProps) => {
   const [zoom, setZoom] = useState(100);
   const [copied, setCopied] = useState(false);
@@ -26,11 +34,7 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, bran
   const viewBox = icon?.viewBox || '0 0 24 24';
   const isFullSvg = icon?.svgPath?.includes('<') ?? false;
   const isCompleteSvg = isFullSvg && (icon?.svgPath?.trim().startsWith('<svg') ?? false);
-
-  // Alias for backward compat with sanitize calls below
   const sanitize = sanitizeSvg;
-  const isFullSvg = icon?.svgPath?.includes('<') ?? false;
-  const isCompleteSvg = isFullSvg && (icon?.svgPath?.trim().startsWith('<svg') ?? false);
 
   const displaySvg = useMemo(() => {
     if (!icon?.svgPath) return '';
