@@ -85,6 +85,18 @@ export const IconStylizer = ({
     reset,
   } = useStylizer(brandColors);
 
+  // Flush pending SVG imports to library on unmount (e.g. navigating away)
+  const onIconCreatedRef = useRef(onIconCreated);
+  onIconCreatedRef.current = onIconCreated;
+  useEffect(() => {
+    return () => {
+      if (pendingImportsRef.current.length > 0) {
+        pendingImportsRef.current.forEach(icon => onIconCreatedRef.current(icon));
+        pendingImportsRef.current = [];
+      }
+    };
+  }, []);
+
   // ── File Classification ──
   const isSvgFile = (file: File) =>
     file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg');
