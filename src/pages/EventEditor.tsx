@@ -630,21 +630,21 @@ const EventEditor = () => {
         return (
           <EventSpeakersSection
             speakers={event.eventSpeakers || []}
-            onUpdate={(eventSpeakers) => updateEvent({ eventSpeakers })}
+            onUpdate={canEdit ? (eventSpeakers) => updateEvent({ eventSpeakers }) : () => {}}
             isEditable={canEdit || false}
             eventId={event?.id}
           />
         );
       case 'eventsponsors':
-        return <EventSponsorsSection sponsors={event.eventSponsors || []} onUpdate={(eventSponsors) => updateEvent({ eventSponsors })} isEditable={canEdit || false} />;
+        return <EventSponsorsSection sponsors={event.eventSponsors || []} onUpdate={canEdit ? (eventSponsors) => updateEvent({ eventSponsors }) : () => {}} isEditable={canEdit || false} />;
       case 'eventschedule':
-        return <EventScheduleSection schedule={event.eventSchedule || []} onUpdate={(eventSchedule) => updateEvent({ eventSchedule })} speakers={event.eventSpeakers || []} isEditable={canEdit || false} eventName={event.hero.name || event.eventDetails?.eventName || 'Event'} eventDates={event.eventDetails?.eventDates} eventLocation={event.eventDetails?.location} />;
+        return <EventScheduleSection schedule={event.eventSchedule || []} onUpdate={canEdit ? (eventSchedule) => updateEvent({ eventSchedule }) : () => {}} speakers={event.eventSpeakers || []} isEditable={canEdit || false} eventName={event.hero.name || event.eventDetails?.eventName || 'Event'} eventDates={event.eventDetails?.eventDates} eventLocation={event.eventDetails?.location} />;
       case 'eventhistory':
-        return <EventHistorySection history={event.eventHistory || []} onUpdate={(eventHistory) => updateEvent({ eventHistory })} isEditable={canEdit || false} />;
+        return <EventHistorySection history={event.eventHistory || []} onUpdate={canEdit ? (eventHistory) => updateEvent({ eventHistory }) : () => {}} isEditable={canEdit || false} />;
       case 'eventvideos':
-        return <EventVideosSection videos={event.eventVideos || []} onUpdate={(eventVideos) => updateEvent({ eventVideos })} isEditable={canEdit || false} />;
+        return <EventVideosSection videos={event.eventVideos || []} onUpdate={canEdit ? (eventVideos) => updateEvent({ eventVideos }) : () => {}} isEditable={canEdit || false} />;
       case 'eventlocation':
-        return <EventLocationSection location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} onUpdate={(eventLocation) => updateEvent({ eventLocation })} isEditable={canEdit || false} />;
+        return <EventLocationSection location={event.eventLocation || { venueName: '', address: '', city: '', country: '', venueMaps: [] }} onUpdate={canEdit ? (eventLocation) => updateEvent({ eventLocation }) : () => {}} isEditable={canEdit || false} />;
       case 'assets': 
         return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} websiteUrl={(event as any).websites?.[0]?.url} entityId={event.id} entityType="event" />;
       case 'misuse': 
