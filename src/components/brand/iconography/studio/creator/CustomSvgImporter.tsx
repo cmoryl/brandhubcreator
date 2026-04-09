@@ -13,18 +13,12 @@ import { Code, Plus, Upload, FileUp, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
-import DOMPurify from 'dompurify';
+import { sanitizeSvg, cleanSvg, extractViewBox, detectFillMode } from '@/lib/svgUtils';
 
 interface CustomSvgImporterProps {
   selectedLibraryId: string;
   onSaveIcons: (icons: BrandIconography[], libraryId?: string) => void;
 }
-
-const sanitizeSvg = (raw: string): string =>
-  DOMPurify.sanitize(raw.trim(), {
-    USE_PROFILES: { svg: true, svgFilters: true },
-    FORBID_TAGS: ['script', 'foreignObject'],
-  });
 
 export const CustomSvgImporter = ({
   selectedLibraryId,

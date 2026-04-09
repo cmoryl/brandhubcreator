@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { sanitizeSvg, extractViewBox, detectFillMode, cleanSvg } from '@/lib/svgUtils';
+import { sanitizeSvg, extractViewBox, detectFillMode, cleanSvg, validateSvg } from '@/lib/svgUtils';
 import { useStylizer, StylizerOptions } from '@/hooks/useStylizer';
 import { BrandIconography } from '@/types/brand';
 import DOMPurify from 'dompurify';

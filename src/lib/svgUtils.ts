@@ -205,6 +205,195 @@ export const recolorSvg = (svg: string, color: string): string => {
   return new XMLSerializer().serializeToString(svgEl);
 };
 
+// ── Multi-Color Extraction & Mapping ──
+
+/** Extract all unique colors used in an SVG (fills and strokes, excluding none/currentColor/url) */
+export const extractSvgColors = (svg: string): string[] => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svg, 'image/svg+xml');
+  const svgEl = doc.querySelector('svg');
+  if (!svgEl) return [];
+
+  const colors = new Set<string>();
+
+  const extractFromElement = (el: Element) => {
+    const fill = el.getAttribute('fill');
+    if (fill && fill !== 'none' && !fill.startsWith('url(') && fill !== 'currentColor') {
+      colors.add(fill.toLowerCase());
+    }
+    const stroke = el.getAttribute('stroke');
+    if (stroke && stroke !== 'none' && !stroke.startsWith('url(') && stroke !== 'currentColor') {
+      colors.add(stroke.toLowerCase());
+    }
+    // Check inline styles
+    const style = el.getAttribute('style');
+    if (style) {
+      const fillMatch = style.match(/fill\s*:\s*(?!none|url\()([^;}"]+)/i);
+      if (fillMatch) colors.add(fillMatch[1].trim().toLowerCase());
+      const strokeMatch = style.match(/stroke\s*:\s*(?!none|url\()([^;}"]+)/i);
+      if (strokeMatch) colors.add(strokeMatch[1].trim().toLowerCase());
+    }
+  };
+
+  extractFromElement(svgEl);
+  svgEl.querySelectorAll('*').forEach(extractFromElement);
+
+  // Also check <style> blocks
+  svgEl.querySelectorAll('style').forEach(styleEl => {
+    if (styleEl.textContent) {
+      const fillMatches = styleEl.textContent.matchAll(/fill\s*:\s*(?!none|url\()([^;}"]+)/gi);
+      for (const m of fillMatches) colors.add(m[1].trim().toLowerCase());
+      const strokeMatches = styleEl.textContent.matchAll(/stroke\s*:\s*(?!none|url\()([^;}"]+)/gi);
+      for (const m of strokeMatches) colors.add(m[1].trim().toLowerCase());
+    }
+  });
+
+  return Array.from(colors);
+};
+
+/** Recolor SVG with a color map: { oldColor → newColor } for multi-color replacement */
+export const recolorSvgMulti = (svg: string, colorMap: Record<string, string>): string => {
+  if (!svg || Object.keys(colorMap).length === 0) return svg;
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svg, 'image/svg+xml');
+  const svgEl = doc.querySelector('svg');
+  if (!svgEl) return svg;
+
+  const normalizeColor = (c: string) => c.toLowerCase().trim();
+  const map = new Map(Object.entries(colorMap).map(([k, v]) => [normalizeColor(k), v]));
+
+  const remapElement = (el: Element) => {
+    const fill = el.getAttribute('fill');
+    if (fill && !fill.startsWith('url(') && fill !== 'none' && fill !== 'currentColor') {
+      const mapped = map.get(normalizeColor(fill));
+      if (mapped) el.setAttribute('fill', mapped);
+    }
+    const stroke = el.getAttribute('stroke');
+    if (stroke && !stroke.startsWith('url(') && stroke !== 'none' && stroke !== 'currentColor') {
+      const mapped = map.get(normalizeColor(stroke));
+      if (mapped) el.setAttribute('stroke', mapped);
+    }
+    const style = el.getAttribute('style');
+    if (style) {
+      let newStyle = style;
+      for (const [from, to] of map.entries()) {
+        const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        newStyle = newStyle.replace(new RegExp(escaped, 'gi'), to);
+      }
+      el.setAttribute('style', newStyle);
+    }
+  };
+
+  remapElement(svgEl);
+  svgEl.querySelectorAll('*').forEach(remapElement);
+
+  // Handle <style> blocks
+  svgEl.querySelectorAll('style').forEach(styleEl => {
+    if (styleEl.textContent) {
+      let css = styleEl.textContent;
+      for (const [from, to] of map.entries()) {
+        const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        css = css.replace(new RegExp(escaped, 'gi'), to);
+      }
+      styleEl.textContent = css;
+    }
+  });
+
+  return new XMLSerializer().serializeToString(svgEl);
+};
+
+// ── SVG Validation & Quality Scoring ──
+
+export interface SvgValidationResult {
+  anchorPoints: number;
+  fileSize: number; // bytes
+  hasViewBox: boolean;
+  hasXmlns: boolean;
+  hasAccessibility: boolean; // role="img" or aria-label or <title>
+  fillMode: 'fill' | 'stroke' | 'auto';
+  viewBox: string;
+  colorCount: number;
+  elementCount: number;
+  score: number; // 0-100
+  issues: SvgIssue[];
+}
+
+export interface SvgIssue {
+  severity: 'pass' | 'warn' | 'fail';
+  label: string;
+  detail: string;
+}
+
+/** Validate and score an SVG for production quality */
+export const validateSvg = (svg: string): SvgValidationResult => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svg, 'image/svg+xml');
+  const svgEl = doc.querySelector('svg');
+
+  const fileSize = new Blob([svg]).size;
+  const issues: SvgIssue[] = [];
+  let score = 100;
+
+  if (!svgEl) {
+    return {
+      anchorPoints: 0, fileSize, hasViewBox: false, hasXmlns: false,
+      hasAccessibility: false, fillMode: 'auto', viewBox: '', colorCount: 0,
+      elementCount: 0, score: 0,
+      issues: [{ severity: 'fail', label: 'Invalid SVG', detail: 'No <svg> element found' }],
+    };
+  }
+
+  // Count anchor points (path commands)
+  let anchorPoints = 0;
+  svgEl.querySelectorAll('path').forEach(path => {
+    const d = path.getAttribute('d') || '';
+    // Count command letters (M, L, C, Q, A, S, T, H, V, Z)
+    anchorPoints += (d.match(/[MLCQASTHVZ]/gi) || []).length;
+  });
+
+  const hasViewBox = !!svgEl.getAttribute('viewBox');
+  const hasXmlns = !!svgEl.getAttribute('xmlns');
+  const hasTitle = !!svgEl.querySelector('title');
+  const hasAriaLabel = !!svgEl.getAttribute('aria-label');
+  const hasRole = svgEl.getAttribute('role') === 'img';
+  const hasAccessibility = hasTitle || hasAriaLabel || hasRole;
+
+  const elements = svgEl.querySelectorAll('path, circle, rect, line, polyline, polygon, ellipse, text, use');
+  const elementCount = elements.length;
+
+  const fillMode = detectFillMode(svg);
+  const viewBox = extractViewBox(svg);
+  const colors = extractSvgColors(svg);
+
+  // Scoring
+  if (!hasViewBox) { score -= 15; issues.push({ severity: 'fail', label: 'Missing viewBox', detail: 'SVG needs a viewBox for proper scaling' }); }
+  else { issues.push({ severity: 'pass', label: 'viewBox present', detail: viewBox }); }
+
+  if (!hasXmlns) { score -= 10; issues.push({ severity: 'warn', label: 'Missing xmlns', detail: 'Required for standalone SVG use' }); }
+  else { issues.push({ severity: 'pass', label: 'xmlns present', detail: '' }); }
+
+  if (!hasAccessibility) { score -= 10; issues.push({ severity: 'warn', label: 'No accessibility', detail: 'Add role="img" and <title> for screen readers' }); }
+  else { issues.push({ severity: 'pass', label: 'Accessible', detail: hasTitle ? 'Has <title>' : 'Has aria-label' }); }
+
+  if (anchorPoints > 200) { score -= 20; issues.push({ severity: 'fail', label: 'Too complex', detail: `${anchorPoints} anchor points (target: <50)` }); }
+  else if (anchorPoints > 100) { score -= 10; issues.push({ severity: 'warn', label: 'High complexity', detail: `${anchorPoints} anchor points (target: <50)` }); }
+  else if (anchorPoints > 50) { score -= 5; issues.push({ severity: 'warn', label: 'Moderate complexity', detail: `${anchorPoints} anchor points` }); }
+  else { issues.push({ severity: 'pass', label: 'Clean paths', detail: `${anchorPoints} anchor points` }); }
+
+  if (fileSize > 10240) { score -= 15; issues.push({ severity: 'fail', label: 'Large file', detail: `${(fileSize / 1024).toFixed(1)}KB (target: <2KB)` }); }
+  else if (fileSize > 4096) { score -= 5; issues.push({ severity: 'warn', label: 'File size', detail: `${(fileSize / 1024).toFixed(1)}KB` }); }
+  else { issues.push({ severity: 'pass', label: 'Compact', detail: `${(fileSize / 1024).toFixed(1)}KB` }); }
+
+  if (elementCount === 0) { score -= 10; issues.push({ severity: 'fail', label: 'Empty SVG', detail: 'No drawable elements found' }); }
+
+  return {
+    anchorPoints, fileSize, hasViewBox, hasXmlns, hasAccessibility,
+    fillMode, viewBox, colorCount: colors.length, elementCount,
+    score: Math.max(0, score), issues,
+  };
+};
+
 // ── Ensure Attributes ──
 
 /** Ensure SVG has required attributes for external use (xmlns, viewBox) */
@@ -222,4 +411,27 @@ export const ensureAttributes = (svg: string, viewBox?: string): string => {
   }
 
   return new XMLSerializer().serializeToString(svgEl);
+};
+
+// ── Build full SVG string from icon data ──
+
+/** Generate a complete SVG string from a BrandIconography object */
+export const buildSvgString = (icon: { svgPath: string; viewBox?: string; fillMode?: string; name?: string }): string => {
+  const viewBox = icon.viewBox || '0 0 24 24';
+  const isFullSvg = icon.svgPath.trim().startsWith('<');
+  const isComplete = isFullSvg && icon.svgPath.trim().startsWith('<svg');
+
+  if (isComplete) {
+    return sanitizeSvg(icon.svgPath);
+  }
+
+  if (isFullSvg) {
+    const inner = sanitizeSvg(icon.svgPath);
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="currentColor">${inner}</svg>`;
+  }
+
+  const fill = icon.fillMode === 'fill' ? 'currentColor' : 'none';
+  const stroke = icon.fillMode === 'stroke' ? 'currentColor' : 'none';
+  const strokeWidth = icon.fillMode === 'stroke' ? ' stroke-width="2"' : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="${fill}" stroke="${stroke}"${strokeWidth}><path d="${icon.svgPath}"/></svg>`;
 };

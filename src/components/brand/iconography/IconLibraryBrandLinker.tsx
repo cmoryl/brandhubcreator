@@ -17,7 +17,7 @@ import { IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { useBrands } from '@/contexts/BrandContext';
 import { cn } from '@/lib/utils';
-import DOMPurify from 'dompurify';
+import { sanitizeSvg } from '@/lib/svgUtils';
 
 interface IconLibraryBrandLinkerProps {
   organizationId: string;
@@ -85,11 +85,11 @@ export const IconLibraryBrandLinker = ({ organizationId, libraries }: IconLibrar
               {isComplete ? (
                 <div
                   className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:block"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(icon.svgPath, { USE_PROFILES: { svg: true, svgFilters: true }, FORBID_TAGS: ['script', 'foreignObject'] }) }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(icon.svgPath) }}
                 />
               ) : isFullSvg ? (
                 <svg viewBox={icon.viewBox || '0 0 24 24'} className="w-full h-full" fill="currentColor">
-                  <g dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(icon.svgPath) }} />
+                  <g dangerouslySetInnerHTML={{ __html: sanitizeSvg(icon.svgPath) }} />
                 </svg>
               ) : (
                 <svg viewBox={icon.viewBox || '0 0 24 24'} fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
