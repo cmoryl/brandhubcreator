@@ -155,13 +155,13 @@ export const recolorSvg = (svg: string, color: string): string => {
   const recolorElement = (el: Element) => {
     // Handle fill attribute
     const fill = el.getAttribute('fill');
-    if (fill && fill !== 'none' && !fill.startsWith('url(') && fill !== 'currentColor') {
+    if (fill && fill !== 'none' && !fill.startsWith('url(')) {
       el.setAttribute('fill', color);
     }
 
     // Handle stroke attribute
     const stroke = el.getAttribute('stroke');
-    if (stroke && stroke !== 'none' && !stroke.startsWith('url(') && stroke !== 'currentColor') {
+    if (stroke && stroke !== 'none' && !stroke.startsWith('url(')) {
       el.setAttribute('stroke', color);
     }
 
