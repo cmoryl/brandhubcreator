@@ -884,16 +884,26 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
           <div id="pdf-section-iconography" className={cn("py-6 border-b", t.border)} key="iconography">
             <h2 className={cn("text-xl font-bold mb-3", t.text)}>Iconography</h2>
             <div className="grid grid-cols-6 gap-2">
-              {guide.iconography.slice(0, 24).map((icon) => (
-                <div key={icon.id} className={cn("p-2 rounded-lg text-center pdf-avoid-break", t.card)}>
-                  <div className="h-6 flex items-center justify-center mb-0.5">
-                    <svg className="w-5 h-5" viewBox={icon.viewBox || "0 0 24 24"} fill="currentColor">
-                      <path d={icon.svgPath} />
-                    </svg>
+              {guide.iconography.slice(0, 24).map((icon) => {
+                const isFullSvg = icon.svgPath?.includes('<');
+                return (
+                  <div key={icon.id} className={cn("p-2 rounded-lg text-center pdf-avoid-break", t.card)}>
+                    <div className="h-6 flex items-center justify-center mb-0.5">
+                      {isFullSvg ? (
+                        <div
+                          className="w-5 h-5 [&>svg]:w-full [&>svg]:h-full [&>svg]:block"
+                          dangerouslySetInnerHTML={{ __html: icon.svgPath }}
+                        />
+                      ) : (
+                        <svg className="w-5 h-5" viewBox={icon.viewBox || "0 0 24 24"} fill="currentColor">
+                          <path d={icon.svgPath} />
+                        </svg>
+                      )}
+                    </div>
+                    <p className={cn("text-xs truncate", t.text)}>{icon.name}</p>
                   </div>
-                  <p className={cn("text-xs truncate", t.text)}>{icon.name}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
             {guide.iconography.length > 24 && (
               <p className={cn("text-xs mt-2 text-center", t.textMuted)}>
