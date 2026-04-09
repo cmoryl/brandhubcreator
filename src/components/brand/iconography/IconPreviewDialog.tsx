@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BrandIconography } from '@/types/brand';
 import { cn } from '@/lib/utils';
-import DOMPurify from 'dompurify';
+import { sanitizeSvg, recolorSvg } from '@/lib/svgUtils';
 import { toast } from 'sonner';
 
 interface IconPreviewDialogProps {
@@ -23,24 +23,6 @@ interface IconPreviewDialogProps {
   onUpdateIcon?: (icon: BrandIconography) => void;
   brandColors?: string[];
 }
-
-const sanitize = (svg: string) =>
-  DOMPurify.sanitize(svg, {
-    USE_PROFILES: { svg: true, svgFilters: true },
-    FORBID_TAGS: ['script', 'foreignObject'],
-  });
-
-/** Replace fill/stroke colors in SVG markup */
-const recolorSvg = (svg: string, color: string): string => {
-  if (!color) return svg;
-  // Replace fill="..." and stroke="..." (but not fill="none" or stroke="none")
-  let result = svg.replace(/fill="(?!none)[^"]*"/gi, `fill="${color}"`);
-  result = result.replace(/stroke="(?!none)[^"]*"/gi, `stroke="${color}"`);
-  // Also handle style attributes with fill/stroke
-  result = result.replace(/fill:\s*(?!none)[^;}"]+/gi, `fill: ${color}`);
-  result = result.replace(/stroke:\s*(?!none)[^;}"]+/gi, `stroke: ${color}`);
-  return result;
-};
 
 export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, brandColors = [] }: IconPreviewDialogProps) => {
   const [zoom, setZoom] = useState(100);
@@ -52,6 +34,7 @@ export const IconPreviewDialog = ({ icon, open, onOpenChange, onUpdateIcon, bran
   const viewBox = icon?.viewBox || '0 0 24 24';
   const isFullSvg = icon?.svgPath?.includes('<') ?? false;
   const isCompleteSvg = isFullSvg && (icon?.svgPath?.trim().startsWith('<svg') ?? false);
+  const sanitize = sanitizeSvg;
 
   const displaySvg = useMemo(() => {
     if (!icon?.svgPath) return '';

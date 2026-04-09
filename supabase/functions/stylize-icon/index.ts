@@ -189,45 +189,61 @@ Analyze the image and create a semantic, iconic SVG representation. Output ONLY 
 
     let svg = svgMatch[0];
 
-    // Post-process the SVG
-    // 1. Ensure xmlns
-    if (!svg.includes('xmlns=')) {
-      svg = svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+    // ── Single-pass attribute builder ──
+    // Parse existing attributes from <svg> tag, merge defaults, rebuild
+    const svgOpenMatch = svg.match(/<svg([^>]*)>/i);
+    if (svgOpenMatch) {
+      const existingAttrs = svgOpenMatch[1];
+      const attrMap = new Map<string, string>();
+
+      // Parse existing attributes
+      const attrRegex = /(\S+?)=["']([^"']*)["']/g;
+      let m;
+      while ((m = attrRegex.exec(existingAttrs)) !== null) {
+        attrMap.set(m[1].toLowerCase(), m[2]);
+      }
+
+      // Set defaults (only if not already present)
+      if (!attrMap.has('xmlns')) attrMap.set('xmlns', 'http://www.w3.org/2000/svg');
+      if (!attrMap.has('viewbox')) attrMap.set('viewBox', '0 0 24 24');
+
+      // Apply fill mode
+      if (fillMode === 'stroke') {
+        attrMap.set('fill', 'none');
+        if (!attrMap.has('stroke')) attrMap.set('stroke', 'currentColor');
+      } else if (fillMode === 'fill') {
+        attrMap.set('stroke', 'none');
+        if (!attrMap.has('fill')) attrMap.set('fill', 'currentColor');
+      }
+
+      // Apply stroke width (override)
+      if (fillMode !== 'fill') {
+        attrMap.set('stroke-width', String(strokeWidth));
+      }
+
+      // Ensure rounded caps/joins
+      if (!attrMap.has('stroke-linecap')) attrMap.set('stroke-linecap', 'round');
+      if (!attrMap.has('stroke-linejoin')) attrMap.set('stroke-linejoin', 'round');
+
+      // Add accessibility
+      attrMap.set('role', 'img');
+
+      // Rebuild <svg> opening tag with deduplicated attributes
+      const attrsStr = Array.from(attrMap.entries())
+        .map(([k, v]) => `${k}="${v}"`)
+        .join(' ');
+      
+      const svgBody = svg.slice(svgOpenMatch[0].length);
+      svg = `<svg ${attrsStr}>${svgBody.startsWith('</svg>') ? '</svg>' : svgBody}`;
     }
 
-    // 2. Ensure viewBox
-    if (!svg.includes('viewBox=')) {
-      svg = svg.replace('<svg', '<svg viewBox="0 0 24 24"');
-    }
-
-    // 3. Apply fill mode
+    // Also strip fill/stroke from child elements for stroke-only mode
     if (fillMode === 'stroke') {
-      svg = svg.replace(/fill="(?!none)[^"]*"/gi, 'fill="none"');
-      if (!svg.includes('stroke=')) {
-        svg = svg.replace('<svg', '<svg stroke="currentColor"');
-      }
-    } else if (fillMode === 'fill') {
-      svg = svg.replace(/stroke="(?!none)[^"]*"/gi, 'stroke="none"');
-      if (!svg.includes('fill=')) {
-        svg = svg.replace('<svg', '<svg fill="currentColor"');
-      }
+      svg = svg.replace(/<(path|circle|rect|line|polyline|polygon|ellipse)([^>]*)\bfill="(?!none)[^"]*"/gi, 
+        '<$1$2fill="none"');
     }
 
-    // 4. Apply stroke width
-    svg = svg.replace(/stroke-width="[^"]*"/gi, `stroke-width="${strokeWidth}"`);
-    if (!svg.includes('stroke-width=') && fillMode !== 'fill') {
-      svg = svg.replace('<svg', `<svg stroke-width="${strokeWidth}"`);
-    }
-
-    // 5. Add rounded caps/joins
-    if (!svg.includes('stroke-linecap=')) {
-      svg = svg.replace('<svg', '<svg stroke-linecap="round"');
-    }
-    if (!svg.includes('stroke-linejoin=')) {
-      svg = svg.replace('<svg', '<svg stroke-linejoin="round"');
-    }
-
-    // 6. Clean up whitespace
+    // Clean up whitespace
     svg = svg.replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim();
 
     console.log(`[stylize-icon] Successfully generated SVG`);
