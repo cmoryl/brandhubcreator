@@ -1,79 +1,44 @@
 
 
-## SVG Icon Development — Best Practice Audit & Upgrade Plan
+# Visual Preferences Panel Redesign
 
-### Current State Summary
+## Problem
+The Learned Visual Preferences panel is cramped, hard to read (tiny 9-10px text), and doesn't surface all the available data (preferred_colors, preferred_styles, preferred_compositions are in the VisualDNA type but never displayed).
 
-The system has solid foundations: a 4-pillar quality scorer, optical weight balancing, accessibility checks, and a multi-stage conversion pipeline. However, several areas fall short of production SVG best practices.
+## Plan
 
-### Issues Found
+### 1. Redesign LearnedPreferencesPanel with tabbed sections and larger typography
 
-**1. SVG Import Ignores Original viewBox**
-When uploading SVGs, the importer hardcodes `viewBox: '0 0 24 24'` (line 112 of IconStylizer.tsx) instead of parsing the actual viewBox from the uploaded file. This silently distorts non-24x24 icons.
+Break the single dense block into a **tabbed card layout** with 4 mini-tabs:
+- **Overview** — Summary text (bumped to 12px), confidence gauge (radial ring instead of thin bar), stats row with larger icons
+- **Preferences** — Preferred Themes, Mood & Style keywords, Top Categories with wider progress bars, plus NEW: Preferred Colors (rendered as color swatches) and Preferred Styles (with weight bars)
+- **Avoid** — Avoid keywords, rejection reasons, and preferred_compositions "dislikes" — given more visual weight with red-tinted cards
+- **Insights** — Style preference narrative, diversity inclination, composition preferences — presented as readable paragraphs
 
-**2. Recoloring Is Fragile (Regex-Based)**
-The `recolorSvg` function uses regex to replace `fill`/`stroke` attributes. This breaks on:
-- Inline `<style>` blocks with CSS fill/stroke rules
-- `class`-based styling (common in Illustrator/Figma exports)
-- Gradient references (`fill="url(#grad)"`) — correctly excluded but silently skipped
-- `currentColor` usage (should be preserved, not replaced)
+### 2. Increase readability across the board
+- Bump all body text from `text-[10px]` to `text-xs` (12px)
+- Bump labels from `text-[10px]` to `text-xs font-medium`
+- Bump badges from `text-[9px]` to `text-[11px]`
+- Replace the thin 4px Progress bar with a proper radial confidence ring
+- Add more vertical spacing (`space-y-3` instead of `space-y-2.5`)
 
-**3. No SVG Cleanup on Import**
-Uploaded SVGs from design tools contain bloat: editor metadata (`data-name`, Illustrator comments), unused `<defs>`, empty groups, redundant transforms, hardcoded dimensions (`width`/`height` attributes that override viewBox). None of this is stripped.
+### 3. Surface unused VisualDNA data
+- **preferred_colors**: Render as a row of colored circles with weight-based sizing
+- **preferred_styles**: Show as horizontal bars (like categories) — e.g., "Documentary: 85%", "Abstract: 60%"
+- **preferred_compositions**: Show as labeled preference chips — e.g., "Rule of thirds → Preferred"
 
-**4. No Accessibility Attributes**
-Generated and imported SVGs never receive `role="img"`, `aria-label`, or `<title>` elements — required for WCAG compliance with meaningful graphics.
+### 4. Add "Apply to Search" action button
+- When preferences exist, show a button that auto-populates the search query with top themes/mood keywords — bridging intelligence into action
 
-**5. Post-Processing in Edge Function Uses String Manipulation**
-The stylize-icon edge function (lines 190-231) manipulates SVG via string `.replace()` — inserting attributes by prepending to `<svg`. This can produce malformed markup if the AI returns attributes in unexpected order.
+### 5. Make the panel scrollable with max-height
+- In the Shutterstock dialog context, cap the panel at `max-h-[400px] overflow-y-auto` so it doesn't push search results off-screen
+- In the VisualIntelligenceCard (entity editor), allow full expansion
 
-**6. No Deduplication of SVG Attributes**
-Multiple `.replace('<svg', '<svg attr="..."')` calls in the edge function can stack duplicate attributes if the AI already included them (e.g., two `stroke-linecap` attributes).
+### Files to modify
+- `src/components/brand/approved-imagery/LearnedPreferencesPanel.tsx` — Full redesign with tabbed sub-sections
+- `src/components/brand/approved-imagery/ShutterstockSearchDialog.tsx` — Add max-height wrapper and "Apply to Search" callback
+- `src/components/brand/approved-imagery/VisualIntelligenceCard.tsx` — Minor spacing adjustments
 
-**7. Missing `xmlns` Validation on Direct Import**
-Uploaded SVGs may lack `xmlns` — the sanitizer doesn't ensure it, which can cause rendering failures in `<img>` tags or external contexts.
-
----
-
-### Upgrade Plan
-
-#### A. Smart viewBox Extraction on Import
-Parse the uploaded SVG's actual `viewBox` (or derive it from `width`/`height`) before storing. Only default to `0 0 24 24` if none is found.
-
-**File**: `src/components/brand/iconography/studio/IconStylizer.tsx`
-
-#### B. SVG Sanitization & Optimization Utility
-Create a dedicated `src/lib/svgUtils.ts` utility with:
-- `cleanSvg()` — strips editor metadata, empty `<g>` groups, XML comments, `<?xml>` declarations, unused `<defs>`, hardcoded `width`/`height` (preserving viewBox)
-- `ensureAttributes()` — adds `xmlns`, ensures viewBox, adds `role="img"`
-- `extractViewBox()` — parses viewBox from markup
-- `recolorSvg()` — improved version using DOMParser for accurate attribute targeting (handles inline styles, classes, gradient refs)
-
-**File**: new `src/lib/svgUtils.ts`
-
-#### C. Accessibility Injection
-Add `<title>` element with the icon name and `role="img"` + `aria-label` to all SVGs at save time. This applies to both AI-generated and uploaded icons.
-
-**File**: `src/lib/svgUtils.ts` (part of `cleanSvg`)
-
-#### D. Edge Function Post-Processing Hardening
-Replace the sequential `.replace('<svg'` chain with a single-pass attribute builder that constructs the `<svg>` opening tag from a merged attribute map — preventing duplicates and malformed output.
-
-**File**: `supabase/functions/stylize-icon/index.ts`
-
-#### E. Unified Recolor Function
-Move the improved recolor logic from `svgUtils.ts` into a single export and update all consumers (IconPreviewDialog, IconBrowser, IconStudioColorizer) to use it — eliminating the 3 separate regex implementations.
-
-**Files**: `src/lib/svgUtils.ts`, then update imports in `IconPreviewDialog.tsx`, `IconBrowser.tsx`
-
-#### F. fillMode Detection for Imports
-When importing an SVG, auto-detect whether it uses stroke-based or fill-based rendering and set `fillMode` accordingly, rather than defaulting to `'fill'`.
-
-**File**: `src/components/brand/iconography/studio/IconStylizer.tsx`
-
-### Technical Details
-
-The `svgUtils.ts` module (~150 lines) will use `DOMParser` for all parsing (not regex) to handle edge cases correctly. The edge function will use a similar approach with Deno's built-in XML capabilities.
-
-All changes are backward-compatible — existing stored SVGs render identically, but new imports/generations will be cleaner and more robust.
+### No database or edge function changes needed
+All required data fields already exist in the VisualDNA type — they're just not being displayed.
 
