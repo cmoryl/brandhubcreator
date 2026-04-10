@@ -96,6 +96,8 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
   gridLayout = 'grouped',
   entityId,
   entityType = 'brand',
+  logoDownloadLinks = [],
+  onLogoDownloadLinksChange,
 }, ref) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -103,6 +105,8 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
   const [urlPopoverOpen, setUrlPopoverOpen] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState('');
   const [expandedLogo, setExpandedLogo] = useState<UnifiedLogo | null>(null);
+  const [showAddLink, setShowAddLink] = useState(false);
+  const [newLink, setNewLink] = useState({ label: '', url: '', format: '' });
   const { uploadFile } = useStorageUpload({ entityType, entityId });
 
   // Auto-backfill: convert any base64 logos to storage URLs so they survive stripBase64FromGuideData
