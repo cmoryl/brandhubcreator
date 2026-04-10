@@ -139,8 +139,23 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
       });
     }
     if (activeLibrary && collectionIcons) {
-      const names = Object.keys(collectionIcons.icons || {});
-      return names.map(name => ({ prefix: activeLibrary, name }));
+      // Iconify API returns icons in different fields depending on the collection
+      const names: string[] = [];
+      // Some collections use an 'icons' object
+      if (collectionIcons.icons) {
+        names.push(...Object.keys(collectionIcons.icons));
+      }
+      // Most collections use 'categories' with arrays of icon names
+      if (collectionIcons.categories) {
+        Object.values(collectionIcons.categories).forEach(arr => names.push(...arr));
+      }
+      // And/or 'uncategorized' array
+      if (collectionIcons.uncategorized) {
+        names.push(...collectionIcons.uncategorized);
+      }
+      // Deduplicate
+      const unique = [...new Set(names)];
+      return unique.map(name => ({ prefix: activeLibrary, name }));
     }
     return [];
   }, [debouncedSearch, searchResults, activeLibrary, collectionIcons]);
