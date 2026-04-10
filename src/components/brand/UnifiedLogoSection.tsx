@@ -641,14 +641,6 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
         </div>
       )}
 
-      {/* Logo Download Links (External Dropbox links) */}
-      {(logoDownloadLinks.length > 0 || (canEdit && onLogoDownloadLinksChange)) && (
-        <Card className="border-border/50">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Download className="h-4 w-4 text-muted-foreground" />
-                <h4 className="text-sm font-semibold">Logo Download Links</h4>
                 <Badge variant="secondary" className="text-[10px]">{logoDownloadLinks.length}</Badge>
               </div>
               {canEdit && onLogoDownloadLinksChange && (
