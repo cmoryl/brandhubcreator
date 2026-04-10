@@ -1104,7 +1104,12 @@ export const SocialAssetsSection = ({
 }: SocialAssetsProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
-  const [activePlatformId, setActivePlatformId] = useState<string | null>(null);
+  const [activePlatformId, setActivePlatformId] = useState<string | null>(() => {
+    // Default to first populated platform (has templates), or first platform overall
+    const sorted = [...socialAssets].sort((a, b) => a.platform === 'General' ? -1 : b.platform === 'General' ? 1 : 0);
+    const firstPopulated = sorted.find(a => (a.templates?.length || 0) > 0);
+    return firstPopulated?.id || sorted[0]?.id || null;
+  });
   const [mockupPreviewPlatform, setMockupPreviewPlatform] = useState<BrandSocialAssetSpec | null>(null);
   const [cardLayout, setCardLayout] = useState<LayoutPreset>('grid-3');
   const { gridClass } = useLayoutClasses(layout);
@@ -1127,6 +1132,13 @@ export const SocialAssetsSection = ({
     }
   }, [socialAssets.length, onSocialAssetsChange]);
 
+  // Auto-select first populated platform when assets load or change and none is active
+  useEffect(() => {
+    if (activePlatformId && socialAssets.some(a => a.id === activePlatformId)) return;
+    const sorted = [...socialAssets].sort((a, b) => a.platform === 'General' ? -1 : b.platform === 'General' ? 1 : 0);
+    const firstPopulated = sorted.find(a => (a.templates?.length || 0) > 0);
+    setActivePlatformId(firstPopulated?.id || sorted[0]?.id || null);
+  }, [socialAssets, activePlatformId]);
 
   const updateSocialAsset = (id: string, updates: Partial<BrandSocialAssetSpec>) => {
     if (!onSocialAssetsChange) return;
