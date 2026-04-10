@@ -38,6 +38,15 @@ export interface BrandLogo {
   variant: 'primary' | 'secondary' | 'icon' | 'wordmark' | 'reversed' | 'monochrome';
 }
 
+// External logo download link (e.g. Dropbox direct links)
+export interface LogoDownloadLink {
+  id: string;
+  label: string;
+  url: string;
+  format?: string; // e.g. 'SVG', 'PNG', 'EPS', 'AI', 'PDF'
+  variant?: string; // which logo variant this applies to
+}
+
 // HERO - Identity Shield
 export interface BrandHero {
   name: string;
@@ -1009,6 +1018,8 @@ export interface BaseGuide {
   values: BrandValue[];
   // Logos (Mark Repository)
   logos: BrandLogo[];
+  // Logo Download Links (external Dropbox/cloud links for logo packages)
+  logoDownloadLinks?: LogoDownloadLink[];
   // Brand Icons (Symbol Standards)
   brandIcons: BrandIcon[];
   // Colors (Color Palette)

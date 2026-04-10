@@ -6,7 +6,8 @@ import {
   BrandTagline, 
   BrandIdentity, 
   BrandValue, 
-  BrandLogo, 
+  BrandLogo,
+  LogoDownloadLink,
   BrandIcon, 
   BrandColor, 
   ColorCombination,
@@ -416,6 +417,7 @@ export interface EventGuide {
   
   // Visual identity (reused from brand)
   logos: BrandLogo[];
+  logoDownloadLinks?: LogoDownloadLink[];
   brandIcons: BrandIcon[];
   colors: BrandColor[];
   colorCombinations: ColorCombination[];
