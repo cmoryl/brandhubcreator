@@ -866,44 +866,20 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
               
               {/* Large logo display on multiple backgrounds */}
               <div className="grid grid-cols-2 gap-4">
-                {/* Light background */}
                 <div className="bg-white border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
-                  <img
-                    src={expandedLogo.url}
-                    alt={`${expandedLogo.name} on light`}
-                    className="max-h-48 max-w-full object-contain"
-                  />
+                  <img src={expandedLogo.url} alt={`${expandedLogo.name} on light`} className="max-h-48 max-w-full object-contain" />
                 </div>
-                
-                {/* Dark background */}
                 <div className="bg-slate-900 border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
-                  <img
-                    src={expandedLogo.url}
-                    alt={`${expandedLogo.name} on dark`}
-                    className="max-h-48 max-w-full object-contain"
-                  />
+                  <img src={expandedLogo.url} alt={`${expandedLogo.name} on dark`} className="max-h-48 max-w-full object-contain" />
                 </div>
-                
-                {/* Checkered/transparent background */}
                 <div className="bg-[repeating-conic-gradient(#e5e7eb_0%_25%,#ffffff_0%_50%)] dark:bg-[repeating-conic-gradient(#374151_0%_25%,#1f2937_0%_50%)] bg-[length:20px_20px] border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
-                  <img
-                    src={expandedLogo.url}
-                    alt={`${expandedLogo.name} transparent`}
-                    className="max-h-48 max-w-full object-contain"
-                  />
+                  <img src={expandedLogo.url} alt={`${expandedLogo.name} transparent`} className="max-h-48 max-w-full object-contain" />
                 </div>
-                
-                {/* Brand color background */}
                 <div className="bg-primary/10 border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
-                  <img
-                    src={expandedLogo.url}
-                    alt={`${expandedLogo.name} on brand`}
-                    className="max-h-48 max-w-full object-contain"
-                  />
+                  <img src={expandedLogo.url} alt={`${expandedLogo.name} on brand`} className="max-h-48 max-w-full object-contain" />
                 </div>
               </div>
               
-              {/* Background labels */}
               <div className="grid grid-cols-4 gap-4 text-center text-sm text-muted-foreground">
                 <span>Light</span>
                 <span>Dark</span>
@@ -914,6 +890,15 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
               {expandedLogo.description && (
                 <p className="text-sm text-muted-foreground">{expandedLogo.description}</p>
               )}
+
+              {/* Per-logo download links */}
+              <LogoDownloadLinksPanel
+                logoId={expandedLogo.id}
+                logoName={expandedLogo.name}
+                allLinks={logoDownloadLinks}
+                canEdit={canEdit}
+                onLinksChange={onLogoDownloadLinksChange}
+              />
             </div>
           )}
         </DialogContent>
