@@ -714,17 +714,11 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
           <DialogTitle className="sr-only">{expandedLogo?.name} - Full View</DialogTitle>
           {expandedLogo && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">{expandedLogo.name}</h3>
-                  <Badge className={cn("mt-1", getVariantColor(expandedLogo.variant))}>
-                    {getVariantLabel(expandedLogo.variant)}
-                  </Badge>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => downloadLogo(expandedLogo)}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
+              <div>
+                <h3 className="text-lg font-semibold">{expandedLogo.name}</h3>
+                <Badge className={cn("mt-1", getVariantColor(expandedLogo.variant))}>
+                  {getVariantLabel(expandedLogo.variant)}
+                </Badge>
               </div>
               
               {/* Large logo display on multiple backgrounds */}
