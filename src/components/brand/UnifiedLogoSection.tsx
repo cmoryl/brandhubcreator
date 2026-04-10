@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
 import { logger } from '@/lib/logger';
 import { LogoDownloadLink } from '@/types/brand';
-import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2, FolderOpen, Loader2 } from 'lucide-react';
+import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2, FolderOpen, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
