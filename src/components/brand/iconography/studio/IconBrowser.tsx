@@ -70,6 +70,7 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
   const [strokeWidth, setStrokeWidth] = useState([2]);
   const [copied, setCopied] = useState<'svg' | 'xml' | null>(null);
   const [page, setPage] = useState(0);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Debounce search
