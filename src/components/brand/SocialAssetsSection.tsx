@@ -1132,6 +1132,13 @@ export const SocialAssetsSection = ({
     }
   }, [socialAssets.length, onSocialAssetsChange]);
 
+  // Auto-select first populated platform when assets load or change and none is active
+  useEffect(() => {
+    if (activePlatformId && socialAssets.some(a => a.id === activePlatformId)) return;
+    const sorted = [...socialAssets].sort((a, b) => a.platform === 'General' ? -1 : b.platform === 'General' ? 1 : 0);
+    const firstPopulated = sorted.find(a => (a.templates?.length || 0) > 0);
+    setActivePlatformId(firstPopulated?.id || sorted[0]?.id || null);
+  }, [socialAssets, activePlatformId]);
 
   const updateSocialAsset = (id: string, updates: Partial<BrandSocialAssetSpec>) => {
     if (!onSocialAssetsChange) return;
