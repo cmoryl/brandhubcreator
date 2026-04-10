@@ -110,9 +110,30 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
     }));
   }, [collections]);
 
+  // Compute industry category counts
+  const industryCategoriesWithCounts = useMemo(() => {
+    return INDUSTRY_CATEGORIES.map(cat => ({
+      ...cat,
+      libraries: cat.libraries.map(lib => ({
+        ...lib,
+        total: collections?.[lib.prefix]?.total || 0,
+      })),
+      totalIcons: cat.libraries.reduce((sum, lib) => sum + (collections?.[lib.prefix]?.total || 0), 0),
+    }));
+  }, [collections]);
+
   const totalIcons = useMemo(() => {
     return libraryList.reduce((sum, l) => sum + l.total, 0);
   }, [libraryList]);
+
+  const toggleCategory = useCallback((catId: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(catId)) next.delete(catId);
+      else next.add(catId);
+      return next;
+    });
+  }, []);
 
   // Search results
   const { data: searchResults, isLoading: searchLoading } = useQuery({
