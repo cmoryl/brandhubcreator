@@ -28,9 +28,11 @@ export interface IconifySearchResult {
 export interface IconifyCollectionIcons {
   prefix: string;
   total: number;
-  icons: Record<string, unknown>;
+  icons?: Record<string, unknown>;
   aliases?: Record<string, unknown>;
   categories?: Record<string, string[]>;
+  uncategorized?: string[];
+  hidden?: string[];
 }
 
 // Featured libraries matching IconStack's sidebar
