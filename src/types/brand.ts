@@ -1021,6 +1021,7 @@ export interface BaseGuide {
   // Logo Download Links (external Dropbox/cloud links for logo packages)
   logoDownloadLinks?: LogoDownloadLink[];
   // Brand Icons (Symbol Standards)
+  brandIcons: BrandIcon[];
   // Colors (Color Palette)
   colors: BrandColor[];
   // Color Combinations (A/B Testing)
