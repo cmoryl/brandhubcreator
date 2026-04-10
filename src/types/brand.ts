@@ -45,6 +45,7 @@ export interface LogoDownloadLink {
   url: string;
   format?: string; // e.g. 'SVG', 'PNG', 'EPS', 'AI', 'PDF'
   variant?: string; // which logo variant this applies to
+  logoId?: string; // specific logo this link belongs to
 }
 
 // HERO - Identity Shield

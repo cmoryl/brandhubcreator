@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
 import { logger } from '@/lib/logger';
 import { LogoDownloadLink } from '@/types/brand';
-import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2, FolderOpen, Loader2, Plus } from 'lucide-react';
+import { Trash2, Download, Package, Upload, Image as ImageIcon, Link2, Maximize2, FolderOpen, Loader2 } from 'lucide-react';
+import { LogoDownloadLinksPanel } from './LogoDownloadLinksPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -105,8 +106,6 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
   const [urlPopoverOpen, setUrlPopoverOpen] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState('');
   const [expandedLogo, setExpandedLogo] = useState<UnifiedLogo | null>(null);
-  const [showAddLink, setShowAddLink] = useState(false);
-  const [newLink, setNewLink] = useState({ label: '', url: '', format: '' });
   const { uploadFile } = useStorageUpload({ entityType, entityId });
 
   // Auto-backfill: convert any base64 logos to storage URLs so they survive stripBase64FromGuideData
@@ -642,142 +641,6 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
         </div>
       )}
 
-      {/* Logo Download Links (External Dropbox links) */}
-      {(logoDownloadLinks.length > 0 || (canEdit && onLogoDownloadLinksChange)) && (
-        <Card className="border-border/50">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Download className="h-4 w-4 text-muted-foreground" />
-                <h4 className="text-sm font-semibold">Logo Download Links</h4>
-                <Badge variant="secondary" className="text-[10px]">{logoDownloadLinks.length}</Badge>
-              </div>
-              {canEdit && onLogoDownloadLinksChange && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 text-xs"
-                  onClick={() => setShowAddLink(!showAddLink)}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Add Link
-                </Button>
-              )}
-            </div>
-
-            {/* Add new link form */}
-            {showAddLink && canEdit && onLogoDownloadLinksChange && (
-              <div className="border border-dashed border-border rounded-lg p-3 space-y-2 bg-muted/30">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <Input
-                    value={newLink.label}
-                    onChange={e => setNewLink(prev => ({ ...prev, label: e.target.value }))}
-                    placeholder="Label (e.g. Logo Pack - SVG)"
-                    className="h-8 text-sm"
-                  />
-                  <Input
-                    value={newLink.url}
-                    onChange={e => setNewLink(prev => ({ ...prev, url: e.target.value }))}
-                    placeholder="Dropbox direct link (https://...)"
-                    className="h-8 text-sm"
-                  />
-                  <div className="flex gap-2">
-                    <Select
-                      value={newLink.format || 'package'}
-                      onValueChange={v => setNewLink(prev => ({ ...prev, format: v }))}
-                    >
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue placeholder="Format" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="package">Package (ZIP)</SelectItem>
-                        <SelectItem value="SVG">SVG</SelectItem>
-                        <SelectItem value="PNG">PNG</SelectItem>
-                        <SelectItem value="EPS">EPS</SelectItem>
-                        <SelectItem value="AI">AI</SelectItem>
-                        <SelectItem value="PDF">PDF</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      size="sm"
-                      className="h-8"
-                      disabled={!newLink.label.trim() || !newLink.url.trim()}
-                      onClick={() => {
-                        const link: LogoDownloadLink = {
-                          id: `dl-${Date.now()}`,
-                          label: newLink.label.trim(),
-                          url: newLink.url.trim().replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '?dl=1'),
-                          format: newLink.format || 'package',
-                        };
-                        onLogoDownloadLinksChange([...logoDownloadLinks, link]);
-                        setNewLink({ label: '', url: '', format: '' });
-                        setShowAddLink(false);
-                        toast.success('Download link added');
-                      }}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-[10px] text-muted-foreground">
-                  Paste a Dropbox share link — it will be auto-converted to a direct download URL.
-                </p>
-              </div>
-            )}
-
-            {/* Existing links */}
-            {logoDownloadLinks.length > 0 && (
-              <div className="space-y-1.5">
-                {logoDownloadLinks.map(link => (
-                  <div
-                    key={link.id}
-                    className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-border/50 bg-card hover:bg-muted/30 transition-colors group"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="shrink-0 w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
-                        <Download className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{link.label}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{link.url}</p>
-                      </div>
-                      {link.format && (
-                        <Badge variant="outline" className="text-[10px] shrink-0">
-                          {link.format}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
-                        title="Download"
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                      </a>
-                      {canEdit && onLogoDownloadLinksChange && (
-                        <button
-                          onClick={() => {
-                            onLogoDownloadLinksChange(logoDownloadLinks.filter(l => l.id !== link.id));
-                            toast.success('Download link removed');
-                          }}
-                          className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors opacity-0 group-hover:opacity-100"
-                          title="Remove"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       <input
         ref={fileInputRef}
@@ -866,44 +729,20 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
               
               {/* Large logo display on multiple backgrounds */}
               <div className="grid grid-cols-2 gap-4">
-                {/* Light background */}
                 <div className="bg-white border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
-                  <img
-                    src={expandedLogo.url}
-                    alt={`${expandedLogo.name} on light`}
-                    className="max-h-48 max-w-full object-contain"
-                  />
+                  <img src={expandedLogo.url} alt={`${expandedLogo.name} on light`} className="max-h-48 max-w-full object-contain" />
                 </div>
-                
-                {/* Dark background */}
                 <div className="bg-slate-900 border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
-                  <img
-                    src={expandedLogo.url}
-                    alt={`${expandedLogo.name} on dark`}
-                    className="max-h-48 max-w-full object-contain"
-                  />
+                  <img src={expandedLogo.url} alt={`${expandedLogo.name} on dark`} className="max-h-48 max-w-full object-contain" />
                 </div>
-                
-                {/* Checkered/transparent background */}
                 <div className="bg-[repeating-conic-gradient(#e5e7eb_0%_25%,#ffffff_0%_50%)] dark:bg-[repeating-conic-gradient(#374151_0%_25%,#1f2937_0%_50%)] bg-[length:20px_20px] border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
-                  <img
-                    src={expandedLogo.url}
-                    alt={`${expandedLogo.name} transparent`}
-                    className="max-h-48 max-w-full object-contain"
-                  />
+                  <img src={expandedLogo.url} alt={`${expandedLogo.name} transparent`} className="max-h-48 max-w-full object-contain" />
                 </div>
-                
-                {/* Brand color background */}
                 <div className="bg-primary/10 border border-border rounded-lg p-8 flex items-center justify-center min-h-[200px]">
-                  <img
-                    src={expandedLogo.url}
-                    alt={`${expandedLogo.name} on brand`}
-                    className="max-h-48 max-w-full object-contain"
-                  />
+                  <img src={expandedLogo.url} alt={`${expandedLogo.name} on brand`} className="max-h-48 max-w-full object-contain" />
                 </div>
               </div>
               
-              {/* Background labels */}
               <div className="grid grid-cols-4 gap-4 text-center text-sm text-muted-foreground">
                 <span>Light</span>
                 <span>Dark</span>
@@ -914,6 +753,15 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
               {expandedLogo.description && (
                 <p className="text-sm text-muted-foreground">{expandedLogo.description}</p>
               )}
+
+              {/* Per-logo download links */}
+              <LogoDownloadLinksPanel
+                logoId={expandedLogo.id}
+                logoName={expandedLogo.name}
+                allLinks={logoDownloadLinks}
+                canEdit={canEdit}
+                onLinksChange={onLogoDownloadLinksChange}
+              />
             </div>
           )}
         </DialogContent>
