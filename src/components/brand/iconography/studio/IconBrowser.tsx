@@ -22,6 +22,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +41,7 @@ import {
   fetchCollectionIcons,
   fetchIconSvg,
   FEATURED_LIBRARIES,
+  INDUSTRY_CATEGORIES,
   type IconifyCollection,
 } from '@/lib/api/iconify';
 
@@ -68,6 +70,7 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
   const [strokeWidth, setStrokeWidth] = useState([2]);
   const [copied, setCopied] = useState<'svg' | 'xml' | null>(null);
   const [page, setPage] = useState(0);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Debounce search
@@ -107,9 +110,30 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
     }));
   }, [collections]);
 
+  // Compute industry category counts
+  const industryCategoriesWithCounts = useMemo(() => {
+    return INDUSTRY_CATEGORIES.map(cat => ({
+      ...cat,
+      libraries: cat.libraries.map(lib => ({
+        ...lib,
+        total: collections?.[lib.prefix]?.total || 0,
+      })),
+      totalIcons: cat.libraries.reduce((sum, lib) => sum + (collections?.[lib.prefix]?.total || 0), 0),
+    }));
+  }, [collections]);
+
   const totalIcons = useMemo(() => {
     return libraryList.reduce((sum, l) => sum + l.total, 0);
   }, [libraryList]);
+
+  const toggleCategory = useCallback((catId: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(catId)) next.delete(catId);
+      else next.add(catId);
+      return next;
+    });
+  }, []);
 
   // Search results
   const { data: searchResults, isLoading: searchLoading } = useQuery({
@@ -316,6 +340,52 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
                   {lib.total.toLocaleString()}
                 </span>
               </button>
+            ))}
+
+            <Separator className="my-2" />
+            <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Industry Presets
+            </p>
+
+            {industryCategoriesWithCounts.map(cat => (
+              <div key={cat.id}>
+                <button
+                  onClick={() => toggleCategory(cat.id)}
+                  className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-sm hover:bg-muted text-foreground transition-colors"
+                >
+                  <span className="font-medium truncate">{cat.name}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground tabular-nums">
+                      {cat.totalIcons.toLocaleString()}
+                    </span>
+                    <ChevronDown className={cn(
+                      'h-3 w-3 text-muted-foreground transition-transform',
+                      expandedCategories.has(cat.id) && 'rotate-180'
+                    )} />
+                  </div>
+                </button>
+                {expandedCategories.has(cat.id) && (
+                  <div className="ml-2 border-l border-border/50 pl-1 space-y-0.5">
+                    {cat.libraries.map(lib => (
+                      <button
+                        key={lib.prefix}
+                        onClick={() => setActiveLibrary(lib.prefix)}
+                        className={cn(
+                          'w-full flex items-center justify-between px-3 py-1 rounded-md text-xs transition-colors',
+                          activeLibrary === lib.prefix
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'hover:bg-muted text-muted-foreground'
+                        )}
+                      >
+                        <span className="truncate">{lib.name}</span>
+                        <span className="text-[10px] tabular-nums">
+                          {lib.total.toLocaleString()}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </ScrollArea>

@@ -60,6 +60,72 @@ export const FEATURED_LIBRARIES = [
   { prefix: 'octicon', name: 'Octicons' },
 ];
 
+// Industry-specific preset categories
+export interface LibraryCategory {
+  id: string;
+  name: string;
+  libraries: Array<{ prefix: string; name: string }>;
+}
+
+export const INDUSTRY_CATEGORIES: LibraryCategory[] = [
+  {
+    id: 'games',
+    name: 'Games',
+    libraries: [
+      { prefix: 'game-icons', name: 'Game Icons' },
+      { prefix: 'mdi', name: 'Material Design' },
+      { prefix: 'pepicons-pop', name: 'Pepicons Pop' },
+      { prefix: 'pixelarticons', name: 'Pixel Art' },
+    ],
+  },
+  {
+    id: 'media',
+    name: 'Media & Entertainment',
+    libraries: [
+      { prefix: 'ri', name: 'Remix Icon' },
+      { prefix: 'streamline', name: 'Streamline' },
+      { prefix: 'fluent', name: 'Fluent UI' },
+      { prefix: 'uil', name: 'Unicons' },
+      { prefix: 'openmoji', name: 'OpenMoji' },
+    ],
+  },
+  {
+    id: 'technology',
+    name: 'Technology',
+    libraries: [
+      { prefix: 'devicon', name: 'Devicon' },
+      { prefix: 'vscode-icons', name: 'VS Code Icons' },
+      { prefix: 'devicon-plain', name: 'Devicon Plain' },
+      { prefix: 'file-icons', name: 'File Icons' },
+      { prefix: 'carbon', name: 'Carbon' },
+      { prefix: 'gravity-ui', name: 'Gravity UI' },
+    ],
+  },
+  {
+    id: 'corporate',
+    name: 'Corporate',
+    libraries: [
+      { prefix: 'clarity', name: 'Clarity' },
+      { prefix: 'tdesign', name: 'TDesign' },
+      { prefix: 'ant-design', name: 'Ant Design' },
+      { prefix: 'ion', name: 'IonIcons' },
+      { prefix: 'guidance', name: 'Guidance' },
+      { prefix: 'basil', name: 'Basil' },
+    ],
+  },
+  {
+    id: 'sciences',
+    name: 'Sciences',
+    libraries: [
+      { prefix: 'healthicons', name: 'Health Icons' },
+      { prefix: 'medical-icon', name: 'Medical Icons' },
+      { prefix: 'wi', name: 'Weather Icons' },
+      { prefix: 'gis', name: 'Font-GIS' },
+      { prefix: 'circle-flags', name: 'Circle Flags' },
+    ],
+  },
+];
+
 /**
  * Fetch all available icon collections with metadata
  */
