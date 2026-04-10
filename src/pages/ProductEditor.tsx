@@ -680,7 +680,7 @@ const ProductEditor = () => {
           onAccessCodeChange={canEdit ? (insightsAccessCode) => handleUpdateProduct({ insightsAccessCode } as any) : undefined}
         />
       );
-      case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={editHandler((logos) => handleUpdateProduct({ logos }))} entityId={currentProduct.id} entityType="product" />;
+      case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={editHandler((logos) => handleUpdateProduct({ logos }))} entityId={currentProduct.id} entityType="product" logoDownloadLinks={currentProduct.logoDownloadLinks} onLogoDownloadLinksChange={editHandler((logoDownloadLinks) => handleUpdateProduct({ logoDownloadLinks }))} />;
       case 'imageassets': return <ImageAssetsSection imageAssets={(currentProduct as any).imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => handleUpdateProduct({ imageAssets } as any))} />;
       case 'webinars': return <WebinarSeriesSection webinars={(currentProduct as any).webinars || []} onWebinarsChange={editHandler((webinars) => handleUpdateProduct({ webinars } as any))} />;
       case 'awards': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><AwardsSection awards={(currentProduct as any).awards || []} onUpdate={editHandler((awards) => handleUpdateProduct({ awards } as any))} entityType="product" entityId={currentProduct.id} /></Suspense>;

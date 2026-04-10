@@ -737,7 +737,7 @@ const EventEditor = () => {
             onAccessCodeChange={canEdit ? (insightsAccessCode) => updateEvent({ insightsAccessCode } as any) : undefined}
           />
         );
-      case 'logos': return <LogoSection logos={event.logos} onLogosChange={editHandler((logos) => updateEvent({ logos }))} entityId={event.id} entityType="event" />;
+      case 'logos': return <LogoSection logos={event.logos} onLogosChange={editHandler((logos) => updateEvent({ logos }))} entityId={event.id} entityType="event" logoDownloadLinks={event.logoDownloadLinks} onLogoDownloadLinksChange={editHandler((logoDownloadLinks) => updateEvent({ logoDownloadLinks }))} />;
       case 'brandicon': return <BrandIconsSection brandIcons={event.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateEvent({ brandIcons }))} entityId={event.id} entityType="event" />;
       case 'patterns': return <PatternsSection patterns={event.patterns} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} brandName={event.hero.name} brandColors={event.colors} entityId={event.id} entityType="event" />;
       case 'eventpatterns': return <EventPatternsSection patterns={event.patterns || []} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} isEditable={canEdit} eventName={event.hero.name} eventColors={event.colors} eventTagline={event.hero.tagline} />;
