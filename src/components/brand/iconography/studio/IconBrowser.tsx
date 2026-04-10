@@ -40,6 +40,7 @@ import {
   fetchCollectionIcons,
   fetchIconSvg,
   FEATURED_LIBRARIES,
+  INDUSTRY_CATEGORIES,
   type IconifyCollection,
 } from '@/lib/api/iconify';
 
