@@ -1,4 +1,4 @@
-import { BrandLogo } from '@/types/brand';
+import { BrandLogo, LogoDownloadLink } from '@/types/brand';
 import { UnifiedLogoSection, BRAND_LOGO_VARIANTS, UnifiedLogo } from './UnifiedLogoSection';
 
 interface LogoSectionProps {
@@ -8,10 +8,11 @@ interface LogoSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
+  logoDownloadLinks?: LogoDownloadLink[];
+  onLogoDownloadLinksChange?: (links: LogoDownloadLink[]) => void;
 }
 
-export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand' }: LogoSectionProps) => {
-  // Convert BrandLogo[] to UnifiedLogo[] for the unified component
+export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand', logoDownloadLinks, onLogoDownloadLinksChange }: LogoSectionProps) => {
   const unifiedLogos: UnifiedLogo[] = logos.map(logo => ({
     id: logo.id,
     name: logo.name,
@@ -19,7 +20,6 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
     variant: logo.variant,
   }));
 
-  // Convert back when updating
   const handleLogosChange = onLogosChange ? (newLogos: UnifiedLogo[]) => {
     const brandLogos: BrandLogo[] = newLogos.map(logo => ({
       id: logo.id,
@@ -44,7 +44,8 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
       gridLayout="grouped"
       entityId={entityId}
       entityType={entityType}
+      logoDownloadLinks={logoDownloadLinks}
+      onLogoDownloadLinksChange={onLogoDownloadLinksChange}
     />
   );
 };
-
