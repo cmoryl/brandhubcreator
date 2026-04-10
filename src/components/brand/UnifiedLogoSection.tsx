@@ -79,6 +79,8 @@ interface UnifiedLogoSectionProps {
   gridLayout?: 'grouped' | 'flat';
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
+  logoDownloadLinks?: LogoDownloadLink[];
+  onLogoDownloadLinksChange?: (links: LogoDownloadLink[]) => void;
 }
 
 export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProps>(({
