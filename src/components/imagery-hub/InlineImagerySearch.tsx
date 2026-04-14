@@ -271,12 +271,13 @@ export const InlineImagerySearch = ({
             orientation: orientation === 'any' ? undefined : orientation,
             image_type: imageType === 'all' ? undefined : imageType,
             color: colorFilter || undefined,
+            sort: sortBy || 'popular',
             people_number: peopleNumber && peopleNumber !== '_any' ? peopleNumber : undefined,
             people_age: peopleAge && peopleAge !== '_any' ? peopleAge : undefined,
             people_ethnicity: peopleEthnicity && peopleEthnicity !== '_any' ? peopleEthnicity : undefined,
             people_gender: peopleGender && peopleGender !== '_any' ? peopleGender : undefined,
             page: searchPage,
-            per_page: 20,
+            per_page: 24,
           },
         });
         if (error) throw error;
