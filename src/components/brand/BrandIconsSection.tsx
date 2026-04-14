@@ -316,6 +316,7 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
           <div className="flex-1 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">Symbol Variations</p>
+              {canEdit && (
               <Button
                 variant="outline"
                 size="sm"
@@ -325,6 +326,7 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
                 <Plus className="h-3 w-3" />
                 Add Variation
               </Button>
+              )}
             </div>
             
             {variations.length > 0 ? (
