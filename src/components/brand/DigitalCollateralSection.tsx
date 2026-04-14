@@ -136,6 +136,7 @@ interface SortableItemProps {
   isImage: (url: string) => boolean;
   allCategoryOptions: { value: string; label: string; icon: string }[];
   isDragging?: boolean;
+  canEdit?: boolean;
 }
 
 const SortableCollateralItem = ({
@@ -152,6 +153,7 @@ const SortableCollateralItem = ({
   isImage,
   allCategoryOptions,
   isDragging,
+  canEdit = false,
 }: SortableItemProps) => {
   const {
     attributes,
@@ -177,15 +179,17 @@ const SortableCollateralItem = ({
         isSortableDragging && "ring-2 ring-primary shadow-lg z-50"
       )}
     >
-      {/* Drag Handle */}
-      <button
-        {...attributes}
-        {...listeners}
-        className="absolute top-2 left-2 z-10 p-1.5 rounded-md bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-secondary"
-        title="Drag to reorder"
-      >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
-      </button>
+      {/* Drag Handle - Admin only */}
+      {canEdit && (
+        <button
+          {...attributes}
+          {...listeners}
+          className="absolute top-2 left-2 z-10 p-1.5 rounded-md bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:bg-secondary"
+          title="Drag to reorder"
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </button>
+      )}
 
       {/* Preview Area - Compact */}
       <div 
@@ -271,13 +275,15 @@ const SortableCollateralItem = ({
           >
             <Eye className="h-5 w-5" />
           </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onThumbnailUpload(); }}
-            className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
-            title="Add thumbnail"
-          >
-            <Image className="h-5 w-5" />
-          </button>
+          {canEdit && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onThumbnailUpload(); }}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              title="Add thumbnail"
+            >
+              <Image className="h-5 w-5" />
+            </button>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); onDownload(); }}
             className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
@@ -287,16 +293,18 @@ const SortableCollateralItem = ({
           </button>
         </div>
 
-        {/* Delete Button */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
+        {/* Delete Button - Admin only */}
+        {canEdit && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
 
-        {/* Thumbnail indicator */}
-        {item.thumbnailUrl && (
+        {/* Thumbnail indicator - Admin only */}
+        {canEdit && item.thumbnailUrl && (
           <button
             onClick={(e) => { e.stopPropagation(); onRemoveThumbnail(); }}
             className="absolute bottom-2 right-2 px-2 py-1 text-xs rounded bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
@@ -381,12 +389,14 @@ const SortableCollateralItem = ({
                 })()}
               </div>
             </div>
-            <button
-              onClick={onEdit}
-              className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-            >
-              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
+            {canEdit && (
+              <button
+                onClick={onEdit}
+                className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+              >
+                <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -1012,6 +1022,7 @@ export const DigitalCollateralSection = ({
                           onDoneEditing={() => setEditingId(null)}
                           isImage={isImage}
                           allCategoryOptions={allCategoryOptions}
+                          canEdit={canEdit}
                         />
                       ))}
                     </div>

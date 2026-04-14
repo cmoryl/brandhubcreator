@@ -193,25 +193,12 @@ export const BrochuresSection = ({ brochures: brochuresProp, onBrochuresChange, 
                       <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/10 transition-colors">
                         <Expand className="h-6 w-6 text-background opacity-0 group-hover:opacity-80 transition-opacity drop-shadow-lg" />
                       </div>
-                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => triggerThumbnailUpload(brochure.id)}
-                          className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-secondary"
-                          title="Add thumbnail image"
-                        >
-                          <Image className="h-3.5 w-3.5" />
-                        </button>
+                       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => downloadBrochure(brochure)}
                           className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-secondary"
                         >
                           <Download className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => deleteBrochure(brochure.id)}
-                          className="p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
-                        >
-                          <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
                       {brochure.thumbnailUrl && (

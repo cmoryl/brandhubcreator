@@ -558,14 +558,16 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
                       ) : (
                         <span className="text-5xl">{getFileTypeIcon(template.fileType)}</span>
                       )}
-                      {/* Thumbnail upload button */}
-                      <button
-                        onClick={() => triggerThumbnailUpload(template.id)}
-                        className="absolute top-2 right-2 p-2 bg-background/80 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
-                        title="Add thumbnail"
-                      >
-                        <Image className="h-4 w-4 text-muted-foreground" />
-                      </button>
+                      {/* Thumbnail upload button - Admin only */}
+                      {canEdit && (
+                        <button
+                          onClick={() => triggerThumbnailUpload(template.id)}
+                          className="absolute top-2 right-2 p-2 bg-background/80 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                          title="Add thumbnail"
+                        >
+                          <Image className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      )}
                       {/* External link badge */}
                       {template.externalUrl && (
                         <div className="absolute top-2 left-2 px-2 py-1 bg-accent/90 text-accent-foreground text-xs font-medium rounded-md flex items-center gap-1">
