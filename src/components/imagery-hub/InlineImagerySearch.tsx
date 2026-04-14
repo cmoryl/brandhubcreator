@@ -674,6 +674,17 @@ export const InlineImagerySearch = ({
               </Button>
             )}
 
+            {entityId && (
+              <Button
+                variant={activePanel === 'extract' ? 'default' : 'outline'}
+                size="sm" className="h-7 text-xs gap-1 px-2.5"
+                onClick={() => togglePanel('extract')}
+              >
+                <FileImage className="h-3 w-3" />
+                Extract
+              </Button>
+            )}
+
             {similarSourceId && (
               <Badge variant="outline" className="text-xs gap-1 h-7">
                 Similar to #{similarSourceId}
