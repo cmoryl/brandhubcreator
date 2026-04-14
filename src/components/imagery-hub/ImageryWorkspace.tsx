@@ -189,7 +189,7 @@ export const ImageryWorkspace = ({
       {/* Left: Sections list */}
       <div className={cn(
         'overflow-auto p-6 space-y-4 transition-all',
-        isSearchOpen ? 'w-1/2 border-r border-border' : 'flex-1'
+        searchSectionId && !searchCollapsed ? 'w-1/2 border-r border-border' : 'flex-1'
       )}>
         {/* Workspace Header */}
         <div className="space-y-4">
@@ -435,17 +435,35 @@ export const ImageryWorkspace = ({
         )}
       </div>
 
-      {/* Right: Inline Search Panel */}
-      {isSearchOpen && (
+      {/* Right: Inline Search Panel - always open with section picker */}
+      {searchSectionId && !searchCollapsed && (
         <div className="w-1/2 h-full">
           <InlineImagerySearch
             onApproveImages={handleApproveImages}
-            onClose={() => setSearchSectionId(null)}
+            onClose={() => setSearchCollapsed(true)}
             targetSectionName={searchSection?.name || ''}
             entityId={entity.id}
             entityType={entity.type}
             organizationId={organizationId}
+            sections={sections}
+            activeSectionId={searchSectionId}
+            onChangeSection={handleChangeSearchSection}
           />
+        </div>
+      )}
+
+      {/* Collapsed search toggle */}
+      {searchCollapsed && sections.length > 0 && (
+        <div className="w-12 h-full border-l border-border flex flex-col items-center pt-4 bg-muted/30">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => setSearchCollapsed(false)}
+            title="Open Search Panel"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
         </div>
       )}
 
