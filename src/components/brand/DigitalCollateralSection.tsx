@@ -303,8 +303,8 @@ const SortableCollateralItem = ({
           </button>
         )}
 
-        {/* Thumbnail indicator */}
-        {item.thumbnailUrl && (
+        {/* Thumbnail indicator - Admin only */}
+        {canEdit && item.thumbnailUrl && (
           <button
             onClick={(e) => { e.stopPropagation(); onRemoveThumbnail(); }}
             className="absolute bottom-2 right-2 px-2 py-1 text-xs rounded bg-background/80 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
