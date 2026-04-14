@@ -55,6 +55,7 @@ export const AssetImageExtractor = ({
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [extractProgress, setExtractProgress] = useState(0);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const [failedThumbnailIds, setFailedThumbnailIds] = useState<Set<string>>(new Set());
 
   const filteredImages = useMemo(() => {
     if (sourceFilter === 'all') return extractedImages;
