@@ -877,6 +877,22 @@ export const InlineImagerySearch = ({
                 />
               </div>
             )}
+
+            {/* Asset Image Extraction */}
+            {activePanel === 'extract' && entityId && (
+              <div className="p-4">
+                <AssetImageExtractor
+                  entityId={entityId}
+                  entityType={(entityType as 'brand' | 'product' | 'event') || 'brand'}
+                  onImagesExtracted={(images) => {
+                    onApproveImages(images);
+                    setActivePanel('none');
+                  }}
+                  isOpen={true}
+                  onToggle={() => setActivePanel('none')}
+                />
+              </div>
+            )}
           </div>
         )}
 
