@@ -297,7 +297,7 @@ export const InlineImagerySearch = ({
     } finally {
       setLoading(false);
     }
-  }, [query, orientation, imageType, colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, entityId, fetchEnhancedQueries, isImageIdQuery]);
+  }, [query, orientation, imageType, sortBy, colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, entityId, fetchEnhancedQueries, isImageIdQuery]);
 
   const handleSimilarSearch = useCallback(async (imageId: string) => {
     setLoading(true);
