@@ -199,12 +199,9 @@ Deno.serve(async (req) => {
         }
       }
 
-      // === SOURCE 5: Logo metadata ===
-      const logoMeta = (guideData.logos || []).slice(0, 8).map((l: any) => ({
-        name: l.name || l.label || 'Logo',
-        variant: l.variant || l.type || '',
-        backgroundColor: l.backgroundColor || '',
-      }));
+      // === SOURCE 5: Logo metadata — excluded from visual DNA analysis ===
+      // Logos are brand marks, not imagery preferences. Skipped intentionally.
+      const logoMeta: any[] = [];
 
       // === SOURCE 6: Pattern & Gradient metadata ===
       const patternCount = (guideData.patterns || []).length;
@@ -313,7 +310,7 @@ BRAND IDENTITY & COLORS:
 - Mission: ${brandIdentity.missionStatement || 'Not set'}
 - Values: ${brandValues.join(', ') || 'Not set'}
 - Color Palette: ${brandColors.map((c: any) => `${c.name}(${c.hex}, ${c.role})`).join(', ') || 'Not set'}
-- Logos: ${logoMeta.length} variants${logoMeta.length > 0 ? ` — ${logoMeta.map((l: any) => `${l.name}${l.variant ? '(' + l.variant + ')' : ''}`).join(', ')}` : ''}
+- Patterns: ${patternCount} defined, Gradients: ${gradientCount} defined
 - Patterns: ${patternCount} defined, Gradients: ${gradientCount} defined
 `;
 
@@ -339,7 +336,7 @@ ${JSON.stringify(inclusiveImagery, null, 1)}
         approved_imagery: approvedSubImages.length,
         brand_colors: brandColors.length,
         collateral_items: collateralMeta.length,
-        logos: logoMeta.length,
+        logos: 0, // excluded from analysis
         patterns: patternCount,
         gradients: gradientCount,
         has_visual_analysis: !!visualAnalysis,
