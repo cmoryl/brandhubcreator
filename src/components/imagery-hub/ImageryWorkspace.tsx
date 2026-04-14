@@ -3,7 +3,7 @@
  * Integrates upload zones, drag-and-drop grids, analytics, style analysis, inline search,
  * batch operations, auto-categorization, visual search, and quality scoring
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,10 +56,17 @@ export const ImageryWorkspace = ({
   const [tagFilter, setTagFilter] = useState('');
   const [autoCategorizeOpen, setAutoCategorizeOpen] = useState(false);
   const [visualSearchUrl, setVisualSearchUrl] = useState<string | null>(null);
+  const [searchCollapsed, setSearchCollapsed] = useState(false);
 
   const totalImages = sections.reduce((sum, s) => sum + s.images.length, 0);
   const searchSection = sections.find(s => s.id === searchSectionId);
-  const isSearchOpen = !!searchSectionId;
+
+  // Auto-open search panel with first section when sections load
+  useEffect(() => {
+    if (sections.length > 0 && !searchSectionId) {
+      setSearchSectionId(sections[0].id);
+    }
+  }, [sections, searchSectionId]);
 
   const handleAddSection = useCallback(async () => {
     if (!newSectionName.trim()) return;
@@ -70,11 +77,16 @@ export const ImageryWorkspace = ({
 
   const openSearch = useCallback((sectionId: string) => {
     setSearchSectionId(sectionId);
+    setSearchCollapsed(false);
   }, []);
 
   const handleApproveImages = useCallback((images: ApprovedImage[]) => {
     if (searchSectionId) onAddImages(searchSectionId, images);
   }, [searchSectionId, onAddImages]);
+
+  const handleChangeSearchSection = useCallback((sectionId: string) => {
+    setSearchSectionId(sectionId);
+  }, []);
 
   // Batch operations handlers
   const handleBulkTag = useCallback(async (tag: string) => {
@@ -177,7 +189,7 @@ export const ImageryWorkspace = ({
       {/* Left: Sections list */}
       <div className={cn(
         'overflow-auto p-6 space-y-4 transition-all',
-        isSearchOpen ? 'w-1/2 border-r border-border' : 'flex-1'
+        searchSectionId && !searchCollapsed ? 'w-1/2 border-r border-border' : 'flex-1'
       )}>
         {/* Workspace Header */}
         <div className="space-y-4">
@@ -423,17 +435,35 @@ export const ImageryWorkspace = ({
         )}
       </div>
 
-      {/* Right: Inline Search Panel */}
-      {isSearchOpen && (
+      {/* Right: Inline Search Panel - always open with section picker */}
+      {searchSectionId && !searchCollapsed && (
         <div className="w-1/2 h-full">
           <InlineImagerySearch
             onApproveImages={handleApproveImages}
-            onClose={() => setSearchSectionId(null)}
+            onClose={() => setSearchCollapsed(true)}
             targetSectionName={searchSection?.name || ''}
             entityId={entity.id}
             entityType={entity.type}
             organizationId={organizationId}
+            sections={sections}
+            activeSectionId={searchSectionId}
+            onChangeSection={handleChangeSearchSection}
           />
+        </div>
+      )}
+
+      {/* Collapsed search toggle */}
+      {searchCollapsed && sections.length > 0 && (
+        <div className="w-12 h-full border-l border-border flex flex-col items-center pt-4 bg-muted/30">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => setSearchCollapsed(false)}
+            title="Open Search Panel"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
         </div>
       )}
 

@@ -55,6 +55,9 @@ interface InlineImagerySearchProps {
   entityId?: string;
   entityType?: string;
   organizationId?: string | null;
+  sections?: { id: string; name: string; images: ApprovedImage[] }[];
+  activeSectionId?: string;
+  onChangeSection?: (sectionId: string) => void;
 }
 
 const IMAGE_TYPE_OPTIONS = [
@@ -135,6 +138,9 @@ export const InlineImagerySearch = ({
   entityId,
   entityType = 'brand',
   organizationId,
+  sections: availableSections,
+  activeSectionId,
+  onChangeSection,
 }: InlineImagerySearchProps) => {
   const {
     visualDna, signalCount, isAnalyzing, isLoading: dnaLoading,
@@ -146,6 +152,7 @@ export const InlineImagerySearch = ({
   const [query, setQuery] = useState('');
   const [orientation, setOrientation] = useState<string>('any');
   const [imageType, setImageType] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('popular');
   const [results, setResults] = useState<ShutterstockSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -264,12 +271,13 @@ export const InlineImagerySearch = ({
             orientation: orientation === 'any' ? undefined : orientation,
             image_type: imageType === 'all' ? undefined : imageType,
             color: colorFilter || undefined,
+            sort: sortBy || 'popular',
             people_number: peopleNumber && peopleNumber !== '_any' ? peopleNumber : undefined,
             people_age: peopleAge && peopleAge !== '_any' ? peopleAge : undefined,
             people_ethnicity: peopleEthnicity && peopleEthnicity !== '_any' ? peopleEthnicity : undefined,
             people_gender: peopleGender && peopleGender !== '_any' ? peopleGender : undefined,
             page: searchPage,
-            per_page: 20,
+            per_page: 24,
           },
         });
         if (error) throw error;
@@ -289,7 +297,7 @@ export const InlineImagerySearch = ({
     } finally {
       setLoading(false);
     }
-  }, [query, orientation, imageType, colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, entityId, fetchEnhancedQueries, isImageIdQuery]);
+  }, [query, orientation, imageType, sortBy, colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, entityId, fetchEnhancedQueries, isImageIdQuery]);
 
   const handleSimilarSearch = useCallback(async (imageId: string) => {
     setLoading(true);
@@ -454,20 +462,37 @@ export const InlineImagerySearch = ({
   return (
     <>
       <div className="flex flex-col h-full bg-background border-l border-border">
-        {/* Header */}
-        <div className="px-4 py-3 border-b border-border shrink-0 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onClose}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <Search className="h-4 w-4 text-primary" />
-              Search Shutterstock
-            </h3>
-            <p className="text-xs text-muted-foreground truncate">
-              Adding to <span className="font-medium text-foreground">{targetSectionName}</span>
-            </p>
+        {/* Header with section picker */}
+        <div className="px-4 py-3 border-b border-border shrink-0 space-y-2">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onClose} title="Collapse search">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Search className="h-4 w-4 text-primary" />
+                Stock Image Search
+              </h3>
+            </div>
           </div>
+          {/* Target section picker */}
+          {availableSections && availableSections.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground shrink-0">Add to:</span>
+              <Select value={activeSectionId || ''} onValueChange={(val) => onChangeSection?.(val)}>
+                <SelectTrigger className="h-8 text-xs flex-1">
+                  <SelectValue placeholder="Select category..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSections.map(s => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name} ({s.images.length})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {/* Controls */}
@@ -558,14 +583,26 @@ export const InlineImagerySearch = ({
             </div>
 
             <Select value={orientation} onValueChange={setOrientation}>
-              <SelectTrigger className="w-32 h-8 text-xs">
+              <SelectTrigger className="w-28 h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any orientation</SelectItem>
+                <SelectItem value="any">Any orient.</SelectItem>
                 <SelectItem value="horizontal">Horizontal</SelectItem>
                 <SelectItem value="vertical">Vertical</SelectItem>
                 <SelectItem value="square">Square</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-28 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="popular">Popular</SelectItem>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="relevance">Relevant</SelectItem>
+                <SelectItem value="random">Random</SelectItem>
               </SelectContent>
             </Select>
 
@@ -833,38 +870,43 @@ export const InlineImagerySearch = ({
             </div>
           ) : results.length === 0 && !loading && showSuggestions ? null : (
             <div className="p-3">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {results.map((result) => {
                   const isSelected = selectedIds.has(result.id);
                   return (
                     <div key={result.id}
                       className={cn(
                         'relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all',
-                        isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-muted-foreground/30'
+                        isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-muted-foreground/40'
                       )}
                       onClick={() => toggleSelect(result.id)}>
                       <img src={result.thumbnailUrl} alt={result.description} className="w-full aspect-[4/3] object-cover" loading="lazy" />
-                      {isSelected && (
-                        <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
-                          <Check className="h-3 w-3" />
-                        </div>
-                      )}
+                      {/* Selection indicator - always visible */}
+                      <div className={cn(
+                        'absolute top-2 right-2 rounded-full p-1 transition-all',
+                        isSelected ? 'bg-primary text-primary-foreground' : 'bg-background/70 backdrop-blur-sm text-muted-foreground border border-border'
+                      )}>
+                        {isSelected ? <Check className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
+                      </div>
                       {result.media_type && result.media_type !== 'image' && (
-                        <Badge variant="secondary" className="absolute top-2 left-2 text-[9px] px-1.5 py-0.5">
+                        <Badge variant="secondary" className="absolute top-2 left-2 text-[10px] px-1.5 py-0.5">
                           {result.media_type === 'vector' ? 'Vector' : 'Illustration'}
                         </Badge>
                       )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="text-[10px] text-white line-clamp-2">{result.description}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <p className="text-[9px] text-white/60">ID: {result.id}</p>
-                          <div className="flex items-center gap-2">
+                      {/* Persistent action buttons */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2.5 pt-8">
+                        <p className="text-[11px] text-white/90 line-clamp-2 leading-tight">{result.description}</p>
+                        <div className="flex items-center justify-between mt-1.5">
+                          <p className="text-[10px] text-white/50 font-mono">#{result.id}</p>
+                          <div className="flex items-center gap-1.5">
                             <button onClick={(e) => { e.stopPropagation(); setPreviewImage(result); }}
-                              className="text-[9px] text-white/80 hover:text-white flex items-center gap-0.5" title="Preview larger">
-                              <ZoomIn className="h-3 w-3" />
+                              className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/15 hover:bg-white/25 text-white text-[10px] backdrop-blur-sm transition-colors" title="Preview larger">
+                              <ZoomIn className="h-3 w-3" /> View
                             </button>
                             <button onClick={(e) => { e.stopPropagation(); handleSimilarSearch(result.id); }}
-                              className="text-[9px] text-white/80 hover:text-white underline">Find similar</button>
+                              className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/15 hover:bg-white/25 text-white text-[10px] backdrop-blur-sm transition-colors" title="Find similar">
+                              <Eye className="h-3 w-3" /> Similar
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -874,7 +916,7 @@ export const InlineImagerySearch = ({
               </div>
               {results.length > 0 && results.length < totalCount && (
                 <div className="flex justify-center py-4">
-                  <Button variant="outline" size="sm" onClick={handleLoadMore} disabled={loading}>
+                  <Button variant="outline" size="default" className="h-9" onClick={handleLoadMore} disabled={loading}>
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
                     Load More ({results.length} of {totalCount.toLocaleString()})
                   </Button>
