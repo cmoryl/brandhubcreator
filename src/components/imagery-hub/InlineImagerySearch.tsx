@@ -5,10 +5,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { BrandMaterialsPanel } from '@/components/imagery-hub/BrandMaterialsPanel';
 import { ImageryPreviewDialog } from '@/components/brand/approved-imagery/ImageryPreviewDialog';
+import { SearchByImageUpload } from '@/components/imagery-hub/SearchByImageUpload';
+import { ExampleSearchGrid } from '@/components/imagery-hub/ExampleSearchGrid';
 import {
   Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash,
   Camera, PenTool, Layers, SlidersHorizontal, X, Palette, Users, Eye,
   CheckSquare, Square, FolderPlus, Bookmark, Brain, ZoomIn, ChevronLeft,
+  ShieldCheck, Ruler, Ban,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -166,6 +169,11 @@ export const InlineImagerySearch = ({
   const [peopleAge, setPeopleAge] = useState('');
   const [peopleEthnicity, setPeopleEthnicity] = useState('');
   const [peopleGender, setPeopleGender] = useState('');
+  const [safeSearch, setSafeSearch] = useState(true);
+  const [minWidth, setMinWidth] = useState('');
+  const [minHeight, setMinHeight] = useState('');
+  const [excludeKeywords, setExcludeKeywords] = useState('');
+  const [showExamples, setShowExamples] = useState(false);
 
   const [similarSourceId, setSimilarSourceId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<ShutterstockSearchResult | null>(null);
@@ -203,7 +211,7 @@ export const InlineImagerySearch = ({
     try { localStorage.setItem(LIGHTBOX_STORAGE_KEY, JSON.stringify(updated)); } catch { /* ignore */ }
   }, []);
 
-  const activeFilterCount = [colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender].filter(Boolean).length;
+  const activeFilterCount = [colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, minWidth, minHeight, excludeKeywords, !safeSearch ? 'off' : ''].filter(Boolean).length;
 
   const fetchSuggestions = useCallback(async () => {
     if (!entityId) return;
@@ -272,6 +280,10 @@ export const InlineImagerySearch = ({
             image_type: imageType === 'all' ? undefined : imageType,
             color: colorFilter || undefined,
             sort: sortBy || 'popular',
+            safe: safeSearch,
+            min_width: minWidth || undefined,
+            min_height: minHeight || undefined,
+            exclude_keywords: excludeKeywords || undefined,
             people_number: peopleNumber && peopleNumber !== '_any' ? peopleNumber : undefined,
             people_age: peopleAge && peopleAge !== '_any' ? peopleAge : undefined,
             people_ethnicity: peopleEthnicity && peopleEthnicity !== '_any' ? peopleEthnicity : undefined,
@@ -297,7 +309,7 @@ export const InlineImagerySearch = ({
     } finally {
       setLoading(false);
     }
-  }, [query, orientation, imageType, sortBy, colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, entityId, fetchEnhancedQueries, isImageIdQuery]);
+  }, [query, orientation, imageType, sortBy, safeSearch, minWidth, minHeight, excludeKeywords, colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, entityId, fetchEnhancedQueries, isImageIdQuery]);
 
   const handleSimilarSearch = useCallback(async (imageId: string) => {
     setLoading(true);
@@ -457,7 +469,25 @@ export const InlineImagerySearch = ({
     setPeopleAge('');
     setPeopleEthnicity('');
     setPeopleGender('');
+    setSafeSearch(true);
+    setMinWidth('');
+    setMinHeight('');
+    setExcludeKeywords('');
   }, []);
+
+  const handleReverseImageResults = useCallback((results: any[], totalCount: number) => {
+    setResults(results);
+    setTotalCount(totalCount);
+    setPage(1);
+    setShowSuggestions(false);
+    setSimilarSourceId(null);
+  }, []);
+
+  const handleExampleSearch = useCallback((searchQuery: string) => {
+    setQuery(searchQuery);
+    setShowExamples(false);
+    handleSearch(searchQuery, 1);
+  }, [handleSearch]);
 
   return (
     <>
@@ -558,6 +588,12 @@ export const InlineImagerySearch = ({
               <span className="ml-1">Search</span>
             </Button>
           </div>
+
+          {/* Search by Image Upload */}
+          <SearchByImageUpload
+            onResults={handleReverseImageResults}
+            onLoading={setLoading}
+          />
 
           {/* Filter row */}
           <div className="flex gap-2 items-center flex-wrap">
@@ -680,6 +716,16 @@ export const InlineImagerySearch = ({
               {signalCount > 0 && <Badge variant="secondary" className="h-4 px-1 text-[10px] ml-0.5">{signalCount}</Badge>}
             </Button>
 
+            <Button
+              variant={showExamples ? 'default' : 'outline'}
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => setShowExamples(!showExamples)}
+            >
+              <ImageIcon className="h-3 w-3" />
+              Examples
+            </Button>
+
             {similarSourceId && (
               <Badge variant="outline" className="text-xs gap-1">
                 Similar to #{similarSourceId}
@@ -755,6 +801,55 @@ export const InlineImagerySearch = ({
                   </Select>
                 </div>
               </div>
+
+              {/* Safe Search & Resolution */}
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <ShieldCheck className="h-3 w-3" /> Safety & Quality
+                </p>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={safeSearch}
+                      onChange={(e) => setSafeSearch(e.target.checked)}
+                      className="rounded border-border"
+                    />
+                    <span className="text-xs text-foreground">Safe search</span>
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <Ruler className="h-3 w-3 text-muted-foreground" />
+                    <Input
+                      value={minWidth}
+                      onChange={(e) => setMinWidth(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Min W"
+                      className="h-7 w-20 text-xs px-1.5"
+                    />
+                    <span className="text-[10px] text-muted-foreground">×</span>
+                    <Input
+                      value={minHeight}
+                      onChange={(e) => setMinHeight(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Min H"
+                      className="h-7 w-20 text-xs px-1.5"
+                    />
+                    <span className="text-[10px] text-muted-foreground">px</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Exclude Keywords */}
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Ban className="h-3 w-3" /> Exclude Keywords
+                </p>
+                <Input
+                  value={excludeKeywords}
+                  onChange={(e) => setExcludeKeywords(e.target.value)}
+                  placeholder="e.g. cartoon, clipart, text overlay"
+                  className="h-7 text-xs"
+                />
+                <p className="text-[10px] text-muted-foreground">Comma-separated terms to exclude from results</p>
+              </div>
             </div>
           )}
 
@@ -763,6 +858,13 @@ export const InlineImagerySearch = ({
             <LearnedPreferencesPanel visualDna={visualDna} signalCount={signalCount} isAnalyzing={isAnalyzing}
               isLoading={dnaLoading} onAnalyze={analyzePreferences}
               onApplyToSearch={(q) => { setQuery(q); handleSearch(q, 1); }} maxHeight="300px" />
+          )}
+
+          {/* Example Searches */}
+          {showExamples && (
+            <div className="max-h-[400px] overflow-y-auto">
+              <ExampleSearchGrid onSearch={handleExampleSearch} />
+            </div>
           )}
 
           {/* AI Suggestions */}

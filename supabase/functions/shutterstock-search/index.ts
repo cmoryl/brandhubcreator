@@ -126,12 +126,73 @@ async function handleSimilar(body: any) {
   };
 }
 
+// Reverse image search - upload base64 image to find similar
+async function handleReverseImage(body: any) {
+  const token = getToken();
+  const { base64Image, page = 1, per_page = 20 } = body;
+
+  if (!base64Image || typeof base64Image !== 'string') {
+    throw new Error('base64Image is required for reverse image search');
+  }
+
+  // Shutterstock CV similar images endpoint
+  const ssResponse = await fetch('https://api.shutterstock.com/v2/cv/similar/images', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      base64_image: base64Image.replace(/^data:image\/[^;]+;base64,/, ''),
+      page,
+      per_page: Math.min(per_page, 50),
+    }),
+  });
+
+  if (!ssResponse.ok) {
+    const errorText = await ssResponse.text();
+    console.error('Shutterstock reverse image error:', ssResponse.status, errorText);
+    throw new Error(`Shutterstock reverse image search error: ${ssResponse.status}`);
+  }
+
+  const ssData = await ssResponse.json();
+
+  return {
+    results: (ssData.data || []).map(mapImageResult),
+    totalCount: ssData.total_count || 0,
+    page: ssData.page || page,
+    perPage: ssData.per_page || per_page,
+  };
+}
+
+// Get available categories
+async function handleCategories() {
+  const token = getToken();
+
+  const ssResponse = await fetch('https://api.shutterstock.com/v2/images/categories', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!ssResponse.ok) {
+    throw new Error(`Shutterstock categories error: ${ssResponse.status}`);
+  }
+
+  const ssData = await ssResponse.json();
+  return {
+    categories: (ssData.data || []).map((c: any) => ({ id: c.id, name: c.name })),
+  };
+}
+
 async function handleSearch(body: any) {
   const token = getToken();
   const {
     query, orientation, category, page = 1, per_page = 20,
     image_type, color, people_number, people_age, people_ethnicity, people_gender,
-    sort,
+    sort, safe, min_width, min_height, exclude_keywords,
   } = body;
 
   if (!query || typeof query !== 'string') {
@@ -144,6 +205,30 @@ async function handleSearch(body: any) {
     per_page: String(Math.min(per_page, 50)),
     sort: sort || 'popular',
   });
+
+  // Safe search
+  if (safe === true || safe === 'true') {
+    params.set('safe', 'true');
+  }
+
+  // Min dimensions
+  if (min_width && Number(min_width) > 0) {
+    params.set('width_from', String(min_width));
+  }
+  if (min_height && Number(min_height) > 0) {
+    params.set('height_from', String(min_height));
+  }
+
+  // Exclude keywords (Shutterstock uses negative keywords with -)
+  // We append them to the query as "query NOT keyword1 NOT keyword2"
+  let finalQuery = query;
+  if (exclude_keywords && typeof exclude_keywords === 'string' && exclude_keywords.trim()) {
+    const excludeTerms = exclude_keywords.split(',').map((k: string) => k.trim()).filter(Boolean);
+    if (excludeTerms.length > 0) {
+      finalQuery = `${query} NOT ${excludeTerms.join(' NOT ')}`;
+      params.set('query', finalQuery);
+    }
+  }
 
   // image_type filter
   if (image_type && ['photo', 'vector', 'illustration'].includes(image_type)) {
@@ -164,21 +249,15 @@ async function handleSearch(body: any) {
 
   // People filters
   if (people_number !== undefined && people_number !== null && people_number !== '') {
-    // Shutterstock accepts: 0, 1, 2, 3, 4+
     params.set('people_number', String(people_number));
   }
   if (people_age && typeof people_age === 'string') {
-    // infants, children, teenagers, 20s, 30s, 40s, 50s, 60s, older
     params.set('people_age', people_age);
   }
   if (people_ethnicity && typeof people_ethnicity === 'string') {
-    // african, african_american, black, brazilian, chinese, caucasian, east_asian,
-    // hispanic, japanese, middle_eastern, native_american, pacific_islander,
-    // south_asian, southeast_asian, other, multi_ethnic
     params.set('people_ethnicity', people_ethnicity);
   }
   if (people_gender && typeof people_gender === 'string') {
-    // male, female, both
     params.set('people_gender', people_gender);
   }
 
@@ -295,6 +374,12 @@ Deno.serve(async (req) => {
         break;
       case 'similar':
         result = await handleSimilar(body);
+        break;
+      case 'reverse_image':
+        result = await handleReverseImage(body);
+        break;
+      case 'categories':
+        result = await handleCategories();
         break;
       default:
         result = await handleSearch(body);
