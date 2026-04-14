@@ -493,6 +493,21 @@ export const InlineImagerySearch = ({
             </div>
           )}
 
+          {/* Brand Materials Panel */}
+          {entityId && (
+            <BrandMaterialsPanel
+              entityId={entityId}
+              entityType={(entityType as 'brand' | 'product' | 'event') || 'brand'}
+              categoryName={targetSectionName}
+              onSearchTermClick={(term) => {
+                setQuery(term);
+                handleSearch(term, 1);
+              }}
+              isOpen={showMaterials}
+              onToggle={() => setShowMaterials(!showMaterials)}
+            />
+          )}
+
           {/* Search bar */}
           <div className="flex gap-2 items-end">
             <div className="flex-1 relative">
