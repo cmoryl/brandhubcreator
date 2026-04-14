@@ -37,7 +37,7 @@ export const ImageryPreviewDialog = ({
   const handleReset = () => setZoom(1);
 
   const shutterstockUrl = image?.source === 'shutterstock' && image?.id
-    ? `https://www.shutterstock.com/search/${image.id}`
+    ? `https://www.shutterstock.com/image-photo/${image.id}`
     : null;
 
   const isDropbox = image?.source === 'dropbox';
