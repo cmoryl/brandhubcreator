@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
 
 /**
@@ -13,23 +13,32 @@ import { useLocation, useNavigationType } from 'react-router-dom';
 export const ScrollToTop = () => {
   const { pathname, hash } = useLocation();
   const navType = useNavigationType();
+  const hasMountedRef = useRef(false);
 
   useEffect(() => {
-    // Skip back/forward navigation — let browser handle scroll restoration
-    if (navType === 'POP') return;
     // Skip hash anchors — editors handle their own section scrolling
     if (hash) return;
 
-    // Immediate scroll
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    
-    // Also scroll after a brief delay to handle cases where the page
-    // remounts asynchronously (e.g., key-based remounting in RootLayout)
-    const timer = setTimeout(() => {
+    const isInitialLoad = !hasMountedRef.current;
+    hasMountedRef.current = true;
+
+    // Skip back/forward navigation after the initial page load — let browser handle scroll restoration
+    if (!isInitialLoad && navType === 'POP') return;
+
+    const scrollToPageTop = () => {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    }, 50);
-    
-    return () => clearTimeout(timer);
+    };
+
+    scrollToPageTop();
+
+    // Re-assert scroll position while async page content hydrates on public views.
+    const timers = [50, 200, 500].map((delay) =>
+      window.setTimeout(scrollToPageTop, delay)
+    );
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
   }, [pathname, navType, hash]);
 
   return null;
