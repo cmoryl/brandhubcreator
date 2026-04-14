@@ -181,6 +181,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="imagery-hub"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <ImageryHub />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="knowledge"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
