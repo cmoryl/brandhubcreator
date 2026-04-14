@@ -1020,6 +1020,7 @@ export const DigitalCollateralSection = ({
                           onDoneEditing={() => setEditingId(null)}
                           isImage={isImage}
                           allCategoryOptions={allCategoryOptions}
+                          canEdit={canEdit}
                         />
                       ))}
                     </div>
