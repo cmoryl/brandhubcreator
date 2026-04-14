@@ -1,31 +1,23 @@
 /**
- * DraggableImageGrid - Drag-and-drop sortable image grid with tagging
+ * DraggableImageGrid - Drag-and-drop sortable image grid with tagging, quality badges, and visual search
  */
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
+  DndContext, closestCenter, KeyboardSensor, PointerSensor,
+  useSensor, useSensors, DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  rectSortingStrategy,
-  useSortable,
+  arrayMove, SortableContext, sortableKeyboardCoordinates,
+  rectSortingStrategy, useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { X, GripVertical, Tag } from 'lucide-react';
+import { X, GripVertical, Tag, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ApprovedImage } from '@/types/brand';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ImageTagEditor } from './ImageTagEditor';
-import { useState } from 'react';
+import { ImageQualityBadge } from './ImageQualityBadge';
 
 interface SortableImageProps {
   image: ApprovedImage;
@@ -34,9 +26,16 @@ interface SortableImageProps {
   isSelected?: boolean;
   onToggleSelect?: () => void;
   selectionMode?: boolean;
+  entityId?: string;
+  entityType?: string;
+  onQualityScored?: (score: number, details: ApprovedImage['qualityDetails']) => void;
+  onVisualSearch?: (imageUrl: string) => void;
 }
 
-const SortableImage = ({ image, onRemove, onTagsChange, isSelected, onToggleSelect, selectionMode }: SortableImageProps) => {
+const SortableImage = ({
+  image, onRemove, onTagsChange, isSelected, onToggleSelect, selectionMode,
+  entityId, entityType, onQualityScored, onVisualSearch,
+}: SortableImageProps) => {
   const [showTagEditor, setShowTagEditor] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: image.id,
@@ -79,6 +78,17 @@ const SortableImage = ({ image, onRemove, onTagsChange, isSelected, onToggleSele
 
       {/* Actions */}
       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+        {onVisualSearch && (
+          <Button
+            size="icon"
+            variant="secondary"
+            className="h-6 w-6"
+            onClick={e => { e.stopPropagation(); onVisualSearch(image.url || image.thumbnailUrl); }}
+            title="Find similar"
+          >
+            <Eye className="h-3 w-3" />
+          </Button>
+        )}
         <Button
           size="icon"
           variant="secondary"
@@ -95,6 +105,16 @@ const SortableImage = ({ image, onRemove, onTagsChange, isSelected, onToggleSele
         >
           <X className="h-3 w-3" />
         </Button>
+      </div>
+
+      {/* Quality score badge */}
+      <div className="absolute top-1 left-8 opacity-0 group-hover:opacity-100 transition-opacity">
+        <ImageQualityBadge
+          image={image}
+          entityId={entityId}
+          entityType={entityType}
+          onScoreUpdate={onQualityScored}
+        />
       </div>
 
       {/* Tags */}
@@ -144,11 +164,16 @@ interface DraggableImageGridProps {
   selectionMode?: boolean;
   sectionId: string;
   tagFilter?: string;
+  entityId?: string;
+  entityType?: string;
+  onQualityScored?: (imageId: string, score: number, details: ApprovedImage['qualityDetails']) => void;
+  onVisualSearch?: (imageUrl: string) => void;
 }
 
 export const DraggableImageGrid = ({
   images, onReorder, onRemoveImage, onUpdateTags,
   selectedImages, onToggleSelection, selectionMode, sectionId, tagFilter,
+  entityId, entityType, onQualityScored, onVisualSearch,
 }: DraggableImageGridProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -162,11 +187,9 @@ export const DraggableImageGrid = ({
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-
     const oldIndex = images.findIndex(img => img.id === active.id);
     const newIndex = images.findIndex(img => img.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
-
     onReorder(arrayMove(images, oldIndex, newIndex));
   }, [images, onReorder]);
 
@@ -191,6 +214,10 @@ export const DraggableImageGrid = ({
               isSelected={selectedImages?.has(`${sectionId}::${image.id}`)}
               onToggleSelect={() => onToggleSelection?.(image)}
               selectionMode={selectionMode}
+              entityId={entityId}
+              entityType={entityType}
+              onQualityScored={onQualityScored ? (s, d) => onQualityScored(image.id, s, d) : undefined}
+              onVisualSearch={onVisualSearch}
             />
           ))}
         </div>

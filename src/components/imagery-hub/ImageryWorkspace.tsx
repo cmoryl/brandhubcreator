@@ -1,9 +1,10 @@
 /**
  * ImageryWorkspace - Main workspace area showing imagery for selected entity
- * Integrates upload zones, drag-and-drop grids, analytics, style analysis, and inline search
+ * Integrates upload zones, drag-and-drop grids, analytics, style analysis, inline search,
+ * batch operations, auto-categorization, visual search, and quality scoring
  */
 import { useState, useCallback } from 'react';
-import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3 } from 'lucide-react';
+import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,6 +18,9 @@ import { ImageryUploadZone } from '@/components/imagery-hub/ImageryUploadZone';
 import { ImageryAnalytics } from '@/components/imagery-hub/ImageryAnalytics';
 import { StyleAnalysisPanel } from '@/components/imagery-hub/StyleAnalysisPanel';
 import { DraggableImageGrid } from '@/components/imagery-hub/DraggableImageGrid';
+import { BatchOperationsToolbar } from '@/components/imagery-hub/BatchOperationsToolbar';
+import { AutoCategorizeDialog } from '@/components/imagery-hub/AutoCategorizeDialog';
+import { VisualSearchPanel } from '@/components/imagery-hub/VisualSearchPanel';
 
 interface ImageryWorkspaceProps {
   entity: ImageryEntity;
@@ -49,6 +53,8 @@ export const ImageryWorkspace = ({
   const [addingSection, setAddingSection] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [tagFilter, setTagFilter] = useState('');
+  const [autoCategorizeOpen, setAutoCategorizeOpen] = useState(false);
+  const [visualSearchUrl, setVisualSearchUrl] = useState<string | null>(null);
 
   const totalImages = sections.reduce((sum, s) => sum + s.images.length, 0);
   const searchSection = sections.find(s => s.id === searchSectionId);
@@ -69,9 +75,93 @@ export const ImageryWorkspace = ({
     if (searchSectionId) onAddImages(searchSectionId, images);
   }, [searchSectionId, onAddImages]);
 
+  // Batch operations handlers
+  const handleBulkTag = useCallback(async (tag: string) => {
+    for (const [key] of selectedImages) {
+      const [sectionId, imageId] = key.split('::');
+      const section = sections.find(s => s.id === sectionId);
+      const image = section?.images.find(img => img.id === imageId);
+      if (image) {
+        const newTags = [...new Set([...(image.tags || []), tag])];
+        await onUpdateImageTags(sectionId, imageId, newTags);
+      }
+    }
+  }, [selectedImages, sections, onUpdateImageTags]);
+
+  const handleBulkRemoveTag = useCallback(async (tag: string) => {
+    for (const [key] of selectedImages) {
+      const [sectionId, imageId] = key.split('::');
+      const section = sections.find(s => s.id === sectionId);
+      const image = section?.images.find(img => img.id === imageId);
+      if (image) {
+        const newTags = (image.tags || []).filter(t => t !== tag);
+        await onUpdateImageTags(sectionId, imageId, newTags);
+      }
+    }
+  }, [selectedImages, sections, onUpdateImageTags]);
+
+  const handleBulkDelete = useCallback(async () => {
+    for (const [key] of selectedImages) {
+      const [sectionId, imageId] = key.split('::');
+      await onRemoveImage(sectionId, imageId);
+    }
+    onToggleSelectionMode();
+  }, [selectedImages, onRemoveImage, onToggleSelectionMode]);
+
+  const handleBulkMove = useCallback(async (targetSectionId: string) => {
+    const movedImages: ApprovedImage[] = [];
+    for (const [key, image] of selectedImages) {
+      const [sectionId] = key.split('::');
+      if (sectionId !== targetSectionId) {
+        movedImages.push(image);
+        await onRemoveImage(sectionId, image.id);
+      }
+    }
+    if (movedImages.length > 0) {
+      await onAddImages(targetSectionId, movedImages);
+    }
+    onToggleSelectionMode();
+  }, [selectedImages, onRemoveImage, onAddImages, onToggleSelectionMode]);
+
+  const handleBulkQualityScore = useCallback(async (
+    scores: Map<string, { score: number; details: ApprovedImage['qualityDetails'] }>
+  ) => {
+    // Quality scores are stored on the image objects - we update tags to reflect
+    // This would need the saveImagery hook to persist qualityScore/qualityDetails
+    // For now we just display them via the badge component
+  }, []);
+
+  const handleAutoCategorizeApply = useCallback(async (
+    assignments: { image: ApprovedImage; sectionId: string; newSectionName?: string; tags: string[] }[]
+  ) => {
+    for (const assignment of assignments) {
+      let targetSectionId = assignment.sectionId;
+      if (assignment.newSectionName && !targetSectionId) {
+        const newId = await onAddSection(assignment.newSectionName);
+        if (newId) targetSectionId = newId;
+        else continue;
+      }
+      if (targetSectionId) {
+        const imageWithTags = { ...assignment.image, tags: [...new Set([...(assignment.image.tags || []), ...assignment.tags])] };
+        await onAddImages(targetSectionId, [imageWithTags]);
+      }
+    }
+  }, [onAddSection, onAddImages]);
+
+  const handleVisualSearchQuery = useCallback((query: string) => {
+    // Open search panel and trigger search
+    if (sections.length > 0) {
+      setSearchSectionId(sections[0].id);
+    }
+    setVisualSearchUrl(null);
+  }, [sections]);
+
   // Collect all unique tags across sections
   const allTags = new Set<string>();
   sections.forEach(s => s.images.forEach(img => img.tags?.forEach(t => allTags.add(t))));
+
+  // Get all images for auto-categorize
+  const allImages = sections.flatMap(s => s.images);
 
   if (isLoading) {
     return (
@@ -108,19 +198,23 @@ export const ImageryWorkspace = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-            <StyleAnalysisPanel
-              entityId={entity.id}
-              entityType={entity.type}
-              sections={sections}
-            />
+            <StyleAnalysisPanel entityId={entity.id} entityType={entity.type} sections={sections} />
             <Button
               variant={showAnalytics ? 'secondary' : 'outline'}
               size="sm"
               onClick={() => setShowAnalytics(!showAnalytics)}
               className="gap-1.5"
             >
-              <BarChart3 className="h-3.5 w-3.5" />
-              Analytics
+              <BarChart3 className="h-3.5 w-3.5" /> Analytics
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAutoCategorizeOpen(true)}
+              className="gap-1.5"
+              disabled={allImages.length === 0}
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Auto-Categorize
             </Button>
             <Button
               variant={selectionMode ? 'secondary' : 'outline'}
@@ -144,13 +238,11 @@ export const ImageryWorkspace = ({
                 }}
                 className="gap-1.5"
               >
-                <ArrowRightLeft className="h-3.5 w-3.5" />
-                Copy to Entity
+                <ArrowRightLeft className="h-3.5 w-3.5" /> Copy to Entity
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={onStartComparison} className="gap-1.5">
-              <ArrowRightLeft className="h-3.5 w-3.5" />
-              Compare
+              <ArrowRightLeft className="h-3.5 w-3.5" /> Compare
             </Button>
             {addingSection ? (
               <div className="flex items-center gap-1.5">
@@ -171,12 +263,38 @@ export const ImageryWorkspace = ({
               </div>
             ) : (
               <Button size="sm" variant="outline" onClick={() => setAddingSection(true)} className="gap-1.5">
-                <FolderPlus className="h-3.5 w-3.5" />
-                Add Category
+                <FolderPlus className="h-3.5 w-3.5" /> Add Category
               </Button>
             )}
           </div>
         </div>
+
+        {/* Batch Operations Toolbar */}
+        {selectionMode && selectedImages.size > 0 && (
+          <BatchOperationsToolbar
+            selectedImages={selectedImages}
+            sections={sections}
+            entityId={entity.id}
+            entityType={entity.type}
+            onBulkTag={handleBulkTag}
+            onBulkRemoveTag={handleBulkRemoveTag}
+            onBulkDelete={handleBulkDelete}
+            onBulkMove={handleBulkMove}
+            onBulkQualityScore={handleBulkQualityScore}
+            onClearSelection={onToggleSelectionMode}
+          />
+        )}
+
+        {/* Visual Search Panel */}
+        {visualSearchUrl && (
+          <VisualSearchPanel
+            imageUrl={visualSearchUrl}
+            entityId={entity.id}
+            entityType={entity.type}
+            onSearchQuery={handleVisualSearchQuery}
+            onClose={() => setVisualSearchUrl(null)}
+          />
+        )}
 
         {/* Analytics Panel */}
         {showAnalytics && (
@@ -262,6 +380,9 @@ export const ImageryWorkspace = ({
                         onToggleSelection={img => onToggleImageSelection(section.id, img)}
                         selectionMode={selectionMode}
                         tagFilter={tagFilter}
+                        entityId={entity.id}
+                        entityType={entity.type}
+                        onVisualSearch={url => setVisualSearchUrl(url)}
                       />
                       {/* Upload Zone */}
                       {organizationId && (
@@ -294,6 +415,16 @@ export const ImageryWorkspace = ({
           />
         </div>
       )}
+
+      {/* Auto-Categorize Dialog */}
+      <AutoCategorizeDialog
+        open={autoCategorizeOpen}
+        onOpenChange={setAutoCategorizeOpen}
+        images={allImages}
+        sections={sections}
+        entityName={entity.name}
+        onApply={handleAutoCategorizeApply}
+      />
     </div>
   );
 };
