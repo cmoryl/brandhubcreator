@@ -21,11 +21,12 @@ const corsHeaders = {
 };
 
 const BUCKET_NAME = "organization-assets";
-const MAX_DOC_EXTRACTIONS = 8;
-const MAX_IMAGES_PER_DOC = 8;
-const MIN_IMAGE_BYTES = 3000;
+const MAX_DOC_EXTRACTIONS = 6;
+const MAX_IMAGES_PER_DOC = 6;
+const MIN_IMAGE_BYTES = 2000;
 const MAX_IMAGE_BYTES = 10_000_000;
-const GLOBAL_TIMEOUT_MS = 20_000; // Return partial results after 20s
+const MAX_DOC_DOWNLOAD_BYTES = 5_000_000; // Skip docs larger than 5MB
+const GLOBAL_TIMEOUT_MS = 45_000; // 45s (edge fn limit is 60s)
 
 interface ExtractedImage {
   id: string;
@@ -143,8 +144,9 @@ function isImageUrl(url: string): boolean {
 /** Check if URL is a document we can extract embedded images from */
 function isDocumentUrl(url: string): boolean {
   if (!url) return false;
-  const lower = url.toLowerCase();
-  return /\.(pdf|pptx|ppt|docx)(\?|$)/i.test(lower);
+  // Strip query params before checking extension
+  const pathOnly = url.split('?')[0].toLowerCase();
+  return /\.(pdf|pptx|ppt|docx)$/i.test(pathOnly);
 }
 
 /** Collect all image URLs and document URLs from guide_data */
@@ -165,8 +167,13 @@ function collectAssetUrls(gd: any): {
     } else if (isImageUrl(url)) {
       directImages.push({ url, title, source });
     } else if (url.includes('supabase') || url.includes('storage')) {
-      // Storage URLs without clear extension - treat as potential images
-      directImages.push({ url, title, source });
+      // Storage URLs without clear extension - check title for hints
+      const titleLower = (title || '').toLowerCase();
+      if (titleLower.includes('.pdf') || titleLower.includes('.pptx') || titleLower.includes('.ppt') || titleLower.includes('.docx')) {
+        documents.push({ url, title, source });
+      } else {
+        directImages.push({ url, title, source });
+      }
     }
   };
 
@@ -371,15 +378,19 @@ serve(async (req) => {
     // Phase 2: Extract embedded images from documents (PDFs, PPTX)
     const processedDocs = documents.slice(0, MAX_DOC_EXTRACTIONS);
     let docsProcessed = 0;
+    let docsSkipped = 0;
     const phaseStartTime = Date.now();
+
+    console.log(`[extract-asset-images] Starting Phase 2: processing ${processedDocs.length} documents`);
 
     for (const doc of processedDocs) {
       // Global timeout: return what we have so far
       if (Date.now() - phaseStartTime > GLOBAL_TIMEOUT_MS) {
-        console.log(`[extract-asset-images] Global timeout reached after ${docsProcessed} docs`);
+        console.log(`[extract-asset-images] Global timeout reached after ${docsProcessed} docs, ${docsSkipped} skipped`);
         break;
       }
       try {
+        console.log(`[extract-asset-images] Downloading: ${doc.title} (${doc.source})`);
         const isInternal = doc.url.includes(supabaseUrl) || doc.url.includes('supabase');
         let fileBytes: Uint8Array | null = null;
 
@@ -387,13 +398,19 @@ serve(async (req) => {
           const pathMatch = doc.url.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)/);
           if (pathMatch) {
             const bucket = pathMatch[1];
-            const storagePath = pathMatch[2].split('?')[0];
+            const storagePath = decodeURIComponent(pathMatch[2].split('?')[0]);
+            console.log(`[extract-asset-images] Internal download: bucket=${bucket}, path=${storagePath.substring(0, 60)}...`);
             const { data, error } = await supabase.storage.from(bucket).download(storagePath);
             if (error || !data) {
-              console.warn(`Failed to download ${doc.title}:`, error);
+              console.warn(`[extract-asset-images] Failed to download ${doc.title}:`, error?.message || 'no data');
+              docsSkipped++;
               continue;
             }
             fileBytes = new Uint8Array(await data.arrayBuffer());
+          } else {
+            console.warn(`[extract-asset-images] Could not parse storage path from URL: ${doc.url.substring(0, 80)}`);
+            docsSkipped++;
+            continue;
           }
         } else {
           try {
@@ -402,16 +419,39 @@ serve(async (req) => {
               signal: AbortSignal.timeout(8000),
             });
             if (resp.ok) {
+              const contentLength = parseInt(resp.headers.get('content-length') || '0');
+              if (contentLength > MAX_DOC_DOWNLOAD_BYTES) {
+                console.warn(`[extract-asset-images] Skipping ${doc.title}: too large (${(contentLength/1024/1024).toFixed(1)}MB)`);
+                docsSkipped++;
+                continue;
+              }
               fileBytes = new Uint8Array(await resp.arrayBuffer());
+            } else {
+              console.warn(`[extract-asset-images] HTTP ${resp.status} fetching ${doc.title}`);
+              docsSkipped++;
+              continue;
             }
           } catch (fetchErr) {
-            console.warn(`Failed to fetch external ${doc.title}:`, fetchErr);
+            console.warn(`[extract-asset-images] Fetch error for ${doc.title}:`, fetchErr);
+            docsSkipped++;
             continue;
           }
         }
 
-        if (!fileBytes || fileBytes.length < 1000) continue;
+        if (!fileBytes || fileBytes.length < 1000) {
+          console.warn(`[extract-asset-images] ${doc.title}: too small (${fileBytes?.length || 0} bytes)`);
+          docsSkipped++;
+          continue;
+        }
+
+        if (fileBytes.length > MAX_DOC_DOWNLOAD_BYTES) {
+          console.warn(`[extract-asset-images] Skipping ${doc.title}: ${(fileBytes.length/1024/1024).toFixed(1)}MB exceeds limit`);
+          docsSkipped++;
+          continue;
+        }
+
         docsProcessed++;
+        console.log(`[extract-asset-images] Processing ${doc.title}: ${(fileBytes.length/1024).toFixed(0)}KB`);
 
         const isPdf = fileBytes[0] === 0x25 && fileBytes[1] === 0x50;
         const isZip = fileBytes[0] === 0x50 && fileBytes[1] === 0x4B;
@@ -420,11 +460,19 @@ serve(async (req) => {
 
         if (isPdf) {
           docImages = extractJpegFromPdf(fileBytes).map(data => ({ data, ext: 'jpg', mime: 'image/jpeg' }));
+          console.log(`[extract-asset-images] PDF ${doc.title}: found ${docImages.length} JPEG images`);
         } else if (isZip) {
           docImages = await extractImagesFromPptx(fileBytes);
+          console.log(`[extract-asset-images] PPTX ${doc.title}: found ${docImages.length} images`);
+        } else {
+          console.warn(`[extract-asset-images] ${doc.title}: not a PDF or ZIP (magic: 0x${fileBytes[0].toString(16)}${fileBytes[1].toString(16)})`);
+          continue;
         }
 
+        let uploadedCount = 0;
         for (let idx = 0; idx < docImages.length; idx++) {
+          if (Date.now() - phaseStartTime > GLOBAL_TIMEOUT_MS) break;
+          
           const img = docImages[idx];
           const timestamp = Date.now();
           const fileName = `extracted-${doc.source}-${timestamp}-${idx}.${img.ext}`;
@@ -437,11 +485,12 @@ serve(async (req) => {
             });
 
           if (uploadError) {
-            console.warn(`Upload error for ${fileName}:`, uploadError);
+            console.warn(`[extract-asset-images] Upload error for ${fileName}:`, uploadError.message);
             continue;
           }
 
           const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
+          uploadedCount++;
 
           extractedImages.push({
             id: crypto.randomUUID(),
@@ -454,10 +503,13 @@ serve(async (req) => {
             sizeBytes: img.data.length,
           });
         }
+        console.log(`[extract-asset-images] ${doc.title}: uploaded ${uploadedCount}/${docImages.length} images`);
       } catch (docErr) {
-        console.error(`Error processing ${doc.title}:`, docErr);
+        console.error(`[extract-asset-images] Error processing ${doc.title}:`, docErr);
       }
     }
+
+    console.log(`[extract-asset-images] Phase 2 complete: ${docsProcessed} docs processed, ${docsSkipped} skipped, ${extractedImages.length - directImages.length} images extracted`);
 
     const totalSources = directImages.length + documents.length;
     return new Response(JSON.stringify({
