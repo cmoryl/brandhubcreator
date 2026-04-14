@@ -439,7 +439,7 @@ serve(async (req) => {
           extractedImages.push({
             id: crypto.randomUUID(),
             url: `${urlData.publicUrl}?t=${timestamp}`,
-            thumbnailUrl: `${urlData.publicUrl}?t=${timestamp}`,
+            thumbnailUrl: `${urlData.publicUrl}?t=${timestamp}&width=200&height=200&resize=cover&quality=60`,
             title: `${doc.title} — Image ${idx + 1}`,
             source: 'extracted',
             sourceDocument: doc.title,
