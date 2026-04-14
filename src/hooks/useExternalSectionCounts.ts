@@ -20,8 +20,9 @@ export function useExternalSectionCounts(
   entityId: string | undefined,
   entityType: string = 'brand',
   refreshTrigger?: number
-): ExternalSectionCounts {
+): ExternalSectionCounts & { isLoaded: boolean } {
   const [counts, setCounts] = useState<ExternalSectionCounts>({});
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     if (!entityId) {
