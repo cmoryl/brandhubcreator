@@ -8,6 +8,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 
+export interface VisualDNADataSources {
+  interaction_signals: number;
+  vault_assets: number;
+  approved_imagery: number;
+  brand_colors: number;
+  collateral_items: number;
+  logos: number;
+  patterns: number;
+  gradients: number;
+  has_visual_analysis: boolean;
+  has_inclusive_assessment: boolean;
+}
+
 export interface VisualDNA {
   preferred_categories: Array<{ name: string; weight: number; reason?: string }>;
   preferred_colors: Array<{ color: string; weight: number }>;
@@ -27,6 +40,7 @@ export interface VisualDNA {
   total_removed: number;
   confidence_score: number;
   last_analyzed_at: string | null;
+  data_sources?: VisualDNADataSources;
 }
 
 interface SignalEntry {
