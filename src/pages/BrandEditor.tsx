@@ -159,8 +159,20 @@ const BrandEditor = () => {
     }
   }, [user, isApproved, isAdmin, authLoading, navigate]);
 
-  // Scroll to top when brand changes (unless there's a hash anchor)
-  // Note: scroll-to-top on route change is handled by ScrollToTop component
+  // Scroll to top when brand data finishes loading (unless there's a hash anchor)
+  const hasScrolledForBrandRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!brand?.id || location.hash) return;
+    if (hasScrolledForBrandRef.current === brand.id) return;
+    hasScrolledForBrandRef.current = brand.id;
+    
+    // Force scroll to top once brand content renders
+    const scrollToTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    scrollToTop();
+    // Re-assert as images/sections load
+    const timers = [0, 50, 150, 300, 600, 1000, 2000, 3000].map(d => window.setTimeout(scrollToTop, d));
+    return () => timers.forEach(t => window.clearTimeout(t));
+  }, [brand?.id, location.hash]);
 
   // Handle hash anchor scrolling on page load/navigation
   useEffect(() => {
