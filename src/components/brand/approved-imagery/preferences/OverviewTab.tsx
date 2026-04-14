@@ -12,7 +12,7 @@ const sourceLabels: Record<string, string> = {
   approved_imagery: 'Approved Imagery',
   brand_colors: 'Brand Colors',
   collateral_items: 'Collateral',
-  logos: 'Logos',
+  // logos intentionally excluded — brand marks aren't imagery preferences
   patterns: 'Patterns',
   gradients: 'Gradients',
 };

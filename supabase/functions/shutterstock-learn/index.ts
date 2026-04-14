@@ -336,7 +336,7 @@ ${JSON.stringify(inclusiveImagery, null, 1)}
         approved_imagery: approvedSubImages.length,
         brand_colors: brandColors.length,
         collateral_items: collateralMeta.length,
-        logos: logoMeta.length,
+        logos: 0, // excluded from analysis
         patterns: patternCount,
         gradients: gradientCount,
         has_visual_analysis: !!visualAnalysis,
