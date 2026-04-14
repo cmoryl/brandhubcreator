@@ -326,6 +326,17 @@ const BrandEditor = () => {
   // Use context brand if available, otherwise use fetched public brand
   const brand = contextBrand || publicBrand;
 
+  // Scroll to top when brand data finishes loading (unless there's a hash anchor)
+  useEffect(() => {
+    if (!brand?.id || location.hash) return;
+    if (hasScrolledForBrandRef.current === brand.id) return;
+    hasScrolledForBrandRef.current = brand.id;
+    
+    const scrollToTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    scrollToTop();
+    const timers = [0, 100, 300, 600, 1000, 2000, 3000, 5000].map(d => window.setTimeout(scrollToTop, d));
+    return () => timers.forEach(t => window.clearTimeout(t));
+  }, [brand?.id, location.hash]);
   // Resolve org slug for breadcrumbs - always resolve from entity's organizationId
   const { orgSlug: resolvedOrgSlug, orgName: resolvedOrgName } = useOrgSlug(
     brand?.organizationId
