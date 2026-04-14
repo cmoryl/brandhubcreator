@@ -104,6 +104,7 @@ export const IconographySection = ({
   const [addToLibraryTargetId, setAddToLibraryTargetId] = useState<string>('');
   const [showLibraryPicker, setShowLibraryPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { trackDownload } = useDownloadTracking();
   
   const ICONS_PREVIEW_LIMIT = 8;
 
