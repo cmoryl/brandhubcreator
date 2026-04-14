@@ -169,6 +169,11 @@ export const InlineImagerySearch = ({
   const [peopleAge, setPeopleAge] = useState('');
   const [peopleEthnicity, setPeopleEthnicity] = useState('');
   const [peopleGender, setPeopleGender] = useState('');
+  const [safeSearch, setSafeSearch] = useState(true);
+  const [minWidth, setMinWidth] = useState('');
+  const [minHeight, setMinHeight] = useState('');
+  const [excludeKeywords, setExcludeKeywords] = useState('');
+  const [showExamples, setShowExamples] = useState(false);
 
   const [similarSourceId, setSimilarSourceId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<ShutterstockSearchResult | null>(null);
