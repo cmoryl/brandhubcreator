@@ -11,13 +11,14 @@ import {
   rectSortingStrategy, useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { X, GripVertical, Tag, Eye } from 'lucide-react';
+import { X, GripVertical, Tag, Eye, ZoomIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ApprovedImage } from '@/types/brand';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ImageTagEditor } from './ImageTagEditor';
 import { ImageQualityBadge } from './ImageQualityBadge';
+import { ImageryPreviewDialog } from '@/components/brand/approved-imagery/ImageryPreviewDialog';
 
 interface SortableImageProps {
   image: ApprovedImage;
@@ -37,6 +38,7 @@ const SortableImage = ({
   entityId, entityType, onQualityScored, onVisualSearch,
 }: SortableImageProps) => {
   const [showTagEditor, setShowTagEditor] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: image.id,
   });
@@ -56,12 +58,12 @@ const SortableImage = ({
         selectionMode && isSelected && 'ring-2 ring-primary',
         selectionMode && 'cursor-pointer'
       )}
-      onClick={selectionMode ? onToggleSelect : undefined}
+      onClick={selectionMode ? onToggleSelect : () => setShowPreview(true)}
     >
       <img
         src={image.thumbnailUrl || image.url}
         alt={image.title}
-        className="w-full aspect-square object-cover"
+        className="w-full aspect-square object-cover cursor-pointer"
         loading="lazy"
       />
 
@@ -76,6 +78,15 @@ const SortableImage = ({
 
       {/* Always-visible action buttons */}
       <div className="absolute top-1.5 right-1.5 flex gap-1.5">
+        <Button
+          size="icon"
+          variant="secondary"
+          className="h-8 w-8 bg-background/70 backdrop-blur-sm border-0 shadow-sm"
+          onClick={e => { e.stopPropagation(); setShowPreview(true); }}
+          title="View larger"
+        >
+          <ZoomIn className="h-4 w-4" />
+        </Button>
         {onVisualSearch && (
           <Button
             size="icon"
@@ -150,6 +161,20 @@ const SortableImage = ({
           />
         </div>
       )}
+
+      {/* Full-resolution preview dialog */}
+      <ImageryPreviewDialog
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        image={showPreview ? {
+          id: image.id,
+          url: image.url,
+          thumbnailUrl: image.thumbnailUrl,
+          title: image.title,
+          source: image.source,
+          category: image.category,
+        } : null}
+      />
     </div>
   );
 };
