@@ -527,6 +527,16 @@ export interface ApprovedImage {
   approvedBy?: string;
   approvedAt?: string;
   tags?: string[];
+  qualityScore?: number; // 0-100 AI-rated quality
+  qualityDetails?: {
+    resolution: number;
+    composition: number;
+    brandAlignment: number;
+    technicalQuality: number;
+    notes?: string;
+  };
+  width?: number;
+  height?: number;
 }
 
 export interface ApprovedImagerySubSection {
