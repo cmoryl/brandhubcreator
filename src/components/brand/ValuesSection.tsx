@@ -356,6 +356,52 @@ export const ValuesSection = ({
     fileInputRef.current?.click();
   };
 
+  // AI-generate industry-relevant pillar images for all values
+  const generateAiPillarImages = useCallback(async () => {
+    if (!brandId || aiGenerating || values.length === 0) return;
+    setAiGenerating(true);
+    setAiProgress({ current: 0, total: values.length });
+    
+    let successCount = 0;
+    for (let i = 0; i < values.length; i++) {
+      const value = values[i];
+      setAiProgress({ current: i + 1, total: values.length });
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-pillar-image', {
+          body: {
+            pillarName: value.text,
+            pillarDescription: value.description,
+            brandName: brandName || '',
+            industry: '', // will be inferred from brand name
+            brandId,
+          },
+        });
+        
+        if (error) {
+          console.error(`Failed to generate image for ${value.text}:`, error);
+          continue;
+        }
+        
+        if (data?.url) {
+          updateValue(value.id, { imageUrl: data.url, useImage: true });
+          successCount++;
+        }
+      } catch (err) {
+        console.error(`Error generating pillar image for ${value.text}:`, err);
+      }
+    }
+    
+    if (successCount > 0) {
+      toast.success(`Generated ${successCount} AI pillar images`);
+    } else {
+      toast.error('Failed to generate pillar images. Please try again.');
+    }
+    
+    setAiGenerating(false);
+    setAiProgress(null);
+  }, [brandId, aiGenerating, values, brandName, updateValue]);
+
   return (
     <section className="space-y-4 sm:space-y-6">
       <input
