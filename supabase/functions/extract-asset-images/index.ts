@@ -399,7 +399,7 @@ serve(async (req) => {
           try {
             const resp = await fetch(doc.url, {
               headers: { 'User-Agent': 'BrandHub-ImageExtractor/1.0' },
-              signal: AbortSignal.timeout(15000),
+              signal: AbortSignal.timeout(8000),
             });
             if (resp.ok) {
               fileBytes = new Uint8Array(await resp.arrayBuffer());
