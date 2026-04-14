@@ -483,11 +483,12 @@ Synthesize ALL these data sources into a unified Visual DNA. The brand colors, i
         mood_keywords: dnaResult.mood_keywords || [],
         avoid_keywords: dnaResult.avoid_keywords || [],
         approval_patterns: dnaResult.approval_patterns || {},
-        total_approved: approved.length + allVaultMeta.length,
+        total_approved: approved.length + allVaultMeta.length + approvedSubImages.length,
         total_skipped: skipped.length,
         total_removed: removed.length,
         confidence_score: dnaResult.confidence_score || 0,
         last_analyzed_at: new Date().toISOString(),
+        data_sources: dataSources,
       };
 
       if (existing) {
