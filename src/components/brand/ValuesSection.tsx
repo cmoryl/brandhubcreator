@@ -631,9 +631,9 @@ export const ValuesSection = ({
                 </div>
               ) : (
               <>
-                   {/* Full-width image at top for image mode - already resolved uniquely */}
+                   {/* Full-width image at top for image mode */}
                    {resolvedImage && (
-                       <div className="absolute inset-x-0 top-0 h-20 sm:h-24 rounded-t-lg overflow-hidden">
+                       <div className="-mx-3 sm:-mx-4 -mt-3 sm:-mt-4 mb-3 h-28 sm:h-36 rounded-t-lg overflow-hidden relative">
                          <img 
                            src={resolvedImage} 
                            alt={value.text} 
@@ -641,12 +641,11 @@ export const ValuesSection = ({
                            loading="lazy"
                            decoding="async"
                          />
-                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-card" />
                        </div>
                    )}
                    
-                   {/* Adjust margin and show icon only if not in image mode */}
-                   <div className={`flex items-start justify-between ${value.useImage ? 'mt-14 sm:mt-16' : ''} mb-2`}>
+                   {/* Show icon only if not in image mode */}
+                   <div className="flex items-start justify-between mb-2">
                      {!value.useImage ? (
                        <div className="p-2 bg-accent/10 rounded-lg transition-all duration-300 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-accent/20">
                          {IconComponent ? (
