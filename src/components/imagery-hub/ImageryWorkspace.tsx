@@ -3,7 +3,7 @@
  * Integrates upload zones, drag-and-drop grids, analytics, style analysis, inline search,
  * batch operations, auto-categorization, visual search, and quality scoring
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,10 +56,17 @@ export const ImageryWorkspace = ({
   const [tagFilter, setTagFilter] = useState('');
   const [autoCategorizeOpen, setAutoCategorizeOpen] = useState(false);
   const [visualSearchUrl, setVisualSearchUrl] = useState<string | null>(null);
+  const [searchCollapsed, setSearchCollapsed] = useState(false);
 
   const totalImages = sections.reduce((sum, s) => sum + s.images.length, 0);
   const searchSection = sections.find(s => s.id === searchSectionId);
-  const isSearchOpen = !!searchSectionId;
+
+  // Auto-open search panel with first section when sections load
+  useEffect(() => {
+    if (sections.length > 0 && !searchSectionId) {
+      setSearchSectionId(sections[0].id);
+    }
+  }, [sections, searchSectionId]);
 
   const handleAddSection = useCallback(async () => {
     if (!newSectionName.trim()) return;
@@ -70,11 +77,16 @@ export const ImageryWorkspace = ({
 
   const openSearch = useCallback((sectionId: string) => {
     setSearchSectionId(sectionId);
+    setSearchCollapsed(false);
   }, []);
 
   const handleApproveImages = useCallback((images: ApprovedImage[]) => {
     if (searchSectionId) onAddImages(searchSectionId, images);
   }, [searchSectionId, onAddImages]);
+
+  const handleChangeSearchSection = useCallback((sectionId: string) => {
+    setSearchSectionId(sectionId);
+  }, []);
 
   // Batch operations handlers
   const handleBulkTag = useCallback(async (tag: string) => {
