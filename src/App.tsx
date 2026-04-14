@@ -147,11 +147,7 @@ const App = () => (
                   <Route element={<RootLayout />}>
                     <Route
                       index
-                      element={
-                        <Suspense fallback={<PageSkeleton />}>
-                          <Index />
-                        </Suspense>
-                      }
+                      element={<IndexPage />}
                     />
                     <Route
                       path="dashboard"
