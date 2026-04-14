@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { safeUUID } from '@/lib/safeUUID';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
+import { useDownloadTracking } from '@/hooks/useDownloadTracking';
 
 // Image Asset type
 export interface ImageAsset {
@@ -134,11 +135,24 @@ export const ImageAssetsSection = ({
   const deleteAsset = (id: string) => {
     onImageAssetsChange?.(imageAssets.filter(a => a.id !== id));
   };
+  const { trackDownload } = useDownloadTracking();
+  
   const downloadAsset = (asset: ImageAsset) => {
     const link = document.createElement('a');
     link.href = asset.url;
     link.download = asset.name;
     link.click();
+    
+    trackDownload({
+      entityType: 'image_asset',
+      entityName: asset.name,
+      details: {
+        download_type: 'asset',
+        format: asset.name.split('.').pop() || 'unknown',
+        file_name: asset.name,
+        source_section: 'image_assets',
+      },
+    });
   };
 
   // Filter out removed/broken assets for display
