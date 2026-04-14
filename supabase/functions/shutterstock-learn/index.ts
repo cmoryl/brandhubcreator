@@ -357,12 +357,13 @@ ${JSON.stringify(inclusiveImagery, null, 1)}
           messages: [
             {
               role: 'system',
-              content: `You are a visual preference analyst. Analyze imagery selection patterns to build a Visual DNA profile. Focus on identifying clear preferences vs. dislikes from the approved, skipped, removed, and curated vault image data. Operational Vault images are intentionally curated brand assets — treat them as strong indicators of preferred visual style, equivalent to explicitly approved images.`
+              content: `You are a comprehensive visual brand analyst. Build a Visual DNA profile by synthesizing ALL available brand data: user interaction signals, curated imagery libraries, brand identity (archetype, colors, values), existing collateral, logos, and prior visual audits. Weight data sources appropriately: approved imagery and vault assets are strong positive signals; brand colors and identity define the palette/mood baseline; collateral reflects production style; prior visual analyses provide expert assessment context.`
             },
             {
               role: 'user',
-              content: `Analyze these imagery interaction signals:
+              content: `Build a comprehensive Visual DNA profile from ALL available brand data:
 
+=== USER INTERACTION SIGNALS ===
 APPROVED (${approved.length} total, showing ${approvedMeta.length}):
 ${JSON.stringify(approvedMeta, null, 1)}
 
@@ -371,10 +372,24 @@ ${JSON.stringify(skippedMeta, null, 1)}
 
 REMOVED (${removed.length} total, showing ${removedMeta.length}):
 ${JSON.stringify(removedMeta, null, 1)}
-${vaultSection}
+
 SEARCH QUERIES USED: ${searchQueries.join(', ')}
 
-Extract the visual preferences, patterns, and aversions. Be specific and actionable. Consider the vault images as strong evidence of preferred visual style.`
+=== CURATED BRAND ASSETS ===
+${vaultSection}
+${approvedImagerySection}
+
+=== BRAND FOUNDATION ===
+${brandContextSection}
+
+=== EXISTING MATERIALS ===
+${collateralSection}
+
+=== PRIOR VISUAL AUDITS ===
+${analysisSection}
+${inclusiveSection}
+
+Synthesize ALL these data sources into a unified Visual DNA. The brand colors, identity, and existing materials should inform preferred_colors and mood_keywords even when interaction signals are sparse. Be specific and actionable.`
             }
           ],
           tools: [{
