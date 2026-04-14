@@ -114,10 +114,10 @@ import serviceOils1 from '@/assets/demos/service-oils-1.jpg';
 import serviceOils2 from '@/assets/demos/service-oils-2.jpg';
 
 // Import card imagery for landing page showcase
-import cardBrandHub from '@/assets/demos/card-brandhub.jpg';
-import cardNexusTech from '@/assets/demos/card-nexus-tech.jpg';
-import cardNexusCloud from '@/assets/demos/card-nexus-cloud.jpg';
-import cardInnovationSummit from '@/assets/demos/card-innovation-summit.jpg';
+import cardBrandHub from '@/assets/demos/card-brandhub.webp';
+import cardNexusTech from '@/assets/demos/card-nexus-tech.webp';
+import cardNexusCloud from '@/assets/demos/card-nexus-cloud.webp';
+import cardInnovationSummit from '@/assets/demos/card-innovation-summit.webp';
 import cardBloomWellness from '@/assets/demos/card-bloom-wellness.jpg';
 import cardBloomOils from '@/assets/demos/card-bloom-oils.jpg';
 import cardPulseMedia from '@/assets/demos/card-pulse-media.jpg';
