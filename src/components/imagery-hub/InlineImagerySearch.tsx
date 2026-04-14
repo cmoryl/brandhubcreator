@@ -4,6 +4,7 @@
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { BrandMaterialsPanel } from '@/components/imagery-hub/BrandMaterialsPanel';
+import { AssetImageExtractor } from '@/components/imagery-hub/AssetImageExtractor';
 import { ImageryPreviewDialog } from '@/components/brand/approved-imagery/ImageryPreviewDialog';
 import { SearchByImageUpload } from '@/components/imagery-hub/SearchByImageUpload';
 import { ExampleSearchGrid } from '@/components/imagery-hub/ExampleSearchGrid';
@@ -134,7 +135,7 @@ const QUICK_COLORS = [
 
 const LIGHTBOX_STORAGE_KEY = 'shutterstock-lightboxes';
 
-type ToolPanel = 'none' | 'filters' | 'lightbox' | 'preferences' | 'examples' | 'materials' | 'upload';
+type ToolPanel = 'none' | 'filters' | 'lightbox' | 'preferences' | 'examples' | 'materials' | 'upload' | 'extract';
 
 export const InlineImagerySearch = ({
   onApproveImages,
