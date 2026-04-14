@@ -55,12 +55,12 @@ export const GlitchText = forwardRef<HTMLSpanElement, GlitchTextProps>(
 
   return (
     <span ref={ref} className={`glitch-text-wrapper relative inline-block ${className}`}>
-      {/* Blue glow layer */}
+      {/* Blue glow layer - uses text-shadow only to avoid costly blur filter */}
       <span 
-        className="absolute inset-0 blur-lg opacity-60 pointer-events-none"
+        className="absolute inset-0 opacity-60 pointer-events-none"
         style={{ 
-          color: glowColor,
-          textShadow: `0 0 20px ${glowColor}, 0 0 40px ${glowColor}, 0 0 60px ${glowColor}`,
+          color: 'transparent',
+          textShadow: `0 0 10px ${glowColor}, 0 0 20px ${glowColor}, 0 0 40px ${glowColor}, 0 0 60px ${glowColor}`,
         }}
         aria-hidden="true"
       >
