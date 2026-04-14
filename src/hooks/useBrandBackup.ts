@@ -3,6 +3,7 @@ import { BrandGuide, ProductGuide, DEFAULT_SECTION_ORDER, DEFAULT_PAGE_SETTINGS 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDownloadTracking, estimateSize } from '@/hooks/useDownloadTracking';
 
 // Version for backup format compatibility
 const BACKUP_VERSION = '2.0';
@@ -71,6 +72,8 @@ export const useBrandBackup = () => {
   }, [user?.email]);
 
   // Download a single guide as JSON
+  const { trackDownload } = useDownloadTracking();
+
   const downloadGuide = useCallback((guide: BrandGuide | ProductGuide) => {
     const backup = exportGuide(guide);
     const fileName = `${guide.slug || guide.hero.name.toLowerCase().replace(/\s+/g, '-')}-backup-${new Date().toISOString().split('T')[0]}.json`;
@@ -85,8 +88,22 @@ export const useBrandBackup = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
+    trackDownload({
+      entityId: guide.id,
+      entityType: 'parentBrandId' in guide ? 'product' : 'brand',
+      entityName: guide.hero.name,
+      details: {
+        download_type: 'backup',
+        format: 'json',
+        file_name: fileName,
+        file_size_bytes: blob.size,
+        source_section: 'backup',
+      },
+      organizationId: guide.organizationId || undefined,
+    });
+    
     toast.success(`Exported ${guide.hero.name} backup`);
-  }, [exportGuide]);
+  }, [exportGuide, trackDownload]);
 
   // Download all guides as a full backup
   const downloadFullBackup = useCallback((brands: BrandGuide[], products: ProductGuide[], organizationName?: string) => {
@@ -115,8 +132,22 @@ export const useBrandBackup = () => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
+    trackDownload({
+      entityType: 'organization',
+      entityName: organizationName || 'Full Backup',
+      details: {
+        download_type: 'backup',
+        format: 'json',
+        file_name: fileName,
+        file_size_bytes: blob.size,
+        item_count: brands.length + products.length,
+        source_section: 'full_backup',
+      },
+      organizationId: backup.metadata.organizationId || undefined,
+    });
+    
     toast.success(`Exported full backup with ${brands.length} brands and ${products.length} products`);
-  }, [exportGuide, user?.email]);
+  }, [exportGuide, user?.email, trackDownload]);
 
   // Parse and validate an uploaded backup file
   const parseBackupFile = useCallback(async (file: File): Promise<BrandBackupData | FullBackupData | null> => {
