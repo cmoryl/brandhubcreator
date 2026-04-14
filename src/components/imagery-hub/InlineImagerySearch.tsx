@@ -211,7 +211,7 @@ export const InlineImagerySearch = ({
     try { localStorage.setItem(LIGHTBOX_STORAGE_KEY, JSON.stringify(updated)); } catch { /* ignore */ }
   }, []);
 
-  const activeFilterCount = [colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender].filter(Boolean).length;
+  const activeFilterCount = [colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, minWidth, minHeight, excludeKeywords, !safeSearch ? 'off' : ''].filter(Boolean).length;
 
   const fetchSuggestions = useCallback(async () => {
     if (!entityId) return;
@@ -280,6 +280,10 @@ export const InlineImagerySearch = ({
             image_type: imageType === 'all' ? undefined : imageType,
             color: colorFilter || undefined,
             sort: sortBy || 'popular',
+            safe: safeSearch,
+            min_width: minWidth || undefined,
+            min_height: minHeight || undefined,
+            exclude_keywords: excludeKeywords || undefined,
             people_number: peopleNumber && peopleNumber !== '_any' ? peopleNumber : undefined,
             people_age: peopleAge && peopleAge !== '_any' ? peopleAge : undefined,
             people_ethnicity: peopleEthnicity && peopleEthnicity !== '_any' ? peopleEthnicity : undefined,
