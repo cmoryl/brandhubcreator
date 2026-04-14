@@ -58,12 +58,12 @@ const SortableImage = ({
         selectionMode && isSelected && 'ring-2 ring-primary',
         selectionMode && 'cursor-pointer'
       )}
-      onClick={selectionMode ? onToggleSelect : undefined}
+      onClick={selectionMode ? onToggleSelect : () => setShowPreview(true)}
     >
       <img
         src={image.thumbnailUrl || image.url}
         alt={image.title}
-        className="w-full aspect-square object-cover"
+        className="w-full aspect-square object-cover cursor-pointer"
         loading="lazy"
       />
 
