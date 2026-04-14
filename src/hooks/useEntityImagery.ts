@@ -90,6 +90,26 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
     await saveImagery(sections.filter(s => s.id !== sectionId));
   }, [sections, saveImagery]);
 
+  const reorderImages = useCallback(async (sectionId: string, newImages: ApprovedImage[]) => {
+    const updated = sections.map(s =>
+      s.id === sectionId ? { ...s, images: newImages } : s
+    );
+    await saveImagery(updated);
+  }, [sections, saveImagery]);
+
+  const updateImageTags = useCallback(async (sectionId: string, imageId: string, tags: string[]) => {
+    const updated = sections.map(s => {
+      if (s.id !== sectionId) return s;
+      return {
+        ...s,
+        images: s.images.map(img =>
+          img.id === imageId ? { ...img, tags } : img
+        ),
+      };
+    });
+    await saveImagery(updated);
+  }, [sections, saveImagery]);
+
   const copyImagesToEntity = useCallback(async (
     images: ApprovedImage[],
     targetEntityId: string,
@@ -131,6 +151,7 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
   return {
     sections, isLoading, organizationId,
     saveImagery, addImages, removeImage, addSection, removeSection,
+    reorderImages, updateImageTags,
     copyImagesToEntity, refetch: fetchImagery,
   };
 };
