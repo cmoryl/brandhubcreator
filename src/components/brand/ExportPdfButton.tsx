@@ -326,7 +326,11 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
               paper_size: paperSize,
               theme: pdfTheme,
               sections_count: selectedSections.size,
+              file_name: `${guide.hero?.name || 'guide'}-brand-guide.pdf`,
+              source_section: 'pdf_export',
             },
+            p_browser: navigator.userAgent.includes('Firefox') ? 'Firefox' : navigator.userAgent.includes('Chrome') ? 'Chrome' : 'Other',
+            p_device_type: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
           });
         } catch (logError) {
           console.warn('Failed to log export:', logError);
