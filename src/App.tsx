@@ -111,7 +111,7 @@ const RootLayout = () => {
   const location = useLocation();
   
   // Scroll to top immediately on route change (before children render)
-  React.useEffect(() => {
+  useEffect(() => {
     if (!location.hash) {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }
