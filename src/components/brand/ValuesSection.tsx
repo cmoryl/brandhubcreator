@@ -434,6 +434,25 @@ export const ValuesSection = ({
                 onSyncComplete={onSyncComplete}
               />
             )}
+            <Button
+              onClick={generateAiPillarImages}
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              disabled={aiGenerating || !brandId || values.length === 0}
+            >
+              {aiGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {aiProgress ? `${aiProgress.current}/${aiProgress.total}` : 'Generating...'}
+                </>
+              ) : (
+                <>
+                  <Wand2 className="h-4 w-4" />
+                  AI Imagery
+                </>
+              )}
+            </Button>
             <Button onClick={addValue} size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
               Add Value
