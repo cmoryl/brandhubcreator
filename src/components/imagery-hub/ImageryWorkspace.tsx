@@ -235,14 +235,11 @@ export const ImageryWorkspace = ({
                 <DropdownMenuItem onClick={() => setAutoCategorizeOpen(true)} disabled={allImages.length === 0} className="gap-2">
                   <Sparkles className="h-4 w-4" /> Auto-Categorize
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="gap-2" asChild>
-                  <div>
-                    <StyleAnalysisPanel entityId={entity.id} entityType={entity.type} sections={sections} />
-                  </div>
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Style Analysis - standalone since it has its own trigger */}
+            <StyleAnalysisPanel entityId={entity.id} entityType={entity.type} sections={sections} />
 
             {/* Selection group */}
             <Button
