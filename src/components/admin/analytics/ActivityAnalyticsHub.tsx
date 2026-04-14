@@ -129,7 +129,7 @@ export function ActivityAnalyticsHub() {
 
       // Build heatmap from page_views + audit_logs
       const heatmapData: HeatmapPoint[] = [];
-      const heatmapMap = new Map<string, number>();
+      const heatmapMap: Map<string, number> = new Map();
       
       [...pageViews, ...auditLogs].forEach((item: any) => {
         const ts = new Date(item.created_at || item.started_at);
@@ -145,7 +145,7 @@ export function ActivityAnalyticsHub() {
       });
 
       // Build trends
-      const trendMap = new Map<string, { pageViews: number; downloads: number; sessions: number }>();
+      const trendMap: Map<string, { pageViews: number; downloads: number; sessions: number }> = new Map();
       
       pageViews.forEach((pv: any) => {
         const day = format(new Date(pv.created_at), 'MMM d');
@@ -173,7 +173,7 @@ export function ActivityAnalyticsHub() {
         .sort((a, b) => a.date.localeCompare(b.date));
 
       // Action breakdown
-      const actionMap = new Map<string, number>();
+      const actionMap: Map<string, number> = new Map();
       auditLogs.forEach((l: any) => {
         const action = l.action_type || 'other';
         actionMap.set(action, (actionMap.get(action) || 0) + 1);
@@ -183,7 +183,7 @@ export function ActivityAnalyticsHub() {
         .sort((a, b) => b.count - a.count);
 
       // Entity breakdown
-      const entityMap = new Map<string, number>();
+      const entityMap: Map<string, number> = new Map();
       auditLogs.forEach((l: any) => {
         const entity = l.entity_type || 'unknown';
         entityMap.set(entity, (entityMap.get(entity) || 0) + 1);
