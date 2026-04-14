@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { 
   Plus, X, Pencil, Upload, Image as ImageIcon, RefreshCw, ChevronLeft, ChevronRight, Loader2, FolderOpen,
   // Core values
@@ -31,6 +31,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SectionHeader } from './SectionHeader';
 import { SyncValuesButton } from './SyncValuesButton';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
@@ -227,6 +228,7 @@ export const ValuesSection = ({
   // Derive canEdit from prop or whether change handler is provided
   const canEdit = canEditProp ?? Boolean(onValuesChange);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingId, setViewingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Core Values');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -447,11 +449,14 @@ export const ValuesSection = ({
                 transition-all duration-500 ease-out
                 hover:shadow-lg hover:-translate-y-1 hover:border-accent/30
                 hover:bg-gradient-to-br hover:from-card hover:to-accent/5
-                ${!isEditing ? 'cursor-pointer' : ''}
+                cursor-pointer
               `}
               style={{ 
                 animationDelay: `${index * 50}ms`,
                 transformStyle: 'preserve-3d',
+              }}
+              onClick={() => {
+                if (!isEditing) setViewingId(value.id);
               }}
             >
               {isEditing ? (
@@ -653,19 +658,19 @@ export const ValuesSection = ({
                      ) : <div />}
                      {canEdit && (
                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button
-                           onClick={() => setEditingId(value.id)}
-                           className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                         >
-                           <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                         </button>
-                         <button
-                           onClick={() => deleteValue(value.id)}
-                           className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                         >
-                           <X className="h-3.5 w-3.5" />
-                         </button>
-                       </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setEditingId(value.id); }}
+                            className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                          >
+                            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteValue(value.id); }}
+                            className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                      )}
                    </div>
                    <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 transition-colors duration-300 group-hover:text-accent leading-tight">{value.text}</h3>
@@ -691,6 +696,48 @@ export const ValuesSection = ({
           </button>
         )}
       </div>
+
+      {/* Pillar Detail Dialog */}
+      <Dialog open={!!viewingId} onOpenChange={(open) => { if (!open) setViewingId(null); }}>
+        <DialogContent className="max-w-lg sm:max-w-xl">
+          {(() => {
+            const viewingValue = values.find(v => v.id === viewingId);
+            if (!viewingValue) return null;
+            const ViewIcon = getIconComponent(viewingValue.icon);
+            const viewImage = viewingValue.useImage 
+              ? (viewingValue.imageUrl || getStablePillarImage(viewingValue.text))
+              : null;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3 text-lg">
+                    {!viewingValue.useImage && ViewIcon && (
+                      <div className="p-2.5 bg-accent/10 rounded-lg">
+                        <ViewIcon className="h-6 w-6 text-accent" />
+                      </div>
+                    )}
+                    {viewingValue.text}
+                  </DialogTitle>
+                </DialogHeader>
+                {viewImage && (
+                  <div className="w-full h-48 sm:h-56 rounded-lg overflow-hidden">
+                    <img 
+                      src={viewImage} 
+                      alt={viewingValue.text} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {viewingValue.description || 'No description provided.'}
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
