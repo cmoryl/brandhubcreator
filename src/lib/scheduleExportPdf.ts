@@ -4,7 +4,7 @@
  * Uses jsPDF native text API for reliable, searchable output
  */
 
-import jsPDF from 'jspdf';
+import type jsPDF from 'jspdf';
 import { EventScheduleItem, EventSpeaker } from '@/types/event';
 import { PDF_COLORS } from './pdfStyleConfig';
 
@@ -91,7 +91,8 @@ export const exportScheduleToPdf = async (
   options: PdfExportOptions
 ): Promise<void> => {
   const { eventName, eventDates, eventLocation, speakers, template } = options;
-  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const { default: JsPDF } = await import('jspdf');
+  const doc = new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
   
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();

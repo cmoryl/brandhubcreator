@@ -6,7 +6,7 @@
  * GIF: Uses gifenc for lightweight, high-quality animated GIF encoding.
  */
 
-import html2canvas from 'html2canvas';
+// html2canvas loaded dynamically when needed
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 import { toast } from 'sonner';
 
@@ -285,6 +285,7 @@ export async function captureEffectAsPng(
   const toastId = toast.loading('Capturing effect as PNG…');
   try {
     const scale = options?.quality ? getScaleForQuality(options.quality) : 2;
+    const { default: html2canvas } = await import('html2canvas');
     const canvas = await html2canvas(container, {
       backgroundColor: null,
       scale,
@@ -360,6 +361,7 @@ export async function recordEffectAsVideo(
       onProgress?.({ isRecording: true, progress });
       toast.loading(`Recording… ${progress}%`, { id: toastId });
 
+      const { default: html2canvas } = await import('html2canvas');
       const frameCanvas = await html2canvas(container, {
         backgroundColor: null,
         scale,
@@ -442,6 +444,7 @@ export async function recordEffectAsGif(
       toast.loading(`Encoding GIF… ${progress}%`, { id: toastId });
 
       // Capture frame from DOM
+      const { default: html2canvas } = await import('html2canvas');
       const frameCanvas = await html2canvas(container, {
         backgroundColor: '#000000',
         scale: 1,

@@ -1,4 +1,4 @@
-import { jsPDF } from 'jspdf';
+import type { jsPDF } from 'jspdf';
 import type { CompetitiveAnalysisReportData } from '@/types/competitiveAnalysis';
 import {
   PDF_COLORS,
@@ -984,7 +984,8 @@ export const exportCompetitiveAnalysisPdf = async (
   const date = formatPdfDate();
   const accentColor = C.entity[entityType as keyof typeof C.entity] || C.accent.primary;
 
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+  const { jsPDF: JsPDF } = await import('jspdf');
+  const pdf = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
 
   onProgress?.('Generating PDF...');
 
