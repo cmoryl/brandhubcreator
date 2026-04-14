@@ -58,8 +58,10 @@ if (typeof window !== 'undefined') {
   sessionStorage.removeItem('bhub_chunk_reload');
 }
 
-// Lazy load pages for faster initial load
-const Index = lazyWithRetry(() => import("./pages/Index"));
+// Eagerly load landing page to minimize LCP delay (it's the entry route)
+import IndexPage from "./pages/Index";
+
+// Lazy load all other pages for faster initial load
 const BrandsIndex = lazyWithRetry(() => import("./pages/BrandsIndex"));
 const BrandEditor = lazyWithRetry(() => import("./pages/BrandEditor"));
 const ProductEditor = lazyWithRetry(() => import("./pages/ProductEditor"));
@@ -145,11 +147,7 @@ const App = () => (
                   <Route element={<RootLayout />}>
                     <Route
                       index
-                      element={
-                        <Suspense fallback={<PageSkeleton />}>
-                          <Index />
-                        </Suspense>
-                      }
+                      element={<IndexPage />}
                     />
                     <Route
                       path="dashboard"
