@@ -105,6 +105,14 @@ export function ARPreviewPanel({
   const [glbPreviewUrl, setGlbPreviewUrl] = useState<string | null>(null);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [activeTab, setActiveTab] = useState('export');
+  const [modelViewerReady, setModelViewerReady] = useState(modelViewerLoaded);
+
+  // Load model-viewer script dynamically when a GLB preview is generated
+  useEffect(() => {
+    if (glbPreviewUrl && !modelViewerReady) {
+      ensureModelViewer().then(() => setModelViewerReady(true)).catch(() => {});
+    }
+  }, [glbPreviewUrl, modelViewerReady]);
 
   const filePrefix = useMemo(() => {
     const parts = ['booth-3d'];
