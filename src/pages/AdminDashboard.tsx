@@ -57,6 +57,7 @@ import { GlobalMapThemeEditor } from '@/components/admin/GlobalMapThemeEditor';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { DownloadsReportPanel } from '@/components/admin/DownloadsReportPanel';
 import { ActivityLogsPanel } from '@/components/admin/ActivityLogsPanel';
+import { ActivityAnalyticsHub } from '@/components/admin/analytics/ActivityAnalyticsHub';
 import { GlobalLinkAdminSection } from '@/components/admin/globallink';
 import { ResearchBriefingsPanel } from '@/components/admin/ResearchBriefingsPanel';
 import { MulticulturalIntelligencePanel } from '@/components/admin/MulticulturalIntelligencePanel';
@@ -809,7 +810,18 @@ export default function AdminDashboard() {
 
           {/* Activity Tab */}
           <TabsContent value="activity" className="space-y-6">
-            <ActivityLogsPanel />
+            <Tabs defaultValue="analytics">
+              <TabsList>
+                <TabsTrigger value="analytics">Analytics Hub</TabsTrigger>
+                <TabsTrigger value="logs">Activity Logs</TabsTrigger>
+              </TabsList>
+              <TabsContent value="analytics" className="mt-4">
+                <ActivityAnalyticsHub />
+              </TabsContent>
+              <TabsContent value="logs" className="mt-4">
+                <ActivityLogsPanel />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           {/* Repair Tab - Super Admin only */}
