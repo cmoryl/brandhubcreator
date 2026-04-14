@@ -101,5 +101,5 @@ export function useExternalSectionCounts(
     return () => { cancelled = true; };
   }, [entityId, entityType, refreshTrigger]);
 
-  return { ...counts, isLoaded };
+  return { counts, isLoaded };
 }
