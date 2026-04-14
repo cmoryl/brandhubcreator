@@ -1065,7 +1065,7 @@ export const InlineImagerySearch = ({
           {hasResults && (
             <div className="p-3">
               <div className={cn('grid gap-2.5', gridCols === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3')}>
-                {results.map((result) => {
+                {results.map((result, idx) => {
                   const isSelected = selectedIds.has(result.id);
                   return (
                     <div key={result.id}
@@ -1073,13 +1073,19 @@ export const InlineImagerySearch = ({
                         'relative group cursor-pointer rounded-xl overflow-hidden border-2 transition-all hover:shadow-lg',
                         isSelected ? 'border-primary ring-2 ring-primary/20 shadow-md' : 'border-transparent hover:border-muted-foreground/20'
                       )}
+                      style={{ animationDelay: `${Math.min(idx * 30, 300)}ms` }}
                       onClick={() => toggleSelect(result.id)}>
-                      <img
-                        src={result.thumbnailUrl}
-                        alt={result.description}
-                        className={cn('w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]', gridCols === 2 ? 'aspect-[4/3]' : 'aspect-square')}
-                        loading="lazy"
-                      />
+                      <div className="relative bg-muted/30">
+                        <img
+                          src={result.thumbnailUrl}
+                          alt={result.description}
+                          className={cn(
+                            'w-full object-cover transition-all duration-300 group-hover:scale-[1.03]',
+                            gridCols === 2 ? 'aspect-[4/3]' : 'aspect-square'
+                          )}
+                          loading="lazy"
+                        />
+                      </div>
                       {/* Selection checkbox */}
                       <div className={cn(
                         'absolute top-2 right-2 rounded-lg p-1.5 transition-all shadow-sm',
@@ -1097,7 +1103,12 @@ export const InlineImagerySearch = ({
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-3 pt-10">
                         <p className="text-[11px] text-white/90 line-clamp-2 leading-snug font-medium">{result.description}</p>
                         <div className="flex items-center justify-between mt-2">
-                          <p className="text-[10px] text-white/40 font-mono">#{result.id}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-[10px] text-white/40 font-mono">#{result.id}</p>
+                            {result.width && result.height && (
+                              <p className="text-[9px] text-white/30">{result.width}×{result.height}</p>
+                            )}
+                          </div>
                           <div className="flex items-center gap-1">
                             <button onClick={(e) => { e.stopPropagation(); setPreviewImage(result); }}
                               className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/15 hover:bg-white/30 text-white text-[10px] backdrop-blur-sm transition-colors" title="Preview larger">
