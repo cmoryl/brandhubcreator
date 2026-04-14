@@ -199,12 +199,9 @@ Deno.serve(async (req) => {
         }
       }
 
-      // === SOURCE 5: Logo metadata ===
-      const logoMeta = (guideData.logos || []).slice(0, 8).map((l: any) => ({
-        name: l.name || l.label || 'Logo',
-        variant: l.variant || l.type || '',
-        backgroundColor: l.backgroundColor || '',
-      }));
+      // === SOURCE 5: Logo metadata — excluded from visual DNA analysis ===
+      // Logos are brand marks, not imagery preferences. Skipped intentionally.
+      const logoMeta: any[] = [];
 
       // === SOURCE 6: Pattern & Gradient metadata ===
       const patternCount = (guideData.patterns || []).length;
