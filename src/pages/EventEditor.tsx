@@ -980,6 +980,7 @@ const EventEditor = () => {
                     onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
                   />
                 )}
+                {isGuideAdmin && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
@@ -993,6 +994,7 @@ const EventEditor = () => {
                   </TooltipTrigger>
                   <TooltipContent>{event.isFavorite ? 'Remove from favorites' : 'Add to favorites'}</TooltipContent>
                 </Tooltip>
+                )}
                 <ShareButton 
                   guideId={event.id} 
                   guideName={event.hero.name}

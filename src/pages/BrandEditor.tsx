@@ -977,6 +977,7 @@ const BrandEditor = () => {
                     onOpenLocalizationPanel={() => setTranslationHubOpen(true)}
                   />
                 )}
+                {isGuideAdmin && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
@@ -990,6 +991,7 @@ const BrandEditor = () => {
                   </TooltipTrigger>
                   <TooltipContent>{brand.isFavorite ? 'Remove from favorites' : 'Add to favorites'}</TooltipContent>
                 </Tooltip>
+                )}
                 <ShareButton 
                   guideId={brand.id} 
                   guideName={brand.hero.name}
