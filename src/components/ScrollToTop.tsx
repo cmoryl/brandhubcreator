@@ -60,7 +60,6 @@ export const ScrollToTop = () => {
     return () => {
       timers.forEach((timer) => window.clearTimeout(timer));
       observer.disconnect();
-      if (mutationTimer) window.cancelAnimationFrame(mutationTimer);
     };
   }, [pathname, navType, hash]);
 
