@@ -25,22 +25,44 @@ export const ScrollToTop = () => {
     // Skip back/forward navigation after the initial page load — let browser handle scroll restoration
     if (!isInitialLoad && navType === 'POP') return;
 
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
     const scrollToPageTop = () => {
-      if ('scrollRestoration' in window.history) {
-        window.history.scrollRestoration = 'manual';
-      }
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     };
 
     scrollToPageTop();
 
     // Re-assert scroll position while async page content hydrates on public views.
-    const timers = [0, 50, 150, 300, 600, 1000].map((delay) =>
+    const timers = [0, 50, 150, 300, 600, 1000, 2000, 3000].map((delay) =>
       window.setTimeout(scrollToPageTop, delay)
     );
 
+    // Also watch for DOM mutations (new sections rendering) and re-scroll for ~5s
+    const deadline = Date.now() + 5000;
+    let mutationTimer: number | undefined;
+    const observer = new MutationObserver(() => {
+      if (Date.now() > deadline) {
+        observer.disconnect();
+        return;
+      }
+      // Debounce: only scroll once per animation frame after mutations
+      if (mutationTimer) window.cancelAnimationFrame(mutationTimer);
+      mutationTimer = window.requestAnimationFrame(scrollToPageTop);
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: false,
+    });
+
     return () => {
       timers.forEach((timer) => window.clearTimeout(timer));
+      observer.disconnect();
+      if (mutationTimer) window.cancelAnimationFrame(mutationTimer);
     };
   }, [pathname, navType, hash]);
 
