@@ -462,20 +462,37 @@ export const InlineImagerySearch = ({
   return (
     <>
       <div className="flex flex-col h-full bg-background border-l border-border">
-        {/* Header */}
-        <div className="px-4 py-3 border-b border-border shrink-0 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onClose}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <Search className="h-4 w-4 text-primary" />
-              Search Shutterstock
-            </h3>
-            <p className="text-xs text-muted-foreground truncate">
-              Adding to <span className="font-medium text-foreground">{targetSectionName}</span>
-            </p>
+        {/* Header with section picker */}
+        <div className="px-4 py-3 border-b border-border shrink-0 space-y-2">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onClose} title="Collapse search">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Search className="h-4 w-4 text-primary" />
+                Stock Image Search
+              </h3>
+            </div>
           </div>
+          {/* Target section picker */}
+          {availableSections && availableSections.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground shrink-0">Add to:</span>
+              <Select value={activeSectionId || ''} onValueChange={(val) => onChangeSection?.(val)}>
+                <SelectTrigger className="h-8 text-xs flex-1">
+                  <SelectValue placeholder="Select category..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSections.map(s => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name} ({s.images.length})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
         {/* Controls */}
