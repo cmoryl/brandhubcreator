@@ -449,11 +449,14 @@ export const ValuesSection = ({
                 transition-all duration-500 ease-out
                 hover:shadow-lg hover:-translate-y-1 hover:border-accent/30
                 hover:bg-gradient-to-br hover:from-card hover:to-accent/5
-                ${!isEditing ? 'cursor-pointer' : ''}
+                cursor-pointer
               `}
               style={{ 
                 animationDelay: `${index * 50}ms`,
                 transformStyle: 'preserve-3d',
+              }}
+              onClick={() => {
+                if (!isEditing) setViewingId(value.id);
               }}
             >
               {isEditing ? (
