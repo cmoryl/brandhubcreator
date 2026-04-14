@@ -95,6 +95,7 @@ export const AssetImageExtractor = ({
     setSelectedIds(new Set());
     setExtractProgress(0);
     setLoadedImages(new Set());
+    setFailedThumbnailIds(new Set());
 
     // Simulate progress during extraction
     const progressInterval = setInterval(() => {
