@@ -21,9 +21,9 @@ const corsHeaders = {
 };
 
 const BUCKET_NAME = "organization-assets";
-const MAX_DOC_EXTRACTIONS = 6;
-const MAX_IMAGES_PER_DOC = 8;
-const MIN_IMAGE_BYTES = 5000;
+const MAX_DOC_EXTRACTIONS = 20;
+const MAX_IMAGES_PER_DOC = 15;
+const MIN_IMAGE_BYTES = 3000;
 const MAX_IMAGE_BYTES = 10_000_000;
 
 interface ExtractedImage {
