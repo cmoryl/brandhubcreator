@@ -870,38 +870,43 @@ export const InlineImagerySearch = ({
             </div>
           ) : results.length === 0 && !loading && showSuggestions ? null : (
             <div className="p-3">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {results.map((result) => {
                   const isSelected = selectedIds.has(result.id);
                   return (
                     <div key={result.id}
                       className={cn(
                         'relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all',
-                        isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-muted-foreground/30'
+                        isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-muted-foreground/40'
                       )}
                       onClick={() => toggleSelect(result.id)}>
                       <img src={result.thumbnailUrl} alt={result.description} className="w-full aspect-[4/3] object-cover" loading="lazy" />
-                      {isSelected && (
-                        <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
-                          <Check className="h-3 w-3" />
-                        </div>
-                      )}
+                      {/* Selection indicator - always visible */}
+                      <div className={cn(
+                        'absolute top-2 right-2 rounded-full p-1 transition-all',
+                        isSelected ? 'bg-primary text-primary-foreground' : 'bg-background/70 backdrop-blur-sm text-muted-foreground border border-border'
+                      )}>
+                        {isSelected ? <Check className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
+                      </div>
                       {result.media_type && result.media_type !== 'image' && (
-                        <Badge variant="secondary" className="absolute top-2 left-2 text-[9px] px-1.5 py-0.5">
+                        <Badge variant="secondary" className="absolute top-2 left-2 text-[10px] px-1.5 py-0.5">
                           {result.media_type === 'vector' ? 'Vector' : 'Illustration'}
                         </Badge>
                       )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="text-[10px] text-white line-clamp-2">{result.description}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <p className="text-[9px] text-white/60">ID: {result.id}</p>
-                          <div className="flex items-center gap-2">
+                      {/* Persistent action buttons */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2.5 pt-8">
+                        <p className="text-[11px] text-white/90 line-clamp-2 leading-tight">{result.description}</p>
+                        <div className="flex items-center justify-between mt-1.5">
+                          <p className="text-[10px] text-white/50 font-mono">#{result.id}</p>
+                          <div className="flex items-center gap-1.5">
                             <button onClick={(e) => { e.stopPropagation(); setPreviewImage(result); }}
-                              className="text-[9px] text-white/80 hover:text-white flex items-center gap-0.5" title="Preview larger">
-                              <ZoomIn className="h-3 w-3" />
+                              className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/15 hover:bg-white/25 text-white text-[10px] backdrop-blur-sm transition-colors" title="Preview larger">
+                              <ZoomIn className="h-3 w-3" /> View
                             </button>
                             <button onClick={(e) => { e.stopPropagation(); handleSimilarSearch(result.id); }}
-                              className="text-[9px] text-white/80 hover:text-white underline">Find similar</button>
+                              className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/15 hover:bg-white/25 text-white text-[10px] backdrop-blur-sm transition-colors" title="Find similar">
+                              <Eye className="h-3 w-3" /> Similar
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -911,7 +916,7 @@ export const InlineImagerySearch = ({
               </div>
               {results.length > 0 && results.length < totalCount && (
                 <div className="flex justify-center py-4">
-                  <Button variant="outline" size="sm" onClick={handleLoadMore} disabled={loading}>
+                  <Button variant="outline" size="default" className="h-9" onClick={handleLoadMore} disabled={loading}>
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
                     Load More ({results.length} of {totalCount.toLocaleString()})
                   </Button>
