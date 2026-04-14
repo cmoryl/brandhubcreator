@@ -109,6 +109,14 @@ const queryClient = new QueryClient({
 // Layout component that wraps all routes
 const RootLayout = () => {
   const location = useLocation();
+  
+  // Scroll to top immediately on route change (before children render)
+  useEffect(() => {
+    if (!location.hash) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [location.pathname, location.hash]);
+  
   return (
     <ErrorBoundary>
       <ConnectionBanner />
