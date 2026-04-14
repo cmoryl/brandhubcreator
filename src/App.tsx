@@ -107,15 +107,18 @@ const queryClient = new QueryClient({
 });
 
 // Layout component that wraps all routes
-const RootLayout = () => (
-  <ErrorBoundary>
-    <ConnectionBanner />
-    <PageTracker />
-    <main>
-      <Outlet />
-    </main>
-  </ErrorBoundary>
-);
+const RootLayout = () => {
+  const location = useLocation();
+  return (
+    <ErrorBoundary>
+      <ConnectionBanner />
+      <PageTracker />
+      <main key={location.pathname}>
+        <Outlet />
+      </main>
+    </ErrorBoundary>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
