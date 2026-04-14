@@ -21,10 +21,11 @@ const corsHeaders = {
 };
 
 const BUCKET_NAME = "organization-assets";
-const MAX_DOC_EXTRACTIONS = 20;
-const MAX_IMAGES_PER_DOC = 15;
+const MAX_DOC_EXTRACTIONS = 8;
+const MAX_IMAGES_PER_DOC = 8;
 const MIN_IMAGE_BYTES = 3000;
 const MAX_IMAGE_BYTES = 10_000_000;
+const GLOBAL_TIMEOUT_MS = 20_000; // Return partial results after 20s
 
 interface ExtractedImage {
   id: string;
@@ -370,8 +371,14 @@ serve(async (req) => {
     // Phase 2: Extract embedded images from documents (PDFs, PPTX)
     const processedDocs = documents.slice(0, MAX_DOC_EXTRACTIONS);
     let docsProcessed = 0;
+    const phaseStartTime = Date.now();
 
     for (const doc of processedDocs) {
+      // Global timeout: return what we have so far
+      if (Date.now() - phaseStartTime > GLOBAL_TIMEOUT_MS) {
+        console.log(`[extract-asset-images] Global timeout reached after ${docsProcessed} docs`);
+        break;
+      }
       try {
         const isInternal = doc.url.includes(supabaseUrl) || doc.url.includes('supabase');
         let fileBytes: Uint8Array | null = null;
@@ -392,7 +399,7 @@ serve(async (req) => {
           try {
             const resp = await fetch(doc.url, {
               headers: { 'User-Agent': 'BrandHub-ImageExtractor/1.0' },
-              signal: AbortSignal.timeout(15000),
+              signal: AbortSignal.timeout(8000),
             });
             if (resp.ok) {
               fileBytes = new Uint8Array(await resp.arrayBuffer());
@@ -439,7 +446,7 @@ serve(async (req) => {
           extractedImages.push({
             id: crypto.randomUUID(),
             url: `${urlData.publicUrl}?t=${timestamp}`,
-            thumbnailUrl: `${urlData.publicUrl}?t=${timestamp}&width=200&height=200&resize=cover&quality=60`,
+            thumbnailUrl: `${urlData.publicUrl}?t=${timestamp}`,
             title: `${doc.title} — Image ${idx + 1}`,
             source: 'extracted',
             sourceDocument: doc.title,
