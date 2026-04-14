@@ -180,55 +180,83 @@ export const ImageryWorkspace = ({
         isSearchOpen ? 'w-1/2 border-r border-border' : 'flex-1'
       )}>
         {/* Workspace Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: entity.accentColor || 'hsl(var(--primary))' }}
-              >
-                <ImageIcon className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-foreground">{entity.name}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {totalImages} image{totalImages !== 1 ? 's' : ''} across {sections.length} categor{sections.length !== 1 ? 'ies' : 'y'}
-                </p>
-              </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: entity.accentColor || 'hsl(var(--primary))' }}
+            >
+              <ImageIcon className="h-6 w-6 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-xl font-bold text-foreground truncate">{entity.name}</h2>
+              <p className="text-sm text-muted-foreground">
+                {totalImages} image{totalImages !== 1 ? 's' : ''} across {sections.length} categor{sections.length !== 1 ? 'ies' : 'y'}
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-            <StyleAnalysisPanel entityId={entity.id} entityType={entity.type} sections={sections} />
-            <Button
-              variant={showAnalytics ? 'secondary' : 'outline'}
-              size="sm"
-              onClick={() => setShowAnalytics(!showAnalytics)}
-              className="gap-1.5"
-            >
-              <BarChart3 className="h-3.5 w-3.5" /> Analytics
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setAutoCategorizeOpen(true)}
-              className="gap-1.5"
-              disabled={allImages.length === 0}
-            >
-              <Sparkles className="h-3.5 w-3.5" /> Auto-Categorize
-            </Button>
+          {/* Action toolbar - grouped into logical clusters */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Primary actions group */}
+            <div className="flex items-center gap-2">
+              <Button
+                size="default"
+                variant="outline"
+                onClick={() => setAddingSection(true)}
+                className="gap-2 h-9"
+              >
+                <FolderPlus className="h-4 w-4" /> Add Category
+              </Button>
+              <Button
+                size="default"
+                variant="outline"
+                onClick={onStartComparison}
+                className="gap-2 h-9"
+              >
+                <ArrowRightLeft className="h-4 w-4" /> Compare
+              </Button>
+            </div>
+
+            {/* Divider */}
+            <div className="h-6 w-px bg-border" />
+
+            {/* AI & analysis group */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="default" className="gap-2 h-9">
+                  <Sparkles className="h-4 w-4" /> AI Tools <ChevronDown className="h-3 w-3 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem onClick={() => setShowAnalytics(!showAnalytics)} className="gap-2">
+                  <BarChart3 className="h-4 w-4" /> {showAnalytics ? 'Hide' : 'Show'} Analytics
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAutoCategorizeOpen(true)} disabled={allImages.length === 0} className="gap-2">
+                  <Sparkles className="h-4 w-4" /> Auto-Categorize
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="gap-2" asChild>
+                  <div>
+                    <StyleAnalysisPanel entityId={entity.id} entityType={entity.type} sections={sections} />
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Selection group */}
             <Button
               variant={selectionMode ? 'secondary' : 'outline'}
-              size="sm"
+              size="default"
               onClick={onToggleSelectionMode}
-              className="gap-1.5"
+              className="gap-2 h-9"
             >
-              <Copy className="h-3.5 w-3.5" />
+              <Copy className="h-4 w-4" />
               {selectionMode ? `${selectedImages.size} selected` : 'Select'}
             </Button>
             {selectionMode && selectedImages.size > 0 && (
               <Button
-                size="sm"
+                size="default"
                 variant="default"
                 onClick={() => {
                   const images = Array.from(selectedImages.values());
@@ -237,37 +265,32 @@ export const ImageryWorkspace = ({
                   const section = sections.find(s => s.id === sectionId);
                   onStartBulkCopy(images, section?.name || 'Imported');
                 }}
-                className="gap-1.5"
+                className="gap-2 h-9"
               >
-                <ArrowRightLeft className="h-3.5 w-3.5" /> Copy to Entity
-              </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={onStartComparison} className="gap-1.5">
-              <ArrowRightLeft className="h-3.5 w-3.5" /> Compare
-            </Button>
-            {addingSection ? (
-              <div className="flex items-center gap-1.5">
-                <Input
-                  placeholder="Category name..."
-                  value={newSectionName}
-                  onChange={e => setNewSectionName(e.target.value)}
-                  className="w-40 h-8 text-sm"
-                  onKeyDown={e => e.key === 'Enter' && handleAddSection()}
-                  autoFocus
-                />
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleAddSection} disabled={!newSectionName.trim()}>
-                  <Check className="h-3.5 w-3.5" />
-                </Button>
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => { setAddingSection(false); setNewSectionName(''); }}>
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            ) : (
-              <Button size="sm" variant="outline" onClick={() => setAddingSection(true)} className="gap-1.5">
-                <FolderPlus className="h-3.5 w-3.5" /> Add Category
+                <ArrowRightLeft className="h-4 w-4" /> Copy to Entity
               </Button>
             )}
           </div>
+
+          {/* Inline add section */}
+          {addingSection && (
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Category name..."
+                value={newSectionName}
+                onChange={e => setNewSectionName(e.target.value)}
+                className="max-w-xs h-9"
+                onKeyDown={e => e.key === 'Enter' && handleAddSection()}
+                autoFocus
+              />
+              <Button size="default" variant="default" className="h-9" onClick={handleAddSection} disabled={!newSectionName.trim()}>
+                <Check className="h-4 w-4" />
+              </Button>
+              <Button size="default" variant="ghost" className="h-9" onClick={() => { setAddingSection(false); setNewSectionName(''); }}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Batch Operations Toolbar */}
