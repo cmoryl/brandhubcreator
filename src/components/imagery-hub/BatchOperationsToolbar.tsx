@@ -113,60 +113,60 @@ export const BatchOperationsToolbar = ({
   if (selectedImages.size === 0) return null;
 
   return (
-    <div className="border border-primary/30 bg-primary/5 rounded-lg p-3 space-y-2">
+    <div className="border border-primary/30 bg-primary/5 rounded-lg p-4 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold">{selectedImages.size} image{selectedImages.size !== 1 ? 's' : ''} selected</span>
-        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onClearSelection}>
-          <X className="h-3 w-3 mr-1" /> Clear
+        <Button variant="ghost" size="default" className="h-9" onClick={onClearSelection}>
+          <X className="h-4 w-4 mr-1.5" /> Clear
         </Button>
       </div>
       
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         {/* Bulk Tag */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <Input
             placeholder="Add tag..."
             value={newTag}
             onChange={e => setNewTag(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAddTag()}
-            className="w-28 h-7 text-xs"
+            className="w-36 h-9"
           />
-          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleAddTag} disabled={!newTag.trim()}>
-            <Tags className="h-3 w-3" /> Tag
+          <Button size="default" variant="outline" className="h-9 gap-2" onClick={handleAddTag} disabled={!newTag.trim()}>
+            <Tags className="h-4 w-4" /> Tag
           </Button>
         </div>
 
         {/* Bulk Quality Score */}
-        <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleBulkScore} disabled={scoring}>
-          {scoring ? <Loader2 className="h-3 w-3 animate-spin" /> : <Star className="h-3 w-3" />}
+        <Button size="default" variant="outline" className="h-9 gap-2" onClick={handleBulkScore} disabled={scoring}>
+          {scoring ? <Loader2 className="h-4 w-4 animate-spin" /> : <Star className="h-4 w-4" />}
           Score All
         </Button>
 
         {/* Bulk Move */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <Select value={moveTarget} onValueChange={setMoveTarget}>
-            <SelectTrigger className="w-32 h-7 text-xs">
+            <SelectTrigger className="w-40 h-9">
               <SelectValue placeholder="Move to..." />
             </SelectTrigger>
             <SelectContent>
               {sections.map(s => (
-                <SelectItem key={s.id} value={s.id} className="text-xs">{s.name}</SelectItem>
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleMove} disabled={!moveTarget}>
-            <FolderInput className="h-3 w-3" /> Move
+          <Button size="default" variant="outline" className="h-9 gap-2" onClick={handleMove} disabled={!moveTarget}>
+            <FolderInput className="h-4 w-4" /> Move
           </Button>
         </div>
 
         {/* Export */}
-        <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleExport}>
-          <Download className="h-3 w-3" /> Export
+        <Button size="default" variant="outline" className="h-9 gap-2" onClick={handleExport}>
+          <Download className="h-4 w-4" /> Export
         </Button>
 
         {/* Bulk Delete */}
-        <Button size="sm" variant="destructive" className="h-7 text-xs gap-1" onClick={onBulkDelete}>
-          <Trash2 className="h-3 w-3" /> Delete
+        <Button size="default" variant="destructive" className="h-9 gap-2" onClick={onBulkDelete}>
+          <Trash2 className="h-4 w-4" /> Delete
         </Button>
       </div>
     </div>
