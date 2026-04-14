@@ -42,15 +42,13 @@ export const ScrollToTop = () => {
 
     // Also watch for DOM mutations (new sections rendering) and re-scroll for ~5s
     const deadline = Date.now() + 5000;
-    let mutationTimer: number | undefined;
     const observer = new MutationObserver(() => {
       if (Date.now() > deadline) {
         observer.disconnect();
         return;
       }
-      // Debounce: only scroll once per animation frame after mutations
-      if (mutationTimer) window.cancelAnimationFrame(mutationTimer);
-      mutationTimer = window.requestAnimationFrame(scrollToPageTop);
+      // Scroll immediately on DOM changes — no debounce so we beat layout shifts
+      scrollToPageTop();
     });
 
     observer.observe(document.body, {
