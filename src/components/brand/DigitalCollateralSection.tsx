@@ -389,12 +389,14 @@ const SortableCollateralItem = ({
                 })()}
               </div>
             </div>
-            <button
-              onClick={onEdit}
-              className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-            >
-              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
+            {canEdit && (
+              <button
+                onClick={onEdit}
+                className="p-1.5 rounded-md hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+              >
+                <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            )}
           </div>
         )}
       </div>
