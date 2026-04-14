@@ -141,24 +141,97 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Fetch Operational Vault images (imageAssets) as implicit approved signals
+      // Fetch full entity data including guide_data and name
       const tableName = entityType === 'product' ? 'products' : entityType === 'event' ? 'events' : 'brands';
       const { data: entityData } = await supabase
         .from(tableName)
-        .select('guide_data')
+        .select('name, guide_data')
         .eq('id', entityId)
         .maybeSingle();
 
-      const vaultImages: any[] = (entityData?.guide_data as any)?.imageAssets || [];
-      const vaultImageryItems: any[] = (entityData?.guide_data as any)?.imagery || [];
+      const guideData = (entityData?.guide_data as any) || {};
+
+      // === SOURCE 1: Operational Vault & Imagery Guidelines ===
+      const vaultImages: any[] = guideData.imageAssets || [];
+      const vaultImageryItems: any[] = guideData.imagery || [];
+
+      // === SOURCE 2: Approved Imagery Sub-Sections ===
+      const approvedImagery: any[] = guideData.approvedImagery || [];
+      const approvedSubImages = approvedImagery.flatMap((section: any) =>
+        (section.images || []).map((img: any) => ({
+          title: img.title || img.description || '',
+          description: (img.description || img.alt || '').slice(0, 100),
+          category: section.title || section.name || 'Uncategorized',
+          url: img.url || '',
+          tags: img.tags || [],
+          source: 'approved_imagery',
+        }))
+      );
+
+      // === SOURCE 3: Brand Colors & Identity Context ===
+      const brandColors = (guideData.colors || []).slice(0, 10).map((c: any) => ({
+        name: c?.name || '',
+        hex: c?.hex || c?.value || '',
+        role: c?.role || '',
+      })).filter((c: any) => c.hex);
+
+      const brandIdentity = {
+        archetype: guideData.identity?.archetype || '',
+        toneOfVoice: guideData.identity?.toneOfVoice || '',
+        personality: guideData.identity?.personality || '',
+        missionStatement: (guideData.identity?.missionStatement || '').slice(0, 200),
+      };
+
+      const brandValues = (guideData.values || []).slice(0, 5).map((v: any) => v?.text || v).filter(Boolean);
+
+      // === SOURCE 4: Collateral Metadata (brochures, templates, presentations, case studies) ===
+      const collateralMeta: any[] = [];
+      for (const [key, label] of [['brochures', 'Brochure'], ['templates', 'Template'], ['presentationTemplates', 'Presentation'], ['caseStudies', 'Case Study']]) {
+        const items = guideData[key] || [];
+        for (const item of items.slice(0, 10)) {
+          collateralMeta.push({
+            title: item.title || item.name || label,
+            category: item.category || label,
+            description: (item.description || '').slice(0, 80),
+            hasThumbnail: !!(item.thumbnailUrl || item.coverImage),
+            source: key,
+          });
+        }
+      }
+
+      // === SOURCE 5: Logo metadata ===
+      const logoMeta = (guideData.logos || []).slice(0, 8).map((l: any) => ({
+        name: l.name || l.label || 'Logo',
+        variant: l.variant || l.type || '',
+        backgroundColor: l.backgroundColor || '',
+      }));
+
+      // === SOURCE 6: Pattern & Gradient metadata ===
+      const patternCount = (guideData.patterns || []).length;
+      const gradientCount = (guideData.gradients || []).length;
+
+      // === SOURCE 7: Style analysis results (if any exist) ===
+      const { data: styleAnalyses } = await supabase
+        .from('bias_awareness_scans')
+        .select('visual_analysis, visual_score, inclusive_imagery_module')
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType === 'brand' ? 'brand' : entityType)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const visualAnalysis = styleAnalyses?.visual_analysis || null;
+      const inclusiveImagery = styleAnalyses?.inclusive_imagery_module || null;
 
       const hasSignals = signals && signals.length > 0;
       const hasVaultImages = vaultImages.length > 0 || vaultImageryItems.length > 0;
+      const hasApprovedImagery = approvedSubImages.length > 0;
+      const hasCollateral = collateralMeta.length > 0;
 
-      if (!hasSignals && !hasVaultImages) {
+      if (!hasSignals && !hasVaultImages && !hasApprovedImagery && !hasCollateral && brandColors.length === 0) {
         return new Response(JSON.stringify({ 
           visual_dna: null, 
-          message: 'No signals recorded yet. Approve or skip images, or add images to the Operational Vault to start learning.' 
+          message: 'No signals recorded yet. Approve or skip images, add images to sections, or build out your brand guide to start learning.' 
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -220,10 +293,58 @@ Deno.serve(async (req) => {
         .filter(Boolean)
       )].slice(0, 20);
 
+      // Build comprehensive context sections
       const vaultSection = allVaultMeta.length > 0 ? `
-OPERATIONAL VAULT & IMAGERY GUIDELINES (${allVaultMeta.length} curated assets — these are intentionally selected brand images and should be weighted as STRONG implicit approvals):
+OPERATIONAL VAULT & IMAGERY GUIDELINES (${allVaultMeta.length} curated assets — strong implicit approvals):
 ${JSON.stringify(allVaultMeta, null, 1)}
 ` : '';
+
+      const approvedImagerySection = approvedSubImages.length > 0 ? `
+APPROVED IMAGERY LIBRARY (${approvedSubImages.length} curated, categorized assets — these are explicitly approved brand images):
+${JSON.stringify(approvedSubImages.slice(0, 40), null, 1)}
+` : '';
+
+      const brandContextSection = `
+BRAND IDENTITY & COLORS:
+- Name: ${entityData?.name || 'Unknown'}
+- Archetype: ${brandIdentity.archetype || 'Not set'}
+- Tone: ${brandIdentity.toneOfVoice || 'Not set'}
+- Personality: ${brandIdentity.personality || 'Not set'}
+- Mission: ${brandIdentity.missionStatement || 'Not set'}
+- Values: ${brandValues.join(', ') || 'Not set'}
+- Color Palette: ${brandColors.map((c: any) => `${c.name}(${c.hex}, ${c.role})`).join(', ') || 'Not set'}
+- Logos: ${logoMeta.length} variants${logoMeta.length > 0 ? ` — ${logoMeta.map((l: any) => `${l.name}${l.variant ? '(' + l.variant + ')' : ''}`).join(', ')}` : ''}
+- Patterns: ${patternCount} defined, Gradients: ${gradientCount} defined
+`;
+
+      const collateralSection = collateralMeta.length > 0 ? `
+EXISTING COLLATERAL (${collateralMeta.length} documents — reflects the brand's visual production style):
+${JSON.stringify(collateralMeta, null, 1)}
+` : '';
+
+      const analysisSection = visualAnalysis ? `
+PRIOR VISUAL ANALYSIS RESULTS:
+${JSON.stringify(visualAnalysis, null, 1)}
+` : '';
+
+      const inclusiveSection = inclusiveImagery ? `
+INCLUSIVE IMAGERY ASSESSMENT:
+${JSON.stringify(inclusiveImagery, null, 1)}
+` : '';
+
+      // Track data sources for the response
+      const dataSources = {
+        interaction_signals: (signals || []).length,
+        vault_assets: allVaultMeta.length,
+        approved_imagery: approvedSubImages.length,
+        brand_colors: brandColors.length,
+        collateral_items: collateralMeta.length,
+        logos: logoMeta.length,
+        patterns: patternCount,
+        gradients: gradientCount,
+        has_visual_analysis: !!visualAnalysis,
+        has_inclusive_assessment: !!inclusiveImagery,
+      };
 
       const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -236,12 +357,13 @@ ${JSON.stringify(allVaultMeta, null, 1)}
           messages: [
             {
               role: 'system',
-              content: `You are a visual preference analyst. Analyze imagery selection patterns to build a Visual DNA profile. Focus on identifying clear preferences vs. dislikes from the approved, skipped, removed, and curated vault image data. Operational Vault images are intentionally curated brand assets — treat them as strong indicators of preferred visual style, equivalent to explicitly approved images.`
+              content: `You are a comprehensive visual brand analyst. Build a Visual DNA profile by synthesizing ALL available brand data: user interaction signals, curated imagery libraries, brand identity (archetype, colors, values), existing collateral, logos, and prior visual audits. Weight data sources appropriately: approved imagery and vault assets are strong positive signals; brand colors and identity define the palette/mood baseline; collateral reflects production style; prior visual analyses provide expert assessment context.`
             },
             {
               role: 'user',
-              content: `Analyze these imagery interaction signals:
+              content: `Build a comprehensive Visual DNA profile from ALL available brand data:
 
+=== USER INTERACTION SIGNALS ===
 APPROVED (${approved.length} total, showing ${approvedMeta.length}):
 ${JSON.stringify(approvedMeta, null, 1)}
 
@@ -250,10 +372,24 @@ ${JSON.stringify(skippedMeta, null, 1)}
 
 REMOVED (${removed.length} total, showing ${removedMeta.length}):
 ${JSON.stringify(removedMeta, null, 1)}
-${vaultSection}
+
 SEARCH QUERIES USED: ${searchQueries.join(', ')}
 
-Extract the visual preferences, patterns, and aversions. Be specific and actionable. Consider the vault images as strong evidence of preferred visual style.`
+=== CURATED BRAND ASSETS ===
+${vaultSection}
+${approvedImagerySection}
+
+=== BRAND FOUNDATION ===
+${brandContextSection}
+
+=== EXISTING MATERIALS ===
+${collateralSection}
+
+=== PRIOR VISUAL AUDITS ===
+${analysisSection}
+${inclusiveSection}
+
+Synthesize ALL these data sources into a unified Visual DNA. The brand colors, identity, and existing materials should inform preferred_colors and mood_keywords even when interaction signals are sparse. Be specific and actionable.`
             }
           ],
           tools: [{
@@ -347,11 +483,12 @@ Extract the visual preferences, patterns, and aversions. Be specific and actiona
         mood_keywords: dnaResult.mood_keywords || [],
         avoid_keywords: dnaResult.avoid_keywords || [],
         approval_patterns: dnaResult.approval_patterns || {},
-        total_approved: approved.length + allVaultMeta.length,
+        total_approved: approved.length + allVaultMeta.length + approvedSubImages.length,
         total_skipped: skipped.length,
         total_removed: removed.length,
         confidence_score: dnaResult.confidence_score || 0,
         last_analyzed_at: new Date().toISOString(),
+        data_sources: dataSources,
       };
 
       if (existing) {

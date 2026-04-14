@@ -3337,6 +3337,7 @@ export type Database = {
           avoid_keywords: Json | null
           confidence_score: number | null
           created_at: string
+          data_sources: Json | null
           entity_id: string
           entity_type: string
           id: string
@@ -3357,6 +3358,7 @@ export type Database = {
           avoid_keywords?: Json | null
           confidence_score?: number | null
           created_at?: string
+          data_sources?: Json | null
           entity_id: string
           entity_type?: string
           id?: string
@@ -3377,6 +3379,7 @@ export type Database = {
           avoid_keywords?: Json | null
           confidence_score?: number | null
           created_at?: string
+          data_sources?: Json | null
           entity_id?: string
           entity_type?: string
           id?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.imagery_visual_dna ADD COLUMN IF NOT EXISTS data_sources jsonb DEFAULT '{}'::jsonb;
