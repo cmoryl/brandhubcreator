@@ -3,6 +3,7 @@
  * Replaces the dialog-based ShutterstockSearchDialog with an inline experience
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { BrandMaterialsPanel } from '@/components/imagery-hub/BrandMaterialsPanel';
 import { ImageryPreviewDialog } from '@/components/brand/approved-imagery/ImageryPreviewDialog';
 import {
   Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash,
