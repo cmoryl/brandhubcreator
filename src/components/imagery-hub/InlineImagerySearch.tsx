@@ -3,6 +3,7 @@
  * Replaces the dialog-based ShutterstockSearchDialog with an inline experience
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { BrandMaterialsPanel } from '@/components/imagery-hub/BrandMaterialsPanel';
 import { ImageryPreviewDialog } from '@/components/brand/approved-imagery/ImageryPreviewDialog';
 import {
   Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash,
@@ -175,6 +176,7 @@ export const InlineImagerySearch = ({
   const [styleNotes, setStyleNotes] = useState('');
   const [aiReasoning, setAiReasoning] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showMaterials, setShowMaterials] = useState(false);
 
   useEffect(() => {
     try {
@@ -489,6 +491,21 @@ export const InlineImagerySearch = ({
                 )}
               </div>
             </div>
+          )}
+
+          {/* Brand Materials Panel */}
+          {entityId && (
+            <BrandMaterialsPanel
+              entityId={entityId}
+              entityType={(entityType as 'brand' | 'product' | 'event') || 'brand'}
+              categoryName={targetSectionName}
+              onSearchTermClick={(term) => {
+                setQuery(term);
+                handleSearch(term, 1);
+              }}
+              isOpen={showMaterials}
+              onToggle={() => setShowMaterials(!showMaterials)}
+            />
           )}
 
           {/* Search bar */}
