@@ -121,7 +121,7 @@ const RootLayout = () => {
     <ErrorBoundary>
       <ConnectionBanner />
       <PageTracker />
-      <main key={location.pathname}>
+      <main key={location.key || location.pathname}>
         <Outlet />
       </main>
     </ErrorBoundary>
