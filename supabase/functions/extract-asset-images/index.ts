@@ -21,11 +21,12 @@ const corsHeaders = {
 };
 
 const BUCKET_NAME = "organization-assets";
-const MAX_DOC_EXTRACTIONS = 8;
-const MAX_IMAGES_PER_DOC = 8;
-const MIN_IMAGE_BYTES = 3000;
+const MAX_DOC_EXTRACTIONS = 6;
+const MAX_IMAGES_PER_DOC = 6;
+const MIN_IMAGE_BYTES = 2000;
 const MAX_IMAGE_BYTES = 10_000_000;
-const GLOBAL_TIMEOUT_MS = 20_000; // Return partial results after 20s
+const MAX_DOC_DOWNLOAD_BYTES = 5_000_000; // Skip docs larger than 5MB
+const GLOBAL_TIMEOUT_MS = 45_000; // 45s (edge fn limit is 60s)
 
 interface ExtractedImage {
   id: string;
