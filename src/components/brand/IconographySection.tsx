@@ -319,7 +319,8 @@ export const IconographySection = ({
     return color.replace('#', '').toLowerCase();
   };
 
-  const { trackDownload } = useDownloadTracking();
+
+
 
   const downloadIcon = (icon: BrandIconography) => {
     const svg = getSVGString(icon);
