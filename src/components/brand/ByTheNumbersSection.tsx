@@ -397,6 +397,7 @@ export const ByTheNumbersSection = ({
               </div>
               
               {/* Edit indicator */}
+              {canEdit && (
               <div className={cn(
                 "absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20",
                 "flex items-center justify-center opacity-0 transition-opacity duration-300",
@@ -404,6 +405,7 @@ export const ByTheNumbersSection = ({
               )}>
                 <Edit2 className="h-4 w-4 text-white" />
               </div>
+              )}
             </div>
           );
         })}
