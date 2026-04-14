@@ -5,10 +5,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { BrandMaterialsPanel } from '@/components/imagery-hub/BrandMaterialsPanel';
 import { ImageryPreviewDialog } from '@/components/brand/approved-imagery/ImageryPreviewDialog';
+import { SearchByImageUpload } from '@/components/imagery-hub/SearchByImageUpload';
+import { ExampleSearchGrid } from '@/components/imagery-hub/ExampleSearchGrid';
 import {
   Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash,
   Camera, PenTool, Layers, SlidersHorizontal, X, Palette, Users, Eye,
   CheckSquare, Square, FolderPlus, Bookmark, Brain, ZoomIn, ChevronLeft,
+  ShieldCheck, Ruler, Ban,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
