@@ -91,7 +91,8 @@ export const exportScheduleToPdf = async (
   options: PdfExportOptions
 ): Promise<void> => {
   const { eventName, eventDates, eventLocation, speakers, template } = options;
-  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const { default: JsPDF } = await import('jspdf');
+  const doc = new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
   
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
