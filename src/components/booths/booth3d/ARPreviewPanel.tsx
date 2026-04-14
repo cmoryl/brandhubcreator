@@ -3,8 +3,27 @@
  * Phase 1: GLB/USDZ export with content selection
  * Phase 2: model-viewer WebAR with QR code for phone viewing
  */
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import * as THREE from 'three';
+
+// Dynamically load model-viewer script only when this panel is used
+const MODEL_VIEWER_URL = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
+let modelViewerLoaded = false;
+let modelViewerPromise: Promise<void> | null = null;
+
+function ensureModelViewer(): Promise<void> {
+  if (modelViewerLoaded) return Promise.resolve();
+  if (modelViewerPromise) return modelViewerPromise;
+  modelViewerPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = MODEL_VIEWER_URL;
+    script.onload = () => { modelViewerLoaded = true; resolve(); };
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+  return modelViewerPromise;
+}
 
 // Declare model-viewer as a custom element for JSX
 declare global {
