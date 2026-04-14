@@ -166,8 +166,13 @@ function collectAssetUrls(gd: any): {
     } else if (isImageUrl(url)) {
       directImages.push({ url, title, source });
     } else if (url.includes('supabase') || url.includes('storage')) {
-      // Storage URLs without clear extension - treat as potential images
-      directImages.push({ url, title, source });
+      // Storage URLs without clear extension - check title for hints
+      const titleLower = (title || '').toLowerCase();
+      if (titleLower.includes('.pdf') || titleLower.includes('.pptx') || titleLower.includes('.ppt') || titleLower.includes('.docx')) {
+        documents.push({ url, title, source });
+      } else {
+        directImages.push({ url, title, source });
+      }
     }
   };
 
