@@ -86,13 +86,15 @@ export function useExternalSectionCounts(
           presentationTemplatesCount: presentations.count ?? 0,
           socialMetricsCount: socialMetrics.count ?? 0,
         });
+        setIsLoaded(true);
       } catch (err) {
         console.error('[useExternalSectionCounts] Error:', err);
+        setIsLoaded(true);
       }
     })();
 
     return () => { cancelled = true; };
   }, [entityId, entityType, refreshTrigger]);
 
-  return counts;
+  return { ...counts, isLoaded };
 }
