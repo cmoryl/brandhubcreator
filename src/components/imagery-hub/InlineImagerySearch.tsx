@@ -176,6 +176,7 @@ export const InlineImagerySearch = ({
   const [styleNotes, setStyleNotes] = useState('');
   const [aiReasoning, setAiReasoning] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showMaterials, setShowMaterials] = useState(false);
 
   useEffect(() => {
     try {
