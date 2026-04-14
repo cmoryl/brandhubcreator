@@ -24,36 +24,26 @@ interface ParseResult {
   slideCount: number;
 }
 
-// Extract text content from slide XML
+// Memory budget thresholds
+const MAX_FILE_SIZE_FOR_IMAGES = 30 * 1024 * 1024; // 30MB - skip per-slide images above this
+const MAX_SLIDES_FOR_IMAGES = 15; // Only extract images for first N slides
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // Skip individual images larger than 2MB
+
 function extractTextFromSlideXml(xmlContent: string): string {
   const textParts: string[] = [];
-  
-  // Match all text runs <a:t>...</a:t>
   const textMatches = xmlContent.matchAll(/<a:t>([^<]*)<\/a:t>/g);
   for (const match of textMatches) {
     const text = match[1].trim();
-    if (text) {
-      textParts.push(text);
-    }
+    if (text) textParts.push(text);
   }
-  
-  return textParts.join(' ').substring(0, 500); // Limit to 500 chars
+  return textParts.join(' ').substring(0, 500);
 }
 
-// Extract title from slide XML (usually in the first text placeholder)
 function extractTitleFromSlideXml(xmlContent: string): string | undefined {
-  // Look for title placeholder type
   const titleMatch = xmlContent.match(/<p:ph[^>]*type="title"[^>]*>[\s\S]*?<a:t>([^<]+)<\/a:t>/);
-  if (titleMatch) {
-    return titleMatch[1].trim();
-  }
-  
-  // Fall back to first large text element
+  if (titleMatch) return titleMatch[1].trim();
   const firstTextMatch = xmlContent.match(/<a:t>([^<]{3,})<\/a:t>/);
-  if (firstTextMatch) {
-    return firstTextMatch[1].trim().substring(0, 100);
-  }
-  
+  if (firstTextMatch) return firstTextMatch[1].trim().substring(0, 100);
   return undefined;
 }
 
@@ -63,7 +53,6 @@ serve(async (req) => {
   }
 
   try {
-    // Verify authentication
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -74,7 +63,6 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -88,7 +76,6 @@ serve(async (req) => {
       });
     }
 
-    // Get form data with the file
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const entityType = formData.get("entityType") as string || "brand";
@@ -103,42 +90,29 @@ serve(async (req) => {
     }
 
     if (!file.name.toLowerCase().endsWith(".pptx")) {
-      return new Response(
-        JSON.stringify({ error: "Only .pptx files are supported" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Only .pptx files are supported" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    console.log(`Processing presentation: ${file.name}, size: ${file.size}`);
+    const fileSizeBytes = file.size;
+    console.log(`Processing presentation: ${file.name}, size: ${fileSizeBytes}`);
 
-    // Read file as array buffer
+    const isLargeFile = fileSizeBytes > MAX_FILE_SIZE_FOR_IMAGES;
+    if (isLargeFile) {
+      console.log(`Large file detected (${(fileSizeBytes / 1024 / 1024).toFixed(1)}MB) — skipping per-slide image extraction to stay within memory limits`);
+    }
+
     const arrayBuffer = await file.arrayBuffer();
-    const fileSize = formatFileSize(file.size);
+    const fileSize = formatFileSize(fileSizeBytes);
 
-    // Parse the PPTX (which is a ZIP archive)
-    const zip = await JSZip.loadAsync(arrayBuffer);
-
-    // Get slide count by looking at ppt/slides/slide*.xml files
-    const slideXmlFiles = Object.keys(zip.files)
-      .filter((name) => name.match(/^ppt\/slides\/slide\d+\.xml$/))
-      .sort((a, b) => {
-        const numA = parseInt(a.match(/slide(\d+)/)?.[1] || "0");
-        const numB = parseInt(b.match(/slide(\d+)/)?.[1] || "0");
-        return numA - numB;
-      });
-    
-    const slideCount = slideXmlFiles.length;
-    console.log(`Found ${slideCount} slides in presentation`);
-
-    // Upload the original PPTX file to storage
+    // Upload the original PPTX first (before heavy parsing)
     const timestamp = Date.now();
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const storagePath = `${organizationId}/${entityType}s/${entityId}/presentations/${sanitizedFileName}`;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("organization-assets")
       .upload(storagePath, new Uint8Array(arrayBuffer), {
         contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -147,212 +121,161 @@ serve(async (req) => {
 
     if (uploadError) {
       console.error("Failed to upload PPTX:", uploadError);
-      return new Response(
-        JSON.stringify({ error: "Failed to upload presentation file" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Failed to upload presentation file" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Get public URL for the PPTX file
-    const { data: urlData } = supabase.storage
-      .from("organization-assets")
-      .getPublicUrl(storagePath);
+    const { data: urlData } = supabase.storage.from("organization-assets").getPublicUrl(storagePath);
     const fileUrl = urlData.publicUrl;
+
+    // Parse the PPTX ZIP
+    const zip = await JSZip.loadAsync(arrayBuffer);
+
+    const slideXmlFiles = Object.keys(zip.files)
+      .filter((name) => name.match(/^ppt\/slides\/slide\d+\.xml$/))
+      .sort((a, b) => {
+        const numA = parseInt(a.match(/slide(\d+)/)?.[1] || "0");
+        const numB = parseInt(b.match(/slide(\d+)/)?.[1] || "0");
+        return numA - numB;
+      });
+
+    const slideCount = slideXmlFiles.length;
+    console.log(`Found ${slideCount} slides in presentation`);
 
     const slides: SlideInfo[] = [];
 
-    // Build a map of relationship IDs to media files for each slide
+    // For large files: only extract text, skip image extraction entirely
+    // For normal files: extract images for up to MAX_SLIDES_FOR_IMAGES slides
+    const maxSlidesForImages = isLargeFile ? 0 : Math.min(slideCount, MAX_SLIDES_FOR_IMAGES);
+
+    // Build relationship maps only if we need images
     const slideRelationships: Map<number, Map<string, string>> = new Map();
-    
-    for (let i = 0; i < slideCount; i++) {
-      const slideNum = i + 1;
-      const relPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
-      
-      if (zip.files[relPath]) {
-        const relContent = await zip.files[relPath].async("text");
-        const relMap = new Map<string, string>();
-        
-        // Parse relationship entries
-        const relMatches = relContent.matchAll(/Relationship[^>]*Id="(rId\d+)"[^>]*Target="([^"]+)"/g);
-        for (const match of relMatches) {
-          const [, relId, target] = match;
-          // Normalize target path
-          let targetPath = target;
-          if (target.startsWith("../")) {
-            targetPath = "ppt/" + target.substring(3);
-          } else if (!target.startsWith("ppt/")) {
-            targetPath = "ppt/slides/" + target;
+
+    if (maxSlidesForImages > 0) {
+      for (let i = 0; i < maxSlidesForImages; i++) {
+        const slideNum = i + 1;
+        const relPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
+        if (zip.files[relPath]) {
+          const relContent = await zip.files[relPath].async("text");
+          const relMap = new Map<string, string>();
+          const relMatches = relContent.matchAll(/Relationship[^>]*Id="(rId\d+)"[^>]*Target="([^"]+)"/g);
+          for (const match of relMatches) {
+            const [, relId, target] = match;
+            let targetPath = target;
+            if (target.startsWith("../")) targetPath = "ppt/" + target.substring(3);
+            else if (!target.startsWith("ppt/")) targetPath = "ppt/slides/" + target;
+            relMap.set(relId, targetPath);
           }
-          relMap.set(relId, targetPath);
+          slideRelationships.set(slideNum, relMap);
         }
-        
-        slideRelationships.set(slideNum, relMap);
       }
     }
 
-    // Also build slide layout relationships for inherited background images
-    // Slide layouts define background images that slides inherit
-    const layoutRelationships: Map<string, Map<string, string>> = new Map();
-    const layoutFiles = Object.keys(zip.files).filter(name => 
-      name.match(/^ppt\/slideLayouts\/_rels\/slideLayout\d+\.xml\.rels$/)
-    );
-    for (const relPath of layoutFiles) {
-      const layoutName = relPath.match(/slideLayout(\d+)/)?.[0] || "";
-      const relContent = await zip.files[relPath].async("text");
-      const relMap = new Map<string, string>();
-      const relMatches = relContent.matchAll(/Relationship[^>]*Id="(rId\d+)"[^>]*Target="([^"]+)"/g);
-      for (const match of relMatches) {
-        const [, relId, target] = match;
-        let targetPath = target;
-        if (target.startsWith("../")) {
-          targetPath = "ppt/" + target.substring(3);
-        } else if (!target.startsWith("ppt/")) {
-          targetPath = "ppt/slideLayouts/" + target;
-        }
-        relMap.set(relId, targetPath);
-      }
-      layoutRelationships.set(layoutName, relMap);
-    }
-
-    // Extract text and find the BEST (largest) representative image for each slide
+    // Process slides
     for (let i = 0; i < slideCount; i++) {
       const slideNum = i + 1;
       const slideXmlPath = `ppt/slides/slide${slideNum}.xml`;
-      
+
       let title: string | undefined;
       let textContent: string | undefined;
       let thumbnailUrl = "";
-      
+
       if (zip.files[slideXmlPath]) {
         const xmlContent = await zip.files[slideXmlPath].async("text");
         title = extractTitleFromSlideXml(xmlContent);
         textContent = extractTextFromSlideXml(xmlContent);
-        
-        // Collect ALL image candidates — use actual byte data for accurate size
-        const imageCandidates: { path: string; data: Uint8Array; isBackground: boolean }[] = [];
-        
-        const relMap = slideRelationships.get(slideNum);
-        if (relMap) {
-          // Collect all background image rIds so we can tag them
-          const bgRelIds = new Set<string>();
-          const bgBlipMatches = xmlContent.matchAll(/<p:bg>[\s\S]*?<a:blipFill[\s\S]*?r:embed="(rId\d+)"/g);
-          for (const m of bgBlipMatches) {
-            bgRelIds.add(m[1]);
-          }
-          
-          // Look for ALL image references in the slide XML (r:embed="rId...")
-          const imageRefMatches = xmlContent.matchAll(/r:embed="(rId\d+)"/g);
-          const seenPaths = new Set<string>();
-          
-          for (const match of imageRefMatches) {
-            const relId = match[1];
-            const targetPath = relMap.get(relId);
-            
-            if (targetPath && zip.files[targetPath] && !seenPaths.has(targetPath)) {
+
+        // Only extract images for slides within the limit
+        if (slideNum <= maxSlidesForImages) {
+          const relMap = slideRelationships.get(slideNum);
+          if (relMap) {
+            // Find the best (largest) image for this slide
+            let bestImageData: Uint8Array | null = null;
+            let bestImageExt = "png";
+            let bestImageSize = 0;
+            let bestIsBackground = true;
+
+            const bgRelIds = new Set<string>();
+            const bgBlipMatches = xmlContent.matchAll(/<p:bg>[\s\S]*?<a:blipFill[\s\S]*?r:embed="(rId\d+)"/g);
+            for (const m of bgBlipMatches) bgRelIds.add(m[1]);
+
+            const imageRefMatches = xmlContent.matchAll(/r:embed="(rId\d+)"/g);
+            const seenPaths = new Set<string>();
+
+            for (const match of imageRefMatches) {
+              const relId = match[1];
+              const targetPath = relMap.get(relId);
+              if (!targetPath || !zip.files[targetPath] || seenPaths.has(targetPath)) continue;
               seenPaths.add(targetPath);
+
               const ext = targetPath.split(".").pop()?.toLowerCase();
-              if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "")) {
-                const data = await zip.files[targetPath].async("uint8array");
-                // Skip tiny icons/bullets under 5KB
-                if (data.length > 5000) {
-                  imageCandidates.push({ 
-                    path: targetPath, 
-                    data, 
-                    isBackground: bgRelIds.has(relId) 
-                  });
-                }
+              if (!["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "")) continue;
+
+              // Check compressed size first to avoid decompressing huge images
+              const compressedInfo = zip.files[targetPath];
+              // Skip images that are likely too large (compressed > 2MB suggests very large uncompressed)
+              if (compressedInfo._data && compressedInfo._data.compressedSize > MAX_IMAGE_SIZE) continue;
+
+              const data = await zip.files[targetPath].async("uint8array");
+              if (data.length < 5000 || data.length > MAX_IMAGE_SIZE) continue;
+
+              const isBg = bgRelIds.has(relId);
+              // Prefer content images over background; within same type pick largest
+              if (
+                bestImageData === null ||
+                (!isBg && bestIsBackground) ||
+                (isBg === bestIsBackground && data.length > bestImageSize)
+              ) {
+                bestImageData = data;
+                bestImageExt = ext === "jpg" ? "jpeg" : (ext || "png");
+                bestImageSize = data.length;
+                bestIsBackground = isBg;
               }
             }
-          }
-        }
-        
-        // Also check the slide's layout for inherited background images (only if no images found)
-        if (imageCandidates.length === 0) {
-          const layoutRelPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
-          if (zip.files[layoutRelPath]) {
-            const relContent = await zip.files[layoutRelPath].async("text");
-            const layoutRefMatch = relContent.match(/Target="\.\.\/slideLayouts\/slideLayout(\d+)\.xml"/);
-            if (layoutRefMatch) {
-              const layoutKey = `slideLayout${layoutRefMatch[1]}`;
-              const layoutRels = layoutRelationships.get(layoutKey);
-              const layoutXmlPath = `ppt/slideLayouts/slideLayout${layoutRefMatch[1]}.xml`;
-              if (layoutRels && zip.files[layoutXmlPath]) {
-                const layoutXml = await zip.files[layoutXmlPath].async("text");
-                const layoutBlipMatches = layoutXml.matchAll(/r:embed="(rId\d+)"/g);
-                for (const lm of layoutBlipMatches) {
-                  const targetPath = layoutRels.get(lm[1]);
-                  if (targetPath && zip.files[targetPath]) {
-                    const ext = targetPath.split(".").pop()?.toLowerCase();
-                    if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext || "")) {
-                      const data = await zip.files[targetPath].async("uint8array");
-                      if (data.length > 5000) {
-                        imageCandidates.push({ path: targetPath, data, isBackground: true });
-                      }
-                    }
-                  }
-                }
+
+            if (bestImageData) {
+              const slidePath = `${organizationId}/${entityType}s/${entityId}/presentations/slides/${sanitizedFileName}-slide-${slideNum}.${bestImageExt === "jpeg" ? "jpg" : bestImageExt}`;
+              const { error: slideUploadError } = await supabase.storage
+                .from("organization-assets")
+                .upload(slidePath, bestImageData, {
+                  contentType: `image/${bestImageExt}`,
+                  upsert: true,
+                });
+              if (!slideUploadError) {
+                const { data: slideUrlData } = supabase.storage.from("organization-assets").getPublicUrl(slidePath);
+                thumbnailUrl = `${slideUrlData.publicUrl}?t=${timestamp}`;
               }
+              // Release memory immediately
+              bestImageData = null;
             }
-          }
-        }
-        
-        // Prefer content images over background images; within each group pick largest
-        if (imageCandidates.length > 0) {
-          const contentImages = imageCandidates.filter(c => !c.isBackground);
-          const candidates = contentImages.length > 0 ? contentImages : imageCandidates;
-          candidates.sort((a, b) => b.data.length - a.data.length);
-          
-          const bestImage = candidates[0];
-          const ext = bestImage.path.split(".").pop()?.toLowerCase();
-          
-          const slidePath = `${organizationId}/${entityType}s/${entityId}/presentations/slides/${sanitizedFileName}-slide-${slideNum}.${ext}`;
-          
-          const { error: slideUploadError } = await supabase.storage
-            .from("organization-assets")
-            .upload(slidePath, bestImage.data, {
-              contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
-              upsert: true,
-            });
-          
-          if (!slideUploadError) {
-            const { data: slideUrlData } = supabase.storage
-              .from("organization-assets")
-              .getPublicUrl(slidePath);
-            thumbnailUrl = `${slideUrlData.publicUrl}?t=${timestamp}`;
           }
         }
       }
-      
-      // If no embedded image found, try to get docProps thumbnail (usually the first slide rendered)
+
+      // For slide 1 with no image, try docProps thumbnail
       if (!thumbnailUrl && slideNum === 1) {
         const thumbnailPath = Object.keys(zip.files).find(
           (name) => name === "docProps/thumbnail.jpeg" || name === "docProps/thumbnail.png"
         );
-        
         if (thumbnailPath) {
           const thumbData = await zip.files[thumbnailPath].async("uint8array");
           const ext = thumbnailPath.endsWith(".png") ? "png" : "jpg";
           const thumbStoragePath = `${organizationId}/${entityType}s/${entityId}/presentations/slides/${sanitizedFileName}-slide-1-thumb.${ext}`;
-          
           const { error: thumbUploadError } = await supabase.storage
             .from("organization-assets")
             .upload(thumbStoragePath, thumbData, {
               contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
               upsert: true,
             });
-          
           if (!thumbUploadError) {
-            const { data: thumbUrlData } = supabase.storage
-              .from("organization-assets")
-              .getPublicUrl(thumbStoragePath);
+            const { data: thumbUrlData } = supabase.storage.from("organization-assets").getPublicUrl(thumbStoragePath);
             thumbnailUrl = `${thumbUrlData.publicUrl}?t=${timestamp}`;
           }
         }
       }
-      
+
       slides.push({
         id: crypto.randomUUID(),
         slideNumber: slideNum,
@@ -378,13 +301,8 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error parsing presentation:", error);
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : "Failed to parse presentation",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to parse presentation" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
