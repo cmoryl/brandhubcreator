@@ -1,44 +1,65 @@
 
 
-# Visual Preferences Panel Redesign
+# Imagery Hub Expansion Plan
 
-## Problem
-The Learned Visual Preferences panel is cramped, hard to read (tiny 9-10px text), and doesn't surface all the available data (preferred_colors, preferred_styles, preferred_compositions are in the VisualDNA type but never displayed).
+## Current State
+The Imagery Hub has: Entity Picker (tree + flat), Shutterstock inline search, bulk copy between entities, side-by-side comparison, and AI search suggestions. It lacks custom uploads, analytics, visual style analysis, and drag-and-drop organization.
 
-## Plan
+## Planned Features
 
-### 1. Redesign LearnedPreferencesPanel with tabbed sections and larger typography
+### 1. Custom Image Upload Support
+Add a drag-and-drop upload zone within each imagery category, alongside the existing Shutterstock search. Users can drop files or click to browse, uploading directly to the `organization-assets` storage bucket. Uploaded images get the same `ApprovedImage` metadata structure as Shutterstock results.
 
-Break the single dense block into a **tabbed card layout** with 4 mini-tabs:
-- **Overview** — Summary text (bumped to 12px), confidence gauge (radial ring instead of thin bar), stats row with larger icons
-- **Preferences** — Preferred Themes, Mood & Style keywords, Top Categories with wider progress bars, plus NEW: Preferred Colors (rendered as color swatches) and Preferred Styles (with weight bars)
-- **Avoid** — Avoid keywords, rejection reasons, and preferred_compositions "dislikes" — given more visual weight with red-tinted cards
-- **Insights** — Style preference narrative, diversity inclination, composition preferences — presented as readable paragraphs
+- Add an upload dropzone component inside `ImageryWorkspace` per section
+- Upload to `organization-assets/{orgId}/imagery/{entityId}/{sectionId}/`
+- Generate thumbnails and persist as `ApprovedImage` entries in `guide_data`
 
-### 2. Increase readability across the board
-- Bump all body text from `text-[10px]` to `text-xs` (12px)
-- Bump labels from `text-[10px]` to `text-xs font-medium`
-- Bump badges from `text-[9px]` to `text-[11px]`
-- Replace the thin 4px Progress bar with a proper radial confidence ring
-- Add more vertical spacing (`space-y-3` instead of `space-y-2.5`)
+### 2. AI Visual Style Analyzer
+A new panel that uses Lovable AI (gemini-2.5-flash with image support) to analyze all approved imagery for an entity and return a style consistency report: dominant colors, style cohesion score, outlier detection, and recommendations.
 
-### 3. Surface unused VisualDNA data
-- **preferred_colors**: Render as a row of colored circles with weight-based sizing
-- **preferred_styles**: Show as horizontal bars (like categories) — e.g., "Documentary: 85%", "Abstract: 60%"
-- **preferred_compositions**: Show as labeled preference chips — e.g., "Rule of thirds → Preferred"
+- New edge function `imagery-style-analyzer` that receives image URLs and entity brand context
+- Returns: cohesion score (0-100), dominant palette, style tags, flagged outliers with reasons
+- UI: collapsible analysis panel below the workspace header with score ring, palette swatches, and flagged images
 
-### 4. Add "Apply to Search" action button
-- When preferences exist, show a button that auto-populates the search query with top themes/mood keywords — bridging intelligence into action
+### 3. Image Analytics Dashboard
+A stats bar and expandable analytics panel showing per-entity and cross-entity imagery metrics.
 
-### 5. Make the panel scrollable with max-height
-- In the Shutterstock dialog context, cap the panel at `max-h-[400px] overflow-y-auto` so it doesn't push search results off-screen
-- In the VisualIntelligenceCard (entity editor), allow full expansion
+- **Per-entity stats**: total images, images per category, most recently added, category coverage gaps
+- **Cross-entity overview**: entity with most/fewest images, categories missing across entities
+- Computed client-side from existing `guide_data` — no new tables needed
+- UI: stats cards row at top of workspace + an "Analytics" tab/panel toggle
 
-### Files to modify
-- `src/components/brand/approved-imagery/LearnedPreferencesPanel.tsx` — Full redesign with tabbed sub-sections
-- `src/components/brand/approved-imagery/ShutterstockSearchDialog.tsx` — Add max-height wrapper and "Apply to Search" callback
-- `src/components/brand/approved-imagery/VisualIntelligenceCard.tsx` — Minor spacing adjustments
+### 4. Drag & Drop Reorder + Tagging
+Enable reordering images within categories via drag-and-drop, and add a tagging system for filtering.
 
-### No database or edge function changes needed
-All required data fields already exist in the VisualDNA type — they're just not being displayed.
+- Integrate `@dnd-kit/core` for drag-and-drop reorder within each section's image grid
+- Persist new order back to `guide_data.approvedImagery.sections[].images`
+- Add `tags: string[]` field to `ApprovedImage` type
+- Tag editor inline on each image (click to add/remove tags)
+- Filter bar above sections to filter by tag across all categories
+
+## Technical Details
+
+### Files to Create
+- `src/components/imagery-hub/ImageryUploadZone.tsx` — drag-and-drop upload component
+- `src/components/imagery-hub/ImageryAnalytics.tsx` — analytics dashboard panel
+- `src/components/imagery-hub/StyleAnalysisPanel.tsx` — AI style analysis UI
+- `src/components/imagery-hub/DraggableImageGrid.tsx` — drag-and-drop image grid
+- `src/components/imagery-hub/ImageTagEditor.tsx` — inline tag editor
+- `supabase/functions/imagery-style-analyzer/index.ts` — AI style analysis edge function
+
+### Files to Modify
+- `src/components/imagery-hub/ImageryWorkspace.tsx` — integrate upload zone, analytics toggle, drag-and-drop grid, tag filter bar
+- `src/pages/ImageryHub.tsx` — add style analyzer trigger and analytics panel toggle
+- `src/hooks/useEntityImagery.ts` — add `reorderImages` and `updateImageTags` methods
+- `src/types/brand.ts` — add `tags?: string[]` to `ApprovedImage` type
+
+### Dependencies
+- `@dnd-kit/core` and `@dnd-kit/sortable` for drag-and-drop
+
+### Edge Function: `imagery-style-analyzer`
+- Receives entity image URLs + brand context (colors, archetype)
+- Sends to gemini-2.5-flash-lite for visual analysis
+- Returns structured cohesion report via tool calling
+- Uses `LOVABLE_API_KEY` (auto-provisioned)
 
