@@ -228,6 +228,7 @@ export const ValuesSection = ({
   // Derive canEdit from prop or whether change handler is provided
   const canEdit = canEditProp ?? Boolean(onValuesChange);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingId, setViewingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Core Values');
   const fileInputRef = useRef<HTMLInputElement>(null);
