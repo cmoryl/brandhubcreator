@@ -658,19 +658,19 @@ export const ValuesSection = ({
                      ) : <div />}
                      {canEdit && (
                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button
-                           onClick={() => setEditingId(value.id)}
-                           className="p-1.5 rounded-md hover:bg-secondary transition-colors"
-                         >
-                           <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                         </button>
-                         <button
-                           onClick={() => deleteValue(value.id)}
-                           className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                         >
-                           <X className="h-3.5 w-3.5" />
-                         </button>
-                       </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setEditingId(value.id); }}
+                            className="p-1.5 rounded-md hover:bg-secondary transition-colors"
+                          >
+                            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteValue(value.id); }}
+                            className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                      )}
                    </div>
                    <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 transition-colors duration-300 group-hover:text-accent leading-tight">{value.text}</h3>
