@@ -4,6 +4,7 @@
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { BrandMaterialsPanel } from '@/components/imagery-hub/BrandMaterialsPanel';
+import { AssetImageExtractor } from '@/components/imagery-hub/AssetImageExtractor';
 import { ImageryPreviewDialog } from '@/components/brand/approved-imagery/ImageryPreviewDialog';
 import { SearchByImageUpload } from '@/components/imagery-hub/SearchByImageUpload';
 import { ExampleSearchGrid } from '@/components/imagery-hub/ExampleSearchGrid';
@@ -11,7 +12,7 @@ import {
   Search, Loader2, Check, ImageIcon, Sparkles, ArrowRight, Info, Hash,
   Camera, PenTool, Layers, SlidersHorizontal, X, Palette, Users, Eye,
   CheckSquare, Square, FolderPlus, Bookmark, Brain, ZoomIn, ChevronLeft,
-  ShieldCheck, Ruler, Ban, Grid3X3, LayoutGrid, Upload, TrendingUp,
+  ShieldCheck, Ruler, Ban, Grid3X3, LayoutGrid, Upload, TrendingUp, FileImage,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,7 +135,7 @@ const QUICK_COLORS = [
 
 const LIGHTBOX_STORAGE_KEY = 'shutterstock-lightboxes';
 
-type ToolPanel = 'none' | 'filters' | 'lightbox' | 'preferences' | 'examples' | 'materials' | 'upload';
+type ToolPanel = 'none' | 'filters' | 'lightbox' | 'preferences' | 'examples' | 'materials' | 'upload' | 'extract';
 
 export const InlineImagerySearch = ({
   onApproveImages,
@@ -673,6 +674,17 @@ export const InlineImagerySearch = ({
               </Button>
             )}
 
+            {entityId && (
+              <Button
+                variant={activePanel === 'extract' ? 'default' : 'outline'}
+                size="sm" className="h-7 text-xs gap-1 px-2.5"
+                onClick={() => togglePanel('extract')}
+              >
+                <FileImage className="h-3 w-3" />
+                Extract
+              </Button>
+            )}
+
             {similarSourceId && (
               <Badge variant="outline" className="text-xs gap-1 h-7">
                 Similar to #{similarSourceId}
@@ -859,6 +871,22 @@ export const InlineImagerySearch = ({
                   onSearchTermClick={(term) => {
                     setQuery(term);
                     handleSearch(term, 1);
+                  }}
+                  isOpen={true}
+                  onToggle={() => setActivePanel('none')}
+                />
+              </div>
+            )}
+
+            {/* Asset Image Extraction */}
+            {activePanel === 'extract' && entityId && (
+              <div className="p-4">
+                <AssetImageExtractor
+                  entityId={entityId}
+                  entityType={(entityType as 'brand' | 'product' | 'event') || 'brand'}
+                  onImagesExtracted={(images) => {
+                    onApproveImages(images);
+                    setActivePanel('none');
                   }}
                   isOpen={true}
                   onToggle={() => setActivePanel('none')}
