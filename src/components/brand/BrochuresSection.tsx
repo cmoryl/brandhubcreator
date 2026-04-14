@@ -201,7 +201,6 @@ export const BrochuresSection = ({ brochures: brochuresProp, onBrochuresChange, 
                           <Download className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      </div>
                       {brochure.thumbnailUrl && (
                         <button
                           onClick={(e) => { e.stopPropagation(); removeThumbnail(brochure.id); }}
