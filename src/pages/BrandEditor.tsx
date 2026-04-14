@@ -1283,8 +1283,8 @@ const BrandEditor = () => {
                     } : undefined}
                     entityName={brand?.hero?.name}
                     entityTagline={brand?.hero?.tagline}
-                    healthScore={cardViewHealthScore}
-                    complianceScore={complianceScores?.get(brand.id)?.score}
+                    healthScore={isGuideAdmin ? cardViewHealthScore : undefined}
+                    complianceScore={isGuideAdmin ? complianceScores?.get(brand.id)?.score : undefined}
                     onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined}
                     entityType="brand"
                     entityId={brand?.id}

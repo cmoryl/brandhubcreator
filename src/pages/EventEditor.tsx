@@ -1216,7 +1216,7 @@ const EventEditor = () => {
                     } : undefined}
                     entityName={event?.hero?.name}
                     entityTagline={event?.hero?.tagline}
-                    healthScore={cardViewHealthScore}
+                    healthScore={isGuideAdmin ? cardViewHealthScore : undefined}
                     onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined}
                     entityType="event"
                     entityId={event?.id}
