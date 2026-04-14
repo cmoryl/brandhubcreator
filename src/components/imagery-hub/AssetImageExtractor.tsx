@@ -176,6 +176,11 @@ export const AssetImageExtractor = ({
     setLoadedImages(prev => new Set(prev).add(id));
   }, []);
 
+  const handleImageError = useCallback((id: string) => {
+    setLoadedImages(prev => new Set(prev).add(id));
+    setFailedThumbnailIds(prev => new Set(prev).add(id));
+  }, []);
+
   const allFilteredSelected = filteredImages.length > 0 && filteredImages.every(i => selectedIds.has(i.id));
   const previewIdx = previewImage ? filteredImages.findIndex(i => i.id === previewImage.id) : -1;
 
@@ -306,6 +311,7 @@ export const AssetImageExtractor = ({
                         {filteredImages.map(img => {
                           const isSelected = selectedIds.has(img.id);
                           const isLoaded = loadedImages.has(img.id);
+                          const useOriginalUrl = failedThumbnailIds.has(img.id);
                           return (
                             <div
                               key={img.id}
@@ -327,7 +333,7 @@ export const AssetImageExtractor = ({
                                   </div>
                                 )}
                                 <img
-                                  src={img.thumbnailUrl}
+                                  src={useOriginalUrl ? img.url : img.thumbnailUrl}
                                   alt={img.title}
                                   className={cn(
                                     'w-full h-full object-cover transition-opacity duration-300',
@@ -338,6 +344,14 @@ export const AssetImageExtractor = ({
                                   fetchPriority="low"
                                   sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, 16vw"
                                   onLoad={() => handleImageLoaded(img.id)}
+                                  onError={(e) => {
+                                    const target = e.currentTarget;
+                                    if (!useOriginalUrl && img.url && target.src !== img.url) {
+                                      target.src = img.url;
+                                      return;
+                                    }
+                                    handleImageError(img.id);
+                                  }}
                                 />
                               </div>
 
@@ -403,7 +417,22 @@ export const AssetImageExtractor = ({
                               onClick={() => toggleImage(img.id)}
                             >
                               <div className="relative w-12 h-12 rounded-md overflow-hidden bg-muted shrink-0">
-                                <img src={img.thumbnailUrl} alt={img.title} className="w-full h-full object-cover" loading="lazy" />
+                                <img
+                                  src={failedThumbnailIds.has(img.id) ? img.url : img.thumbnailUrl}
+                                  alt={img.title}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  decoding="async"
+                                  onLoad={() => handleImageLoaded(img.id)}
+                                  onError={(e) => {
+                                    const target = e.currentTarget;
+                                    if (!failedThumbnailIds.has(img.id) && img.url && target.src !== img.url) {
+                                      target.src = img.url;
+                                      return;
+                                    }
+                                    handleImageError(img.id);
+                                  }}
+                                />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium truncate text-foreground">{img.title}</p>
