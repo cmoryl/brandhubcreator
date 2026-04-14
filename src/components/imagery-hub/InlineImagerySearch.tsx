@@ -860,6 +860,13 @@ export const InlineImagerySearch = ({
               onApplyToSearch={(q) => { setQuery(q); handleSearch(q, 1); }} maxHeight="300px" />
           )}
 
+          {/* Example Searches */}
+          {showExamples && (
+            <div className="max-h-[400px] overflow-y-auto">
+              <ExampleSearchGrid onSearch={handleExampleSearch} />
+            </div>
+          )}
+
           {/* AI Suggestions */}
           {showSuggestions && (
             <div className="space-y-2">
