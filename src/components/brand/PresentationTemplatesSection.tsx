@@ -259,6 +259,8 @@ export const PresentationTemplatesSection = ({
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [batchUploadProgress, setBatchUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const [activeTab, setActiveTab] = useState<'upload' | 'link'>('upload');
 
   // Filter presentations
