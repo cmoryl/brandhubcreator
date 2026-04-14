@@ -358,17 +358,7 @@ function calculateSectionCompleteness(
     case 'socialIcons':
     case 'templates':
     case 'templateSpecs':
-    case 'brochures':
     case 'displayBanners':
-    case 'caseStudies': {
-      // Check dedicated caseStudies array AND digitalCollateral items with 'Case Study' category
-      const caseArr = safeArray(guideData.caseStudies);
-      const collateralCaseStudies = safeArray(guideData.digitalCollateral).filter(
-        (item: any) => item?.category === 'Case Study'
-      );
-      const totalCaseStudies = caseArr.length + collateralCaseStudies.length;
-      return totalCaseStudies > 0 ? 1 : 0;
-    }
     case 'webinars':
     case 'clientLogos':
     case 'sponsorLogos':
@@ -379,6 +369,28 @@ function calculateSectionCompleteness(
     case 'eventPatterns': {
       const arr = safeArray(guideData[section]);
       return scoreArray(arr);
+    }
+
+    // ─── Digital Collateral (brochures) ───
+    case 'brochures': {
+      const brochures = safeArray(guideData.brochures);
+      if (brochures.length === 0) return 0;
+      if (brochures.length >= 5) return 1;
+      if (brochures.length >= 3) return 0.7;
+      return 0.4;
+    }
+
+    // ─── Case Studies: check dedicated array AND digitalCollateral items with 'Case Study' category ───
+    case 'caseStudies': {
+      const caseArr = safeArray(guideData.caseStudies);
+      const collateralCaseStudies = safeArray(guideData.brochures).filter(
+        (item: any) => item?.category === 'Case Study'
+      );
+      const totalCaseStudies = caseArr.length + collateralCaseStudies.length;
+      if (totalCaseStudies === 0) return 0;
+      if (totalCaseStudies >= 3) return 1;
+      if (totalCaseStudies >= 2) return 0.7;
+      return 0.4;
     }
 
     // Presentation Templates: stored both in guide_data AND presentation_templates DB table
