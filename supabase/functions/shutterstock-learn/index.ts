@@ -310,7 +310,7 @@ BRAND IDENTITY & COLORS:
 - Mission: ${brandIdentity.missionStatement || 'Not set'}
 - Values: ${brandValues.join(', ') || 'Not set'}
 - Color Palette: ${brandColors.map((c: any) => `${c.name}(${c.hex}, ${c.role})`).join(', ') || 'Not set'}
-- Logos: ${logoMeta.length} variants${logoMeta.length > 0 ? ` — ${logoMeta.map((l: any) => `${l.name}${l.variant ? '(' + l.variant + ')' : ''}`).join(', ')}` : ''}
+- Patterns: ${patternCount} defined, Gradients: ${gradientCount} defined
 - Patterns: ${patternCount} defined, Gradients: ${gradientCount} defined
 `;
 
