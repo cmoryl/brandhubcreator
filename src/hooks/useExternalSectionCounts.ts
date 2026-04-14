@@ -16,11 +16,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { ExternalSectionCounts } from '@/lib/brandHealthCalculator';
 
+interface UseExternalSectionCountsResult {
+  counts: ExternalSectionCounts;
+  isLoaded: boolean;
+}
+
 export function useExternalSectionCounts(
   entityId: string | undefined,
   entityType: string = 'brand',
   refreshTrigger?: number
-): ExternalSectionCounts & { isLoaded: boolean } {
+): UseExternalSectionCountsResult {
   const [counts, setCounts] = useState<ExternalSectionCounts>({});
   const [isLoaded, setIsLoaded] = useState(false);
 
