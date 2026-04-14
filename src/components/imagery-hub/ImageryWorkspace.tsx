@@ -327,25 +327,25 @@ export const ImageryWorkspace = ({
 
         {/* Tag Filter Bar */}
         {allTags.size > 0 && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <div className="flex items-center gap-3 flex-wrap">
+            <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
             <Input
               placeholder="Filter by tag..."
               value={tagFilter}
               onChange={e => setTagFilter(e.target.value)}
-              className="w-40 h-7 text-xs"
+              className="w-48 h-9"
             />
             {tagFilter && (
-              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setTagFilter('')}>
+              <Button variant="ghost" size="default" className="h-9" onClick={() => setTagFilter('')}>
                 Clear
               </Button>
             )}
-            <div className="flex gap-1 flex-wrap">
+            <div className="flex gap-1.5 flex-wrap">
               {Array.from(allTags).slice(0, 10).map(tag => (
                 <Badge
                   key={tag}
                   variant={tagFilter === tag ? 'default' : 'outline'}
-                  className="text-xs cursor-pointer"
+                  className="text-sm cursor-pointer px-2.5 py-1"
                   onClick={() => setTagFilter(tagFilter === tag ? '' : tag)}
                 >
                   {tag}
