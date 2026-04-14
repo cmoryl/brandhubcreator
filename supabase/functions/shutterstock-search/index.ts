@@ -375,6 +375,12 @@ Deno.serve(async (req) => {
       case 'similar':
         result = await handleSimilar(body);
         break;
+      case 'reverse_image':
+        result = await handleReverseImage(body);
+        break;
+      case 'categories':
+        result = await handleCategories();
+        break;
       default:
         result = await handleSearch(body);
     }
