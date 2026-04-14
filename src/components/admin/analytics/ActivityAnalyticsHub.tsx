@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Activity, Download, RefreshCw, Clock, Eye, Users, TrendingUp,
   BarChart3, Calendar, Flame, Target, Zap, FileDown, Filter,
-  Monitor, Smartphone, Tablet, Globe, Map
+  Monitor, Smartphone, Tablet, Globe
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
