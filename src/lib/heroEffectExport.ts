@@ -6,7 +6,7 @@
  * GIF: Uses gifenc for lightweight, high-quality animated GIF encoding.
  */
 
-import html2canvas from 'html2canvas';
+// html2canvas loaded dynamically when needed
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 import { toast } from 'sonner';
 

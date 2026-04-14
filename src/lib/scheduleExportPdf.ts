@@ -4,7 +4,7 @@
  * Uses jsPDF native text API for reliable, searchable output
  */
 
-import jsPDF from 'jspdf';
+import type jsPDF from 'jspdf';
 import { EventScheduleItem, EventSpeaker } from '@/types/event';
 import { PDF_COLORS } from './pdfStyleConfig';
 
