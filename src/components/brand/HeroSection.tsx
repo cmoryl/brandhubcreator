@@ -631,7 +631,7 @@ export const HeroSection = ({
         )}
 
         {/* Stats Panel - Top Left - Hidden in compact mode (moved to right side instead) */}
-        {showStats && enhancedMode && !compact && (
+        {showStats && enhancedMode && !compact && canEdit && (
           <div className="absolute inset-x-0 top-0 z-30 pointer-events-none">
             <div className="w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
               <div className="max-w-7xl mx-auto">
@@ -787,7 +787,7 @@ export const HeroSection = ({
               </div>
 
               {/* Right: Compact stats panel in card view mode */}
-              {compact && showStats && (
+              {compact && showStats && canEdit && (
                 <div className={`hidden sm:flex flex-col gap-1.5 items-end shrink-0 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
                   <Tooltip>
                     <TooltipTrigger asChild>

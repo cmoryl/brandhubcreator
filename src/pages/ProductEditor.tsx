@@ -1077,8 +1077,8 @@ const ProductEditor = () => {
                     } : undefined}
                     entityName={currentProduct?.hero?.name}
                     entityTagline={currentProduct?.hero?.tagline}
-                    healthScore={cardViewHealthScore}
-                    complianceScore={complianceScores?.get(currentProduct.id)?.score}
+                    healthScore={isGuideAdmin ? cardViewHealthScore : undefined}
+                    complianceScore={isGuideAdmin ? complianceScores?.get(currentProduct.id)?.score : undefined}
                     onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined}
                     entityType="product"
                     entityId={currentProduct?.id}
