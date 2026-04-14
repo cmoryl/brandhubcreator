@@ -152,6 +152,7 @@ export const InlineImagerySearch = ({
   const [query, setQuery] = useState('');
   const [orientation, setOrientation] = useState<string>('any');
   const [imageType, setImageType] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('popular');
   const [results, setResults] = useState<ShutterstockSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
