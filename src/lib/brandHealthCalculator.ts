@@ -360,7 +360,15 @@ function calculateSectionCompleteness(
     case 'templateSpecs':
     case 'brochures':
     case 'displayBanners':
-    case 'caseStudies':
+    case 'caseStudies': {
+      // Check dedicated caseStudies array AND digitalCollateral items with 'Case Study' category
+      const caseArr = safeArray(guideData.caseStudies);
+      const collateralCaseStudies = safeArray(guideData.digitalCollateral).filter(
+        (item: any) => item?.category === 'Case Study'
+      );
+      const totalCaseStudies = caseArr.length + collateralCaseStudies.length;
+      return totalCaseStudies > 0 ? 1 : 0;
+    }
     case 'webinars':
     case 'clientLogos':
     case 'sponsorLogos':
