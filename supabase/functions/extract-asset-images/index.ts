@@ -1,14 +1,19 @@
 /**
  * Extract Asset Images
- * Extracts embedded images from PDFs and PPTX files stored in brand guide_data
- * (brochures, presentations, templates, case studies).
- * Uploads extracted images to organization-assets bucket and returns URLs.
- * Uses lightweight binary parsing to stay under 150MB memory.
+ * Extracts images from all guide_data asset sections:
+ * - Brochures/Digital Collateral (previewUrl, thumbnailUrl, externalUrl)
+ * - Presentation Templates (fileUrl - extract from PPTX/PDF)
+ * - Approved Imagery sections
+ * - Image Assets
+ * - Social Assets
+ * - Patterns
+ * - Case Studies
+ * - Imagery (visual direction)
+ * Also scans uploaded files (PDFs, PPTX) for embedded images.
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { decode as decodeBase64 } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,10 +21,10 @@ const corsHeaders = {
 };
 
 const BUCKET_NAME = "organization-assets";
-const MAX_ASSETS = 10; // Max documents to process
-const MAX_IMAGES_PER_DOC = 8; // Max images per document
-const MIN_IMAGE_BYTES = 5000; // Ignore tiny images (<5KB, likely icons/bullets)
-const MAX_IMAGE_BYTES = 10_000_000; // Skip images over 10MB
+const MAX_DOC_EXTRACTIONS = 6;
+const MAX_IMAGES_PER_DOC = 8;
+const MIN_IMAGE_BYTES = 5000;
+const MAX_IMAGE_BYTES = 10_000_000;
 
 interface ExtractedImage {
   id: string;
@@ -28,25 +33,17 @@ interface ExtractedImage {
   title: string;
   source: string;
   sourceDocument: string;
-  width?: number;
-  height?: number;
   mimeType: string;
   sizeBytes: number;
 }
 
-/**
- * Extract JPEG images from PDF binary data.
- * Looks for JPEG markers (FFD8...FFD9) within PDF streams.
- */
+/** Extract JPEG images from PDF binary data via SOI/EOI markers */
 function extractJpegFromPdf(bytes: Uint8Array): Uint8Array[] {
   const images: Uint8Array[] = [];
   let i = 0;
-
   while (i < bytes.length - 2 && images.length < MAX_IMAGES_PER_DOC) {
-    // Look for JPEG SOI marker (FF D8)
     if (bytes[i] === 0xFF && bytes[i + 1] === 0xD8) {
       const start = i;
-      // Find JPEG EOI marker (FF D9)
       let j = i + 2;
       while (j < bytes.length - 1) {
         if (bytes[j] === 0xFF && bytes[j + 1] === 0xD9) {
@@ -65,104 +62,221 @@ function extractJpegFromPdf(bytes: Uint8Array): Uint8Array[] {
       i++;
     }
   }
-
   return images;
 }
 
-/**
- * Extract images from PPTX (ZIP) binary data.
- * PPTX files are ZIP archives with images in ppt/media/ directory.
- */
+/** Extract images from PPTX (ZIP) via ppt/media/ entries */
 async function extractImagesFromPptx(bytes: Uint8Array): Promise<Array<{ data: Uint8Array; ext: string; mime: string }>> {
   const images: Array<{ data: Uint8Array; ext: string; mime: string }> = [];
-  
   try {
-    // Parse ZIP structure manually to find image entries
-    // ZIP local file headers start with PK\x03\x04
     let offset = 0;
-    
     while (offset < bytes.length - 30 && images.length < MAX_IMAGES_PER_DOC) {
-      // Check for local file header signature
-      if (bytes[offset] !== 0x50 || bytes[offset + 1] !== 0x4B || 
+      if (bytes[offset] !== 0x50 || bytes[offset + 1] !== 0x4B ||
           bytes[offset + 2] !== 0x03 || bytes[offset + 3] !== 0x04) {
         offset++;
         continue;
       }
-
-      // Parse local file header
       const compressionMethod = bytes[offset + 8] | (bytes[offset + 9] << 8);
       const compressedSize = bytes[offset + 18] | (bytes[offset + 19] << 8) | (bytes[offset + 20] << 16) | (bytes[offset + 21] << 24);
       const uncompressedSize = bytes[offset + 22] | (bytes[offset + 23] << 8) | (bytes[offset + 24] << 16) | (bytes[offset + 25] << 24);
       const fileNameLength = bytes[offset + 26] | (bytes[offset + 27] << 8);
       const extraFieldLength = bytes[offset + 28] | (bytes[offset + 29] << 8);
-
-      const fileNameBytes = bytes.slice(offset + 30, offset + 30 + fileNameLength);
-      const fileName = new TextDecoder().decode(fileNameBytes);
-      
+      const fileName = new TextDecoder().decode(bytes.slice(offset + 30, offset + 30 + fileNameLength));
       const dataStart = offset + 30 + fileNameLength + extraFieldLength;
       const dataSize = compressedSize > 0 ? compressedSize : uncompressedSize;
-      
-      // Check if it's an image in ppt/media/
-      const isImage = fileName.startsWith("ppt/media/") && 
-        /\.(png|jpg|jpeg|gif|bmp|tiff|webp)$/i.test(fileName);
-      
-      if (isImage && compressionMethod === 0 && dataSize >= MIN_IMAGE_BYTES && dataSize <= MAX_IMAGE_BYTES) {
-        // Stored (no compression) - extract directly
-        const imageData = bytes.slice(dataStart, dataStart + dataSize);
-        const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
-        const mimeMap: Record<string, string> = {
-          jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-          gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp', tiff: 'image/tiff',
-        };
-        images.push({ data: imageData, ext, mime: mimeMap[ext] || 'image/jpeg' });
-      } else if (isImage && compressionMethod === 8 && dataSize >= MIN_IMAGE_BYTES && dataSize <= MAX_IMAGE_BYTES) {
-        // Deflate compressed - use DecompressionStream
-        try {
-          const compressedData = bytes.slice(dataStart, dataStart + dataSize);
-          const ds = new DecompressionStream("raw");
-          const writer = ds.writable.getWriter();
-          const reader = ds.readable.getReader();
-          
-          writer.write(compressedData);
-          writer.close();
-          
-          const chunks: Uint8Array[] = [];
-          let totalLen = 0;
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
-            totalLen += value.length;
-            if (totalLen > MAX_IMAGE_BYTES) break;
-          }
-          
-          if (totalLen >= MIN_IMAGE_BYTES && totalLen <= MAX_IMAGE_BYTES) {
-            const decompressed = new Uint8Array(totalLen);
-            let pos = 0;
-            for (const chunk of chunks) {
-              decompressed.set(chunk, pos);
-              pos += chunk.length;
+      const isImage = fileName.startsWith("ppt/media/") && /\.(png|jpg|jpeg|gif|bmp|tiff|webp)$/i.test(fileName);
+
+      if (isImage && dataSize >= MIN_IMAGE_BYTES && dataSize <= MAX_IMAGE_BYTES) {
+        if (compressionMethod === 0) {
+          const imageData = bytes.slice(dataStart, dataStart + dataSize);
+          const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
+          const mimeMap: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp', tiff: 'image/tiff' };
+          images.push({ data: imageData, ext, mime: mimeMap[ext] || 'image/jpeg' });
+        } else if (compressionMethod === 8) {
+          try {
+            const compressedData = bytes.slice(dataStart, dataStart + dataSize);
+            const ds = new DecompressionStream("raw");
+            const writer = ds.writable.getWriter();
+            const reader = ds.readable.getReader();
+            writer.write(compressedData);
+            writer.close();
+            const chunks: Uint8Array[] = [];
+            let totalLen = 0;
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+              totalLen += value.length;
+              if (totalLen > MAX_IMAGE_BYTES) break;
             }
-            const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
-            const mimeMap: Record<string, string> = {
-              jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-              gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp', tiff: 'image/tiff',
-            };
-            images.push({ data: decompressed, ext, mime: mimeMap[ext] || 'image/jpeg' });
+            if (totalLen >= MIN_IMAGE_BYTES && totalLen <= MAX_IMAGE_BYTES) {
+              const decompressed = new Uint8Array(totalLen);
+              let pos = 0;
+              for (const chunk of chunks) { decompressed.set(chunk, pos); pos += chunk.length; }
+              const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
+              const mimeMap: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp', tiff: 'image/tiff' };
+              images.push({ data: decompressed, ext, mime: mimeMap[ext] || 'image/jpeg' });
+            }
+          } catch (e) {
+            console.warn(`Failed to decompress ${fileName}:`, e);
           }
-        } catch (e) {
-          console.warn(`Failed to decompress ${fileName}:`, e);
         }
       }
-
-      // Move to next entry
       offset = dataStart + dataSize;
     }
   } catch (err) {
     console.error("PPTX parsing error:", err);
   }
-
   return images;
+}
+
+/** Check if a URL looks like an image */
+function isImageUrl(url: string): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return /\.(jpg|jpeg|png|gif|webp|bmp|svg|tiff|avif)(\?|$)/i.test(lower) ||
+    lower.includes('/render/image') || lower.includes('image.shutterstock') ||
+    lower.includes('unsplash.com') || lower.includes('pexels.com');
+}
+
+/** Check if URL is a document we can extract embedded images from */
+function isDocumentUrl(url: string): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return /\.(pdf|pptx|ppt|docx)(\?|$)/i.test(lower);
+}
+
+/** Collect all image URLs and document URLs from guide_data */
+function collectAssetUrls(gd: any): { 
+  directImages: Array<{ url: string; title: string; source: string }>;
+  documents: Array<{ url: string; title: string; source: string }>;
+} {
+  const directImages: Array<{ url: string; title: string; source: string }> = [];
+  const documents: Array<{ url: string; title: string; source: string }> = [];
+
+  const addUrl = (url: string, title: string, source: string) => {
+    if (!url || url.length < 10) return;
+    // Skip base64 data URIs
+    if (url.startsWith('data:')) return;
+    
+    if (isDocumentUrl(url)) {
+      documents.push({ url, title, source });
+    } else if (isImageUrl(url)) {
+      directImages.push({ url, title, source });
+    } else if (url.includes('supabase') || url.includes('storage')) {
+      // Storage URLs without clear extension - treat as potential images
+      directImages.push({ url, title, source });
+    }
+  };
+
+  // 1. Brochures / Digital Collateral
+  const brochures = Array.isArray(gd.brochures) ? gd.brochures : [];
+  for (const b of brochures) {
+    if (b?.previewUrl) addUrl(b.previewUrl, b.title || 'Brochure', 'brochures');
+    if (b?.thumbnailUrl) addUrl(b.thumbnailUrl, b.title || 'Brochure', 'brochures');
+    if (b?.externalUrl) addUrl(b.externalUrl, b.title || 'Brochure', 'brochures');
+  }
+
+  // 2. Presentation Templates (have fileUrl)
+  const presentations = Array.isArray(gd.presentationTemplates) ? gd.presentationTemplates : [];
+  for (const p of presentations) {
+    if (p?.fileUrl) addUrl(p.fileUrl, p.name || p.title || 'Presentation', 'presentations');
+    if (p?.thumbnailUrl) addUrl(p.thumbnailUrl, p.name || 'Presentation Thumb', 'presentations');
+    if (p?.cardImageUrl) addUrl(p.cardImageUrl, p.name || 'Presentation Card', 'presentations');
+    // Also check slide thumbnails
+    if (Array.isArray(p?.slides)) {
+      for (const s of p.slides) {
+        if (s?.thumbnailUrl) addUrl(s.thumbnailUrl, `${p.name || 'Slide'} #${s.slideNumber || ''}`, 'presentation-slides');
+      }
+    }
+  }
+
+  // 3. Templates (legacy)
+  const templates = Array.isArray(gd.templates) ? gd.templates : [];
+  for (const t of templates) {
+    if (t?.fileUrl) addUrl(t.fileUrl, t.name || t.title || 'Template', 'templates');
+    if (t?.thumbnailUrl) addUrl(t.thumbnailUrl, t.name || 'Template', 'templates');
+    if (t?.externalUrl) addUrl(t.externalUrl, t.name || 'Template', 'templates');
+  }
+
+  // 4. Case Studies
+  const caseStudies = Array.isArray(gd.caseStudies) ? gd.caseStudies : [];
+  for (const cs of caseStudies) {
+    if (cs?.fileUrl) addUrl(cs.fileUrl, cs.title || cs.name || 'Case Study', 'caseStudies');
+    if (cs?.thumbnailUrl) addUrl(cs.thumbnailUrl, cs.title || 'Case Study', 'caseStudies');
+    if (cs?.imageUrl) addUrl(cs.imageUrl, cs.title || 'Case Study', 'caseStudies');
+    if (cs?.coverImage) addUrl(cs.coverImage, cs.title || 'Case Study', 'caseStudies');
+  }
+
+  // 5. Approved Imagery sections
+  const approvedImagery = gd.approvedImagery;
+  if (approvedImagery && Array.isArray(approvedImagery.sections)) {
+    for (const section of approvedImagery.sections) {
+      if (Array.isArray(section?.images)) {
+        for (const img of section.images) {
+          if (img?.url) addUrl(img.url, img.title || `${section.name || 'Approved'} Image`, 'approvedImagery');
+          if (img?.thumbnailUrl) addUrl(img.thumbnailUrl, img.title || 'Approved Thumb', 'approvedImagery');
+        }
+      }
+    }
+  }
+
+  // 6. Imagery (visual direction photos)
+  const imagery = Array.isArray(gd.imagery) ? gd.imagery : [];
+  for (const img of imagery) {
+    if (img?.url) addUrl(img.url, img.caption || img.title || 'Imagery', 'imagery');
+  }
+
+  // 7. Image Assets
+  const imageAssets = Array.isArray(gd.imageAssets) ? gd.imageAssets : [];
+  for (const asset of imageAssets) {
+    if (asset?.url) addUrl(asset.url, asset.name || 'Image Asset', 'imageAssets');
+    if (asset?.thumbnailUrl) addUrl(asset.thumbnailUrl, asset.name || 'Image Asset', 'imageAssets');
+  }
+
+  // 8. Patterns
+  const patterns = Array.isArray(gd.patterns) ? gd.patterns : [];
+  for (const p of patterns) {
+    if (p?.url) addUrl(p.url, p.name || 'Pattern', 'patterns');
+  }
+
+  // 9. Social Assets
+  const socialAssets = Array.isArray(gd.socialAssets) ? gd.socialAssets : [];
+  for (const sa of socialAssets) {
+    if (sa?.url) addUrl(sa.url, sa.title || sa.name || 'Social Asset', 'socialAssets');
+    if (sa?.imageUrl) addUrl(sa.imageUrl, sa.title || 'Social Asset', 'socialAssets');
+    if (sa?.thumbnailUrl) addUrl(sa.thumbnailUrl, sa.title || 'Social Asset', 'socialAssets');
+  }
+
+  // 10. Hero images
+  if (gd.hero) {
+    if (gd.hero.imageUrl) addUrl(gd.hero.imageUrl, 'Hero Image', 'hero');
+    if (gd.hero.coverImage) addUrl(gd.hero.coverImage, 'Hero Cover', 'hero');
+    if (gd.hero.cardImage) addUrl(gd.hero.cardImage, 'Hero Card', 'hero');
+  }
+
+  // 11. PDF Documents
+  const pdfDocuments = Array.isArray(gd.pdfDocuments) ? gd.pdfDocuments : [];
+  for (const pdf of pdfDocuments) {
+    if (pdf?.fileUrl) addUrl(pdf.fileUrl, pdf.name || 'PDF Document', 'pdfDocuments');
+    if (pdf?.thumbnailUrl) addUrl(pdf.thumbnailUrl, pdf.name || 'PDF Thumb', 'pdfDocuments');
+  }
+
+  // Deduplicate by URL
+  const seenUrls = new Set<string>();
+  const dedup = <T extends { url: string }>(arr: T[]): T[] => {
+    return arr.filter(item => {
+      const key = item.url.split('?')[0]; // ignore cache-busting params
+      if (seenUrls.has(key)) return false;
+      seenUrls.add(key);
+      return true;
+    });
+  };
+
+  return {
+    directImages: dedup(directImages),
+    documents: dedup(documents),
+  };
 }
 
 serve(async (req) => {
@@ -198,7 +312,6 @@ serve(async (req) => {
       });
     }
 
-    // Fetch entity guide_data
     const tableMap: Record<string, string> = { brand: "brands", product: "products", event: "events" };
     const table = tableMap[entityType] || "brands";
     const { data: entityData } = await supabase
@@ -215,7 +328,6 @@ serve(async (req) => {
 
     const gd = (entityData as any).guide_data || {};
     const orgId = (entityData as any).organization_id;
-    const entityName = (entityData as any).name;
 
     if (!orgId) {
       return new Response(JSON.stringify({ error: "No organization", images: [] }), {
@@ -223,60 +335,53 @@ serve(async (req) => {
       });
     }
 
-    // Collect all document URLs from guide_data
-    const docSources: Array<{ url: string; title: string; source: string }> = [];
+    // Collect all URLs from guide_data
+    const { directImages, documents } = collectAssetUrls(gd);
 
-    // Brochures
-    (Array.isArray(gd.brochures) ? gd.brochures : []).forEach((b: any) => {
-      if (b?.fileUrl) docSources.push({ url: b.fileUrl, title: b.title || b.name || 'Brochure', source: 'brochures' });
-    });
+    console.log(`[extract-asset-images] Found ${directImages.length} direct images, ${documents.length} documents`);
 
-    // Presentations
-    (Array.isArray(gd.presentationTemplates) ? gd.presentationTemplates : []).forEach((p: any) => {
-      if (p?.fileUrl) docSources.push({ url: p.fileUrl, title: p.title || p.name || 'Presentation', source: 'presentations' });
-    });
-
-    // Templates
-    (Array.isArray(gd.templates) ? gd.templates : []).forEach((t: any) => {
-      if (t?.fileUrl) docSources.push({ url: t.fileUrl, title: t.title || t.name || 'Template', source: 'templates' });
-    });
-
-    // Case Studies
-    (Array.isArray(gd.caseStudies) ? gd.caseStudies : []).forEach((cs: any) => {
-      if (cs?.fileUrl) docSources.push({ url: cs.fileUrl, title: cs.title || cs.name || 'Case Study', source: 'caseStudies' });
-    });
-
-    if (docSources.length === 0) {
-      return new Response(JSON.stringify({ 
-        images: [], 
-        message: "No digital assets found with uploaded files. Upload PDFs or presentations to extract imagery." 
+    if (directImages.length === 0 && documents.length === 0) {
+      return new Response(JSON.stringify({
+        images: [],
+        documentsProcessed: 0,
+        documentsTotal: 0,
+        message: "No assets found in this guide. Upload images, PDFs, or presentations first.",
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const extractedImages: ExtractedImage[] = [];
-    const processedDocs = docSources.slice(0, MAX_ASSETS);
+
+    // Phase 1: Collect direct image URLs (already accessible, no extraction needed)
+    for (const img of directImages) {
+      extractedImages.push({
+        id: crypto.randomUUID(),
+        url: img.url,
+        thumbnailUrl: img.url,
+        title: img.title,
+        source: img.source,
+        sourceDocument: img.source,
+        mimeType: 'image/jpeg',
+        sizeBytes: 0, // Unknown for direct URLs
+      });
+    }
+
+    // Phase 2: Extract embedded images from documents (PDFs, PPTX)
+    const processedDocs = documents.slice(0, MAX_DOC_EXTRACTIONS);
+    let docsProcessed = 0;
 
     for (const doc of processedDocs) {
       try {
-        // Determine if internal (Supabase storage) or external URL
         const isInternal = doc.url.includes(supabaseUrl) || doc.url.includes('supabase');
-        
         let fileBytes: Uint8Array | null = null;
 
         if (isInternal) {
-          // Extract storage path from URL
-          const pathMatch = doc.url.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)/);
+          const pathMatch = doc.url.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)/);
           if (pathMatch) {
-            const storagePath = pathMatch[1].split('?')[0];
-            const bucketMatch = doc.url.match(/\/storage\/v1\/object\/public\/([^/]+)\//);
-            const bucket = bucketMatch ? bucketMatch[1] : BUCKET_NAME;
-            
-            const { data, error } = await supabase.storage
-              .from(bucket)
-              .download(storagePath);
-            
+            const bucket = pathMatch[1];
+            const storagePath = pathMatch[2].split('?')[0];
+            const { data, error } = await supabase.storage.from(bucket).download(storagePath);
             if (error || !data) {
               console.warn(`Failed to download ${doc.title}:`, error);
               continue;
@@ -284,9 +389,8 @@ serve(async (req) => {
             fileBytes = new Uint8Array(await data.arrayBuffer());
           }
         } else {
-          // External URL - try to fetch via proxy
           try {
-            const resp = await fetch(doc.url, { 
+            const resp = await fetch(doc.url, {
               headers: { 'User-Agent': 'BrandHub-ImageExtractor/1.0' },
               signal: AbortSignal.timeout(15000),
             });
@@ -300,22 +404,19 @@ serve(async (req) => {
         }
 
         if (!fileBytes || fileBytes.length < 1000) continue;
+        docsProcessed++;
 
-        // Determine file type
-        const isPdf = fileBytes[0] === 0x25 && fileBytes[1] === 0x50; // %P (PDF)
-        const isZip = fileBytes[0] === 0x50 && fileBytes[1] === 0x4B; // PK (ZIP/PPTX/DOCX)
-        const isPptx = isZip && doc.url.toLowerCase().includes('.pptx');
+        const isPdf = fileBytes[0] === 0x25 && fileBytes[1] === 0x50;
+        const isZip = fileBytes[0] === 0x50 && fileBytes[1] === 0x4B;
 
         let docImages: Array<{ data: Uint8Array; ext: string; mime: string }> = [];
 
         if (isPdf) {
-          const jpegImages = extractJpegFromPdf(fileBytes);
-          docImages = jpegImages.map(data => ({ data, ext: 'jpg', mime: 'image/jpeg' }));
-        } else if (isPptx || isZip) {
+          docImages = extractJpegFromPdf(fileBytes).map(data => ({ data, ext: 'jpg', mime: 'image/jpeg' }));
+        } else if (isZip) {
           docImages = await extractImagesFromPptx(fileBytes);
         }
 
-        // Upload extracted images to storage
         for (let idx = 0; idx < docImages.length; idx++) {
           const img = docImages[idx];
           const timestamp = Date.now();
@@ -325,9 +426,7 @@ serve(async (req) => {
           const { error: uploadError } = await supabase.storage
             .from(BUCKET_NAME)
             .upload(storagePath, img.data, {
-              cacheControl: '3600',
-              upsert: true,
-              contentType: img.mime,
+              cacheControl: '3600', upsert: true, contentType: img.mime,
             });
 
           if (uploadError) {
@@ -335,16 +434,12 @@ serve(async (req) => {
             continue;
           }
 
-          const { data: urlData } = supabase.storage
-            .from(BUCKET_NAME)
-            .getPublicUrl(storagePath);
-
-          const publicUrl = `${urlData.publicUrl}?t=${timestamp}`;
+          const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
 
           extractedImages.push({
             id: crypto.randomUUID(),
-            url: publicUrl,
-            thumbnailUrl: publicUrl,
+            url: `${urlData.publicUrl}?t=${timestamp}`,
+            thumbnailUrl: `${urlData.publicUrl}?t=${timestamp}`,
             title: `${doc.title} — Image ${idx + 1}`,
             source: 'extracted',
             sourceDocument: doc.title,
@@ -357,13 +452,16 @@ serve(async (req) => {
       }
     }
 
+    const totalSources = directImages.length + documents.length;
     return new Response(JSON.stringify({
       images: extractedImages,
-      documentsProcessed: processedDocs.length,
-      documentsTotal: docSources.length,
+      documentsProcessed: docsProcessed,
+      documentsTotal: documents.length,
+      directImagesFound: directImages.length,
+      totalSources,
       message: extractedImages.length > 0
-        ? `Extracted ${extractedImages.length} images from ${processedDocs.length} documents`
-        : `Processed ${processedDocs.length} documents but no extractable images found`,
+        ? `Found ${extractedImages.length} images (${directImages.length} direct, ${extractedImages.length - directImages.length} extracted from ${docsProcessed} documents)`
+        : `Scanned ${totalSources} asset references but no usable images found`,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
