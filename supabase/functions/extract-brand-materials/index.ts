@@ -67,20 +67,7 @@ serve(async (req) => {
       description?: string;
     }> = [];
 
-    // Logos
-    const logos = Array.isArray(gd.logos) ? gd.logos : [];
-    logos.forEach((logo: any, i: number) => {
-      if (logo?.url || logo?.imageUrl) {
-        materials.push({
-          id: `logo-${i}`,
-          type: 'logo',
-          title: logo.name || logo.variant || `Logo ${i + 1}`,
-          source: 'Brand Logos',
-          url: logo.url || logo.imageUrl,
-          thumbnailUrl: logo.url || logo.imageUrl,
-        });
-      }
-    });
+    // Logos intentionally excluded from materials analysis
 
     // Images / Imagery
     const imagery = Array.isArray(gd.imagery) ? gd.imagery : [];
@@ -232,7 +219,7 @@ serve(async (req) => {
 
     // Only analyze materials that have visual URLs (images)
     const visualMaterials = materials.filter(m =>
-      m.url && (m.type === 'image' || m.type === 'logo' || m.type === 'pattern' ||
+      m.url && (m.type === 'image' || m.type === 'pattern' ||
         m.type === 'approved_image' || m.type === 'hero' || m.type === 'image_asset')
     );
 
