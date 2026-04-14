@@ -583,14 +583,26 @@ export const InlineImagerySearch = ({
             </div>
 
             <Select value={orientation} onValueChange={setOrientation}>
-              <SelectTrigger className="w-32 h-8 text-xs">
+              <SelectTrigger className="w-28 h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any orientation</SelectItem>
+                <SelectItem value="any">Any orient.</SelectItem>
                 <SelectItem value="horizontal">Horizontal</SelectItem>
                 <SelectItem value="vertical">Vertical</SelectItem>
                 <SelectItem value="square">Square</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-28 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="popular">Popular</SelectItem>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="relevance">Relevant</SelectItem>
+                <SelectItem value="random">Random</SelectItem>
               </SelectContent>
             </Select>
 
