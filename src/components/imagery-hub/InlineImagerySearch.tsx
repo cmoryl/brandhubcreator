@@ -309,7 +309,7 @@ export const InlineImagerySearch = ({
     } finally {
       setLoading(false);
     }
-  }, [query, orientation, imageType, sortBy, colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, entityId, fetchEnhancedQueries, isImageIdQuery]);
+  }, [query, orientation, imageType, sortBy, safeSearch, minWidth, minHeight, excludeKeywords, colorFilter, peopleNumber, peopleAge, peopleEthnicity, peopleGender, entityId, fetchEnhancedQueries, isImageIdQuery]);
 
   const handleSimilarSearch = useCallback(async (imageId: string) => {
     setLoading(true);
@@ -469,7 +469,25 @@ export const InlineImagerySearch = ({
     setPeopleAge('');
     setPeopleEthnicity('');
     setPeopleGender('');
+    setSafeSearch(true);
+    setMinWidth('');
+    setMinHeight('');
+    setExcludeKeywords('');
   }, []);
+
+  const handleReverseImageResults = useCallback((results: any[], totalCount: number) => {
+    setResults(results);
+    setTotalCount(totalCount);
+    setPage(1);
+    setShowSuggestions(false);
+    setSimilarSourceId(null);
+  }, []);
+
+  const handleExampleSearch = useCallback((searchQuery: string) => {
+    setQuery(searchQuery);
+    setShowExamples(false);
+    handleSearch(searchQuery, 1);
+  }, [handleSearch]);
 
   return (
     <>
