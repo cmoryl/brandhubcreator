@@ -666,26 +666,51 @@ export const PresentationTemplatesSection = ({
                 <TabsContent value="upload" className="space-y-4 pt-4">
                   {/* File Upload */}
                   <div className="space-y-2">
-                    <Label>File</Label>
-                    {!selectedFile ? (
+                    <Label>File{selectedFiles.length > 0 ? 's' : ''}</Label>
+                    {!selectedFile && selectedFiles.length === 0 ? (
                       <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
                         <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                        <p className="text-sm text-muted-foreground">Click to upload any file</p>
-                        <p className="text-xs text-muted-foreground/70 mt-1">Max 50MB</p>
+                        <p className="text-sm text-muted-foreground">Click to upload files</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Max 100MB per file · Select multiple files for batch upload</p>
                         <input
                           ref={fileInputRef}
                           type="file"
+                          multiple
                           className="hidden"
                           onChange={handleFileSelect}
                         />
                       </label>
+                    ) : selectedFiles.length > 1 ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium">{selectedFiles.length} files selected</p>
+                          <button
+                            onClick={() => {
+                              setSelectedFiles([]);
+                              if (fileInputRef.current) fileInputRef.current.value = '';
+                            }}
+                            className="text-xs text-muted-foreground hover:text-destructive"
+                          >
+                            Clear all
+                          </button>
+                        </div>
+                        <div className="max-h-40 overflow-y-auto space-y-1 border rounded-lg p-2 bg-muted/20">
+                          {selectedFiles.map((f, i) => (
+                            <div key={i} className="flex items-center gap-2 text-xs py-1">
+                              <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
+                              <span className="truncate flex-1">{f.name}</span>
+                              <span className="text-muted-foreground shrink-0">{(f.size / (1024 * 1024)).toFixed(1)} MB</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ) : (
                       <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
                         <FileText className="h-8 w-8 text-primary" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                          <p className="text-sm font-medium truncate">{selectedFile?.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
+                            {selectedFile && (selectedFile.size / (1024 * 1024)).toFixed(1)} MB
                           </p>
                         </div>
                         <button
@@ -701,56 +726,77 @@ export const PresentationTemplatesSection = ({
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Name</Label>
-                    <Input
-                      value={newPresentation.name}
-                      onChange={(e) => setNewPresentation(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Template name"
-                    />
-                  </div>
+                  {/* Only show name/category/description for single file uploads */}
+                  {selectedFiles.length <= 1 && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Name</Label>
+                        <Input
+                          value={newPresentation.name}
+                          onChange={(e) => setNewPresentation(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Template name"
+                        />
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label>Category</Label>
-                    <Select
-                      value={newPresentation.category}
-                      onValueChange={(v) => setNewPresentation(prev => ({ ...prev, category: v as PresentationCategory }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map(cat => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.icon} {cat.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      <div className="space-y-2">
+                        <Label>Category</Label>
+                        <Select
+                          value={newPresentation.category}
+                          onValueChange={(v) => setNewPresentation(prev => ({ ...prev, category: v as PresentationCategory }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIES.map(cat => (
+                              <SelectItem key={cat.value} value={cat.value}>
+                                {cat.icon} {cat.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label>Description (optional)</Label>
-                    <Textarea
-                      value={newPresentation.description}
-                      onChange={(e) => setNewPresentation(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Brief description"
-                      rows={2}
-                    />
-                  </div>
+                      <div className="space-y-2">
+                        <Label>Description (optional)</Label>
+                        <Textarea
+                          value={newPresentation.description}
+                          onChange={(e) => setNewPresentation(prev => ({ ...prev, description: e.target.value }))}
+                          placeholder="Brief description"
+                          rows={2}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {selectedFiles.length > 1 && (
+                    <p className="text-xs text-muted-foreground">
+                      Batch mode: files will be named from their filenames and auto-categorized by extension.
+                    </p>
+                  )}
 
                   {isUploading && (
                     <div className="space-y-2">
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full bg-primary transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                        <div className="h-full bg-primary transition-all duration-300" style={{ width: `${batchUploadProgress ? (batchUploadProgress.current / batchUploadProgress.total * 100) : uploadProgress}%` }} />
                       </div>
-                      <p className="text-xs text-center text-muted-foreground">Processing...</p>
+                      <p className="text-xs text-center text-muted-foreground">
+                        {batchUploadProgress 
+                          ? `Uploading ${batchUploadProgress.current}/${batchUploadProgress.total}...` 
+                          : 'Processing...'}
+                      </p>
                     </div>
                   )}
 
-                  <Button onClick={handleUpload} disabled={!selectedFile || isUploading} className="w-full">
-                    {isUploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Uploading...</> : 'Upload Template'}
-                  </Button>
+                  {selectedFiles.length > 1 ? (
+                    <Button onClick={handleBatchUpload} disabled={isUploading} className="w-full">
+                      {isUploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Uploading...</> : `Upload ${selectedFiles.length} Files`}
+                    </Button>
+                  ) : (
+                    <Button onClick={handleUpload} disabled={!selectedFile || isUploading} className="w-full">
+                      {isUploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Uploading...</> : 'Upload Template'}
+                    </Button>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="link" className="space-y-4 pt-4">
