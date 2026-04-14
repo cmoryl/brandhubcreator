@@ -20,6 +20,7 @@ import { useIconLibraries } from '@/hooks/useIconLibraries';
 import JSZip from 'jszip';
 import { buildSvgString, cleanSvg, detectFillMode, extractSvgColors, extractViewBox, recolorSvg } from '@/lib/svgUtils';
 import { cn } from '@/lib/utils';
+import { useDownloadTracking } from '@/hooks/useDownloadTracking';
 
 // SVG sanitization config - used at upload time for defense-in-depth
 const SVG_SANITIZE_CONFIG = {
@@ -317,6 +318,8 @@ export const IconographySection = ({
     return color.replace('#', '').toLowerCase();
   };
 
+  const { trackDownload } = useDownloadTracking();
+
   const downloadIcon = (icon: BrandIconography) => {
     const svg = getSVGString(icon);
     const blob = new Blob([svg], { type: 'image/svg+xml' });
@@ -330,6 +333,19 @@ export const IconographySection = ({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    
+    trackDownload({
+      entityType: 'icon',
+      entityName: icon.name,
+      details: {
+        download_type: 'icon',
+        format: 'svg',
+        file_name: `${safeName}-${colorLabel}.svg`,
+        file_size_bytes: blob.size,
+        source_section: 'iconography',
+      },
+    });
+    
     toast.success(`Downloaded ${safeName}-${colorLabel}.svg`);
   };
 
