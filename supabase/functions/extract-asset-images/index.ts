@@ -144,8 +144,9 @@ function isImageUrl(url: string): boolean {
 /** Check if URL is a document we can extract embedded images from */
 function isDocumentUrl(url: string): boolean {
   if (!url) return false;
-  const lower = url.toLowerCase();
-  return /\.(pdf|pptx|ppt|docx)(\?|$)/i.test(lower);
+  // Strip query params before checking extension
+  const pathOnly = url.split('?')[0].toLowerCase();
+  return /\.(pdf|pptx|ppt|docx)$/i.test(pathOnly);
 }
 
 /** Collect all image URLs and document URLs from guide_data */
