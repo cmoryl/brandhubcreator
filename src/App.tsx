@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import { BrandProvider } from "@/contexts/BrandContext";
 import { EventProvider } from "@/contexts/EventContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -107,15 +107,18 @@ const queryClient = new QueryClient({
 });
 
 // Layout component that wraps all routes
-const RootLayout = () => (
-  <ErrorBoundary>
-    <ConnectionBanner />
-    <PageTracker />
-    <main>
-      <Outlet />
-    </main>
-  </ErrorBoundary>
-);
+const RootLayout = () => {
+  const location = useLocation();
+  return (
+    <ErrorBoundary>
+      <ConnectionBanner />
+      <PageTracker />
+      <main key={location.pathname}>
+        <Outlet />
+      </main>
+    </ErrorBoundary>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
