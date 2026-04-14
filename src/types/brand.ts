@@ -522,10 +522,11 @@ export interface ApprovedImage {
   url: string;
   thumbnailUrl: string;
   title: string;
-  source: string; // e.g., 'shutterstock'
+  source: string; // e.g., 'shutterstock', 'upload'
   category?: string;
   approvedBy?: string;
   approvedAt?: string;
+  tags?: string[];
 }
 
 export interface ApprovedImagerySubSection {
