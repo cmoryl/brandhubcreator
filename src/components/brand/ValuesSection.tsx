@@ -696,6 +696,48 @@ export const ValuesSection = ({
           </button>
         )}
       </div>
+
+      {/* Pillar Detail Dialog */}
+      <Dialog open={!!viewingId} onOpenChange={(open) => { if (!open) setViewingId(null); }}>
+        <DialogContent className="max-w-lg sm:max-w-xl">
+          {(() => {
+            const viewingValue = values.find(v => v.id === viewingId);
+            if (!viewingValue) return null;
+            const ViewIcon = getIconComponent(viewingValue.icon);
+            const viewImage = viewingValue.useImage 
+              ? (viewingValue.imageUrl || getStablePillarImage(viewingValue.text))
+              : null;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-3 text-lg">
+                    {!viewingValue.useImage && ViewIcon && (
+                      <div className="p-2.5 bg-accent/10 rounded-lg">
+                        <ViewIcon className="h-6 w-6 text-accent" />
+                      </div>
+                    )}
+                    {viewingValue.text}
+                  </DialogTitle>
+                </DialogHeader>
+                {viewImage && (
+                  <div className="w-full h-48 sm:h-56 rounded-lg overflow-hidden">
+                    <img 
+                      src={viewImage} 
+                      alt={viewingValue.text} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {viewingValue.description || 'No description provided.'}
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
