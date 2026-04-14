@@ -149,7 +149,7 @@ export const SocialSection = ({
               <span className="hidden sm:inline">Compare</span>
             </Button>
           )}
-          {entityId && social.length > 0 && (
+          {canEdit && entityId && social.length > 0 && (
             <Button 
               variant={showMetrics ? "secondary" : "outline"} 
               size="sm" 
