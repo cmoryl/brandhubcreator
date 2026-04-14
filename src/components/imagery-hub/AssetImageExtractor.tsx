@@ -332,6 +332,9 @@ export const AssetImageExtractor = ({
                                     isLoaded ? 'opacity-100' : 'opacity-0'
                                   )}
                                   loading="lazy"
+                                  decoding="async"
+                                  fetchPriority="low"
+                                  sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, 16vw"
                                   onLoad={() => handleImageLoaded(img.id)}
                                 />
                               </div>
