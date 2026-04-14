@@ -369,31 +369,31 @@ export const ImageryWorkspace = ({
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {sections.map(section => (
               <Collapsible key={section.id} defaultOpen>
                 <Card className="border-border/50">
-                  <div className="p-3 flex items-center justify-between">
-                    <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-80">
-                      <h3 className="font-semibold text-sm text-foreground">{section.name}</h3>
-                      <Badge variant="secondary" className="text-xs">{section.images.length}</Badge>
+                  <div className="p-4 flex items-center justify-between">
+                    <CollapsibleTrigger className="flex items-center gap-2.5 hover:opacity-80">
+                      <h3 className="font-semibold text-foreground">{section.name}</h3>
+                      <Badge variant="secondary">{section.images.length}</Badge>
                     </CollapsibleTrigger>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openSearch(section.id)}>
-                        <Search className="h-3 w-3" /> Search Stock
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="default" className="h-9 gap-2" onClick={() => openSearch(section.id)}>
+                        <Search className="h-4 w-4" /> Search Stock
                       </Button>
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs text-destructive hover:text-destructive"
+                        size="default"
+                        className="h-9 text-destructive hover:text-destructive"
                         onClick={() => onRemoveSection(section.id)}
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   <CollapsibleContent>
-                    <CardContent className="pt-0 pb-3 px-3 space-y-3">
+                    <CardContent className="pt-0 pb-4 px-4 space-y-3">
                       <DraggableImageGrid
                         images={section.images}
                         sectionId={section.id}

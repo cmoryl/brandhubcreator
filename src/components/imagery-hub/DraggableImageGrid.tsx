@@ -65,50 +65,50 @@ const SortableImage = ({
         loading="lazy"
       />
 
-      {/* Drag handle */}
+      {/* Always-visible drag handle */}
       <div
-        className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+        className="absolute top-1.5 left-1.5 cursor-grab active:cursor-grabbing bg-background/70 backdrop-blur-sm rounded-md p-1"
         {...attributes}
         {...listeners}
       >
-        <div className="bg-background/80 backdrop-blur-sm rounded p-0.5">
-          <GripVertical className="h-3.5 w-3.5 text-foreground" />
-        </div>
+        <GripVertical className="h-4 w-4 text-foreground/70" />
       </div>
 
-      {/* Actions */}
-      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+      {/* Always-visible action buttons */}
+      <div className="absolute top-1.5 right-1.5 flex gap-1.5">
         {onVisualSearch && (
           <Button
             size="icon"
             variant="secondary"
-            className="h-6 w-6"
+            className="h-8 w-8 bg-background/70 backdrop-blur-sm border-0 shadow-sm"
             onClick={e => { e.stopPropagation(); onVisualSearch(image.url || image.thumbnailUrl); }}
             title="Find similar"
           >
-            <Eye className="h-3 w-3" />
+            <Eye className="h-4 w-4" />
           </Button>
         )}
         <Button
           size="icon"
           variant="secondary"
-          className="h-6 w-6"
+          className="h-8 w-8 bg-background/70 backdrop-blur-sm border-0 shadow-sm"
           onClick={e => { e.stopPropagation(); setShowTagEditor(!showTagEditor); }}
+          title="Edit tags"
         >
-          <Tag className="h-3 w-3" />
+          <Tag className="h-4 w-4" />
         </Button>
         <Button
           size="icon"
           variant="destructive"
-          className="h-6 w-6"
+          className="h-8 w-8 shadow-sm"
           onClick={e => { e.stopPropagation(); onRemove(); }}
+          title="Remove image"
         >
-          <X className="h-3 w-3" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Quality score badge */}
-      <div className="absolute top-1 left-8 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Always-visible quality score badge */}
+      <div className="absolute bottom-10 left-1.5">
         <ImageQualityBadge
           image={image}
           entityId={entityId}
@@ -119,14 +119,14 @@ const SortableImage = ({
 
       {/* Tags */}
       {image.tags && image.tags.length > 0 && (
-        <div className="absolute bottom-1 left-1 right-1 flex flex-wrap gap-0.5">
+        <div className="absolute bottom-1.5 left-1.5 right-1.5 flex flex-wrap gap-1">
           {image.tags.slice(0, 3).map((tag, i) => (
-            <Badge key={i} variant="secondary" className="text-[10px] px-1 py-0 h-4 bg-background/80 backdrop-blur-sm">
+            <Badge key={i} variant="secondary" className="text-[11px] px-1.5 py-0 h-5 bg-background/80 backdrop-blur-sm">
               {tag}
             </Badge>
           ))}
           {image.tags.length > 3 && (
-            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 bg-background/80">
+            <Badge variant="secondary" className="text-[11px] px-1.5 py-0 h-5 bg-background/80">
               +{image.tags.length - 3}
             </Badge>
           )}
@@ -134,8 +134,8 @@ const SortableImage = ({
       )}
 
       {/* Source indicator */}
-      <div className="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-background/80 backdrop-blur-sm">
+      <div className="absolute bottom-1.5 right-1.5">
+        <Badge variant="outline" className="text-[11px] px-1.5 py-0 h-5 bg-background/80 backdrop-blur-sm">
           {image.source}
         </Badge>
       </div>
