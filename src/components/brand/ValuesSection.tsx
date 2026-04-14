@@ -234,6 +234,8 @@ export const ValuesSection = ({
   const [selectedCategory, setSelectedCategory] = useState('Core Values');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiProgress, setAiProgress] = useState<{ current: number; total: number } | null>(null);
   const [presetImageIndex, setPresetImageIndex] = useState<Record<string, number>>({});
 
   // Auto-save pillar images to org library on first render
