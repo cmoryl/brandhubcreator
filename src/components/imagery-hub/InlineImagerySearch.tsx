@@ -55,6 +55,9 @@ interface InlineImagerySearchProps {
   entityId?: string;
   entityType?: string;
   organizationId?: string | null;
+  sections?: { id: string; name: string; images: ApprovedImage[] }[];
+  activeSectionId?: string;
+  onChangeSection?: (sectionId: string) => void;
 }
 
 const IMAGE_TYPE_OPTIONS = [
