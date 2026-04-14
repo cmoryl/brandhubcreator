@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
 
 /**
@@ -15,7 +15,7 @@ export const ScrollToTop = () => {
   const navType = useNavigationType();
   const hasMountedRef = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Skip hash anchors — editors handle their own section scrolling
     if (hash) return;
 
@@ -26,13 +26,16 @@ export const ScrollToTop = () => {
     if (!isInitialLoad && navType === 'POP') return;
 
     const scrollToPageTop = () => {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     };
 
     scrollToPageTop();
 
     // Re-assert scroll position while async page content hydrates on public views.
-    const timers = [50, 200, 500].map((delay) =>
+    const timers = [0, 50, 150, 300, 600, 1000].map((delay) =>
       window.setTimeout(scrollToPageTop, delay)
     );
 
