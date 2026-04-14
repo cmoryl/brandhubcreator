@@ -6,7 +6,7 @@
 
 import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot, Droplets, LayoutGrid } from 'lucide-react';
+import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot, Droplets, LayoutGrid, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -352,6 +352,10 @@ const OrganizationPortal = () => {
                         <DropdownMenuItem onClick={() => navigate('/booths')} className="gap-2 cursor-pointer">
                           <LayoutDashboard className="h-4 w-4" />
                           Booth Catalog
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/imagery-hub')} className="gap-2 cursor-pointer">
+                          <ImageIcon className="h-4 w-4" />
+                          Imagery Hub
                         </DropdownMenuItem>
                       </>
                     )}
