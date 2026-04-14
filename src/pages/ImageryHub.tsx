@@ -35,6 +35,7 @@ const ImageryHub = () => {
   const {
     sections, isLoading: imageryLoading, organizationId,
     addImages, removeImage, addSection, removeSection,
+    reorderImages, updateImageTags,
     copyImagesToEntity, refetch,
   } = useEntityImagery({
     entityId: selectedEntity?.id,
@@ -195,6 +196,8 @@ const ImageryHub = () => {
             onRemoveSection={removeSection}
             onAddImages={addImages}
             onRemoveImage={removeImage}
+            onReorderImages={reorderImages}
+            onUpdateImageTags={updateImageTags}
             onStartComparison={() => setShowComparison(true)}
             onStartBulkCopy={handleStartBulkCopy}
             selectedImages={selectedImages}
