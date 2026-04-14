@@ -16,12 +16,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { ExternalSectionCounts } from '@/lib/brandHealthCalculator';
 
+interface UseExternalSectionCountsResult {
+  counts: ExternalSectionCounts;
+  isLoaded: boolean;
+}
+
 export function useExternalSectionCounts(
   entityId: string | undefined,
   entityType: string = 'brand',
   refreshTrigger?: number
-): ExternalSectionCounts {
+): UseExternalSectionCountsResult {
   const [counts, setCounts] = useState<ExternalSectionCounts>({});
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     if (!entityId) {
@@ -85,13 +91,15 @@ export function useExternalSectionCounts(
           presentationTemplatesCount: presentations.count ?? 0,
           socialMetricsCount: socialMetrics.count ?? 0,
         });
+        setIsLoaded(true);
       } catch (err) {
         console.error('[useExternalSectionCounts] Error:', err);
+        setIsLoaded(true);
       }
     })();
 
     return () => { cancelled = true; };
   }, [entityId, entityType, refreshTrigger]);
 
-  return counts;
+  return { counts, isLoaded };
 }

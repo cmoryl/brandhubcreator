@@ -368,7 +368,7 @@ const EventEditor = () => {
   }, [adminLayouts, getPreference, event?.id]);
 
   const eventRefreshTrigger = event?.updatedAt ? new Date(String(event.updatedAt)).getTime() : 0;
-  const externalCounts = useExternalSectionCounts(event?.id, 'event', eventRefreshTrigger);
+  const { counts: externalCounts } = useExternalSectionCounts(event?.id, 'event', eventRefreshTrigger);
 
   // Calculate health for card view
   const cardViewHealthScore = useMemo(() => {

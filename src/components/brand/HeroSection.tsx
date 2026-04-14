@@ -97,7 +97,7 @@ export const HeroSection = ({
     prevGuideRef.current = guideData;
     refreshCounter.current += 1;
   }
-  const externalCounts = useExternalSectionCounts(entityId, entityType, refreshCounter.current);
+  const { counts: externalCounts, isLoaded: externalCountsLoaded } = useExternalSectionCounts(entityId, entityType, refreshCounter.current);
 
   // Calculate real health score from guide_data (excluding hidden sections)
   const calculatedHealth = useMemo(() => {
@@ -113,12 +113,22 @@ export const HeroSection = ({
     };
   }, [stats, calculatedHealth.overallScore]);
 
-  // Animate stats counting up on visibility
+  // Animate stats counting up on visibility — only after external data has loaded
+  const hasAnimatedRef = useRef(false);
   useEffect(() => {
-    if (!isVisible || !showStats) return;
+    if (!isVisible || !showStats || !externalCountsLoaded) return;
+    // Don't re-animate if we've already done it — just update to final value
+    if (hasAnimatedRef.current) {
+      setAnimatedStats({
+        healthScore: displayStats.healthScore || 0,
+        trend: displayStats.trend,
+      });
+      return;
+    }
+    hasAnimatedRef.current = true;
 
-    const duration = 1500;
-    const steps = 60;
+    const duration = 1200;
+    const steps = 50;
     const interval = duration / steps;
     let step = 0;
 
@@ -136,7 +146,7 @@ export const HeroSection = ({
     }, interval);
 
     return () => clearInterval(timer);
-  }, [isVisible, showStats, displayStats]);
+  }, [isVisible, showStats, displayStats, externalCountsLoaded]);
 
   // Intersection observer for visibility
   useEffect(() => {
