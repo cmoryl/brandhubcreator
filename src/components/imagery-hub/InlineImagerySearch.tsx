@@ -138,6 +138,9 @@ export const InlineImagerySearch = ({
   entityId,
   entityType = 'brand',
   organizationId,
+  sections: availableSections,
+  activeSectionId,
+  onChangeSection,
 }: InlineImagerySearchProps) => {
   const {
     visualDna, signalCount, isAnalyzing, isLoading: dnaLoading,
