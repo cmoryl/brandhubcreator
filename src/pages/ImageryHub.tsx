@@ -18,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const ImageryHub = () => {
   const navigate = useNavigate();
-  const { user, isAdmin, authLoading } = useAuth();
+  const { user, isAdmin, isLoading: authLoading } = useAuth();
   const { entities, tree, isLoading: entitiesLoading } = useImageryHubEntities();
 
   const [selectedEntity, setSelectedEntity] = useState<ImageryEntity | null>(null);
