@@ -716,6 +716,16 @@ export const InlineImagerySearch = ({
               {signalCount > 0 && <Badge variant="secondary" className="h-4 px-1 text-[10px] ml-0.5">{signalCount}</Badge>}
             </Button>
 
+            <Button
+              variant={showExamples ? 'default' : 'outline'}
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              onClick={() => setShowExamples(!showExamples)}
+            >
+              <ImageIcon className="h-3 w-3" />
+              Examples
+            </Button>
+
             {similarSourceId && (
               <Badge variant="outline" className="text-xs gap-1">
                 Similar to #{similarSourceId}
@@ -790,6 +800,55 @@ export const InlineImagerySearch = ({
                     <SelectContent>{PEOPLE_GENDER_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* Safe Search & Resolution */}
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <ShieldCheck className="h-3 w-3" /> Safety & Quality
+                </p>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={safeSearch}
+                      onChange={(e) => setSafeSearch(e.target.checked)}
+                      className="rounded border-border"
+                    />
+                    <span className="text-xs text-foreground">Safe search</span>
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <Ruler className="h-3 w-3 text-muted-foreground" />
+                    <Input
+                      value={minWidth}
+                      onChange={(e) => setMinWidth(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Min W"
+                      className="h-7 w-20 text-xs px-1.5"
+                    />
+                    <span className="text-[10px] text-muted-foreground">×</span>
+                    <Input
+                      value={minHeight}
+                      onChange={(e) => setMinHeight(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Min H"
+                      className="h-7 w-20 text-xs px-1.5"
+                    />
+                    <span className="text-[10px] text-muted-foreground">px</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Exclude Keywords */}
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Ban className="h-3 w-3" /> Exclude Keywords
+                </p>
+                <Input
+                  value={excludeKeywords}
+                  onChange={(e) => setExcludeKeywords(e.target.value)}
+                  placeholder="e.g. cartoon, clipart, text overlay"
+                  className="h-7 text-xs"
+                />
+                <p className="text-[10px] text-muted-foreground">Comma-separated terms to exclude from results</p>
               </div>
             </div>
           )}
