@@ -20,7 +20,16 @@ export const ScrollToTop = () => {
     // Skip hash anchors — editors handle their own section scrolling
     if (hash) return;
 
+    // Immediate scroll
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    
+    // Also scroll after a brief delay to handle cases where the page
+    // remounts asynchronously (e.g., key-based remounting in RootLayout)
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }, 50);
+    
+    return () => clearTimeout(timer);
   }, [pathname, navType, hash]);
 
   return null;
