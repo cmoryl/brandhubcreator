@@ -279,35 +279,153 @@ export const PresentationTemplatesSection = ({
   const regularTemplates = filteredPresentations.filter(t => !t.isEmbeddedFolder);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    if (file.size > 100 * 1024 * 1024) {
-      toast.error('File must be under 100MB');
-      return;
+    // Filter out files over 100MB
+    const validFiles = files.filter(f => {
+      if (f.size > 100 * 1024 * 1024) {
+        toast.error(`${f.name} exceeds 100MB limit`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    if (validFiles.length === 1) {
+      // Single file — existing behavior
+      const file = validFiles[0];
+      setSelectedFile(file);
+      setSelectedFiles([]);
+      if (!newPresentation.name) {
+        setNewPresentation(prev => ({
+          ...prev,
+          name: file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' '),
+        }));
+      }
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (ext === 'pptx' || ext === 'ppt') {
+        setNewPresentation(prev => ({ ...prev, category: 'presentations' }));
+      } else if (ext === 'pdf') {
+        setNewPresentation(prev => ({ ...prev, category: 'pdf' }));
+      } else if (ext === 'docx' || ext === 'doc') {
+        setNewPresentation(prev => ({ ...prev, category: 'documents' }));
+      } else if (ext === 'xlsx' || ext === 'xls') {
+        setNewPresentation(prev => ({ ...prev, category: 'spreadsheets' }));
+      } else if (['figma', 'sketch', 'psd', 'ai'].includes(ext || '')) {
+        setNewPresentation(prev => ({ ...prev, category: 'design-files' }));
+      }
+    } else {
+      // Multiple files — batch mode
+      setSelectedFile(null);
+      setSelectedFiles(validFiles);
+      setNewPresentation(prev => ({ ...prev, name: '' }));
+    }
+  };
+
+  const uploadSingleFile = async (file: File, nameOverride?: string): Promise<boolean> => {
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
+    const isPptx = ext === 'pptx';
+    const fileName = nameOverride || file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+
+    // Auto-detect category
+    let category: PresentationCategory = 'presentations';
+    if (ext === 'pdf') category = 'pdf';
+    else if (ext === 'docx' || ext === 'doc') category = 'documents';
+    else if (ext === 'xlsx' || ext === 'xls') category = 'spreadsheets';
+    else if (['figma', 'sketch', 'psd', 'ai'].includes(ext)) category = 'design-files';
+
+    try {
+      if (isPptx) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('entityType', entityType);
+        formData.append('entityId', entityId!);
+        formData.append('organizationId', organization!.id);
+
+        const { data: sessionData } = await supabase.auth.getSession();
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-presentation`,
+          {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to process presentation');
+        }
+
+        const result = await response.json();
+        await addPresentation({
+          name: fileName,
+          fileUrl: result.fileUrl,
+          fileName: result.fileName,
+          fileSize: result.fileSize,
+          fileType: 'pptx',
+          slides: result.slides,
+          category,
+        });
+      } else {
+        const storagePath = `${organization!.id}/templates/${entityId}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('organization-assets')
+          .upload(storagePath, file, { contentType: file.type });
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('organization-assets')
+          .getPublicUrl(storagePath);
+
+        await addPresentation({
+          name: fileName,
+          fileUrl: urlData.publicUrl,
+          fileName: file.name,
+          fileSize: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+          fileType: ext as PresentationFileType,
+          slides: [],
+          category,
+        });
+      }
+      return true;
+    } catch (err) {
+      console.error(`[BatchUpload] Failed: ${file.name}`, err);
+      toast.error(`Failed to upload ${file.name}`);
+      return false;
+    }
+  };
+
+  const handleBatchUpload = async () => {
+    if (selectedFiles.length === 0 || !organization?.id || !entityId) return;
+
+    setIsUploading(true);
+    setBatchUploadProgress({ current: 0, total: selectedFiles.length });
+    const loadingToast = toast.loading(`Uploading 0/${selectedFiles.length} files...`);
+    let successCount = 0;
+
+    for (let i = 0; i < selectedFiles.length; i++) {
+      setBatchUploadProgress({ current: i + 1, total: selectedFiles.length });
+      toast.loading(`Uploading ${i + 1}/${selectedFiles.length}: ${selectedFiles[i].name}`, { id: loadingToast });
+      const ok = await uploadSingleFile(selectedFiles[i]);
+      if (ok) successCount++;
     }
 
-    setSelectedFile(file);
-    if (!newPresentation.name) {
-      setNewPresentation(prev => ({
-        ...prev,
-        name: file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' '),
-      }));
+    toast.dismiss(loadingToast);
+    if (successCount === selectedFiles.length) {
+      toast.success(`All ${successCount} files uploaded successfully`);
+    } else {
+      toast.success(`${successCount}/${selectedFiles.length} files uploaded`);
     }
 
-    // Auto-detect category from file extension
-    const ext = file.name.split('.').pop()?.toLowerCase();
-    if (ext === 'pptx' || ext === 'ppt') {
-      setNewPresentation(prev => ({ ...prev, category: 'presentations' }));
-    } else if (ext === 'pdf') {
-      setNewPresentation(prev => ({ ...prev, category: 'pdf' }));
-    } else if (ext === 'docx' || ext === 'doc') {
-      setNewPresentation(prev => ({ ...prev, category: 'documents' }));
-    } else if (ext === 'xlsx' || ext === 'xls') {
-      setNewPresentation(prev => ({ ...prev, category: 'spreadsheets' }));
-    } else if (['figma', 'sketch', 'psd', 'ai'].includes(ext || '')) {
-      setNewPresentation(prev => ({ ...prev, category: 'design-files' }));
-    }
+    setSelectedFiles([]);
+    setSelectedFile(null);
+    setIsDialogOpen(false);
+    setIsUploading(false);
+    setBatchUploadProgress(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleUpload = async () => {
