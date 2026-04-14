@@ -589,6 +589,12 @@ export const InlineImagerySearch = ({
             </Button>
           </div>
 
+          {/* Search by Image Upload */}
+          <SearchByImageUpload
+            onResults={handleReverseImageResults}
+            onLoading={setLoading}
+          />
+
           {/* Filter row */}
           <div className="flex gap-2 items-center flex-wrap">
             <div className="flex items-center rounded-lg border border-border overflow-hidden">
