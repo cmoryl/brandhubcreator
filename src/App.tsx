@@ -93,6 +93,7 @@ const ColorLab = lazyWithRetry(() => import("./pages/ColorLab"));
 const SharedPalette = lazyWithRetry(() => import("./pages/SharedPalette"));
 const SocialAssetStudio = lazyWithRetry(() => import("./pages/SocialAssetStudio"));
 const AdLocalizerPage = lazyWithRetry(() => import("./pages/AdLocalizerPage"));
+const ImageryHub = lazyWithRetry(() => import("./pages/ImageryHub"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -176,6 +177,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <AdminDashboard />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="imagery-hub"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <ImageryHub />
                         </Suspense>
                       }
                     />
