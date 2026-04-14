@@ -39,6 +39,7 @@ const SortableImage = ({
 }: SortableImageProps) => {
   const [showTagEditor, setShowTagEditor] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: image.id,
   });
@@ -53,19 +54,32 @@ const SortableImage = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group relative rounded-lg overflow-hidden border border-border bg-card',
-        isDragging && 'opacity-50 z-50 shadow-lg',
-        selectionMode && isSelected && 'ring-2 ring-primary',
-        selectionMode && 'cursor-pointer'
+        'group relative rounded-lg overflow-hidden border border-border bg-card transition-all duration-200',
+        isDragging && 'opacity-50 z-50 shadow-xl scale-105',
+        selectionMode && isSelected && 'ring-2 ring-primary ring-offset-1 ring-offset-background',
+        selectionMode && 'cursor-pointer',
+        !isDragging && 'hover:shadow-md hover:border-primary/30'
       )}
       onClick={selectionMode ? onToggleSelect : () => setShowPreview(true)}
     >
-      <img
-        src={image.thumbnailUrl || image.url}
-        alt={image.title}
-        className="w-full aspect-square object-cover cursor-pointer"
-        loading="lazy"
-      />
+      <div className="relative aspect-square bg-muted/30">
+        {!imageLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-5 h-5 border-2 border-muted-foreground/20 border-t-primary rounded-full animate-spin" />
+          </div>
+        )}
+        <img
+          src={image.thumbnailUrl || image.url}
+          alt={image.title}
+          className={cn(
+            'w-full h-full object-cover cursor-pointer transition-all duration-300',
+            imageLoaded ? 'opacity-100' : 'opacity-0',
+            !selectionMode && 'group-hover:scale-[1.03]'
+          )}
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
+        />
+      </div>
 
       {/* Always-visible drag handle */}
       <div
