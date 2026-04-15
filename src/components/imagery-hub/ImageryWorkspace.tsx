@@ -4,8 +4,9 @@
  * batch operations, auto-categorization, visual search, and quality scoring
  */
 import { useState, useCallback, useEffect } from 'react';
-import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown } from 'lucide-react';
+import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { WebsiteImageScanner } from '@/components/brand/WebsiteImageScanner';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
