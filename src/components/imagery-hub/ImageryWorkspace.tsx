@@ -58,6 +58,7 @@ export const ImageryWorkspace = ({
   const [autoCategorizeOpen, setAutoCategorizeOpen] = useState(false);
   const [visualSearchUrl, setVisualSearchUrl] = useState<string | null>(null);
   const [searchCollapsed, setSearchCollapsed] = useState(false);
+  const [websiteScannerOpen, setWebsiteScannerOpen] = useState(false);
 
   const totalImages = sections.reduce((sum, s) => sum + s.images.length, 0);
   const searchSection = sections.find(s => s.id === searchSectionId);
@@ -163,12 +164,25 @@ export const ImageryWorkspace = ({
   }, [onAddSection, onAddImages]);
 
   const handleVisualSearchQuery = useCallback((query: string) => {
-    // Open search panel and trigger search
     if (sections.length > 0) {
       setSearchSectionId(sections[0].id);
     }
     setVisualSearchUrl(null);
   }, [sections]);
+
+  const handleWebsiteImport = useCallback((images: { name: string; url: string; type: string }[]) => {
+    const targetSectionId = searchSectionId || sections[0]?.id;
+    if (!targetSectionId) return;
+    const approved: ApprovedImage[] = images.map((img, i) => ({
+      id: `web-${Date.now()}-${i}`,
+      url: img.url,
+      title: img.name,
+      source: 'website-scan' as const,
+      addedAt: new Date().toISOString(),
+      tags: ['website-scan'],
+    }));
+    onAddImages(targetSectionId, approved);
+  }, [searchSectionId, sections, onAddImages]);
 
   // Collect all unique tags across sections
   const allTags = new Set<string>();
