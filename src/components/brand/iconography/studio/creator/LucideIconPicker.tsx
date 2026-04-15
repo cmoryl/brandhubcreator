@@ -1,8 +1,9 @@
 /**
  * LucideIconPicker - Browse and select Lucide icons with brand color preview
+ * Uses lazy-loaded Lucide icons to avoid pulling 780KB into the main bundle
  */
 
-import { useState, useMemo, createElement, useCallback } from 'react';
+import { useState, useMemo, createElement, useCallback, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import * as LucideIcons from 'lucide-react';
 import { Search, Check, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandIconography } from '@/types/brand';
@@ -22,14 +22,23 @@ interface LucideIconPickerProps {
   onSaveIcons: (icons: BrandIconography[], libraryId?: string) => void;
 }
 
-// Get all Lucide icon names (computed once)
-const LUCIDE_ICON_NAMES = Object.keys(LucideIcons).filter(name => {
-  if (['createLucideIcon', 'default', 'icons', 'Icon', 'createElement', 'dynamicIconImports'].includes(name)) return false;
-  if (name.startsWith('Lucide')) return false;
-  if (!/^[A-Z]/.test(name)) return false;
-  const val = (LucideIcons as any)[name];
-  return val && typeof val === 'object' && val.$$typeof;
-});
+// Lazy-load the full Lucide icons module only when this component mounts
+let lucideIconsCache: Record<string, any> | null = null;
+let lucideNamesCache: string[] = [];
+
+const loadLucideIcons = async () => {
+  if (lucideIconsCache) return { icons: lucideIconsCache, names: lucideNamesCache };
+  const mod = await import('lucide-react');
+  lucideIconsCache = mod as any;
+  lucideNamesCache = Object.keys(mod).filter(name => {
+    if (['createLucideIcon', 'default', 'icons', 'Icon', 'createElement', 'dynamicIconImports'].includes(name)) return false;
+    if (name.startsWith('Lucide')) return false;
+    if (!/^[A-Z]/.test(name)) return false;
+    const val = (mod as any)[name];
+    return val && typeof val === 'object' && val.$$typeof;
+  });
+  return { icons: lucideIconsCache, names: lucideNamesCache };
+};
 
 export const LucideIconPicker = ({
   brandColors,
@@ -40,14 +49,23 @@ export const LucideIconPicker = ({
   const [selectedIcons, setSelectedIcons] = useState<Set<string>>(new Set());
   const [previewColor, setPreviewColor] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [iconsReady, setIconsReady] = useState(!!lucideIconsCache);
+
+  // Preload icons module on mount
+  useEffect(() => {
+    if (!lucideIconsCache) {
+      loadLucideIcons().then(() => setIconsReady(true));
+    }
+  }, []);
 
   const filteredIcons = useMemo(() => {
-    if (!searchQuery) return LUCIDE_ICON_NAMES.slice(0, 100);
+    if (!iconsReady) return [];
+    if (!searchQuery) return lucideNamesCache.slice(0, 100);
     const query = searchQuery.toLowerCase();
-    return LUCIDE_ICON_NAMES.filter(name =>
+    return lucideNamesCache.filter(name =>
       name.toLowerCase().includes(query)
     ).slice(0, 100);
-  }, [searchQuery]);
+  }, [searchQuery, iconsReady]);
 
   const toggleIconSelection = (iconName: string) => {
     setSelectedIcons(prev => {
@@ -59,12 +77,13 @@ export const LucideIconPicker = ({
   };
 
   const extractSvg = useCallback((iconName: string): string => {
+    if (!lucideIconsCache) return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>';
     const tempDiv = document.createElement('div');
     tempDiv.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
     document.body.appendChild(tempDiv);
     let svgString = '';
     try {
-      const IconComp = (LucideIcons as any)[iconName];
+      const IconComp = lucideIconsCache[iconName];
       if (IconComp) {
         const root = createRoot(tempDiv);
         flushSync(() => {
@@ -105,10 +124,19 @@ export const LucideIconPicker = ({
   };
 
   const renderLucideIcon = (iconName: string, size: number = 24, color?: string) => {
-    const IconComponent = (LucideIcons as any)[iconName];
+    if (!lucideIconsCache) return null;
+    const IconComponent = lucideIconsCache[iconName];
     if (!IconComponent) return null;
     return <IconComponent size={size} color={color || 'currentColor'} />;
   };
+
+  if (!iconsReady) {
+    return (
+      <div className="flex items-center justify-center h-48 text-muted-foreground">
+        <div className="animate-pulse">Loading icon library...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -243,7 +271,7 @@ export const LucideIconPicker = ({
       </ScrollArea>
 
       <p className="text-xs text-muted-foreground text-center">
-        Showing {filteredIcons.length} of {LUCIDE_ICON_NAMES.length} icons
+        Showing {filteredIcons.length} of {lucideNamesCache.length} icons
       </p>
     </div>
   );
