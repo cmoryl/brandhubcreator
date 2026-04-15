@@ -610,11 +610,126 @@ function buildBrandIntelligenceBody(intelligence: any): string {
   return body;
 }
 
+function buildVisibilityAuditBody(audit: any): string {
+  if (!audit || audit.status !== 'completed') return '';
+  let body = '';
+
+  body += `<h2>Visibility Gap Analysis</h2>`;
+
+  // Scores
+  body += `<div class="stat-grid">
+    <div class="stat-card">${scoreBar(audit.overall_visibility_score ?? 0, 'Overall Visibility')}</div>
+    <div class="stat-card">${scoreBar(audit.search_visibility_score ?? 0, 'Search')}</div>
+    <div class="stat-card">${scoreBar(audit.ai_platform_score ?? 0, 'AI Platforms')}</div>
+    <div class="stat-card">${scoreBar(audit.social_media_score ?? 0, 'Social / Media')}</div>
+  </div>`;
+
+  // Search Analysis
+  const search = safeObj(audit.search_analysis);
+  if (Object.keys(search).length) {
+    body += `<h3>Search Visibility</h3><div class="card">`;
+    if (search.seo_health) body += `<p style="color:var(--fg)">${esc(String(search.seo_health))}</p>`;
+    const kwGaps = safeArr(search.keyword_gaps);
+    if (kwGaps.length) {
+      body += `<h4 style="margin-top:12px">Keyword Gaps</h4><table><thead><tr><th>Keyword</th><th>Difficulty</th><th>Impact</th><th>Recommendation</th></tr></thead><tbody>`;
+      kwGaps.forEach((kw: any) => {
+        body += `<tr><td>${esc(kw.keyword || '')}</td><td>${esc(kw.difficulty || '')}</td><td>${esc(kw.potential_impact || '')}</td><td>${esc(kw.recommendation || '')}</td></tr>`;
+      });
+      body += `</tbody></table>`;
+    }
+    const contentGaps = safeArr(search.content_gaps);
+    if (contentGaps.length) {
+      body += `<h4 style="margin-top:12px">Content Gaps</h4>`;
+      body += listHtml(contentGaps.map((c: any) => `${c.topic || ''} (${c.content_type || ''}) — Priority: ${c.priority || ''}`));
+    }
+    if (safeArr(search.strengths).length) {
+      body += `<h4 style="margin-top:12px">Strengths</h4>${listHtml(safeArr(search.strengths), 'list-check')}`;
+    }
+    if (safeArr(search.technical_issues).length) {
+      body += `<h4 style="margin-top:12px">Technical Issues</h4>${listHtml(safeArr(search.technical_issues), 'list-warn')}`;
+    }
+    body += `</div>`;
+  }
+
+  // AI Platform Analysis
+  const ai = safeObj(audit.ai_platform_analysis);
+  if (Object.keys(ai).length) {
+    body += `<h3>AI Platform Presence</h3><div class="card">`;
+    if (ai.overall_readiness) body += `<p style="color:var(--fg)">${esc(String(ai.overall_readiness))}</p>`;
+    const platforms = safeArr(ai.platforms);
+    if (platforms.length) {
+      body += `<table><thead><tr><th>Platform</th><th>Presence</th><th>Issues</th><th>Improvements</th></tr></thead><tbody>`;
+      platforms.forEach((p: any) => {
+        body += `<tr><td>${esc(p.platform || '')}</td><td><span class="badge badge-${p.presence_level === 'strong' ? 'emerald' : p.presence_level === 'moderate' ? 'amber' : 'red'}">${esc(p.presence_level || '')}</span></td><td>${esc(safeArr(p.issues).join(', ') || '—')}</td><td>${esc(safeArr(p.improvements).join(', ') || '—')}</td></tr>`;
+      });
+      body += `</tbody></table>`;
+    }
+    if (ai.knowledge_graph_status) body += `<p style="margin-top:8px"><strong style="color:var(--fg)">Knowledge Graph:</strong> ${esc(String(ai.knowledge_graph_status))}</p>`;
+    const sdGaps = safeArr(ai.structured_data_gaps);
+    if (sdGaps.length) body += `<h4 style="margin-top:12px">Structured Data Gaps</h4>${listHtml(sdGaps, 'list-warn')}`;
+    body += `</div>`;
+  }
+
+  // Social/Media Analysis
+  const social = safeObj(audit.social_media_analysis);
+  if (Object.keys(social).length) {
+    body += `<h3>Social & Media Visibility</h3><div class="card">`;
+    if (social.coverage_assessment) body += `<p style="color:var(--fg)">${esc(String(social.coverage_assessment))}</p>`;
+    const platGaps = safeArr(social.platform_gaps);
+    if (platGaps.length) {
+      body += `<table><thead><tr><th>Platform</th><th>Status</th><th>Opportunity</th><th>Priority</th></tr></thead><tbody>`;
+      platGaps.forEach((g: any) => {
+        body += `<tr><td>${esc(g.platform || '')}</td><td>${esc(g.status || '')}</td><td>${esc(g.opportunity || '')}</td><td><span class="badge badge-${g.priority === 'high' ? 'red' : g.priority === 'medium' ? 'amber' : 'primary'}">${esc(g.priority || '')}</span></td></tr>`;
+      });
+      body += `</tbody></table>`;
+    }
+    if (safeArr(social.media_mention_gaps).length) body += `<h4 style="margin-top:12px">Media Mention Gaps</h4>${listHtml(safeArr(social.media_mention_gaps), 'list-warn')}`;
+    if (safeArr(social.competitor_advantages).length) body += `<h4 style="margin-top:12px">Competitor Advantages</h4>${listHtml(safeArr(social.competitor_advantages))}`;
+    body += `</div>`;
+  }
+
+  // Visibility Gaps
+  const gaps = safeArr(audit.visibility_gaps);
+  if (gaps.length) {
+    body += `<h3>Critical Visibility Gaps</h3>`;
+    gaps.forEach((gap: any) => {
+      body += `<div class="card">
+        <div class="card-header">
+          <span class="card-title">${esc(gap.title || '')}</span>
+          <span class="badge badge-${gap.severity === 'critical' ? 'red' : gap.severity === 'high' ? 'amber' : 'primary'}">${esc(gap.severity || '')}</span>
+        </div>
+        <p>${esc(gap.description || '')}</p>
+        ${safeArr(gap.action_items).length ? listHtml(safeArr(gap.action_items)) : ''}
+        ${gap.estimated_effort ? `<p style="font-size:11px;color:var(--fg-muted)">Effort: ${esc(gap.estimated_effort)}</p>` : ''}
+      </div>`;
+    });
+  }
+
+  // Recommendations
+  const recs = safeArr(audit.recommendations);
+  if (recs.length) {
+    body += `<h3>Visibility Recommendations</h3>`;
+    recs.forEach((rec: any) => {
+      body += `<div class="card">
+        <div class="card-header">
+          <span class="card-title">#${rec.priority || '—'} ${esc(rec.title || '')}</span>
+          ${rec.impact ? `<span class="badge badge-${rec.impact === 'high' ? 'emerald' : rec.impact === 'medium' ? 'amber' : 'primary'}">${esc(rec.impact)} impact</span>` : ''}
+        </div>
+        <p>${esc(rec.description || '')}</p>
+        ${rec.category ? `<span style="font-size:11px;color:var(--fg-muted)">${esc(rec.category)}</span>` : ''}
+        ${rec.effort ? `<span style="font-size:11px;color:var(--fg-muted);margin-left:8px">Effort: ${esc(rec.effort)}</span>` : ''}
+      </div>`;
+    });
+  }
+
+  return body;
+}
+
 export function exportBrandIntelligenceHtml(
   intelligence: any,
-  options: { entityName: string; entityType: string }
+  options: { entityName: string; entityType: string; visibilityAudit?: any }
 ) {
-  const body = buildBrandIntelligenceBody(intelligence);
+  const body = buildBrandIntelligenceBody(intelligence) + buildVisibilityAuditBody(options.visibilityAudit);
   const html = wrapDocument(
     `Brand Intelligence — ${options.entityName}`,
     `${options.entityType} Intelligence Report`,
@@ -626,9 +741,9 @@ export function exportBrandIntelligenceHtml(
 
 export async function exportBrandIntelligencePdf(
   intelligence: any,
-  options: { entityName: string; entityType: string }
+  options: { entityName: string; entityType: string; visibilityAudit?: any }
 ) {
-  const body = buildBrandIntelligenceBody(intelligence);
+  const body = buildBrandIntelligenceBody(intelligence) + buildVisibilityAuditBody(options.visibilityAudit);
   const html = wrapDocument(
     `Brand Intelligence — ${options.entityName}`,
     `${options.entityType} Intelligence Report`,
