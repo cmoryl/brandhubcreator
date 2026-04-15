@@ -66,6 +66,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [pageBreaksBefore, setPageBreaksBefore] = useState<Set<SectionId>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['core', 'visual']));
   const [intelligence, setIntelligence] = useState<BrandIntelligenceData | null>(null);
+  const [visibilityAudit, setVisibilityAudit] = useState<any>(null);
   const [socialMetrics, setSocialMetrics] = useState<{
     aggregated: AggregatedSocialMetrics | null;
     snapshots: SocialMetricsSnapshot[];
