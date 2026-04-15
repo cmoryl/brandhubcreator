@@ -3,6 +3,7 @@
  * Shows realistic platform mockups with asset upload/approval workflow
  */
 import { useState, useMemo, useEffect } from 'react';
+import { useStableLoading } from '@/hooks/useStableLoading';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, LayoutGrid, CheckCircle2, Clock, Image as ImageIcon, Palette, BookMarked } from 'lucide-react';
 import { Button } from '@/components/ui/button';
