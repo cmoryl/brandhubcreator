@@ -85,6 +85,11 @@ export const ApprovedImagerySection = ({
     setDropboxOpen(true);
   }, []);
 
+  const openWebsiteForSection = useCallback((sectionId: string) => {
+    setTargetSectionId(sectionId);
+    setWebsiteOpen(true);
+  }, []);
+
   const handleApproveImages = useCallback((images: ApprovedImage[]) => {
     if (!targetSectionId) return;
     updateSections(sections.map(s => {
