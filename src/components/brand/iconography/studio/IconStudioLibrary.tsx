@@ -24,6 +24,10 @@ import {
   Download,
   Wand2,
   ImageIcon,
+  Globe,
+  Code,
+  Sparkles,
+  Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
