@@ -684,38 +684,10 @@ const drawSwotAnalysis = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: 
     ['Threats', safe(swot.threats), '#fef3c7', '#92400e'],
   ];
 
-  // 2x2 grid
-  const qW = (CW - 6) / 2;
-  for (let row = 0; row < 2; row++) {
-    const left = quadrants[row * 2];
-    const right = quadrants[row * 2 + 1];
-    const maxItems = Math.max(left[1].length, right[1].length);
-    const qH = Math.max(maxItems * 5 + 14, 25);
-    y = ensureSpace(pdf, y, qH + 4);
-
-    for (let col = 0; col < 2; col++) {
-      const [title, items, bg, color] = col === 0 ? left : right;
-      const qx = M + col * (qW + 6);
-      drawCard(pdf, qx, y, qW, qH, bg);
-
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(9);
-      setColor(pdf, color);
-      pdf.text(title, qx + 4, y + 7);
-
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8);
-      setColor(pdf, color);
-      let iy = y + 14;
-      for (const item of items) {
-        const t = '• ' + item.substring(0, 55);
-        if (iy < y + qH - 2) {
-          pdf.text(t, qx + 4, iy);
-          iy += 4.5;
-        }
-      }
-    }
-    y += qH + 4;
+  for (const [title, items, , color] of quadrants) {
+    if (items.length === 0) continue;
+    y = drawSubheading(pdf, title, y);
+    y = drawBullets(pdf, items, y, M, CW - 4, color);
   }
 
   return y;
@@ -728,7 +700,24 @@ const drawCompetitorProfiles = (pdf: jsPDF, report: CompetitiveAnalysisReportDat
   y = drawSectionTitle(pdf, 'Competitor Profiles', y);
 
   for (const cp of profiles) {
-    const cardH = 38;
+    // Build detail lines to calculate card height dynamically
+    const details: [string, string][] = [];
+    if (cp.brandStrength) details.push(['Brand Strength', cp.brandStrength]);
+    if (cp.keyDifferentiator) details.push(['Differentiator', cp.keyDifferentiator]);
+    if (cp.biggestWeakness) details.push(['Weakness', cp.biggestWeakness]);
+    if (cp.visualIdentitySummary) details.push(['Visual Identity', cp.visualIdentitySummary]);
+    if (cp.digitalPresenceSummary) details.push(['Digital Presence', cp.digitalPresenceSummary]);
+
+    // Calculate needed height
+    let detailH = 0;
+    const wrappedDetails: { label: string; lines: string[] }[] = [];
+    for (const [label, text] of details) {
+      const lines = wrapText(pdf, `${label}: ${text}`, CW - 10);
+      wrappedDetails.push({ label, lines });
+      detailH += lines.length * 4 + 1;
+    }
+    const cardH = Math.max(detailH + 16, 20);
+
     y = ensureSpace(pdf, y, cardH + 4);
 
     const borderColor = cp.threatLevel === 'high' ? '#ef4444' : cp.threatLevel === 'medium' ? '#f59e0b' : '#22c55e';
@@ -750,16 +739,18 @@ const drawCompetitorProfiles = (pdf: jsPDF, report: CompetitiveAnalysisReportDat
     setColor(pdf, sColor);
     pdf.text(`${cp.overallScore}`, A4_W - M - 10, y + 8, { align: 'right' });
 
-    // Details
+    // Details - full text with wrapping
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(8);
     setColor(pdf, C.text.muted);
     let dy = y + 14;
-    if (cp.brandStrength) { pdf.text(`Brand Strength: ${cp.brandStrength.substring(0, 80)}`, M + 4, dy); dy += 4; }
-    if (cp.keyDifferentiator) { pdf.text(`Differentiator: ${cp.keyDifferentiator.substring(0, 80)}`, M + 4, dy); dy += 4; }
-    if (cp.biggestWeakness) { pdf.text(`Weakness: ${cp.biggestWeakness.substring(0, 80)}`, M + 4, dy); dy += 4; }
-    if (cp.visualIdentitySummary) { pdf.text(`Visual Identity: ${cp.visualIdentitySummary.substring(0, 80)}`, M + 4, dy); dy += 4; }
-    if (cp.digitalPresenceSummary) { pdf.text(`Digital Presence: ${cp.digitalPresenceSummary.substring(0, 80)}`, M + 4, dy); }
+    for (const { lines } of wrappedDetails) {
+      for (const line of lines) {
+        pdf.text(line, M + 4, dy);
+        dy += 4;
+      }
+      dy += 1;
+    }
 
     y += cardH + 4;
   }
