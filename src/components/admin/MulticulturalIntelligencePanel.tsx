@@ -72,6 +72,7 @@ interface BrandIntelligenceData {
 export const MulticulturalIntelligencePanel: React.FC = () => {
   const { organization } = useOrganization();
   const [entitySortBy, setEntitySortBy] = useState<'name' | 'readiness' | 'type'>('readiness');
+  const [expandedMarket, setExpandedMarket] = useState<string | null>(null);
 
   // Fetch research briefings with multicultural insights - scoped to organization
   const { data: briefings, isLoading: briefingsLoading, refetch: refetchBriefings } = useQuery({
