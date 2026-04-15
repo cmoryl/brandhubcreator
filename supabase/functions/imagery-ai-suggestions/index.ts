@@ -29,26 +29,63 @@ serve(async (req) => {
     const { entityId, entityType, existingSections } = await req.json();
     if (!entityId || !entityType) throw new Error("Missing entityId or entityType");
 
-    // Fetch entity context
-    const { data: context } = await supabase.rpc("get_entity_text_context", {
-      p_table: entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events",
-      p_id: entityId,
-    });
+    // Fetch entity context + latest imagery strategy audit in parallel
+    const tableName = entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events";
+    const [contextRes, auditRes] = await Promise.all([
+      supabase.rpc("get_entity_text_context", { p_table: tableName, p_id: entityId }),
+      supabase
+        .from("imagery_strategy_audits")
+        .select("*")
+        .eq("entity_id", entityId)
+        .eq("entity_type", entityType)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    const context = contextRes.data;
+    const audit = auditRes.data;
+
+    // Build audit intelligence section for the prompt
+    let auditContext = "";
+    if (audit) {
+      const stopSignals = Array.isArray(audit.stop_signals_detected) ? audit.stop_signals_detected : [];
+      const goSignals = Array.isArray(audit.go_signals_present) ? audit.go_signals_present : [];
+      const recommendations = Array.isArray(audit.recommendations) ? audit.recommendations : [];
+
+      auditContext = `
+IMAGERY STRATEGY AUDIT DATA (latest scores out of 100):
+- Overall Score: ${audit.overall_score || 0}
+- Diversity Score: ${audit.diversity_score || 0}
+- Authenticity Score: ${audit.authenticity_score || 0}
+- Cultural Context Score: ${audit.cultural_context_score || 0}
+- Action Orientation Score: ${audit.action_orientation_score || 0}
+- Inclusive Prompting Score: ${audit.inclusive_prompting_score || 0}
+- Stock Dependency: ${audit.stock_dependency || "unknown"}
+${stopSignals.length > 0 ? `\nSTOP SIGNALS DETECTED (imagery to AVOID):\n${stopSignals.map((s: string) => `- ${s}`).join("\n")}` : ""}
+${goSignals.length > 0 ? `\nGO SIGNALS PRESENT (good patterns to continue):\n${goSignals.map((s: string) => `- ${s}`).join("\n")}` : ""}
+${recommendations.length > 0 ? `\nAUDIT RECOMMENDATIONS:\n${recommendations.slice(0, 5).map((r: any) => `- [${r.priority || "medium"}] ${r.title}: ${r.description}`).join("\n")}` : ""}
+`;
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const prompt = `You are an imagery curation expert. Based on this brand/entity context, suggest 6-8 specific Shutterstock search queries that would find ideal stock imagery.
+    const prompt = `You are an imagery curation expert. Based on this brand/entity context and its imagery strategy audit results, suggest 6-8 specific Shutterstock search queries that would find ideal stock imagery.
 
 Entity: ${JSON.stringify(context || {})}
 Existing imagery categories: ${(existingSections || []).join(", ") || "None"}
+${auditContext}
 
-Return a JSON array of search query strings. Focus on:
+Return a JSON array of search query strings. Your suggestions MUST:
+- Directly address any low-scoring audit dimensions (diversity, authenticity, cultural context, action orientation, inclusive prompting)
+- Fill gaps identified by audit recommendations
+- AVOID imagery matching any detected Stop Signals
+- Reinforce patterns matching Go Signals
+- Consider stock dependency level — if "high", suggest queries for authentic/documentary-style imagery
 - Brand identity and visual DNA
-- Industry-specific imagery needs
 - Emotional tone matching the brand archetype
 - Diverse and inclusive representation
-- Category gaps not yet covered
 
 Return ONLY a JSON array like: ["query1", "query2", ...]`;
 
@@ -92,7 +129,11 @@ Return ONLY a JSON array like: ["query1", "query2", ...]`;
       suggestions = content.split("\n").filter((l: string) => l.trim()).slice(0, 8);
     }
 
-    return new Response(JSON.stringify({ suggestions }), {
+    return new Response(JSON.stringify({
+      suggestions,
+      auditScore: audit?.overall_score ?? null,
+      hasAudit: !!audit,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
