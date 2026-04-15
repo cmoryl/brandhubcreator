@@ -92,6 +92,51 @@ export function useRecommendationActions({
 
       if (error) throw error;
 
+      // Sync approved recommendation into brand_intelligence knowledge_entries
+      try {
+        const { data: intel } = await supabase
+          .from('brand_intelligence')
+          .select('id, knowledge_entries')
+          .eq('entity_type', entityType)
+          .eq('entity_id', entityId)
+          .maybeSingle();
+
+        const knowledgeEntry = {
+          type: 'competitive_recommendation',
+          source: 'competitive_analysis',
+          recommendation_type: type,
+          title,
+          status: 'approved',
+          applied_at: new Date().toISOString(),
+          report_id: recReportId,
+        };
+
+        if (intel) {
+          const existing = Array.isArray(intel.knowledge_entries) ? intel.knowledge_entries : [];
+          // Avoid duplicates by checking title + type
+          const filtered = existing.filter((e: any) =>
+            !(e.type === 'competitive_recommendation' && e.title === title && e.recommendation_type === type)
+          );
+          await supabase
+            .from('brand_intelligence')
+            .update({
+              knowledge_entries: [...filtered, knowledgeEntry] as any,
+            })
+            .eq('id', intel.id);
+        } else if (organizationId) {
+          await supabase
+            .from('brand_intelligence')
+            .insert({
+              entity_type: entityType,
+              entity_id: entityId,
+              organization_id: organizationId,
+              knowledge_entries: [knowledgeEntry] as any,
+            });
+        }
+      } catch (syncErr) {
+        console.warn('Failed to sync recommendation to brand intelligence:', syncErr);
+      }
+
       setActions(prev => {
         const existing = prev.findIndex(
           a => a.report_id === recReportId && a.recommendation_index === index && a.recommendation_type === type
@@ -104,7 +149,7 @@ export function useRecommendationActions({
         return [...prev, data as RecommendationAction];
       });
 
-      toast.success(`"${title}" approved and applied to Imagery Hub`);
+      toast.success(`"${title}" approved and synced to Brand Intelligence`);
       return data;
     } catch (err) {
       console.error('Error approving recommendation:', err);
