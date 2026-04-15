@@ -182,6 +182,7 @@ export const ApprovedImagerySection = ({
               canEdit={canEdit}
               onSearchClick={() => openSearchForSection(section.id)}
               onDropboxClick={() => openDropboxForSection(section.id)}
+              onWebsiteClick={() => openWebsiteForSection(section.id)}
               onRemoveImage={(imageId) => handleRemoveImage(section.id, imageId)}
               onRemoveSection={() => removeSubSection(section.id)}
               onRename={(newName) => renameSubSection(section.id, newName)}
