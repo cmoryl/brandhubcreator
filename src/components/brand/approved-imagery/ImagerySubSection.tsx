@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, Trash2, Edit2, Check, X, ImageIcon, ZoomIn, FolderOpen } from 'lucide-react';
+import { Search, Trash2, Edit2, Check, X, ImageIcon, ZoomIn, FolderOpen, Download } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,8 @@ export const ImagerySubSection = ({
   onRemoveSection,
   onRename,
 }: ImagerySubSectionProps) => {
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(section.name);
   const [previewImage, setPreviewImage] = useState<{
