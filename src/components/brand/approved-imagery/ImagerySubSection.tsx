@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Trash2, Edit2, Check, X, ImageIcon, ZoomIn, FolderOpen, Download } from 'lucide-react';
+import { Search, Trash2, Edit2, Check, X, ImageIcon, ZoomIn, FolderOpen, Download, Globe } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
