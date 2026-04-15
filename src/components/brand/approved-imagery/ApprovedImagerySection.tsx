@@ -1,13 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import { Plus, ImageIcon, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Accordion } from '@/components/ui/accordion';
 import { ApprovedImage, ApprovedImagerySubSection } from '@/types/brand';
-import { ShutterstockSearchDialog } from './ShutterstockSearchDialog';
-import { DropboxBrowserDialog } from './DropboxBrowserDialog';
-import { WebsiteImageScanner } from '../WebsiteImageScanner';
+const ShutterstockSearchDialog = lazy(() => import('./ShutterstockSearchDialog').then(m => ({ default: m.ShutterstockSearchDialog })));
+const DropboxBrowserDialog = lazy(() => import('./DropboxBrowserDialog').then(m => ({ default: m.DropboxBrowserDialog })));
+const WebsiteImageScanner = lazy(() => import('../WebsiteImageScanner').then(m => ({ default: m.WebsiteImageScanner })));
 import { ImagerySubSection } from './ImagerySubSection';
 
 interface ApprovedImagerySectionProps {
