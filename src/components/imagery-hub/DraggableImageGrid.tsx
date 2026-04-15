@@ -125,6 +125,35 @@ const SortableImage = ({
         >
           <Tag className="h-4 w-4" />
         </Button>
+        {/* Move to category dropdown */}
+        {availableSections && availableSections.length > 1 && onMoveToSection && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="secondary"
+                className="h-8 w-8 bg-background/70 backdrop-blur-sm border-0 shadow-sm"
+                onClick={e => e.stopPropagation()}
+                title="Move to category"
+              >
+                <FolderInput className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="max-h-60 overflow-y-auto" onClick={e => e.stopPropagation()}>
+              {availableSections
+                .filter(s => s.id !== sectionId)
+                .map(s => (
+                  <DropdownMenuItem
+                    key={s.id}
+                    onClick={() => onMoveToSection(image, s.id)}
+                    className="text-sm"
+                  >
+                    {s.name} <Badge variant="secondary" className="ml-auto text-[10px] h-4">{s.images.length}</Badge>
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         <Button
           size="icon"
           variant="destructive"
