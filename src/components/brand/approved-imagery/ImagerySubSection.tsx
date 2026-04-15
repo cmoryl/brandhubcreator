@@ -166,16 +166,32 @@ export const ImagerySubSection = ({
                     <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
                   </div>
                 </div>
-                {canEdit && (
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                    onClick={(e) => { e.stopPropagation(); onRemoveImage(image.id); }}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
+                {/* Top-right action buttons */}
+                <div className="absolute top-1 right-1 flex gap-1">
+                  {isAuthenticated && (
+                    <a
+                      href={image.url}
+                      download={image.title || 'image'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-6 w-6 flex items-center justify-center rounded bg-background/80 backdrop-blur-sm text-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground"
+                      title="Download image"
+                    >
+                      <Download className="h-3 w-3" />
+                    </a>
+                  )}
+                  {canEdit && (
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      onClick={(e) => { e.stopPropagation(); onRemoveImage(image.id); }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
                 <div className="px-2 py-1.5 flex items-center gap-1">
                   {image.source === 'dropbox' && (
                     <FolderOpen className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
