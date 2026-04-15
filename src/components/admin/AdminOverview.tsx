@@ -629,3 +629,63 @@ const BiasAwarenessSummaryWidget: React.FC<{ onTabChange: (tab: string) => void 
     </Card>
   );
 };
+
+// ─── Visibility Summary ─────────────────────────────────────
+const VisibilitySummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ onTabChange }) => {
+  const [data, setData] = useState<{ totalAudits: number; avgScore: number; criticalGaps: number; totalGaps: number } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: audits } = await supabase
+        .from('brand_visibility_audits')
+        .select('overall_visibility_score, visibility_gaps, status')
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      const all = audits || [];
+      const scores = all.map(a => a.overall_visibility_score).filter((v): v is number => v !== null);
+      const avg = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+      const allGaps = all.flatMap(a => Array.isArray(a.visibility_gaps) ? a.visibility_gaps as any[] : []);
+      const critical = allGaps.filter((g: any) => g.severity === 'critical' || g.severity === 'high').length;
+
+      setData({ totalAudits: all.length, avgScore: avg, criticalGaps: critical, totalGaps: allGaps.length });
+    })();
+  }, []);
+
+  const scoreColor = (v: number) => v >= 70 ? 'text-emerald-500' : v >= 40 ? 'text-amber-500' : 'text-destructive';
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="p-3 pb-2 border-b border-border/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Eye className="h-3.5 w-3.5 text-cyan-500" />
+            <CardTitle className="text-xs font-semibold">Visibility</CardTitle>
+          </div>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground" onClick={() => onTabChange('visibility')}>
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-2.5">
+        {!data ? (
+          <div className="flex justify-center py-4"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+        ) : (
+          <div className="space-y-1.5">
+            <SummaryRow icon={Eye} color="text-cyan-500" bg="bg-cyan-500/10" label="Audits Completed" value={data.totalAudits}
+              sub={data.avgScore > 0 ? `Avg: ${data.avgScore.toFixed(0)}%` : undefined}
+              subColor={scoreColor(data.avgScore)}
+              onClick={() => onTabChange('visibility')} />
+            <div className="grid grid-cols-2 gap-1.5">
+              <SummaryRow icon={AlertTriangle} color="text-destructive" bg="bg-destructive/10" label="Critical" value={data.criticalGaps}
+                onClick={() => onTabChange('visibility')} />
+              <SummaryRow icon={BarChart3} color="text-muted-foreground" bg="bg-muted/50" label="Total Gaps" value={data.totalGaps}
+                onClick={() => onTabChange('visibility')} />
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
