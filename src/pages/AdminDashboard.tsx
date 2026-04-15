@@ -68,6 +68,7 @@ import { BiasAwarenessAdminPanel } from '@/components/admin/BiasAwarenessAdminPa
 import { AccessibilityStandardsPanel } from '@/components/admin/AccessibilityStandardsPanel';
 import { HealthTimelinePanel } from '@/components/admin/HealthTimelinePanel';
 import { PortfolioInsightsPanel } from '@/components/admin/PortfolioInsightsPanel';
+import { AICenterOfExcellence } from '@/components/admin/AICenterOfExcellence';
 import { VisibilityDashboard } from '@/components/admin/VisibilityDashboard';
 import { 
   DashboardStats, 
@@ -808,6 +809,11 @@ export default function AdminDashboard() {
           {/* Portfolio Insights Tab */}
           <TabsContent value="portfolio-insights" className="space-y-6">
             <PortfolioInsightsPanel />
+          </TabsContent>
+
+          {/* AI Center of Excellence Tab */}
+          <TabsContent value="ai-center" className="space-y-6">
+            <AICenterOfExcellence />
           </TabsContent>
 
           {/* Bot Management Tab */}
