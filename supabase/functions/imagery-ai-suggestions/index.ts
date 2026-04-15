@@ -51,6 +51,7 @@ serve(async (req) => {
 
     const context = contextRes.data;
     const audit = auditRes.data;
+    const approvedActions = actionsRes.data || [];
 
     // Build audit intelligence section for the prompt
     let auditContext = "";
