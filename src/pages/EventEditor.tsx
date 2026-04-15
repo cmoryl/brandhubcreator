@@ -131,7 +131,7 @@ const EventEditor = () => {
   const { eventSlug } = useParams<{ eventSlug: string }>();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const { getEvent, getEventBySlug, updateEvent: updateEventContext, toggleFavorite, isLoading } = useEvents();
+  const { getEvent, getEventBySlug, updateEvent: updateEventContext, toggleFavorite, isLoading, refetch: refetchEvents } = useEvents();
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
   
@@ -155,6 +155,18 @@ const EventEditor = () => {
       navigate('/pending-approval');
     }
   }, [user, isApproved, isAdmin, authLoading, navigate]);
+
+  // Refetch event data when page becomes visible (e.g. returning from Imagery Hub)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refetchEvents();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    refetchEvents();
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [refetchEvents]);
 
   // Note: scroll-to-top on route change is handled by ScrollToTop component
 
@@ -344,7 +356,7 @@ const EventEditor = () => {
     entityOrgId: event?.organizationId 
   });
 
-  
+
   // Permission check (debug logging removed for production)
   
   const sectionOrder = useMemo(() => event?.sectionOrder || DEFAULT_EVENT_SECTION_ORDER, [event?.sectionOrder]);

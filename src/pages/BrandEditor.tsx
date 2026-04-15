@@ -126,7 +126,7 @@ const BrandEditor = () => {
   const location = useLocation();
   const { theme, setTheme } = useTheme();
   const previousThemeRef = useRef<string | undefined>(undefined);
-  const { getBrand, getBrandBySlug, updateBrand: updateBrandContext, toggleFavorite, isLoading, saveNow } = useBrands();
+  const { getBrand, getBrandBySlug, updateBrand: updateBrandContext, toggleFavorite, isLoading, saveNow, refetch: refetchBrands } = useBrands();
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
   
@@ -158,6 +158,18 @@ const BrandEditor = () => {
       navigate('/pending-approval');
     }
   }, [user, isApproved, isAdmin, authLoading, navigate]);
+
+  // Refetch brand data when page becomes visible (e.g. returning from Imagery Hub)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refetchBrands();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    refetchBrands();
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [refetchBrands]);
 
   // Ref for scroll-to-top on brand load (effect placed after `brand` is resolved)
   const hasScrolledForBrandRef = useRef<string | null>(null);

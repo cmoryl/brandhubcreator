@@ -126,7 +126,7 @@ const ProductEditor = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
-  const { getProduct, getProductBySlug, updateProduct, toggleFavorite, isLoading } = useBrands();
+  const { getProduct, getProductBySlug, updateProduct, toggleFavorite, isLoading, refetch: refetchProducts } = useBrands();
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
 
@@ -145,6 +145,18 @@ const ProductEditor = () => {
   const [translationHubOpen, setTranslationHubOpen] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
+
+  // Refetch product data when page becomes visible (e.g. returning from Imagery Hub)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refetchProducts();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    refetchProducts();
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [refetchProducts]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
