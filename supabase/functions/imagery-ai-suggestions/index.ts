@@ -31,7 +31,7 @@ serve(async (req) => {
 
     // Fetch entity context + latest imagery strategy audit in parallel
     const tableName = entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events";
-    const [contextRes, auditRes] = await Promise.all([
+    const [contextRes, auditRes, actionsRes] = await Promise.all([
       supabase.rpc("get_entity_text_context", { p_table: tableName, p_id: entityId }),
       supabase
         .from("imagery_strategy_audits")
@@ -41,10 +41,17 @@ serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      supabase
+        .from("competitive_recommendation_actions")
+        .select("recommendation_title, recommendation_type, status")
+        .eq("entity_id", entityId)
+        .eq("entity_type", entityType)
+        .eq("applied_to_imagery_hub", true),
     ]);
 
     const context = contextRes.data;
     const audit = auditRes.data;
+    const approvedActions = actionsRes.data || [];
 
     // Build audit intelligence section for the prompt
     let auditContext = "";
@@ -71,11 +78,21 @@ ${recommendations.length > 0 ? `\nAUDIT RECOMMENDATIONS:\n${recommendations.slic
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const prompt = `You are an imagery curation expert. Based on this brand/entity context and its imagery strategy audit results, suggest 6-8 specific Shutterstock search queries that would find ideal stock imagery.
+    // Build approved competitive recommendations context
+    let approvedContext = "";
+    if (approvedActions.length > 0) {
+      approvedContext = `
+APPROVED COMPETITIVE ANALYSIS RECOMMENDATIONS (these have been approved for integration — prioritize imagery that supports them):
+${approvedActions.map((a: any) => `- [${a.recommendation_type}] ${a.recommendation_title}`).join("\n")}
+`;
+    }
+
+    const prompt = `You are an imagery curation expert. Based on this brand/entity context, its imagery strategy audit results, and approved competitive recommendations, suggest 6-8 specific Shutterstock search queries that would find ideal stock imagery.
 
 Entity: ${JSON.stringify(context || {})}
 Existing imagery categories: ${(existingSections || []).join(", ") || "None"}
 ${auditContext}
+${approvedContext}
 
 Return a JSON array of search query strings. Your suggestions MUST:
 - Directly address any low-scoring audit dimensions (diversity, authenticity, cultural context, action orientation, inclusive prompting)
@@ -84,6 +101,7 @@ Return a JSON array of search query strings. Your suggestions MUST:
 - Reinforce patterns matching Go Signals
 - Consider stock dependency level — if "high", suggest queries for authentic/documentary-style imagery
 - Brand identity and visual DNA
+- Prioritize imagery that fulfills any approved competitive recommendations (design priorities, brand refinements, positioning opportunities)
 - Emotional tone matching the brand archetype
 - Diverse and inclusive representation
 
