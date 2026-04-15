@@ -58,8 +58,8 @@ interface RecommendationAction {
 }
 
 export function useAICenterMetrics() {
-  const { currentOrganization } = useOrganization();
-  const orgId = currentOrganization?.id;
+  const { organization } = useOrganization();
+  const orgId = organization?.id;
   const [metrics, setMetrics] = useState<AICenterMetrics | null>(null);
   const [recommendations, setRecommendations] = useState<RecommendationAction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,7 +71,7 @@ export function useAICenterMetrics() {
     try {
       const [jobsRes, complianceRes, biasRes, botsRes, visRes, recsRes] = await Promise.all([
         supabase.from('brand_intelligence_jobs').select('status').limit(500),
-        supabase.from('dataforce_compliance_jobs').select('overall_score, status').eq('status', 'completed').limit(500),
+        supabase.from('dataforce_compliance_jobs').select('compliance_score, status').eq('status', 'completed').limit(500),
         supabase.from('bias_awareness_scans').select('inclusion_score, language_score, visual_score, accessibility_score, status').eq('status', 'completed').limit(500),
         supabase.from('bot_conversations').select('satisfaction_rating').limit(500),
         supabase.from('brand_visibility_audits').select('overall_visibility_score, status').eq('status', 'completed').limit(500),
@@ -90,7 +90,7 @@ export function useAICenterMetrics() {
       const pending = jobs.filter(j => j.status === 'pending' || j.status === 'processing').length;
       const successRate = jobs.length > 0 ? (completed / jobs.length) * 100 : 0;
 
-      const avgComp = compliance.length > 0 ? compliance.reduce((a, c) => a + (c.overall_score || 0), 0) / compliance.length : 0;
+      const avgComp = compliance.length > 0 ? compliance.reduce((a, c) => a + (c.compliance_score || 0), 0) / compliance.length : 0;
 
       const avg = (arr: (number | null)[]) => {
         const valid = arr.filter((v): v is number => v !== null && v > 0);
