@@ -4,8 +4,9 @@
  * batch operations, auto-categorization, visual search, and quality scoring
  */
 import { useState, useCallback, useEffect } from 'react';
-import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown } from 'lucide-react';
+import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { WebsiteImageScanner } from '@/components/brand/WebsiteImageScanner';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +58,7 @@ export const ImageryWorkspace = ({
   const [autoCategorizeOpen, setAutoCategorizeOpen] = useState(false);
   const [visualSearchUrl, setVisualSearchUrl] = useState<string | null>(null);
   const [searchCollapsed, setSearchCollapsed] = useState(false);
+  const [websiteScannerOpen, setWebsiteScannerOpen] = useState(false);
 
   const totalImages = sections.reduce((sum, s) => sum + s.images.length, 0);
   const searchSection = sections.find(s => s.id === searchSectionId);
@@ -162,12 +164,26 @@ export const ImageryWorkspace = ({
   }, [onAddSection, onAddImages]);
 
   const handleVisualSearchQuery = useCallback((query: string) => {
-    // Open search panel and trigger search
     if (sections.length > 0) {
       setSearchSectionId(sections[0].id);
     }
     setVisualSearchUrl(null);
   }, [sections]);
+
+  const handleWebsiteImport = useCallback((images: { name: string; url: string; type: string }[]) => {
+    const targetSectionId = searchSectionId || sections[0]?.id;
+    if (!targetSectionId) return;
+    const approved: ApprovedImage[] = images.map((img, i) => ({
+      id: `web-${Date.now()}-${i}`,
+      url: img.url,
+      thumbnailUrl: img.url,
+      title: img.name,
+      source: 'website-scan' as const,
+      addedAt: new Date().toISOString(),
+      tags: ['website-scan'],
+    }));
+    onAddImages(targetSectionId, approved);
+  }, [searchSectionId, sections, onAddImages]);
 
   // Collect all unique tags across sections
   const allTags = new Set<string>();
@@ -246,6 +262,10 @@ export const ImageryWorkspace = ({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setAutoCategorizeOpen(true)} disabled={allImages.length === 0} className="gap-2">
                   <Sparkles className="h-4 w-4" /> Auto-Categorize
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setWebsiteScannerOpen(true)} className="gap-2">
+                  <Globe className="h-4 w-4" /> Scan Website for Images
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -475,6 +495,13 @@ export const ImageryWorkspace = ({
         sections={sections}
         entityName={entity.name}
         onApply={handleAutoCategorizeApply}
+      />
+
+      {/* Website Image Scanner */}
+      <WebsiteImageScanner
+        open={websiteScannerOpen}
+        onOpenChange={setWebsiteScannerOpen}
+        onImportImages={handleWebsiteImport}
       />
     </div>
   );
