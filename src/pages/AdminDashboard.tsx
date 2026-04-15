@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Users, Building2, Palette, Package, Activity, Shield, 
@@ -31,45 +31,47 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { format, subDays } from 'date-fns';
-import { BrandReportGenerator } from '@/components/admin/BrandReportGenerator';
-import { ProductReportGenerator } from '@/components/admin/ProductReportGenerator';
-import { EventReportGenerator } from '@/components/admin/EventReportGenerator';
-import { AIMarketAnalysis } from '@/components/admin/AIMarketAnalysis';
-import { DataInspector } from '@/components/admin/DataInspector';
-import { DemoGuidesManager } from '@/components/admin/DemoGuidesManager';
-import { UserApprovalManager } from '@/components/admin/UserApprovalManager';
-import { BrandAnalyticsHub } from '@/components/admin/BrandAnalyticsHub';
-import { BulkRepairTool } from '@/components/admin/BulkRepairTool';
-import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner';
-import { MembersManager } from '@/components/admin/MembersManager';
-import { UserAnalyticsTab } from '@/components/admin/UserAnalyticsTab';
-import { UsersAndMembersTab } from '@/components/admin/UsersAndMembersTab';
-import { CompressedBackupManager } from '@/components/admin/CompressedBackupManager';
-import { UniverseBackupManager } from '@/components/admin/UniverseBackupManager';
-import { ProductSuiteBackupManager } from '@/components/admin/ProductSuiteBackupManager';
-import { AdminImageLibrary } from '@/components/admin/AdminImageLibrary';
-import { GlobalLogoHub } from '@/components/admin/GlobalLogoHub';
+import { useStableLoading } from '@/hooks/useStableLoading';
+
+// Lazy-load ALL tab panel components to reduce 856KB monolith
+const BrandReportGenerator = lazy(() => import('@/components/admin/BrandReportGenerator').then(m => ({ default: m.BrandReportGenerator })));
+const ProductReportGenerator = lazy(() => import('@/components/admin/ProductReportGenerator').then(m => ({ default: m.ProductReportGenerator })));
+const EventReportGenerator = lazy(() => import('@/components/admin/EventReportGenerator').then(m => ({ default: m.EventReportGenerator })));
+const AIMarketAnalysis = lazy(() => import('@/components/admin/AIMarketAnalysis').then(m => ({ default: m.AIMarketAnalysis })));
+const DataInspector = lazy(() => import('@/components/admin/DataInspector').then(m => ({ default: m.DataInspector })));
+const DemoGuidesManager = lazy(() => import('@/components/admin/DemoGuidesManager').then(m => ({ default: m.DemoGuidesManager })));
+const UserApprovalManager = lazy(() => import('@/components/admin/UserApprovalManager').then(m => ({ default: m.UserApprovalManager })));
+const BrandAnalyticsHub = lazy(() => import('@/components/admin/BrandAnalyticsHub').then(m => ({ default: m.BrandAnalyticsHub })));
+const BulkRepairTool = lazy(() => import('@/components/admin/BulkRepairTool').then(m => ({ default: m.BulkRepairTool })));
+const HiddenSectionsScanner = lazy(() => import('@/components/admin/HiddenSectionsScanner').then(m => ({ default: m.HiddenSectionsScanner })));
+const UserAnalyticsTab = lazy(() => import('@/components/admin/UserAnalyticsTab').then(m => ({ default: m.UserAnalyticsTab })));
+const CompressedBackupManager = lazy(() => import('@/components/admin/CompressedBackupManager').then(m => ({ default: m.CompressedBackupManager })));
+const UniverseBackupManager = lazy(() => import('@/components/admin/UniverseBackupManager').then(m => ({ default: m.UniverseBackupManager })));
+const ProductSuiteBackupManager = lazy(() => import('@/components/admin/ProductSuiteBackupManager').then(m => ({ default: m.ProductSuiteBackupManager })));
+const AdminImageLibrary = lazy(() => import('@/components/admin/AdminImageLibrary').then(m => ({ default: m.AdminImageLibrary })));
+const GlobalLogoHub = lazy(() => import('@/components/admin/GlobalLogoHub').then(m => ({ default: m.GlobalLogoHub })));
+const LeadSubmissionsPanel = lazy(() => import('@/components/admin/LeadSubmissionsPanel').then(m => ({ default: m.LeadSubmissionsPanel })));
+const PeopleHub = lazy(() => import('@/components/admin/PeopleHub').then(m => ({ default: m.PeopleHub })));
+const CompanyLocationsManager = lazy(() => import('@/components/admin/CompanyLocationsManager').then(m => ({ default: m.CompanyLocationsManager })));
+const GlobalMapThemeEditor = lazy(() => import('@/components/admin/GlobalMapThemeEditor').then(m => ({ default: m.GlobalMapThemeEditor })));
+const AdminOverview = lazy(() => import('@/components/admin/AdminOverview').then(m => ({ default: m.AdminOverview })));
+const DownloadsReportPanel = lazy(() => import('@/components/admin/DownloadsReportPanel').then(m => ({ default: m.DownloadsReportPanel })));
+const ActivityLogsPanel = lazy(() => import('@/components/admin/ActivityLogsPanel').then(m => ({ default: m.ActivityLogsPanel })));
+const ActivityAnalyticsHub = lazy(() => import('@/components/admin/analytics/ActivityAnalyticsHub').then(m => ({ default: m.ActivityAnalyticsHub })));
+const GlobalLinkAdminSection = lazy(() => import('@/components/admin/globallink').then(m => ({ default: m.GlobalLinkAdminSection })));
+const ResearchBriefingsPanel = lazy(() => import('@/components/admin/ResearchBriefingsPanel').then(m => ({ default: m.ResearchBriefingsPanel })));
+const MulticulturalIntelligencePanel = lazy(() => import('@/components/admin/MulticulturalIntelligencePanel').then(m => ({ default: m.MulticulturalIntelligencePanel })));
+const DataForceAdminPanel = lazy(() => import('@/components/admin/DataForceAdminPanel').then(m => ({ default: m.DataForceAdminPanel })));
+const BotManagementPanel = lazy(() => import('@/components/admin/BotManagementPanel').then(m => ({ default: m.BotManagementPanel })));
+const OracleBrainPanel = lazy(() => import('@/components/admin/OracleBrainPanel').then(m => ({ default: m.OracleBrainPanel })));
+const BiasAwarenessAdminPanel = lazy(() => import('@/components/admin/BiasAwarenessAdminPanel').then(m => ({ default: m.BiasAwarenessAdminPanel })));
+const AccessibilityStandardsPanel = lazy(() => import('@/components/admin/AccessibilityStandardsPanel').then(m => ({ default: m.AccessibilityStandardsPanel })));
+const HealthTimelinePanel = lazy(() => import('@/components/admin/HealthTimelinePanel').then(m => ({ default: m.HealthTimelinePanel })));
+const PortfolioInsightsPanel = lazy(() => import('@/components/admin/PortfolioInsightsPanel').then(m => ({ default: m.PortfolioInsightsPanel })));
+const AICenterOfExcellence = lazy(() => import('@/components/admin/AICenterOfExcellence').then(m => ({ default: m.AICenterOfExcellence })));
+const VisibilityDashboard = lazy(() => import('@/components/admin/VisibilityDashboard').then(m => ({ default: m.VisibilityDashboard })));
+
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
-import { LeadSubmissionsPanel } from '@/components/admin/LeadSubmissionsPanel';
-import { PeopleHub } from '@/components/admin/PeopleHub';
-import { CompanyLocationsManager } from '@/components/admin/CompanyLocationsManager';
-import { GlobalMapThemeEditor } from '@/components/admin/GlobalMapThemeEditor';
-import { AdminOverview } from '@/components/admin/AdminOverview';
-import { DownloadsReportPanel } from '@/components/admin/DownloadsReportPanel';
-import { ActivityLogsPanel } from '@/components/admin/ActivityLogsPanel';
-import { ActivityAnalyticsHub } from '@/components/admin/analytics/ActivityAnalyticsHub';
-import { GlobalLinkAdminSection } from '@/components/admin/globallink';
-import { ResearchBriefingsPanel } from '@/components/admin/ResearchBriefingsPanel';
-import { MulticulturalIntelligencePanel } from '@/components/admin/MulticulturalIntelligencePanel';
-import { DataForceAdminPanel } from '@/components/admin/DataForceAdminPanel';
-import { BotManagementPanel } from '@/components/admin/BotManagementPanel';
-import { OracleBrainPanel } from '@/components/admin/OracleBrainPanel';
-import { BiasAwarenessAdminPanel } from '@/components/admin/BiasAwarenessAdminPanel';
-import { AccessibilityStandardsPanel } from '@/components/admin/AccessibilityStandardsPanel';
-import { HealthTimelinePanel } from '@/components/admin/HealthTimelinePanel';
-import { PortfolioInsightsPanel } from '@/components/admin/PortfolioInsightsPanel';
-import { AICenterOfExcellence } from '@/components/admin/AICenterOfExcellence';
-import { VisibilityDashboard } from '@/components/admin/VisibilityDashboard';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -78,6 +80,15 @@ import {
   getActivityIcon,
   getActionDescription 
 } from '@/lib/admin';
+
+/** Lightweight fallback for lazy-loaded admin tab panels */
+const TabPanelFallback = () => (
+  <div className="space-y-4 py-6">
+    <div className="h-6 w-48 bg-muted animate-pulse rounded" />
+    <div className="h-40 bg-muted/50 animate-pulse rounded-lg" />
+    <div className="h-24 bg-muted/30 animate-pulse rounded-lg" />
+  </div>
+);
 
 export default function AdminDashboard() {
   const { user, isAdmin, isSuperAdmin, isLoading: authLoading } = useAuth();
