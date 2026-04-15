@@ -163,7 +163,7 @@ export const InlineImagerySearch = ({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
-  const [gridCols, setGridCols] = useState<2 | 3>(3);
+  const [gridCols, setGridCols] = useState<2 | 3 | 4 | 5>(3);
 
   const [activePanel, setActivePanel] = useState<ToolPanel>('none');
   const [colorFilter, setColorFilter] = useState('');
@@ -511,10 +511,16 @@ export const InlineImagerySearch = ({
             </div>
             {/* Grid density toggle */}
             <div className="flex items-center gap-1 border border-border rounded-md p-0.5">
-              <button onClick={() => setGridCols(2)} className={cn('p-1 rounded', gridCols === 2 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')}>
+              <button onClick={() => setGridCols(2)} className={cn('p-1 rounded', gridCols === 2 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')} title="Large">
                 <LayoutGrid className="h-3.5 w-3.5" />
               </button>
-              <button onClick={() => setGridCols(3)} className={cn('p-1 rounded', gridCols === 3 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')}>
+              <button onClick={() => setGridCols(3)} className={cn('p-1 rounded', gridCols === 3 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')} title="Medium">
+                <Grid3X3 className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={() => setGridCols(4)} className={cn('p-1 rounded', gridCols === 4 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')} title="Small">
+                <Grid3X3 className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={() => setGridCols(5)} className={cn('p-1 rounded', gridCols === 5 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')} title="Compact">
                 <Grid3X3 className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -1064,7 +1070,12 @@ export const InlineImagerySearch = ({
           {/* Image grid */}
           {hasResults && (
             <div className="p-3">
-              <div className={cn('grid gap-2.5', gridCols === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3')}>
+              <div className={cn('grid gap-2',
+                gridCols === 2 ? 'grid-cols-2' :
+                gridCols === 3 ? 'grid-cols-2 sm:grid-cols-3' :
+                gridCols === 4 ? 'grid-cols-3 sm:grid-cols-4' :
+                'grid-cols-3 sm:grid-cols-4 md:grid-cols-5'
+              )}>
                 {results.map((result, idx) => {
                   const isSelected = selectedIds.has(result.id);
                   return (
@@ -1081,46 +1092,47 @@ export const InlineImagerySearch = ({
                           alt={result.description}
                           className={cn(
                             'w-full object-cover transition-all duration-300 group-hover:scale-[1.03]',
-                            gridCols === 2 ? 'aspect-[4/3]' : 'aspect-square'
+                            gridCols <= 3 ? 'aspect-[4/3]' : 'aspect-square'
                           )}
                           loading="lazy"
                         />
                       </div>
                       {/* Selection checkbox */}
                       <div className={cn(
-                        'absolute top-2 right-2 rounded-lg p-1.5 transition-all shadow-sm',
+                        'absolute top-1.5 right-1.5 rounded-md p-1 transition-all shadow-sm',
                         isSelected ? 'bg-primary text-primary-foreground scale-110' : 'bg-background/80 backdrop-blur-sm text-muted-foreground border border-border/50'
                       )}>
-                        {isSelected ? <Check className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
+                        {isSelected ? <Check className="h-3 w-3" /> : <Square className="h-3 w-3" />}
                       </div>
                       {/* Media type badge */}
                       {result.media_type && result.media_type !== 'image' && (
-                        <Badge variant="secondary" className="absolute top-2 left-2 text-[10px] px-1.5 py-0.5 shadow-sm">
-                          {result.media_type === 'vector' ? 'Vector' : 'Illustration'}
+                        <Badge variant="secondary" className="absolute top-1.5 left-1.5 text-[9px] px-1 py-0 shadow-sm">
+                          {result.media_type === 'vector' ? 'Vec' : 'Ill'}
                         </Badge>
                       )}
-                      {/* Bottom info + actions overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-3 pt-10">
-                        <p className="text-[11px] text-white/90 line-clamp-2 leading-snug font-medium">{result.description}</p>
-                        <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-center gap-2">
-                            <p className="text-[10px] text-white/40 font-mono">#{result.id}</p>
-                            {result.width && result.height && (
-                              <p className="text-[9px] text-white/30">{result.width}×{result.height}</p>
-                            )}
-                          </div>
+                      {/* Bottom overlay - compact on small grid, detailed on large */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {gridCols <= 3 && (
+                          <p className="text-[10px] text-white/90 line-clamp-1 leading-snug font-medium mb-1">{result.description}</p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <p className="text-[9px] text-white/50 font-mono">ID: {result.id}</p>
                           <div className="flex items-center gap-1">
                             <button onClick={(e) => { e.stopPropagation(); setPreviewImage(result); }}
-                              className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/15 hover:bg-white/30 text-white text-[10px] backdrop-blur-sm transition-colors" title="Preview larger">
-                              <ZoomIn className="h-3 w-3" /> View
+                              className="p-1 rounded bg-white/20 hover:bg-white/40 text-white transition-colors" title="Preview">
+                              <ZoomIn className="h-3 w-3" />
                             </button>
                             <button onClick={(e) => { e.stopPropagation(); handleSimilarSearch(result.id); }}
-                              className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/15 hover:bg-white/30 text-white text-[10px] backdrop-blur-sm transition-colors" title="Find similar">
-                              <Eye className="h-3 w-3" /> Similar
+                              className="p-1 rounded bg-white/20 hover:bg-white/40 text-white transition-colors" title="Find similar">
+                              <Eye className="h-3 w-3" />
                             </button>
                           </div>
                         </div>
                       </div>
+                      {/* Source watermark - always visible */}
+                      <p className="absolute bottom-1 left-1.5 text-[8px] text-white/30 font-mono group-hover:opacity-0 transition-opacity">
+                        {`shutterstock · ${result.id}`}
+                      </p>
                     </div>
                   );
                 })}
