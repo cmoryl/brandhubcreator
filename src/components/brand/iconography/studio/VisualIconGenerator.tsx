@@ -373,6 +373,8 @@ export const VisualIconGenerator = ({
 
       completeProgress();
 
+      const isRaster = RASTER_STYLES.some(s => s.id === styleValue);
+
       const newResults: GeneratedResult[] = successfulResults.map(sr => {
         const resultId = crypto.randomUUID();
         generatedIds.push(resultId);
@@ -380,7 +382,8 @@ export const VisualIconGenerator = ({
           id: resultId,
           imageUrl: sr.imageUrl,
           prompt: trimmedPrompt,
-          phase: 'image' as const,
+          phase: isRaster ? 'raster' as const : 'image' as const,
+          isRaster,
           variationIndex: sr.varIndex,
           createdAt: new Date().toISOString(),
         };
@@ -391,44 +394,48 @@ export const VisualIconGenerator = ({
       setSelectedResult(0);
 
       const count = newResults.length;
-      toast.success(`${count} variation${count > 1 ? 's' : ''} generated! Tracing to SVG...`);
 
-      // Clear animation flags after animation completes
-      setTimeout(() => setNewResultIds(new Set()), 800);
+      if (isRaster) {
+        toast.success(`${count} 3D icon${count > 1 ? 's' : ''} generated!`);
+        setTimeout(() => setNewResultIds(new Set()), 800);
+      } else {
+        toast.success(`${count} variation${count > 1 ? 's' : ''} generated! Tracing to SVG...`);
+        setTimeout(() => setNewResultIds(new Set()), 800);
 
-      // Phase 2: Auto-trace all in background
-      void (async () => {
-        setIsTracing(true);
-        let tracedCount = 0;
-        
-        for (const nr of newResults) {
-          try {
-            const svg = await traceImageToSvg({
-              imageUrl: nr.imageUrl,
-              styleValue,
-              strokeWidthValue,
-              cornerStyleValue,
-              brandColorsValue,
-            });
+        // Phase 2: Auto-trace all in background (vector styles only)
+        void (async () => {
+          setIsTracing(true);
+          let tracedCount = 0;
+          
+          for (const nr of newResults) {
+            try {
+              const svg = await traceImageToSvg({
+                imageUrl: nr.imageUrl,
+                styleValue,
+                strokeWidthValue,
+                cornerStyleValue,
+                brandColorsValue,
+              });
 
-            if (svg) {
-              setResults(prev =>
-                prev.map(r => (r.id === nr.id ? { ...r, svg, phase: 'full' } : r))
-              );
-              tracedCount++;
+              if (svg) {
+                setResults(prev =>
+                  prev.map(r => (r.id === nr.id ? { ...r, svg, phase: 'full' } : r))
+                );
+                tracedCount++;
+              }
+            } catch (traceErr) {
+              console.warn('Auto-trace skipped for variation:', traceErr);
             }
-          } catch (traceErr) {
-            console.warn('Auto-trace skipped for variation:', traceErr);
           }
-        }
 
-        if (tracedCount > 0) {
-          toast.success(`${tracedCount} SVG${tracedCount > 1 ? 's' : ''} traced successfully!`);
-        } else {
-          toast.info('Images ready — click "Trace to SVG" to vectorize.');
-        }
-        setIsTracing(false);
-      })();
+          if (tracedCount > 0) {
+            toast.success(`${tracedCount} SVG${tracedCount > 1 ? 's' : ''} traced successfully!`);
+          } else {
+            toast.info('Images ready — click "Trace to SVG" to vectorize.');
+          }
+          setIsTracing(false);
+        })();
+      }
     } catch (err: any) {
       console.error('Visual generation error:', err);
       toast.error(err?.message || 'Generation failed');
