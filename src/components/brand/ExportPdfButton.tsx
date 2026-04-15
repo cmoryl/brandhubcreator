@@ -132,6 +132,19 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         }
       };
       fetchIntelligence();
+
+      // Fetch visibility audit
+      supabase
+        .from('brand_visibility_audits')
+        .select('*')
+        .eq('entity_id', guide.id)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setVisibilityAudit(data);
+        });
     }
   }, [showPreview, guide.id]);
 
