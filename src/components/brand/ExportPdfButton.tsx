@@ -66,6 +66,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [pageBreaksBefore, setPageBreaksBefore] = useState<Set<SectionId>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['core', 'visual']));
   const [intelligence, setIntelligence] = useState<BrandIntelligenceData | null>(null);
+  const [visibilityAudit, setVisibilityAudit] = useState<any>(null);
   const [socialMetrics, setSocialMetrics] = useState<{
     aggregated: AggregatedSocialMetrics | null;
     snapshots: SocialMetricsSnapshot[];
@@ -131,6 +132,19 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
         }
       };
       fetchIntelligence();
+
+      // Fetch visibility audit
+      supabase
+        .from('brand_visibility_audits')
+        .select('*')
+        .eq('entity_id', guide.id)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setVisibilityAudit(data);
+        });
     }
   }, [showPreview, guide.id]);
 
@@ -715,6 +729,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             key="brief"
             intelligence={intelligence}
             theme={pdfTheme}
+            visibilityAudit={visibilityAudit}
           />
         );
 

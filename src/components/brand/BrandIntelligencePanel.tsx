@@ -187,6 +187,7 @@ export const BrandIntelligencePanel = ({
   parentBrandName 
 }: BrandIntelligencePanelProps) => {
   const [intelligence, setIntelligence] = useState<BrandIntelligence | null>(null);
+  const [visibilityAuditForExport, setVisibilityAuditForExport] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
@@ -261,6 +262,21 @@ export const BrandIntelligencePanel = ({
 
   useEffect(() => {
     fetchIntelligence();
+    // Fetch latest visibility audit for export
+    if (entityId) {
+      supabase
+        .from('brand_visibility_audits')
+        .select('*')
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setVisibilityAuditForExport(data);
+        });
+    }
   }, [entityId]);
 
   const fetchIntelligence = async () => {
@@ -461,7 +477,7 @@ export const BrandIntelligencePanel = ({
                       onClick={async () => {
                         try {
                           toast.loading('Generating PDF...', { id: 'pdf-export' });
-                          await exportBrandIntelligencePdf(intelligence, { entityName, entityType });
+                          await exportBrandIntelligencePdf(intelligence, { entityName, entityType, visibilityAudit: visibilityAuditForExport });
                           toast.success('PDF report downloaded', { id: 'pdf-export' });
                         } catch {
                           toast.error('PDF export failed', { id: 'pdf-export' });
@@ -474,7 +490,7 @@ export const BrandIntelligencePanel = ({
                     <DropdownMenuItem
                       className="gap-2"
                       onClick={() => {
-                        exportBrandIntelligenceHtml(intelligence, { entityName, entityType });
+                        exportBrandIntelligenceHtml(intelligence, { entityName, entityType, visibilityAudit: visibilityAuditForExport });
                         toast.success('HTML report downloaded');
                       }}
                     >
