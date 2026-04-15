@@ -1,93 +1,101 @@
 
 
-# AI Center of Excellence — Implementation Plan
+# Authentic Photography & Imagery Strategy — Implementation Plan
 
 ## What We're Building
 
-A dedicated **AI Center of Excellence** tab in the Admin Dashboard that centralizes all AI-related governance, quality standards, ethics guidelines, and performance tracking into one unified hub. Currently, AI features are scattered across Intelligence Hub, DataForce, Bias Awareness, Bot Manager, and individual entity panels. This consolidation gives admins a single place to manage AI quality, ethics, and efficiency.
+A comprehensive **Photography & Imagery Strategy** system that operationalizes the research recommendation into three concrete platform capabilities:
+
+1. **Imagery Strategy Dashboard** — A new tab in the AI Center of Excellence that surfaces imagery health scores, inclusive prompting compliance, and Visual DNA insights across the portfolio
+2. **Automated Imagery Audit** — An edge function that scores entities' approved imagery and visual direction sections against the inclusive prompting heuristics and Stop/Go framework already in `_shared/inclusive-language-patterns.ts`
+3. **Brand-Level Strategy Enforcement** — Enriching the existing `ImageryGuidelinesPanel` with entity-specific scoring, actionable recommendations, and a compliance badge visible from the admin dashboard
 
 ## Architecture
 
-The AI Center of Excellence will be a new admin tab with sub-tabs:
-
 ```text
-AI Center of Excellence
-├── Overview Dashboard        — Unified AI health metrics, usage stats, quality scores
-├── Governance & Ethics       — AI ethics policies, bias thresholds, compliance rules
-├── Quality Standards         — Model performance tracking, output quality scoring, calibration
-├── Resource Allocation       — AI usage across entities, cost/credit monitoring, rate limit status
-└── Innovation Pipeline       — Strategic AI recommendations, capability roadmap, experiment tracking
+Imagery Strategy System
+├── AI Center → Imagery tab           — Portfolio-wide imagery health dashboard
+├── imagery-strategy-audit (edge fn)  — Scores imagery across entities using inclusive heuristics
+├── ImageryGuidelinesPanel (enhanced) — Per-entity scoring + recommendations
+└── Brand Intelligence (enriched)     — Imagery strategy scores feed into intelligence reports
 ```
 
 ## Detailed Steps
 
-### 1. Create `AICenterOfExcellence.tsx` component (~400 lines)
-New component at `src/components/admin/AICenterOfExcellence.tsx` with 5 sub-tabs:
+### 1. Create `imagery-strategy-audit` Edge Function
+New edge function at `supabase/functions/imagery-strategy-audit/index.ts`:
+- Accepts an entity ID + type, fetches approved imagery sections, Visual DNA, and guide_data imagery settings
+- Uses the existing `INCLUSIVE_PROMPTING_HEURISTICS`, `IMAGERY_STOP_GO`, `IDENTITY_DIVERSITY_GUIDELINES` data from `_shared/inclusive-language-patterns.ts`
+- Calls Lovable AI Gateway (gemini-2.5-flash) to score imagery across 6 dimensions: Diversity Representation, Authenticity, Cultural Context, Action Orientation, Inclusive Prompting Compliance, Stock Photo Dependency
+- Returns structured scores + recommendations
+- Persists results to a new `imagery_strategy_audits` table
 
-- **Overview Dashboard**: Aggregates AI metrics from existing sources — pulls from `brand_intelligence_jobs`, `dataforce_compliance_jobs`, `bias_awareness_scans`, `bot_conversations`, `brand_visibility_audits`. Shows unified scorecards (AI Quality Score, Ethics Compliance %, Resource Efficiency, Innovation Index).
-
-- **Governance & Ethics**: Centralizes bias awareness thresholds, DataForce compliance rules, and cultural validation settings into one editable panel. Shows policy status cards and ethics compliance trends.
-
-- **Quality Standards**: Displays AI calibration data (from existing `AICalibrationPanel`), model output confidence history, and feedback scores. Tracks quality across all AI services.
-
-- **Resource Allocation**: Shows AI usage distribution across brands/products/events, tracks job counts, success/failure rates, and surfaces rate limit or credit warnings.
-
-- **Innovation Pipeline**: Renders Oracle Brain strategic recommendations with actionable tracking — admins can mark recommendations as "In Progress", "Completed", or "Deferred". Persisted to a new DB column or JSONB field.
-
-### 2. Create `useAICenterMetrics.ts` hook
-New hook at `src/hooks/useAICenterMetrics.ts` that fetches and aggregates data from:
-- `brand_intelligence_jobs` (job counts, success rates)
-- `dataforce_compliance_jobs` (compliance scores)
-- `bias_awareness_scans` (inclusion/ethics scores)
-- `bot_conversations` (satisfaction ratings)
-- `brand_visibility_audits` (visibility scores)
-- `oracle_intelligence` (strategic recommendations)
-
-Returns unified metrics object for the dashboard.
-
-### 3. Database Migration — Recommendation Tracking
-Add a `recommendation_actions` table to track admin responses to strategic recommendations:
-
+### 2. Database Migration — `imagery_strategy_audits` Table
 ```sql
-CREATE TABLE public.recommendation_actions (
+CREATE TABLE public.imagery_strategy_audits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-  recommendation_key TEXT NOT NULL,
-  recommendation_text TEXT NOT NULL,
-  source TEXT DEFAULT 'oracle',
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending','in_progress','completed','deferred')),
-  assigned_to UUID REFERENCES auth.users(id),
-  notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  entity_id UUID NOT NULL,
+  entity_type TEXT NOT NULL DEFAULT 'brand',
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  overall_score NUMERIC DEFAULT 0,
+  diversity_score NUMERIC DEFAULT 0,
+  authenticity_score NUMERIC DEFAULT 0,
+  cultural_context_score NUMERIC DEFAULT 0,
+  action_orientation_score NUMERIC DEFAULT 0,
+  inclusive_prompting_score NUMERIC DEFAULT 0,
+  stock_dependency TEXT DEFAULT 'medium',
+  stop_signals_detected JSONB DEFAULT '[]',
+  go_signals_present JSONB DEFAULT '[]',
+  recommendations JSONB DEFAULT '[]',
+  images_analyzed INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
-ALTER TABLE public.recommendation_actions ENABLE ROW LEVEL SECURITY;
--- RLS: org members can read, org admins can write
+-- RLS: org admins can read/write
 ```
 
-### 4. Wire into Admin Dashboard
-- Add "AI Center" nav item to `AdminSidebar.tsx` in the 'analytics' group with a `Cpu` or `GraduationCap` icon
-- Add corresponding `TabsContent` in `AdminDashboard.tsx`
-- Add summary widget to `AdminOverview.tsx` linking to the new tab
+### 3. Add "Imagery" Tab to AI Center of Excellence
+Extend `AICenterOfExcellence.tsx` with a 6th tab — **Imagery Strategy**:
+- Portfolio-wide imagery health scorecards (aggregated from `imagery_strategy_audits`)
+- Per-entity imagery scores table with color-coded compliance badges
+- Stop/Go signal frequency analysis across the portfolio
+- "Run Audit" button to trigger the edge function for selected entities
+- Visual DNA summary cards showing learned preferences vs. inclusive guidelines alignment
 
-### 5. Cross-link from existing panels
-- Oracle Brain strategic recommendations will link to the Innovation Pipeline for action tracking
-- DataForce and Bias Awareness panels get "View in AI Center" quick links
+### 4. Enhance `ImageryGuidelinesPanel`
+Upgrade the existing panel in `src/components/brand/imagery/ImageryGuidelinesPanel.tsx`:
+- Accept entity-specific audit scores as props
+- Show a compliance badge (score ring) at the top
+- Display entity-specific stop signals detected and go signals present
+- Add "Run Imagery Audit" button for admins
+- Show AI-generated recommendations tailored to the entity's actual imagery
+
+### 5. Create `useImageryStrategyAudit` Hook
+New hook at `src/hooks/useImageryStrategyAudit.ts`:
+- Fetches latest audit from `imagery_strategy_audits` for an entity
+- Provides `runAudit()` function that invokes the edge function
+- Returns scores, recommendations, and loading state
+- Used by both the enhanced `ImageryGuidelinesPanel` and the AI Center Imagery tab
+
+### 6. Wire Imagery Scores into Existing Systems
+- **Brand Intelligence Worker**: Already has `inclusive_imagery` in its prompt — add imagery audit scores as additional context
+- **Brand Health Score** (`BrandAnalyticsHub.tsx`): Currently gives imagery only 5/100 weight — increase to reflect strategy importance and pull actual audit scores
+- **Insights Section**: Add imagery audit findings as insight items via the existing pattern
+- **PDF Export**: Include imagery strategy scores in the AI Center PDF export
 
 ## Files Changed
 | File | Action |
 |------|--------|
-| `src/components/admin/AICenterOfExcellence.tsx` | **Create** — Main hub component |
-| `src/hooks/useAICenterMetrics.ts` | **Create** — Aggregated metrics hook |
-| `src/components/admin/AdminSidebar.tsx` | **Edit** — Add nav item |
-| `src/pages/AdminDashboard.tsx` | **Edit** — Add tab content |
-| `src/components/admin/AdminOverview.tsx` | **Edit** — Add summary widget |
-| Migration SQL | **Create** — `recommendation_actions` table |
+| `supabase/functions/imagery-strategy-audit/index.ts` | **Create** — Audit edge function |
+| `src/hooks/useImageryStrategyAudit.ts` | **Create** — Audit data hook |
+| `src/components/admin/AICenterOfExcellence.tsx` | **Edit** — Add Imagery tab |
+| `src/components/brand/imagery/ImageryGuidelinesPanel.tsx` | **Edit** — Add scoring + audit trigger |
+| `src/hooks/useAICenterMetrics.ts` | **Edit** — Aggregate imagery audit data |
+| `supabase/functions/brand-intelligence-worker/index.ts` | **Edit** — Feed imagery audit scores |
+| Migration SQL | **Create** — `imagery_strategy_audits` table |
 
-## What This Achieves
-- **Consistent quality**: Unified quality scoring across all AI services
-- **Reduced redundancy**: Single governance view instead of checking 4+ separate tabs
-- **Ethical AI**: Centralized ethics policies with compliance tracking
-- **Accelerated innovation**: Actionable recommendation pipeline with status tracking
-- **Better resource allocation**: AI usage visibility across the entire portfolio
+## Impact
+- **Credibility**: Every entity gets a measurable imagery authenticity score
+- **Enforcement**: Stop/Go signals are automatically detected, not just guidelines
+- **Emotional connection**: Visual DNA preferences are aligned with inclusive heuristics
+- **Actionable**: Specific recommendations per entity, tracked in the Innovation Pipeline
 
