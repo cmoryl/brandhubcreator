@@ -159,6 +159,18 @@ const BrandEditor = () => {
     }
   }, [user, isApproved, isAdmin, authLoading, navigate]);
 
+  // Refetch brand data when page becomes visible (e.g. returning from Imagery Hub)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refetchBrands();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    refetchBrands();
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [refetchBrands]);
+
   // Ref for scroll-to-top on brand load (effect placed after `brand` is resolved)
   const hasScrolledForBrandRef = useRef<string | null>(null);
 

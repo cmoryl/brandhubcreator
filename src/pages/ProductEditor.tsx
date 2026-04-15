@@ -146,6 +146,18 @@ const ProductEditor = () => {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
 
+  // Refetch product data when page becomes visible (e.g. returning from Imagery Hub)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refetchProducts();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    refetchProducts();
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [refetchProducts]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/');
