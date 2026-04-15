@@ -503,10 +503,12 @@ export const VisualIconGenerator = ({
         <div>
           <h4 className="text-sm font-semibold">Visual Icon Generator</h4>
           <p className="text-xs text-muted-foreground">
-            AI generates 3 variations, then traces each to clean SVG
+            {isRasterStyle ? 'AI generates beautiful 3D raster icons' : 'AI generates 3 variations, then traces each to clean SVG'}
           </p>
         </div>
-        <Badge variant="secondary" className="ml-auto text-[10px]">Image → SVG</Badge>
+        <Badge variant="secondary" className="ml-auto text-[10px]">
+          {isRasterStyle ? '3D Raster' : 'Image → SVG'}
+        </Badge>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
