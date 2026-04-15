@@ -240,12 +240,15 @@ interface DraggableImageGridProps {
   entityType?: string;
   onQualityScored?: (imageId: string, score: number, details: ApprovedImage['qualityDetails']) => void;
   onVisualSearch?: (imageUrl: string) => void;
+  availableSections?: ApprovedImagerySubSection[];
+  onMoveToSection?: (image: ApprovedImage, fromSectionId: string, toSectionId: string) => void;
 }
 
 export const DraggableImageGrid = ({
   images, onReorder, onRemoveImage, onUpdateTags,
   selectedImages, onToggleSelection, selectionMode, sectionId, tagFilter,
   entityId, entityType, onQualityScored, onVisualSearch,
+  availableSections, onMoveToSection,
 }: DraggableImageGridProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -281,6 +284,7 @@ export const DraggableImageGrid = ({
             <SortableImage
               key={image.id}
               image={image}
+              sectionId={sectionId}
               onRemove={() => onRemoveImage(image.id)}
               onTagsChange={tags => onUpdateTags(image.id, tags)}
               isSelected={selectedImages?.has(`${sectionId}::${image.id}`)}
@@ -290,6 +294,8 @@ export const DraggableImageGrid = ({
               entityType={entityType}
               onQualityScored={onQualityScored ? (s, d) => onQualityScored(image.id, s, d) : undefined}
               onVisualSearch={onVisualSearch}
+              availableSections={availableSections}
+              onMoveToSection={onMoveToSection ? (img, targetId) => onMoveToSection(img, sectionId, targetId) : undefined}
             />
           ))}
         </div>
