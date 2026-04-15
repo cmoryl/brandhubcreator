@@ -94,6 +94,28 @@ ${approvedActions.map((a: any) => `- [${a.recommendation_type}] ${a.recommendati
 `;
     }
 
+    // Build brand intelligence knowledge context
+    let knowledgeContext = "";
+    if (intel) {
+      const entries = Array.isArray(intel.knowledge_entries) ? intel.knowledge_entries : [];
+      const imageryKnowledge = entries.filter((e: any) =>
+        e.type === 'competitive_recommendation' || e.type === 'imagery_preference' || e.type === 'brand_insight'
+      );
+      if (imageryKnowledge.length > 0) {
+        knowledgeContext = `
+BRAND INTELLIGENCE KNOWLEDGE (learned preferences and insights stored from past analyses):
+${imageryKnowledge.slice(0, 10).map((e: any) => `- [${e.type}] ${e.title || e.summary || JSON.stringify(e).slice(0, 100)}`).join("\n")}
+`;
+      }
+      const landscape = intel.competitive_landscape as any;
+      if (landscape?.differentiation_opportunities?.length) {
+        knowledgeContext += `
+COMPETITIVE DIFFERENTIATION OPPORTUNITIES:
+${landscape.differentiation_opportunities.slice(0, 5).map((o: string) => `- ${o}`).join("\n")}
+`;
+      }
+    }
+
     const prompt = `You are an imagery curation expert. Based on this brand/entity context, its imagery strategy audit results, and approved competitive recommendations, suggest 6-8 specific Shutterstock search queries that would find ideal stock imagery.
 
 Entity: ${JSON.stringify(context || {})}
