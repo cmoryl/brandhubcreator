@@ -690,3 +690,56 @@ const VisibilitySummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> 
     </Card>
   );
 };
+
+// ─── AI Center Summary ──────────────────────────────────────
+const AICenterSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> = ({ onTabChange }) => {
+  const [data, setData] = useState<{ totalJobs: number; successRate: number; avgCompliance: number } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const [jobsRes, compRes] = await Promise.all([
+        supabase.from('brand_intelligence_jobs').select('status').limit(500),
+        supabase.from('dataforce_compliance_jobs').select('compliance_score').eq('status', 'completed').limit(500),
+      ]);
+      const jobs = jobsRes.data || [];
+      const comp = compRes.data || [];
+      const completed = jobs.filter(j => j.status === 'completed').length;
+      const rate = jobs.length > 0 ? (completed / jobs.length) * 100 : 0;
+      const avgC = comp.length > 0 ? comp.reduce((a, c) => a + (c.compliance_score || 0), 0) / comp.length : 0;
+      setData({ totalJobs: jobs.length, successRate: rate, avgCompliance: avgC });
+    })();
+  }, []);
+
+  const scoreColor = (v: number) => v >= 75 ? 'text-emerald-500' : v >= 50 ? 'text-amber-500' : 'text-destructive';
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="p-3 pb-2 border-b border-border/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Brain className="h-3.5 w-3.5 text-violet-500" />
+            <CardTitle className="text-xs font-semibold">AI Center</CardTitle>
+          </div>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground" onClick={() => onTabChange('ai-center')}>
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-2.5">
+        {!data ? (
+          <div className="flex justify-center py-4"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+        ) : (
+          <div className="space-y-1.5">
+            <SummaryRow icon={Brain} color="text-violet-500" bg="bg-violet-500/10" label="AI Jobs" value={data.totalJobs}
+              sub={`${data.successRate.toFixed(0)}% success`}
+              subColor={scoreColor(data.successRate)}
+              onClick={() => onTabChange('ai-center')} />
+            <SummaryRow icon={Shield} color="text-blue-500" bg="bg-blue-500/10" label="Compliance" value={`${data.avgCompliance.toFixed(0)}%`}
+              subColor={scoreColor(data.avgCompliance)}
+              onClick={() => onTabChange('ai-center')} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
