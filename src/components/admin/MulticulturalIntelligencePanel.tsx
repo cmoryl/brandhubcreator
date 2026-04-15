@@ -7,6 +7,7 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -72,6 +73,7 @@ interface BrandIntelligenceData {
 export const MulticulturalIntelligencePanel: React.FC = () => {
   const { organization } = useOrganization();
   const [entitySortBy, setEntitySortBy] = useState<'name' | 'readiness' | 'type'>('readiness');
+  const [expandedMarket, setExpandedMarket] = useState<string | null>(null);
 
   // Fetch research briefings with multicultural insights - scoped to organization
   const { data: briefings, isLoading: briefingsLoading, refetch: refetchBriefings } = useQuery({
@@ -189,16 +191,46 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
     };
   }, [intelligenceRecords]);
 
-  // Extract unique markets mentioned
+  // Extract unique markets mentioned with entity details
   const marketOpportunities = useMemo(() => {
-    const markets = new Map<string, { mentions: number; readiness: string[] }>();
+    const markets = new Map<string, { 
+      mentions: number; 
+      readiness: string[];
+      entities: Array<{ id: string; name: string; type: string; readinessScore: number; culturalNotes: string[] }>;
+    }>();
 
     intelligenceRecords?.forEach(record => {
-      const culturalInsights = record.cultural_insights;
+      const culturalInsights = record.cultural_insights as any;
       if (culturalInsights?.primary_markets) {
-        culturalInsights.primary_markets.forEach(market => {
-          const existing = markets.get(market) || { mentions: 0, readiness: [] };
+        const entityName = entityNames?.get(record.entity_id) || record.entity_id.slice(0, 8);
+        const readinessScore = record.localization_readiness_score || culturalInsights?.global_readiness_score || 0;
+
+        culturalInsights.primary_markets.forEach((market: string) => {
+          const existing = markets.get(market) || { mentions: 0, readiness: [], entities: [] };
           existing.mentions++;
+
+          // Collect cultural notes relevant to this market
+          const culturalNotes: string[] = [];
+          if (Array.isArray(culturalInsights?.cultural_considerations)) {
+            culturalInsights.cultural_considerations.forEach((c: any) => {
+              const note = typeof c === 'string' ? c : c?.text || c?.description;
+              if (note) culturalNotes.push(note);
+            });
+          }
+          if (Array.isArray(culturalInsights?.priority_adaptations)) {
+            culturalInsights.priority_adaptations.forEach((a: any) => {
+              const note = typeof a === 'string' ? a : a?.text || a?.description;
+              if (note) culturalNotes.push(note);
+            });
+          }
+
+          existing.entities.push({
+            id: record.entity_id,
+            name: entityName,
+            type: record.entity_type,
+            readinessScore,
+            culturalNotes: culturalNotes.slice(0, 3),
+          });
           markets.set(market, existing);
         });
       }
@@ -207,7 +239,7 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
     return Array.from(markets.entries())
       .sort((a, b) => b[1].mentions - a[1].mentions)
       .slice(0, 10);
-  }, [intelligenceRecords]);
+  }, [intelligenceRecords, entityNames]);
 
   const sortedEntityRecords = useMemo(() => {
     const filtered = intelligenceRecords?.filter(r => r.cultural_insights) || [];
@@ -425,27 +457,71 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
             <CardContent>
               {marketOpportunities.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {marketOpportunities.map(([market, data]) => (
-                    <div 
-                      key={market}
-                      className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <MapPin className="h-4 w-4 text-primary" />
+                  {marketOpportunities.map(([market, data]) => {
+                    const isExpanded = expandedMarket === market;
+                    return (
+                      <div 
+                        key={market}
+                        className={cn(
+                          "rounded-lg border bg-card transition-all cursor-pointer",
+                          isExpanded ? "md:col-span-2 ring-1 ring-primary/30" : "hover:bg-muted/50"
+                        )}
+                        onClick={() => setExpandedMarket(isExpanded ? null : market)}
+                      >
+                        <div className="flex items-center justify-between p-3">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                              <MapPin className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{market}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {data.mentions} {data.mentions === 1 ? 'mention' : 'mentions'} across entities
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">Opportunity</Badge>
+                            <ArrowRight className={cn("h-4 w-4 text-muted-foreground transition-transform", isExpanded && "rotate-90")} />
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{market}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {data.mentions} {data.mentions === 1 ? 'mention' : 'mentions'} across entities
-                          </p>
-                        </div>
+
+                        {isExpanded && (
+                          <div className="border-t px-4 py-3 space-y-3">
+                            <p className="text-sm font-medium text-muted-foreground">
+                              Mentioned by {data.entities.length} {data.entities.length === 1 ? 'entity' : 'entities'}
+                            </p>
+                            <div className="space-y-2">
+                              {data.entities.map((entity) => (
+                                <div key={entity.id} className="p-3 rounded-md border bg-muted/30">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="secondary" className="text-[10px] h-5 capitalize">{entity.type}</Badge>
+                                      <span className="text-sm font-medium">{entity.name}</span>
+                                    </div>
+                                    <span className={cn("text-sm font-semibold", getReadinessColor(entity.readinessScore))}>
+                                      {Math.round(entity.readinessScore)}% ready
+                                    </span>
+                                  </div>
+                                  <Progress value={entity.readinessScore} className="h-1.5 my-1.5" />
+                                  {entity.culturalNotes.length > 0 && (
+                                    <ul className="mt-2 space-y-1">
+                                      {entity.culturalNotes.map((note, i) => (
+                                        <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                                          <Lightbulb className="h-3 w-3 shrink-0 mt-0.5 text-primary" />
+                                          {note}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <Badge variant="outline">
-                        Opportunity
-                      </Badge>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
