@@ -156,6 +156,18 @@ const EventEditor = () => {
     }
   }, [user, isApproved, isAdmin, authLoading, navigate]);
 
+  // Refetch event data when page becomes visible (e.g. returning from Imagery Hub)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refetchEvents();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    refetchEvents();
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [refetchEvents]);
+
   // Note: scroll-to-top on route change is handled by ScrollToTop component
 
   // Scroll to section when sidebar nav is clicked, then flash highlight
