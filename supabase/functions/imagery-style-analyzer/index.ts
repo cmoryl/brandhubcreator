@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -57,8 +57,10 @@ serve(async (req) => {
       values: (guideData.values || []).slice(0, 5).map((v: any) => v?.text || v).filter(Boolean),
     };
 
-    const imageDescriptions = images.map((img: any, i: number) =>
-      `Image ${i + 1} (ID: ${img.id}): "${img.title}" - URL: ${img.url}`
+    // Limit to 15 images max for speed, send only titles (not URLs - AI can't see them anyway)
+    const limitedImages = images.slice(0, 15);
+    const imageDescriptions = limitedImages.map((img: any, i: number) =>
+      `${i + 1}. "${img.title || 'Untitled'}" (ID: ${img.id})`
     ).join("\n");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -68,55 +70,73 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You are a visual brand consistency analyst. Analyze the provided imagery collection for a ${entityType} called "${brandContext.name}".
-Brand context: archetype "${brandContext.archetype}", colors: ${brandContext.colors.join(", ")}, values: ${brandContext.values.join(", ")}.
-Evaluate visual consistency across the collection including color harmony, style cohesion, mood alignment, and brand fit.`;
+    const systemPrompt = `You are a visual brand consistency analyst. Analyze imagery for "${brandContext.name}" (${entityType}).
+Brand: archetype "${brandContext.archetype}", colors: [${brandContext.colors.join(", ")}], values: [${brandContext.values.join(", ")}].
+Based on the image titles/descriptions, evaluate visual consistency. Be concise.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Analyze these ${images.length} images for visual style consistency:\n\n${imageDescriptions}` },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "report_style_analysis",
-            description: "Return the visual style analysis results",
-            parameters: {
-              type: "object",
-              properties: {
-                cohesionScore: { type: "number", description: "Overall style cohesion score 0-100" },
-                dominantPalette: { type: "array", items: { type: "string" }, description: "Dominant hex colors detected across imagery" },
-                styleTags: { type: "array", items: { type: "string" }, description: "Visual style descriptors (e.g. 'corporate', 'warm', 'minimal')" },
-                outliers: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      imageId: { type: "string" },
-                      imageUrl: { type: "string" },
-                      reason: { type: "string" },
+    // Use AbortController with 50s timeout to prevent hanging
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 50000);
+
+    let response: Response;
+    try {
+      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Analyze these ${limitedImages.length} images for visual style consistency:\n\n${imageDescriptions}\n\nProvide cohesion score, palette, style tags, any outliers, and recommendations.` },
+          ],
+          tools: [{
+            type: "function",
+            function: {
+              name: "report_style_analysis",
+              description: "Return the visual style analysis results",
+              parameters: {
+                type: "object",
+                properties: {
+                  cohesionScore: { type: "number", description: "Overall style cohesion score 0-100" },
+                  dominantPalette: { type: "array", items: { type: "string" }, description: "Up to 5 dominant hex colors" },
+                  styleTags: { type: "array", items: { type: "string" }, description: "3-6 visual style descriptors" },
+                  outliers: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        imageId: { type: "string" },
+                        imageUrl: { type: "string" },
+                        reason: { type: "string" },
+                      },
+                      required: ["imageId", "imageUrl", "reason"],
                     },
-                    required: ["imageId", "imageUrl", "reason"],
+                    description: "Images that don't fit the overall style (max 3)",
                   },
-                  description: "Images that don't fit the overall style",
+                  recommendations: { type: "array", items: { type: "string" }, description: "2-4 actionable recommendations" },
                 },
-                recommendations: { type: "array", items: { type: "string" }, description: "Actionable recommendations to improve consistency" },
+                required: ["cohesionScore", "dominantPalette", "styleTags", "outliers", "recommendations"],
+                additionalProperties: false,
               },
-              required: ["cohesionScore", "dominantPalette", "styleTags", "outliers", "recommendations"],
             },
-          },
-        }],
-        tool_choice: { type: "function", function: { name: "report_style_analysis" } },
-      }),
-    });
+          }],
+          tool_choice: { type: "function", function: { name: "report_style_analysis" } },
+        }),
+        signal: controller.signal,
+      });
+    } catch (abortErr: any) {
+      if (abortErr.name === 'AbortError') {
+        return new Response(JSON.stringify({ error: "Analysis timed out. Try with fewer images." }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      throw abortErr;
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -129,6 +149,8 @@ Evaluate visual consistency across the collection including color harmony, style
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      const errText = await response.text();
+      console.error("AI gateway error:", response.status, errText);
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
@@ -136,6 +158,11 @@ Evaluate visual consistency across the collection including color harmony, style
     const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
 
     if (!toolCall?.function?.arguments) {
+      // Fallback: try to parse from content
+      const content = aiResponse.choices?.[0]?.message?.content;
+      if (content) {
+        console.log("No tool call, got content instead:", content.slice(0, 200));
+      }
       throw new Error("No analysis returned from AI");
     }
 
@@ -143,12 +170,21 @@ Evaluate visual consistency across the collection including color harmony, style
       ? JSON.parse(toolCall.function.arguments)
       : toolCall.function.arguments;
 
+    // Ensure outliers have imageUrl from our input data
+    if (analysis.outliers) {
+      const imageMap = new Map(limitedImages.map((img: any) => [img.id, img.url]));
+      analysis.outliers = analysis.outliers.map((o: any) => ({
+        ...o,
+        imageUrl: o.imageUrl || imageMap.get(o.imageId) || '',
+      }));
+    }
+
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("imagery-style-analyzer error:", err);
-    return new Response(JSON.stringify({ error: "Analysis failed" }), {
+    return new Response(JSON.stringify({ error: "Analysis failed. Please try again." }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
