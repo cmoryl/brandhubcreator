@@ -477,7 +477,7 @@ export const BrandIntelligencePanel = ({
                       onClick={async () => {
                         try {
                           toast.loading('Generating PDF...', { id: 'pdf-export' });
-                          await exportBrandIntelligencePdf(intelligence, { entityName, entityType });
+                          await exportBrandIntelligencePdf(intelligence, { entityName, entityType, visibilityAudit: visibilityAuditForExport });
                           toast.success('PDF report downloaded', { id: 'pdf-export' });
                         } catch {
                           toast.error('PDF export failed', { id: 'pdf-export' });
@@ -490,7 +490,7 @@ export const BrandIntelligencePanel = ({
                     <DropdownMenuItem
                       className="gap-2"
                       onClick={() => {
-                        exportBrandIntelligenceHtml(intelligence, { entityName, entityType });
+                        exportBrandIntelligenceHtml(intelligence, { entityName, entityType, visibilityAudit: visibilityAuditForExport });
                         toast.success('HTML report downloaded');
                       }}
                     >
