@@ -131,7 +131,7 @@ const EventEditor = () => {
   const { eventSlug } = useParams<{ eventSlug: string }>();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const { getEvent, getEventBySlug, updateEvent: updateEventContext, toggleFavorite, isLoading } = useEvents();
+  const { getEvent, getEventBySlug, updateEvent: updateEventContext, toggleFavorite, isLoading, refetch: refetchEvents } = useEvents();
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
   

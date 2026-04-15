@@ -126,7 +126,7 @@ const ProductEditor = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
-  const { getProduct, getProductBySlug, updateProduct, toggleFavorite, isLoading } = useBrands();
+  const { getProduct, getProductBySlug, updateProduct, toggleFavorite, isLoading, refetch: refetchProducts } = useBrands();
   const { user, isAdmin, isApproved, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
 
