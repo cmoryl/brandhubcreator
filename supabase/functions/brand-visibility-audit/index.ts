@@ -3,7 +3,6 @@
  * Analyzes search visibility, AI platform presence, and social/media gaps
  * Uses async job pattern for heavy processing
  */
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
