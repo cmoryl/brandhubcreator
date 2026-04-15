@@ -74,9 +74,9 @@ serve(async (req) => {
 Brand: archetype "${brandContext.archetype}", colors: [${brandContext.colors.join(", ")}], values: [${brandContext.values.join(", ")}].
 Based on the image titles/descriptions, evaluate visual consistency. Be concise.`;
 
-    // Use AbortController with 25s timeout to prevent hanging
+    // Use AbortController with 50s timeout to prevent hanging
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000);
+    const timeout = setTimeout(() => controller.abort(), 50000);
 
     let response: Response;
     try {
