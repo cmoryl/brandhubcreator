@@ -726,11 +726,28 @@ export const VisualIconGenerator = ({
                       </Badge>
                     )}
                   </div>
-                  <Badge variant={selected.phase === 'full' ? 'default' : 'secondary'} className="text-[9px]">
-                    {selected.phase === 'full' ? '✓ SVG Ready' : isTracing ? 'Tracing SVG…' : 'Image Only'}
+                  <Badge variant={selected.phase === 'full' || selected.phase === 'raster' ? 'default' : 'secondary'} className="text-[9px]">
+                    {selected.phase === 'raster' ? '✓ 3D Ready' : selected.phase === 'full' ? '✓ SVG Ready' : isTracing ? 'Tracing SVG…' : 'Image Only'}
                   </Badge>
                 </div>
-                <div className="grid grid-cols-2 divide-x">
+
+                {selected.phase === 'raster' || selected.isRaster ? (
+                  /* Raster mode: full-width image preview */
+                  <div className="p-6 flex flex-col items-center gap-3">
+                    <button
+                      onClick={() => setEnlargedView('image')}
+                      className="group relative w-40 h-40 rounded-xl border-2 border-dashed border-muted bg-[repeating-conic-gradient(hsl(var(--muted))_0%_25%,transparent_0%_50%)] bg-[length:16px_16px] flex items-center justify-center p-3 cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all"
+                    >
+                      <img src={selected.imageUrl} alt="Generated 3D icon" className="max-w-full max-h-full object-contain drop-shadow-lg" />
+                      <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/5 rounded-xl transition-colors flex items-center justify-center">
+                        <Maximize2 className="h-5 w-5 text-foreground/0 group-hover:text-foreground/60 transition-colors" />
+                      </div>
+                    </button>
+                    <p className="text-[10px] text-muted-foreground">3D Raster Icon • Click to enlarge</p>
+                  </div>
+                ) : (
+                  /* Vector mode: split image/SVG view */
+                  <div className="grid grid-cols-2 divide-x">
                   {/* Generated Image */}
                   <div className="p-4 flex flex-col items-center gap-2">
                     <p className="text-[10px] text-muted-foreground font-medium">Generated Image</p>
@@ -781,6 +798,7 @@ export const VisualIconGenerator = ({
                     </button>
                   </div>
                 </div>
+                )}
 
                 {/* Enlarged Preview Dialog */}
                 {enlargedView && (
