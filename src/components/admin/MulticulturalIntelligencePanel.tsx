@@ -456,27 +456,71 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
             <CardContent>
               {marketOpportunities.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {marketOpportunities.map(([market, data]) => (
-                    <div 
-                      key={market}
-                      className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <MapPin className="h-4 w-4 text-primary" />
+                  {marketOpportunities.map(([market, data]) => {
+                    const isExpanded = expandedMarket === market;
+                    return (
+                      <div 
+                        key={market}
+                        className={cn(
+                          "rounded-lg border bg-card transition-all cursor-pointer",
+                          isExpanded ? "md:col-span-2 ring-1 ring-primary/30" : "hover:bg-muted/50"
+                        )}
+                        onClick={() => setExpandedMarket(isExpanded ? null : market)}
+                      >
+                        <div className="flex items-center justify-between p-3">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                              <MapPin className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{market}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {data.mentions} {data.mentions === 1 ? 'mention' : 'mentions'} across entities
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">Opportunity</Badge>
+                            <ArrowRight className={cn("h-4 w-4 text-muted-foreground transition-transform", isExpanded && "rotate-90")} />
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{market}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {data.mentions} {data.mentions === 1 ? 'mention' : 'mentions'} across entities
-                          </p>
-                        </div>
+
+                        {isExpanded && (
+                          <div className="border-t px-4 py-3 space-y-3">
+                            <p className="text-sm font-medium text-muted-foreground">
+                              Mentioned by {data.entities.length} {data.entities.length === 1 ? 'entity' : 'entities'}
+                            </p>
+                            <div className="space-y-2">
+                              {data.entities.map((entity) => (
+                                <div key={entity.id} className="p-3 rounded-md border bg-muted/30">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="secondary" className="text-[10px] h-5 capitalize">{entity.type}</Badge>
+                                      <span className="text-sm font-medium">{entity.name}</span>
+                                    </div>
+                                    <span className={cn("text-sm font-semibold", getReadinessColor(entity.readinessScore))}>
+                                      {Math.round(entity.readinessScore)}% ready
+                                    </span>
+                                  </div>
+                                  <Progress value={entity.readinessScore} className="h-1.5 my-1.5" />
+                                  {entity.culturalNotes.length > 0 && (
+                                    <ul className="mt-2 space-y-1">
+                                      {entity.culturalNotes.map((note, i) => (
+                                        <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                                          <Lightbulb className="h-3 w-3 shrink-0 mt-0.5 text-primary" />
+                                          {note}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <Badge variant="outline">
-                        Opportunity
-                      </Badge>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
