@@ -632,23 +632,25 @@ export default function AdminDashboard() {
           <div className="p-4 md:p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsContent value="overview" className="space-y-6">
-            <AdminOverview
-              stats={stats}
-              activityLogs={activityLogs}
-              onTabChange={setActiveTab}
-              onRefresh={fetchDashboardData}
-              isLoading={isLoading}
-              isSuperAdmin={isSuperAdmin}
-            />
+            <Suspense fallback={<TabPanelFallback />}>
+              <AdminOverview
+                stats={stats}
+                activityLogs={activityLogs}
+                onTabChange={setActiveTab}
+                onRefresh={fetchDashboardData}
+                isLoading={isLoading}
+                isSuperAdmin={isSuperAdmin}
+              />
+            </Suspense>
           </TabsContent>
 
-          {/* People Hub (Users, Approvals, Leads) */}
           <TabsContent value="people" className="space-y-6">
-            <PeopleHub pendingApprovals={stats?.pendingApprovals} />
+            <Suspense fallback={<TabPanelFallback />}>
+              <PeopleHub pendingApprovals={stats?.pendingApprovals} />
+            </Suspense>
           </TabsContent>
 
-
-          {/* Organizations Tab */}
+          {/* Organizations Tab — inline, no heavy deps */}
           <TabsContent value="organizations" className="space-y-6">
             <Card>
               <CardHeader>
@@ -711,235 +713,163 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-
-          {/* Data Inspector Tab */}
           <TabsContent value="inspector" className="space-y-6">
-            <DataInspector />
+            <Suspense fallback={<TabPanelFallback />}><DataInspector /></Suspense>
           </TabsContent>
 
-          {/* Reports Tab */}
           <TabsContent value="reports" className="space-y-6">
-            <Tabs defaultValue="brands" className="w-full">
-              <TabsList className="mb-4 w-full flex-wrap h-auto gap-1">
-                <TabsTrigger value="brands" className="gap-1.5 text-xs sm:text-sm">
-                  <Palette className="h-4 w-4" />
-                  Brands
-                </TabsTrigger>
-                <TabsTrigger value="products" className="gap-1.5 text-xs sm:text-sm">
-                  <Package className="h-4 w-4" />
-                  Products
-                </TabsTrigger>
-                <TabsTrigger value="events" className="gap-1.5 text-xs sm:text-sm">
-                  <CalendarDays className="h-4 w-4" />
-                  Events
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="brands">
-                <BrandReportGenerator />
-              </TabsContent>
-              <TabsContent value="products">
-                <ProductReportGenerator />
-              </TabsContent>
-              <TabsContent value="events">
-                <EventReportGenerator />
-              </TabsContent>
-            </Tabs>
+            <Suspense fallback={<TabPanelFallback />}>
+              <Tabs defaultValue="brands" className="w-full">
+                <TabsList className="mb-4 w-full flex-wrap h-auto gap-1">
+                  <TabsTrigger value="brands" className="gap-1.5 text-xs sm:text-sm"><Palette className="h-4 w-4" />Brands</TabsTrigger>
+                  <TabsTrigger value="products" className="gap-1.5 text-xs sm:text-sm"><Package className="h-4 w-4" />Products</TabsTrigger>
+                  <TabsTrigger value="events" className="gap-1.5 text-xs sm:text-sm"><CalendarDays className="h-4 w-4" />Events</TabsTrigger>
+                </TabsList>
+                <TabsContent value="brands"><BrandReportGenerator /></TabsContent>
+                <TabsContent value="products"><ProductReportGenerator /></TabsContent>
+                <TabsContent value="events"><EventReportGenerator /></TabsContent>
+              </Tabs>
+            </Suspense>
           </TabsContent>
 
-          {/* Brand Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
-            <BrandAnalyticsHub />
+            <Suspense fallback={<TabPanelFallback />}><BrandAnalyticsHub /></Suspense>
           </TabsContent>
 
-          {/* User Analytics Tab */}
           <TabsContent value="user-analytics" className="space-y-6">
-            <UserAnalyticsTab />
+            <Suspense fallback={<TabPanelFallback />}><UserAnalyticsTab /></Suspense>
           </TabsContent>
 
-          {/* Downloads Report Tab */}
           <TabsContent value="downloads" className="space-y-6">
-            <DownloadsReportPanel />
+            <Suspense fallback={<TabPanelFallback />}><DownloadsReportPanel /></Suspense>
           </TabsContent>
 
-          {/* Intelligence Hub Tab */}
           <TabsContent value="intelligence" className="space-y-6">
-            <Tabs defaultValue="oracle" className="w-full">
-              <TabsList className="mb-4 flex-wrap h-auto gap-1 w-full">
-                <TabsTrigger value="oracle" className="gap-2 text-xs sm:text-sm">
-                  <Brain className="h-4 w-4" />
-                  Oracle
-                </TabsTrigger>
-                <TabsTrigger value="ai-analysis" className="gap-2 text-xs sm:text-sm">
-                  <BarChart3 className="h-4 w-4" />
-                  AI Analysis
-                </TabsTrigger>
-                <TabsTrigger value="multicultural" className="gap-2 text-xs sm:text-sm">
-                  <Users className="h-4 w-4" />
-                  Multicultural
-                </TabsTrigger>
-                <TabsTrigger value="research" className="gap-2 text-xs sm:text-sm">
-                  <Eye className="h-4 w-4" />
-                  Research
-                </TabsTrigger>
-                <TabsTrigger value="visibility" className="gap-2 text-xs sm:text-sm">
-                  <Eye className="h-4 w-4" />
-                  Visibility
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="oracle">
-                <OracleBrainPanel organizationId={organizations[0]?.id} />
-              </TabsContent>
-              <TabsContent value="ai-analysis">
-                <AIMarketAnalysis />
-              </TabsContent>
-              <TabsContent value="multicultural">
-                <MulticulturalIntelligencePanel />
-              </TabsContent>
-              <TabsContent value="research">
-                <ResearchBriefingsPanel />
-              </TabsContent>
-              <TabsContent value="visibility">
-                {organizations[0]?.id ? (
-                  <VisibilityDashboard organizationId={organizations[0].id} />
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">No organization found</p>
-                )}
-              </TabsContent>
-            </Tabs>
+            <Suspense fallback={<TabPanelFallback />}>
+              <Tabs defaultValue="oracle" className="w-full">
+                <TabsList className="mb-4 flex-wrap h-auto gap-1 w-full">
+                  <TabsTrigger value="oracle" className="gap-2 text-xs sm:text-sm"><Brain className="h-4 w-4" />Oracle</TabsTrigger>
+                  <TabsTrigger value="ai-analysis" className="gap-2 text-xs sm:text-sm"><BarChart3 className="h-4 w-4" />AI Analysis</TabsTrigger>
+                  <TabsTrigger value="multicultural" className="gap-2 text-xs sm:text-sm"><Users className="h-4 w-4" />Multicultural</TabsTrigger>
+                  <TabsTrigger value="research" className="gap-2 text-xs sm:text-sm"><Eye className="h-4 w-4" />Research</TabsTrigger>
+                  <TabsTrigger value="visibility" className="gap-2 text-xs sm:text-sm"><Eye className="h-4 w-4" />Visibility</TabsTrigger>
+                </TabsList>
+                <TabsContent value="oracle"><OracleBrainPanel organizationId={organizations[0]?.id} /></TabsContent>
+                <TabsContent value="ai-analysis"><AIMarketAnalysis /></TabsContent>
+                <TabsContent value="multicultural"><MulticulturalIntelligencePanel /></TabsContent>
+                <TabsContent value="research"><ResearchBriefingsPanel /></TabsContent>
+                <TabsContent value="visibility">
+                  {organizations[0]?.id ? (
+                    <VisibilityDashboard organizationId={organizations[0].id} />
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-8">No organization found</p>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </Suspense>
           </TabsContent>
 
-          {/* DataForce AI Tab */}
           <TabsContent value="dataforce" className="space-y-6">
-            <DataForceAdminPanel />
+            <Suspense fallback={<TabPanelFallback />}><DataForceAdminPanel /></Suspense>
           </TabsContent>
 
-          {/* Bias Awareness Tab */}
           <TabsContent value="bias-awareness" className="space-y-6">
-            <BiasAwarenessAdminPanel />
+            <Suspense fallback={<TabPanelFallback />}><BiasAwarenessAdminPanel /></Suspense>
           </TabsContent>
 
-          {/* Health Timeline Tab */}
           <TabsContent value="health-timeline" className="space-y-6">
-            <HealthTimelinePanel />
+            <Suspense fallback={<TabPanelFallback />}><HealthTimelinePanel /></Suspense>
           </TabsContent>
 
-          {/* Portfolio Insights Tab */}
           <TabsContent value="portfolio-insights" className="space-y-6">
-            <PortfolioInsightsPanel />
+            <Suspense fallback={<TabPanelFallback />}><PortfolioInsightsPanel /></Suspense>
           </TabsContent>
 
-          {/* AI Center of Excellence Tab */}
           <TabsContent value="ai-center" className="space-y-6">
-            <AICenterOfExcellence />
+            <Suspense fallback={<TabPanelFallback />}><AICenterOfExcellence /></Suspense>
           </TabsContent>
 
-          {/* Bot Management Tab */}
           <TabsContent value="bot-management" className="space-y-6">
-            <BotManagementPanel />
+            <Suspense fallback={<TabPanelFallback />}><BotManagementPanel /></Suspense>
           </TabsContent>
 
-          {/* Accessibility Standards Tab */}
           <TabsContent value="accessibility" className="space-y-6">
-            <AccessibilityStandardsPanel />
+            <Suspense fallback={<TabPanelFallback />}><AccessibilityStandardsPanel /></Suspense>
           </TabsContent>
 
-          {/* Activity Tab */}
           <TabsContent value="activity" className="space-y-6">
-            <Tabs defaultValue="analytics">
-              <TabsList>
-                <TabsTrigger value="analytics">Analytics Hub</TabsTrigger>
-                <TabsTrigger value="logs">Activity Logs</TabsTrigger>
-              </TabsList>
-              <TabsContent value="analytics" className="mt-4">
-                <ActivityAnalyticsHub />
-              </TabsContent>
-              <TabsContent value="logs" className="mt-4">
-                <ActivityLogsPanel />
-              </TabsContent>
-            </Tabs>
+            <Suspense fallback={<TabPanelFallback />}>
+              <Tabs defaultValue="analytics">
+                <TabsList>
+                  <TabsTrigger value="analytics">Analytics Hub</TabsTrigger>
+                  <TabsTrigger value="logs">Activity Logs</TabsTrigger>
+                </TabsList>
+                <TabsContent value="analytics" className="mt-4"><ActivityAnalyticsHub /></TabsContent>
+                <TabsContent value="logs" className="mt-4"><ActivityLogsPanel /></TabsContent>
+              </Tabs>
+            </Suspense>
           </TabsContent>
 
-          {/* Repair Tab - Super Admin only */}
           {isSuperAdmin && (
           <TabsContent value="repair" className="space-y-6">
-            <HiddenSectionsScanner />
-            <BulkRepairTool />
+            <Suspense fallback={<TabPanelFallback />}>
+              <HiddenSectionsScanner />
+              <BulkRepairTool />
+            </Suspense>
           </TabsContent>
           )}
 
-          {/* Image Library Tab */}
           <TabsContent value="image-library" className="space-y-6">
-            <AdminImageLibrary />
+            <Suspense fallback={<TabPanelFallback />}><AdminImageLibrary /></Suspense>
           </TabsContent>
 
-          {/* Logo Hub Tab */}
           <TabsContent value="logo-hub" className="space-y-6">
-            <GlobalLogoHub />
+            <Suspense fallback={<TabPanelFallback />}><GlobalLogoHub /></Suspense>
           </TabsContent>
 
-          {/* Unified Backups Tab */}
           <TabsContent value="backups" className="space-y-6">
-            <Tabs defaultValue="org-backups" className="w-full">
-              <TabsList className="mb-4 w-full flex-wrap h-auto gap-1">
-                <TabsTrigger value="org-backups" className="gap-2 text-xs sm:text-sm">
-                  <HardDrive className="h-4 w-4" />
-                  Organization
-                </TabsTrigger>
-                <TabsTrigger value="universe-backups" className="gap-2 text-xs sm:text-sm">
-                  <BarChart3 className="h-4 w-4" />
-                  Universe
-                </TabsTrigger>
-                <TabsTrigger value="suite-backups" className="gap-2 text-xs sm:text-sm">
-                  <Package className="h-4 w-4" />
-                  Product Suite
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="org-backups">
-                <div className="grid gap-6">
-                  {organizations.map((org) => (
-                    <CompressedBackupManager
-                      key={org.id}
-                      organizationId={org.id}
-                      organizationName={org.name}
-                    />
-                  ))}
-                  {organizations.length === 0 && (
-                    <Card>
-                      <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                        <HardDrive className="h-12 w-12 mb-4 opacity-50" />
-                        <p className="text-lg font-medium">No organizations found</p>
-                        <p className="text-sm">Organizations will appear here for backup management</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </TabsContent>
-              <TabsContent value="universe-backups">
-                <UniverseBackupManager />
-              </TabsContent>
-              <TabsContent value="suite-backups">
-                <ProductSuiteBackupManager />
-              </TabsContent>
-            </Tabs>
+            <Suspense fallback={<TabPanelFallback />}>
+              <Tabs defaultValue="org-backups" className="w-full">
+                <TabsList className="mb-4 w-full flex-wrap h-auto gap-1">
+                  <TabsTrigger value="org-backups" className="gap-2 text-xs sm:text-sm"><HardDrive className="h-4 w-4" />Organization</TabsTrigger>
+                  <TabsTrigger value="universe-backups" className="gap-2 text-xs sm:text-sm"><BarChart3 className="h-4 w-4" />Universe</TabsTrigger>
+                  <TabsTrigger value="suite-backups" className="gap-2 text-xs sm:text-sm"><Package className="h-4 w-4" />Product Suite</TabsTrigger>
+                </TabsList>
+                <TabsContent value="org-backups">
+                  <div className="grid gap-6">
+                    {organizations.map((org) => (
+                      <CompressedBackupManager key={org.id} organizationId={org.id} organizationName={org.name} />
+                    ))}
+                    {organizations.length === 0 && (
+                      <Card>
+                        <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                          <HardDrive className="h-12 w-12 mb-4 opacity-50" />
+                          <p className="text-lg font-medium">No organizations found</p>
+                          <p className="text-sm">Organizations will appear here for backup management</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </TabsContent>
+                <TabsContent value="universe-backups"><UniverseBackupManager /></TabsContent>
+                <TabsContent value="suite-backups"><ProductSuiteBackupManager /></TabsContent>
+              </Tabs>
+            </Suspense>
           </TabsContent>
 
-
-
-
-          {/* Demo Pages Tab */}
           <TabsContent value="demo-pages" className="space-y-6">
-            <DemoGuidesManager />
+            <Suspense fallback={<TabPanelFallback />}><DemoGuidesManager /></Suspense>
           </TabsContent>
 
-          {/* Company Locations Tab */}
           <TabsContent value="locations" className="space-y-6">
-            <GlobalMapThemeEditor />
-            <CompanyLocationsManager />
+            <Suspense fallback={<TabPanelFallback />}>
+              <GlobalMapThemeEditor />
+              <CompanyLocationsManager />
+            </Suspense>
           </TabsContent>
 
-          {/* GlobalLink Localization Tab */}
           <TabsContent value="globallink" className="space-y-6">
-            <GlobalLinkAdminSection />
+            <Suspense fallback={<TabPanelFallback />}><GlobalLinkAdminSection /></Suspense>
           </TabsContent>
 
         </Tabs>
