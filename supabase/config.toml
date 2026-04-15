@@ -136,3 +136,6 @@ verify_jwt = false
 
 [functions.extract-asset-content]
 verify_jwt = false
+
+[functions.generate-icon-visual]
+verify_jwt = false
