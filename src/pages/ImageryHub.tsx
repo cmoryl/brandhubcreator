@@ -104,7 +104,8 @@ const ImageryHub = () => {
       });
       if (error) throw error;
       setAiSuggestions(data?.suggestions || []);
-      toast.success('AI suggestions generated');
+      if (data?.auditScore != null) setAuditScore(data.auditScore);
+      toast.success(data?.hasAudit ? 'AI suggestions generated (audit-informed)' : 'AI suggestions generated');
     } catch (err) {
       console.error('AI suggestion error:', err);
       toast.error('Failed to generate suggestions');
