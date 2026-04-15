@@ -184,7 +184,8 @@ export function useAICenterMetrics() {
       };
       jobs.forEach(j => {
         if (!j.entity_id) return;
-        const e = ensureEntity(j.entity_id, j.entity_id, j.entity_type || 'brand');
+        const resolvedName = entityNameMap.get(j.entity_id) || j.entity_id;
+        const e = ensureEntity(j.entity_id, resolvedName, j.entity_type || 'brand');
         e.intelligenceJobs++;
         if (j.status === 'completed') e.successRate++;
       });
