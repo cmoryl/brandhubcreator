@@ -156,8 +156,14 @@ Deno.serve(async (req) => {
       const vaultImageryItems: any[] = guideData.imagery || [];
 
       // === SOURCE 2: Approved Imagery Sub-Sections ===
-      const approvedImagery: any[] = guideData.approvedImagery || [];
-      const approvedSubImages = approvedImagery.flatMap((section: any) =>
+      const rawApprovedImagery = guideData.approvedImagery;
+      // approvedImagery can be an array of sections OR an object with a .sections array
+      const approvedImageryArr: any[] = Array.isArray(rawApprovedImagery)
+        ? rawApprovedImagery
+        : Array.isArray(rawApprovedImagery?.sections)
+          ? rawApprovedImagery.sections
+          : [];
+      const approvedSubImages = approvedImageryArr.flatMap((section: any) =>
         (section.images || []).map((img: any) => ({
           title: img.title || img.description || '',
           description: (img.description || img.alt || '').slice(0, 100),
