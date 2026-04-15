@@ -5,6 +5,7 @@ import { useComplianceAuditInsights } from '@/hooks/useComplianceAuditInsights';
 import { useSocialMetricsInsights } from '@/hooks/useSocialMetricsInsights';
 import { useBiasAwarenessInsights } from '@/hooks/useBiasAwarenessInsights';
 import { useEventCohesivenessInsights } from '@/hooks/useEventCohesivenessInsights';
+import { useVisibilityAuditInsights } from '@/hooks/useVisibilityAuditInsights';
 import type { EventGuide } from '@/types/event';
 import { 
   TrendingUp, TrendingDown, Minus, FileText, BarChart2, Newspaper, 
