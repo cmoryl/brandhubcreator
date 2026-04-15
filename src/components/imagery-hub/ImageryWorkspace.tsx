@@ -176,6 +176,7 @@ export const ImageryWorkspace = ({
     const approved: ApprovedImage[] = images.map((img, i) => ({
       id: `web-${Date.now()}-${i}`,
       url: img.url,
+      thumbnailUrl: img.url,
       title: img.name,
       source: 'website-scan' as const,
       addedAt: new Date().toISOString(),
