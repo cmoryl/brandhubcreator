@@ -92,6 +92,7 @@ ${approvedActions.map((a: any) => `- [${a.recommendation_type}] ${a.recommendati
 Entity: ${JSON.stringify(context || {})}
 Existing imagery categories: ${(existingSections || []).join(", ") || "None"}
 ${auditContext}
+${approvedContext}
 
 Return a JSON array of search query strings. Your suggestions MUST:
 - Directly address any low-scoring audit dimensions (diversity, authenticity, cultural context, action orientation, inclusive prompting)
