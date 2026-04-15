@@ -488,27 +488,71 @@ export const IconStudioLibrary = ({
       ) : (
         /* ───── Populated Library View ───── */
         <>
-          {/* Header */}
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <h3 className="text-lg font-semibold">Icon Library</h3>
-              <p className="text-sm text-muted-foreground">
-                {totalIconCount} icon{totalIconCount !== 1 ? 's' : ''} across {libraries.length} librar{libraries.length !== 1 ? 'ies' : 'y'}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => onNavigateToTab('ai-generator')}>
-                Generate with AI
-              </Button>
-              <Button size="sm" onClick={() => openCreateDialog()}>
-                <Plus className="h-4 w-4 mr-1" />
-                New Library
-              </Button>
-            </div>
-          </div>
+           {/* Header */}
+           <div className="flex items-center justify-between flex-wrap gap-3">
+             <div>
+               <h3 className="text-lg font-semibold">Icon Library</h3>
+               <p className="text-sm text-muted-foreground">
+                 {totalIconCount} icon{totalIconCount !== 1 ? 's' : ''} across {libraries.length} librar{libraries.length !== 1 ? 'ies' : 'y'}
+               </p>
+             </div>
+             <div className="flex gap-2">
+               <Button variant="outline" size="sm" onClick={() => onNavigateToTab('ai-generator')}>
+                 Generate with AI
+               </Button>
+               <Button size="sm" onClick={() => openCreateDialog()}>
+                 <Plus className="h-4 w-4 mr-1" />
+                 New Library
+               </Button>
+             </div>
+           </div>
 
-          {/* Search & Filter Toolbar — only show when there are icons to search */}
-          {totalIconCount > 0 && (
+           {/* Quick Add Icons Hero Card */}
+           <div className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-accent/5 p-4">
+             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+               <div className="flex-1">
+                 <h4 className="font-semibold text-sm flex items-center gap-2">
+                   <Globe className="h-4 w-4 text-primary" />
+                   Quick Add Icons
+                 </h4>
+                 <p className="text-xs text-muted-foreground mt-1">
+                   Search 50,000+ icons, upload SVGs, paste code, or get AI recommendations
+                 </p>
+               </div>
+               <div className="flex flex-wrap gap-2">
+                 <Button
+                   variant="default"
+                   size="sm"
+                   className="gap-1.5"
+                   onClick={() => onNavigateToTab('creator')}
+                 >
+                   <Globe className="h-3.5 w-3.5" />
+                   Browse 50K+ Icons
+                 </Button>
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   className="gap-1.5"
+                   onClick={() => onNavigateToTab('creator')}
+                 >
+                   <Upload className="h-3.5 w-3.5" />
+                   Upload SVG
+                 </Button>
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   className="gap-1.5"
+                   onClick={() => onNavigateToTab('creator')}
+                 >
+                   <Code className="h-3.5 w-3.5" />
+                   Paste Code
+                 </Button>
+               </div>
+             </div>
+           </div>
+
+           {/* Search & Filter Toolbar — only show when there are icons to search */}
+           {totalIconCount > 0 && (
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
