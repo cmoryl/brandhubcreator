@@ -3,7 +3,7 @@
  */
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ImageIcon, ArrowLeft, Shield, Sparkles, Loader2 } from 'lucide-react';
+import { ImageIcon, ArrowLeft, Shield, Sparkles, Loader2, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
