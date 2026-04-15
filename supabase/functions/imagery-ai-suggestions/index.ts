@@ -31,7 +31,7 @@ serve(async (req) => {
 
     // Fetch entity context + latest imagery strategy audit in parallel
     const tableName = entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events";
-    const [contextRes, auditRes, actionsRes] = await Promise.all([
+    const [contextRes, auditRes, actionsRes, intelRes] = await Promise.all([
       supabase.rpc("get_entity_text_context", { p_table: tableName, p_id: entityId }),
       supabase
         .from("imagery_strategy_audits")
@@ -47,11 +47,18 @@ serve(async (req) => {
         .eq("entity_id", entityId)
         .eq("entity_type", entityType)
         .eq("applied_to_imagery_hub", true),
+      supabase
+        .from("brand_intelligence")
+        .select("knowledge_entries, competitive_landscape")
+        .eq("entity_id", entityId)
+        .eq("entity_type", entityType)
+        .maybeSingle(),
     ]);
 
     const context = contextRes.data;
     const audit = auditRes.data;
     const approvedActions = actionsRes.data || [];
+    const intel = intelRes.data;
 
     // Build audit intelligence section for the prompt
     let auditContext = "";
