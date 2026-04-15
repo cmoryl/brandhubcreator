@@ -17,7 +17,7 @@ import { GradientsSection } from './GradientsSection';
 import { PatternsSection } from './PatternsSection';
 import { TypographySection } from './TypographySection';
 import { TextStylesSection } from './TextStylesSection';
-import { IconographySection } from './IconographySection';
+const IconographySection = lazy(() => import('./IconographySection').then(m => ({ default: m.IconographySection })));
 import { SocialIconsSection } from './SocialIconsSection';
 import { ImagerySection } from './ImagerySection';
 import { SocialSection } from './SocialSection';
