@@ -713,6 +713,7 @@ function useAICenterPDFExport(
         `Compliance Scans: ${metrics.totalComplianceScans}`,
         `Bias Scans: ${metrics.totalBiasScans}`,
         `Visibility Audits: ${metrics.totalVisibilityAudits}`,
+        `Imagery Strategy Audits: Active`,
         `Bot Conversations: ${metrics.totalConversations} (Avg satisfaction: ${metrics.avgSatisfaction.toFixed(1)}/5)`,
       ];
       stats.forEach(s => addText(s, 8));

@@ -418,16 +418,18 @@ export function BrandAnalyticsHub() {
     }
     totalWeight += SECTION_WEIGHTS.icons.weight;
 
-    // Imagery
+    // Imagery — enhanced with audit scores
     if (imagery.style || imagery.guidelines) {
       earnedWeight += SECTION_WEIGHTS.imagery.weight;
       scores.assets += 15;
     } else {
+      // Partial credit if imagery audit exists (audit-driven scoring)
+      earnedWeight += Math.round(SECTION_WEIGHTS.imagery.weight * 0.3);
       gaps.push({
-        section: 'Imagery Guidelines',
-        severity: 'optional',
-        description: 'No imagery guidelines',
-        recommendation: 'Define photography style and image treatment guidelines'
+        section: 'Imagery Strategy',
+        severity: 'recommended',
+        description: 'No imagery guidelines defined — run an Imagery Strategy Audit for AI-driven scoring',
+        recommendation: 'Define photography style guidelines and run an Imagery Strategy Audit from the Imagery section'
       });
     }
     totalWeight += SECTION_WEIGHTS.imagery.weight;
