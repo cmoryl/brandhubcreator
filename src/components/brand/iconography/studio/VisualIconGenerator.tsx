@@ -93,7 +93,8 @@ interface GeneratedResult {
   imageUrl: string;
   svg?: string;
   prompt: string;
-  phase: 'image' | 'full';
+  phase: 'image' | 'full' | 'raster';
+  isRaster?: boolean;
   variationIndex?: number;
   createdAt?: string;
 }
@@ -205,7 +206,7 @@ export const VisualIconGenerator = ({
   onResultsChange,
 }: VisualIconGeneratorProps) => {
   const [prompt, setPrompt] = useState('');
-  const [style, setStyle] = useState('outlined');
+  const [style, setStyle] = useState('isometric-3d');
   const [strokeWidth, setStrokeWidth] = useState([2]);
   const [cornerStyle, setCornerStyle] = useState<'rounded' | 'sharp'>('rounded');
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
