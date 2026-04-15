@@ -1,7 +1,7 @@
 import { 
   BarChart3, UserCheck, Users, Building2, UserPlus, Palette, 
   Database, TrendingUp, Eye, Brain, FileText, Activity, 
-  Wrench, HardDrive, Shield, Menu, X, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2, Crown, Bot, Lightbulb
+  Wrench, HardDrive, Shield, Menu, X, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2, Crown, Bot, Lightbulb, GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +54,7 @@ function SidebarContent({
     { id: 'bot-management', label: 'Bot Manager', icon: <Bot className="h-4 w-4" />, group: 'analytics' },
     { id: 'health-timeline', label: 'Health Timeline', icon: <TrendingUp className="h-4 w-4" />, group: 'analytics' },
     { id: 'portfolio-insights', label: 'Portfolio Insights', icon: <Lightbulb className="h-4 w-4" />, group: 'analytics' },
+    { id: 'ai-center', label: 'AI Center', icon: <GraduationCap className="h-4 w-4" />, group: 'analytics' },
     { id: 'downloads', label: 'Downloads', icon: <FileDown className="h-4 w-4" />, group: 'analytics' },
     { id: 'reports', label: 'Reports', icon: <FileText className="h-4 w-4" />, group: 'tools' },
     { id: 'accessibility', label: 'Accessibility', icon: <Shield className="h-4 w-4" />, group: 'tools' },
