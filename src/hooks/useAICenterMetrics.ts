@@ -190,15 +190,18 @@ export function useAICenterMetrics() {
         if (j.status === 'completed') e.successRate++;
       });
       compliance.forEach(c => {
-        const e = ensureEntity(c.entity_id, c.entity_name, c.entity_type);
+        const name = entityNameMap.get(c.entity_id) || c.entity_name;
+        const e = ensureEntity(c.entity_id, name, c.entity_type);
         e.complianceScore = Math.max(e.complianceScore, c.compliance_score || 0);
       });
       bias.forEach(b => {
-        const e = ensureEntity(b.entity_id, b.entity_name, b.entity_type);
+        const name = entityNameMap.get(b.entity_id) || b.entity_name;
+        const e = ensureEntity(b.entity_id, name, b.entity_type);
         e.biasScore = Math.max(e.biasScore, b.inclusion_score || 0);
       });
       vis.forEach(v => {
-        const e = ensureEntity(v.entity_id, v.entity_name, v.entity_type);
+        const name = entityNameMap.get(v.entity_id) || v.entity_name;
+        const e = ensureEntity(v.entity_id, name, v.entity_type);
         e.visibilityScore = Math.max(e.visibilityScore, v.overall_visibility_score || 0);
       });
       entityMap.forEach(e => {
