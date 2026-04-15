@@ -1131,7 +1131,7 @@ export const InlineImagerySearch = ({
                       </div>
                       {/* Source watermark - always visible */}
                       <p className="absolute bottom-1 left-1.5 text-[8px] text-white/30 font-mono group-hover:opacity-0 transition-opacity">
-                        {result.contributor || `shutterstock · ${result.id}`}
+                        {`shutterstock · ${result.id}`}
                       </p>
                     </div>
                   );
