@@ -38,6 +38,7 @@ const ImageryHub = () => {
     latestAudit, isRunning: auditRunning, runAudit,
   } = useImageryStrategyAudit(selectedEntity?.id, selectedEntity?.type);
 
+  const {
     sections, isLoading: imageryLoading, organizationId,
     addImages, removeImage, addSection, removeSection,
     reorderImages, updateImageTags,
