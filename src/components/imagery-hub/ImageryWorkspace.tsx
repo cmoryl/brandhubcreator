@@ -496,6 +496,13 @@ export const ImageryWorkspace = ({
         entityName={entity.name}
         onApply={handleAutoCategorizeApply}
       />
+
+      {/* Website Image Scanner */}
+      <WebsiteImageScanner
+        open={websiteScannerOpen}
+        onOpenChange={setWebsiteScannerOpen}
+        onImportImages={handleWebsiteImport}
+      />
     </div>
   );
 };
