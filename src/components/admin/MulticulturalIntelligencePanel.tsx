@@ -189,16 +189,46 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
     };
   }, [intelligenceRecords]);
 
-  // Extract unique markets mentioned
+  // Extract unique markets mentioned with entity details
   const marketOpportunities = useMemo(() => {
-    const markets = new Map<string, { mentions: number; readiness: string[] }>();
+    const markets = new Map<string, { 
+      mentions: number; 
+      readiness: string[];
+      entities: Array<{ id: string; name: string; type: string; readinessScore: number; culturalNotes: string[] }>;
+    }>();
 
     intelligenceRecords?.forEach(record => {
-      const culturalInsights = record.cultural_insights;
+      const culturalInsights = record.cultural_insights as any;
       if (culturalInsights?.primary_markets) {
-        culturalInsights.primary_markets.forEach(market => {
-          const existing = markets.get(market) || { mentions: 0, readiness: [] };
+        const entityName = entityNames?.get(record.entity_id) || record.entity_id.slice(0, 8);
+        const readinessScore = record.localization_readiness_score || culturalInsights?.global_readiness_score || 0;
+
+        culturalInsights.primary_markets.forEach((market: string) => {
+          const existing = markets.get(market) || { mentions: 0, readiness: [], entities: [] };
           existing.mentions++;
+
+          // Collect cultural notes relevant to this market
+          const culturalNotes: string[] = [];
+          if (Array.isArray(culturalInsights?.cultural_considerations)) {
+            culturalInsights.cultural_considerations.forEach((c: any) => {
+              const note = typeof c === 'string' ? c : c?.text || c?.description;
+              if (note) culturalNotes.push(note);
+            });
+          }
+          if (Array.isArray(culturalInsights?.priority_adaptations)) {
+            culturalInsights.priority_adaptations.forEach((a: any) => {
+              const note = typeof a === 'string' ? a : a?.text || a?.description;
+              if (note) culturalNotes.push(note);
+            });
+          }
+
+          existing.entities.push({
+            id: record.entity_id,
+            name: entityName,
+            type: record.entity_type,
+            readinessScore,
+            culturalNotes: culturalNotes.slice(0, 3),
+          });
           markets.set(market, existing);
         });
       }
@@ -207,7 +237,7 @@ export const MulticulturalIntelligencePanel: React.FC = () => {
     return Array.from(markets.entries())
       .sort((a, b) => b[1].mentions - a[1].mentions)
       .slice(0, 10);
-  }, [intelligenceRecords]);
+  }, [intelligenceRecords, entityNames]);
 
   const sortedEntityRecords = useMemo(() => {
     const filtered = intelligenceRecords?.filter(r => r.cultural_insights) || [];
