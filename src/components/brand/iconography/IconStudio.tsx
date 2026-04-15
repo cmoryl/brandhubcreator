@@ -45,11 +45,11 @@ import { IconStudioExport } from './studio/IconStudioExport';
 export type IconStudioTab = 'library' | 'ai-generator' | 'colorizer' | 'hierarchy' | 'app-icons' | 'creator' | 'export';
 
 // Map old tab IDs to new simplified tabs
-type SimplifiedTab = 'library' | 'generate' | 'style' | 'export';
+type SimplifiedTab = 'library' | 'creator' | 'generate' | 'style' | 'export';
 
 const TAB_MAPPING: Record<IconStudioTab, SimplifiedTab> = {
   'library': 'library',
-  'creator': 'library',
+  'creator': 'creator',
   'ai-generator': 'generate',
   'colorizer': 'style',
   'hierarchy': 'style',
