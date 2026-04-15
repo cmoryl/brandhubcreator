@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useImageryHubEntities, ImageryEntity } from '@/hooks/useImageryHubEntities';
 import { useEntityImagery } from '@/hooks/useEntityImagery';
+import { useImageryStrategyAudit } from '@/hooks/useImageryStrategyAudit';
 import { EntityPicker } from '@/components/imagery-hub/EntityPicker';
 import { ImageryWorkspace } from '@/components/imagery-hub/ImageryWorkspace';
 import { ComparisonPanel } from '@/components/imagery-hub/ComparisonPanel';
