@@ -89,13 +89,16 @@ export function useAICenterMetrics() {
     setIsLoading(true);
 
     try {
-      const [jobsRes, complianceRes, biasRes, botsRes, visRes, recsRes] = await Promise.all([
+      const [jobsRes, complianceRes, biasRes, botsRes, visRes, recsRes, brandsRes, productsRes, eventsRes] = await Promise.all([
         supabase.from('brand_intelligence_jobs').select('status, created_at, entity_id, entity_type').limit(500),
         supabase.from('dataforce_compliance_jobs').select('compliance_score, status, entity_id, entity_name, entity_type, created_at').eq('status', 'completed').limit(500),
         supabase.from('bias_awareness_scans').select('inclusion_score, language_score, visual_score, accessibility_score, status, entity_id, entity_name, entity_type, created_at').eq('status', 'completed').limit(500),
         supabase.from('bot_conversations').select('satisfaction_rating').limit(500),
         supabase.from('brand_visibility_audits').select('overall_visibility_score, status, entity_id, entity_name, entity_type, created_at').eq('status', 'completed').limit(500),
         supabase.from('recommendation_actions').select('*').eq('organization_id', orgId),
+        supabase.from('brands').select('id, name').eq('organization_id', orgId),
+        supabase.from('products').select('id, name').eq('organization_id', orgId),
+        supabase.from('events').select('id, name').eq('organization_id', orgId),
       ]);
 
       const jobs = jobsRes.data || [];
@@ -104,6 +107,12 @@ export function useAICenterMetrics() {
       const bots = botsRes.data || [];
       const vis = visRes.data || [];
       const recs = (recsRes.data || []) as unknown as RecommendationAction[];
+
+      // Build entity name lookup
+      const entityNameMap = new Map<string, string>();
+      (brandsRes.data || []).forEach(b => entityNameMap.set(b.id, b.name));
+      (productsRes.data || []).forEach(p => entityNameMap.set(p.id, p.name));
+      (eventsRes.data || []).forEach(e => entityNameMap.set(e.id, e.name));
 
       const completed = jobs.filter(j => j.status === 'completed').length;
       const failed = jobs.filter(j => j.status === 'failed').length;
@@ -175,20 +184,24 @@ export function useAICenterMetrics() {
       };
       jobs.forEach(j => {
         if (!j.entity_id) return;
-        const e = ensureEntity(j.entity_id, j.entity_id, j.entity_type || 'brand');
+        const resolvedName = entityNameMap.get(j.entity_id) || j.entity_id;
+        const e = ensureEntity(j.entity_id, resolvedName, j.entity_type || 'brand');
         e.intelligenceJobs++;
         if (j.status === 'completed') e.successRate++;
       });
       compliance.forEach(c => {
-        const e = ensureEntity(c.entity_id, c.entity_name, c.entity_type);
+        const name = entityNameMap.get(c.entity_id) || c.entity_name;
+        const e = ensureEntity(c.entity_id, name, c.entity_type);
         e.complianceScore = Math.max(e.complianceScore, c.compliance_score || 0);
       });
       bias.forEach(b => {
-        const e = ensureEntity(b.entity_id, b.entity_name, b.entity_type);
+        const name = entityNameMap.get(b.entity_id) || b.entity_name;
+        const e = ensureEntity(b.entity_id, name, b.entity_type);
         e.biasScore = Math.max(e.biasScore, b.inclusion_score || 0);
       });
       vis.forEach(v => {
-        const e = ensureEntity(v.entity_id, v.entity_name, v.entity_type);
+        const name = entityNameMap.get(v.entity_id) || v.entity_name;
+        const e = ensureEntity(v.entity_id, name, v.entity_type);
         e.visibilityScore = Math.max(e.visibilityScore, v.overall_visibility_score || 0);
       });
       entityMap.forEach(e => {
