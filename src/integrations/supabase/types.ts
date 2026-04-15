@@ -3411,6 +3411,74 @@ export type Database = {
           },
         ]
       }
+      imagery_strategy_audits: {
+        Row: {
+          action_orientation_score: number | null
+          authenticity_score: number | null
+          created_at: string | null
+          created_by: string | null
+          cultural_context_score: number | null
+          diversity_score: number | null
+          entity_id: string
+          entity_type: string
+          go_signals_present: Json | null
+          id: string
+          images_analyzed: number | null
+          inclusive_prompting_score: number | null
+          organization_id: string | null
+          overall_score: number | null
+          recommendations: Json | null
+          stock_dependency: string | null
+          stop_signals_detected: Json | null
+        }
+        Insert: {
+          action_orientation_score?: number | null
+          authenticity_score?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          cultural_context_score?: number | null
+          diversity_score?: number | null
+          entity_id: string
+          entity_type?: string
+          go_signals_present?: Json | null
+          id?: string
+          images_analyzed?: number | null
+          inclusive_prompting_score?: number | null
+          organization_id?: string | null
+          overall_score?: number | null
+          recommendations?: Json | null
+          stock_dependency?: string | null
+          stop_signals_detected?: Json | null
+        }
+        Update: {
+          action_orientation_score?: number | null
+          authenticity_score?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          cultural_context_score?: number | null
+          diversity_score?: number | null
+          entity_id?: string
+          entity_type?: string
+          go_signals_present?: Json | null
+          id?: string
+          images_analyzed?: number | null
+          inclusive_prompting_score?: number | null
+          organization_id?: string | null
+          overall_score?: number | null
+          recommendations?: Json | null
+          stock_dependency?: string | null
+          stop_signals_detected?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imagery_strategy_audits_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       imagery_visual_dna: {
         Row: {
           approval_patterns: Json | null

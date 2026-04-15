@@ -1,11 +1,15 @@
 /**
  * ImageryGuidelinesPanel - Diversity & representation guidelines with Stop/Go framework
- * + Visible Identity Diversity, Observable Actions, and Cultural Context guidance
+ * + Visible Identity Diversity, Observable Actions, Cultural Context guidance
+ * + Entity-specific imagery audit scoring and recommendations
  */
 
 import { useState } from 'react';
-import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Users, Eye, Accessibility, Activity, Globe } from 'lucide-react';
+import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Users, Eye, Accessibility, Activity, Globe, Camera, RefreshCw, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useImageryStrategyAudit, type ImageryAuditResult } from '@/hooks/useImageryStrategyAudit';
 
 const GO_SIGNALS = [
   'Authentic, candid moments over posed stock imagery',
@@ -50,12 +54,49 @@ const CULTURAL_CONTEXT_GUIDELINES = [
   'Avoid conflating distinct cultures — e.g., using East Asian motifs generically across all Asian representation',
 ];
 
-interface ImageryGuidelinesPanelProps {
-  canEdit: boolean;
+const scoreColor = (v: number) => v >= 75 ? 'text-emerald-500' : v >= 50 ? 'text-amber-500' : 'text-destructive';
+const scoreHsl = (v: number) => v >= 75 ? 'hsl(142, 76%, 36%)' : v >= 50 ? 'hsl(38, 92%, 50%)' : 'hsl(0, 84%, 60%)';
+
+function MiniScoreRing({ value, label, size = 52 }: { value: number; label: string; size?: number }) {
+  const strokeWidth = 4;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (Math.min(value, 100) / 100) * circumference;
+  const color = scoreHsl(value);
+
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <div className="relative">
+        <svg width={size} height={size} className="-rotate-90">
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth={strokeWidth} />
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth}
+            strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+            className="transition-all duration-700" />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-xs font-bold">{Math.round(value)}%</span>
+        </div>
+      </div>
+      <span className="text-[9px] text-muted-foreground font-medium text-center leading-tight max-w-[60px]">{label}</span>
+    </div>
+  );
 }
 
-export const ImageryGuidelinesPanel = ({ canEdit }: ImageryGuidelinesPanelProps) => {
+interface ImageryGuidelinesPanelProps {
+  canEdit: boolean;
+  entityId?: string;
+  entityType?: string;
+  organizationId?: string;
+}
+
+export const ImageryGuidelinesPanel = ({ canEdit, entityId, entityType, organizationId }: ImageryGuidelinesPanelProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const { latestAudit, isLoading, isRunning, runAudit } = useImageryStrategyAudit(entityId, entityType);
+
+  const handleRunAudit = async () => {
+    if (!organizationId) return;
+    await runAudit(organizationId);
+  };
 
   return (
     <div className="border border-border rounded-xl overflow-hidden bg-card">
@@ -66,6 +107,11 @@ export const ImageryGuidelinesPanel = ({ canEdit }: ImageryGuidelinesPanelProps)
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-primary" />
           <span className="text-sm font-semibold text-foreground">Diversity & Representation Guidelines</span>
+          {latestAudit && (
+            <Badge variant={latestAudit.overall_score >= 75 ? 'default' : latestAudit.overall_score >= 50 ? 'secondary' : 'destructive'} className="text-[10px] ml-1">
+              {Math.round(latestAudit.overall_score)}% Score
+            </Badge>
+          )}
           <span className="text-xs text-muted-foreground ml-1">Stop/Go Framework</span>
         </div>
         {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
@@ -73,6 +119,80 @@ export const ImageryGuidelinesPanel = ({ canEdit }: ImageryGuidelinesPanelProps)
 
       {isExpanded && (
         <div className="px-4 pb-4 space-y-4 border-t border-border pt-3">
+          {/* Audit Scores Section */}
+          {latestAudit && (
+            <div className="space-y-3 p-3 rounded-lg bg-muted/30 border border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Camera className="h-4 w-4 text-primary" />
+                  <h4 className="text-sm font-semibold text-foreground">Imagery Audit Results</h4>
+                </div>
+                <span className="text-[10px] text-muted-foreground">
+                  {new Date(latestAudit.created_at).toLocaleDateString()}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-3 justify-center">
+                <MiniScoreRing value={latestAudit.overall_score} label="Overall" />
+                <MiniScoreRing value={latestAudit.diversity_score} label="Diversity" />
+                <MiniScoreRing value={latestAudit.authenticity_score} label="Authenticity" />
+                <MiniScoreRing value={latestAudit.cultural_context_score} label="Cultural" />
+                <MiniScoreRing value={latestAudit.action_orientation_score} label="Action" />
+                <MiniScoreRing value={latestAudit.inclusive_prompting_score} label="Prompting" />
+              </div>
+
+              {/* Detected Stop Signals */}
+              {Array.isArray(latestAudit.stop_signals_detected) && latestAudit.stop_signals_detected.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-destructive flex items-center gap-1">
+                    <XCircle className="h-3 w-3" /> Stop Signals Detected
+                  </p>
+                  {latestAudit.stop_signals_detected.map((s, i) => (
+                    <p key={i} className="text-[11px] text-foreground/70 pl-4">• {s}</p>
+                  ))}
+                </div>
+              )}
+
+              {/* Present Go Signals */}
+              {Array.isArray(latestAudit.go_signals_present) && latestAudit.go_signals_present.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" /> Go Signals Present
+                  </p>
+                  {latestAudit.go_signals_present.map((s, i) => (
+                    <p key={i} className="text-[11px] text-foreground/70 pl-4">• {s}</p>
+                  ))}
+                </div>
+              )}
+
+              {/* AI Recommendations */}
+              {Array.isArray(latestAudit.recommendations) && latestAudit.recommendations.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium text-foreground flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-primary" /> AI Recommendations
+                  </p>
+                  {latestAudit.recommendations.slice(0, 5).map((r, i) => (
+                    <div key={i} className="text-[11px] p-2 rounded bg-muted/50 border border-border/50">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="font-medium text-foreground">{r.title}</span>
+                        <Badge variant="outline" className="text-[9px]">{r.priority}</Badge>
+                      </div>
+                      <p className="text-foreground/70">{r.description}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Audit Button for Admins */}
+          {canEdit && entityId && organizationId && (
+            <Button variant="outline" size="sm" onClick={handleRunAudit} disabled={isRunning || isLoading} className="gap-1.5 w-full">
+              {isRunning ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+              {isRunning ? 'Running Imagery Audit...' : latestAudit ? 'Re-run Imagery Audit' : 'Run Imagery Audit'}
+            </Button>
+          )}
+
           <p className="text-xs text-muted-foreground leading-relaxed">
             Apply these signals when selecting, commissioning, or reviewing brand photography to ensure inclusive, authentic visual storytelling.
           </p>

@@ -142,3 +142,6 @@ verify_jwt = false
 
 [functions.brand-visibility-audit]
 verify_jwt = false
+
+[functions.imagery-strategy-audit]
+verify_jwt = false
