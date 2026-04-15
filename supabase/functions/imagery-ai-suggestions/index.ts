@@ -78,7 +78,16 @@ ${recommendations.length > 0 ? `\nAUDIT RECOMMENDATIONS:\n${recommendations.slic
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const prompt = `You are an imagery curation expert. Based on this brand/entity context and its imagery strategy audit results, suggest 6-8 specific Shutterstock search queries that would find ideal stock imagery.
+    // Build approved competitive recommendations context
+    let approvedContext = "";
+    if (approvedActions.length > 0) {
+      approvedContext = `
+APPROVED COMPETITIVE ANALYSIS RECOMMENDATIONS (these have been approved for integration — prioritize imagery that supports them):
+${approvedActions.map((a: any) => `- [${a.recommendation_type}] ${a.recommendation_title}`).join("\n")}
+`;
+    }
+
+    const prompt = `You are an imagery curation expert. Based on this brand/entity context, its imagery strategy audit results, and approved competitive recommendations, suggest 6-8 specific Shutterstock search queries that would find ideal stock imagery.
 
 Entity: ${JSON.stringify(context || {})}
 Existing imagery categories: ${(existingSections || []).join(", ") || "None"}
