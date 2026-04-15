@@ -44,7 +44,7 @@ import { BrandEventSignageSection } from './BrandEventSignageSection';
 import { ClientLogosSection } from './ClientLogosSection';
 import { SponsorLogosSection } from './SponsorLogosSection';
 import { PresentationTemplatesSection } from './PresentationTemplatesSection';
-import { ApprovedImagerySection } from './approved-imagery/ApprovedImagerySection';
+const ApprovedImagerySection = lazy(() => import('./approved-imagery/ApprovedImagerySection').then(m => ({ default: m.ApprovedImagerySection })));
 const StudiosSection = lazy(() => import('./StudiosSection').then(m => ({ default: m.StudiosSection })));
 import { Separator } from '@/components/ui/separator';
 
