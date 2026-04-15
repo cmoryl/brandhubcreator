@@ -38,8 +38,8 @@ interface SortableImageProps {
 }
 
 const SortableImage = ({
-  image, onRemove, onTagsChange, isSelected, onToggleSelect, selectionMode,
-  entityId, entityType, onQualityScored, onVisualSearch,
+  image, sectionId, onRemove, onTagsChange, isSelected, onToggleSelect, selectionMode,
+  entityId, entityType, onQualityScored, onVisualSearch, availableSections, onMoveToSection,
 }: SortableImageProps) => {
   const [showTagEditor, setShowTagEditor] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
