@@ -4879,6 +4879,53 @@ export type Database = {
           },
         ]
       }
+      recommendation_actions: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          recommendation_key: string
+          recommendation_text: string
+          source: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          recommendation_key: string
+          recommendation_text: string
+          source?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          recommendation_key?: string
+          recommendation_text?: string
+          source?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_actions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       research_briefings: {
         Row: {
           actioned_at: string | null
