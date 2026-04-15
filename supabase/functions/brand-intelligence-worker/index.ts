@@ -383,6 +383,9 @@ Include a "lab_to_launch" object: {"journey_clarity_score":0-100,"stages_covered
 ${brandContext}
 ${oracleContext ? `\nORACLE BRAIN CONTEXT:\n${oracleContext}` : ''}
 ${visualDnaContext}
+${visibilityContext}
+${socialMetricsContext}
+${complianceContext}
 ${externalDocContent ? `\nEXTERNAL LINKED DOCUMENTS (fetched from Dropbox/GlobalLink/external sources):\n${externalDocContent}` : ''}
 ${priorAnalysisContext}
 ${physicalAccessibilityContext}
