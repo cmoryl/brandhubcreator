@@ -1,6 +1,6 @@
 /**
  * AI Center of Excellence — Centralized AI governance, quality, ethics & innovation hub
- * Enhanced: trend sparklines, quality alerts, entity comparison, PDF export, Oracle auto-seed
+ * Enhanced: trend sparklines, quality alerts, entity comparison, PDF export, Oracle auto-seed, Imagery Strategy
  */
 
 import React, { useState, useRef } from 'react';
@@ -8,7 +8,8 @@ import {
   Brain, Shield, BarChart3, Zap, Lightbulb, CheckCircle,
   Clock, AlertTriangle, Bot, Eye, TrendingUp, Activity,
   ArrowRight, RefreshCw, Plus, FileText, Sparkles,
-  Download, Users, Bell, ArrowUp, ArrowDown
+  Download, Users, Bell, ArrowUp, ArrowDown, Camera,
+  XCircle, CheckCircle2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useAICenterMetrics, type TrendPoint, type EntityComparison, type QualityAlert } from '@/hooks/useAICenterMetrics';
+import { usePortfolioImageryAudits, type ImageryAuditResult } from '@/hooks/useImageryStrategyAudit';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { toast } from 'sonner';
 
 // ─── Mini Sparkline SVG ─────────────────────────────────────
