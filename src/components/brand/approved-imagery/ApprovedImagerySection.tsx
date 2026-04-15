@@ -212,6 +212,22 @@ export const ApprovedImagerySection = ({
             entityId={entityId}
             entityType={entityType}
           />
+          <WebsiteImageScanner
+            open={websiteOpen}
+            onOpenChange={setWebsiteOpen}
+            onImportImages={(images) => {
+              if (!targetSectionId) return;
+              const approved: ApprovedImage[] = images.map((img) => ({
+                id: crypto.randomUUID(),
+                url: img.url,
+                title: img.name,
+                source: 'website' as const,
+                category: targetSection?.name || '',
+                addedAt: new Date().toISOString(),
+              }));
+              handleApproveImages(approved);
+            }}
+          />
         </>
       )}
     </div>
