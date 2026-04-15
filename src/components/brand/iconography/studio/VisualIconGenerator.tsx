@@ -48,15 +48,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const VISUAL_STYLES = [
-  { id: 'outlined', label: 'Outlined', desc: 'Clean stroke icons' },
-  { id: 'filled', label: 'Filled', desc: 'Solid silhouettes' },
-  { id: 'minimalist', label: 'Minimalist', desc: 'Ultra-thin lines' },
-  { id: 'brutalist', label: 'Brutalist', desc: 'Sharp geometric' },
-  { id: 'duotone', label: 'Duotone', desc: 'Two-tone accent' },
-  { id: 'glassmorphic', label: 'Glassmorphic', desc: 'Layered depth' },
-  { id: 'thick', label: 'Thick', desc: 'Bold weight' },
-  { id: 'soft', label: 'Soft', desc: 'Rounded friendly' },
+  { id: 'outlined', label: 'Outlined', desc: 'Clean stroke icons', raster: false },
+  { id: 'filled', label: 'Filled', desc: 'Solid silhouettes', raster: false },
+  { id: 'minimalist', label: 'Minimalist', desc: 'Ultra-thin lines', raster: false },
+  { id: 'brutalist', label: 'Brutalist', desc: 'Sharp geometric', raster: false },
+  { id: 'duotone', label: 'Duotone', desc: 'Two-tone accent', raster: false },
+  { id: 'glassmorphic', label: 'Glassmorphic', desc: 'Layered depth', raster: false },
+  { id: 'thick', label: 'Thick', desc: 'Bold weight', raster: false },
+  { id: 'soft', label: 'Soft', desc: 'Rounded friendly', raster: false },
 ];
+
+const RASTER_STYLES = [
+  { id: 'isometric-3d', label: 'Isometric 3D', desc: 'Airbnb-style isometric', raster: true, emoji: '🧊' },
+  { id: 'flat-illustration', label: 'Flat Illustration', desc: 'Bold flat colors', raster: true, emoji: '🎨' },
+  { id: 'realistic-3d', label: 'Realistic 3D', desc: 'Photorealistic render', raster: true, emoji: '💎' },
+  { id: 'clay-3d', label: 'Clay / Soft 3D', desc: 'Puffy clay style', raster: true, emoji: '🫧' },
+];
+
+const ALL_STYLES = [...VISUAL_STYLES, ...RASTER_STYLES];
 
 // Variation suffixes to generate 3 different takes on the same prompt
 const VARIATION_SUFFIXES = [
