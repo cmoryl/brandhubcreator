@@ -218,64 +218,21 @@ const drawMarketPerception = (pdf: jsPDF, report: CompetitiveAnalysisReportData,
   const gaps = safe(report.marketPerception?.criticalGaps);
   const risks = safe(report.marketPerception?.risks);
 
-  // Two-column: Strengths & Gaps
-  const col1X = M;
-  const col2X = M + COL_W + 6;
-  const maxItems = Math.max(strengths.length, gaps.length);
-  const colH = Math.max(maxItems * 5 + 14, 30);
-
-  y = ensureSpace(pdf, y, colH + 4);
-
-  // Strengths card
-  drawCard(pdf, col1X, y, COL_W, colH, '#f0fdf4');
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(9);
-  setColor(pdf, '#166534');
-  pdf.text('✓ Key Strengths', col1X + 4, y + 6);
-  let sy = y + 12;
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(8.5);
-  setColor(pdf, '#15803d');
-  for (const s of strengths) {
-    pdf.text('• ' + s.substring(0, 60), col1X + 4, sy);
-    sy += 4.5;
+  // Strengths & Gaps as full bullet lists
+  if (strengths.length > 0) {
+    y = drawSubheading(pdf, '✓ Key Strengths', y);
+    y = drawBullets(pdf, strengths, y, M, CW - 4, '#15803d');
   }
 
-  // Gaps card
-  drawCard(pdf, col2X, y, COL_W, colH, '#fef3c7');
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(9);
-  setColor(pdf, '#92400e');
-  pdf.text('⚠ Critical Gaps', col2X + 4, y + 6);
-  let gy = y + 12;
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(8.5);
-  setColor(pdf, '#a16207');
-  for (const g of gaps) {
-    pdf.text('• ' + g.substring(0, 60), col2X + 4, gy);
-    gy += 4.5;
+  if (gaps.length > 0) {
+    y = drawSubheading(pdf, '⚠ Critical Gaps', y);
+    y = drawBullets(pdf, gaps, y, M, CW - 4, '#a16207');
   }
 
-  y += colH + 5;
-
-  // Risks card
+  // Risks
   if (risks.length > 0) {
-    const riskH = risks.length * 5 + 12;
-    y = ensureSpace(pdf, y, riskH);
-    drawCard(pdf, M, y, CW, riskH, '#fef2f2');
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
-    setColor(pdf, '#991b1b');
-    pdf.text('⚡ Risks', M + 4, y + 6);
-    let ry = y + 12;
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8.5);
-    setColor(pdf, '#b91c1c');
-    for (const r of risks) {
-      pdf.text('• ' + r.substring(0, 80), M + 4, ry);
-      ry += 4.5;
-    }
-    y += riskH + 4;
+    y = drawSubheading(pdf, '⚡ Risks', y);
+    y = drawBullets(pdf, risks, y, M, CW - 4, '#b91c1c');
   }
 
   return y;
