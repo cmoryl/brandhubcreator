@@ -1928,6 +1928,86 @@ export type Database = {
           },
         ]
       }
+      brand_visibility_audits: {
+        Row: {
+          ai_platform_analysis: Json | null
+          ai_platform_score: number | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          error_message: string | null
+          id: string
+          organization_id: string | null
+          overall_visibility_score: number | null
+          recommendations: Json | null
+          search_analysis: Json | null
+          search_visibility_score: number | null
+          social_media_analysis: Json | null
+          social_media_score: number | null
+          status: string
+          updated_at: string
+          visibility_gaps: Json | null
+          websites_analyzed: string[] | null
+        }
+        Insert: {
+          ai_platform_analysis?: Json | null
+          ai_platform_score?: number | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_name: string
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          organization_id?: string | null
+          overall_visibility_score?: number | null
+          recommendations?: Json | null
+          search_analysis?: Json | null
+          search_visibility_score?: number | null
+          social_media_analysis?: Json | null
+          social_media_score?: number | null
+          status?: string
+          updated_at?: string
+          visibility_gaps?: Json | null
+          websites_analyzed?: string[] | null
+        }
+        Update: {
+          ai_platform_analysis?: Json | null
+          ai_platform_score?: number | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_name?: string
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          organization_id?: string | null
+          overall_visibility_score?: number | null
+          recommendations?: Json | null
+          search_analysis?: Json | null
+          search_visibility_score?: number | null
+          social_media_analysis?: Json | null
+          social_media_score?: number | null
+          status?: string
+          updated_at?: string
+          visibility_gaps?: Json | null
+          websites_analyzed?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_visibility_audits_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brands: {
         Row: {
           created_at: string

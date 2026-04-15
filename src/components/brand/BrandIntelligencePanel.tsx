@@ -44,6 +44,7 @@ import { LearningStatusBadge } from './intelligence/LearningStatusBadge';
 import { ConfidenceIndicator } from './intelligence/ConfidenceIndicator';
 import { InsightActionTracker } from './intelligence/InsightActionTracker';
 import { BiasAwarenessPanel } from './BiasAwarenessPanel';
+import { VisibilityGapsPanel } from './visibility/VisibilityGapsPanel';
 import { CompetitiveLandscapeSection } from './intelligence/CompetitiveLandscapeSection';
 import { CulturalIntelligenceSection } from './intelligence/CulturalIntelligenceSection';
 import { ImportReportDialog } from './intelligence/ImportReportDialog';
@@ -198,6 +199,7 @@ export const BrandIntelligencePanel = ({
     competitive: false,
     cultural: false,
     integrations: false,
+    visibility: false,
   });
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -1101,6 +1103,31 @@ export const BrandIntelligencePanel = ({
                   </div>
                 )}
             </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Visibility Gaps */}
+        <Collapsible
+          open={expandedSections.visibility}
+          onOpenChange={() => toggleSection('visibility')}
+        >
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+              <div className="flex items-center gap-2">
+                <Eye className="h-4 w-4 text-primary" />
+                <span className="font-medium">Visibility Gaps</span>
+              </div>
+              {expandedSections.visibility ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-4">
+            <VisibilityGapsPanel
+              entityId={entityId}
+              entityType={entityType}
+              entityName={entityName}
+              organizationId={organizationId}
+              isAdmin={true}
+            />
           </CollapsibleContent>
         </Collapsible>
 
