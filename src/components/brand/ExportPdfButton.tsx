@@ -729,6 +729,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
             key="brief"
             intelligence={intelligence}
             theme={pdfTheme}
+            visibilityAudit={visibilityAudit}
           />
         );
 
