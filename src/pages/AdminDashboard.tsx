@@ -68,6 +68,7 @@ import { BiasAwarenessAdminPanel } from '@/components/admin/BiasAwarenessAdminPa
 import { AccessibilityStandardsPanel } from '@/components/admin/AccessibilityStandardsPanel';
 import { HealthTimelinePanel } from '@/components/admin/HealthTimelinePanel';
 import { PortfolioInsightsPanel } from '@/components/admin/PortfolioInsightsPanel';
+import { VisibilityDashboard } from '@/components/admin/VisibilityDashboard';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -762,6 +763,10 @@ export default function AdminDashboard() {
                   <Eye className="h-4 w-4" />
                   Research
                 </TabsTrigger>
+                <TabsTrigger value="visibility" className="gap-2 text-xs sm:text-sm">
+                  <Eye className="h-4 w-4" />
+                  Visibility
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="oracle">
                 <OracleBrainPanel organizationId={organizations[0]?.id} />
@@ -774,6 +779,13 @@ export default function AdminDashboard() {
               </TabsContent>
               <TabsContent value="research">
                 <ResearchBriefingsPanel />
+              </TabsContent>
+              <TabsContent value="visibility">
+                {organizations[0]?.id ? (
+                  <VisibilityDashboard organizationId={organizations[0].id} />
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">No organization found</p>
+                )}
               </TabsContent>
             </Tabs>
           </TabsContent>
