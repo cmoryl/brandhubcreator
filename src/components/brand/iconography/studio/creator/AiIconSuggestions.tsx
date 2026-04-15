@@ -1,8 +1,9 @@
 /**
  * AiIconSuggestions - AI-powered icon recommendations based on brand context
+ * Uses lazy-loaded Lucide icons to avoid pulling 780KB into the main bundle
  */
 
-import { useState, useMemo, createElement, useCallback } from 'react';
+import { useState, useMemo, createElement, useCallback, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import * as LucideIcons from 'lucide-react';
 import { Sparkles, Loader2, Search, Check, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { BrandIconography } from '@/types/brand';
@@ -24,14 +24,23 @@ interface AiIconSuggestionsProps {
   onSaveIcons: (icons: BrandIconography[], libraryId?: string) => void;
 }
 
-// Lucide icon names for matching
-const LUCIDE_ICON_NAMES = Object.keys(LucideIcons).filter(name => {
-  if (['createLucideIcon', 'default', 'icons', 'Icon', 'createElement', 'dynamicIconImports'].includes(name)) return false;
-  if (name.startsWith('Lucide')) return false;
-  if (!/^[A-Z]/.test(name)) return false;
-  const val = (LucideIcons as any)[name];
-  return val && typeof val === 'object' && val.$$typeof;
-});
+// Lazy-load the full Lucide icons module only when this component mounts
+let lucideIconsCache: Record<string, any> | null = null;
+let lucideNamesCache: string[] | null = null;
+
+const loadLucideIcons = async () => {
+  if (lucideIconsCache) return { icons: lucideIconsCache, names: lucideNamesCache! };
+  const mod = await import('lucide-react');
+  lucideIconsCache = mod as any;
+  lucideNamesCache = Object.keys(mod).filter(name => {
+    if (['createLucideIcon', 'default', 'icons', 'Icon', 'createElement', 'dynamicIconImports'].includes(name)) return false;
+    if (name.startsWith('Lucide')) return false;
+    if (!/^[A-Z]/.test(name)) return false;
+    const val = (mod as any)[name];
+    return val && typeof val === 'object' && val.$$typeof;
+  });
+  return { icons: lucideIconsCache, names: lucideNamesCache };
+};
 
 interface SuggestedIcon {
   lucideName: string;
@@ -50,6 +59,14 @@ export const AiIconSuggestions = ({
   const [suggestions, setSuggestions] = useState<SuggestedIcon[]>([]);
   const [selectedSuggestions, setSelectedSuggestions] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const [iconsReady, setIconsReady] = useState(!!lucideIconsCache);
+
+  // Preload icons module on mount
+  useEffect(() => {
+    if (!lucideIconsCache) {
+      loadLucideIcons().then(() => setIconsReady(true));
+    }
+  }, []);
 
   const fetchSuggestions = useCallback(async () => {
     if (!industry.trim() && !context.trim()) {
@@ -61,21 +78,21 @@ export const AiIconSuggestions = ({
     setSelectedSuggestions(new Set());
 
     try {
+      const { names } = await loadLucideIcons();
       const { data, error } = await supabase.functions.invoke('suggest-icons', {
         body: {
           industry: industry.trim(),
           context: context.trim(),
           brandColors: brandColors.map(c => c.hex),
-          availableIcons: LUCIDE_ICON_NAMES.slice(0, 500), // Send subset for matching
+          availableIcons: names.slice(0, 500),
         },
       });
 
       if (error) throw error;
 
       const parsed = Array.isArray(data?.suggestions) ? data.suggestions : [];
-      // Validate that suggested icons exist in Lucide
       const valid = parsed.filter((s: SuggestedIcon) =>
-        LUCIDE_ICON_NAMES.includes(s.lucideName)
+        names.includes(s.lucideName)
       ).slice(0, 30);
 
       if (valid.length === 0) {
@@ -102,12 +119,13 @@ export const AiIconSuggestions = ({
   };
 
   const extractSvg = useCallback((iconName: string): string => {
+    if (!lucideIconsCache) return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>';
     const tempDiv = document.createElement('div');
     tempDiv.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
     document.body.appendChild(tempDiv);
     let svgString = '';
     try {
-      const IconComp = (LucideIcons as any)[iconName];
+      const IconComp = lucideIconsCache[iconName];
       if (IconComp) {
         const root = createRoot(tempDiv);
         flushSync(() => {
@@ -146,7 +164,8 @@ export const AiIconSuggestions = ({
   };
 
   const renderIcon = (iconName: string, size = 24) => {
-    const IconComponent = (LucideIcons as any)[iconName];
+    if (!lucideIconsCache) return null;
+    const IconComponent = lucideIconsCache[iconName];
     if (!IconComponent) return null;
     return <IconComponent size={size} />;
   };

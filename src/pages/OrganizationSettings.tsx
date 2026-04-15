@@ -1,4 +1,5 @@
 import { useState, useRef, lazy, Suspense } from 'react';
+import { useStableLoading } from '@/hooks/useStableLoading';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -61,6 +62,7 @@ const OrganizationSettings = () => {
   const navigate = useNavigate();
   const { user, isSuperAdmin, isLoading: authLoading } = useAuth();
   const { organization, members, userRole, updateOrganization, deleteOrganization, inviteMember, removeMember, updateMemberRole, isLoading: orgLoading } = useOrganization();
+  const stableLoading = useStableLoading(authLoading || orgLoading, { minDisplayTime: 400 });
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -354,7 +356,7 @@ const OrganizationSettings = () => {
     }
   };
 
-  if (authLoading || orgLoading) {
+  if (stableLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
