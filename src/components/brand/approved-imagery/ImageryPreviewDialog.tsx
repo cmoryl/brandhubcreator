@@ -151,14 +151,14 @@ export const ImageryPreviewDialog = ({
                 </a>
               </Button>
             )}
-            {canDownload && (image.source === 'shutterstock' || image.source === 'dropbox') && (
+            {canDownload && (
               <Button size="sm" onClick={handleDownload} disabled={downloading}>
                 {downloading ? (
                   <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
                 ) : (
                   <Download className="h-3.5 w-3.5 mr-1.5" />
                 )}
-                {image.source === 'dropbox' ? 'Download from Dropbox' : 'Download Licensed'}
+                {image.source === 'dropbox' ? 'Download from Dropbox' : image.source === 'shutterstock' ? 'Download Licensed' : 'Download'}
               </Button>
             )}
           </div>
