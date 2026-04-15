@@ -184,11 +184,12 @@ CRITICAL REQUIREMENTS:
 
       console.log("[generate-icon-visual] Phase 1 complete: image generated");
 
-      // If only image phase requested, return early
-      if (phase === "image") {
+      // If only image phase requested OR raster style (no SVG trace needed), return early
+      if (phase === "image" || isRasterStyle) {
         return new Response(JSON.stringify({
           imageUrl: iconImageUrl,
-          phase: "image",
+          phase: isRasterStyle ? "raster" : "image",
+          isRaster: isRasterStyle,
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
