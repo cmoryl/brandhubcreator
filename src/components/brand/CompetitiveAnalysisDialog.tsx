@@ -1230,7 +1230,16 @@ export function CompetitiveAnalysisDialog({
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <DesignPriorityTable priorities={safeObjArr(reportData.recommendations?.designPriorities)} />
+                        <DesignPriorityTable
+                          priorities={safeObjArr(reportData.recommendations?.designPriorities)}
+                          reportId={latestReport?.id}
+                          onApprove={async (index, title) => {
+                            if (latestReport?.id) {
+                              await approveRecommendation(latestReport.id, index, title, 'design_priority');
+                            }
+                          }}
+                          isUtilized={(index) => latestReport?.id ? isUtilized(latestReport.id, index, 'design_priority') : false}
+                        />
                       </CardContent>
                     </Card>
 
