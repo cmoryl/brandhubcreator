@@ -31,7 +31,7 @@ serve(async (req) => {
 
     // Fetch entity context + latest imagery strategy audit in parallel
     const tableName = entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events";
-    const [contextRes, auditRes] = await Promise.all([
+    const [contextRes, auditRes, actionsRes] = await Promise.all([
       supabase.rpc("get_entity_text_context", { p_table: tableName, p_id: entityId }),
       supabase
         .from("imagery_strategy_audits")
@@ -41,6 +41,12 @@ serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      supabase
+        .from("competitive_recommendation_actions")
+        .select("recommendation_title, recommendation_type, status")
+        .eq("entity_id", entityId)
+        .eq("entity_type", entityType)
+        .eq("applied_to_imagery_hub", true),
     ]);
 
     const context = contextRes.data;
