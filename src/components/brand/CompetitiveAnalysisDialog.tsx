@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCompetitiveAnalysis } from '@/hooks/useCompetitiveAnalysis';
+import { useRecommendationActions } from '@/hooks/useRecommendationActions';
 import { useFavoriteCompetitors } from '@/hooks/useFavoriteCompetitors';
 import { useRegionalBranding } from '@/hooks/useRegionalBranding';
 import { ScoreGauge } from '@/components/admin/competitive-analysis/ScoreGauge';
