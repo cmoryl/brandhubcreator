@@ -262,6 +262,21 @@ export const BrandIntelligencePanel = ({
 
   useEffect(() => {
     fetchIntelligence();
+    // Fetch latest visibility audit for export
+    if (entityId) {
+      supabase
+        .from('brand_visibility_audits')
+        .select('*')
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setVisibilityAuditForExport(data);
+        });
+    }
   }, [entityId]);
 
   const fetchIntelligence = async () => {
