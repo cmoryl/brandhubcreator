@@ -52,9 +52,15 @@ export const WebsiteImageScanner = ({
     setFailedImages(new Set());
     setScanProgress('Discovering pages...');
 
+    // Ensure the URL has a protocol prefix
+    let scanUrl = url.trim();
+    if (!/^https?:\/\//i.test(scanUrl)) {
+      scanUrl = `https://${scanUrl}`;
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('scan-website-images', {
-        body: { url: url.trim(), deepCrawl: true },
+        body: { url: scanUrl, deepCrawl: true },
       });
 
       if (error) throw error;
