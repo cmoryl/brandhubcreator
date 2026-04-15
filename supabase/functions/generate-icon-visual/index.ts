@@ -73,6 +73,10 @@ serve(async (req) => {
     if (phase !== "trace") {
       console.log(`[generate-icon-visual] Phase 1: Generating icon image for "${prompt}"`);
 
+      // Raster styles produce standalone PNG images (no SVG trace)
+      const RASTER_STYLES = new Set(['isometric-3d', 'flat-illustration', 'realistic-3d', 'clay-3d']);
+      const isRasterStyle = RASTER_STYLES.has(style);
+
       const styleDescriptions: Record<string, string> = {
         outlined: "Clean outlined icon with uniform 2px strokes on a pure white background. Minimal, geometric, professional like Lucide or SF Symbols.",
         filled: "Solid filled icon silhouette on pure white background. Clean cutouts for internal detail. Bold and immediately recognizable.",
@@ -83,13 +87,34 @@ serve(async (req) => {
         sharp: "Precise sharp-cornered icon with square terminals and miter joins on pure white background.",
         soft: "Rounded friendly icon with extra-round terminals on pure white background.",
         thick: "Bold thick-stroked icon with 3px+ weight on pure white background. High-impact.",
+        'isometric-3d': "Beautiful Airbnb-style isometric 3D icon rendered at a 30° isometric angle. Soft shadows, clean surfaces, pastel/vibrant colors, subtle gradients, professional quality. Transparent background.",
+        'flat-illustration': "Modern flat-design colorful illustration icon. Bold shapes, bright colors, no gradients or shadows, clean geometric forms. Transparent background.",
+        'realistic-3d': "Photorealistic 3D rendered icon with realistic materials (glass, metal, plastic), studio lighting, subtle reflections, and soft ambient occlusion. Transparent background.",
+        'clay-3d': "Soft clay/plasticine-style 3D rendered icon. Rounded puffy shapes, matte texture, warm soft lighting, playful and tactile feel. Transparent background.",
       };
 
       const styleDesc = styleDescriptions[style] || styleDescriptions.outlined;
 
       const imageMessages: any[] = [];
       
-      let imagePrompt = `Create a single, highly detailed professional vector-style icon design for: "${prompt}"
+      let imagePrompt: string;
+
+      if (isRasterStyle) {
+        imagePrompt = `Create a single, beautiful 3D rendered icon for: "${prompt}"
+
+Style: ${styleDesc}
+${colorContext ? `\n${colorContext} Incorporate these brand colors into the icon's palette.` : "Use vibrant, appealing colors."}
+
+CRITICAL REQUIREMENTS:
+- TRANSPARENT background — the icon must float with NO background surface or plane
+- Single centered icon, no text, labels, or watermarks
+- High quality 3D rendering with professional lighting and materials
+- The icon must be instantly recognizable and visually stunning
+- Clean, polished, production-ready quality
+- Render at 512x512 with crisp edges
+- Think BnbIcons / Airbnb illustration style — premium, delightful, modern`;
+      } else {
+        imagePrompt = `Create a single, highly detailed professional vector-style icon design for: "${prompt}"
 
 Style: ${styleDesc}
 ${colorContext ? `\n${colorContext} Use these colors for the icon strokes/fills.` : "Use black (#000000) for the icon."}
@@ -104,6 +129,7 @@ CRITICAL REQUIREMENTS:
 - Include subtle interior lines, notches, ridges, or accent marks that add depth and craftsmanship
 - High contrast, crisp edges, pixel-perfect rendering at 512x512
 - Think of the most detailed, premium icon you've seen — match that level of refinement`;
+      }
 
       if (referenceImage) {
         imagePrompt += `\n\nIMPORTANT: Match the visual style, line weight, and aesthetic of the reference image provided. Generate new icons in the SAME visual language.`;
@@ -158,11 +184,12 @@ CRITICAL REQUIREMENTS:
 
       console.log("[generate-icon-visual] Phase 1 complete: image generated");
 
-      // If only image phase requested, return early
-      if (phase === "image") {
+      // If only image phase requested OR raster style (no SVG trace needed), return early
+      if (phase === "image" || isRasterStyle) {
         return new Response(JSON.stringify({
           imageUrl: iconImageUrl,
-          phase: "image",
+          phase: isRasterStyle ? "raster" : "image",
+          isRaster: isRasterStyle,
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }

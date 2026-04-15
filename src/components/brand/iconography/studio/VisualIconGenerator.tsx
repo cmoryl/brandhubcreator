@@ -48,15 +48,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const VISUAL_STYLES = [
-  { id: 'outlined', label: 'Outlined', desc: 'Clean stroke icons' },
-  { id: 'filled', label: 'Filled', desc: 'Solid silhouettes' },
-  { id: 'minimalist', label: 'Minimalist', desc: 'Ultra-thin lines' },
-  { id: 'brutalist', label: 'Brutalist', desc: 'Sharp geometric' },
-  { id: 'duotone', label: 'Duotone', desc: 'Two-tone accent' },
-  { id: 'glassmorphic', label: 'Glassmorphic', desc: 'Layered depth' },
-  { id: 'thick', label: 'Thick', desc: 'Bold weight' },
-  { id: 'soft', label: 'Soft', desc: 'Rounded friendly' },
+  { id: 'outlined', label: 'Outlined', desc: 'Clean stroke icons', raster: false },
+  { id: 'filled', label: 'Filled', desc: 'Solid silhouettes', raster: false },
+  { id: 'minimalist', label: 'Minimalist', desc: 'Ultra-thin lines', raster: false },
+  { id: 'brutalist', label: 'Brutalist', desc: 'Sharp geometric', raster: false },
+  { id: 'duotone', label: 'Duotone', desc: 'Two-tone accent', raster: false },
+  { id: 'glassmorphic', label: 'Glassmorphic', desc: 'Layered depth', raster: false },
+  { id: 'thick', label: 'Thick', desc: 'Bold weight', raster: false },
+  { id: 'soft', label: 'Soft', desc: 'Rounded friendly', raster: false },
 ];
+
+const RASTER_STYLES = [
+  { id: 'isometric-3d', label: 'Isometric 3D', desc: 'Airbnb-style isometric', raster: true, emoji: '🧊' },
+  { id: 'flat-illustration', label: 'Flat Illustration', desc: 'Bold flat colors', raster: true, emoji: '🎨' },
+  { id: 'realistic-3d', label: 'Realistic 3D', desc: 'Photorealistic render', raster: true, emoji: '💎' },
+  { id: 'clay-3d', label: 'Clay / Soft 3D', desc: 'Puffy clay style', raster: true, emoji: '🫧' },
+];
+
+const ALL_STYLES = [...VISUAL_STYLES, ...RASTER_STYLES];
 
 // Variation suffixes to generate 3 different takes on the same prompt
 const VARIATION_SUFFIXES = [
@@ -84,7 +93,8 @@ interface GeneratedResult {
   imageUrl: string;
   svg?: string;
   prompt: string;
-  phase: 'image' | 'full';
+  phase: 'image' | 'full' | 'raster';
+  isRaster?: boolean;
   variationIndex?: number;
   createdAt?: string;
 }
@@ -196,12 +206,13 @@ export const VisualIconGenerator = ({
   onResultsChange,
 }: VisualIconGeneratorProps) => {
   const [prompt, setPrompt] = useState('');
-  const [style, setStyle] = useState('outlined');
+  const [style, setStyle] = useState('isometric-3d');
   const [strokeWidth, setStrokeWidth] = useState([2]);
   const [cornerStyle, setCornerStyle] = useState<'rounded' | 'sharp'>('rounded');
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceFileName, setReferenceFileName] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const isRasterStyle = RASTER_STYLES.some(s => s.id === style);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isTracing, setIsTracing] = useState(false);
@@ -362,6 +373,8 @@ export const VisualIconGenerator = ({
 
       completeProgress();
 
+      const isRaster = RASTER_STYLES.some(s => s.id === styleValue);
+
       const newResults: GeneratedResult[] = successfulResults.map(sr => {
         const resultId = crypto.randomUUID();
         generatedIds.push(resultId);
@@ -369,7 +382,8 @@ export const VisualIconGenerator = ({
           id: resultId,
           imageUrl: sr.imageUrl,
           prompt: trimmedPrompt,
-          phase: 'image' as const,
+          phase: isRaster ? 'raster' as const : 'image' as const,
+          isRaster,
           variationIndex: sr.varIndex,
           createdAt: new Date().toISOString(),
         };
@@ -380,44 +394,48 @@ export const VisualIconGenerator = ({
       setSelectedResult(0);
 
       const count = newResults.length;
-      toast.success(`${count} variation${count > 1 ? 's' : ''} generated! Tracing to SVG...`);
 
-      // Clear animation flags after animation completes
-      setTimeout(() => setNewResultIds(new Set()), 800);
+      if (isRaster) {
+        toast.success(`${count} 3D icon${count > 1 ? 's' : ''} generated!`);
+        setTimeout(() => setNewResultIds(new Set()), 800);
+      } else {
+        toast.success(`${count} variation${count > 1 ? 's' : ''} generated! Tracing to SVG...`);
+        setTimeout(() => setNewResultIds(new Set()), 800);
 
-      // Phase 2: Auto-trace all in background
-      void (async () => {
-        setIsTracing(true);
-        let tracedCount = 0;
-        
-        for (const nr of newResults) {
-          try {
-            const svg = await traceImageToSvg({
-              imageUrl: nr.imageUrl,
-              styleValue,
-              strokeWidthValue,
-              cornerStyleValue,
-              brandColorsValue,
-            });
+        // Phase 2: Auto-trace all in background (vector styles only)
+        void (async () => {
+          setIsTracing(true);
+          let tracedCount = 0;
+          
+          for (const nr of newResults) {
+            try {
+              const svg = await traceImageToSvg({
+                imageUrl: nr.imageUrl,
+                styleValue,
+                strokeWidthValue,
+                cornerStyleValue,
+                brandColorsValue,
+              });
 
-            if (svg) {
-              setResults(prev =>
-                prev.map(r => (r.id === nr.id ? { ...r, svg, phase: 'full' } : r))
-              );
-              tracedCount++;
+              if (svg) {
+                setResults(prev =>
+                  prev.map(r => (r.id === nr.id ? { ...r, svg, phase: 'full' } : r))
+                );
+                tracedCount++;
+              }
+            } catch (traceErr) {
+              console.warn('Auto-trace skipped for variation:', traceErr);
             }
-          } catch (traceErr) {
-            console.warn('Auto-trace skipped for variation:', traceErr);
           }
-        }
 
-        if (tracedCount > 0) {
-          toast.success(`${tracedCount} SVG${tracedCount > 1 ? 's' : ''} traced successfully!`);
-        } else {
-          toast.info('Images ready — click "Trace to SVG" to vectorize.');
-        }
-        setIsTracing(false);
-      })();
+          if (tracedCount > 0) {
+            toast.success(`${tracedCount} SVG${tracedCount > 1 ? 's' : ''} traced successfully!`);
+          } else {
+            toast.info('Images ready — click "Trace to SVG" to vectorize.');
+          }
+          setIsTracing(false);
+        })();
+      }
     } catch (err: any) {
       console.error('Visual generation error:', err);
       toast.error(err?.message || 'Generation failed');
@@ -485,10 +503,12 @@ export const VisualIconGenerator = ({
         <div>
           <h4 className="text-sm font-semibold">Visual Icon Generator</h4>
           <p className="text-xs text-muted-foreground">
-            AI generates 3 variations, then traces each to clean SVG
+            {isRasterStyle ? 'AI generates beautiful 3D raster icons' : 'AI generates 3 variations, then traces each to clean SVG'}
           </p>
         </div>
-        <Badge variant="secondary" className="ml-auto text-[10px]">Image → SVG</Badge>
+        <Badge variant="secondary" className="ml-auto text-[10px]">
+          {isRasterStyle ? '3D Raster' : 'Image → SVG'}
+        </Badge>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -553,7 +573,25 @@ export const VisualIconGenerator = ({
 
           {/* Style */}
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Visual Style</Label>
+            <Label className="text-xs font-medium">3D / Raster Styles</Label>
+            <div className="grid grid-cols-4 gap-1.5">
+              {RASTER_STYLES.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => setStyle(s.id)}
+                  className={cn(
+                    'px-2 py-1.5 rounded-md border text-center transition-all text-[10px]',
+                    style === s.id
+                      ? 'bg-primary/10 border-primary text-primary font-medium'
+                      : 'border-border hover:bg-muted text-muted-foreground'
+                  )}
+                >
+                  <span className="block text-sm mb-0.5">{s.emoji}</span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <Label className="text-xs font-medium mt-3">Vector Styles</Label>
             <div className="grid grid-cols-4 gap-1.5">
               {VISUAL_STYLES.map(s => (
                 <button
@@ -572,7 +610,8 @@ export const VisualIconGenerator = ({
             </div>
           </div>
 
-          {/* Stroke & Corners */}
+          {/* Stroke & Corners - only for vector styles */}
+          {!isRasterStyle && (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-medium">Stroke Width</Label>
@@ -592,7 +631,7 @@ export const VisualIconGenerator = ({
               </Select>
             </div>
           </div>
-
+          )}
           {/* Style Reference */}
           <div className="space-y-2">
             <Label className="text-xs font-medium">Style Reference (Optional)</Label>
@@ -687,11 +726,28 @@ export const VisualIconGenerator = ({
                       </Badge>
                     )}
                   </div>
-                  <Badge variant={selected.phase === 'full' ? 'default' : 'secondary'} className="text-[9px]">
-                    {selected.phase === 'full' ? '✓ SVG Ready' : isTracing ? 'Tracing SVG…' : 'Image Only'}
+                  <Badge variant={selected.phase === 'full' || selected.phase === 'raster' ? 'default' : 'secondary'} className="text-[9px]">
+                    {selected.phase === 'raster' ? '✓ 3D Ready' : selected.phase === 'full' ? '✓ SVG Ready' : isTracing ? 'Tracing SVG…' : 'Image Only'}
                   </Badge>
                 </div>
-                <div className="grid grid-cols-2 divide-x">
+
+                {selected.phase === 'raster' || selected.isRaster ? (
+                  /* Raster mode: full-width image preview */
+                  <div className="p-6 flex flex-col items-center gap-3">
+                    <button
+                      onClick={() => setEnlargedView('image')}
+                      className="group relative w-40 h-40 rounded-xl border-2 border-dashed border-muted bg-[repeating-conic-gradient(hsl(var(--muted))_0%_25%,transparent_0%_50%)] bg-[length:16px_16px] flex items-center justify-center p-3 cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all"
+                    >
+                      <img src={selected.imageUrl} alt="Generated 3D icon" className="max-w-full max-h-full object-contain drop-shadow-lg" />
+                      <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/5 rounded-xl transition-colors flex items-center justify-center">
+                        <Maximize2 className="h-5 w-5 text-foreground/0 group-hover:text-foreground/60 transition-colors" />
+                      </div>
+                    </button>
+                    <p className="text-[10px] text-muted-foreground">3D Raster Icon • Click to enlarge</p>
+                  </div>
+                ) : (
+                  /* Vector mode: split image/SVG view */
+                  <div className="grid grid-cols-2 divide-x">
                   {/* Generated Image */}
                   <div className="p-4 flex flex-col items-center gap-2">
                     <p className="text-[10px] text-muted-foreground font-medium">Generated Image</p>
@@ -742,6 +798,7 @@ export const VisualIconGenerator = ({
                     </button>
                   </div>
                 </div>
+                )}
 
                 {/* Enlarged Preview Dialog */}
                 {enlargedView && (
@@ -778,26 +835,48 @@ export const VisualIconGenerator = ({
 
               {/* Actions */}
               <div className="flex flex-wrap gap-2">
-                {!selected.svg && (
-                  <Button size="sm" variant="default" className="gap-1.5 text-xs" onClick={() => retrace(selectedResult!)} disabled={isTracing}>
-                    {isTracing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                    Trace to SVG
-                  </Button>
-                )}
-                {selected.svg && (
+                {selected.phase === 'raster' || selected.isRaster ? (
+                  /* Raster actions: Download PNG */
                   <>
-                    <Button size="sm" variant="default" className="gap-1.5 text-xs" onClick={() => handleAddToLibrary(selectedResult!)}>
-                      <Wand2 className="h-3.5 w-3.5" />
-                      Add to Library
+                    <Button size="sm" variant="default" className="gap-1.5 text-xs" asChild>
+                      <a href={selected.imageUrl} download={`${selected.prompt.slice(0, 30).replace(/\s+/g, '-')}.png`} target="_blank" rel="noopener noreferrer">
+                        <Download className="h-3.5 w-3.5" />
+                        Download PNG
+                      </a>
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => handleCopySvg(selected.svg!)}>
-                      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                      Copy SVG
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => {
+                      navigator.clipboard.writeText(selected.imageUrl);
+                      toast.success('Image URL copied');
+                    }}>
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy URL
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => retrace(selectedResult!)} disabled={isTracing}>
-                      <RefreshCw className="h-3.5 w-3.5" />
-                      Re-trace
-                    </Button>
+                  </>
+                ) : (
+                  /* Vector actions */
+                  <>
+                    {!selected.svg && (
+                      <Button size="sm" variant="default" className="gap-1.5 text-xs" onClick={() => retrace(selectedResult!)} disabled={isTracing}>
+                        {isTracing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                        Trace to SVG
+                      </Button>
+                    )}
+                    {selected.svg && (
+                      <>
+                        <Button size="sm" variant="default" className="gap-1.5 text-xs" onClick={() => handleAddToLibrary(selectedResult!)}>
+                          <Wand2 className="h-3.5 w-3.5" />
+                          Add to Library
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => handleCopySvg(selected.svg!)}>
+                          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                          Copy SVG
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => retrace(selectedResult!)} disabled={isTracing}>
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          Re-trace
+                        </Button>
+                      </>
+                    )}
                   </>
                 )}
               </div>
