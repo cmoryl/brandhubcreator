@@ -17,7 +17,7 @@ import { GradientsSection } from './GradientsSection';
 import { PatternsSection } from './PatternsSection';
 import { TypographySection } from './TypographySection';
 import { TextStylesSection } from './TextStylesSection';
-import { IconographySection } from './IconographySection';
+const IconographySection = lazy(() => import('./IconographySection').then(m => ({ default: m.IconographySection })));
 import { SocialIconsSection } from './SocialIconsSection';
 import { ImagerySection } from './ImagerySection';
 import { SocialSection } from './SocialSection';
@@ -44,8 +44,8 @@ import { BrandEventSignageSection } from './BrandEventSignageSection';
 import { ClientLogosSection } from './ClientLogosSection';
 import { SponsorLogosSection } from './SponsorLogosSection';
 import { PresentationTemplatesSection } from './PresentationTemplatesSection';
-import { ApprovedImagerySection } from './approved-imagery/ApprovedImagerySection';
-import { StudiosSection } from './StudiosSection';
+const ApprovedImagerySection = lazy(() => import('./approved-imagery/ApprovedImagerySection').then(m => ({ default: m.ApprovedImagerySection })));
+const StudiosSection = lazy(() => import('./StudiosSection').then(m => ({ default: m.StudiosSection })));
 import { Separator } from '@/components/ui/separator';
 
 // Framer motion variants for smooth section animations

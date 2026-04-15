@@ -94,7 +94,7 @@ import { HeroBackground } from '@/components/HeroBackground';
 import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSelector';
 import { TranslationHub } from '@/components/brand/TranslationHub';
 import { BackToTopButton } from '@/components/BackToTopButton';
-import { MobileEventSectionNav } from '@/components/event/MobileEventSectionNav';
+const MobileEventSectionNav = lazy(() => import('@/components/event/MobileEventSectionNav').then(m => ({ default: m.MobileEventSectionNav })));
 import { ParentEventBanner } from '@/components/event/ParentEventBanner';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
 import { Button } from '@/components/ui/button';
@@ -1255,13 +1255,15 @@ const EventEditor = () => {
       </div>
       
       {/* Mobile Section Navigation */}
-      <MobileEventSectionNav
-        sectionOrder={sectionOrder}
-        hiddenSections={hiddenSections}
-        activeSection={activeSection}
-        onSectionSelect={handleSectionChange}
-        eventName={event.hero.name}
-      />
+      <Suspense fallback={null}>
+        <MobileEventSectionNav
+          sectionOrder={sectionOrder}
+          hiddenSections={hiddenSections}
+          activeSection={activeSection}
+          onSectionSelect={handleSectionChange}
+          eventName={event.hero.name}
+        />
+      </Suspense>
       
       {/* Back to top button */}
       <BackToTopButton />

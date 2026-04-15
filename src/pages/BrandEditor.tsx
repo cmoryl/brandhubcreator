@@ -84,7 +84,7 @@ import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSelector';
 import { HeroBackground } from '@/components/HeroBackground';
 import { BackToTopButton } from '@/components/BackToTopButton';
-import { MobileSectionNav } from '@/components/brand/MobileSectionNav';
+const MobileSectionNav = lazy(() => import('@/components/brand/MobileSectionNav').then(m => ({ default: m.MobileSectionNav })));
 import { SectionCardGrid } from '@/components/brand/SectionCardGrid';
 import { ActiveSectionHeader } from '@/components/brand/ActiveSectionHeader';
 import { HeroBackgroundType } from '@/contexts/AppSettingsContext';
@@ -1164,7 +1164,7 @@ const BrandEditor = () => {
                 icon: TrendingUp,
                 render: () => {
                   return (
-                    <Suspense fallback={null}>
+                    <Suspense fallback={<div className="p-6 animate-pulse"><div className="h-48 w-full rounded-md bg-muted" /></div>}>
                       <CompetitiveReportCardLazy
                         entityType="brand"
                         entityId={brand.id}
@@ -1355,15 +1355,17 @@ const BrandEditor = () => {
       </div>
       
       {/* Mobile Section Navigation */}
-      <MobileSectionNav
-        sectionOrder={sectionOrder}
-        hiddenSections={hiddenSections}
-        activeSection={activeSection}
-        onSectionSelect={handleSectionChange}
-        brandName={brand.hero.name}
-        isAdmin={isGuideAdmin}
-        onHiddenSectionsChange={handleHiddenSectionsChange}
-      />
+      <Suspense fallback={null}>
+        <MobileSectionNav
+          sectionOrder={sectionOrder}
+          hiddenSections={hiddenSections}
+          activeSection={activeSection}
+          onSectionSelect={handleSectionChange}
+          brandName={brand.hero.name}
+          isAdmin={isGuideAdmin}
+          onHiddenSectionsChange={handleHiddenSectionsChange}
+        />
+      </Suspense>
       
       {/* Back to top button */}
       <BackToTopButton />

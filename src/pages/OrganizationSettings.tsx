@@ -34,7 +34,7 @@ import { ArrowLeft, Building2, Upload, Loader2, Palette, Globe, Eye, EyeOff, Tra
 
 // Lazy load analytics and icon library components for performance
 const OrganizationAnalytics = lazy(() => import('@/components/organization/OrganizationAnalytics'));
-import { IconLibraryManager } from '@/components/brand/iconography';
+const IconLibraryManager = lazy(() => import('@/components/brand/iconography/IconLibraryManager').then(m => ({ default: m.IconLibraryManager })));
 import { CacheSettingsCard } from '@/components/organization/CacheSettingsCard';
 import { BatchAssetGenerationCard } from '@/components/organization/BatchAssetGenerationCard';
 import { z } from 'zod';
@@ -662,15 +662,17 @@ const OrganizationSettings = () => {
           </CardHeader>
           <CardContent>
             {organization?.id && (
-              <IconLibraryManager 
-                organizationId={organization.id}
-                organizationName={organization.name}
-                brandColors={[
-                  { hex: primaryColor, name: 'Primary' },
-                  { hex: secondaryColor, name: 'Secondary' },
-                  { hex: accentColor, name: 'Accent' },
-                ]}
-              />
+              <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                <IconLibraryManager 
+                  organizationId={organization.id}
+                  organizationName={organization.name}
+                  brandColors={[
+                    { hex: primaryColor, name: 'Primary' },
+                    { hex: secondaryColor, name: 'Secondary' },
+                    { hex: accentColor, name: 'Accent' },
+                  ]}
+                />
+              </Suspense>
             )}
           </CardContent>
         </Card>
