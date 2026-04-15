@@ -263,6 +263,10 @@ export const ImageryWorkspace = ({
                 <DropdownMenuItem onClick={() => setAutoCategorizeOpen(true)} disabled={allImages.length === 0} className="gap-2">
                   <Sparkles className="h-4 w-4" /> Auto-Categorize
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setWebsiteScannerOpen(true)} className="gap-2">
+                  <Globe className="h-4 w-4" /> Scan Website for Images
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
