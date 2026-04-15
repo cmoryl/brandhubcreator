@@ -181,29 +181,27 @@ export const IconStudio = ({
     switch (activeTab) {
       case 'library':
         return (
-          <div className="space-y-6">
-            <IconStudioLibrary
-              organizationId={organizationId}
-              libraries={libraries}
-              coreLibraries={coreLibraries}
-              productLineLibraries={productLineLibraries}
-              brandLibraries={brandLibraries}
-              isLoading={librariesLoading}
-              createLibrary={createLibrary}
-              updateLibrary={updateLibrary}
-              deleteLibrary={deleteLibrary}
-              onNavigateToTab={handleNavigateToTab}
-            />
-            {/* Upload & Import section embedded here */}
-            <div className="border-t pt-6">
-              <IconStudioCreator
-                organizationId={organizationId}
-                brandColors={brandColors}
-                libraries={libraries}
-                onSaveIcons={handleSaveIcons}
-              />
-            </div>
-          </div>
+          <IconStudioLibrary
+            organizationId={organizationId}
+            libraries={libraries}
+            coreLibraries={coreLibraries}
+            productLineLibraries={productLineLibraries}
+            brandLibraries={brandLibraries}
+            isLoading={librariesLoading}
+            createLibrary={createLibrary}
+            updateLibrary={updateLibrary}
+            deleteLibrary={deleteLibrary}
+            onNavigateToTab={handleNavigateToTab}
+          />
+        );
+      case 'creator':
+        return (
+          <IconStudioCreator
+            organizationId={organizationId}
+            brandColors={brandColors}
+            libraries={libraries}
+            onSaveIcons={handleSaveIcons}
+          />
         );
       case 'generate':
         return (
