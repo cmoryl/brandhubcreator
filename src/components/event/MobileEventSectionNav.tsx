@@ -11,7 +11,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { EventSectionId } from '@/types/event';
-import { eventSectionMeta } from './EventSidebar';
+import { eventSectionMeta } from './eventSectionMeta';
 
 interface MobileEventSectionNavProps {
   sectionOrder: EventSectionId[];

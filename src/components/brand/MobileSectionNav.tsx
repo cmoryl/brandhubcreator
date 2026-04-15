@@ -11,7 +11,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { SectionId } from '@/types/brand';
-import { sectionMeta } from './ReorderableBrandSidebar';
+import { sectionMeta } from './sectionMeta';
 
 interface MobileSectionNavProps {
   sectionOrder: SectionId[];

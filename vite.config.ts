@@ -66,6 +66,14 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/dompurify')) {
               return 'vendor-sanitize';
             }
+            // Drawer library (vaul) - commonly shared but heavy
+            if (id.includes('node_modules/vaul')) {
+              return 'vendor-drawer';
+            }
+            // DnD libraries - only needed in editors
+            if (id.includes('node_modules/@dnd-kit')) {
+              return 'vendor-dnd';
+            }
             // Core React libraries
             if (id.includes('node_modules/react/') || 
                 id.includes('node_modules/react-dom/') || 
