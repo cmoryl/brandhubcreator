@@ -62,6 +62,7 @@ const OrganizationSettings = () => {
   const navigate = useNavigate();
   const { user, isSuperAdmin, isLoading: authLoading } = useAuth();
   const { organization, members, userRole, updateOrganization, deleteOrganization, inviteMember, removeMember, updateMemberRole, isLoading: orgLoading } = useOrganization();
+  const stableLoading = useStableLoading(authLoading || orgLoading, { minDisplayMs: 400 });
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
