@@ -115,7 +115,13 @@ const ImageryHub = () => {
     }
   }, [selectedEntity, sections]);
 
-  if (authLoading) {
+  const stableAuthLoading = useStableLoading(authLoading, {
+    showDelay: 100,
+    minDisplayTime: 300,
+    maxLoadingTime: 10000,
+  });
+
+  if (stableAuthLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
