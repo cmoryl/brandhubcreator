@@ -32,8 +32,12 @@ const ImageryHub = () => {
   const [bulkCopySectionName, setBulkCopySectionName] = useState('');
   const [aiSuggestionsLoading, setAiSuggestionsLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [auditScore, setAuditScore] = useState<number | null>(null);
 
   const {
+    latestAudit, isRunning: auditRunning, runAudit,
+  } = useImageryStrategyAudit(selectedEntity?.id, selectedEntity?.type);
+
     sections, isLoading: imageryLoading, organizationId,
     addImages, removeImage, addSection, removeSection,
     reorderImages, updateImageTags,
