@@ -259,6 +259,30 @@ serve(async (req) => {
       console.warn('[worker] Visibility audit fetch failed (non-critical):', e);
     }
 
+    // Fetch imagery strategy audit context
+    let imageryAuditContext = '';
+    try {
+      const imageryAudits = await db.select('imagery_strategy_audits',
+        `entity_id=eq.${job.entity_id}&entity_type=eq.${job.entity_type}&order=created_at.desc&limit=1&select=overall_score,diversity_score,authenticity_score,cultural_context_score,action_orientation_score,inclusive_prompting_score,stock_dependency,stop_signals_detected,go_signals_present,recommendations`
+      );
+      if (imageryAudits.length > 0) {
+        const ia = imageryAudits[0];
+        const parts: string[] = ['IMAGERY STRATEGY AUDIT:'];
+        parts.push(`Overall: ${ia.overall_score ?? 'N/A'}%, Diversity: ${ia.diversity_score ?? 'N/A'}%, Authenticity: ${ia.authenticity_score ?? 'N/A'}%`);
+        parts.push(`Cultural Context: ${ia.cultural_context_score ?? 'N/A'}%, Action Orientation: ${ia.action_orientation_score ?? 'N/A'}%, Inclusive Prompting: ${ia.inclusive_prompting_score ?? 'N/A'}%`);
+        parts.push(`Stock Dependency: ${ia.stock_dependency || 'unknown'}`);
+        const stops = Array.isArray(ia.stop_signals_detected) ? ia.stop_signals_detected : [];
+        if (stops.length > 0) parts.push(`Stop signals detected: ${stops.slice(0, 4).join('; ')}`);
+        const gos = Array.isArray(ia.go_signals_present) ? ia.go_signals_present : [];
+        if (gos.length > 0) parts.push(`Go signals present: ${gos.slice(0, 4).join('; ')}`);
+        const recs = Array.isArray(ia.recommendations) ? ia.recommendations : [];
+        if (recs.length > 0) parts.push(`Top recommendations: ${recs.slice(0, 3).map((r: any) => r.title || '').join('; ')}`);
+        imageryAuditContext = `\n${parts.join('\n')}\nIncorporate imagery strategy findings into brand perception analysis. Flag diversity gaps and inauthenticity risks in your growth recommendations.`;
+      }
+    } catch (e) {
+      console.warn('[worker] Imagery audit fetch failed (non-critical):', e);
+    }
+
     // Fetch social metrics context
     let socialMetricsContext = '';
     try {
@@ -386,6 +410,7 @@ ${visualDnaContext}
 ${visibilityContext}
 ${socialMetricsContext}
 ${complianceContext}
+${imageryAuditContext}
 ${externalDocContent ? `\nEXTERNAL LINKED DOCUMENTS (fetched from Dropbox/GlobalLink/external sources):\n${externalDocContent}` : ''}
 ${priorAnalysisContext}
 ${physicalAccessibilityContext}
@@ -393,7 +418,7 @@ ${personaDesignContext}
 ${inclusiveImageryContext}
 ${patientResearchContext}
 ${labToLaunchContext}
-Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''}${externalDocContent ? ' Incorporate insights from external linked documents into your analysis.' : ''}${priorAnalysisContext ? ' Compare against prior analysis and note trends.' : ''}${visibilityContext ? ' Factor visibility gaps and scores into growth strategy and market positioning.' : ''}${socialMetricsContext ? ' Integrate social performance data into audience and engagement analysis.' : ''}${complianceContext ? ' Address compliance findings in recommendations.' : ''}
+Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''}${externalDocContent ? ' Incorporate insights from external linked documents into your analysis.' : ''}${priorAnalysisContext ? ' Compare against prior analysis and note trends.' : ''}${visibilityContext ? ' Factor visibility gaps and scores into growth strategy and market positioning.' : ''}${socialMetricsContext ? ' Integrate social performance data into audience and engagement analysis.' : ''}${complianceContext ? ' Address compliance findings in recommendations.' : ''}${imageryAuditContext ? ' Integrate imagery strategy audit scores into visual identity and brand perception analysis.' : ''}
 
 SACM (Sentiment Analysis & Computational Color Modeling):
 Evaluate whether the brand's color palette aligns with its messaging sentiment:

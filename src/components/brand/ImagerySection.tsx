@@ -206,7 +206,7 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
           </ToggleGroup>
       </div>
 
-      {isAdmin && <ImageryGuidelinesPanel canEdit={canEdit} />}
+      {isAdmin && <ImageryGuidelinesPanel canEdit={canEdit} entityId={entityId} entityType={entityType} />}
 
       <input
         ref={fileInputRef}
