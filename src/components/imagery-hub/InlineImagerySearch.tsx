@@ -511,10 +511,16 @@ export const InlineImagerySearch = ({
             </div>
             {/* Grid density toggle */}
             <div className="flex items-center gap-1 border border-border rounded-md p-0.5">
-              <button onClick={() => setGridCols(2)} className={cn('p-1 rounded', gridCols === 2 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')}>
+              <button onClick={() => setGridCols(2)} className={cn('p-1 rounded', gridCols === 2 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')} title="Large">
                 <LayoutGrid className="h-3.5 w-3.5" />
               </button>
-              <button onClick={() => setGridCols(3)} className={cn('p-1 rounded', gridCols === 3 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')}>
+              <button onClick={() => setGridCols(3)} className={cn('p-1 rounded', gridCols === 3 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')} title="Medium">
+                <Grid3X3 className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={() => setGridCols(4)} className={cn('p-1 rounded', gridCols === 4 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')} title="Small">
+                <Grid3X3 className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={() => setGridCols(5)} className={cn('p-1 rounded', gridCols === 5 ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground')} title="Compact">
                 <Grid3X3 className="h-3.5 w-3.5" />
               </button>
             </div>
