@@ -344,17 +344,6 @@ const EventEditor = () => {
     entityOrgId: event?.organizationId 
   });
 
-  // Refetch event data when page becomes visible (e.g. returning from Imagery Hub)
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        refetchEvents();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-    refetchEvents();
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [refetchEvents]);
 
   // Permission check (debug logging removed for production)
   
