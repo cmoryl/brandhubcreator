@@ -89,13 +89,16 @@ export function useAICenterMetrics() {
     setIsLoading(true);
 
     try {
-      const [jobsRes, complianceRes, biasRes, botsRes, visRes, recsRes] = await Promise.all([
+      const [jobsRes, complianceRes, biasRes, botsRes, visRes, recsRes, brandsRes, productsRes, eventsRes] = await Promise.all([
         supabase.from('brand_intelligence_jobs').select('status, created_at, entity_id, entity_type').limit(500),
         supabase.from('dataforce_compliance_jobs').select('compliance_score, status, entity_id, entity_name, entity_type, created_at').eq('status', 'completed').limit(500),
         supabase.from('bias_awareness_scans').select('inclusion_score, language_score, visual_score, accessibility_score, status, entity_id, entity_name, entity_type, created_at').eq('status', 'completed').limit(500),
         supabase.from('bot_conversations').select('satisfaction_rating').limit(500),
         supabase.from('brand_visibility_audits').select('overall_visibility_score, status, entity_id, entity_name, entity_type, created_at').eq('status', 'completed').limit(500),
         supabase.from('recommendation_actions').select('*').eq('organization_id', orgId),
+        supabase.from('brands').select('id, name').eq('organization_id', orgId),
+        supabase.from('products').select('id, name').eq('organization_id', orgId),
+        supabase.from('events').select('id, name').eq('organization_id', orgId),
       ]);
 
       const jobs = jobsRes.data || [];
@@ -104,6 +107,12 @@ export function useAICenterMetrics() {
       const bots = botsRes.data || [];
       const vis = visRes.data || [];
       const recs = (recsRes.data || []) as unknown as RecommendationAction[];
+
+      // Build entity name lookup
+      const entityNameMap = new Map<string, string>();
+      (brandsRes.data || []).forEach(b => entityNameMap.set(b.id, b.name));
+      (productsRes.data || []).forEach(p => entityNameMap.set(p.id, p.name));
+      (eventsRes.data || []).forEach(e => entityNameMap.set(e.id, e.name));
 
       const completed = jobs.filter(j => j.status === 'completed').length;
       const failed = jobs.filter(j => j.status === 'failed').length;
