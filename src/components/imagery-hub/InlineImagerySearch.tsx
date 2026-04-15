@@ -163,7 +163,7 @@ export const InlineImagerySearch = ({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
-  const [gridCols, setGridCols] = useState<2 | 3>(3);
+  const [gridCols, setGridCols] = useState<2 | 3 | 4 | 5>(3);
 
   const [activePanel, setActivePanel] = useState<ToolPanel>('none');
   const [colorFilter, setColorFilter] = useState('');
