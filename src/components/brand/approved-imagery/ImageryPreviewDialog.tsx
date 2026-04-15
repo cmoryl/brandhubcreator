@@ -47,11 +47,9 @@ export const ImageryPreviewDialog = ({
     setDownloading(true);
     try {
       if (isDropbox) {
-        // For Dropbox images, the URL is already a temporary download link
         window.open(image.url, '_blank');
         toast.success('Opening Dropbox download');
-      } else {
-        // Shutterstock licensing flow
+      } else if (image.source === 'shutterstock') {
         const { data, error } = await supabase.functions.invoke('shutterstock-search', {
           body: { action: 'download', imageId: image.id },
         });
@@ -66,6 +64,17 @@ export const ImageryPreviewDialog = ({
           window.open(data.downloadUrl, '_blank');
           toast.success(data.alreadyLicensed ? 'Re-downloading licensed image' : 'Image licensed & downloading');
         }
+      } else {
+        // Generic download for uploaded/imported images
+        const link = document.createElement('a');
+        link.href = image.url;
+        link.download = image.title || 'image';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Downloading image');
       }
     } catch (err: any) {
       console.error('Download error:', err);
