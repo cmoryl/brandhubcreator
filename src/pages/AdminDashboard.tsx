@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Users, Building2, Palette, Package, Activity, Shield, 
@@ -31,45 +31,47 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { format, subDays } from 'date-fns';
-import { BrandReportGenerator } from '@/components/admin/BrandReportGenerator';
-import { ProductReportGenerator } from '@/components/admin/ProductReportGenerator';
-import { EventReportGenerator } from '@/components/admin/EventReportGenerator';
-import { AIMarketAnalysis } from '@/components/admin/AIMarketAnalysis';
-import { DataInspector } from '@/components/admin/DataInspector';
-import { DemoGuidesManager } from '@/components/admin/DemoGuidesManager';
-import { UserApprovalManager } from '@/components/admin/UserApprovalManager';
-import { BrandAnalyticsHub } from '@/components/admin/BrandAnalyticsHub';
-import { BulkRepairTool } from '@/components/admin/BulkRepairTool';
-import { HiddenSectionsScanner } from '@/components/admin/HiddenSectionsScanner';
-import { MembersManager } from '@/components/admin/MembersManager';
-import { UserAnalyticsTab } from '@/components/admin/UserAnalyticsTab';
-import { UsersAndMembersTab } from '@/components/admin/UsersAndMembersTab';
-import { CompressedBackupManager } from '@/components/admin/CompressedBackupManager';
-import { UniverseBackupManager } from '@/components/admin/UniverseBackupManager';
-import { ProductSuiteBackupManager } from '@/components/admin/ProductSuiteBackupManager';
-import { AdminImageLibrary } from '@/components/admin/AdminImageLibrary';
-import { GlobalLogoHub } from '@/components/admin/GlobalLogoHub';
+import { useStableLoading } from '@/hooks/useStableLoading';
+
+// Lazy-load ALL tab panel components to reduce 856KB monolith
+const BrandReportGenerator = lazy(() => import('@/components/admin/BrandReportGenerator').then(m => ({ default: m.BrandReportGenerator })));
+const ProductReportGenerator = lazy(() => import('@/components/admin/ProductReportGenerator').then(m => ({ default: m.ProductReportGenerator })));
+const EventReportGenerator = lazy(() => import('@/components/admin/EventReportGenerator').then(m => ({ default: m.EventReportGenerator })));
+const AIMarketAnalysis = lazy(() => import('@/components/admin/AIMarketAnalysis').then(m => ({ default: m.AIMarketAnalysis })));
+const DataInspector = lazy(() => import('@/components/admin/DataInspector').then(m => ({ default: m.DataInspector })));
+const DemoGuidesManager = lazy(() => import('@/components/admin/DemoGuidesManager').then(m => ({ default: m.DemoGuidesManager })));
+const UserApprovalManager = lazy(() => import('@/components/admin/UserApprovalManager').then(m => ({ default: m.UserApprovalManager })));
+const BrandAnalyticsHub = lazy(() => import('@/components/admin/BrandAnalyticsHub').then(m => ({ default: m.BrandAnalyticsHub })));
+const BulkRepairTool = lazy(() => import('@/components/admin/BulkRepairTool').then(m => ({ default: m.BulkRepairTool })));
+const HiddenSectionsScanner = lazy(() => import('@/components/admin/HiddenSectionsScanner').then(m => ({ default: m.HiddenSectionsScanner })));
+const UserAnalyticsTab = lazy(() => import('@/components/admin/UserAnalyticsTab').then(m => ({ default: m.UserAnalyticsTab })));
+const CompressedBackupManager = lazy(() => import('@/components/admin/CompressedBackupManager').then(m => ({ default: m.CompressedBackupManager })));
+const UniverseBackupManager = lazy(() => import('@/components/admin/UniverseBackupManager').then(m => ({ default: m.UniverseBackupManager })));
+const ProductSuiteBackupManager = lazy(() => import('@/components/admin/ProductSuiteBackupManager').then(m => ({ default: m.ProductSuiteBackupManager })));
+const AdminImageLibrary = lazy(() => import('@/components/admin/AdminImageLibrary').then(m => ({ default: m.AdminImageLibrary })));
+const GlobalLogoHub = lazy(() => import('@/components/admin/GlobalLogoHub').then(m => ({ default: m.GlobalLogoHub })));
+const LeadSubmissionsPanel = lazy(() => import('@/components/admin/LeadSubmissionsPanel').then(m => ({ default: m.LeadSubmissionsPanel })));
+const PeopleHub = lazy(() => import('@/components/admin/PeopleHub').then(m => ({ default: m.PeopleHub })));
+const CompanyLocationsManager = lazy(() => import('@/components/admin/CompanyLocationsManager').then(m => ({ default: m.CompanyLocationsManager })));
+const GlobalMapThemeEditor = lazy(() => import('@/components/admin/GlobalMapThemeEditor').then(m => ({ default: m.GlobalMapThemeEditor })));
+const AdminOverview = lazy(() => import('@/components/admin/AdminOverview').then(m => ({ default: m.AdminOverview })));
+const DownloadsReportPanel = lazy(() => import('@/components/admin/DownloadsReportPanel').then(m => ({ default: m.DownloadsReportPanel })));
+const ActivityLogsPanel = lazy(() => import('@/components/admin/ActivityLogsPanel').then(m => ({ default: m.ActivityLogsPanel })));
+const ActivityAnalyticsHub = lazy(() => import('@/components/admin/analytics/ActivityAnalyticsHub').then(m => ({ default: m.ActivityAnalyticsHub })));
+const GlobalLinkAdminSection = lazy(() => import('@/components/admin/globallink').then(m => ({ default: m.GlobalLinkAdminSection })));
+const ResearchBriefingsPanel = lazy(() => import('@/components/admin/ResearchBriefingsPanel').then(m => ({ default: m.ResearchBriefingsPanel })));
+const MulticulturalIntelligencePanel = lazy(() => import('@/components/admin/MulticulturalIntelligencePanel').then(m => ({ default: m.MulticulturalIntelligencePanel })));
+const DataForceAdminPanel = lazy(() => import('@/components/admin/DataForceAdminPanel').then(m => ({ default: m.DataForceAdminPanel })));
+const BotManagementPanel = lazy(() => import('@/components/admin/BotManagementPanel').then(m => ({ default: m.BotManagementPanel })));
+const OracleBrainPanel = lazy(() => import('@/components/admin/OracleBrainPanel').then(m => ({ default: m.OracleBrainPanel })));
+const BiasAwarenessAdminPanel = lazy(() => import('@/components/admin/BiasAwarenessAdminPanel').then(m => ({ default: m.BiasAwarenessAdminPanel })));
+const AccessibilityStandardsPanel = lazy(() => import('@/components/admin/AccessibilityStandardsPanel').then(m => ({ default: m.AccessibilityStandardsPanel })));
+const HealthTimelinePanel = lazy(() => import('@/components/admin/HealthTimelinePanel').then(m => ({ default: m.HealthTimelinePanel })));
+const PortfolioInsightsPanel = lazy(() => import('@/components/admin/PortfolioInsightsPanel').then(m => ({ default: m.PortfolioInsightsPanel })));
+const AICenterOfExcellence = lazy(() => import('@/components/admin/AICenterOfExcellence').then(m => ({ default: m.AICenterOfExcellence })));
+const VisibilityDashboard = lazy(() => import('@/components/admin/VisibilityDashboard').then(m => ({ default: m.VisibilityDashboard })));
+
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
-import { LeadSubmissionsPanel } from '@/components/admin/LeadSubmissionsPanel';
-import { PeopleHub } from '@/components/admin/PeopleHub';
-import { CompanyLocationsManager } from '@/components/admin/CompanyLocationsManager';
-import { GlobalMapThemeEditor } from '@/components/admin/GlobalMapThemeEditor';
-import { AdminOverview } from '@/components/admin/AdminOverview';
-import { DownloadsReportPanel } from '@/components/admin/DownloadsReportPanel';
-import { ActivityLogsPanel } from '@/components/admin/ActivityLogsPanel';
-import { ActivityAnalyticsHub } from '@/components/admin/analytics/ActivityAnalyticsHub';
-import { GlobalLinkAdminSection } from '@/components/admin/globallink';
-import { ResearchBriefingsPanel } from '@/components/admin/ResearchBriefingsPanel';
-import { MulticulturalIntelligencePanel } from '@/components/admin/MulticulturalIntelligencePanel';
-import { DataForceAdminPanel } from '@/components/admin/DataForceAdminPanel';
-import { BotManagementPanel } from '@/components/admin/BotManagementPanel';
-import { OracleBrainPanel } from '@/components/admin/OracleBrainPanel';
-import { BiasAwarenessAdminPanel } from '@/components/admin/BiasAwarenessAdminPanel';
-import { AccessibilityStandardsPanel } from '@/components/admin/AccessibilityStandardsPanel';
-import { HealthTimelinePanel } from '@/components/admin/HealthTimelinePanel';
-import { PortfolioInsightsPanel } from '@/components/admin/PortfolioInsightsPanel';
-import { AICenterOfExcellence } from '@/components/admin/AICenterOfExcellence';
-import { VisibilityDashboard } from '@/components/admin/VisibilityDashboard';
 import { 
   DashboardStats, 
   ActivityLog, 
@@ -78,6 +80,15 @@ import {
   getActivityIcon,
   getActionDescription 
 } from '@/lib/admin';
+
+/** Lightweight fallback for lazy-loaded admin tab panels */
+const TabPanelFallback = () => (
+  <div className="space-y-4 py-6">
+    <div className="h-6 w-48 bg-muted animate-pulse rounded" />
+    <div className="h-40 bg-muted/50 animate-pulse rounded-lg" />
+    <div className="h-24 bg-muted/30 animate-pulse rounded-lg" />
+  </div>
+);
 
 export default function AdminDashboard() {
   const { user, isAdmin, isSuperAdmin, isLoading: authLoading } = useAuth();
@@ -544,7 +555,13 @@ export default function AdminDashboard() {
     o.slug.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (authLoading || isLoading) {
+  const stableLoading = useStableLoading(authLoading || isLoading, {
+    showDelay: 100,
+    minDisplayTime: 400,
+    maxLoadingTime: 15000,
+  });
+
+  if (stableLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -615,23 +632,25 @@ export default function AdminDashboard() {
           <div className="p-4 md:p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsContent value="overview" className="space-y-6">
-            <AdminOverview
-              stats={stats}
-              activityLogs={activityLogs}
-              onTabChange={setActiveTab}
-              onRefresh={fetchDashboardData}
-              isLoading={isLoading}
-              isSuperAdmin={isSuperAdmin}
-            />
+            <Suspense fallback={<TabPanelFallback />}>
+              <AdminOverview
+                stats={stats}
+                activityLogs={activityLogs}
+                onTabChange={setActiveTab}
+                onRefresh={fetchDashboardData}
+                isLoading={isLoading}
+                isSuperAdmin={isSuperAdmin}
+              />
+            </Suspense>
           </TabsContent>
 
-          {/* People Hub (Users, Approvals, Leads) */}
           <TabsContent value="people" className="space-y-6">
-            <PeopleHub pendingApprovals={stats?.pendingApprovals} />
+            <Suspense fallback={<TabPanelFallback />}>
+              <PeopleHub pendingApprovals={stats?.pendingApprovals} />
+            </Suspense>
           </TabsContent>
 
-
-          {/* Organizations Tab */}
+          {/* Organizations Tab — inline, no heavy deps */}
           <TabsContent value="organizations" className="space-y-6">
             <Card>
               <CardHeader>
@@ -694,235 +713,163 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-
-          {/* Data Inspector Tab */}
           <TabsContent value="inspector" className="space-y-6">
-            <DataInspector />
+            <Suspense fallback={<TabPanelFallback />}><DataInspector /></Suspense>
           </TabsContent>
 
-          {/* Reports Tab */}
           <TabsContent value="reports" className="space-y-6">
-            <Tabs defaultValue="brands" className="w-full">
-              <TabsList className="mb-4 w-full flex-wrap h-auto gap-1">
-                <TabsTrigger value="brands" className="gap-1.5 text-xs sm:text-sm">
-                  <Palette className="h-4 w-4" />
-                  Brands
-                </TabsTrigger>
-                <TabsTrigger value="products" className="gap-1.5 text-xs sm:text-sm">
-                  <Package className="h-4 w-4" />
-                  Products
-                </TabsTrigger>
-                <TabsTrigger value="events" className="gap-1.5 text-xs sm:text-sm">
-                  <CalendarDays className="h-4 w-4" />
-                  Events
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="brands">
-                <BrandReportGenerator />
-              </TabsContent>
-              <TabsContent value="products">
-                <ProductReportGenerator />
-              </TabsContent>
-              <TabsContent value="events">
-                <EventReportGenerator />
-              </TabsContent>
-            </Tabs>
+            <Suspense fallback={<TabPanelFallback />}>
+              <Tabs defaultValue="brands" className="w-full">
+                <TabsList className="mb-4 w-full flex-wrap h-auto gap-1">
+                  <TabsTrigger value="brands" className="gap-1.5 text-xs sm:text-sm"><Palette className="h-4 w-4" />Brands</TabsTrigger>
+                  <TabsTrigger value="products" className="gap-1.5 text-xs sm:text-sm"><Package className="h-4 w-4" />Products</TabsTrigger>
+                  <TabsTrigger value="events" className="gap-1.5 text-xs sm:text-sm"><CalendarDays className="h-4 w-4" />Events</TabsTrigger>
+                </TabsList>
+                <TabsContent value="brands"><BrandReportGenerator /></TabsContent>
+                <TabsContent value="products"><ProductReportGenerator /></TabsContent>
+                <TabsContent value="events"><EventReportGenerator /></TabsContent>
+              </Tabs>
+            </Suspense>
           </TabsContent>
 
-          {/* Brand Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
-            <BrandAnalyticsHub />
+            <Suspense fallback={<TabPanelFallback />}><BrandAnalyticsHub /></Suspense>
           </TabsContent>
 
-          {/* User Analytics Tab */}
           <TabsContent value="user-analytics" className="space-y-6">
-            <UserAnalyticsTab />
+            <Suspense fallback={<TabPanelFallback />}><UserAnalyticsTab /></Suspense>
           </TabsContent>
 
-          {/* Downloads Report Tab */}
           <TabsContent value="downloads" className="space-y-6">
-            <DownloadsReportPanel />
+            <Suspense fallback={<TabPanelFallback />}><DownloadsReportPanel /></Suspense>
           </TabsContent>
 
-          {/* Intelligence Hub Tab */}
           <TabsContent value="intelligence" className="space-y-6">
-            <Tabs defaultValue="oracle" className="w-full">
-              <TabsList className="mb-4 flex-wrap h-auto gap-1 w-full">
-                <TabsTrigger value="oracle" className="gap-2 text-xs sm:text-sm">
-                  <Brain className="h-4 w-4" />
-                  Oracle
-                </TabsTrigger>
-                <TabsTrigger value="ai-analysis" className="gap-2 text-xs sm:text-sm">
-                  <BarChart3 className="h-4 w-4" />
-                  AI Analysis
-                </TabsTrigger>
-                <TabsTrigger value="multicultural" className="gap-2 text-xs sm:text-sm">
-                  <Users className="h-4 w-4" />
-                  Multicultural
-                </TabsTrigger>
-                <TabsTrigger value="research" className="gap-2 text-xs sm:text-sm">
-                  <Eye className="h-4 w-4" />
-                  Research
-                </TabsTrigger>
-                <TabsTrigger value="visibility" className="gap-2 text-xs sm:text-sm">
-                  <Eye className="h-4 w-4" />
-                  Visibility
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="oracle">
-                <OracleBrainPanel organizationId={organizations[0]?.id} />
-              </TabsContent>
-              <TabsContent value="ai-analysis">
-                <AIMarketAnalysis />
-              </TabsContent>
-              <TabsContent value="multicultural">
-                <MulticulturalIntelligencePanel />
-              </TabsContent>
-              <TabsContent value="research">
-                <ResearchBriefingsPanel />
-              </TabsContent>
-              <TabsContent value="visibility">
-                {organizations[0]?.id ? (
-                  <VisibilityDashboard organizationId={organizations[0].id} />
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-8">No organization found</p>
-                )}
-              </TabsContent>
-            </Tabs>
+            <Suspense fallback={<TabPanelFallback />}>
+              <Tabs defaultValue="oracle" className="w-full">
+                <TabsList className="mb-4 flex-wrap h-auto gap-1 w-full">
+                  <TabsTrigger value="oracle" className="gap-2 text-xs sm:text-sm"><Brain className="h-4 w-4" />Oracle</TabsTrigger>
+                  <TabsTrigger value="ai-analysis" className="gap-2 text-xs sm:text-sm"><BarChart3 className="h-4 w-4" />AI Analysis</TabsTrigger>
+                  <TabsTrigger value="multicultural" className="gap-2 text-xs sm:text-sm"><Users className="h-4 w-4" />Multicultural</TabsTrigger>
+                  <TabsTrigger value="research" className="gap-2 text-xs sm:text-sm"><Eye className="h-4 w-4" />Research</TabsTrigger>
+                  <TabsTrigger value="visibility" className="gap-2 text-xs sm:text-sm"><Eye className="h-4 w-4" />Visibility</TabsTrigger>
+                </TabsList>
+                <TabsContent value="oracle"><OracleBrainPanel organizationId={organizations[0]?.id} /></TabsContent>
+                <TabsContent value="ai-analysis"><AIMarketAnalysis /></TabsContent>
+                <TabsContent value="multicultural"><MulticulturalIntelligencePanel /></TabsContent>
+                <TabsContent value="research"><ResearchBriefingsPanel /></TabsContent>
+                <TabsContent value="visibility">
+                  {organizations[0]?.id ? (
+                    <VisibilityDashboard organizationId={organizations[0].id} />
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-8">No organization found</p>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </Suspense>
           </TabsContent>
 
-          {/* DataForce AI Tab */}
           <TabsContent value="dataforce" className="space-y-6">
-            <DataForceAdminPanel />
+            <Suspense fallback={<TabPanelFallback />}><DataForceAdminPanel /></Suspense>
           </TabsContent>
 
-          {/* Bias Awareness Tab */}
           <TabsContent value="bias-awareness" className="space-y-6">
-            <BiasAwarenessAdminPanel />
+            <Suspense fallback={<TabPanelFallback />}><BiasAwarenessAdminPanel /></Suspense>
           </TabsContent>
 
-          {/* Health Timeline Tab */}
           <TabsContent value="health-timeline" className="space-y-6">
-            <HealthTimelinePanel />
+            <Suspense fallback={<TabPanelFallback />}><HealthTimelinePanel /></Suspense>
           </TabsContent>
 
-          {/* Portfolio Insights Tab */}
           <TabsContent value="portfolio-insights" className="space-y-6">
-            <PortfolioInsightsPanel />
+            <Suspense fallback={<TabPanelFallback />}><PortfolioInsightsPanel /></Suspense>
           </TabsContent>
 
-          {/* AI Center of Excellence Tab */}
           <TabsContent value="ai-center" className="space-y-6">
-            <AICenterOfExcellence />
+            <Suspense fallback={<TabPanelFallback />}><AICenterOfExcellence /></Suspense>
           </TabsContent>
 
-          {/* Bot Management Tab */}
           <TabsContent value="bot-management" className="space-y-6">
-            <BotManagementPanel />
+            <Suspense fallback={<TabPanelFallback />}><BotManagementPanel /></Suspense>
           </TabsContent>
 
-          {/* Accessibility Standards Tab */}
           <TabsContent value="accessibility" className="space-y-6">
-            <AccessibilityStandardsPanel />
+            <Suspense fallback={<TabPanelFallback />}><AccessibilityStandardsPanel /></Suspense>
           </TabsContent>
 
-          {/* Activity Tab */}
           <TabsContent value="activity" className="space-y-6">
-            <Tabs defaultValue="analytics">
-              <TabsList>
-                <TabsTrigger value="analytics">Analytics Hub</TabsTrigger>
-                <TabsTrigger value="logs">Activity Logs</TabsTrigger>
-              </TabsList>
-              <TabsContent value="analytics" className="mt-4">
-                <ActivityAnalyticsHub />
-              </TabsContent>
-              <TabsContent value="logs" className="mt-4">
-                <ActivityLogsPanel />
-              </TabsContent>
-            </Tabs>
+            <Suspense fallback={<TabPanelFallback />}>
+              <Tabs defaultValue="analytics">
+                <TabsList>
+                  <TabsTrigger value="analytics">Analytics Hub</TabsTrigger>
+                  <TabsTrigger value="logs">Activity Logs</TabsTrigger>
+                </TabsList>
+                <TabsContent value="analytics" className="mt-4"><ActivityAnalyticsHub /></TabsContent>
+                <TabsContent value="logs" className="mt-4"><ActivityLogsPanel /></TabsContent>
+              </Tabs>
+            </Suspense>
           </TabsContent>
 
-          {/* Repair Tab - Super Admin only */}
           {isSuperAdmin && (
           <TabsContent value="repair" className="space-y-6">
-            <HiddenSectionsScanner />
-            <BulkRepairTool />
+            <Suspense fallback={<TabPanelFallback />}>
+              <HiddenSectionsScanner />
+              <BulkRepairTool />
+            </Suspense>
           </TabsContent>
           )}
 
-          {/* Image Library Tab */}
           <TabsContent value="image-library" className="space-y-6">
-            <AdminImageLibrary />
+            <Suspense fallback={<TabPanelFallback />}><AdminImageLibrary /></Suspense>
           </TabsContent>
 
-          {/* Logo Hub Tab */}
           <TabsContent value="logo-hub" className="space-y-6">
-            <GlobalLogoHub />
+            <Suspense fallback={<TabPanelFallback />}><GlobalLogoHub /></Suspense>
           </TabsContent>
 
-          {/* Unified Backups Tab */}
           <TabsContent value="backups" className="space-y-6">
-            <Tabs defaultValue="org-backups" className="w-full">
-              <TabsList className="mb-4 w-full flex-wrap h-auto gap-1">
-                <TabsTrigger value="org-backups" className="gap-2 text-xs sm:text-sm">
-                  <HardDrive className="h-4 w-4" />
-                  Organization
-                </TabsTrigger>
-                <TabsTrigger value="universe-backups" className="gap-2 text-xs sm:text-sm">
-                  <BarChart3 className="h-4 w-4" />
-                  Universe
-                </TabsTrigger>
-                <TabsTrigger value="suite-backups" className="gap-2 text-xs sm:text-sm">
-                  <Package className="h-4 w-4" />
-                  Product Suite
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="org-backups">
-                <div className="grid gap-6">
-                  {organizations.map((org) => (
-                    <CompressedBackupManager
-                      key={org.id}
-                      organizationId={org.id}
-                      organizationName={org.name}
-                    />
-                  ))}
-                  {organizations.length === 0 && (
-                    <Card>
-                      <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                        <HardDrive className="h-12 w-12 mb-4 opacity-50" />
-                        <p className="text-lg font-medium">No organizations found</p>
-                        <p className="text-sm">Organizations will appear here for backup management</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </TabsContent>
-              <TabsContent value="universe-backups">
-                <UniverseBackupManager />
-              </TabsContent>
-              <TabsContent value="suite-backups">
-                <ProductSuiteBackupManager />
-              </TabsContent>
-            </Tabs>
+            <Suspense fallback={<TabPanelFallback />}>
+              <Tabs defaultValue="org-backups" className="w-full">
+                <TabsList className="mb-4 w-full flex-wrap h-auto gap-1">
+                  <TabsTrigger value="org-backups" className="gap-2 text-xs sm:text-sm"><HardDrive className="h-4 w-4" />Organization</TabsTrigger>
+                  <TabsTrigger value="universe-backups" className="gap-2 text-xs sm:text-sm"><BarChart3 className="h-4 w-4" />Universe</TabsTrigger>
+                  <TabsTrigger value="suite-backups" className="gap-2 text-xs sm:text-sm"><Package className="h-4 w-4" />Product Suite</TabsTrigger>
+                </TabsList>
+                <TabsContent value="org-backups">
+                  <div className="grid gap-6">
+                    {organizations.map((org) => (
+                      <CompressedBackupManager key={org.id} organizationId={org.id} organizationName={org.name} />
+                    ))}
+                    {organizations.length === 0 && (
+                      <Card>
+                        <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                          <HardDrive className="h-12 w-12 mb-4 opacity-50" />
+                          <p className="text-lg font-medium">No organizations found</p>
+                          <p className="text-sm">Organizations will appear here for backup management</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </TabsContent>
+                <TabsContent value="universe-backups"><UniverseBackupManager /></TabsContent>
+                <TabsContent value="suite-backups"><ProductSuiteBackupManager /></TabsContent>
+              </Tabs>
+            </Suspense>
           </TabsContent>
 
-
-
-
-          {/* Demo Pages Tab */}
           <TabsContent value="demo-pages" className="space-y-6">
-            <DemoGuidesManager />
+            <Suspense fallback={<TabPanelFallback />}><DemoGuidesManager /></Suspense>
           </TabsContent>
 
-          {/* Company Locations Tab */}
           <TabsContent value="locations" className="space-y-6">
-            <GlobalMapThemeEditor />
-            <CompanyLocationsManager />
+            <Suspense fallback={<TabPanelFallback />}>
+              <GlobalMapThemeEditor />
+              <CompanyLocationsManager />
+            </Suspense>
           </TabsContent>
 
-          {/* GlobalLink Localization Tab */}
           <TabsContent value="globallink" className="space-y-6">
-            <GlobalLinkAdminSection />
+            <Suspense fallback={<TabPanelFallback />}><GlobalLinkAdminSection /></Suspense>
           </TabsContent>
 
         </Tabs>

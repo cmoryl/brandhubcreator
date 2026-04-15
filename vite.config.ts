@@ -112,15 +112,24 @@ export default defineConfig(({ mode }) => {
         registerType: "autoUpdate",
         injectRegister: null,
         includeAssets: ["favicon.ico", "placeholder.svg", "robots.txt"],
+        devOptions: {
+          enabled: false, // Never run SW in development/preview
+        },
         workbox: {
       skipWaiting: true,
       clientsClaim: true,
       cleanupOutdatedCaches: true,
-      // CRITICAL: Do NOT cache html files — they must always be fresh from the server
-      globPatterns: ["**/*.{js,css,ico,png,svg,woff,woff2,webp,jpg,jpeg,json,xml}"],
+      // Only precache critical assets — lazy chunks use runtime caching
+      globPatterns: ["**/*.{css,ico,png,svg,woff,woff2,webp}"],
       // Do NOT use navigateFallback — it causes the SW to serve stale index.html
       navigateFallback: undefined,
       runtimeCaching: [
+            {
+              // JS chunks — cache lazily at runtime instead of precaching 71MB
+              urlPattern: /\.js$/i,
+              handler: "StaleWhileRevalidate",
+              options: { cacheName: "js-chunks", expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 } },
+            },
             {
               // Google Fonts stylesheets
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

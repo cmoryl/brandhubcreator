@@ -2,6 +2,7 @@
  * ImageryHub - Centralized imagery management page (Admin only)
  */
 import { useState, useCallback, useEffect } from 'react';
+import { useStableLoading } from '@/hooks/useStableLoading';
 import { useNavigate } from 'react-router-dom';
 import { ImageIcon, ArrowLeft, Shield, Sparkles, Loader2, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -114,7 +115,13 @@ const ImageryHub = () => {
     }
   }, [selectedEntity, sections]);
 
-  if (authLoading) {
+  const stableAuthLoading = useStableLoading(authLoading, {
+    showDelay: 100,
+    minDisplayTime: 300,
+    maxLoadingTime: 10000,
+  });
+
+  if (stableAuthLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

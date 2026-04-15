@@ -19,8 +19,20 @@ createRoot(document.getElementById("root")!).render(
   </ThemeProvider>
 );
 
-// Register service worker after page load to avoid blocking FCP
-if ('serviceWorker' in navigator) {
+// Guard service worker: never register in iframes or preview hosts
+const isInIframe = (() => {
+  try { return window.self !== window.top; } catch { return true; }
+})();
+const isPreviewHost =
+  window.location.hostname.includes('id-preview--') ||
+  window.location.hostname.includes('lovableproject.com');
+
+if (isPreviewHost || isInIframe) {
+  // Unregister any existing service workers in preview/iframe contexts
+  navigator.serviceWorker?.getRegistrations().then((regs) => {
+    regs.forEach((r) => r.unregister());
+  });
+} else if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/registerSW.js', { scope: '/' }).catch(() => {});
   });
