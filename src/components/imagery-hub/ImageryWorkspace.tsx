@@ -466,7 +466,30 @@ export const ImageryWorkspace = ({
                         images={section.images}
                         sectionId={section.id}
                         onReorder={newImages => onReorderImages(section.id, newImages)}
-                        onRemoveImage={imageId => onRemoveImage(section.id, imageId)}
+                        onRemoveImage={imageId => {
+                          const img = section.images.find(i => i.id === imageId);
+                          if (img) {
+                            // Fire-and-forget 'removed' signal for AI learning
+                            supabase.functions.invoke('shutterstock-learn', {
+                              body: {
+                                action: 'record_signal',
+                                entityId: entity.id,
+                                entityType: entity.type,
+                                organizationId,
+                                imageId,
+                                signalAction: 'removed',
+                                imageMetadata: {
+                                  url: img.url || img.thumbnailUrl,
+                                  title: img.title,
+                                  source: img.source,
+                                  tags: img.tags,
+                                },
+                                sectionName: section.name,
+                              },
+                            }).catch(() => {});
+                          }
+                          onRemoveImage(section.id, imageId);
+                        }}
                         onUpdateTags={(imageId, tags) => onUpdateImageTags(section.id, imageId, tags)}
                         selectedImages={selectedImages}
                         onToggleSelection={img => onToggleImageSelection(section.id, img)}
