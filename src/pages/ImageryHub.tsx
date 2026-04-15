@@ -2,6 +2,7 @@
  * ImageryHub - Centralized imagery management page (Admin only)
  */
 import { useState, useCallback, useEffect } from 'react';
+import { useStableLoading } from '@/hooks/useStableLoading';
 import { useNavigate } from 'react-router-dom';
 import { ImageIcon, ArrowLeft, Shield, Sparkles, Loader2, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
