@@ -7,6 +7,7 @@ import { Accordion } from '@/components/ui/accordion';
 import { ApprovedImage, ApprovedImagerySubSection } from '@/types/brand';
 import { ShutterstockSearchDialog } from './ShutterstockSearchDialog';
 import { DropboxBrowserDialog } from './DropboxBrowserDialog';
+import { WebsiteImageScanner } from '../WebsiteImageScanner';
 import { ImagerySubSection } from './ImagerySubSection';
 
 interface ApprovedImagerySectionProps {
