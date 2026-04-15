@@ -138,6 +138,11 @@ export const ImageryWorkspace = ({
     onToggleSelectionMode();
   }, [selectedImages, onRemoveImage, onAddImages, onToggleSelectionMode]);
 
+  const handleMoveImageToSection = useCallback(async (image: ApprovedImage, fromSectionId: string, toSectionId: string) => {
+    await onRemoveImage(fromSectionId, image.id);
+    await onAddImages(toSectionId, [image]);
+  }, [onRemoveImage, onAddImages]);
+
   const handleBulkQualityScore = useCallback(async (
     scores: Map<string, { score: number; details: ApprovedImage['qualityDetails'] }>
   ) => {
@@ -436,6 +441,8 @@ export const ImageryWorkspace = ({
                         entityId={entity.id}
                         entityType={entity.type}
                         onVisualSearch={url => setVisualSearchUrl(url)}
+                        availableSections={sections}
+                        onMoveToSection={handleMoveImageToSection}
                       />
                       {/* Upload Zone */}
                       {organizationId && (

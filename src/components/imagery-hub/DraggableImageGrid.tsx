@@ -1,5 +1,5 @@
 /**
- * DraggableImageGrid - Drag-and-drop sortable image grid with tagging, quality badges, and visual search
+ * DraggableImageGrid - Drag-and-drop sortable image grid with tagging, quality badges, visual search, and re-categorization
  */
 import { useCallback, useState } from 'react';
 import {
@@ -11,10 +11,11 @@ import {
   rectSortingStrategy, useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { X, GripVertical, Tag, Eye, ZoomIn } from 'lucide-react';
+import { X, GripVertical, Tag, Eye, ZoomIn, FolderInput } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ApprovedImage } from '@/types/brand';
+import { ApprovedImage, ApprovedImagerySubSection } from '@/types/brand';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { ImageTagEditor } from './ImageTagEditor';
 import { ImageQualityBadge } from './ImageQualityBadge';
@@ -22,6 +23,7 @@ import { ImageryPreviewDialog } from '@/components/brand/approved-imagery/Imager
 
 interface SortableImageProps {
   image: ApprovedImage;
+  sectionId: string;
   onRemove: () => void;
   onTagsChange: (tags: string[]) => void;
   isSelected?: boolean;
@@ -31,11 +33,13 @@ interface SortableImageProps {
   entityType?: string;
   onQualityScored?: (score: number, details: ApprovedImage['qualityDetails']) => void;
   onVisualSearch?: (imageUrl: string) => void;
+  availableSections?: ApprovedImagerySubSection[];
+  onMoveToSection?: (image: ApprovedImage, targetSectionId: string) => void;
 }
 
 const SortableImage = ({
-  image, onRemove, onTagsChange, isSelected, onToggleSelect, selectionMode,
-  entityId, entityType, onQualityScored, onVisualSearch,
+  image, sectionId, onRemove, onTagsChange, isSelected, onToggleSelect, selectionMode,
+  entityId, entityType, onQualityScored, onVisualSearch, availableSections, onMoveToSection,
 }: SortableImageProps) => {
   const [showTagEditor, setShowTagEditor] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -121,6 +125,35 @@ const SortableImage = ({
         >
           <Tag className="h-4 w-4" />
         </Button>
+        {/* Move to category dropdown */}
+        {availableSections && availableSections.length > 1 && onMoveToSection && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="secondary"
+                className="h-8 w-8 bg-background/70 backdrop-blur-sm border-0 shadow-sm"
+                onClick={e => e.stopPropagation()}
+                title="Move to category"
+              >
+                <FolderInput className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="max-h-60 overflow-y-auto" onClick={e => e.stopPropagation()}>
+              {availableSections
+                .filter(s => s.id !== sectionId)
+                .map(s => (
+                  <DropdownMenuItem
+                    key={s.id}
+                    onClick={() => onMoveToSection(image, s.id)}
+                    className="text-sm"
+                  >
+                    {s.name} <Badge variant="secondary" className="ml-auto text-[10px] h-4">{s.images.length}</Badge>
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         <Button
           size="icon"
           variant="destructive"
@@ -207,12 +240,15 @@ interface DraggableImageGridProps {
   entityType?: string;
   onQualityScored?: (imageId: string, score: number, details: ApprovedImage['qualityDetails']) => void;
   onVisualSearch?: (imageUrl: string) => void;
+  availableSections?: ApprovedImagerySubSection[];
+  onMoveToSection?: (image: ApprovedImage, fromSectionId: string, toSectionId: string) => void;
 }
 
 export const DraggableImageGrid = ({
   images, onReorder, onRemoveImage, onUpdateTags,
   selectedImages, onToggleSelection, selectionMode, sectionId, tagFilter,
   entityId, entityType, onQualityScored, onVisualSearch,
+  availableSections, onMoveToSection,
 }: DraggableImageGridProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -248,6 +284,7 @@ export const DraggableImageGrid = ({
             <SortableImage
               key={image.id}
               image={image}
+              sectionId={sectionId}
               onRemove={() => onRemoveImage(image.id)}
               onTagsChange={tags => onUpdateTags(image.id, tags)}
               isSelected={selectedImages?.has(`${sectionId}::${image.id}`)}
@@ -257,6 +294,8 @@ export const DraggableImageGrid = ({
               entityType={entityType}
               onQualityScored={onQualityScored ? (s, d) => onQualityScored(image.id, s, d) : undefined}
               onVisualSearch={onVisualSearch}
+              availableSections={availableSections}
+              onMoveToSection={onMoveToSection ? (img, targetId) => onMoveToSection(img, sectionId, targetId) : undefined}
             />
           ))}
         </div>
