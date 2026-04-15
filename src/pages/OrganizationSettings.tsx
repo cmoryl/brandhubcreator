@@ -1,4 +1,5 @@
 import { useState, useRef, lazy, Suspense } from 'react';
+import { useStableLoading } from '@/hooks/useStableLoading';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
