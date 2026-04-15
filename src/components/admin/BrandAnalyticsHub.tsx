@@ -77,7 +77,7 @@ const SECTION_WEIGHTS = {
   patterns: { weight: 5, category: 'visual', label: 'Patterns' },
   gradients: { weight: 3, category: 'visual', label: 'Gradients' },
   icons: { weight: 5, category: 'assets', label: 'Icons' },
-  imagery: { weight: 5, category: 'assets', label: 'Imagery Guidelines' },
+  imagery: { weight: 10, category: 'assets', label: 'Imagery Strategy' },
   social: { weight: 8, category: 'content', label: 'Social Profiles' },
   services: { weight: 8, category: 'content', label: 'Services' },
   revenue: { weight: 5, category: 'content', label: 'Revenue Data' },
