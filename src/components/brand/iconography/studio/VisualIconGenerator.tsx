@@ -564,7 +564,25 @@ export const VisualIconGenerator = ({
 
           {/* Style */}
           <div className="space-y-2">
-            <Label className="text-xs font-medium">Visual Style</Label>
+            <Label className="text-xs font-medium">3D / Raster Styles</Label>
+            <div className="grid grid-cols-4 gap-1.5">
+              {RASTER_STYLES.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => setStyle(s.id)}
+                  className={cn(
+                    'px-2 py-1.5 rounded-md border text-center transition-all text-[10px]',
+                    style === s.id
+                      ? 'bg-primary/10 border-primary text-primary font-medium'
+                      : 'border-border hover:bg-muted text-muted-foreground'
+                  )}
+                >
+                  <span className="block text-sm mb-0.5">{s.emoji}</span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <Label className="text-xs font-medium mt-3">Vector Styles</Label>
             <div className="grid grid-cols-4 gap-1.5">
               {VISUAL_STYLES.map(s => (
                 <button
