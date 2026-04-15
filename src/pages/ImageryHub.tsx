@@ -139,21 +139,48 @@ const ImageryHub = () => {
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          {selectedEntity && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5"
-              onClick={handleGetAiSuggestions}
-              disabled={aiSuggestionsLoading}
+          {selectedEntity && latestAudit && (
+            <Badge
+              variant={latestAudit.overall_score >= 70 ? 'default' : latestAudit.overall_score >= 40 ? 'secondary' : 'destructive'}
+              className="gap-1"
             >
-              {aiSuggestionsLoading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="h-3.5 w-3.5" />
-              )}
-              AI Suggestions
-            </Button>
+              <Activity className="h-3 w-3" />
+              Imagery Health: {Math.round(latestAudit.overall_score)}%
+            </Badge>
+          )}
+          {selectedEntity && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={async () => {
+                  if (organizationId) await runAudit(organizationId);
+                }}
+                disabled={auditRunning || !organizationId}
+              >
+                {auditRunning ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Activity className="h-3.5 w-3.5" />
+                )}
+                Run Audit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={handleGetAiSuggestions}
+                disabled={aiSuggestionsLoading}
+              >
+                {aiSuggestionsLoading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5" />
+                )}
+                AI Suggestions
+              </Button>
+            </>
           )}
         </div>
       </header>
