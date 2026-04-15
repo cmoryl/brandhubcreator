@@ -427,7 +427,7 @@ export function BrandAnalyticsHub() {
       earnedWeight += Math.round(SECTION_WEIGHTS.imagery.weight * 0.3);
       gaps.push({
         section: 'Imagery Strategy',
-        severity: 'recommended',
+        severity: 'important',
         description: 'No imagery guidelines defined — run an Imagery Strategy Audit for AI-driven scoring',
         recommendation: 'Define photography style guidelines and run an Imagery Strategy Audit from the Imagery section'
       });
