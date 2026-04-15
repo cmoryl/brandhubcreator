@@ -27,6 +27,7 @@ import {
   Palette,
   Package,
   Smartphone,
+  Globe,
 } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
@@ -304,6 +305,7 @@ export const IconStudio = ({
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
             {([
               { id: 'library' as const, label: 'Library', icon: Library, badge: totalIcons },
+              { id: 'creator' as const, label: 'Browse & Add', icon: Globe },
               { id: 'generate' as const, label: 'AI Generate', icon: Wand2 },
               { id: 'style' as const, label: 'Style', icon: Palette },
               { id: 'export' as const, label: 'Export', icon: Package },
