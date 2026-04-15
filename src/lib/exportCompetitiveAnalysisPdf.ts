@@ -218,64 +218,21 @@ const drawMarketPerception = (pdf: jsPDF, report: CompetitiveAnalysisReportData,
   const gaps = safe(report.marketPerception?.criticalGaps);
   const risks = safe(report.marketPerception?.risks);
 
-  // Two-column: Strengths & Gaps
-  const col1X = M;
-  const col2X = M + COL_W + 6;
-  const maxItems = Math.max(strengths.length, gaps.length);
-  const colH = Math.max(maxItems * 5 + 14, 30);
-
-  y = ensureSpace(pdf, y, colH + 4);
-
-  // Strengths card
-  drawCard(pdf, col1X, y, COL_W, colH, '#f0fdf4');
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(9);
-  setColor(pdf, '#166534');
-  pdf.text('✓ Key Strengths', col1X + 4, y + 6);
-  let sy = y + 12;
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(8.5);
-  setColor(pdf, '#15803d');
-  for (const s of strengths) {
-    pdf.text('• ' + s.substring(0, 60), col1X + 4, sy);
-    sy += 4.5;
+  // Strengths & Gaps as full bullet lists
+  if (strengths.length > 0) {
+    y = drawSubheading(pdf, '✓ Key Strengths', y);
+    y = drawBullets(pdf, strengths, y, M, CW - 4, '#15803d');
   }
 
-  // Gaps card
-  drawCard(pdf, col2X, y, COL_W, colH, '#fef3c7');
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(9);
-  setColor(pdf, '#92400e');
-  pdf.text('⚠ Critical Gaps', col2X + 4, y + 6);
-  let gy = y + 12;
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(8.5);
-  setColor(pdf, '#a16207');
-  for (const g of gaps) {
-    pdf.text('• ' + g.substring(0, 60), col2X + 4, gy);
-    gy += 4.5;
+  if (gaps.length > 0) {
+    y = drawSubheading(pdf, '⚠ Critical Gaps', y);
+    y = drawBullets(pdf, gaps, y, M, CW - 4, '#a16207');
   }
 
-  y += colH + 5;
-
-  // Risks card
+  // Risks
   if (risks.length > 0) {
-    const riskH = risks.length * 5 + 12;
-    y = ensureSpace(pdf, y, riskH);
-    drawCard(pdf, M, y, CW, riskH, '#fef2f2');
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
-    setColor(pdf, '#991b1b');
-    pdf.text('⚡ Risks', M + 4, y + 6);
-    let ry = y + 12;
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8.5);
-    setColor(pdf, '#b91c1c');
-    for (const r of risks) {
-      pdf.text('• ' + r.substring(0, 80), M + 4, ry);
-      ry += 4.5;
-    }
-    y += riskH + 4;
+    y = drawSubheading(pdf, '⚡ Risks', y);
+    y = drawBullets(pdf, risks, y, M, CW - 4, '#b91c1c');
   }
 
   return y;
@@ -484,7 +441,7 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
   y = drawSectionTitle(pdf, 'Strategic Recommendations', y);
   y = drawSubheading(pdf, 'Design Priorities', y);
 
-  const priorities = safe(report.recommendations?.designPriorities);
+  const rawPriorities = Array.isArray(report.recommendations?.designPriorities) ? report.recommendations.designPriorities : [];
 
   // Table header
   y = ensureSpace(pdf, y, 10);
@@ -498,26 +455,30 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
   y += 9;
 
   // Table rows
-  for (let i = 0; i < priorities.length; i++) {
-    const p = priorities[i] as any;
-    y = ensureSpace(pdf, y, 8);
+  for (let i = 0; i < rawPriorities.length; i++) {
+    const p = rawPriorities[i] as any;
+    const titleText = str(p?.title, 'Untitled');
+    const titleLines = wrapText(pdf, `${i + 1}. ${titleText}`, CW * 0.6);
+    const rowH = Math.max(titleLines.length * 4 + 3, 8);
+    y = ensureSpace(pdf, y, rowH);
 
     setDraw(pdf, C.border.light);
     pdf.setLineWidth(0.2);
-    pdf.line(M, y + 4, A4_W - M, y + 4);
+    pdf.line(M, y + rowH - 1, A4_W - M, y + rowH - 1);
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(9);
     setColor(pdf, C.text.secondary);
-    const title = `${i + 1}. ${str(p?.title, 'Untitled')}`;
-    pdf.text(title.substring(0, 50), M + 3, y + 2);
+    for (let j = 0; j < titleLines.length; j++) {
+      pdf.text(titleLines[j], M + 3, y + 2 + j * 4);
+    }
 
     const impactColor = p?.impact === 'high' ? C.accent.success : p?.impact === 'medium' ? C.accent.warning : C.text.subtle;
     const effortColor = p?.effort === 'low' ? C.accent.success : p?.effort === 'medium' ? C.accent.warning : C.accent.danger;
     drawBadge(pdf, str(p?.impact, '-'), M + CW * 0.63, y + 2, impactColor, impactColor + '30');
     drawBadge(pdf, str(p?.effort, '-'), M + CW * 0.80, y + 2, effortColor, effortColor + '30');
 
-    y += 7;
+    y += rowH + 1;
   }
 
   y += 6;
@@ -533,7 +494,8 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
   ];
 
   for (const [label, text] of refinements) {
-    const cardH = 14;
+    const lines = wrapText(pdf, text, CW - 10);
+    const cardH = Math.max(lines.length * 4 + 8, 14);
     y = ensureSpace(pdf, y, cardH + 2);
     drawCard(pdf, M, y, CW, cardH, C.background.light, C.border.light);
     pdf.setFont('helvetica', 'bold');
@@ -543,8 +505,11 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(8);
     setColor(pdf, C.text.muted);
-    const lines = wrapText(pdf, text, CW - 10);
-    pdf.text(lines[0] || '', M + 4, y + 10);
+    let ly = y + 10;
+    for (const line of lines) {
+      pdf.text(line, M + 4, ly);
+      ly += 4;
+    }
     y += cardH + 3;
   }
 
@@ -561,6 +526,13 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
   if (digImps.length > 0) {
     y = drawSubheading(pdf, 'Digital Improvements', y);
     y = drawBullets(pdf, digImps, y);
+  }
+
+  // Asset optimization
+  const assetOpts = safe(report.recommendations?.assetOptimization);
+  if (assetOpts.length > 0) {
+    y = drawSubheading(pdf, 'Asset Optimization', y);
+    y = drawBullets(pdf, assetOpts, y);
   }
 
   return y;
@@ -712,38 +684,10 @@ const drawSwotAnalysis = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: 
     ['Threats', safe(swot.threats), '#fef3c7', '#92400e'],
   ];
 
-  // 2x2 grid
-  const qW = (CW - 6) / 2;
-  for (let row = 0; row < 2; row++) {
-    const left = quadrants[row * 2];
-    const right = quadrants[row * 2 + 1];
-    const maxItems = Math.max(left[1].length, right[1].length);
-    const qH = Math.max(maxItems * 5 + 14, 25);
-    y = ensureSpace(pdf, y, qH + 4);
-
-    for (let col = 0; col < 2; col++) {
-      const [title, items, bg, color] = col === 0 ? left : right;
-      const qx = M + col * (qW + 6);
-      drawCard(pdf, qx, y, qW, qH, bg);
-
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(9);
-      setColor(pdf, color);
-      pdf.text(title, qx + 4, y + 7);
-
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(8);
-      setColor(pdf, color);
-      let iy = y + 14;
-      for (const item of items) {
-        const t = '• ' + item.substring(0, 55);
-        if (iy < y + qH - 2) {
-          pdf.text(t, qx + 4, iy);
-          iy += 4.5;
-        }
-      }
-    }
-    y += qH + 4;
+  for (const [title, items, , color] of quadrants) {
+    if (items.length === 0) continue;
+    y = drawSubheading(pdf, title, y);
+    y = drawBullets(pdf, items, y, M, CW - 4, color);
   }
 
   return y;
@@ -756,7 +700,24 @@ const drawCompetitorProfiles = (pdf: jsPDF, report: CompetitiveAnalysisReportDat
   y = drawSectionTitle(pdf, 'Competitor Profiles', y);
 
   for (const cp of profiles) {
-    const cardH = 38;
+    // Build detail lines to calculate card height dynamically
+    const details: [string, string][] = [];
+    if (cp.brandStrength) details.push(['Brand Strength', cp.brandStrength]);
+    if (cp.keyDifferentiator) details.push(['Differentiator', cp.keyDifferentiator]);
+    if (cp.biggestWeakness) details.push(['Weakness', cp.biggestWeakness]);
+    if (cp.visualIdentitySummary) details.push(['Visual Identity', cp.visualIdentitySummary]);
+    if (cp.digitalPresenceSummary) details.push(['Digital Presence', cp.digitalPresenceSummary]);
+
+    // Calculate needed height
+    let detailH = 0;
+    const wrappedDetails: { label: string; lines: string[] }[] = [];
+    for (const [label, text] of details) {
+      const lines = wrapText(pdf, `${label}: ${text}`, CW - 10);
+      wrappedDetails.push({ label, lines });
+      detailH += lines.length * 4 + 1;
+    }
+    const cardH = Math.max(detailH + 16, 20);
+
     y = ensureSpace(pdf, y, cardH + 4);
 
     const borderColor = cp.threatLevel === 'high' ? '#ef4444' : cp.threatLevel === 'medium' ? '#f59e0b' : '#22c55e';
@@ -778,16 +739,18 @@ const drawCompetitorProfiles = (pdf: jsPDF, report: CompetitiveAnalysisReportDat
     setColor(pdf, sColor);
     pdf.text(`${cp.overallScore}`, A4_W - M - 10, y + 8, { align: 'right' });
 
-    // Details
+    // Details - full text with wrapping
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(8);
     setColor(pdf, C.text.muted);
     let dy = y + 14;
-    if (cp.brandStrength) { pdf.text(`Brand Strength: ${cp.brandStrength.substring(0, 80)}`, M + 4, dy); dy += 4; }
-    if (cp.keyDifferentiator) { pdf.text(`Differentiator: ${cp.keyDifferentiator.substring(0, 80)}`, M + 4, dy); dy += 4; }
-    if (cp.biggestWeakness) { pdf.text(`Weakness: ${cp.biggestWeakness.substring(0, 80)}`, M + 4, dy); dy += 4; }
-    if (cp.visualIdentitySummary) { pdf.text(`Visual Identity: ${cp.visualIdentitySummary.substring(0, 80)}`, M + 4, dy); dy += 4; }
-    if (cp.digitalPresenceSummary) { pdf.text(`Digital Presence: ${cp.digitalPresenceSummary.substring(0, 80)}`, M + 4, dy); }
+    for (const { lines } of wrappedDetails) {
+      for (const line of lines) {
+        pdf.text(line, M + 4, dy);
+        dy += 4;
+      }
+      dy += 1;
+    }
 
     y += cardH + 4;
   }
@@ -900,61 +863,29 @@ const drawRegionalInsights = (pdf: jsPDF, report: CompetitiveAnalysisReportData,
 const drawActionPlan = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number, date: string): number => {
   y = drawSectionTitle(pdf, '30 / 60 / 90 Day Action Plan', y);
 
-  const phases: [string, string[], string, string, string][] = [
-    ['30 Days', safe(report.executiveSummary?.actionPlan?.thirtyDay), '#dbeafe', '#1e40af', '#1e3a8a'],
-    ['60 Days', safe(report.executiveSummary?.actionPlan?.sixtyDay), '#fef3c7', '#92400e', '#78350f'],
-    ['90 Days', safe(report.executiveSummary?.actionPlan?.ninetyDay), '#d1fae5', '#065f46', '#064e3b'],
+  const phases: [string, string[], string, string][] = [
+    ['30 Days', safe(report.executiveSummary?.actionPlan?.thirtyDay), '#1e40af', '#1e3a8a'],
+    ['60 Days', safe(report.executiveSummary?.actionPlan?.sixtyDay), '#92400e', '#78350f'],
+    ['90 Days', safe(report.executiveSummary?.actionPlan?.ninetyDay), '#065f46', '#064e3b'],
   ];
 
-  const colW = (CW - 8) / 3;
-  const maxItems = Math.max(...phases.map(([, items]) => items.length));
-  const phaseH = Math.max(maxItems * 5 + 14, 30);
-
-  y = ensureSpace(pdf, y, phaseH + 4);
-
-  for (let p = 0; p < 3; p++) {
-    const [title, items, bg, headColor, textColor] = phases[p];
-    const px = M + p * (colW + 4);
-
-    drawCard(pdf, px, y, colW, phaseH, bg);
-
+  for (const [title, items, headColor, textColor] of phases) {
+    if (items.length === 0) continue;
+    y = ensureSpace(pdf, y, 10);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(10);
     setColor(pdf, headColor);
-    pdf.text(title, px + 4, y + 7);
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    setColor(pdf, textColor);
-    let iy = y + 14;
-    for (const item of items) {
-      const t = '• ' + item.substring(0, 40);
-      pdf.text(t, px + 4, iy);
-      iy += 4.5;
-    }
+    pdf.text(title, M, y);
+    y += 5;
+    y = drawBullets(pdf, items, y, M, CW - 4, textColor);
+    y += 2;
   }
-
-  y += phaseH + 6;
 
   // Success metrics
   const metrics = safe(report.executiveSummary?.successMetrics);
   if (metrics.length > 0) {
-    const mH = metrics.length * 5 + 12;
-    y = ensureSpace(pdf, y, mH);
-    drawCard(pdf, M, y, CW, mH, '#f0f9ff', '#bae6fd');
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
-    setColor(pdf, '#0369a1');
-    pdf.text('📊 Success Metrics', M + 4, y + 6);
-    let my = y + 12;
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8.5);
-    setColor(pdf, '#0284c7');
-    for (const m of metrics) {
-      pdf.text('• ' + m.substring(0, 70), M + 4, my);
-      my += 4.5;
-    }
-    y += mH + 6;
+    y = drawSubheading(pdf, '📊 Success Metrics', y);
+    y = drawBullets(pdf, metrics, y, M, CW - 4, '#0284c7');
   }
 
   // Footer
