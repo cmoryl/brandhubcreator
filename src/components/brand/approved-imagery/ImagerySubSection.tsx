@@ -148,6 +148,9 @@ export const ImagerySubSection = ({
                 <Button variant="outline" size="sm" onClick={onDropboxClick}>
                   <FolderOpen className="h-3 w-3 mr-1" /> Dropbox
                 </Button>
+                <Button variant="outline" size="sm" onClick={onWebsiteClick}>
+                  <Globe className="h-3 w-3 mr-1" /> Website
+                </Button>
               </div>
             )}
           </div>
