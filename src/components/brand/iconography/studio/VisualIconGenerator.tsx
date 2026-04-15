@@ -835,26 +835,48 @@ export const VisualIconGenerator = ({
 
               {/* Actions */}
               <div className="flex flex-wrap gap-2">
-                {!selected.svg && (
-                  <Button size="sm" variant="default" className="gap-1.5 text-xs" onClick={() => retrace(selectedResult!)} disabled={isTracing}>
-                    {isTracing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                    Trace to SVG
-                  </Button>
-                )}
-                {selected.svg && (
+                {selected.phase === 'raster' || selected.isRaster ? (
+                  /* Raster actions: Download PNG */
                   <>
-                    <Button size="sm" variant="default" className="gap-1.5 text-xs" onClick={() => handleAddToLibrary(selectedResult!)}>
-                      <Wand2 className="h-3.5 w-3.5" />
-                      Add to Library
+                    <Button size="sm" variant="default" className="gap-1.5 text-xs" asChild>
+                      <a href={selected.imageUrl} download={`${selected.prompt.slice(0, 30).replace(/\s+/g, '-')}.png`} target="_blank" rel="noopener noreferrer">
+                        <Download className="h-3.5 w-3.5" />
+                        Download PNG
+                      </a>
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => handleCopySvg(selected.svg!)}>
-                      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                      Copy SVG
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => {
+                      navigator.clipboard.writeText(selected.imageUrl);
+                      toast.success('Image URL copied');
+                    }}>
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy URL
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => retrace(selectedResult!)} disabled={isTracing}>
-                      <RefreshCw className="h-3.5 w-3.5" />
-                      Re-trace
-                    </Button>
+                  </>
+                ) : (
+                  /* Vector actions */
+                  <>
+                    {!selected.svg && (
+                      <Button size="sm" variant="default" className="gap-1.5 text-xs" onClick={() => retrace(selectedResult!)} disabled={isTracing}>
+                        {isTracing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                        Trace to SVG
+                      </Button>
+                    )}
+                    {selected.svg && (
+                      <>
+                        <Button size="sm" variant="default" className="gap-1.5 text-xs" onClick={() => handleAddToLibrary(selectedResult!)}>
+                          <Wand2 className="h-3.5 w-3.5" />
+                          Add to Library
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => handleCopySvg(selected.svg!)}>
+                          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                          Copy SVG
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => retrace(selectedResult!)} disabled={isTracing}>
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          Re-trace
+                        </Button>
+                      </>
+                    )}
                   </>
                 )}
               </div>
