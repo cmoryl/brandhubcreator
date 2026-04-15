@@ -484,7 +484,7 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
   y = drawSectionTitle(pdf, 'Strategic Recommendations', y);
   y = drawSubheading(pdf, 'Design Priorities', y);
 
-  const priorities = safe(report.recommendations?.designPriorities);
+  const rawPriorities = Array.isArray(report.recommendations?.designPriorities) ? report.recommendations.designPriorities : [];
 
   // Table header
   y = ensureSpace(pdf, y, 10);
@@ -498,26 +498,30 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
   y += 9;
 
   // Table rows
-  for (let i = 0; i < priorities.length; i++) {
-    const p = priorities[i] as any;
-    y = ensureSpace(pdf, y, 8);
+  for (let i = 0; i < rawPriorities.length; i++) {
+    const p = rawPriorities[i] as any;
+    const titleText = str(p?.title, 'Untitled');
+    const titleLines = wrapText(pdf, `${i + 1}. ${titleText}`, CW * 0.6);
+    const rowH = Math.max(titleLines.length * 4 + 3, 8);
+    y = ensureSpace(pdf, y, rowH);
 
     setDraw(pdf, C.border.light);
     pdf.setLineWidth(0.2);
-    pdf.line(M, y + 4, A4_W - M, y + 4);
+    pdf.line(M, y + rowH - 1, A4_W - M, y + rowH - 1);
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(9);
     setColor(pdf, C.text.secondary);
-    const title = `${i + 1}. ${str(p?.title, 'Untitled')}`;
-    pdf.text(title.substring(0, 50), M + 3, y + 2);
+    for (let j = 0; j < titleLines.length; j++) {
+      pdf.text(titleLines[j], M + 3, y + 2 + j * 4);
+    }
 
     const impactColor = p?.impact === 'high' ? C.accent.success : p?.impact === 'medium' ? C.accent.warning : C.text.subtle;
     const effortColor = p?.effort === 'low' ? C.accent.success : p?.effort === 'medium' ? C.accent.warning : C.accent.danger;
     drawBadge(pdf, str(p?.impact, '-'), M + CW * 0.63, y + 2, impactColor, impactColor + '30');
     drawBadge(pdf, str(p?.effort, '-'), M + CW * 0.80, y + 2, effortColor, effortColor + '30');
 
-    y += 7;
+    y += rowH + 1;
   }
 
   y += 6;
@@ -533,7 +537,8 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
   ];
 
   for (const [label, text] of refinements) {
-    const cardH = 14;
+    const lines = wrapText(pdf, text, CW - 10);
+    const cardH = Math.max(lines.length * 4 + 8, 14);
     y = ensureSpace(pdf, y, cardH + 2);
     drawCard(pdf, M, y, CW, cardH, C.background.light, C.border.light);
     pdf.setFont('helvetica', 'bold');
@@ -543,8 +548,11 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(8);
     setColor(pdf, C.text.muted);
-    const lines = wrapText(pdf, text, CW - 10);
-    pdf.text(lines[0] || '', M + 4, y + 10);
+    let ly = y + 10;
+    for (const line of lines) {
+      pdf.text(line, M + 4, ly);
+      ly += 4;
+    }
     y += cardH + 3;
   }
 
@@ -561,6 +569,13 @@ const drawRecommendations = (pdf: jsPDF, report: CompetitiveAnalysisReportData, 
   if (digImps.length > 0) {
     y = drawSubheading(pdf, 'Digital Improvements', y);
     y = drawBullets(pdf, digImps, y);
+  }
+
+  // Asset optimization
+  const assetOpts = safe(report.recommendations?.assetOptimization);
+  if (assetOpts.length > 0) {
+    y = drawSubheading(pdf, 'Asset Optimization', y);
+    y = drawBullets(pdf, assetOpts, y);
   }
 
   return y;
