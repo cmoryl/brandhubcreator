@@ -5,6 +5,7 @@ import { useComplianceAuditInsights } from '@/hooks/useComplianceAuditInsights';
 import { useSocialMetricsInsights } from '@/hooks/useSocialMetricsInsights';
 import { useBiasAwarenessInsights } from '@/hooks/useBiasAwarenessInsights';
 import { useEventCohesivenessInsights } from '@/hooks/useEventCohesivenessInsights';
+import { useVisibilityAuditInsights } from '@/hooks/useVisibilityAuditInsights';
 import type { EventGuide } from '@/types/event';
 import { 
   TrendingUp, TrendingDown, Minus, FileText, BarChart2, Newspaper, 
@@ -381,10 +382,17 @@ export const InsightsSection = ({
     enabled: entityType === 'event' && Boolean(eventData),
   });
 
-  // Merge manual insights with auto-fetched competitive, intelligence, compliance, social, bias, and event cohesiveness insights
+  // Auto-fetch visibility audit insights
+  const { visibilityInsights } = useVisibilityAuditInsights({
+    entityType: entityType || 'brand',
+    entityId: entityId || '',
+    enabled: Boolean(entityType && entityId),
+  });
+
+  // Merge manual insights with auto-fetched competitive, intelligence, compliance, social, bias, event cohesiveness, and visibility insights
   const allInsights = useMemo(() => {
-    return [...insights, ...competitiveInsights, ...intelligenceInsights, ...complianceInsights, ...socialInsights, ...biasInsights, ...cohesivenessInsights];
-  }, [insights, competitiveInsights, intelligenceInsights, complianceInsights, socialInsights, biasInsights, cohesivenessInsights]);
+    return [...insights, ...competitiveInsights, ...intelligenceInsights, ...complianceInsights, ...socialInsights, ...biasInsights, ...cohesivenessInsights, ...visibilityInsights];
+  }, [insights, competitiveInsights, intelligenceInsights, complianceInsights, socialInsights, biasInsights, cohesivenessInsights, visibilityInsights]);
 
   const handleDelete = (id: string) => {
     if (!onInsightsChange) return;
