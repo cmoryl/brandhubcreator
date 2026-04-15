@@ -317,12 +317,13 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 xl:grid-cols-5 gap-3">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-6 gap-3">
           <DataForceSummaryWidget onTabChange={onTabChange} />
           <GlobalLinkSummaryWidget onTabChange={onTabChange} />
           <BotSummaryWidget onTabChange={onTabChange} />
           <BiasAwarenessSummaryWidget onTabChange={onTabChange} />
           <VisibilitySummaryWidget onTabChange={onTabChange} />
+          <AICenterSummaryWidget onTabChange={onTabChange} />
         </div>
       </motion.div>
 
