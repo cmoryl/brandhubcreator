@@ -622,7 +622,7 @@ export const VisualIconGenerator = ({
               </Select>
             </div>
           </div>
-
+          )}
           {/* Style Reference */}
           <div className="space-y-2">
             <Label className="text-xs font-medium">Style Reference (Optional)</Label>
