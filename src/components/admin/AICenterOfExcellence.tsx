@@ -756,10 +756,162 @@ function useAICenterPDFExport(
   return { exportPDF, exporting };
 }
 
+// ─── Imagery Strategy Tab ───────────────────────────────────
+function ImageryStrategyTab({ organizationId }: { organizationId: string }) {
+  const {
+    audits, isLoading, avgOverall, avgDiversity, avgAuthenticity,
+    avgCultural, avgAction, avgPrompting, stopFrequency, goFrequency, refresh,
+  } = usePortfolioImageryAudits(organizationId);
+
+  if (isLoading) {
+    return <div className="flex justify-center py-12"><RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  }
+
+  if (audits.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <Camera className="h-12 w-12 mb-4 opacity-50" />
+          <p className="text-lg font-medium">No Imagery Audits Yet</p>
+          <p className="text-sm">Run imagery audits from individual brand, product, or event editors to populate portfolio-wide scores.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const sortedStop = Object.entries(stopFrequency).sort((a, b) => b[1] - a[1]);
+  const sortedGo = Object.entries(goFrequency).sort((a, b) => b[1] - a[1]);
+
+  return (
+    <div className="space-y-6">
+      {/* Score Rings */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {[
+          { value: avgOverall, label: 'Overall', color: scoreHsl(avgOverall) },
+          { value: avgDiversity, label: 'Diversity', color: scoreHsl(avgDiversity) },
+          { value: avgAuthenticity, label: 'Authenticity', color: scoreHsl(avgAuthenticity) },
+          { value: avgCultural, label: 'Cultural Context', color: scoreHsl(avgCultural) },
+          { value: avgAction, label: 'Action Oriented', color: scoreHsl(avgAction) },
+          { value: avgPrompting, label: 'Inclusive Prompting', color: scoreHsl(avgPrompting) },
+        ].map(s => (
+          <Card key={s.label} className="flex items-center justify-center py-4">
+            <ScoreRing value={s.value} label={s.label} color={s.color} size={64} />
+          </Card>
+        ))}
+      </div>
+
+      {/* Entity Table */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Per-Entity Imagery Scores</CardTitle>
+            <Button variant="ghost" size="sm" onClick={refresh} className="gap-1 text-xs">
+              <RefreshCw className="h-3 w-3" /> Refresh
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground">
+                  <th className="text-left py-2 px-2 font-medium">Entity</th>
+                  <th className="text-center py-2 px-1 font-medium">Type</th>
+                  <th className="text-center py-2 px-1 font-medium">Overall</th>
+                  <th className="text-center py-2 px-1 font-medium">Diversity</th>
+                  <th className="text-center py-2 px-1 font-medium">Authenticity</th>
+                  <th className="text-center py-2 px-1 font-medium">Cultural</th>
+                  <th className="text-center py-2 px-1 font-medium">Action</th>
+                  <th className="text-center py-2 px-1 font-medium">Prompting</th>
+                  <th className="text-center py-2 px-1 font-medium">Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                {audits.map(a => (
+                  <tr key={a.id} className="border-b border-border/50 hover:bg-muted/30">
+                    <td className="py-2 px-2 font-medium truncate max-w-[160px]">{a.entity_id.slice(0, 8)}...</td>
+                    <td className="text-center py-2 px-1">
+                      <Badge variant="outline" className="text-[10px]">{a.entity_type}</Badge>
+                    </td>
+                    {[a.overall_score, a.diversity_score, a.authenticity_score, a.cultural_context_score, a.action_orientation_score, a.inclusive_prompting_score].map((score, i) => (
+                      <td key={i} className="text-center py-2 px-1">
+                        <span className={cn("font-semibold", scoreColor(score || 0))}>{Math.round(score || 0)}%</span>
+                      </td>
+                    ))}
+                    <td className="text-center py-2 px-1">
+                      <Badge variant={a.stock_dependency === 'low' ? 'default' : a.stock_dependency === 'high' ? 'destructive' : 'secondary'} className="text-[10px]">
+                        {a.stock_dependency}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stop/Go Signal Frequency */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-1.5">
+              <XCircle className="h-4 w-4 text-destructive" />
+              <CardTitle className="text-sm">Stop Signals Detected</CardTitle>
+            </div>
+            <CardDescription className="text-xs">Most frequently detected across portfolio</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {sortedStop.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-2">No stop signals detected — great!</p>
+            ) : (
+              <div className="space-y-2">
+                {sortedStop.slice(0, 6).map(([signal, count]) => (
+                  <div key={signal} className="flex items-start gap-2 text-xs">
+                    <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                    <span className="flex-1 text-foreground/80">{signal}</span>
+                    <Badge variant="outline" className="text-[10px] shrink-0">{count}×</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              <CardTitle className="text-sm">Go Signals Present</CardTitle>
+            </div>
+            <CardDescription className="text-xs">Inclusive practices observed across portfolio</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {sortedGo.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-2">No go signals found yet — run audits to populate.</p>
+            ) : (
+              <div className="space-y-2">
+                {sortedGo.slice(0, 6).map(([signal, count]) => (
+                  <div key={signal} className="flex items-start gap-2 text-xs">
+                    <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    <span className="flex-1 text-foreground/80">{signal}</span>
+                    <Badge variant="outline" className="text-[10px] shrink-0">{count}×</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────
 export function AICenterOfExcellence() {
   const { metrics, recommendations, trends, entityComparisons, alerts, isLoading, refresh, updateRecommendation, addRecommendation, seedFromOracle } = useAICenterMetrics();
   const { exportPDF, exporting } = useAICenterPDFExport(metrics, recommendations, entityComparisons, alerts);
+  const { organization } = useOrganization();
 
   if (isLoading && !metrics) {
     return (
@@ -819,6 +971,9 @@ export function AICenterOfExcellence() {
           <TabsTrigger value="entities" className="gap-1 text-xs">
             <Users className="h-3 w-3" /> Entities
           </TabsTrigger>
+          <TabsTrigger value="imagery" className="gap-1 text-xs">
+            <Camera className="h-3 w-3" /> Imagery
+          </TabsTrigger>
           <TabsTrigger value="innovation" className="gap-1 text-xs">
             <Lightbulb className="h-3 w-3" /> Innovation
           </TabsTrigger>
@@ -829,6 +984,11 @@ export function AICenterOfExcellence() {
         <TabsContent value="quality"><QualityTab metrics={metrics} /></TabsContent>
         <TabsContent value="resources"><ResourcesTab metrics={metrics} /></TabsContent>
         <TabsContent value="entities"><EntityComparisonTab entities={entityComparisons} /></TabsContent>
+        <TabsContent value="imagery">
+          {organization?.id ? <ImageryStrategyTab organizationId={organization.id} /> : (
+            <Card><CardContent className="py-8 text-center text-muted-foreground text-sm">Select an organization to view imagery audits.</CardContent></Card>
+          )}
+        </TabsContent>
         <TabsContent value="innovation">
           <InnovationTab recommendations={recommendations} updateRecommendation={updateRecommendation} addRecommendation={addRecommendation} seedFromOracle={seedFromOracle} />
         </TabsContent>
