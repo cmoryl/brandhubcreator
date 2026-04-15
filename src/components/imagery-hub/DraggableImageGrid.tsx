@@ -11,7 +11,7 @@ import {
   rectSortingStrategy, useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { X, GripVertical, Tag, Eye, ZoomIn, FolderInput } from 'lucide-react';
+import { X, GripVertical, Tag, Eye, ZoomIn, FolderInput, ThumbsDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ApprovedImage, ApprovedImagerySubSection } from '@/types/brand';
 import { Badge } from '@/components/ui/badge';
@@ -35,11 +35,12 @@ interface SortableImageProps {
   onVisualSearch?: (imageUrl: string) => void;
   availableSections?: ApprovedImagerySubSection[];
   onMoveToSection?: (image: ApprovedImage, targetSectionId: string) => void;
+  onReject?: () => void;
 }
 
 const SortableImage = ({
   image, sectionId, onRemove, onTagsChange, isSelected, onToggleSelect, selectionMode,
-  entityId, entityType, onQualityScored, onVisualSearch, availableSections, onMoveToSection,
+  entityId, entityType, onQualityScored, onVisualSearch, availableSections, onMoveToSection, onReject,
 }: SortableImageProps) => {
   const [showTagEditor, setShowTagEditor] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -154,6 +155,17 @@ const SortableImage = ({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+        {onReject && (
+          <Button
+            size="icon"
+            variant="secondary"
+            className="h-8 w-8 bg-orange-500/80 hover:bg-orange-600 text-white backdrop-blur-sm border-0 shadow-sm"
+            onClick={e => { e.stopPropagation(); onReject(); }}
+            title="Dislike — teaches AI to avoid similar imagery"
+          >
+            <ThumbsDown className="h-4 w-4" />
+          </Button>
+        )}
         <Button
           size="icon"
           variant="destructive"
@@ -242,13 +254,14 @@ interface DraggableImageGridProps {
   onVisualSearch?: (imageUrl: string) => void;
   availableSections?: ApprovedImagerySubSection[];
   onMoveToSection?: (image: ApprovedImage, fromSectionId: string, toSectionId: string) => void;
+  onRejectImage?: (sectionId: string, image: ApprovedImage) => void;
 }
 
 export const DraggableImageGrid = ({
   images, onReorder, onRemoveImage, onUpdateTags,
   selectedImages, onToggleSelection, selectionMode, sectionId, tagFilter,
   entityId, entityType, onQualityScored, onVisualSearch,
-  availableSections, onMoveToSection,
+  availableSections, onMoveToSection, onRejectImage,
 }: DraggableImageGridProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -296,6 +309,7 @@ export const DraggableImageGrid = ({
               onVisualSearch={onVisualSearch}
               availableSections={availableSections}
               onMoveToSection={onMoveToSection ? (img, targetId) => onMoveToSection(img, sectionId, targetId) : undefined}
+              onReject={onRejectImage ? () => onRejectImage(sectionId, image) : undefined}
             />
           ))}
         </div>

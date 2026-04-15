@@ -5,6 +5,8 @@
  */
 import { useState, useCallback, useEffect } from 'react';
 import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown, Globe } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { WebsiteImageScanner } from '@/components/brand/WebsiteImageScanner';
 import { Input } from '@/components/ui/input';
@@ -142,6 +144,38 @@ export const ImageryWorkspace = ({
     await onRemoveImage(fromSectionId, image.id);
     await onAddImages(toSectionId, [image]);
   }, [onRemoveImage, onAddImages]);
+
+  const handleRejectImage = useCallback(async (sectionId: string, image: ApprovedImage) => {
+    try {
+      // Record a 'rejected' signal so the AI learns what imagery to avoid
+      await supabase.functions.invoke('shutterstock-learn', {
+        body: {
+          action: 'record_signal',
+          entityId: entity.id,
+          entityType: entity.type,
+          organizationId,
+          imageId: image.id,
+          signalAction: 'rejected',
+          imageMetadata: {
+            url: image.url || image.thumbnailUrl,
+            title: image.title,
+            source: image.source,
+            tags: image.tags,
+            category: image.category,
+          },
+          sectionName: sections.find(s => s.id === sectionId)?.name,
+        },
+      });
+      // Remove the image from the section
+      await onRemoveImage(sectionId, image.id);
+      toast.success('Image rejected — AI will learn to avoid similar imagery');
+    } catch (err) {
+      console.error('Failed to record rejection signal:', err);
+      // Still remove the image even if signal fails
+      await onRemoveImage(sectionId, image.id);
+      toast.info('Image removed (preference signal could not be saved)');
+    }
+  }, [entity, organizationId, sections, onRemoveImage]);
 
   const handleBulkQualityScore = useCallback(async (
     scores: Map<string, { score: number; details: ApprovedImage['qualityDetails'] }>
@@ -443,6 +477,7 @@ export const ImageryWorkspace = ({
                         onVisualSearch={url => setVisualSearchUrl(url)}
                         availableSections={sections}
                         onMoveToSection={handleMoveImageToSection}
+                        onRejectImage={handleRejectImage}
                       />
                       {/* Upload Zone */}
                       {organizationId && (
