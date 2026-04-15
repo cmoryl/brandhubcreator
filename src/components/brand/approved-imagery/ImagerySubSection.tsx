@@ -207,7 +207,7 @@ export const ImagerySubSection = ({
           open={!!previewImage}
           onOpenChange={(open) => !open && setPreviewImage(null)}
           image={previewImage}
-          canDownload={canEdit}
+          canDownload={isAuthenticated}
         />
       </AccordionContent>
     </AccordionItem>
