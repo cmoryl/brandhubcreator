@@ -254,13 +254,14 @@ interface DraggableImageGridProps {
   onVisualSearch?: (imageUrl: string) => void;
   availableSections?: ApprovedImagerySubSection[];
   onMoveToSection?: (image: ApprovedImage, fromSectionId: string, toSectionId: string) => void;
+  onRejectImage?: (sectionId: string, image: ApprovedImage) => void;
 }
 
 export const DraggableImageGrid = ({
   images, onReorder, onRemoveImage, onUpdateTags,
   selectedImages, onToggleSelection, selectionMode, sectionId, tagFilter,
   entityId, entityType, onQualityScored, onVisualSearch,
-  availableSections, onMoveToSection,
+  availableSections, onMoveToSection, onRejectImage,
 }: DraggableImageGridProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -308,6 +309,7 @@ export const DraggableImageGrid = ({
               onVisualSearch={onVisualSearch}
               availableSections={availableSections}
               onMoveToSection={onMoveToSection ? (img, targetId) => onMoveToSection(img, sectionId, targetId) : undefined}
+              onReject={onRejectImage ? () => onRejectImage(sectionId, image) : undefined}
             />
           ))}
         </div>
