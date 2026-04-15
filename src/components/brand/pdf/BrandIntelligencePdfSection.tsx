@@ -4,7 +4,7 @@
  * voice profile, recommendations, cultural insights, competitive landscape, knowledge base
  */
 
-import { Brain, Target, Users, TrendingUp, Lightbulb, Globe, BookOpen, Shield, Sparkles, MapPin, MessageCircle } from 'lucide-react';
+import { Brain, Target, Users, TrendingUp, Lightbulb, Globe, BookOpen, Shield, Sparkles, MapPin, MessageCircle, Eye, Search, Bot, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface FullBrandIntelligenceData {
@@ -40,6 +40,7 @@ export interface FullBrandIntelligenceData {
 interface BrandIntelligencePdfSectionProps {
   intelligence: FullBrandIntelligenceData;
   theme: 'light' | 'dark';
+  visibilityAudit?: any;
 }
 
 const themeClasses = {
@@ -72,7 +73,7 @@ function safeStr(val: unknown): string {
   return '';
 }
 
-export const BrandIntelligencePdfSection = ({ intelligence, theme }: BrandIntelligencePdfSectionProps) => {
+export const BrandIntelligencePdfSection = ({ intelligence, theme, visibilityAudit }: BrandIntelligencePdfSectionProps) => {
   const t = themeClasses[theme];
 
   const hasContent = intelligence.brand_summary || intelligence.market_position ||
