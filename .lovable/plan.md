@@ -1,65 +1,93 @@
 
 
-# Imagery Hub Expansion Plan
+# AI Center of Excellence — Implementation Plan
 
-## Current State
-The Imagery Hub has: Entity Picker (tree + flat), Shutterstock inline search, bulk copy between entities, side-by-side comparison, and AI search suggestions. It lacks custom uploads, analytics, visual style analysis, and drag-and-drop organization.
+## What We're Building
 
-## Planned Features
+A dedicated **AI Center of Excellence** tab in the Admin Dashboard that centralizes all AI-related governance, quality standards, ethics guidelines, and performance tracking into one unified hub. Currently, AI features are scattered across Intelligence Hub, DataForce, Bias Awareness, Bot Manager, and individual entity panels. This consolidation gives admins a single place to manage AI quality, ethics, and efficiency.
 
-### 1. Custom Image Upload Support
-Add a drag-and-drop upload zone within each imagery category, alongside the existing Shutterstock search. Users can drop files or click to browse, uploading directly to the `organization-assets` storage bucket. Uploaded images get the same `ApprovedImage` metadata structure as Shutterstock results.
+## Architecture
 
-- Add an upload dropzone component inside `ImageryWorkspace` per section
-- Upload to `organization-assets/{orgId}/imagery/{entityId}/{sectionId}/`
-- Generate thumbnails and persist as `ApprovedImage` entries in `guide_data`
+The AI Center of Excellence will be a new admin tab with sub-tabs:
 
-### 2. AI Visual Style Analyzer
-A new panel that uses Lovable AI (gemini-2.5-flash with image support) to analyze all approved imagery for an entity and return a style consistency report: dominant colors, style cohesion score, outlier detection, and recommendations.
+```text
+AI Center of Excellence
+├── Overview Dashboard        — Unified AI health metrics, usage stats, quality scores
+├── Governance & Ethics       — AI ethics policies, bias thresholds, compliance rules
+├── Quality Standards         — Model performance tracking, output quality scoring, calibration
+├── Resource Allocation       — AI usage across entities, cost/credit monitoring, rate limit status
+└── Innovation Pipeline       — Strategic AI recommendations, capability roadmap, experiment tracking
+```
 
-- New edge function `imagery-style-analyzer` that receives image URLs and entity brand context
-- Returns: cohesion score (0-100), dominant palette, style tags, flagged outliers with reasons
-- UI: collapsible analysis panel below the workspace header with score ring, palette swatches, and flagged images
+## Detailed Steps
 
-### 3. Image Analytics Dashboard
-A stats bar and expandable analytics panel showing per-entity and cross-entity imagery metrics.
+### 1. Create `AICenterOfExcellence.tsx` component (~400 lines)
+New component at `src/components/admin/AICenterOfExcellence.tsx` with 5 sub-tabs:
 
-- **Per-entity stats**: total images, images per category, most recently added, category coverage gaps
-- **Cross-entity overview**: entity with most/fewest images, categories missing across entities
-- Computed client-side from existing `guide_data` — no new tables needed
-- UI: stats cards row at top of workspace + an "Analytics" tab/panel toggle
+- **Overview Dashboard**: Aggregates AI metrics from existing sources — pulls from `brand_intelligence_jobs`, `dataforce_compliance_jobs`, `bias_awareness_scans`, `bot_conversations`, `brand_visibility_audits`. Shows unified scorecards (AI Quality Score, Ethics Compliance %, Resource Efficiency, Innovation Index).
 
-### 4. Drag & Drop Reorder + Tagging
-Enable reordering images within categories via drag-and-drop, and add a tagging system for filtering.
+- **Governance & Ethics**: Centralizes bias awareness thresholds, DataForce compliance rules, and cultural validation settings into one editable panel. Shows policy status cards and ethics compliance trends.
 
-- Integrate `@dnd-kit/core` for drag-and-drop reorder within each section's image grid
-- Persist new order back to `guide_data.approvedImagery.sections[].images`
-- Add `tags: string[]` field to `ApprovedImage` type
-- Tag editor inline on each image (click to add/remove tags)
-- Filter bar above sections to filter by tag across all categories
+- **Quality Standards**: Displays AI calibration data (from existing `AICalibrationPanel`), model output confidence history, and feedback scores. Tracks quality across all AI services.
 
-## Technical Details
+- **Resource Allocation**: Shows AI usage distribution across brands/products/events, tracks job counts, success/failure rates, and surfaces rate limit or credit warnings.
 
-### Files to Create
-- `src/components/imagery-hub/ImageryUploadZone.tsx` — drag-and-drop upload component
-- `src/components/imagery-hub/ImageryAnalytics.tsx` — analytics dashboard panel
-- `src/components/imagery-hub/StyleAnalysisPanel.tsx` — AI style analysis UI
-- `src/components/imagery-hub/DraggableImageGrid.tsx` — drag-and-drop image grid
-- `src/components/imagery-hub/ImageTagEditor.tsx` — inline tag editor
-- `supabase/functions/imagery-style-analyzer/index.ts` — AI style analysis edge function
+- **Innovation Pipeline**: Renders Oracle Brain strategic recommendations with actionable tracking — admins can mark recommendations as "In Progress", "Completed", or "Deferred". Persisted to a new DB column or JSONB field.
 
-### Files to Modify
-- `src/components/imagery-hub/ImageryWorkspace.tsx` — integrate upload zone, analytics toggle, drag-and-drop grid, tag filter bar
-- `src/pages/ImageryHub.tsx` — add style analyzer trigger and analytics panel toggle
-- `src/hooks/useEntityImagery.ts` — add `reorderImages` and `updateImageTags` methods
-- `src/types/brand.ts` — add `tags?: string[]` to `ApprovedImage` type
+### 2. Create `useAICenterMetrics.ts` hook
+New hook at `src/hooks/useAICenterMetrics.ts` that fetches and aggregates data from:
+- `brand_intelligence_jobs` (job counts, success rates)
+- `dataforce_compliance_jobs` (compliance scores)
+- `bias_awareness_scans` (inclusion/ethics scores)
+- `bot_conversations` (satisfaction ratings)
+- `brand_visibility_audits` (visibility scores)
+- `oracle_intelligence` (strategic recommendations)
 
-### Dependencies
-- `@dnd-kit/core` and `@dnd-kit/sortable` for drag-and-drop
+Returns unified metrics object for the dashboard.
 
-### Edge Function: `imagery-style-analyzer`
-- Receives entity image URLs + brand context (colors, archetype)
-- Sends to gemini-2.5-flash-lite for visual analysis
-- Returns structured cohesion report via tool calling
-- Uses `LOVABLE_API_KEY` (auto-provisioned)
+### 3. Database Migration — Recommendation Tracking
+Add a `recommendation_actions` table to track admin responses to strategic recommendations:
+
+```sql
+CREATE TABLE public.recommendation_actions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  recommendation_key TEXT NOT NULL,
+  recommendation_text TEXT NOT NULL,
+  source TEXT DEFAULT 'oracle',
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending','in_progress','completed','deferred')),
+  assigned_to UUID REFERENCES auth.users(id),
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE public.recommendation_actions ENABLE ROW LEVEL SECURITY;
+-- RLS: org members can read, org admins can write
+```
+
+### 4. Wire into Admin Dashboard
+- Add "AI Center" nav item to `AdminSidebar.tsx` in the 'analytics' group with a `Cpu` or `GraduationCap` icon
+- Add corresponding `TabsContent` in `AdminDashboard.tsx`
+- Add summary widget to `AdminOverview.tsx` linking to the new tab
+
+### 5. Cross-link from existing panels
+- Oracle Brain strategic recommendations will link to the Innovation Pipeline for action tracking
+- DataForce and Bias Awareness panels get "View in AI Center" quick links
+
+## Files Changed
+| File | Action |
+|------|--------|
+| `src/components/admin/AICenterOfExcellence.tsx` | **Create** — Main hub component |
+| `src/hooks/useAICenterMetrics.ts` | **Create** — Aggregated metrics hook |
+| `src/components/admin/AdminSidebar.tsx` | **Edit** — Add nav item |
+| `src/pages/AdminDashboard.tsx` | **Edit** — Add tab content |
+| `src/components/admin/AdminOverview.tsx` | **Edit** — Add summary widget |
+| Migration SQL | **Create** — `recommendation_actions` table |
+
+## What This Achieves
+- **Consistent quality**: Unified quality scoring across all AI services
+- **Reduced redundancy**: Single governance view instead of checking 4+ separate tabs
+- **Ethical AI**: Centralized ethics policies with compliance tracking
+- **Accelerated innovation**: Actionable recommendation pipeline with status tracking
+- **Better resource allocation**: AI usage visibility across the entire portfolio
 
