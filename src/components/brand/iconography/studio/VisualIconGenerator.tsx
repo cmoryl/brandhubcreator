@@ -601,7 +601,8 @@ export const VisualIconGenerator = ({
             </div>
           </div>
 
-          {/* Stroke & Corners */}
+          {/* Stroke & Corners - only for vector styles */}
+          {!isRasterStyle && (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-medium">Stroke Width</Label>
