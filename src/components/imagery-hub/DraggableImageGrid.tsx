@@ -1,5 +1,5 @@
 /**
- * DraggableImageGrid - Drag-and-drop sortable image grid with tagging, quality badges, and visual search
+ * DraggableImageGrid - Drag-and-drop sortable image grid with tagging, quality badges, visual search, and re-categorization
  */
 import { useCallback, useState } from 'react';
 import {
@@ -11,10 +11,11 @@ import {
   rectSortingStrategy, useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { X, GripVertical, Tag, Eye, ZoomIn } from 'lucide-react';
+import { X, GripVertical, Tag, Eye, ZoomIn, FolderInput } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ApprovedImage } from '@/types/brand';
+import { ApprovedImage, ApprovedImagerySubSection } from '@/types/brand';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { ImageTagEditor } from './ImageTagEditor';
 import { ImageQualityBadge } from './ImageQualityBadge';
@@ -22,6 +23,7 @@ import { ImageryPreviewDialog } from '@/components/brand/approved-imagery/Imager
 
 interface SortableImageProps {
   image: ApprovedImage;
+  sectionId: string;
   onRemove: () => void;
   onTagsChange: (tags: string[]) => void;
   isSelected?: boolean;
@@ -31,6 +33,8 @@ interface SortableImageProps {
   entityType?: string;
   onQualityScored?: (score: number, details: ApprovedImage['qualityDetails']) => void;
   onVisualSearch?: (imageUrl: string) => void;
+  availableSections?: ApprovedImagerySubSection[];
+  onMoveToSection?: (image: ApprovedImage, targetSectionId: string) => void;
 }
 
 const SortableImage = ({
