@@ -23,7 +23,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SectionId, DEFAULT_SECTION_ORDER } from '@/types/brand';
-import { sectionMeta } from '@/components/brand/ReorderableBrandSidebar';
+import { sectionMeta } from '@/components/brand/sectionMeta';
 
 // Critical sections that should rarely be hidden
 const CRITICAL_SECTIONS: SectionId[] = [

@@ -113,7 +113,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { SectionCardGrid } from '@/components/brand/SectionCardGrid';
-import { eventSectionMeta } from '@/components/event/EventSidebar';
+import { eventSectionMeta } from '@/components/event/eventSectionMeta';
 import { calculateBrandHealth } from '@/lib/brandHealthCalculator';
 import { useExternalSectionCounts } from '@/hooks/useExternalSectionCounts';
 

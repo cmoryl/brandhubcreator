@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
 import { CARD_TINTS, SECTION_DESCRIPTIONS } from './SectionCardGrid';
-import { sectionMeta } from './ReorderableBrandSidebar';
+import { sectionMeta } from './sectionMeta';
 
 interface ActiveSectionHeaderProps {
   activeSection: string;
