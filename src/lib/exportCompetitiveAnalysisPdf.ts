@@ -863,61 +863,29 @@ const drawRegionalInsights = (pdf: jsPDF, report: CompetitiveAnalysisReportData,
 const drawActionPlan = (pdf: jsPDF, report: CompetitiveAnalysisReportData, y: number, date: string): number => {
   y = drawSectionTitle(pdf, '30 / 60 / 90 Day Action Plan', y);
 
-  const phases: [string, string[], string, string, string][] = [
-    ['30 Days', safe(report.executiveSummary?.actionPlan?.thirtyDay), '#dbeafe', '#1e40af', '#1e3a8a'],
-    ['60 Days', safe(report.executiveSummary?.actionPlan?.sixtyDay), '#fef3c7', '#92400e', '#78350f'],
-    ['90 Days', safe(report.executiveSummary?.actionPlan?.ninetyDay), '#d1fae5', '#065f46', '#064e3b'],
+  const phases: [string, string[], string, string][] = [
+    ['30 Days', safe(report.executiveSummary?.actionPlan?.thirtyDay), '#1e40af', '#1e3a8a'],
+    ['60 Days', safe(report.executiveSummary?.actionPlan?.sixtyDay), '#92400e', '#78350f'],
+    ['90 Days', safe(report.executiveSummary?.actionPlan?.ninetyDay), '#065f46', '#064e3b'],
   ];
 
-  const colW = (CW - 8) / 3;
-  const maxItems = Math.max(...phases.map(([, items]) => items.length));
-  const phaseH = Math.max(maxItems * 5 + 14, 30);
-
-  y = ensureSpace(pdf, y, phaseH + 4);
-
-  for (let p = 0; p < 3; p++) {
-    const [title, items, bg, headColor, textColor] = phases[p];
-    const px = M + p * (colW + 4);
-
-    drawCard(pdf, px, y, colW, phaseH, bg);
-
+  for (const [title, items, headColor, textColor] of phases) {
+    if (items.length === 0) continue;
+    y = ensureSpace(pdf, y, 10);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(10);
     setColor(pdf, headColor);
-    pdf.text(title, px + 4, y + 7);
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8);
-    setColor(pdf, textColor);
-    let iy = y + 14;
-    for (const item of items) {
-      const t = '• ' + item.substring(0, 40);
-      pdf.text(t, px + 4, iy);
-      iy += 4.5;
-    }
+    pdf.text(title, M, y);
+    y += 5;
+    y = drawBullets(pdf, items, y, M, CW - 4, textColor);
+    y += 2;
   }
-
-  y += phaseH + 6;
 
   // Success metrics
   const metrics = safe(report.executiveSummary?.successMetrics);
   if (metrics.length > 0) {
-    const mH = metrics.length * 5 + 12;
-    y = ensureSpace(pdf, y, mH);
-    drawCard(pdf, M, y, CW, mH, '#f0f9ff', '#bae6fd');
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(9);
-    setColor(pdf, '#0369a1');
-    pdf.text('📊 Success Metrics', M + 4, y + 6);
-    let my = y + 12;
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8.5);
-    setColor(pdf, '#0284c7');
-    for (const m of metrics) {
-      pdf.text('• ' + m.substring(0, 70), M + 4, my);
-      my += 4.5;
-    }
-    y += mH + 6;
+    y = drawSubheading(pdf, '📊 Success Metrics', y);
+    y = drawBullets(pdf, metrics, y, M, CW - 4, '#0284c7');
   }
 
   // Footer
