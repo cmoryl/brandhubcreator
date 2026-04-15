@@ -101,6 +101,7 @@ Return a JSON array of search query strings. Your suggestions MUST:
 - Reinforce patterns matching Go Signals
 - Consider stock dependency level — if "high", suggest queries for authentic/documentary-style imagery
 - Brand identity and visual DNA
+- Prioritize imagery that fulfills any approved competitive recommendations (design priorities, brand refinements, positioning opportunities)
 - Emotional tone matching the brand archetype
 - Diverse and inclusive representation
 
