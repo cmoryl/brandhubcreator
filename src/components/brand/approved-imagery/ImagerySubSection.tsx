@@ -15,6 +15,7 @@ interface ImagerySubSectionProps {
   canEdit: boolean;
   onSearchClick: () => void;
   onDropboxClick: () => void;
+  onWebsiteClick: () => void;
   onRemoveImage: (imageId: string) => void;
   onRemoveSection: () => void;
   onRename: (newName: string) => void;
