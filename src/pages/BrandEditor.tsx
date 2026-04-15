@@ -1164,7 +1164,7 @@ const BrandEditor = () => {
                 icon: TrendingUp,
                 render: () => {
                   return (
-                    <Suspense fallback={<div className="p-6"><Skeleton className="h-48 w-full" /></div>}>
+                    <Suspense fallback={<div className="p-6 animate-pulse"><div className="h-48 w-full rounded-md bg-muted" /></div>}>
                       <CompetitiveReportCardLazy
                         entityType="brand"
                         entityId={brand.id}
