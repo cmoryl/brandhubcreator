@@ -7,6 +7,7 @@ import { Accordion } from '@/components/ui/accordion';
 import { ApprovedImage, ApprovedImagerySubSection } from '@/types/brand';
 import { ShutterstockSearchDialog } from './ShutterstockSearchDialog';
 import { DropboxBrowserDialog } from './DropboxBrowserDialog';
+import { WebsiteImageScanner } from '../WebsiteImageScanner';
 import { ImagerySubSection } from './ImagerySubSection';
 
 interface ApprovedImagerySectionProps {
@@ -42,6 +43,7 @@ export const ApprovedImagerySection = ({
 }: ApprovedImagerySectionProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [dropboxOpen, setDropboxOpen] = useState(false);
+  const [websiteOpen, setWebsiteOpen] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState<string | null>(null);
   const [newSectionName, setNewSectionName] = useState('');
   const [addingSectionMode, setAddingSectionMode] = useState(false);
@@ -81,6 +83,11 @@ export const ApprovedImagerySection = ({
   const openDropboxForSection = useCallback((sectionId: string) => {
     setTargetSectionId(sectionId);
     setDropboxOpen(true);
+  }, []);
+
+  const openWebsiteForSection = useCallback((sectionId: string) => {
+    setTargetSectionId(sectionId);
+    setWebsiteOpen(true);
   }, []);
 
   const handleApproveImages = useCallback((images: ApprovedImage[]) => {
@@ -175,6 +182,7 @@ export const ApprovedImagerySection = ({
               canEdit={canEdit}
               onSearchClick={() => openSearchForSection(section.id)}
               onDropboxClick={() => openDropboxForSection(section.id)}
+              onWebsiteClick={() => openWebsiteForSection(section.id)}
               onRemoveImage={(imageId) => handleRemoveImage(section.id, imageId)}
               onRemoveSection={() => removeSubSection(section.id)}
               onRename={(newName) => renameSubSection(section.id, newName)}
@@ -203,6 +211,23 @@ export const ApprovedImagerySection = ({
             sectionName={targetSection?.name || ''}
             entityId={entityId}
             entityType={entityType}
+          />
+          <WebsiteImageScanner
+            open={websiteOpen}
+            onOpenChange={setWebsiteOpen}
+            onImportImages={(images) => {
+              if (!targetSectionId) return;
+              const approved: ApprovedImage[] = images.map((img) => ({
+                id: crypto.randomUUID(),
+                url: img.url,
+                thumbnailUrl: img.url,
+                title: img.name,
+                source: 'website',
+                category: targetSection?.name || '',
+                approvedAt: new Date().toISOString(),
+              }));
+              handleApproveImages(approved);
+            }}
           />
         </>
       )}

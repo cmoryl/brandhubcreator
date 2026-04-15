@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Trash2, Edit2, Check, X, ImageIcon, ZoomIn, FolderOpen, Download } from 'lucide-react';
+import { Search, Trash2, Edit2, Check, X, ImageIcon, ZoomIn, FolderOpen, Download, Globe } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ interface ImagerySubSectionProps {
   canEdit: boolean;
   onSearchClick: () => void;
   onDropboxClick: () => void;
+  onWebsiteClick: () => void;
   onRemoveImage: (imageId: string) => void;
   onRemoveSection: () => void;
   onRename: (newName: string) => void;
@@ -25,6 +26,7 @@ export const ImagerySubSection = ({
   canEdit,
   onSearchClick,
   onDropboxClick,
+  onWebsiteClick,
   onRemoveImage,
   onRemoveSection,
   onRename,
@@ -100,6 +102,14 @@ export const ImagerySubSection = ({
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">Import from Dropbox</TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onWebsiteClick}>
+                  <Globe className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">Scan website for images</TooltipContent>
+            </Tooltip>
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onSearchClick}>
               <Search className="h-3 w-3" />
             </Button>
@@ -137,6 +147,9 @@ export const ImagerySubSection = ({
                 </Button>
                 <Button variant="outline" size="sm" onClick={onDropboxClick}>
                   <FolderOpen className="h-3 w-3 mr-1" /> Dropbox
+                </Button>
+                <Button variant="outline" size="sm" onClick={onWebsiteClick}>
+                  <Globe className="h-3 w-3 mr-1" /> Website
                 </Button>
               </div>
             )}
