@@ -441,6 +441,8 @@ export const ImageryWorkspace = ({
                         entityId={entity.id}
                         entityType={entity.type}
                         onVisualSearch={url => setVisualSearchUrl(url)}
+                        availableSections={sections}
+                        onMoveToSection={handleMoveImageToSection}
                       />
                       {/* Upload Zone */}
                       {organizationId && (
