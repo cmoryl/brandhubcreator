@@ -232,6 +232,69 @@ serve(async (req) => {
       console.warn('[worker] Visual DNA fetch failed (non-critical):', e);
     }
 
+    // Fetch visibility audit context
+    let visibilityContext = '';
+    try {
+      const visAudits = await db.select('brand_visibility_audits',
+        `entity_id=eq.${job.entity_id}&entity_type=eq.${job.entity_type}&status=eq.completed&order=created_at.desc&limit=1&select=overall_visibility_score,search_visibility_score,ai_platform_score,social_media_score,visibility_gaps,recommendations`
+      );
+      if (visAudits.length > 0) {
+        const va = visAudits[0];
+        const parts: string[] = [];
+        parts.push(`VISIBILITY AUDIT DATA:`);
+        parts.push(`Overall: ${va.overall_visibility_score ?? 'N/A'}%, Search: ${va.search_visibility_score ?? 'N/A'}%, AI Platforms: ${va.ai_platform_score ?? 'N/A'}%, Social: ${va.social_media_score ?? 'N/A'}%`);
+        const gaps = Array.isArray(va.visibility_gaps) ? va.visibility_gaps : [];
+        if (gaps.length > 0) {
+          const critical = gaps.filter((g: any) => g.severity === 'critical' || g.severity === 'high');
+          parts.push(`${gaps.length} visibility gaps found (${critical.length} critical/high)`);
+          critical.slice(0, 3).forEach((g: any) => parts.push(`- [${g.severity}] ${g.title || g.gap || g.category}: ${(g.description || '').slice(0, 100)}`));
+        }
+        const recs = Array.isArray(va.recommendations) ? va.recommendations : [];
+        if (recs.length > 0) {
+          parts.push(`Top recommendations: ${recs.slice(0, 3).map((r: any) => r.title || r.recommendation || '').join('; ')}`);
+        }
+        visibilityContext = `\n${parts.join('\n')}\nIncorporate visibility gaps into your growth recommendations and market position analysis.`;
+      }
+    } catch (e) {
+      console.warn('[worker] Visibility audit fetch failed (non-critical):', e);
+    }
+
+    // Fetch social metrics context
+    let socialMetricsContext = '';
+    try {
+      const snapshots = await db.select('social_metrics_snapshots',
+        `entity_id=eq.${job.entity_id}&entity_type=eq.${job.entity_type}&order=snapshot_date.desc&limit=5&select=platform,followers_count,engagement_rate,follower_growth_percent,sentiment_score,brand_mentions_count,snapshot_date`
+      );
+      if (snapshots.length > 0) {
+        const parts: string[] = ['SOCIAL METRICS SNAPSHOT:'];
+        for (const s of snapshots) {
+          parts.push(`${s.platform}: ${s.followers_count || 0} followers, ${(s.engagement_rate || 0).toFixed(1)}% engagement, ${(s.follower_growth_percent || 0).toFixed(1)}% growth, sentiment ${(s.sentiment_score || 0).toFixed(1)}, ${s.brand_mentions_count || 0} mentions (${s.snapshot_date})`);
+        }
+        socialMetricsContext = `\n${parts.join('\n')}\nFactor social performance into brand strength assessment and audience analysis.`;
+      }
+    } catch (e) {
+      console.warn('[worker] Social metrics fetch failed (non-critical):', e);
+    }
+
+    // Fetch DataForce compliance context
+    let complianceContext = '';
+    try {
+      const compJobs = await db.select('dataforce_compliance_jobs',
+        `entity_id=eq.${job.entity_id}&status=eq.completed&order=created_at.desc&limit=1&select=compliance_score,findings,recommendations`
+      );
+      if (compJobs.length > 0) {
+        const c = compJobs[0];
+        const parts: string[] = [`BRAND COMPLIANCE SCORE: ${c.compliance_score ?? 'N/A'}%`];
+        const findings = Array.isArray(c.findings) ? c.findings : [];
+        if (findings.length > 0) {
+          parts.push(`Key findings: ${findings.slice(0, 3).map((f: any) => f.title || f.finding || JSON.stringify(f).slice(0, 60)).join('; ')}`);
+        }
+        complianceContext = `\n${parts.join('\n')}\nConsider compliance gaps in your recommendations.`;
+      }
+    } catch (e) {
+      console.warn('[worker] Compliance fetch failed (non-critical):', e);
+    }
+
     // Build event-specific physical accessibility context
     const isEvent = job.entity_type === 'event';
     const physicalAccessibilityContext = isEvent ? `
