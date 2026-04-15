@@ -410,6 +410,7 @@ ${visualDnaContext}
 ${visibilityContext}
 ${socialMetricsContext}
 ${complianceContext}
+${imageryAuditContext}
 ${externalDocContent ? `\nEXTERNAL LINKED DOCUMENTS (fetched from Dropbox/GlobalLink/external sources):\n${externalDocContent}` : ''}
 ${priorAnalysisContext}
 ${physicalAccessibilityContext}
@@ -417,7 +418,7 @@ ${personaDesignContext}
 ${inclusiveImageryContext}
 ${patientResearchContext}
 ${labToLaunchContext}
-Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''}${externalDocContent ? ' Incorporate insights from external linked documents into your analysis.' : ''}${priorAnalysisContext ? ' Compare against prior analysis and note trends.' : ''}${visibilityContext ? ' Factor visibility gaps and scores into growth strategy and market positioning.' : ''}${socialMetricsContext ? ' Integrate social performance data into audience and engagement analysis.' : ''}${complianceContext ? ' Address compliance findings in recommendations.' : ''}
+Analyze for ${isEvent ? 'event experience, venue accessibility, and' : isProduct ? 'product inclusive design, user accessibility, and' : 'brand inclusive representation, imagery standards, and'} brand coherence and market positioning.${oracleContext ? ' Align with Oracle org-level intelligence.' : ''}${externalDocContent ? ' Incorporate insights from external linked documents into your analysis.' : ''}${priorAnalysisContext ? ' Compare against prior analysis and note trends.' : ''}${visibilityContext ? ' Factor visibility gaps and scores into growth strategy and market positioning.' : ''}${socialMetricsContext ? ' Integrate social performance data into audience and engagement analysis.' : ''}${complianceContext ? ' Address compliance findings in recommendations.' : ''}${imageryAuditContext ? ' Integrate imagery strategy audit scores into visual identity and brand perception analysis.' : ''}
 
 SACM (Sentiment Analysis & Computational Color Modeling):
 Evaluate whether the brand's color palette aligns with its messaging sentiment:
