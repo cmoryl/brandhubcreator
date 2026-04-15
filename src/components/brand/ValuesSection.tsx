@@ -771,9 +771,21 @@ export const ValuesSection = ({
             const viewingValue = values.find(v => v.id === viewingId);
             if (!viewingValue) return null;
             const ViewIcon = getIconComponent(viewingValue.icon);
-            const viewImage = viewingValue.useImage 
-              ? (viewingValue.imageUrl || getStablePillarImage(viewingValue.text))
-              : null;
+            // Use the same resolution logic as the card to keep images in sync
+            const viewImage = (() => {
+              if (!viewingValue.useImage) return null;
+              const isValidExternalUrl = (url: string) =>
+                url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:'));
+              // 1. Keyword match from bundled assets
+              const keywordMatch = getPillarImage(viewingValue.text);
+              if (keywordMatch) return keywordMatch;
+              // 2. Custom uploaded image
+              if (viewingValue.imageUrl && isValidExternalUrl(viewingValue.imageUrl) && !pillarImagesList.includes(viewingValue.imageUrl)) {
+                return viewingValue.imageUrl;
+              }
+              // 3. Stable hash fallback
+              return getStablePillarImage(viewingValue.text);
+            })();
             return (
               <>
                 <DialogHeader>
