@@ -734,7 +734,7 @@ const AICenterSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> = 
               sub={`${data.successRate.toFixed(0)}% success`}
               subColor={scoreColor(data.successRate)}
               onClick={() => onTabChange('ai-center')} />
-            <SummaryRow icon={Shield} color="text-blue-500" bg="bg-blue-500/10" label="Compliance" value={`${data.avgCompliance.toFixed(0)}%`}
+            <SummaryRow icon={Shield} color="text-blue-500" bg="bg-blue-500/10" label="Compliance" value={Math.round(data.avgCompliance)}
               subColor={scoreColor(data.avgCompliance)}
               onClick={() => onTabChange('ai-center')} />
           </div>
