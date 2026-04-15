@@ -36,90 +36,9 @@ interface EventSidebarProps {
   isAdmin?: boolean;
 }
 
-export const eventSectionMeta: Record<EventSectionId, { label: string; icon: React.ElementType; category: string }> = {
-  // Core identity
-  hero: { label: 'Event Hero', icon: Shield, category: 'Identity' },
-  eventdetails: { label: 'Event Details', icon: Calendar, category: 'Identity' },
-  tagline: { label: 'Event Tagline', icon: Quote, category: 'Identity' },
-  identity: { label: 'Event Narrative', icon: MapPin, category: 'Identity' },
-  values: { label: 'Event Pillars', icon: Flag, category: 'Identity' },
-  
-  // Event-specific
-  eventlogos: { label: 'Event Logos', icon: Image, category: 'Event Assets' },
-  eventsignage: { label: 'Signage & Banners', icon: Presentation, category: 'Event Assets' },
-  eventbanners: { label: 'Digital Collateral', icon: FolderArchive, category: 'Event Assets' }, // Merged into eventdigital
-  eventdigital: { label: 'Digital Collateral', icon: FolderArchive, category: 'Event Assets' },
-  
-  // Visual
-  colors: { label: 'Event Colors', icon: Palette, category: 'Visual' },
-  gradients: { label: 'Gradients', icon: Blend, category: 'Visual' },
-  typography: { label: 'Typography', icon: Type, category: 'Visual' },
-  imagery: { label: 'Visual Direction', icon: Camera, category: 'Visual' },
-  
-  // Social & Communication
-  social: { label: 'Social Registry', icon: Users, category: 'Communication' },
-  socialassets: { label: 'Social Assets', icon: LayoutGrid, category: 'Communication' },
-  
-  // Event Program
-  eventschedule: { label: 'Event Schedule', icon: Clock, category: 'Program' },
-  eventspeakers: { label: 'Speakers', icon: Mic2, category: 'Program' },
-  eventsponsors: { label: 'Sponsors', icon: Crown, category: 'Program' },
-  
-  // Event Media
-  eventvideos: { label: 'Event Videos', icon: Video, category: 'Media' },
-  
-  // Event Websites
-  eventwebsites: { label: 'Event Website', icon: Globe, category: 'Communication' },
-  
-  // Location
-  eventlocation: { label: 'Venue & Location', icon: MapPinned, category: 'Venue' },
-  
-  // History
-  eventhistory: { label: 'Event History', icon: History, category: 'Archive' },
-  
-  // Resources
-  assets: { label: 'Operational Vault', icon: FolderArchive, category: 'Resources' },
-  imageassets: { label: 'Image Assets', icon: ImageIcon, category: 'hidden' },
-  misuse: { label: 'Anti-Patterns', icon: Ban, category: 'Resources' },
-  
-  // Shared sections (hidden by default for events but available)
-  bythenumbers: { label: 'By the Numbers', icon: Shield, category: 'Identity' },
-  services: { label: 'Services', icon: Shield, category: 'Identity' },
-  revenue: { label: 'Revenue', icon: Shield, category: 'Identity' },
-  brief: { label: 'Event Brief', icon: FileText, category: 'Identity' },
-  logos: { label: 'Brand Logos', icon: Image, category: 'Visual' },
-  brandicon: { label: 'Brand Icons', icon: Image, category: 'Visual' },
-  patterns: { label: 'Patterns', icon: Shield, category: 'Visual' },
-  textstyles: { label: 'Text Styles', icon: Type, category: 'Typography' },
-  iconography: { label: 'Iconography', icon: Shield, category: 'Assets' },
-  socialicons: { label: 'Social Icons', icon: Users, category: 'Assets' },
-  website: { label: 'Website', icon: Shield, category: 'Communication' },
-  signatures: { label: 'Signatures', icon: Shield, category: 'Communication' },
-  qr: { label: 'QR Codes', icon: Shield, category: 'Communication' },
-  videos: { label: 'Videos', icon: Shield, category: 'Resources' },
-  casestudies: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' }, // Deprecated - merged into brochures
-  brochures: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
-  templates: { label: 'Templates', icon: Layers, category: 'Collateral' },
-  templatespecs: { label: 'Template Specs', icon: Ruler, category: 'Collateral' },
-  products: { label: 'Products', icon: Shield, category: 'Collateral' },
-  subevents: { label: 'Regional Events', icon: Globe, category: 'Identity' },
-  sharedassets: { label: 'Shared Assets', icon: FolderArchive, category: 'Resources' },
-  webinars: { label: 'Webinar Series', icon: Presentation, category: 'Resources' },
-  awards: { label: 'Awards & Recognition', icon: Award, category: 'Resources' },
-  events: { label: 'Events', icon: Calendar, category: 'Collateral' },
-  eventpatterns: { label: 'Event Patterns', icon: Grid, category: 'Visual' },
-  universe: { label: 'Product Universe', icon: Globe, category: 'Collateral' },
-  sponsorlogos: { label: 'Sponsor Logos', icon: Crown, category: 'Collateral' },
-  clientlogos: { label: 'Client Logos', icon: Users, category: 'Collateral' },
-  partnerbooths: { label: 'Partner Booths', icon: Building2, category: 'Event Assets' },
-  locations: { label: 'Global Locations', icon: MapPin, category: 'Venue' },
-  insights: { label: 'Insights & Updates', icon: TrendingUp, category: 'Resources' },
-  presentations: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },
-  socialmetrics: { label: 'Social Performance', icon: TrendingUp, category: 'Communication' },
-  eventprint: { label: 'Print Collateral', icon: Printer, category: 'Event Assets' },
-  approvedimagery: { label: 'Approved Imagery', icon: ImageIcon, category: 'Assets' },
-  studios: { label: 'Our Studios', icon: Building2, category: 'Ecosystem' },
-};
+// Re-export eventSectionMeta from extracted module for backwards compatibility
+export { eventSectionMeta } from './eventSectionMeta';
+import { eventSectionMeta } from './eventSectionMeta';
 
 export const EventSidebar = ({ 
   activeSection, 

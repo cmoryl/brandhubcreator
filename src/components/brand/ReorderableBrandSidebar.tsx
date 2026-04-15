@@ -46,6 +46,7 @@ interface ReorderableBrandSidebarProps {
 
 // Re-export sectionMeta from extracted module for backwards compatibility
 export { sectionMeta } from './sectionMeta';
+import { sectionMeta } from './sectionMeta';
 
 export const ReorderableBrandSidebar = ({ 
   activeSection, 
