@@ -43,6 +43,7 @@ export const ApprovedImagerySection = ({
 }: ApprovedImagerySectionProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [dropboxOpen, setDropboxOpen] = useState(false);
+  const [websiteOpen, setWebsiteOpen] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState<string | null>(null);
   const [newSectionName, setNewSectionName] = useState('');
   const [addingSectionMode, setAddingSectionMode] = useState(false);
