@@ -187,6 +187,7 @@ export const BrandIntelligencePanel = ({
   parentBrandName 
 }: BrandIntelligencePanelProps) => {
   const [intelligence, setIntelligence] = useState<BrandIntelligence | null>(null);
+  const [visibilityAuditForExport, setVisibilityAuditForExport] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
