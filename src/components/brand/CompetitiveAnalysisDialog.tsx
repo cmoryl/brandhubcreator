@@ -128,6 +128,17 @@ export function CompetitiveAnalysisDialog({
   // Regional branding data
   const { regions, countries } = useRegionalBranding(organizationId);
 
+  // Recommendation actions for approve/utilize workflow
+  const {
+    approveRecommendation,
+    isUtilized,
+  } = useRecommendationActions({
+    reportId: latestReport?.id,
+    entityId,
+    entityType,
+    organizationId,
+  });
+
   // Get available regions and countries
   const availableRegions = useMemo(() => {
     if (regions.length > 0) {
