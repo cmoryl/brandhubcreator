@@ -45,7 +45,7 @@ import { ClientLogosSection } from './ClientLogosSection';
 import { SponsorLogosSection } from './SponsorLogosSection';
 import { PresentationTemplatesSection } from './PresentationTemplatesSection';
 import { ApprovedImagerySection } from './approved-imagery/ApprovedImagerySection';
-import { StudiosSection } from './StudiosSection';
+const StudiosSection = lazy(() => import('./StudiosSection').then(m => ({ default: m.StudiosSection })));
 import { Separator } from '@/components/ui/separator';
 
 // Framer motion variants for smooth section animations
