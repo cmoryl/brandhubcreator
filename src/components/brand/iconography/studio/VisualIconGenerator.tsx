@@ -212,6 +212,7 @@ export const VisualIconGenerator = ({
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceFileName, setReferenceFileName] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const isRasterStyle = RASTER_STYLES.some(s => s.id === style);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isTracing, setIsTracing] = useState(false);
