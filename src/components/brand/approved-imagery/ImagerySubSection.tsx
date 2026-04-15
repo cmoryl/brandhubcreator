@@ -26,6 +26,7 @@ export const ImagerySubSection = ({
   canEdit,
   onSearchClick,
   onDropboxClick,
+  onWebsiteClick,
   onRemoveImage,
   onRemoveSection,
   onRename,
