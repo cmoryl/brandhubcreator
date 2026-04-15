@@ -102,6 +102,14 @@ export const ImagerySubSection = ({
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">Import from Dropbox</TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onWebsiteClick}>
+                  <Globe className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">Scan website for images</TooltipContent>
+            </Tooltip>
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onSearchClick}>
               <Search className="h-3 w-3" />
             </Button>
