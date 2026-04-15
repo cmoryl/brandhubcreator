@@ -356,6 +356,87 @@ export const BrandIntelligencePdfSection = ({ intelligence, theme, visibilityAud
         </div>
       )}
 
+      {/* Visibility Gap Analysis */}
+      {visibilityAudit && visibilityAudit.status === 'completed' && (
+        <div className={cn("p-4 rounded-lg mb-4 pdf-page-break-before", t.card)} data-pdf-section>
+          <div className="flex items-center gap-2 mb-3">
+            <Eye className="h-4 w-4 text-sky-500" />
+            <h3 className={cn("font-semibold text-sm", t.text)}>Visibility Gap Analysis</h3>
+          </div>
+
+          {/* Scores */}
+          <div className="pdf-grid-2 mb-3">
+            {[
+              { label: 'Overall', score: visibilityAudit.overall_visibility_score, icon: Eye },
+              { label: 'Search', score: visibilityAudit.search_visibility_score, icon: Search },
+              { label: 'AI Platforms', score: visibilityAudit.ai_platform_score, icon: Bot },
+              { label: 'Social/Media', score: visibilityAudit.social_media_score, icon: Share2 },
+            ].map(({ label, score, icon: Icon }) => (
+              <div key={label} className={cn("flex items-center gap-2 p-2 rounded border pdf-avoid-break", t.border)}>
+                <Icon className="h-3.5 w-3.5 flex-shrink-0" style={{ color: score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444' }} />
+                <div className="flex-1">
+                  <p className={cn("text-xs font-medium", t.text)}>{label}</p>
+                  <p className="text-xs" style={{ color: score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444', fontWeight: 700 }}>
+                    {score ?? 'N/A'}/100
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Visibility Gaps */}
+          {safeArr(visibilityAudit.visibility_gaps).length > 0 && (
+            <div className="mb-3">
+              <p className={cn("text-xs font-medium mb-2", t.text)}>Critical Gaps</p>
+              <div className="space-y-2">
+                {safeArr<any>(visibilityAudit.visibility_gaps).slice(0, 8).map((gap: any, idx: number) => (
+                  <div key={idx} className={cn("p-2 rounded border pdf-avoid-break", t.border)}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={cn(
+                        "text-xs px-1.5 py-0.5 rounded font-medium",
+                        gap.severity === 'critical' ? (theme === 'dark' ? 'bg-red-500/10 text-red-300' : 'bg-red-50 text-red-700') :
+                        gap.severity === 'high' ? (theme === 'dark' ? 'bg-amber-500/10 text-amber-300' : 'bg-amber-50 text-amber-700') :
+                        (theme === 'dark' ? 'bg-blue-500/10 text-blue-300' : 'bg-blue-50 text-blue-700')
+                      )}>
+                        {gap.severity}
+                      </span>
+                      <span className={cn("text-xs font-medium", t.text)}>{gap.title}</span>
+                    </div>
+                    <p className={cn("text-xs leading-relaxed", t.textMuted)}>{gap.description}</p>
+                    {safeArr(gap.action_items).length > 0 && (
+                      <ul className="list-disc list-inside mt-1">
+                        {safeArr<string>(gap.action_items).slice(0, 3).map((item: string, i: number) => (
+                          <li key={i} className={cn("text-xs", t.textSubtle)}>{item}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top Recommendations */}
+          {safeArr(visibilityAudit.recommendations).length > 0 && (
+            <div>
+              <p className={cn("text-xs font-medium mb-2", t.text)}>Visibility Recommendations</p>
+              <div className="space-y-2">
+                {safeArr<any>(visibilityAudit.recommendations).slice(0, 5).map((rec: any, idx: number) => (
+                  <div key={idx} className={cn("p-2 rounded border pdf-avoid-break", t.border)}>
+                    <p className={cn("text-xs font-medium", t.text)}>#{rec.priority} {rec.title}</p>
+                    <p className={cn("text-xs leading-relaxed", t.textMuted)}>{rec.description}</p>
+                    <div className="flex gap-2 mt-1">
+                      {rec.category && <span className={cn("text-xs", t.textSubtle)}>{rec.category}</span>}
+                      {rec.impact && <span className={cn("text-xs", t.textSubtle)}>Impact: {rec.impact}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Footer */}
       <p className={cn("text-xs mt-3", t.textSubtle)} style={{ fontStyle: 'italic' }}>
         Intelligence data is AI-generated and should be validated against primary sources.
