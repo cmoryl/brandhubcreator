@@ -220,10 +220,11 @@ export const ApprovedImagerySection = ({
               const approved: ApprovedImage[] = images.map((img) => ({
                 id: crypto.randomUUID(),
                 url: img.url,
+                thumbnailUrl: img.url,
                 title: img.name,
-                source: 'website' as const,
+                source: 'website',
                 category: targetSection?.name || '',
-                addedAt: new Date().toISOString(),
+                approvedAt: new Date().toISOString(),
               }));
               handleApproveImages(approved);
             }}
