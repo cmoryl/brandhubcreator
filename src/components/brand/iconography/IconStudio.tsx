@@ -27,6 +27,7 @@ import {
   Palette,
   Package,
   Smartphone,
+  Globe,
 } from 'lucide-react';
 import { BrandIconography } from '@/types/brand';
 import { useIconLibraries, IconLibrary } from '@/hooks/useIconLibraries';
@@ -45,11 +46,11 @@ import { IconStudioExport } from './studio/IconStudioExport';
 export type IconStudioTab = 'library' | 'ai-generator' | 'colorizer' | 'hierarchy' | 'app-icons' | 'creator' | 'export';
 
 // Map old tab IDs to new simplified tabs
-type SimplifiedTab = 'library' | 'generate' | 'style' | 'export';
+type SimplifiedTab = 'library' | 'creator' | 'generate' | 'style' | 'export';
 
 const TAB_MAPPING: Record<IconStudioTab, SimplifiedTab> = {
   'library': 'library',
-  'creator': 'library',
+  'creator': 'creator',
   'ai-generator': 'generate',
   'colorizer': 'style',
   'hierarchy': 'style',
@@ -181,29 +182,27 @@ export const IconStudio = ({
     switch (activeTab) {
       case 'library':
         return (
-          <div className="space-y-6">
-            <IconStudioLibrary
-              organizationId={organizationId}
-              libraries={libraries}
-              coreLibraries={coreLibraries}
-              productLineLibraries={productLineLibraries}
-              brandLibraries={brandLibraries}
-              isLoading={librariesLoading}
-              createLibrary={createLibrary}
-              updateLibrary={updateLibrary}
-              deleteLibrary={deleteLibrary}
-              onNavigateToTab={handleNavigateToTab}
-            />
-            {/* Upload & Import section embedded here */}
-            <div className="border-t pt-6">
-              <IconStudioCreator
-                organizationId={organizationId}
-                brandColors={brandColors}
-                libraries={libraries}
-                onSaveIcons={handleSaveIcons}
-              />
-            </div>
-          </div>
+          <IconStudioLibrary
+            organizationId={organizationId}
+            libraries={libraries}
+            coreLibraries={coreLibraries}
+            productLineLibraries={productLineLibraries}
+            brandLibraries={brandLibraries}
+            isLoading={librariesLoading}
+            createLibrary={createLibrary}
+            updateLibrary={updateLibrary}
+            deleteLibrary={deleteLibrary}
+            onNavigateToTab={handleNavigateToTab}
+          />
+        );
+      case 'creator':
+        return (
+          <IconStudioCreator
+            organizationId={organizationId}
+            brandColors={brandColors}
+            libraries={libraries}
+            onSaveIcons={handleSaveIcons}
+          />
         );
       case 'generate':
         return (
@@ -306,6 +305,7 @@ export const IconStudio = ({
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
             {([
               { id: 'library' as const, label: 'Library', icon: Library, badge: totalIcons },
+              { id: 'creator' as const, label: 'Browse & Add', icon: Globe },
               { id: 'generate' as const, label: 'AI Generate', icon: Wand2 },
               { id: 'style' as const, label: 'Style', icon: Palette },
               { id: 'export' as const, label: 'Export', icon: Package },
