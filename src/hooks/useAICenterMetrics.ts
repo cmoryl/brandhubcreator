@@ -1,5 +1,6 @@
 /**
  * useAICenterMetrics — Aggregated AI metrics hook for AI Center of Excellence
+ * Enhanced: trend data, entity comparisons, Oracle auto-seed
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -7,43 +8,59 @@ import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
 
 export interface AICenterMetrics {
-  // Intelligence Jobs
   totalJobs: number;
   completedJobs: number;
   failedJobs: number;
   pendingJobs: number;
   jobSuccessRate: number;
-
-  // Compliance
   totalComplianceScans: number;
   avgComplianceScore: number;
-
-  // Bias & Ethics
   totalBiasScans: number;
   avgInclusionScore: number;
   avgLanguageScore: number;
   avgVisualScore: number;
   avgAccessibilityScore: number;
-
-  // Bot Conversations
   totalConversations: number;
   avgSatisfaction: number;
-
-  // Visibility
   totalVisibilityAudits: number;
   avgVisibilityScore: number;
-
-  // Recommendations
   totalRecommendations: number;
   pendingRecommendations: number;
   inProgressRecommendations: number;
   completedRecommendations: number;
-
-  // Computed
   aiQualityScore: number;
   ethicsCompliancePercent: number;
   resourceEfficiency: number;
   innovationIndex: number;
+}
+
+export interface TrendPoint {
+  date: string;
+  jobs: number;
+  successRate: number;
+  compliance: number;
+  ethics: number;
+}
+
+export interface EntityComparison {
+  entityId: string;
+  entityName: string;
+  entityType: string;
+  intelligenceJobs: number;
+  successRate: number;
+  complianceScore: number;
+  biasScore: number;
+  visibilityScore: number;
+  overallAiScore: number;
+}
+
+export interface QualityAlert {
+  id: string;
+  type: 'warning' | 'critical';
+  message: string;
+  metric: string;
+  value: number;
+  threshold: number;
 }
 
 interface RecommendationAction {
@@ -62,6 +79,9 @@ export function useAICenterMetrics() {
   const orgId = organization?.id;
   const [metrics, setMetrics] = useState<AICenterMetrics | null>(null);
   const [recommendations, setRecommendations] = useState<RecommendationAction[]>([]);
+  const [trends, setTrends] = useState<TrendPoint[]>([]);
+  const [entityComparisons, setEntityComparisons] = useState<EntityComparison[]>([]);
+  const [alerts, setAlerts] = useState<QualityAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchMetrics = useCallback(async () => {
@@ -70,11 +90,11 @@ export function useAICenterMetrics() {
 
     try {
       const [jobsRes, complianceRes, biasRes, botsRes, visRes, recsRes] = await Promise.all([
-        supabase.from('brand_intelligence_jobs').select('status').limit(500),
-        supabase.from('dataforce_compliance_jobs').select('compliance_score, status').eq('status', 'completed').limit(500),
-        supabase.from('bias_awareness_scans').select('inclusion_score, language_score, visual_score, accessibility_score, status').eq('status', 'completed').limit(500),
+        supabase.from('brand_intelligence_jobs').select('status, created_at, entity_id, entity_type').limit(500),
+        supabase.from('dataforce_compliance_jobs').select('compliance_score, status, entity_id, entity_name, entity_type, created_at').eq('status', 'completed').limit(500),
+        supabase.from('bias_awareness_scans').select('inclusion_score, language_score, visual_score, accessibility_score, status, entity_id, entity_name, entity_type, created_at').eq('status', 'completed').limit(500),
         supabase.from('bot_conversations').select('satisfaction_rating').limit(500),
-        supabase.from('brand_visibility_audits').select('overall_visibility_score, status').eq('status', 'completed').limit(500),
+        supabase.from('brand_visibility_audits').select('overall_visibility_score, status, entity_id, entity_name, entity_type, created_at').eq('status', 'completed').limit(500),
         supabase.from('recommendation_actions').select('*').eq('organization_id', orgId),
       ]);
 
@@ -108,7 +128,6 @@ export function useAICenterMetrics() {
       const visScores = vis.map(v => v.overall_visibility_score).filter((v): v is number => v !== null);
       const avgVis = visScores.length > 0 ? visScores.reduce((a, b) => a + b, 0) / visScores.length : 0;
 
-      // Computed scores
       const aiQuality = Math.round((successRate * 0.4 + avgComp * 0.3 + (avgSat / 5) * 100 * 0.3));
       const ethicsPercent = Math.round((avgInclusion * 0.4 + avgLang * 0.3 + avgAcc * 0.3));
       const resEfficiency = Math.round(successRate * 0.6 + (100 - (failed / Math.max(jobs.length, 1)) * 100) * 0.4);
@@ -116,32 +135,77 @@ export function useAICenterMetrics() {
       const innovIdx = recs.length > 0 ? Math.round((completedRecs / recs.length) * 100) : 0;
 
       setMetrics({
-        totalJobs: jobs.length,
-        completedJobs: completed,
-        failedJobs: failed,
-        pendingJobs: pending,
-        jobSuccessRate: successRate,
-        totalComplianceScans: compliance.length,
-        avgComplianceScore: avgComp,
-        totalBiasScans: bias.length,
-        avgInclusionScore: avgInclusion,
-        avgLanguageScore: avgLang,
-        avgVisualScore: avgVisual,
-        avgAccessibilityScore: avgAcc,
-        totalConversations: bots.length,
-        avgSatisfaction: avgSat,
-        totalVisibilityAudits: vis.length,
-        avgVisibilityScore: avgVis,
-        totalRecommendations: recs.length,
-        pendingRecommendations: recs.filter(r => r.status === 'pending').length,
+        totalJobs: jobs.length, completedJobs: completed, failedJobs: failed, pendingJobs: pending,
+        jobSuccessRate: successRate, totalComplianceScans: compliance.length, avgComplianceScore: avgComp,
+        totalBiasScans: bias.length, avgInclusionScore: avgInclusion, avgLanguageScore: avgLang,
+        avgVisualScore: avgVisual, avgAccessibilityScore: avgAcc, totalConversations: bots.length,
+        avgSatisfaction: avgSat, totalVisibilityAudits: vis.length, avgVisibilityScore: avgVis,
+        totalRecommendations: recs.length, pendingRecommendations: recs.filter(r => r.status === 'pending').length,
         inProgressRecommendations: recs.filter(r => r.status === 'in_progress').length,
-        completedRecommendations: completedRecs,
-        aiQualityScore: aiQuality,
-        ethicsCompliancePercent: ethicsPercent,
-        resourceEfficiency: resEfficiency,
-        innovationIndex: innovIdx,
+        completedRecommendations: completedRecs, aiQualityScore: aiQuality,
+        ethicsCompliancePercent: ethicsPercent, resourceEfficiency: resEfficiency, innovationIndex: innovIdx,
       });
       setRecommendations(recs);
+
+      // ── Build 30-day trends ──
+      const now = new Date();
+      const trendPoints: TrendPoint[] = [];
+      for (let d = 29; d >= 0; d--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - d);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayJobs = jobs.filter(j => j.created_at?.startsWith(dateStr));
+        const dayComp = compliance.filter(c => c.created_at?.startsWith(dateStr));
+        const dayBias = bias.filter(b => b.created_at?.startsWith(dateStr));
+        const dayCompleted = dayJobs.filter(j => j.status === 'completed').length;
+        const daySR = dayJobs.length > 0 ? (dayCompleted / dayJobs.length) * 100 : 0;
+        const dayCompScore = dayComp.length > 0 ? dayComp.reduce((a, c) => a + (c.compliance_score || 0), 0) / dayComp.length : 0;
+        const dayEthics = dayBias.length > 0 ? avg(dayBias.map(b => b.inclusion_score)) : 0;
+        trendPoints.push({ date: dateStr, jobs: dayJobs.length, successRate: daySR, compliance: dayCompScore, ethics: dayEthics });
+      }
+      setTrends(trendPoints);
+
+      // ── Entity comparisons ──
+      const entityMap = new Map<string, EntityComparison>();
+      const ensureEntity = (id: string, name: string, type: string) => {
+        if (!entityMap.has(id)) {
+          entityMap.set(id, { entityId: id, entityName: name, entityType: type, intelligenceJobs: 0, successRate: 0, complianceScore: 0, biasScore: 0, visibilityScore: 0, overallAiScore: 0 });
+        }
+        return entityMap.get(id)!;
+      };
+      jobs.forEach(j => {
+        if (!j.entity_id) return;
+        const e = ensureEntity(j.entity_id, j.entity_id, j.entity_type || 'brand');
+        e.intelligenceJobs++;
+        if (j.status === 'completed') e.successRate++;
+      });
+      compliance.forEach(c => {
+        const e = ensureEntity(c.entity_id, c.entity_name, c.entity_type);
+        e.complianceScore = Math.max(e.complianceScore, c.compliance_score || 0);
+      });
+      bias.forEach(b => {
+        const e = ensureEntity(b.entity_id, b.entity_name, b.entity_type);
+        e.biasScore = Math.max(e.biasScore, b.inclusion_score || 0);
+      });
+      vis.forEach(v => {
+        const e = ensureEntity(v.entity_id, v.entity_name, v.entity_type);
+        e.visibilityScore = Math.max(e.visibilityScore, v.overall_visibility_score || 0);
+      });
+      entityMap.forEach(e => {
+        if (e.intelligenceJobs > 0) e.successRate = (e.successRate / e.intelligenceJobs) * 100;
+        e.overallAiScore = Math.round((e.successRate * 0.25 + e.complianceScore * 0.25 + e.biasScore * 0.25 + e.visibilityScore * 0.25));
+      });
+      setEntityComparisons(Array.from(entityMap.values()).sort((a, b) => b.overallAiScore - a.overallAiScore));
+
+      // ── Quality alerts ──
+      const newAlerts: QualityAlert[] = [];
+      if (successRate < 70 && jobs.length > 0) newAlerts.push({ id: 'sr', type: successRate < 50 ? 'critical' : 'warning', message: `Job success rate is ${successRate.toFixed(0)}%`, metric: 'Success Rate', value: successRate, threshold: 70 });
+      if (avgComp > 0 && avgComp < 60) newAlerts.push({ id: 'comp', type: avgComp < 40 ? 'critical' : 'warning', message: `Average compliance score is ${avgComp.toFixed(0)}%`, metric: 'Compliance', value: avgComp, threshold: 60 });
+      if (avgInclusion > 0 && avgInclusion < 60) newAlerts.push({ id: 'incl', type: avgInclusion < 40 ? 'critical' : 'warning', message: `Inclusion score is ${avgInclusion.toFixed(0)}%`, metric: 'Inclusion', value: avgInclusion, threshold: 60 });
+      if (avgVis > 0 && avgVis < 40) newAlerts.push({ id: 'vis', type: 'warning', message: `Visibility score is ${avgVis.toFixed(0)}%`, metric: 'Visibility', value: avgVis, threshold: 40 });
+      if (failed > 3) newAlerts.push({ id: 'fail', type: failed > 10 ? 'critical' : 'warning', message: `${failed} failed AI jobs detected`, metric: 'Failed Jobs', value: failed, threshold: 3 });
+      setAlerts(newAlerts);
+
     } catch (err) {
       console.error('[useAICenterMetrics] Error:', err);
     } finally {
@@ -174,5 +238,26 @@ export function useAICenterMetrics() {
     return !error;
   }, [orgId, fetchMetrics]);
 
-  return { metrics, recommendations, isLoading, refresh: fetchMetrics, updateRecommendation, addRecommendation };
+  const seedFromOracle = useCallback(async (oracleRecs: Array<{ recommendation: string; rationale?: string; impact?: string; priority?: string }>) => {
+    if (!orgId || oracleRecs.length === 0) return 0;
+    const existingKeys = new Set(recommendations.map(r => r.recommendation_key));
+    const newRecs = oracleRecs.filter(r => !existingKeys.has(`oracle-${r.recommendation?.slice(0, 50)}`));
+    if (newRecs.length === 0) return 0;
+
+    const inserts = newRecs.map(r => ({
+      organization_id: orgId,
+      recommendation_key: `oracle-${r.recommendation?.slice(0, 50)}`,
+      recommendation_text: `${r.recommendation}${r.rationale ? ` — ${r.rationale}` : ''}${r.impact ? ` (Impact: ${r.impact})` : ''}`,
+      source: 'oracle',
+    }));
+
+    const { error } = await supabase.from('recommendation_actions').insert(inserts);
+    if (!error) fetchMetrics();
+    return error ? 0 : newRecs.length;
+  }, [orgId, recommendations, fetchMetrics]);
+
+  return {
+    metrics, recommendations, trends, entityComparisons, alerts,
+    isLoading, refresh: fetchMetrics, updateRecommendation, addRecommendation, seedFromOracle,
+  };
 }
