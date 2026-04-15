@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCompetitiveAnalysis } from '@/hooks/useCompetitiveAnalysis';
+import { useRecommendationActions } from '@/hooks/useRecommendationActions';
 import { useFavoriteCompetitors } from '@/hooks/useFavoriteCompetitors';
 import { useRegionalBranding } from '@/hooks/useRegionalBranding';
 import { ScoreGauge } from '@/components/admin/competitive-analysis/ScoreGauge';
@@ -126,6 +127,17 @@ export function CompetitiveAnalysisDialog({
 
   // Regional branding data
   const { regions, countries } = useRegionalBranding(organizationId);
+
+  // Recommendation actions for approve/utilize workflow
+  const {
+    approveRecommendation,
+    isUtilized,
+  } = useRecommendationActions({
+    reportId: latestReport?.id,
+    entityId,
+    entityType,
+    organizationId,
+  });
 
   // Get available regions and countries
   const availableRegions = useMemo(() => {
@@ -1218,7 +1230,16 @@ export function CompetitiveAnalysisDialog({
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <DesignPriorityTable priorities={safeObjArr(reportData.recommendations?.designPriorities)} />
+                        <DesignPriorityTable
+                          priorities={safeObjArr(reportData.recommendations?.designPriorities)}
+                          reportId={latestReport?.id}
+                          onApprove={async (index, title) => {
+                            if (latestReport?.id) {
+                              await approveRecommendation(latestReport.id, index, title, 'design_priority');
+                            }
+                          }}
+                          isUtilized={(index) => latestReport?.id ? isUtilized(latestReport.id, index, 'design_priority') : false}
+                        />
                       </CardContent>
                     </Card>
 
@@ -1228,22 +1249,34 @@ export function CompetitiveAnalysisDialog({
                           <CardTitle className="text-sm">Brand Refinements</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3 text-sm">
-                          <div>
-                            <span className="font-medium">Logo:</span>
-                            <p className="text-muted-foreground">{reportData.recommendations.brandRefinements.logo}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium">Colors:</span>
-                            <p className="text-muted-foreground">{reportData.recommendations.brandRefinements.colors}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium">Typography:</span>
-                            <p className="text-muted-foreground">{reportData.recommendations.brandRefinements.typography}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium">Imagery:</span>
-                            <p className="text-muted-foreground">{reportData.recommendations.brandRefinements.imagery}</p>
-                          </div>
+                          {['logo', 'colors', 'typography', 'imagery'].map((key, i) => {
+                            const value = reportData.recommendations.brandRefinements[key as keyof typeof reportData.recommendations.brandRefinements];
+                            const utilized = latestReport?.id ? isUtilized(latestReport.id, 100 + i, 'brand_refinement') : false;
+                            return (
+                              <div key={key} className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <span className="font-medium capitalize">{key}:</span>
+                                  <p className="text-muted-foreground">{value}</p>
+                                </div>
+                                {utilized ? (
+                                  <Badge variant="outline" className="border-green-500 bg-green-500/10 text-green-500 text-xs gap-1 shrink-0 mt-1">
+                                    <CheckCircle className="w-3 h-3" />
+                                    Utilized
+                                  </Badge>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 text-xs shrink-0 mt-1"
+                                    onClick={() => latestReport?.id && approveRecommendation(latestReport.id, 100 + i, `${key}: ${String(value).slice(0, 60)}`, 'brand_refinement')}
+                                  >
+                                    <Sparkles className="w-3 h-3 mr-1" />
+                                    Apply
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })}
                         </CardContent>
                       </Card>
 
@@ -1256,12 +1289,31 @@ export function CompetitiveAnalysisDialog({
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2 text-sm">
-                            {safeArr(reportData.recommendations?.positioningOpportunities).map((o, i) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                                {o}
-                              </li>
-                            ))}
+                            {safeArr(reportData.recommendations?.positioningOpportunities).map((o, i) => {
+                              const utilized = latestReport?.id ? isUtilized(latestReport.id, 200 + i, 'positioning') : false;
+                              return (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                                  <span className="flex-1">{o}</span>
+                                  {utilized ? (
+                                    <Badge variant="outline" className="border-green-500 bg-green-500/10 text-green-500 text-xs gap-1 shrink-0">
+                                      <CheckCircle className="w-3 h-3" />
+                                      Utilized
+                                    </Badge>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 text-xs shrink-0"
+                                      onClick={() => latestReport?.id && approveRecommendation(latestReport.id, 200 + i, String(o).slice(0, 80), 'positioning')}
+                                    >
+                                      <Sparkles className="w-3 h-3 mr-1" />
+                                      Apply
+                                    </Button>
+                                  )}
+                                </li>
+                              );
+                            })}
                           </ul>
                         </CardContent>
                       </Card>

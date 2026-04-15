@@ -2210,6 +2210,78 @@ export type Database = {
           },
         ]
       }
+      competitive_recommendation_actions: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          applied_to_imagery_hub: boolean
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          notes: string | null
+          organization_id: string | null
+          recommendation_index: number
+          recommendation_title: string
+          recommendation_type: string
+          report_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          applied_to_imagery_hub?: boolean
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          recommendation_index: number
+          recommendation_title: string
+          recommendation_type?: string
+          report_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          applied_to_imagery_hub?: boolean
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          recommendation_index?: number
+          recommendation_title?: string
+          recommendation_type?: string
+          report_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitive_recommendation_actions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competitive_recommendation_actions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "competitive_analysis_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dataforce_assistant_conversations: {
         Row: {
           bias_flagged_count: number | null
