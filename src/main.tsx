@@ -13,6 +13,29 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(link);
 }
 
+// Fix Radix UI bug where `pointer-events: none` can remain on <body> after
+// a Dialog/Sheet/Popover closes — leaving the entire UI unclickable
+// (e.g. "Add Template Spec" button does nothing). When no Radix overlay is
+// actually mounted, clear the stuck inline style.
+if (typeof document !== 'undefined') {
+  const clearStuckPointerEvents = () => {
+    if (document.body.style.pointerEvents !== 'none') return;
+    const hasOpenOverlay = document.querySelector(
+      '[data-radix-popper-content-wrapper], [role="dialog"][data-state="open"], [data-state="open"][data-radix-dialog-content], [data-state="open"][data-radix-popover-content], [data-state="open"][data-radix-dropdown-menu-content]'
+    );
+    if (!hasOpenOverlay) {
+      document.body.style.pointerEvents = '';
+    }
+  };
+  const observer = new MutationObserver(clearStuckPointerEvents);
+  observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['style'],
+    childList: true,
+    subtree: true,
+  });
+}
+
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
     <App />
