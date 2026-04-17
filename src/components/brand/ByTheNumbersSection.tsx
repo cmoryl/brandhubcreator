@@ -442,8 +442,6 @@ export const ByTheNumbersSection = ({
         )}
         style={{
           background: `linear-gradient(90deg, ${themeColors.primary}, ${themeColors.secondary}, ${themeColors.accent || themeColors.primary})`,
-          backgroundSize: '200% 100%',
-          animation: 'shimmer 3s linear infinite',
         }}
       >
         <div className="flex items-center justify-center gap-4 text-white relative z-10">
