@@ -16,6 +16,36 @@ export interface SignatureTemplate {
 
 export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
   // ═══════════════════════════════
+  // ── TRANSPERFECT DEFAULT (1) ──
+  // ═══════════════════════════════
+  {
+    id: 'tp-default',
+    name: 'TransPerfect Default',
+    category: 'transperfect',
+    description: 'Official TransPerfect internal signature: logo, vertical bar, contact details with P/M/LinkedIn',
+    variant: 'full',
+    accentSwatch: DEFAULT_DARK,
+    style: {
+      fontFamily: 'Arial, Helvetica, sans-serif',
+      nameFontSize: 18,
+      titleFontSize: 13,
+      textFontSize: 13,
+      nameColor: DEFAULT_DARK,
+      titleColor: DEFAULT_DARK,
+      textColor: '#222222',
+      linkColor: DEFAULT_DARK,
+      dividerStyle: 'solid',
+      dividerColor: '#cccccc',
+      dividerWidth: 1,
+      spacing: 14,
+      layout: 'horizontal',
+      layoutTemplate: 'tp-default',
+    },
+    includeConfidentiality: true,
+    includeSocialPlaceholders: true,
+  },
+
+  // ═══════════════════════════════
   // ── PROFESSIONAL (5) ──
   // ═══════════════════════════════
   {
