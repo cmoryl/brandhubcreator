@@ -65,23 +65,23 @@ function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?:
       ]
     : template.includeSocialPlaceholders
     ? [
-        { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/johndoe' },
-        { id: safeUUID(), platform: 'twitter', url: 'https://x.com/johndoe' },
+        { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/your-profile' },
+        { id: safeUUID(), platform: 'twitter', url: 'https://x.com/your-profile' },
       ]
     : undefined;
 
   return {
     id: safeUUID(),
-    name: isTp ? 'First Last' : 'John Doe',
-    role: isTp ? 'Job Title' : 'Global Account Lead',
+    name: 'First Last',
+    role: 'Job Title',
     html: '',
-    company: isTp ? 'TransPerfect' : 'Your Company',
-    email: isTp ? 'firstinitiallastname@transperfect.com' : 'jdoe@company.com',
-    phone: isTp ? '+1 000.000.0000' : '+1 212.555.0123',
+    company: isTp ? 'TransPerfect' : 'Company Name',
+    email: isTp ? 'firstinitiallastname@transperfect.com' : 'name@company.com',
+    phone: '+1 000.000.0000',
     website: isTp ? 'www.transperfect.com' : 'www.company.com',
     address: isTp
       ? 'Street Address, Floor/Suite\nCity, State ZIP'
-      : '1250 Broadway, New York, NY 10001',
+      : 'Street Address\nCity, State ZIP',
     logoUrl: '',
     variant: template.variant,
     style: { ...template.style },
