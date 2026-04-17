@@ -1,7 +1,7 @@
 /**
  * useEntityImagery - Loads and manages approved imagery for a specific entity
  */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ApprovedImagerySubSection, ApprovedImage } from '@/types/brand';
 import { toast } from 'sonner';
@@ -42,6 +42,7 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
   const [sections, setSections] = useState<ApprovedImagerySubSection[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const sectionsRef = useRef<ApprovedImagerySubSection[]>([]);
   const syncToContext = useContextSync(entityType);
 
   const fetchImagery = useCallback(async () => {
@@ -57,7 +58,9 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
 
       if (error) throw error;
       const gd = (data as any)?.guide_data || {};
-      setSections(gd.approvedImagery?.sections || []);
+      const nextSections = gd.approvedImagery?.sections || [];
+      sectionsRef.current = nextSections;
+      setSections(nextSections);
       setOrganizationId((data as any)?.organization_id || null);
     } catch (err) {
       console.error('Error fetching entity imagery:', err);
@@ -67,6 +70,9 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
   }, [entityId, entityType]);
 
   useEffect(() => { fetchImagery(); }, [fetchImagery]);
+  useEffect(() => {
+    sectionsRef.current = sections;
+  }, [sections]);
 
   const saveImagery = useCallback(async (newSections: ApprovedImagerySubSection[]) => {
     if (!entityId) return;
@@ -79,6 +85,7 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
       
       const { error } = await supabase.from(table).update({ guide_data: updated } as any).eq('id', entityId);
       if (error) throw error;
+      sectionsRef.current = newSections;
       setSections(newSections);
       // Mirror into in-memory context so brand/product/event editor pages refresh instantly
       syncToContext(entityId, { sections: newSections });
@@ -89,44 +96,44 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
   }, [entityId, entityType, syncToContext]);
 
   const addImages = useCallback(async (sectionId: string, images: ApprovedImage[]) => {
-    const updated = sections.map(s => {
+    const updated = sectionsRef.current.map(s => {
       if (s.id !== sectionId) return s;
       const existingIds = new Set(s.images.map(img => img.id));
       const newImages = images.filter(img => !existingIds.has(img.id));
       return { ...s, images: [...s.images, ...newImages] };
     });
     await saveImagery(updated);
-  }, [sections, saveImagery]);
+  }, [saveImagery]);
 
   const removeImage = useCallback(async (sectionId: string, imageId: string) => {
-    const updated = sections.map(s => {
+    const updated = sectionsRef.current.map(s => {
       if (s.id !== sectionId) return s;
       return { ...s, images: s.images.filter(img => img.id !== imageId) };
     });
     await saveImagery(updated);
-  }, [sections, saveImagery]);
+  }, [saveImagery]);
 
   const addSection = useCallback(async (name: string) => {
     const newSection: ApprovedImagerySubSection = {
       id: crypto.randomUUID(), name, description: '', images: [],
     };
-    await saveImagery([...sections, newSection]);
+    await saveImagery([...sectionsRef.current, newSection]);
     return newSection.id;
-  }, [sections, saveImagery]);
+  }, [saveImagery]);
 
   const removeSection = useCallback(async (sectionId: string) => {
-    await saveImagery(sections.filter(s => s.id !== sectionId));
-  }, [sections, saveImagery]);
+    await saveImagery(sectionsRef.current.filter(s => s.id !== sectionId));
+  }, [saveImagery]);
 
   const reorderImages = useCallback(async (sectionId: string, newImages: ApprovedImage[]) => {
-    const updated = sections.map(s =>
+    const updated = sectionsRef.current.map(s =>
       s.id === sectionId ? { ...s, images: newImages } : s
     );
     await saveImagery(updated);
-  }, [sections, saveImagery]);
+  }, [saveImagery]);
 
   const updateImageTags = useCallback(async (sectionId: string, imageId: string, tags: string[]) => {
-    const updated = sections.map(s => {
+    const updated = sectionsRef.current.map(s => {
       if (s.id !== sectionId) return s;
       return {
         ...s,
@@ -136,7 +143,7 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
       };
     });
     await saveImagery(updated);
-  }, [sections, saveImagery]);
+  }, [saveImagery]);
 
   // Capture context update functions once for use across any target entity type
   const brandsCtx = useBrands();

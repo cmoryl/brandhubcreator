@@ -209,7 +209,7 @@ export const ImageryWorkspace = ({
     setVisualSearchUrl(null);
   }, [sections]);
 
-  const handleWebsiteImport = useCallback((images: { name: string; url: string; type: string }[]) => {
+  const handleWebsiteImport = useCallback(async (images: { name: string; url: string; type: string }[]) => {
     const targetSectionId = searchSectionId || sections[0]?.id;
     if (!targetSectionId) return;
     const approved: ApprovedImage[] = images.map((img, i) => ({
@@ -221,7 +221,7 @@ export const ImageryWorkspace = ({
       addedAt: new Date().toISOString(),
       tags: ['website-scan'],
     }));
-    onAddImages(targetSectionId, approved);
+    await onAddImages(targetSectionId, approved);
   }, [searchSectionId, sections, onAddImages]);
 
   // Collect all unique tags across sections
