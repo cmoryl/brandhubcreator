@@ -4,7 +4,7 @@ import { DEFAULT_DARK, DEFAULT_ACCENT, DEFAULT_CONFIDENTIALITY } from './signatu
 export interface SignatureTemplate {
   id: string;
   name: string;
-  category: 'professional' | 'modern' | 'creative' | 'minimal' | 'corporate';
+  category: 'transperfect' | 'professional' | 'modern' | 'creative' | 'minimal' | 'corporate';
   description: string;
   variant: 'full' | 'reply' | 'minimal';
   style: SignatureStyle;
@@ -15,6 +15,36 @@ export interface SignatureTemplate {
 }
 
 export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
+  // ═══════════════════════════════
+  // ── TRANSPERFECT DEFAULT (1) ──
+  // ═══════════════════════════════
+  {
+    id: 'tp-default',
+    name: 'TransPerfect Default',
+    category: 'transperfect',
+    description: 'Official TransPerfect internal signature: logo, vertical bar, contact details with P/M/LinkedIn',
+    variant: 'full',
+    accentSwatch: DEFAULT_DARK,
+    style: {
+      fontFamily: 'Arial, Helvetica, sans-serif',
+      nameFontSize: 18,
+      titleFontSize: 13,
+      textFontSize: 13,
+      nameColor: DEFAULT_DARK,
+      titleColor: DEFAULT_DARK,
+      textColor: '#222222',
+      linkColor: DEFAULT_DARK,
+      dividerStyle: 'solid',
+      dividerColor: '#cccccc',
+      dividerWidth: 1,
+      spacing: 14,
+      layout: 'horizontal',
+      layoutTemplate: 'tp-default',
+    },
+    includeConfidentiality: true,
+    includeSocialPlaceholders: true,
+  },
+
   // ═══════════════════════════════
   // ── PROFESSIONAL (5) ──
   // ═══════════════════════════════
@@ -649,6 +679,7 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
 
 export const TEMPLATE_CATEGORIES = [
   { id: 'all', label: 'All Templates' },
+  { id: 'transperfect', label: 'TransPerfect' },
   { id: 'professional', label: 'Professional' },
   { id: 'modern', label: 'Modern' },
   { id: 'creative', label: 'Creative' },

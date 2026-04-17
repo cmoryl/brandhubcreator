@@ -19,6 +19,7 @@ export function renderSignatureHtml(sig: BrandSignature): string {
     case 'stacked': return renderStacked(sig);
     case 'two-column': return renderTwoColumn(sig);
     case 'banner-top': return renderBannerTop(sig);
+    case 'tp-default': return renderTpDefault(sig);
     case 'classic':
     default: return renderClassic(sig);
   }
@@ -386,6 +387,73 @@ function renderBannerTop(sig: BrandSignature): string {
   rows.push(renderConfidentiality(sig));
 
   return wrap(rows, st.font);
+}
+
+/* ─── TP-DEFAULT: TransPerfect signature — logo left, vertical bar, contact right ─── */
+function renderTpDefault(sig: BrandSignature): string {
+  const st = getStyles(sig);
+  const logoSrc = sig.logoUrl || logoPlaceholderSvg(st.logoW, st.logoH);
+
+  // Address may contain a newline to wrap to two lines
+  const addressLines = (sig.address || '').split(/\r?\n|\s\|\s/).filter(Boolean);
+  const addressHtml = addressLines
+    .map(line => `<p style="margin:0 0 2px 0;font-size:${st.textFontSize}px;color:${st.textColor};line-height:1.4;">${esc(line)}</p>`)
+    .join('');
+
+  // Build the P / M / LinkedIn contact strip
+  const contactParts: string[] = [];
+  if (sig.phone) {
+    contactParts.push(
+      `<span style="font-size:${st.textFontSize}px;color:${st.nameColor};"><strong>P:</strong> <a href="tel:${esc(sig.phone.replace(/\s/g, ''))}" style="color:${st.linkColor};text-decoration:underline;">${esc(sig.phone)}</a></span>`
+    );
+  }
+  // Mobile uses dedicated field if present, otherwise the second socialLinks entry, otherwise omitted
+  const mobileLink = (sig as any).mobile || sig.socialLinks?.find(l => l.platform === 'mobile')?.url;
+  if (mobileLink) {
+    contactParts.push(
+      `<span style="font-size:${st.textFontSize}px;color:${st.nameColor};"><strong>M:</strong> <a href="tel:${esc(String(mobileLink).replace(/\s/g, ''))}" style="color:${st.linkColor};text-decoration:underline;">${esc(String(mobileLink))}</a></span>`
+    );
+  }
+
+  // LinkedIn icon (square, brand blue) — pulled from socialLinks if available
+  const linkedinUrl = sig.socialLinks?.find(l => l.platform === 'linkedin')?.url;
+  const linkedinHtml = linkedinUrl
+    ? `<a href="${linkedinUrl.startsWith('http') ? esc(linkedinUrl) : `https://${esc(linkedinUrl)}`}" target="_blank" rel="noopener noreferrer" style="display:inline-block;width:18px;height:18px;border-radius:3px;background:#0A66C2;color:#ffffff;text-align:center;line-height:18px;font-size:10px;font-weight:bold;text-decoration:none;font-family:${st.font};vertical-align:middle;margin-left:6px;">in</a>`
+    : '';
+
+  const contactStrip = contactParts.length
+    ? `<p style="margin:10px 0 0 0;line-height:1.6;">${contactParts.join(`<span style="color:${st.nameColor};margin:0 6px;">|</span>`)}${linkedinHtml}</p>`
+    : '';
+
+  // Two-column table: logo on left, vertical divider, contact info on right
+  const inner = `<table cellpadding="0" cellspacing="0" border="0" style="font-family:${st.font};border-collapse:collapse;">
+    <tr>
+      <td style="vertical-align:middle;padding-right:24px;">
+        <img src="${logoSrc}" alt="${esc(sig.company || 'Logo')}" width="${st.logoW}" height="${st.logoH}" style="display:block;">
+      </td>
+      <td style="width:1px;background:${st.divColor};padding:0;font-size:0;line-height:0;">&nbsp;</td>
+      <td style="vertical-align:middle;padding-left:24px;">
+        <p style="margin:0 0 4px 0;font-size:${st.nameFontSize}px;font-weight:bold;color:${st.nameColor};line-height:1.2;">${esc(sig.name)}</p>
+        <p style="margin:0 0 10px 0;font-size:${st.titleFontSize}px;color:${st.nameColor};line-height:1.3;">${esc(sig.role)}</p>
+        ${addressHtml}
+        ${contactStrip}
+      </td>
+    </tr>
+  </table>`;
+
+  // Optional banner + confidentiality below as their own tables (full-width under signature)
+  const extras: string[] = [];
+  const bannerRow = renderBannerRow(sig, st);
+  if (bannerRow) {
+    extras.push(`<table cellpadding="0" cellspacing="0" style="font-family:${st.font};max-width:600px;margin-top:${st.spacing}px;">${bannerRow}</table>`);
+  }
+  if (sig.confidentialityNotice) {
+    extras.push(
+      `<table cellpadding="0" cellspacing="0" style="font-family:${st.font};max-width:600px;margin-top:10px;"><tr><td style="padding-top:10px;border-top:1px solid #eee;"><p style="margin:0;font-size:9px;color:#999;line-height:1.4;">${esc(sig.confidentialityNotice)}</p></td></tr></table>`
+    );
+  }
+
+  return `${inner}${extras.join('')}`;
 }
 
 /* ─── Helpers ─── */

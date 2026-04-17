@@ -284,7 +284,7 @@ export interface SignatureStyle {
   spacing?: number;
   layout?: 'horizontal' | 'vertical';
   /** Structural layout template for different signature architectures */
-  layoutTemplate?: 'classic' | 'centered' | 'side-banner' | 'card' | 'inline' | 'stacked' | 'two-column' | 'banner-top';
+  layoutTemplate?: 'classic' | 'centered' | 'side-banner' | 'card' | 'inline' | 'stacked' | 'two-column' | 'banner-top' | 'tp-default';
 }
 
 // SIGNATURES - Signature Protocol
