@@ -1,6 +1,13 @@
 /**
  * Imagery Strategy Audit Edge Function
- * Scores entity imagery across 6 dimensions using inclusive heuristics
+ * Scores entity imagery across 6 dimensions using inclusive heuristics.
+ *
+ * Hybrid approach:
+ *   - Pulls metadata + counts across ALL imagery sources (Visual Direction,
+ *     Approved Imagery library, Image Assets library, Brochures, Presentations,
+ *     Templates, Case Studies).
+ *   - Sends a small set of representative thumbnails to Gemini multimodal so the
+ *     model can actually see the visual material.
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -12,11 +19,44 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const MAX_VISION_IMAGES = 6;
+
+interface SampledImage {
+  url: string;
+  source: string;
+  caption?: string;
+}
+
+/** Pick a representative, deduplicated, source-balanced sample for vision. */
+function pickVisionSample(allBuckets: SampledImage[][]): SampledImage[] {
+  const seen = new Set<string>();
+  const out: SampledImage[] = [];
+  // Round-robin across non-empty buckets so we don't only pull from one source.
+  let added = true;
+  let idx = 0;
+  while (added && out.length < MAX_VISION_IMAGES) {
+    added = false;
+    for (const bucket of allBuckets) {
+      if (out.length >= MAX_VISION_IMAGES) break;
+      const item = bucket[idx];
+      if (!item || !item.url) continue;
+      if (seen.has(item.url)) continue;
+      // Skip obviously non-image extensions (pdfs/docs etc) — we want previews
+      const lower = item.url.toLowerCase().split("?")[0];
+      if (/\.(pdf|pptx?|docx?|xlsx?|ai|sketch|psd|fig)$/i.test(lower)) continue;
+      seen.add(item.url);
+      out.push(item);
+      added = true;
+    }
+    idx++;
+  }
+  return out;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Auth check
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
@@ -26,7 +66,6 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceKey);
 
-    // Verify user via service role
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authErr } = await adminClient.auth.getUser(token);
     if (authErr || !user) {
@@ -39,7 +78,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "entityId and organizationId required" }), { status: 400, headers: corsHeaders });
     }
 
-    // Check AI permissions
     const { data: canUse } = await adminClient.rpc("can_use_ai_features", {
       _user_id: userId, _entity_id: entityId, _entity_type: entityType,
     });
@@ -47,40 +85,101 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Insufficient permissions" }), { status: 403, headers: corsHeaders });
     }
 
-    // Fetch entity context
     const { data: context } = await adminClient.rpc("get_entity_text_context", {
       p_table: entityType === "brand" ? "brands" : entityType === "product" ? "products" : "events",
       p_id: entityId,
     });
 
     const entityName = context?.name || "Unknown";
-    const imageryCount = context?.imagery_count || 0;
-    const heroHasImage = context?.hero?.hasImage || false;
-    const heroHasCover = context?.hero?.hasCover || false;
     const archetype = context?.archetype || "";
     const mission = context?.mission || "";
     const values = context?.values || [];
-    const colorNames = context?.colorNames || [];
+    const colorNames = context?.colorNames || (Array.isArray(context?.colors) ? context.colors.map((c: any) => c?.name).filter(Boolean) : []);
 
-    // Build AI prompt
+    // Counts across the broader visual inventory
+    const counts = {
+      visualDirection: context?.imagery_count || 0,
+      approvedImagery: context?.approved_imagery_count || 0,
+      imageAssets: context?.image_assets_count || 0,
+      brochures: context?.brochures_count || 0,
+      presentations: context?.presentations_count || 0,
+      templates: context?.templates_count || 0,
+      caseStudies: context?.case_studies_count || 0,
+    };
+    const totalAnalyzedAssets =
+      counts.visualDirection + counts.approvedImagery + counts.imageAssets +
+      counts.brochures + counts.presentations + counts.templates + counts.caseStudies;
+
+    // Sampled imagery from each source (already capped by the SQL function)
+    const visualDirectionSamples: SampledImage[] = (context?.imagery_samples || []).map((s: any) => ({
+      url: s.url, source: `Visual Direction (${s.type === "dont" ? "DON'T" : "DO"})`,
+      caption: s.description,
+    }));
+    const approvedSamples: SampledImage[] = (context?.approved_imagery_samples || []).map((s: any) => ({
+      url: s.url, source: `Approved Imagery — ${s.section || "library"}`,
+      caption: Array.isArray(s.tags) ? s.tags.join(", ") : undefined,
+    }));
+    const imageAssetSamples: SampledImage[] = (context?.image_assets_samples || []).map((s: any) => ({
+      url: s.url, source: `Image Assets${s.category ? ` — ${s.category}` : ""}`,
+      caption: s.name,
+    }));
+    const collateralSamples: SampledImage[] = (context?.collateral_samples || []).map((s: any) => ({
+      url: s.url, source: `${s.source}${s.category ? ` (${s.category})` : ""}`,
+      caption: s.title,
+    }));
+
+    const visionSample = pickVisionSample([
+      visualDirectionSamples,
+      approvedSamples,
+      imageAssetSamples,
+      collateralSamples,
+    ]);
+
+    // Build textual asset inventory paragraph
+    const inventoryLines: string[] = [];
+    if (counts.visualDirection) inventoryLines.push(`- Visual Direction guideline images: ${counts.visualDirection}`);
+    if (counts.approvedImagery) {
+      const sectionDescr = (context?.approved_imagery_sections || [])
+        .map((s: any) => `"${s.name}" (${s.image_count})`).join(", ");
+      inventoryLines.push(`- Approved Imagery library: ${counts.approvedImagery} images${sectionDescr ? ` across sections ${sectionDescr}` : ""}`);
+    }
+    if (counts.imageAssets) inventoryLines.push(`- Downloadable Image Assets: ${counts.imageAssets}`);
+    if (counts.brochures) inventoryLines.push(`- Digital Collateral / Brochures (PDFs): ${counts.brochures}`);
+    if (counts.presentations) inventoryLines.push(`- Presentation Templates (PPTX/PDF/Figma/etc.): ${counts.presentations}`);
+    if (counts.templates) inventoryLines.push(`- Master Template files: ${counts.templates}`);
+    if (counts.caseStudies) inventoryLines.push(`- Case Studies with imagery: ${counts.caseStudies}`);
+    const inventory = inventoryLines.length ? inventoryLines.join("\n") : "- (No visual material catalogued yet)";
+
+    const captionLines: string[] = [];
+    [...visualDirectionSamples, ...approvedSamples, ...imageAssetSamples, ...collateralSamples]
+      .slice(0, 24)
+      .forEach((s, i) => {
+        captionLines.push(`  ${i + 1}. [${s.source}]${s.caption ? ` — ${s.caption}` : ""}`);
+      });
+
     const prompt = `You are an expert brand imagery auditor specializing in inclusive visual storytelling.
 
-Analyze this entity's imagery strategy and score across 6 dimensions (0-100 each):
+Analyze the COMPLETE visual asset inventory for this entity (not only the Visual Direction Do/Don't list — also Approved Imagery library, Image Assets, brochures, presentations/PowerPoints, PDFs, templates, and case studies) and score across 6 dimensions (0-100 each).
 
 ENTITY: "${entityName}" (${entityType})
 Archetype: ${archetype}
 Mission: ${mission}
 Values: ${JSON.stringify(values)}
 Colors: ${JSON.stringify(colorNames)}
-Imagery assets count: ${imageryCount}
-Has hero image: ${heroHasImage}
-Has cover image: ${heroHasCover}
+
+VISUAL ASSET INVENTORY (${totalAnalyzedAssets} total assets considered):
+${inventory}
+
+ASSET LABELS / CAPTIONS (sample):
+${captionLines.length ? captionLines.join("\n") : "  (no captions available)"}
+
+${visionSample.length ? `You will ALSO be shown ${visionSample.length} representative thumbnails. Inspect them visually for diversity, authenticity, action-orientation, cultural respect, and stock-photo dependency. Tie your findings back to the broader inventory above — extrapolate carefully when the sample is small.` : "No visual thumbnails are available; reason from the inventory and brand positioning only."}
 
 STOP SIGNALS TO DETECT:
-${IMAGERY_STOP_GO.stop_signals.map(s => `- ${s}`).join("\n")}
+${IMAGERY_STOP_GO.stop_signals.map((s) => `- ${s}`).join("\n")}
 
 GO SIGNALS TO LOOK FOR:
-${IMAGERY_STOP_GO.go_signals.map(s => `- ${s}`).join("\n")}
+${IMAGERY_STOP_GO.go_signals.map((s) => `- ${s}`).join("\n")}
 
 ADDITIONAL STOP SIGNALS:
 - Tokenistic representation — single "diverse" person in a group
@@ -97,7 +196,12 @@ ADDITIONAL GO SIGNALS:
 - Inclusive family structures and relationship dynamics
 - Cultural dress and traditions depicted respectfully
 
-Based on available brand data, provide scores and analysis. If imagery data is limited, score based on brand positioning readiness.`;
+When writing recommendations, reference specific asset sources (e.g. "Approved Imagery — People section", "Brochure PDFs", "Presentation Templates") so the team knows where to act.`;
+
+    const userContent: any[] = [{ type: "text", text: prompt }];
+    for (const img of visionSample) {
+      userContent.push({ type: "image_url", image_url: { url: img.url } });
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -113,8 +217,8 @@ Based on available brand data, provide scores and analysis. If imagery data is l
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "You are a brand imagery auditor. Return structured JSON only." },
-          { role: "user", content: prompt },
+          { role: "system", content: "You are a brand imagery auditor. Inspect any provided thumbnails alongside the textual inventory. Return structured JSON via the supplied tool only." },
+          { role: "user", content: userContent },
         ],
         tools: [{
           type: "function",
@@ -124,14 +228,14 @@ Based on available brand data, provide scores and analysis. If imagery data is l
             parameters: {
               type: "object",
               properties: {
-                diversity_score: { type: "number", description: "0-100 score for diversity representation" },
-                authenticity_score: { type: "number", description: "0-100 score for authentic vs stock imagery" },
-                cultural_context_score: { type: "number", description: "0-100 score for cultural sensitivity" },
-                action_orientation_score: { type: "number", description: "0-100 score for showing people doing things" },
-                inclusive_prompting_score: { type: "number", description: "0-100 score for inclusive prompting compliance" },
-                stock_dependency: { type: "string", enum: ["low", "medium", "high"], description: "Level of stock photo dependency" },
-                stop_signals_detected: { type: "array", items: { type: "string" }, description: "Stop signals found" },
-                go_signals_present: { type: "array", items: { type: "string" }, description: "Go signals present" },
+                diversity_score: { type: "number", description: "0-100" },
+                authenticity_score: { type: "number", description: "0-100" },
+                cultural_context_score: { type: "number", description: "0-100" },
+                action_orientation_score: { type: "number", description: "0-100" },
+                inclusive_prompting_score: { type: "number", description: "0-100" },
+                stock_dependency: { type: "string", enum: ["low", "medium", "high"] },
+                stop_signals_detected: { type: "array", items: { type: "string" } },
+                go_signals_present: { type: "array", items: { type: "string" } },
                 recommendations: {
                   type: "array",
                   items: {
@@ -162,6 +266,8 @@ Based on available brand data, provide scores and analysis. If imagery data is l
       if (status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted" }), { status: 402, headers: corsHeaders });
       }
+      const text = await aiResponse.text();
+      console.error("AI gateway error:", status, text);
       throw new Error(`AI gateway error: ${status}`);
     }
 
@@ -171,7 +277,6 @@ Based on available brand data, provide scores and analysis. If imagery data is l
 
     const result = JSON.parse(toolCall.function.arguments);
 
-    // Calculate overall score
     const overall = Math.round(
       (result.diversity_score * 0.25) +
       (result.authenticity_score * 0.2) +
@@ -180,7 +285,6 @@ Based on available brand data, provide scores and analysis. If imagery data is l
       (result.inclusive_prompting_score * 0.2)
     );
 
-    // Persist to database
     const { data: audit, error: insertErr } = await adminClient
       .from("imagery_strategy_audits")
       .insert({
@@ -197,7 +301,8 @@ Based on available brand data, provide scores and analysis. If imagery data is l
         stop_signals_detected: result.stop_signals_detected,
         go_signals_present: result.go_signals_present,
         recommendations: result.recommendations,
-        images_analyzed: imageryCount,
+        // Reflect the broader inventory the audit considered
+        images_analyzed: totalAnalyzedAssets,
         created_by: userId,
       })
       .select()
@@ -208,7 +313,14 @@ Based on available brand data, provide scores and analysis. If imagery data is l
       throw new Error("Failed to save audit results");
     }
 
-    return new Response(JSON.stringify({ success: true, audit }), {
+    return new Response(JSON.stringify({
+      success: true,
+      audit,
+      meta: {
+        sources_considered: counts,
+        thumbnails_inspected: visionSample.length,
+      },
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
