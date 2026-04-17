@@ -1,8 +1,12 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, Video, Calendar, Users, ExternalLink, Trash2, Edit2, X, Search,
-  ChevronDown, ChevronUp, Sparkles, Loader2, Check,
+  ChevronDown, ChevronUp, Sparkles, Loader2, Check, ArrowUpDown, Type, Activity,
 } from 'lucide-react';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenuLabel, DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -61,6 +65,8 @@ export const WebinarSeriesSection = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'title' | 'status' | 'manual'>('date-desc');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'live' | 'recorded'>('all');
   const [newWebinar, setNewWebinar] = useState<Partial<WebinarItem>>({
     title: '',
     description: '',
@@ -80,17 +86,60 @@ export const WebinarSeriesSection = ({
   const INITIAL_VISIBLE = 6;
 
   const filteredWebinars = useMemo(() => {
-    if (!searchQuery.trim()) return webinars;
-    const q = searchQuery.toLowerCase();
-    return webinars.filter(w =>
-      w.title.toLowerCase().includes(q) ||
-      w.description?.toLowerCase().includes(q) ||
-      w.date?.includes(q)
-    );
-  }, [webinars, searchQuery]);
+    let list = webinars;
+    if (statusFilter !== 'all') {
+      list = list.filter(w => (w.status || 'upcoming') === statusFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(w =>
+        w.title.toLowerCase().includes(q) ||
+        w.description?.toLowerCase().includes(q) ||
+        w.date?.includes(q) ||
+        w.speakers?.some(s => s.toLowerCase().includes(q))
+      );
+    }
+    if (sortBy === 'manual') return list;
+
+    const sorted = [...list];
+    const statusRank: Record<string, number> = { live: 0, upcoming: 1, recorded: 2 };
+    const dateValue = (d?: string) => (d ? new Date(d).getTime() || 0 : 0);
+
+    sorted.sort((a, b) => {
+      switch (sortBy) {
+        case 'date-desc': return dateValue(b.date) - dateValue(a.date);
+        case 'date-asc': {
+          const av = dateValue(a.date), bv = dateValue(b.date);
+          if (!av && !bv) return 0;
+          if (!av) return 1;
+          if (!bv) return -1;
+          return av - bv;
+        }
+        case 'title': return a.title.localeCompare(b.title);
+        case 'status': return (statusRank[a.status || 'upcoming'] ?? 99) - (statusRank[b.status || 'upcoming'] ?? 99);
+        default: return 0;
+      }
+    });
+    return sorted;
+  }, [webinars, searchQuery, sortBy, statusFilter]);
 
   const visibleWebinars = showAll ? filteredWebinars : filteredWebinars.slice(0, INITIAL_VISIBLE);
   const hasMore = filteredWebinars.length > INITIAL_VISIBLE;
+
+  const sortLabels: Record<typeof sortBy, string> = {
+    'date-desc': 'Newest First',
+    'date-asc': 'Oldest First',
+    'title': 'Title A–Z',
+    'status': 'Status (Live → Upcoming → Recorded)',
+    'manual': 'Manual Order',
+  };
+
+  const statusCounts = useMemo(() => ({
+    all: webinars.length,
+    upcoming: webinars.filter(w => (w.status || 'upcoming') === 'upcoming').length,
+    live: webinars.filter(w => w.status === 'live').length,
+    recorded: webinars.filter(w => w.status === 'recorded').length,
+  }), [webinars]);
 
   const addWebinar = () => {
     if (!onWebinarsChange || !newWebinar.title?.trim()) {
@@ -238,24 +287,82 @@ export const WebinarSeriesSection = ({
         )}
       </div>
 
-      {/* Search bar */}
-      {webinars.length > INITIAL_VISIBLE && (
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setShowAll(true); }}
-            placeholder="Search webinars..."
-            className="pl-9 h-9"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+      {/* Search + Sort + Filter toolbar */}
+      {webinars.length > 1 && (
+        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+          {webinars.length > INITIAL_VISIBLE && (
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setShowAll(true); }}
+                placeholder="Search by title, description, speaker, date..."
+                className="pl-9 h-9"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           )}
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Status filter chips */}
+            <div className="flex items-center gap-1 bg-muted/50 rounded-md p-0.5 border border-border/50">
+              {(['all', 'upcoming', 'live', 'recorded'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={cn(
+                    "text-xs px-2.5 py-1 rounded transition-colors capitalize",
+                    statusFilter === s
+                      ? "bg-background text-foreground shadow-sm font-medium"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {s} <span className="opacity-60 ml-0.5">({statusCounts[s]})</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Sort dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                  <span className="text-xs">{sortLabels[sortBy]}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="text-xs">Sort webinars</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setSortBy('date-desc')} className="gap-2 text-sm">
+                  <Calendar className="h-3.5 w-3.5" /> Newest first
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('date-asc')} className="gap-2 text-sm">
+                  <Calendar className="h-3.5 w-3.5" /> Oldest first
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('title')} className="gap-2 text-sm">
+                  <Type className="h-3.5 w-3.5" /> Title A–Z
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('status')} className="gap-2 text-sm">
+                  <Activity className="h-3.5 w-3.5" /> By status
+                </DropdownMenuItem>
+                {canEdit && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setSortBy('manual')} className="gap-2 text-sm">
+                      <ArrowUpDown className="h-3.5 w-3.5" /> Manual order
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       )}
 
