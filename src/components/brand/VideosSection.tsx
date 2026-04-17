@@ -1,21 +1,37 @@
 import { useState, useRef } from 'react';
-import { Video, Plus, Trash2, ExternalLink, Play, Link2, ImagePlus, Loader2 } from 'lucide-react';
+import { Video, Plus, Trash2, ExternalLink, Play, Link2, ImagePlus, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { BrandVideo } from '@/types/brand';
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+interface DiscoveredVideo {
+  title: string;
+  description?: string;
+  url: string;
+  type?: 'youtube' | 'vimeo' | 'direct';
+  sourceNote?: string;
+}
 
 interface VideosSectionProps {
   videos: BrandVideo[];
   onVideosChange?: (videos: BrandVideo[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  /** Entity context for AI discovery — required for the AI button to appear */
+  entityName?: string;
+  entityType?: 'brand' | 'product' | 'event';
+  industry?: string;
+  websiteUrl?: string;
 }
 
 type VideoType = 'youtube' | 'vimeo' | 'direct';
