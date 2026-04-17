@@ -329,6 +329,11 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     // Studios
     studios: safeArray(g.studios),
     
+    // Approved Imagery (curated image library)
+    approvedImagery: g.approvedImagery && typeof g.approvedImagery === 'object'
+      ? { sections: safeArray((g.approvedImagery as any).sections) }
+      : undefined,
+    
     // Timestamps
     createdAt: g.createdAt instanceof Date ? g.createdAt : (g.createdAt ? new Date(g.createdAt) : new Date()),
     updatedAt: g.updatedAt instanceof Date ? g.updatedAt : (g.updatedAt ? new Date(g.updatedAt) : new Date()),
