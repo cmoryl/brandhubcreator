@@ -115,18 +115,40 @@ export const ByTheNumbersSection = ({
     return colors;
   }, [brandColors, themeColors]);
 
-  // Trigger staggered animations on mount
+  // Stable signature so we don't re-run animation on every parent re-render
+  // (statistics is often a new array reference even when contents are unchanged)
+  const statsSignature = useMemo(
+    () => statistics.map(s => s.id).join('|'),
+    [statistics]
+  );
+
+  // Trigger staggered animations on mount / when stat set actually changes
   useEffect(() => {
+    if (!statsSignature) {
+      setAnimatedStats(new Set());
+      return;
+    }
+    const ids = statsSignature.split('|');
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
     setAnimatedStats(new Set());
-    const timer = setTimeout(() => {
-      statistics.forEach((stat, index) => {
-        setTimeout(() => {
-          setAnimatedStats(prev => new Set(prev).add(stat.id));
+    const startTimer = setTimeout(() => {
+      ids.forEach((id, index) => {
+        const t = setTimeout(() => {
+          setAnimatedStats(prev => {
+            if (prev.has(id)) return prev;
+            const next = new Set(prev);
+            next.add(id);
+            return next;
+          });
         }, index * 120);
+        timeouts.push(t);
       });
     }, 100);
-    return () => clearTimeout(timer);
-  }, [statistics]);
+    timeouts.push(startTimer);
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
+  }, [statsSignature]);
 
   // Derive canEdit from handler presence
   const canEdit = Boolean(onStatisticsChange);
