@@ -679,6 +679,7 @@ export const SIGNATURE_TEMPLATES: SignatureTemplate[] = [
 
 export const TEMPLATE_CATEGORIES = [
   { id: 'all', label: 'All Templates' },
+  { id: 'transperfect', label: 'TransPerfect' },
   { id: 'professional', label: 'Professional' },
   { id: 'modern', label: 'Modern' },
   { id: 'creative', label: 'Creative' },

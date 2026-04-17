@@ -29,6 +29,7 @@ interface SignatureTemplateDialogProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
+  transperfect: 'bg-[#003b71]/10 text-[#003b71] dark:text-[#7cc4ff] border-[#003b71]/30',
   professional: 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20',
   modern: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20',
   creative: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20',
@@ -37,6 +38,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
+  transperfect: '⭐',
   professional: '🏢',
   modern: '⚡',
   creative: '🎨',
@@ -101,6 +103,7 @@ const LAYOUT_TEMPLATE_LABELS: Record<string, string> = {
   stacked: '▤ Stacked',
   'two-column': '▥ Two Column',
   'banner-top': '▀ Banner Top',
+  'tp-default': '▌ TransPerfect',
 };
 
 export const SignatureTemplateDialog = ({ open, onOpenChange, onSelect, emailBanners }: SignatureTemplateDialogProps) => {
