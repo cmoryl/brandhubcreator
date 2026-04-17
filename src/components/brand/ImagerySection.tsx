@@ -176,7 +176,7 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
       {/* Section header - always full width on its own row */}
       <SectionHeader
         title="Visual Direction"
-        defaultSubtitle="Photography standards - Do's and Don'ts"
+        defaultSubtitle="Photography standards & inclusive imagery audit — considers Approved Imagery, Image Assets, brochures, presentations, PDFs, and case study visuals"
         customSubtitle={customSubtitle}
         onSubtitleChange={canEdit ? onSubtitleChange : undefined}
         isEditing={isHeaderEditing}
