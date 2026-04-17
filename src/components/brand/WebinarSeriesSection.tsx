@@ -65,6 +65,8 @@ export const WebinarSeriesSection = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'title' | 'status' | 'manual'>('date-desc');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'live' | 'recorded'>('all');
   const [newWebinar, setNewWebinar] = useState<Partial<WebinarItem>>({
     title: '',
     description: '',
@@ -84,17 +86,60 @@ export const WebinarSeriesSection = ({
   const INITIAL_VISIBLE = 6;
 
   const filteredWebinars = useMemo(() => {
-    if (!searchQuery.trim()) return webinars;
-    const q = searchQuery.toLowerCase();
-    return webinars.filter(w =>
-      w.title.toLowerCase().includes(q) ||
-      w.description?.toLowerCase().includes(q) ||
-      w.date?.includes(q)
-    );
-  }, [webinars, searchQuery]);
+    let list = webinars;
+    if (statusFilter !== 'all') {
+      list = list.filter(w => (w.status || 'upcoming') === statusFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(w =>
+        w.title.toLowerCase().includes(q) ||
+        w.description?.toLowerCase().includes(q) ||
+        w.date?.includes(q) ||
+        w.speakers?.some(s => s.toLowerCase().includes(q))
+      );
+    }
+    if (sortBy === 'manual') return list;
+
+    const sorted = [...list];
+    const statusRank: Record<string, number> = { live: 0, upcoming: 1, recorded: 2 };
+    const dateValue = (d?: string) => (d ? new Date(d).getTime() || 0 : 0);
+
+    sorted.sort((a, b) => {
+      switch (sortBy) {
+        case 'date-desc': return dateValue(b.date) - dateValue(a.date);
+        case 'date-asc': {
+          const av = dateValue(a.date), bv = dateValue(b.date);
+          if (!av && !bv) return 0;
+          if (!av) return 1;
+          if (!bv) return -1;
+          return av - bv;
+        }
+        case 'title': return a.title.localeCompare(b.title);
+        case 'status': return (statusRank[a.status || 'upcoming'] ?? 99) - (statusRank[b.status || 'upcoming'] ?? 99);
+        default: return 0;
+      }
+    });
+    return sorted;
+  }, [webinars, searchQuery, sortBy, statusFilter]);
 
   const visibleWebinars = showAll ? filteredWebinars : filteredWebinars.slice(0, INITIAL_VISIBLE);
   const hasMore = filteredWebinars.length > INITIAL_VISIBLE;
+
+  const sortLabels: Record<typeof sortBy, string> = {
+    'date-desc': 'Newest First',
+    'date-asc': 'Oldest First',
+    'title': 'Title A–Z',
+    'status': 'Status (Live → Upcoming → Recorded)',
+    'manual': 'Manual Order',
+  };
+
+  const statusCounts = useMemo(() => ({
+    all: webinars.length,
+    upcoming: webinars.filter(w => (w.status || 'upcoming') === 'upcoming').length,
+    live: webinars.filter(w => w.status === 'live').length,
+    recorded: webinars.filter(w => w.status === 'recorded').length,
+  }), [webinars]);
 
   const addWebinar = () => {
     if (!onWebinarsChange || !newWebinar.title?.trim()) {
