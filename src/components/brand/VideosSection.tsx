@@ -94,6 +94,74 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
   const [discovered, setDiscovered] = useState<DiscoveredVideo[]>([]);
   const [selected, setSelected] = useState<Record<number, boolean>>({});
 
+  const runDiscovery = async () => {
+    if (!entityName) return;
+    setDiscovering(true);
+    setDiscovered([]);
+    setSelected({});
+    try {
+      const { data, error } = await supabase.functions.invoke('discover-videos', {
+        body: {
+          entityName,
+          entityType,
+          industry,
+          websiteUrl,
+          existingVideos: videos.map((v) => ({ title: v.title, url: v.url })),
+          limit: 10,
+        },
+      });
+      if (error) throw error;
+      const found: DiscoveredVideo[] = Array.isArray(data?.videos) ? data.videos : [];
+      setDiscovered(found);
+      setSelected(Object.fromEntries(found.map((_, i) => [i, true])));
+      if (found.length === 0) {
+        toast.info('No new videos found. Your list looks up to date!');
+      } else {
+        toast.success(`Found ${found.length} potential video${found.length === 1 ? '' : 's'}`);
+      }
+    } catch (e) {
+      console.error('discover-videos failed', e);
+      toast.error(e instanceof Error ? e.message : 'Discovery failed');
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
+  const importSelected = () => {
+    if (!onVideosChange) return;
+    const toAdd = discovered
+      .filter((_, i) => selected[i])
+      .map<BrandVideo>((v) => {
+        const type = v.type || detectVideoType(v.url);
+        return {
+          id: crypto.randomUUID(),
+          title: v.title,
+          url: v.url,
+          type,
+          description: v.description || '',
+          thumbnail: getThumbnail(v.url, type) || undefined,
+        };
+      });
+    if (!toAdd.length) {
+      toast.info('Nothing selected');
+      return;
+    }
+    onVideosChange([...videos, ...toAdd]);
+    toast.success(`Added ${toAdd.length} video${toAdd.length === 1 ? '' : 's'}`);
+    setDiscoverOpen(false);
+    setDiscovered([]);
+    setSelected({});
+  };
+
+  const openDiscovery = () => {
+    setDiscoverOpen(true);
+    if (discovered.length === 0 && !discovering) {
+      void runDiscovery();
+    }
+  };
+
+  const selectedCount = Object.values(selected).filter(Boolean).length;
+
   const handleAddVideo = () => {
     if (!newVideo.title || !newVideo.url || !onVideosChange) return;
 
