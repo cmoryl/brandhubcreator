@@ -764,7 +764,7 @@ const EventEditor = () => {
       case 'bythenumbers': return <ByTheNumbersSection statistics={event.statistics || []} onStatisticsChange={editHandler((statistics) => updateEvent({ statistics }))} brandName={event.hero.name} brandColors={event.colors || []} />;
       case 'services': return <ServicesSection services={(event as any).services || []} onServicesChange={editHandler((services) => updateEvent({ services } as any))} />;
       case 'revenue': return <RevenueChartSection revenueData={(event as any).revenueData} onRevenueDataChange={editHandler((revenueData) => updateEvent({ revenueData } as any))} brandName={event.hero.name} brandColors={event.colors || []} />;
-      case 'webinars': return <WebinarSeriesSection webinars={(event as any).webinars || []} onWebinarsChange={editHandler((webinars) => updateEvent({ webinars } as any))} />;
+      case 'webinars': return <WebinarSeriesSection webinars={(event as any).webinars || []} onWebinarsChange={editHandler((webinars) => updateEvent({ webinars } as any))} entityName={event.hero?.name} entityType="event" industry={(event as any).industry} websiteUrl={(event as any).websites?.[0]?.url} />;
       case 'awards': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><AwardsSection awards={(event as any).awards || []} onUpdate={editHandler((awards) => updateEvent({ awards } as any))} entityType="event" entityId={event.id} /></Suspense>;
       case 'products': return <ProductsSection brandId={event.id} />;
       case 'events': return <EventsSection brandId={event.id} />;
