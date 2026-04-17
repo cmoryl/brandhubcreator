@@ -749,6 +749,16 @@ export interface LinkedGuideReference {
 }
 
 // SERVICES - Service Offerings
+export interface BrandSubService {
+  id: string;
+  name: string;
+  description?: string;
+  /** Optional source URL where this sub-service was discovered */
+  sourceUrl?: string;
+  /** AI-generated marker so admins can distinguish auto-imported entries */
+  generatedByAi?: boolean;
+}
+
 export interface BrandService {
   id: string;
   name: string;
@@ -756,6 +766,10 @@ export interface BrandService {
   icon: string; // Lucide icon name
   imageUrl?: string; // Optional custom image (small icon)
   headerImage?: string; // Optional header image spanning full card width
+  /** Optional link the service card opens for "Learn more" */
+  link?: string;
+  /** Sub-services nested under this service in the extended view */
+  subServices?: BrandSubService[];
 }
 
 // SOCIAL ASSET TEMPLATE - Downloadable design files for social platforms
