@@ -1065,10 +1065,10 @@ export const useBrandStorage = () => {
             baseData = { ...dbToBrandGuide(dbBrand as DbBrand), ...finalUpdates };
           }
           
-          // If baseData came from the DB (not local state), ensure pending updates are merged
-          // When brand is in local state, optimistic updates are already applied
-          // When fetched from DB, we must explicitly merge pending updates
-          const mergedData = latestBrand ? baseData : { ...baseData, ...finalUpdates };
+          // Always merge pending updates at sync time.
+          // Even when latestBrand exists, refs/state can lag one render behind the queued update,
+          // which would otherwise drop freshly imported sections like approved imagery.
+          const mergedData = { ...baseData, ...finalUpdates };
           
           logger.sync('updateBrand: Syncing to DB for', id);
           await syncBrandToDb(id, mergedData as BrandGuide);
@@ -1167,10 +1167,9 @@ export const useBrandStorage = () => {
             baseData = { ...dbToProductGuide(dbProduct as DbProduct), ...finalUpdates };
           }
           
-          // If baseData came from the DB (not local state), ensure pending updates are merged
-          // When product is in local state, optimistic updates are already applied
-          // When fetched from DB, we must explicitly merge pending updates
-          const mergedData = latestProduct ? baseData : { ...baseData, ...finalUpdates };
+          // Always merge pending updates at sync time to avoid losing queued edits when
+          // refs/state are briefly behind the optimistic update.
+          const mergedData = { ...baseData, ...finalUpdates };
           
           logger.sync('updateProduct: Syncing to DB for', id);
           await syncProductToDb(id, mergedData as ProductGuide);
