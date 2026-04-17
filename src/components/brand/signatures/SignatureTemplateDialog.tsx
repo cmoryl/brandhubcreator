@@ -54,24 +54,39 @@ const SANITIZE_CONFIG = {
 function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?: BrandEmailBanner[]): BrandSignature {
   // Use brand banner if available, otherwise use demo placeholder for full variants
   const primaryBanner = emailBanners?.[0] || (template.variant === 'full' ? DEMO_BANNER : undefined);
+
+  const isTp = template.id === 'tp-default';
+
+  // TP Default uses a specialized social link set (LinkedIn + Mobile slot)
+  const socialLinks = isTp
+    ? [
+        { id: safeUUID(), platform: 'mobile', url: '+1 212.555.0199' },
+        { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/janedoe' },
+      ]
+    : template.includeSocialPlaceholders
+    ? [
+        { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/johndoe' },
+        { id: safeUUID(), platform: 'twitter', url: 'https://x.com/johndoe' },
+      ]
+    : undefined;
+
   return {
     id: safeUUID(),
-    name: 'John Doe',
-    role: 'Global Account Lead',
+    name: isTp ? 'Anna Allen' : 'John Doe',
+    role: isTp ? 'Vice President, Marketing Operations' : 'Global Account Lead',
     html: '',
-    company: 'Your Company',
-    email: 'jdoe@company.com',
-    phone: '+1 212.555.0123',
-    website: 'www.company.com',
-    address: '1250 Broadway, New York, NY 10001',
+    company: isTp ? 'TransPerfect' : 'Your Company',
+    email: isTp ? 'aallen@transperfect.com' : 'jdoe@company.com',
+    phone: isTp ? '+44 207 061 2000' : '+1 212.555.0123',
+    website: isTp ? 'www.transperfect.com' : 'www.company.com',
+    address: isTp
+      ? '33 Aldgate High Street, First Floor\nLondon, EC3N 1AH'
+      : '1250 Broadway, New York, NY 10001',
     logoUrl: '',
     variant: template.variant,
     style: { ...template.style },
     confidentialityNotice: template.includeConfidentiality ? DEFAULT_CONFIDENTIALITY : undefined,
-    socialLinks: template.includeSocialPlaceholders ? [
-      { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/johndoe' },
-      { id: safeUUID(), platform: 'twitter', url: 'https://x.com/johndoe' },
-    ] : undefined,
+    socialLinks,
     // Auto-attach banner (brand or demo)
     bannerUrl: primaryBanner?.imageUrl || '',
     bannerLinkUrl: primaryBanner?.linkUrl || '',
