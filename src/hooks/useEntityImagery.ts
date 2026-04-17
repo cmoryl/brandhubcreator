@@ -5,6 +5,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ApprovedImagerySubSection, ApprovedImage } from '@/types/brand';
 import { toast } from 'sonner';
+import { useBrands } from '@/contexts/BrandContext';
+import { useEvents } from '@/contexts/EventContext';
 
 interface UseEntityImageryOptions {
   entityId?: string;
@@ -13,10 +15,34 @@ interface UseEntityImageryOptions {
 
 const tableMap = { brand: 'brands', product: 'products', event: 'events' } as const;
 
+/**
+ * Update the in-memory context cache so other pages (brand/product/event editors,
+ * full guide views) see the new approved imagery immediately without a refetch.
+ */
+const useContextSync = (entityType: 'brand' | 'product' | 'event') => {
+  const brands = useBrands();
+  const events = useEvents();
+  return useCallback((id: string, approvedImagery: { sections: ApprovedImagerySubSection[] }) => {
+    try {
+      if (entityType === 'brand') {
+        brands.updateBrand(id, { approvedImagery } as any);
+      } else if (entityType === 'product') {
+        brands.updateProduct(id, { approvedImagery } as any);
+      } else if (entityType === 'event') {
+        events.updateEvent(id, { approvedImagery } as any);
+      }
+    } catch (e) {
+      // Contexts may not be available in all renders — fail silently
+      console.warn('[useEntityImagery] Could not sync to context cache:', e);
+    }
+  }, [entityType, brands, events]);
+};
+
 export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptions) => {
   const [sections, setSections] = useState<ApprovedImagerySubSection[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const syncToContext = useContextSync(entityType);
 
   const fetchImagery = useCallback(async () => {
     if (!entityId) return;
@@ -54,11 +80,13 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
       const { error } = await supabase.from(table).update({ guide_data: updated } as any).eq('id', entityId);
       if (error) throw error;
       setSections(newSections);
+      // Mirror into in-memory context so brand/product/event editor pages refresh instantly
+      syncToContext(entityId, { sections: newSections });
     } catch (err) {
       console.error('Error saving imagery:', err);
       toast.error('Failed to save imagery changes');
     }
-  }, [entityId, entityType]);
+  }, [entityId, entityType, syncToContext]);
 
   const addImages = useCallback(async (sectionId: string, images: ApprovedImage[]) => {
     const updated = sections.map(s => {
@@ -110,6 +138,10 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
     await saveImagery(updated);
   }, [sections, saveImagery]);
 
+  // Capture context update functions once for use across any target entity type
+  const brandsCtx = useBrands();
+  const eventsCtx = useEvents();
+
   const copyImagesToEntity = useCallback(async (
     images: ApprovedImage[],
     targetEntityId: string,
@@ -141,12 +173,23 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
       const updatedGuide = { ...gd, approvedImagery: { sections: updatedSections } };
       const { error } = await supabase.from(table).update({ guide_data: updatedGuide } as any).eq('id', targetEntityId);
       if (error) throw error;
+
+      // Sync the target entity's in-memory cache so its editor shows changes instantly
+      try {
+        const payload = { approvedImagery: { sections: updatedSections } } as any;
+        if (targetEntityType === 'brand') brandsCtx.updateBrand(targetEntityId, payload);
+        else if (targetEntityType === 'product') brandsCtx.updateProduct(targetEntityId, payload);
+        else if (targetEntityType === 'event') eventsCtx.updateEvent(targetEntityId, payload);
+      } catch (e) {
+        console.warn('[useEntityImagery] Could not sync target context cache:', e);
+      }
+
       toast.success(`Copied ${images.length} image(s) to ${targetSectionName}`);
     } catch (err) {
       console.error('Error copying images:', err);
       toast.error('Failed to copy images');
     }
-  }, []);
+  }, [brandsCtx, eventsCtx]);
 
   return {
     sections, isLoading, organizationId,
