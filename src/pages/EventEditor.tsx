@@ -759,7 +759,7 @@ const EventEditor = () => {
       case 'website': return <WebsiteSection websites={event.websites} onWebsitesChange={editHandler((websites) => updateEvent({ websites }))} entityType="event" entityId={event.id} />;
       case 'signatures': return <SignaturesSection signatures={event.signatures} onSignaturesChange={editHandler((signatures) => updateEvent({ signatures }))} />;
       case 'qr': return <QRSection qr={event.qr} onQRChange={editHandler((qr) => updateEvent({ qr }))} entityType="event" entityId={event.id} logos={event.logos} />;
-      case 'videos': return <VideosSection videos={event.videos} onVideosChange={editHandler((videos) => updateEvent({ videos }))} />;
+      case 'videos': return <VideosSection videos={event.videos} onVideosChange={editHandler((videos) => updateEvent({ videos }))} entityName={event.hero?.name} entityType="event" industry={(event as any).industry} websiteUrl={(event as any).websites?.[0]?.url} />;
       case 'imageassets': return <ImageAssetsSection imageAssets={(event as any).imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => updateEvent({ imageAssets } as any))} />;
       case 'bythenumbers': return <ByTheNumbersSection statistics={event.statistics || []} onStatisticsChange={editHandler((statistics) => updateEvent({ statistics }))} brandName={event.hero.name} brandColors={event.colors || []} />;
       case 'services': return <ServicesSection services={(event as any).services || []} onServicesChange={editHandler((services) => updateEvent({ services } as any))} />;
