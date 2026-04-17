@@ -131,11 +131,11 @@ export const SignatureEditorPanel = ({ signature: sig, onUpdate, onDelete, onDon
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">Full Name</label>
-              <Input value={sig.name} onChange={e => onUpdate({ name: e.target.value })} placeholder="John Doe" />
+              <Input value={sig.name} onChange={e => onUpdate({ name: e.target.value })} placeholder="First Last" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground">Job Title</label>
-              <Input value={sig.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Global Account Lead" />
+              <Input value={sig.role} onChange={e => onUpdate({ role: e.target.value })} placeholder="Job Title" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><Building2 className="h-3 w-3" />Company</label>
@@ -143,15 +143,15 @@ export const SignatureEditorPanel = ({ signature: sig, onUpdate, onDelete, onDon
             </div>
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><MapPin className="h-3 w-3" />Address</label>
-              <Input value={sig.address || ''} onChange={e => onUpdate({ address: e.target.value })} placeholder="1250 Broadway, New York, NY 10001" />
+              <Input value={sig.address || ''} onChange={e => onUpdate({ address: e.target.value })} placeholder="Street Address, Floor/Suite" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><Phone className="h-3 w-3" />Phone</label>
-              <Input value={sig.phone || ''} onChange={e => onUpdate({ phone: e.target.value })} placeholder="+1 212.555.0123" />
+              <Input value={sig.phone || ''} onChange={e => onUpdate({ phone: e.target.value })} placeholder="+1 000.000.0000" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><Mail className="h-3 w-3" />Email</label>
-              <Input value={sig.email || ''} onChange={e => onUpdate({ email: e.target.value })} placeholder="jdoe@company.com" />
+              <Input value={sig.email || ''} onChange={e => onUpdate({ email: e.target.value })} placeholder="name@company.com" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><Globe className="h-3 w-3" />Website</label>
