@@ -60,8 +60,8 @@ function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?:
   // TP Default uses a specialized social link set (LinkedIn + Mobile slot)
   const socialLinks = isTp
     ? [
-        { id: safeUUID(), platform: 'mobile', url: '+1 212.555.0199' },
-        { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/janedoe' },
+        { id: safeUUID(), platform: 'mobile', url: '+1 000.000.0000' },
+        { id: safeUUID(), platform: 'linkedin', url: 'https://linkedin.com/in/your-profile' },
       ]
     : template.includeSocialPlaceholders
     ? [
@@ -72,15 +72,15 @@ function createSignatureFromTemplate(template: SignatureTemplate, emailBanners?:
 
   return {
     id: safeUUID(),
-    name: isTp ? 'Anna Allen' : 'John Doe',
-    role: isTp ? 'Vice President, Marketing Operations' : 'Global Account Lead',
+    name: isTp ? 'First Last' : 'John Doe',
+    role: isTp ? 'Job Title' : 'Global Account Lead',
     html: '',
     company: isTp ? 'TransPerfect' : 'Your Company',
-    email: isTp ? 'aallen@transperfect.com' : 'jdoe@company.com',
-    phone: isTp ? '+44 207 061 2000' : '+1 212.555.0123',
+    email: isTp ? 'firstinitiallastname@transperfect.com' : 'jdoe@company.com',
+    phone: isTp ? '+1 000.000.0000' : '+1 212.555.0123',
     website: isTp ? 'www.transperfect.com' : 'www.company.com',
     address: isTp
-      ? '33 Aldgate High Street, First Floor\nLondon, EC3N 1AH'
+      ? 'Street Address, Floor/Suite\nCity, State ZIP'
       : '1250 Broadway, New York, NY 10001',
     logoUrl: '',
     variant: template.variant,
