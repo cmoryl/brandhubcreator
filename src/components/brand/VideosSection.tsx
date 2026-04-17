@@ -258,57 +258,70 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
             />
           </div>
         </div>
-        {canEdit && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Video
-              </Button>
-            </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Video</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="video-title">Title</Label>
-                <Input
-                  id="video-title"
-                  placeholder="Video title"
-                  value={newVideo.title}
-                  onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="video-url">Video URL</Label>
-                <Input
-                  id="video-url"
-                  placeholder="https://youtube.com/watch?v=... or direct .mp4 link"
-                  value={newVideo.url}
-                  onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Supports YouTube, Vimeo, or direct video URLs
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="video-description">Description (optional)</Label>
-                <Textarea
-                  id="video-description"
-                  placeholder="Brief description of the video"
-                  value={newVideo.description}
-                  onChange={(e) => setNewVideo({ ...newVideo, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-              <Button onClick={handleAddVideo} className="w-full">
-                Add Video
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {canDiscover && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openDiscovery}
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4 text-primary" />
+              Discover with AI
+            </Button>
+          )}
+          {canEdit && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Video
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Video</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="video-title">Title</Label>
+                    <Input
+                      id="video-title"
+                      placeholder="Video title"
+                      value={newVideo.title}
+                      onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="video-url">Video URL</Label>
+                    <Input
+                      id="video-url"
+                      placeholder="https://youtube.com/watch?v=... or direct .mp4 link"
+                      value={newVideo.url}
+                      onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Supports YouTube, Vimeo, or direct video URLs
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="video-description">Description (optional)</Label>
+                    <Textarea
+                      id="video-description"
+                      placeholder="Brief description of the video"
+                      value={newVideo.description}
+                      onChange={(e) => setNewVideo({ ...newVideo, description: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+                  <Button onClick={handleAddVideo} className="w-full">
+                    Add Video
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
       </div>
 
       {videos.length === 0 ? (
