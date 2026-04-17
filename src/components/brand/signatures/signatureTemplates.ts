@@ -4,7 +4,7 @@ import { DEFAULT_DARK, DEFAULT_ACCENT, DEFAULT_CONFIDENTIALITY } from './signatu
 export interface SignatureTemplate {
   id: string;
   name: string;
-  category: 'professional' | 'modern' | 'creative' | 'minimal' | 'corporate';
+  category: 'transperfect' | 'professional' | 'modern' | 'creative' | 'minimal' | 'corporate';
   description: string;
   variant: 'full' | 'reply' | 'minimal';
   style: SignatureStyle;
