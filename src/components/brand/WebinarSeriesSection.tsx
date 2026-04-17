@@ -1,12 +1,21 @@
 import { useState, useMemo } from 'react';
-import { Plus, Video, Calendar, Users, ExternalLink, Trash2, Edit2, X, Link2, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Plus, Video, Calendar, Users, ExternalLink, Trash2, Edit2, X, Search,
+  ChevronDown, ChevronUp, Sparkles, Loader2, Check,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface WebinarItem {
   id: string;
@@ -22,11 +31,20 @@ export interface WebinarItem {
   attendees?: number;
 }
 
+interface DiscoveredWebinar extends Omit<WebinarItem, 'id'> {
+  sourceNote?: string;
+}
+
 interface WebinarSeriesSectionProps {
   webinars: WebinarItem[];
   onWebinarsChange?: (webinars: WebinarItem[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  /** Entity context for AI discovery — required for the AI button to appear */
+  entityName?: string;
+  entityType?: 'brand' | 'product' | 'event';
+  industry?: string;
+  websiteUrl?: string;
 }
 
 export const WebinarSeriesSection = ({
@@ -34,6 +52,10 @@ export const WebinarSeriesSection = ({
   onWebinarsChange,
   customSubtitle,
   onSubtitleChange,
+  entityName,
+  entityType,
+  industry,
+  websiteUrl,
 }: WebinarSeriesSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -45,7 +67,14 @@ export const WebinarSeriesSection = ({
     status: 'upcoming',
   });
 
+  // AI discovery state
+  const [discoverOpen, setDiscoverOpen] = useState(false);
+  const [discovering, setDiscovering] = useState(false);
+  const [discovered, setDiscovered] = useState<DiscoveredWebinar[]>([]);
+  const [selected, setSelected] = useState<Record<number, boolean>>({});
+
   const canEdit = !!onWebinarsChange;
+  const canDiscover = canEdit && !!entityName;
 
   // 3 columns × 2 rows = 6 items visible by default
   const INITIAL_VISIBLE = 6;
@@ -99,6 +128,74 @@ export const WebinarSeriesSection = ({
     toast.success('Webinar removed');
   };
 
+  const runDiscovery = async () => {
+    if (!entityName) return;
+    setDiscovering(true);
+    setDiscovered([]);
+    setSelected({});
+    try {
+      const { data, error } = await supabase.functions.invoke('discover-webinars', {
+        body: {
+          entityName,
+          entityType,
+          industry,
+          websiteUrl,
+          existingWebinars: webinars.map(w => ({ title: w.title, date: w.date })),
+          limit: 10,
+        },
+      });
+      if (error) throw error;
+      const found: DiscoveredWebinar[] = Array.isArray(data?.webinars) ? data.webinars : [];
+      setDiscovered(found);
+      // Pre-select all
+      setSelected(Object.fromEntries(found.map((_, i) => [i, true])));
+      if (found.length === 0) {
+        toast.info('No new webinars found. Your list looks up to date!');
+      } else {
+        toast.success(`Found ${found.length} potential webinar${found.length === 1 ? '' : 's'}`);
+      }
+    } catch (e) {
+      console.error('discover-webinars failed', e);
+      const msg = e instanceof Error ? e.message : 'Discovery failed';
+      toast.error(msg);
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
+  const importSelected = () => {
+    if (!onWebinarsChange) return;
+    const toAdd = discovered
+      .filter((_, i) => selected[i])
+      .map<WebinarItem>(w => ({
+        id: crypto.randomUUID(),
+        title: w.title,
+        description: w.description,
+        date: w.date,
+        duration: w.duration,
+        registrationUrl: w.registrationUrl,
+        recordingUrl: w.recordingUrl,
+        speakers: w.speakers,
+        status: w.status || (w.date && new Date(w.date) > new Date() ? 'upcoming' : 'recorded'),
+      }));
+    if (!toAdd.length) {
+      toast.info('Nothing selected');
+      return;
+    }
+    onWebinarsChange([...webinars, ...toAdd]);
+    toast.success(`Added ${toAdd.length} webinar${toAdd.length === 1 ? '' : 's'}`);
+    setDiscoverOpen(false);
+    setDiscovered([]);
+    setSelected({});
+  };
+
+  const openDiscovery = () => {
+    setDiscoverOpen(true);
+    if (discovered.length === 0 && !discovering) {
+      void runDiscovery();
+    }
+  };
+
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'live': return 'bg-red-500/10 text-red-500 border-red-500/30';
@@ -113,16 +210,33 @@ export const WebinarSeriesSection = ({
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
+  const selectedCount = Object.values(selected).filter(Boolean).length;
+
   return (
     <section className="space-y-6">
-      <SectionHeader
-        title="Webinar Series"
-        defaultSubtitle="On-demand and upcoming webinar content"
-        customSubtitle={customSubtitle}
-        onSubtitleChange={canEdit ? onSubtitleChange : undefined}
-        isEditing={isHeaderEditing}
-        onEditToggle={canEdit ? () => setIsHeaderEditing(!isHeaderEditing) : undefined}
-      />
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <SectionHeader
+            title="Webinar Series"
+            defaultSubtitle="On-demand and upcoming webinar content"
+            customSubtitle={customSubtitle}
+            onSubtitleChange={canEdit ? onSubtitleChange : undefined}
+            isEditing={isHeaderEditing}
+            onEditToggle={canEdit ? () => setIsHeaderEditing(!isHeaderEditing) : undefined}
+          />
+        </div>
+        {canDiscover && (
+          <Button
+            onClick={openDiscovery}
+            size="sm"
+            variant="outline"
+            className="gap-2 shrink-0"
+          >
+            <Sparkles className="h-4 w-4 text-primary" />
+            Discover with AI
+          </Button>
+        )}
+      </div>
 
       {/* Search bar */}
       {webinars.length > INITIAL_VISIBLE && (
@@ -153,14 +267,9 @@ export const WebinarSeriesSection = ({
             className="group overflow-hidden hover:border-primary/50 transition-colors animate-scale-in"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            {/* Thumbnail */}
             {webinar.thumbnailUrl ? (
               <div className="aspect-video bg-muted relative overflow-hidden">
-                <img
-                  src={webinar.thumbnailUrl}
-                  alt={webinar.title}
-                  className="w-full h-full object-cover"
-                />
+                <img src={webinar.thumbnailUrl} alt={webinar.title} className="w-full h-full object-cover" />
                 <Badge className={cn("absolute top-2 left-2 text-xs", getStatusColor(webinar.status))}>
                   {webinar.status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse mr-1.5" />}
                   {getStatusLabel(webinar.status)}
@@ -179,58 +288,20 @@ export const WebinarSeriesSection = ({
             <CardContent className="p-4">
               {editingId === webinar.id && canEdit ? (
                 <div className="space-y-3">
-                  <Input
-                    value={webinar.title}
-                    onChange={(e) => updateWebinar(webinar.id, { title: e.target.value })}
-                    placeholder="Webinar title"
-                    className="h-8"
-                  />
-                  <Input
-                    value={webinar.description || ''}
-                    onChange={(e) => updateWebinar(webinar.id, { description: e.target.value })}
-                    placeholder="Description"
-                    className="h-8"
-                  />
-                  <Input
-                    type="date"
-                    value={webinar.date || ''}
-                    onChange={(e) => updateWebinar(webinar.id, { date: e.target.value })}
-                    className="h-8"
-                  />
-                  <Input
-                    value={webinar.registrationUrl || ''}
-                    onChange={(e) => updateWebinar(webinar.id, { registrationUrl: e.target.value })}
-                    placeholder="Registration URL"
-                    className="h-8"
-                  />
-                  <Input
-                    value={webinar.recordingUrl || ''}
-                    onChange={(e) => updateWebinar(webinar.id, { recordingUrl: e.target.value })}
-                    placeholder="Recording URL"
-                    className="h-8"
-                  />
-                  <Input
-                    value={webinar.thumbnailUrl || ''}
-                    onChange={(e) => updateWebinar(webinar.id, { thumbnailUrl: e.target.value })}
-                    placeholder="Thumbnail URL"
-                    className="h-8"
-                  />
+                  <Input value={webinar.title} onChange={(e) => updateWebinar(webinar.id, { title: e.target.value })} placeholder="Webinar title" className="h-8" />
+                  <Input value={webinar.description || ''} onChange={(e) => updateWebinar(webinar.id, { description: e.target.value })} placeholder="Description" className="h-8" />
+                  <Input type="date" value={webinar.date || ''} onChange={(e) => updateWebinar(webinar.id, { date: e.target.value })} className="h-8" />
+                  <Input value={webinar.registrationUrl || ''} onChange={(e) => updateWebinar(webinar.id, { registrationUrl: e.target.value })} placeholder="Registration URL" className="h-8" />
+                  <Input value={webinar.recordingUrl || ''} onChange={(e) => updateWebinar(webinar.id, { recordingUrl: e.target.value })} placeholder="Recording URL" className="h-8" />
+                  <Input value={webinar.thumbnailUrl || ''} onChange={(e) => updateWebinar(webinar.id, { thumbnailUrl: e.target.value })} placeholder="Thumbnail URL" className="h-8" />
                   <div className="flex gap-2">
                     {(['upcoming', 'live', 'recorded'] as const).map((status) => (
-                      <Button
-                        key={status}
-                        size="sm"
-                        variant={webinar.status === status ? 'default' : 'outline'}
-                        onClick={() => updateWebinar(webinar.id, { status })}
-                        className="flex-1 h-7 text-xs"
-                      >
+                      <Button key={status} size="sm" variant={webinar.status === status ? 'default' : 'outline'} onClick={() => updateWebinar(webinar.id, { status })} className="flex-1 h-7 text-xs">
                         {status.charAt(0).toUpperCase() + status.slice(1)}
                       </Button>
                     ))}
                   </div>
-                  <Button size="sm" variant="secondary" onClick={() => setEditingId(null)} className="w-full">
-                    Done
-                  </Button>
+                  <Button size="sm" variant="secondary" onClick={() => setEditingId(null)} className="w-full">Done</Button>
                 </div>
               ) : (
                 <>
@@ -238,7 +309,6 @@ export const WebinarSeriesSection = ({
                   {webinar.description && (
                     <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{webinar.description}</p>
                   )}
-                  
                   <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
                     {webinar.date && (
                       <span className="flex items-center gap-1">
@@ -253,43 +323,25 @@ export const WebinarSeriesSection = ({
                       </span>
                     )}
                   </div>
-
                   <div className="flex items-center justify-between">
                     <div className="flex gap-2">
                       {webinar.registrationUrl && (
-                        <a
-                          href={webinar.registrationUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline flex items-center gap-1"
-                        >
+                        <a href={webinar.registrationUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
                           Register <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
                       {webinar.recordingUrl && (
-                        <a
-                          href={webinar.recordingUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline flex items-center gap-1"
-                        >
+                        <a href={webinar.recordingUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
                           Watch <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
                     </div>
-                    
                     {canEdit && (
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => setEditingId(webinar.id)}
-                          className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
-                        >
+                        <button onClick={() => setEditingId(webinar.id)} className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground">
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
-                        <button
-                          onClick={() => deleteWebinar(webinar.id)}
-                          className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                        >
+                        <button onClick={() => deleteWebinar(webinar.id)} className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -309,61 +361,17 @@ export const WebinarSeriesSection = ({
                 <Plus className="h-4 w-4" />
                 Add Webinar
               </div>
-              <Input
-                value={newWebinar.title || ''}
-                onChange={(e) => setNewWebinar({ ...newWebinar, title: e.target.value })}
-                placeholder="Webinar title"
-                className="h-8"
-              />
-              <Input
-                value={newWebinar.description || ''}
-                onChange={(e) => setNewWebinar({ ...newWebinar, description: e.target.value })}
-                placeholder="Description (optional)"
-                className="h-8"
-              />
-              <Input
-                type="date"
-                value={newWebinar.date || ''}
-                onChange={(e) => setNewWebinar({ ...newWebinar, date: e.target.value })}
-                className="h-8"
-              />
-              <Input
-                value={newWebinar.thumbnailUrl || ''}
-                onChange={(e) => setNewWebinar({ ...newWebinar, thumbnailUrl: e.target.value })}
-                placeholder="Thumbnail URL (optional)"
-                className="h-8"
-              />
+              <Input value={newWebinar.title || ''} onChange={(e) => setNewWebinar({ ...newWebinar, title: e.target.value })} placeholder="Webinar title" className="h-8" />
+              <Input value={newWebinar.description || ''} onChange={(e) => setNewWebinar({ ...newWebinar, description: e.target.value })} placeholder="Description (optional)" className="h-8" />
+              <Input type="date" value={newWebinar.date || ''} onChange={(e) => setNewWebinar({ ...newWebinar, date: e.target.value })} className="h-8" />
+              <Input value={newWebinar.thumbnailUrl || ''} onChange={(e) => setNewWebinar({ ...newWebinar, thumbnailUrl: e.target.value })} placeholder="Thumbnail URL (optional)" className="h-8" />
               <div className="flex gap-2">
                 {(['upcoming', 'live', 'recorded'] as const).map((status) => (
-                  <Button
-                    key={status}
-                    size="sm"
-                    variant={newWebinar.status === status ? 'default' : 'outline'}
-                    onClick={() => setNewWebinar({ ...newWebinar, status })}
-                    className="flex-1 h-7 text-xs"
-                  >
+                  <Button key={status} size="sm" variant={newWebinar.status === status ? 'default' : 'outline'} onClick={() => setNewWebinar({ ...newWebinar, status })} className="flex-1 h-7 text-xs">
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                   </Button>
                 ))}
-      </div>
-
-      {/* View More / View Less */}
-      {hasMore && !searchQuery && (
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAll(!showAll)}
-            className="gap-2"
-          >
-            {showAll ? (
-              <>Show Less <ChevronUp className="h-4 w-4" /></>
-            ) : (
-              <>View All {filteredWebinars.length} Webinars <ChevronDown className="h-4 w-4" /></>
-            )}
-          </Button>
-        </div>
-      )}
+              </div>
               <Button onClick={addWebinar} size="sm" className="w-full">
                 <Plus className="h-4 w-4 mr-1" />
                 Add Webinar
@@ -372,6 +380,19 @@ export const WebinarSeriesSection = ({
           </Card>
         )}
       </div>
+
+      {/* View More / View Less */}
+      {hasMore && !searchQuery && (
+        <div className="flex justify-center">
+          <Button variant="outline" size="sm" onClick={() => setShowAll(!showAll)} className="gap-2">
+            {showAll ? (
+              <>Show Less <ChevronUp className="h-4 w-4" /></>
+            ) : (
+              <>View All {filteredWebinars.length} Webinars <ChevronDown className="h-4 w-4" /></>
+            )}
+          </Button>
+        </div>
+      )}
 
       {webinars.length === 0 && !canEdit && (
         <Card className="border-dashed">
@@ -382,6 +403,133 @@ export const WebinarSeriesSection = ({
           </CardContent>
         </Card>
       )}
+
+      {/* AI Discovery dialog */}
+      <Dialog open={discoverOpen} onOpenChange={setDiscoverOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Discover Webinars with AI
+            </DialogTitle>
+            <DialogDescription>
+              AI will scan public sources for webinars hosted by{' '}
+              <span className="font-medium text-foreground">{entityName}</span>{' '}
+              that aren't already in your list. Review and select the ones to add.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="min-h-[240px]">
+            {discovering && (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+                <p className="text-sm text-muted-foreground">Searching for new webinars…</p>
+              </div>
+            )}
+
+            {!discovering && discovered.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Video className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                <p className="text-sm text-muted-foreground mb-4">
+                  No new webinars found. Your list looks up to date.
+                </p>
+                <Button size="sm" variant="outline" onClick={runDiscovery} className="gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Search again
+                </Button>
+              </div>
+            )}
+
+            {!discovering && discovered.length > 0 && (
+              <ScrollArea className="max-h-[420px] pr-3">
+                <div className="space-y-2">
+                  {discovered.map((w, i) => (
+                    <label
+                      key={i}
+                      className={cn(
+                        "flex gap-3 p-3 rounded-lg border cursor-pointer transition-colors",
+                        selected[i]
+                          ? "border-primary/50 bg-primary/5"
+                          : "border-border hover:bg-muted/50"
+                      )}
+                    >
+                      <Checkbox
+                        checked={!!selected[i]}
+                        onCheckedChange={(v) => setSelected(s => ({ ...s, [i]: !!v }))}
+                        className="mt-1"
+                      />
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-medium text-sm leading-tight">{w.title}</h4>
+                          {w.status && (
+                            <Badge variant="outline" className={cn("text-[10px] shrink-0", getStatusColor(w.status))}>
+                              {getStatusLabel(w.status)}
+                            </Badge>
+                          )}
+                        </div>
+                        {w.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">{w.description}</p>
+                        )}
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                          {w.date && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(w.date).toLocaleDateString()}
+                            </span>
+                          )}
+                          {w.speakers && w.speakers.length > 0 && (
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              {w.speakers.slice(0, 2).join(', ')}
+                              {w.speakers.length > 2 ? ` +${w.speakers.length - 2}` : ''}
+                            </span>
+                          )}
+                          {(w.registrationUrl || w.recordingUrl) && (
+                            <a
+                              href={w.recordingUrl || w.registrationUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-primary hover:underline flex items-center gap-1"
+                            >
+                              Source <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={runDiscovery}
+              disabled={discovering}
+              className="gap-2"
+            >
+              {discovering ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              Re-scan
+            </Button>
+            <Button
+              onClick={importSelected}
+              disabled={discovering || selectedCount === 0}
+              className="gap-2"
+            >
+              <Check className="h-4 w-4" />
+              Add {selectedCount > 0 ? `${selectedCount} ` : ''}webinar{selectedCount === 1 ? '' : 's'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
