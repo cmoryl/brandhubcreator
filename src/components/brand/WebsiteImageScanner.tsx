@@ -19,7 +19,7 @@ interface WebsiteImageScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultUrl?: string;
-  onImportImages: (images: { name: string; url: string; type: string }[]) => void;
+  onImportImages: (images: { name: string; url: string; type: string }[]) => void | Promise<void>;
 }
 
 export const WebsiteImageScanner = ({
@@ -97,7 +97,7 @@ export const WebsiteImageScanner = ({
     }
   };
 
-  const handleImport = () => {
+  const handleImport = async () => {
     const selected = Array.from(selectedIds).map((i) => {
       const img = filteredImages[i];
       const ext = img.filename.match(/\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)$/i)?.[1] || 'png';
@@ -108,9 +108,14 @@ export const WebsiteImageScanner = ({
       };
     });
 
-    onImportImages(selected);
-    toast.success(`Imported ${selected.length} images to assets`);
-    onOpenChange(false);
+    try {
+      await Promise.resolve(onImportImages(selected));
+      toast.success(`Imported ${selected.length} images`);
+      onOpenChange(false);
+    } catch (err) {
+      console.error('Website import error:', err);
+      toast.error('Failed to import selected images');
+    }
   };
 
   const filteredImages = images.filter((img) => {
