@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Plus, X, Pencil, Copy, Check, Mail, Image, ImagePlus, Upload, Link2, ExternalLink, Loader2, LayoutTemplate, Maximize2, Lock, Unlock } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { BrandSignature, BrandEmailBanner } from '@/types/brand';
@@ -25,6 +25,43 @@ interface SignaturesSectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
 }
+
+const LEGACY_SIGNATURE_REPLACEMENTS: Record<string, string> = {
+  'Anna Allen': 'First Last',
+  'John Doe': 'First Last',
+  'Vice President, Marketing Operations': 'Job Title',
+  'Global Account Lead': 'Job Title',
+  'Your Company': 'Company Name',
+  'aallen@transperfect.com': 'firstinitiallastname@transperfect.com',
+  'jdoe@company.com': 'name@company.com',
+  '+44 207 061 2000': '+1 000.000.0000',
+  '+1 212.555.0123': '+1 000.000.0000',
+  '33 Aldgate High Street, First Floor\nLondon, EC3N 1AH': 'Street Address, Floor/Suite\nCity, State ZIP',
+  '1250 Broadway, New York, NY 10001': 'Street Address\nCity, State ZIP',
+  'https://linkedin.com/in/janedoe': 'https://linkedin.com/in/your-profile',
+  'https://linkedin.com/in/johndoe': 'https://linkedin.com/in/your-profile',
+  'https://x.com/johndoe': 'https://x.com/your-profile',
+  '+1 212.555.0199': '+1 000.000.0000',
+};
+
+const replaceLegacySignatureValue = (value?: string) => {
+  if (!value) return value;
+  return LEGACY_SIGNATURE_REPLACEMENTS[value] ?? value;
+};
+
+const normalizeLegacySignature = (signature: BrandSignature): BrandSignature => ({
+  ...signature,
+  name: replaceLegacySignatureValue(signature.name) || signature.name,
+  role: replaceLegacySignatureValue(signature.role) || signature.role,
+  company: replaceLegacySignatureValue(signature.company) || signature.company,
+  email: replaceLegacySignatureValue(signature.email),
+  phone: replaceLegacySignatureValue(signature.phone),
+  address: replaceLegacySignatureValue(signature.address),
+  socialLinks: signature.socialLinks?.map((link) => ({
+    ...link,
+    url: replaceLegacySignatureValue(link.url) || link.url,
+  })),
+});
 
 // ── Banner Size Controls ──
 const BannerSizeControls = ({ width, height, onChange }: { width: number; height: number; onChange: (w: number, h: number) => void }) => {
@@ -74,6 +111,19 @@ export const SignaturesSection = ({
   const [uploadingBannerId, setUploadingBannerId] = useState<string | null>(null);
 
   const canEdit = !!onSignaturesChange;
+
+  useEffect(() => {
+    if (!onSignaturesChange || signatures.length === 0) return;
+
+    const normalizedSignatures = signatures.map(normalizeLegacySignature);
+    const hasLegacyValues = normalizedSignatures.some((signature, index) =>
+      JSON.stringify(signature) !== JSON.stringify(signatures[index])
+    );
+
+    if (hasLegacyValues) {
+      onSignaturesChange(normalizedSignatures);
+    }
+  }, [signatures, onSignaturesChange]);
 
   // ── Signature CRUD ──
   const addSignatureFromTemplate = (sig: BrandSignature) => {
