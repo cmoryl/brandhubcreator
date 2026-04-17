@@ -138,6 +138,10 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
     await saveImagery(updated);
   }, [sections, saveImagery]);
 
+  // Capture context update functions once for use across any target entity type
+  const brandsCtx = useBrands();
+  const eventsCtx = useEvents();
+
   const copyImagesToEntity = useCallback(async (
     images: ApprovedImage[],
     targetEntityId: string,
@@ -169,12 +173,23 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
       const updatedGuide = { ...gd, approvedImagery: { sections: updatedSections } };
       const { error } = await supabase.from(table).update({ guide_data: updatedGuide } as any).eq('id', targetEntityId);
       if (error) throw error;
+
+      // Sync the target entity's in-memory cache so its editor shows changes instantly
+      try {
+        const payload = { approvedImagery: { sections: updatedSections } } as any;
+        if (targetEntityType === 'brand') brandsCtx.updateBrand(targetEntityId, payload);
+        else if (targetEntityType === 'product') brandsCtx.updateProduct(targetEntityId, payload);
+        else if (targetEntityType === 'event') eventsCtx.updateEvent(targetEntityId, payload);
+      } catch (e) {
+        console.warn('[useEntityImagery] Could not sync target context cache:', e);
+      }
+
       toast.success(`Copied ${images.length} image(s) to ${targetSectionName}`);
     } catch (err) {
       console.error('Error copying images:', err);
       toast.error('Failed to copy images');
     }
-  }, []);
+  }, [brandsCtx, eventsCtx]);
 
   return {
     sections, isLoading, organizationId,
