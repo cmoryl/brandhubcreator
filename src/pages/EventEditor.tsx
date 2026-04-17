@@ -1083,7 +1083,13 @@ const EventEditor = () => {
                       
                       {isAdmin && (
                         <>
-                          <DropdownMenuItem onClick={() => navigate('/admin')} className="gap-2 cursor-pointer">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                              navigate('/admin');
+                            }}
+                            className="gap-2 cursor-pointer"
+                          >
                             <Shield className="h-4 w-4" />
                             Admin Panel
                           </DropdownMenuItem>

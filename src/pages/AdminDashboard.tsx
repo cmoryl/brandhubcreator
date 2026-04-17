@@ -128,6 +128,14 @@ export default function AdminDashboard() {
     }
   }, [user, isAdmin, authLoading, navigate]);
 
+  // Ensure scroll resets to top whenever this dashboard mounts (covers the
+  // case where users navigate here from a deeply scrolled editor page).
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
+
   // Re-fetch activity logs when date range changes
   useEffect(() => {
     if (user && isAdmin && !isLoading) {
