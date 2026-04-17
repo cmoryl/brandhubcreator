@@ -1,8 +1,12 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, Video, Calendar, Users, ExternalLink, Trash2, Edit2, X, Search,
-  ChevronDown, ChevronUp, Sparkles, Loader2, Check,
+  ChevronDown, ChevronUp, Sparkles, Loader2, Check, ArrowUpDown, Type, Activity,
 } from 'lucide-react';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenuLabel, DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
