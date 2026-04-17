@@ -85,14 +85,14 @@ export const SignaturesSection = ({
   const addDefaultSignature = () => {
     const sig: BrandSignature = {
       id: safeUUID(),
-      name: 'John Doe',
-      role: 'Global Account Lead',
+      name: 'First Last',
+      role: 'Job Title',
       html: '',
-      company: 'Your Company',
-      email: 'jdoe@company.com',
-      phone: '+1 212.555.0123',
+      company: 'Company Name',
+      email: 'name@company.com',
+      phone: '+1 000.000.0000',
       website: 'www.company.com',
-      address: '1250 Broadway, New York, NY 10001',
+      address: 'Street Address\nCity, State ZIP',
       logoUrl: '',
       variant: 'full',
       style: {
