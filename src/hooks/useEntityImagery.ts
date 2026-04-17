@@ -42,6 +42,7 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
   const [sections, setSections] = useState<ApprovedImagerySubSection[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const syncToContext = useContextSync(entityType);
 
   const fetchImagery = useCallback(async () => {
     if (!entityId) return;
@@ -79,11 +80,13 @@ export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptio
       const { error } = await supabase.from(table).update({ guide_data: updated } as any).eq('id', entityId);
       if (error) throw error;
       setSections(newSections);
+      // Mirror into in-memory context so brand/product/event editor pages refresh instantly
+      syncToContext(entityId, { sections: newSections });
     } catch (err) {
       console.error('Error saving imagery:', err);
       toast.error('Failed to save imagery changes');
     }
-  }, [entityId, entityType]);
+  }, [entityId, entityType, syncToContext]);
 
   const addImages = useCallback(async (sectionId: string, images: ApprovedImage[]) => {
     const updated = sections.map(s => {
