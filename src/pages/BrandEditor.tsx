@@ -338,16 +338,14 @@ const BrandEditor = () => {
   // Use context brand if available, otherwise use fetched public brand
   const brand = contextBrand || publicBrand;
 
-  // Scroll to top when brand data finishes loading (unless there's a hash anchor)
+  // Scroll to top once when brand data finishes loading (unless there's a hash anchor).
+  // Previously fired 8 times across 5s which intercepted navigation/breadcrumb clicks on
+  // public/published views. A single instant scroll on first paint is sufficient.
   useEffect(() => {
     if (!brand?.id || location.hash) return;
     if (hasScrolledForBrandRef.current === brand.id) return;
     hasScrolledForBrandRef.current = brand.id;
-    
-    const scrollToTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    scrollToTop();
-    const timers = [0, 100, 300, 600, 1000, 2000, 3000, 5000].map(d => window.setTimeout(scrollToTop, d));
-    return () => timers.forEach(t => window.clearTimeout(t));
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [brand?.id, location.hash]);
   // Resolve org slug for breadcrumbs - always resolve from entity's organizationId
   const { orgSlug: resolvedOrgSlug, orgName: resolvedOrgName } = useOrgSlug(
