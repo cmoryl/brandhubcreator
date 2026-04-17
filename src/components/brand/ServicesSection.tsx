@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Plus, X, Briefcase, Upload, Palette, FileText, Share2, Zap, Settings, Users, Globe, Shield, Heart, Star, Sparkles, Layers, Package, Target, Award, TrendingUp, MessageSquare, ChevronDown, ExternalLink, Loader2 } from 'lucide-react';
+import { Plus, X, Briefcase, Upload, Palette, FileText, Share2, Zap, Settings, Users, Globe, Shield, Heart, Star, Sparkles, Layers, Package, Target, Award, TrendingUp, MessageSquare, ChevronDown, ExternalLink, Loader2, Pencil } from 'lucide-react';
 import { GuideEmptyState } from './GuideEmptyState';
-import { BrandService } from '@/types/brand';
+import { BrandService, BrandSubService, BrandWebsiteLink } from '@/types/brand';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from './SectionHeader';
 import {
   Select,
@@ -25,6 +26,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
+import { AISubServiceDialog } from './services/AISubServiceDialog';
 
 // Available icons for services
 const SERVICE_ICONS = [
@@ -60,9 +62,22 @@ interface ServicesSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
+  /** Brand websites used as default AI scraping sources */
+  brandWebsites?: BrandWebsiteLink[];
+  /** Brand display name passed to AI for context */
+  brandName?: string;
 }
 
-export const ServicesSection = ({ services, onServicesChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand' }: ServicesSectionProps) => {
+export const ServicesSection = ({
+  services,
+  onServicesChange,
+  customSubtitle,
+  onSubtitleChange,
+  entityId,
+  entityType = 'brand',
+  brandWebsites,
+  brandName,
+}: ServicesSectionProps) => {
   const canEdit = Boolean(onServicesChange);
   const [isEditing, setIsEditing] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -70,6 +85,8 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<BrandService | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [aiTargetService, setAiTargetService] = useState<BrandService | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -105,12 +122,17 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
     setIsDialogOpen(true);
   };
 
+  const openAiDialog = (service: BrandService) => {
+    setAiTargetService(service);
+    setAiDialogOpen(true);
+  };
+
   const handleSave = () => {
     if (!formData.name.trim() || !onServicesChange) return;
 
     if (editingService) {
-      onServicesChange(services.map(s => 
-        s.id === editingService.id 
+      onServicesChange(services.map(s =>
+        s.id === editingService.id
           ? { ...s, ...formData }
           : s
       ));
@@ -121,6 +143,8 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
         description: formData.description,
         icon: formData.icon,
         imageUrl: formData.imageUrl || undefined,
+        headerImage: formData.headerImage || undefined,
+        subServices: [],
       };
       onServicesChange([...services, newService]);
     }
@@ -130,6 +154,35 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
   const handleDelete = (id: string) => {
     if (!onServicesChange) return;
     onServicesChange(services.filter(s => s.id !== id));
+  };
+
+  const handleAddSubServices = (serviceId: string, subServices: BrandSubService[]) => {
+    if (!onServicesChange) return;
+    onServicesChange(
+      services.map(s =>
+        s.id === serviceId
+          ? { ...s, subServices: [...(s.subServices || []), ...subServices] }
+          : s,
+      ),
+    );
+    // Auto-expand the parent so the new sub-services are visible
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      next.add(serviceId);
+      return next;
+    });
+    toast.success(`Added ${subServices.length} sub-service${subServices.length === 1 ? '' : 's'}`);
+  };
+
+  const handleRemoveSubService = (serviceId: string, subId: string) => {
+    if (!onServicesChange) return;
+    onServicesChange(
+      services.map(s =>
+        s.id === serviceId
+          ? { ...s, subServices: (s.subServices || []).filter(sub => sub.id !== subId) }
+          : s,
+      ),
+    );
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,8 +215,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
     } finally { setIsUploadingImage(false); }
   };
 
-  // Determine if any service has an image (imageUrl or headerImage) for the full-width card layout
-  const hasImages = services.some(s => s.imageUrl || s.headerImage);
+  const aiSupported = entityType === 'brand' || entityType === 'product';
 
   return (
     <section className="space-y-6 overflow-x-hidden">
@@ -183,19 +235,22 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
           const IconComponent = getIconComponent(service.icon);
           const isExpanded = expandedIds.has(service.id);
           const cardImage = service.headerImage || service.imageUrl;
-          const serviceLink = (service as any).link;
+          const serviceLink = service.link;
+          const subServices = service.subServices || [];
 
           return (
-            <Card 
-              key={service.id} 
-              className="group relative bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
-              onClick={() => toggleExpanded(service.id)}
+            <Card
+              key={service.id}
+              className="group relative bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 overflow-hidden"
             >
               {/* Full-width image banner */}
               {cardImage && (
-                <div className="relative w-full h-40 sm:h-44 overflow-hidden">
-                  <img 
-                    src={cardImage} 
+                <div
+                  className="relative w-full h-40 sm:h-44 overflow-hidden cursor-pointer"
+                  onClick={() => toggleExpanded(service.id)}
+                >
+                  <img
+                    src={cardImage}
                     alt={service.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
@@ -207,18 +262,18 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
 
               {canEdit && isEditing && (
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                  <Button 
-                    variant="secondary" 
-                    size="icon" 
+                  <Button
+                    variant="secondary"
+                    size="icon"
                     className="h-8 w-8 sm:h-7 sm:w-7"
                     onClick={(e) => { e.stopPropagation(); openEditDialog(service); }}
                     aria-label={`Edit ${service.name}`}
                   >
                     <Settings className="h-4 w-4 sm:h-3 sm:w-3" />
                   </Button>
-                  <Button 
-                    variant="destructive" 
-                    size="icon" 
+                  <Button
+                    variant="destructive"
+                    size="icon"
                     className="h-8 w-8 sm:h-7 sm:w-7"
                     onClick={(e) => { e.stopPropagation(); handleDelete(service.id); }}
                     aria-label={`Delete ${service.name}`}
@@ -239,13 +294,25 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
                   </div>
                 )}
 
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-foreground text-sm sm:text-base leading-tight">{service.name}</h3>
+                <button
+                  type="button"
+                  onClick={() => toggleExpanded(service.id)}
+                  className="w-full flex items-start justify-between gap-2 text-left"
+                  aria-expanded={isExpanded}
+                >
+                  <h3 className="font-semibold text-foreground text-sm sm:text-base leading-tight">
+                    {service.name}
+                    {subServices.length > 0 && (
+                      <Badge variant="secondary" className="ml-2 text-[10px] py-0 h-4 align-middle">
+                        {subServices.length}
+                      </Badge>
+                    )}
+                  </h3>
                   <ChevronDown className={cn(
                     "h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5 transition-transform duration-300",
                     isExpanded && "rotate-180"
                   )} />
-                </div>
+                </button>
 
                 {/* Collapsed: truncated description */}
                 <p className={cn(
@@ -255,17 +322,73 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
                   {service.description}
                 </p>
 
-                {/* Expanded: full content + link */}
-                {isExpanded && serviceLink && (
-                  <a
-                    href={serviceLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 mt-3 font-medium transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    Learn more <ExternalLink className="h-3 w-3" />
-                  </a>
+                {/* Expanded: sub-services + actions + link */}
+                {isExpanded && (
+                  <div className="mt-3 space-y-3">
+                    {subServices.length > 0 && (
+                      <ul className="space-y-2 border-l-2 border-primary/30 pl-3">
+                        {subServices.map((sub) => (
+                          <li key={sub.id} className="group/sub flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-xs sm:text-sm font-medium text-foreground">
+                                  {sub.name}
+                                </span>
+                                {sub.generatedByAi && (
+                                  <Badge variant="outline" className="text-[9px] gap-0.5 py-0 h-4">
+                                    <Sparkles className="h-2.5 w-2.5" />
+                                    AI
+                                  </Badge>
+                                )}
+                              </div>
+                              {sub.description && (
+                                <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 leading-snug">
+                                  {sub.description}
+                                </p>
+                              )}
+                            </div>
+                            {canEdit && isEditing && (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); handleRemoveSubService(service.id, sub.id); }}
+                                className="opacity-0 group-hover/sub:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                                aria-label={`Remove ${sub.name}`}
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {canEdit && aiSupported && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs gap-1.5 w-full"
+                        onClick={(e) => { e.stopPropagation(); openAiDialog(service); }}
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        {subServices.length > 0
+                          ? 'Find more sub-services with AI'
+                          : 'Generate sub-services with AI'}
+                      </Button>
+                    )}
+
+                    {serviceLink && (
+                      <a
+                        href={serviceLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Learn more <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -274,7 +397,7 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
 
         {/* Add Service Card */}
         {canEdit && isEditing && (
-          <Card 
+          <Card
             className="border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors"
             onClick={openAddDialog}
           >
@@ -356,8 +479,8 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
                   className="flex-1"
                 />
                 {formData.headerImage && (
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="icon"
                     onClick={() => setFormData(prev => ({ ...prev, headerImage: '' }))}
                   >
@@ -381,8 +504,8 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
                   className="flex-1"
                 />
                 {formData.imageUrl && (
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="icon"
                     onClick={() => setFormData(prev => ({ ...prev, imageUrl: '' }))}
                   >
@@ -405,6 +528,20 @@ export const ServicesSection = ({ services, onServicesChange, customSubtitle, on
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* AI Sub-Services Dialog */}
+      <AISubServiceDialog
+        open={aiDialogOpen}
+        onOpenChange={setAiDialogOpen}
+        service={aiTargetService}
+        brandName={brandName}
+        entityId={entityId}
+        entityType={entityType}
+        brandWebsites={brandWebsites}
+        onAccept={(subs) => {
+          if (aiTargetService) handleAddSubServices(aiTargetService.id, subs);
+        }}
+      />
     </section>
   );
 };
