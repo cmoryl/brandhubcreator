@@ -5,6 +5,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ApprovedImagerySubSection, ApprovedImage } from '@/types/brand';
 import { toast } from 'sonner';
+import { useBrands } from '@/contexts/BrandContext';
+import { useEvents } from '@/contexts/EventContext';
 
 interface UseEntityImageryOptions {
   entityId?: string;
@@ -12,6 +14,29 @@ interface UseEntityImageryOptions {
 }
 
 const tableMap = { brand: 'brands', product: 'products', event: 'events' } as const;
+
+/**
+ * Update the in-memory context cache so other pages (brand/product/event editors,
+ * full guide views) see the new approved imagery immediately without a refetch.
+ */
+const useContextSync = (entityType: 'brand' | 'product' | 'event') => {
+  const brands = useBrands();
+  const events = useEvents();
+  return useCallback((id: string, approvedImagery: { sections: ApprovedImagerySubSection[] }) => {
+    try {
+      if (entityType === 'brand') {
+        brands.updateBrand(id, { approvedImagery } as any);
+      } else if (entityType === 'product') {
+        brands.updateProduct(id, { approvedImagery } as any);
+      } else if (entityType === 'event') {
+        events.updateEvent(id, { approvedImagery } as any);
+      }
+    } catch (e) {
+      // Contexts may not be available in all renders — fail silently
+      console.warn('[useEntityImagery] Could not sync to context cache:', e);
+    }
+  }, [entityType, brands, events]);
+};
 
 export const useEntityImagery = ({ entityId, entityType }: UseEntityImageryOptions) => {
   const [sections, setSections] = useState<ApprovedImagerySubSection[]>([]);
