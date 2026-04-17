@@ -287,24 +287,82 @@ export const WebinarSeriesSection = ({
         )}
       </div>
 
-      {/* Search bar */}
-      {webinars.length > INITIAL_VISIBLE && (
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setShowAll(true); }}
-            placeholder="Search webinars..."
-            className="pl-9 h-9"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+      {/* Search + Sort + Filter toolbar */}
+      {webinars.length > 1 && (
+        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+          {webinars.length > INITIAL_VISIBLE && (
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setShowAll(true); }}
+                placeholder="Search by title, description, speaker, date..."
+                className="pl-9 h-9"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           )}
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Status filter chips */}
+            <div className="flex items-center gap-1 bg-muted/50 rounded-md p-0.5 border border-border/50">
+              {(['all', 'upcoming', 'live', 'recorded'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={cn(
+                    "text-xs px-2.5 py-1 rounded transition-colors capitalize",
+                    statusFilter === s
+                      ? "bg-background text-foreground shadow-sm font-medium"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {s} <span className="opacity-60 ml-0.5">({statusCounts[s]})</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Sort dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                  <span className="text-xs">{sortLabels[sortBy]}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="text-xs">Sort webinars</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setSortBy('date-desc')} className="gap-2 text-sm">
+                  <Calendar className="h-3.5 w-3.5" /> Newest first
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('date-asc')} className="gap-2 text-sm">
+                  <Calendar className="h-3.5 w-3.5" /> Oldest first
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('title')} className="gap-2 text-sm">
+                  <Type className="h-3.5 w-3.5" /> Title A–Z
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('status')} className="gap-2 text-sm">
+                  <Activity className="h-3.5 w-3.5" /> By status
+                </DropdownMenuItem>
+                {canEdit && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setSortBy('manual')} className="gap-2 text-sm">
+                      <ArrowUpDown className="h-3.5 w-3.5" /> Manual order
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       )}
 
