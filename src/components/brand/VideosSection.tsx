@@ -73,8 +73,9 @@ const getThumbnail = (url: string, type: VideoType): string | null => {
   return null;
 };
 
-export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtitleChange }: VideosSectionProps) => {
+export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtitleChange, entityName, entityType, industry, websiteUrl }: VideosSectionProps) => {
   const canEdit = Boolean(onVideosChange);
+  const canDiscover = canEdit && Boolean(entityName);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
@@ -86,6 +87,12 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
     type: 'youtube',
     description: ''
   });
+
+  // AI discovery state
+  const [discoverOpen, setDiscoverOpen] = useState(false);
+  const [discovering, setDiscovering] = useState(false);
+  const [discovered, setDiscovered] = useState<DiscoveredVideo[]>([]);
+  const [selected, setSelected] = useState<Record<number, boolean>>({});
 
   const handleAddVideo = () => {
     if (!newVideo.title || !newVideo.url || !onVideosChange) return;
