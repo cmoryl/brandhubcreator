@@ -192,44 +192,50 @@ export const ApprovedImagerySection = ({
       )}
 
       {canEdit && (
-        <>
-          <ShutterstockSearchDialog
-            open={searchOpen}
-            onOpenChange={setSearchOpen}
-            onApproveImages={handleApproveImages}
-            targetSectionName={targetSection?.name || ''}
-            entityId={entityId}
-            entityType={entityType}
-            organizationId={organizationId}
-          />
-          <DropboxBrowserDialog
-            open={dropboxOpen}
-            onOpenChange={setDropboxOpen}
-            folderPath={targetSection?.dropboxFolderPath || ''}
-            onFolderPathChange={handleDropboxFolderPathChange}
-            onImportImages={handleApproveImages}
-            sectionName={targetSection?.name || ''}
-            entityId={entityId}
-            entityType={entityType}
-          />
-          <WebsiteImageScanner
-            open={websiteOpen}
-            onOpenChange={setWebsiteOpen}
-            onImportImages={(images) => {
-              if (!targetSectionId) return;
-              const approved: ApprovedImage[] = images.map((img) => ({
-                id: crypto.randomUUID(),
-                url: img.url,
-                thumbnailUrl: img.url,
-                title: img.name,
-                source: 'website',
-                category: targetSection?.name || '',
-                approvedAt: new Date().toISOString(),
-              }));
-              handleApproveImages(approved);
-            }}
-          />
-        </>
+        <Suspense fallback={null}>
+          {searchOpen && (
+            <ShutterstockSearchDialog
+              open={searchOpen}
+              onOpenChange={setSearchOpen}
+              onApproveImages={handleApproveImages}
+              targetSectionName={targetSection?.name || ''}
+              entityId={entityId}
+              entityType={entityType}
+              organizationId={organizationId}
+            />
+          )}
+          {dropboxOpen && (
+            <DropboxBrowserDialog
+              open={dropboxOpen}
+              onOpenChange={setDropboxOpen}
+              folderPath={targetSection?.dropboxFolderPath || ''}
+              onFolderPathChange={handleDropboxFolderPathChange}
+              onImportImages={handleApproveImages}
+              sectionName={targetSection?.name || ''}
+              entityId={entityId}
+              entityType={entityType}
+            />
+          )}
+          {websiteOpen && (
+            <WebsiteImageScanner
+              open={websiteOpen}
+              onOpenChange={setWebsiteOpen}
+              onImportImages={(images) => {
+                if (!targetSectionId) return;
+                const approved: ApprovedImage[] = images.map((img) => ({
+                  id: crypto.randomUUID(),
+                  url: img.url,
+                  thumbnailUrl: img.url,
+                  title: img.name,
+                  source: 'website',
+                  category: targetSection?.name || '',
+                  approvedAt: new Date().toISOString(),
+                }));
+                handleApproveImages(approved);
+              }}
+            />
+          )}
+        </Suspense>
       )}
     </div>
   );
