@@ -155,3 +155,6 @@ verify_jwt = false
 [functions.discover-videos]
 verify_jwt = false
 
+[functions.generate-sub-services]
+verify_jwt = false
+
