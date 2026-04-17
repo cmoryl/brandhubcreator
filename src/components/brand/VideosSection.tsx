@@ -1,21 +1,37 @@
 import { useState, useRef } from 'react';
-import { Video, Plus, Trash2, ExternalLink, Play, Link2, ImagePlus, Loader2 } from 'lucide-react';
+import { Video, Plus, Trash2, ExternalLink, Play, Link2, ImagePlus, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { BrandVideo } from '@/types/brand';
 import { SectionHeader } from './SectionHeader';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
+interface DiscoveredVideo {
+  title: string;
+  description?: string;
+  url: string;
+  type?: 'youtube' | 'vimeo' | 'direct';
+  sourceNote?: string;
+}
 
 interface VideosSectionProps {
   videos: BrandVideo[];
   onVideosChange?: (videos: BrandVideo[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  /** Entity context for AI discovery — required for the AI button to appear */
+  entityName?: string;
+  entityType?: 'brand' | 'product' | 'event';
+  industry?: string;
+  websiteUrl?: string;
 }
 
 type VideoType = 'youtube' | 'vimeo' | 'direct';
@@ -57,8 +73,9 @@ const getThumbnail = (url: string, type: VideoType): string | null => {
   return null;
 };
 
-export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtitleChange }: VideosSectionProps) => {
+export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtitleChange, entityName, entityType, industry, websiteUrl }: VideosSectionProps) => {
   const canEdit = Boolean(onVideosChange);
+  const canDiscover = canEdit && Boolean(entityName);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
@@ -70,6 +87,80 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
     type: 'youtube',
     description: ''
   });
+
+  // AI discovery state
+  const [discoverOpen, setDiscoverOpen] = useState(false);
+  const [discovering, setDiscovering] = useState(false);
+  const [discovered, setDiscovered] = useState<DiscoveredVideo[]>([]);
+  const [selected, setSelected] = useState<Record<number, boolean>>({});
+
+  const runDiscovery = async () => {
+    if (!entityName) return;
+    setDiscovering(true);
+    setDiscovered([]);
+    setSelected({});
+    try {
+      const { data, error } = await supabase.functions.invoke('discover-videos', {
+        body: {
+          entityName,
+          entityType,
+          industry,
+          websiteUrl,
+          existingVideos: videos.map((v) => ({ title: v.title, url: v.url })),
+          limit: 10,
+        },
+      });
+      if (error) throw error;
+      const found: DiscoveredVideo[] = Array.isArray(data?.videos) ? data.videos : [];
+      setDiscovered(found);
+      setSelected(Object.fromEntries(found.map((_, i) => [i, true])));
+      if (found.length === 0) {
+        toast.info('No new videos found. Your list looks up to date!');
+      } else {
+        toast.success(`Found ${found.length} potential video${found.length === 1 ? '' : 's'}`);
+      }
+    } catch (e) {
+      console.error('discover-videos failed', e);
+      toast.error(e instanceof Error ? e.message : 'Discovery failed');
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
+  const importSelected = () => {
+    if (!onVideosChange) return;
+    const toAdd = discovered
+      .filter((_, i) => selected[i])
+      .map<BrandVideo>((v) => {
+        const type = v.type || detectVideoType(v.url);
+        return {
+          id: crypto.randomUUID(),
+          title: v.title,
+          url: v.url,
+          type,
+          description: v.description || '',
+          thumbnail: getThumbnail(v.url, type) || undefined,
+        };
+      });
+    if (!toAdd.length) {
+      toast.info('Nothing selected');
+      return;
+    }
+    onVideosChange([...videos, ...toAdd]);
+    toast.success(`Added ${toAdd.length} video${toAdd.length === 1 ? '' : 's'}`);
+    setDiscoverOpen(false);
+    setDiscovered([]);
+    setSelected({});
+  };
+
+  const openDiscovery = () => {
+    setDiscoverOpen(true);
+    if (discovered.length === 0 && !discovering) {
+      void runDiscovery();
+    }
+  };
+
+  const selectedCount = Object.values(selected).filter(Boolean).length;
 
   const handleAddVideo = () => {
     if (!newVideo.title || !newVideo.url || !onVideosChange) return;
@@ -167,57 +258,70 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
             />
           </div>
         </div>
-        {canEdit && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Video
-              </Button>
-            </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Video</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="video-title">Title</Label>
-                <Input
-                  id="video-title"
-                  placeholder="Video title"
-                  value={newVideo.title}
-                  onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="video-url">Video URL</Label>
-                <Input
-                  id="video-url"
-                  placeholder="https://youtube.com/watch?v=... or direct .mp4 link"
-                  value={newVideo.url}
-                  onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Supports YouTube, Vimeo, or direct video URLs
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="video-description">Description (optional)</Label>
-                <Textarea
-                  id="video-description"
-                  placeholder="Brief description of the video"
-                  value={newVideo.description}
-                  onChange={(e) => setNewVideo({ ...newVideo, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-              <Button onClick={handleAddVideo} className="w-full">
-                Add Video
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {canDiscover && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openDiscovery}
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4 text-primary" />
+              Discover with AI
+            </Button>
+          )}
+          {canEdit && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Video
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Video</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="video-title">Title</Label>
+                    <Input
+                      id="video-title"
+                      placeholder="Video title"
+                      value={newVideo.title}
+                      onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="video-url">Video URL</Label>
+                    <Input
+                      id="video-url"
+                      placeholder="https://youtube.com/watch?v=... or direct .mp4 link"
+                      value={newVideo.url}
+                      onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Supports YouTube, Vimeo, or direct video URLs
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="video-description">Description (optional)</Label>
+                    <Textarea
+                      id="video-description"
+                      placeholder="Brief description of the video"
+                      value={newVideo.description}
+                      onChange={(e) => setNewVideo({ ...newVideo, description: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+                  <Button onClick={handleAddVideo} className="w-full">
+                    Add Video
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
       </div>
 
       {videos.length === 0 ? (
@@ -335,6 +439,116 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
           })}
         </div>
       )}
+
+      {/* AI Discovery dialog */}
+      <Dialog open={discoverOpen} onOpenChange={setDiscoverOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Discover Videos with AI
+            </DialogTitle>
+            <DialogDescription>
+              AI will scan public sources for videos related to{' '}
+              <span className="font-medium text-foreground">{entityName}</span>
+              {entityType ? ` (${entityType})` : ''} that aren't already in your list.
+            </DialogDescription>
+          </DialogHeader>
+
+          {discovering ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              <p className="text-sm text-muted-foreground">Searching for new videos…</p>
+            </div>
+          ) : discovered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
+              <Video className="h-10 w-10 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">
+                No new videos found. Try refreshing or adjusting your brand info.
+              </p>
+              <Button size="sm" variant="outline" onClick={runDiscovery} className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Search again
+              </Button>
+            </div>
+          ) : (
+            <ScrollArea className="max-h-[55vh] pr-4 -mr-4">
+              <div className="space-y-2">
+                {discovered.map((v, i) => (
+                  <label
+                    key={`${v.url}-${i}`}
+                    className="flex items-start gap-3 p-3 rounded-lg border hover:border-primary/50 transition-colors cursor-pointer"
+                  >
+                    <Checkbox
+                      checked={!!selected[i]}
+                      onCheckedChange={(c) =>
+                        setSelected((s) => ({ ...s, [i]: Boolean(c) }))
+                      }
+                      className="mt-0.5"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-sm">{v.title}</p>
+                        {v.type && (
+                          <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                            {v.type}
+                          </span>
+                        )}
+                      </div>
+                      {v.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                          {v.description}
+                        </p>
+                      )}
+                      <a
+                        href={v.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1 break-all"
+                      >
+                        {v.url}
+                        <ExternalLink className="h-3 w-3 shrink-0" />
+                      </a>
+                      {v.sourceNote && (
+                        <p className="text-[11px] text-muted-foreground/80 mt-1 italic">
+                          {v.sourceNote}
+                        </p>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={runDiscovery}
+              disabled={discovering}
+              className="gap-2"
+            >
+              {discovering ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              Refresh
+            </Button>
+            <Button
+              size="sm"
+              onClick={importSelected}
+              disabled={discovering || selectedCount === 0}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add {selectedCount > 0 ? `${selectedCount} ` : ''}Video{selectedCount === 1 ? '' : 's'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

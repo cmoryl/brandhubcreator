@@ -665,7 +665,7 @@ const ProductEditor = () => {
       case 'website': return <WebsiteSection websites={currentProduct.websites} onWebsitesChange={editHandler((websites) => handleUpdateProduct({ websites }))} entityType="product" entityId={currentProduct.id} />;
       case 'signatures': return <SignaturesSection signatures={currentProduct.signatures} onSignaturesChange={editHandler((signatures) => handleUpdateProduct({ signatures }))} emailBanners={currentProduct.emailBanners || []} onEmailBannersChange={editHandler((emailBanners) => handleUpdateProduct({ emailBanners }))} />;
       case 'qr': return <QRSection qr={currentProduct.qr} onQRChange={editHandler((qr) => handleUpdateProduct({ qr }))} entityType="product" entityId={currentProduct.id} logos={currentProduct.logos} />;
-      case 'videos': return <VideosSection videos={currentProduct.videos} onVideosChange={editHandler((videos) => handleUpdateProduct({ videos }))} />;
+      case 'videos': return <VideosSection videos={currentProduct.videos} onVideosChange={editHandler((videos) => handleUpdateProduct({ videos }))} entityName={currentProduct.hero?.name} entityType="product" industry={(currentProduct as any).industry} websiteUrl={(currentProduct as any).websites?.[0]?.url} />;
       case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={editHandler((assets) => handleUpdateProduct({ assets }))} websiteUrl={currentProduct.websites?.[0]?.url} entityId={currentProduct.id} entityType="product" />;
       case 'misuse': return <MisuseSection misuse={currentProduct.misuse} onMisuseChange={editHandler((misuse) => handleUpdateProduct({ misuse }))} entityId={currentProduct.id} entityType="product" />;
       case 'casestudies':
