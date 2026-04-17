@@ -221,17 +221,34 @@ export const ApprovedImagerySection = ({
               open={websiteOpen}
               onOpenChange={setWebsiteOpen}
               onImportImages={(images) => {
-                if (!targetSectionId) return;
+                console.log('[ApprovedImagery] Website import received:', images.length, 'images, targetSectionId:', targetSectionId);
+                if (!targetSectionId) {
+                  console.warn('[ApprovedImagery] No target section — aborting import');
+                  return;
+                }
+                if (!images.length) {
+                  console.warn('[ApprovedImagery] No images selected — aborting');
+                  return;
+                }
+                const currentSection = sections.find(s => s.id === targetSectionId);
                 const approved: ApprovedImage[] = images.map((img) => ({
                   id: crypto.randomUUID(),
                   url: img.url,
                   thumbnailUrl: img.url,
                   title: img.name,
                   source: 'website',
-                  category: targetSection?.name || '',
+                  category: currentSection?.name || '',
                   approvedAt: new Date().toISOString(),
                 }));
-                handleApproveImages(approved);
+                console.log('[ApprovedImagery] Built approved images, calling updateSections');
+                // Inline update to avoid any stale-closure issues with handleApproveImages
+                const newSections = sections.map(s => {
+                  if (s.id !== targetSectionId) return s;
+                  const existingIds = new Set(s.images.map(img => img.id));
+                  const newImages = approved.filter(img => !existingIds.has(img.id));
+                  return { ...s, images: [...s.images, ...newImages] };
+                });
+                onApprovedImageryChange?.({ sections: newSections });
               }}
             />
           )}
