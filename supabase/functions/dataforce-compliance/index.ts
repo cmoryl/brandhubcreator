@@ -214,7 +214,7 @@ Return your analysis as a JSON object with this structure:
                     items: {
                       type: "object",
                       properties: {
-                        type: { type: "string", enum: ["color", "typography", "logo", "imagery", "messaging", "layout", "inclusion"] },
+                        type: { type: "string", enum: ["color", "typography", "logo", "imagery", "messaging", "layout", "inclusion", "geometry"] },
                         severity: { type: "string", enum: ["critical", "warning", "info"] },
                         assetName: { type: "string" },
                         description: { type: "string" },

@@ -107,7 +107,8 @@ async function captureEntitySnapshot(supabaseUrl: string, headers: Record<string
       { headers }
     );
     const complianceData = await complianceRes.json();
-    const complianceScore = complianceData?.[0]?.compliance_score || null;
+    // Use ?? not || so a legitimate 0 score is preserved instead of being coerced to null
+    const complianceScore = complianceData?.[0]?.compliance_score ?? null;
 
     // Fetch latest bias scan
     const biasRes = await fetch(
@@ -115,7 +116,7 @@ async function captureEntitySnapshot(supabaseUrl: string, headers: Record<string
       { headers }
     );
     const biasData = await biasRes.json();
-    const biasScore = biasData?.[0]?.inclusion_score || null;
+    const biasScore = biasData?.[0]?.inclusion_score ?? null;
     const biasDetails = biasData?.[0] ? {
       language: biasData[0].language_score,
       visual: biasData[0].visual_score,
@@ -129,7 +130,7 @@ async function captureEntitySnapshot(supabaseUrl: string, headers: Record<string
       { headers }
     );
     const websiteData = await websiteRes.json();
-    const websiteScore = websiteData?.[0]?.overall_score || null;
+    const websiteScore = websiteData?.[0]?.overall_score ?? null;
 
     // Fetch latest competitive report
     const competitiveRes = await fetch(
@@ -137,7 +138,7 @@ async function captureEntitySnapshot(supabaseUrl: string, headers: Record<string
       { headers }
     );
     const competitiveData = await competitiveRes.json();
-    const competitiveScore = competitiveData?.[0]?.score || null;
+    const competitiveScore = competitiveData?.[0]?.score ?? null;
 
     // Fetch latest social metrics
     const socialRes = await fetch(
@@ -154,8 +155,9 @@ async function captureEntitySnapshot(supabaseUrl: string, headers: Record<string
     const prevData = await prevRes.json();
     const prev = prevData?.[0];
 
-    // Calculate brand health as weighted average of available scores
-    const scores = [complianceScore, biasScore, websiteScore, competitiveScore].filter(s => s !== null);
+    // Calculate brand health as average of available scores. Use explicit null check
+    // so a legitimate 0 score is included in the average.
+    const scores = [complianceScore, biasScore, websiteScore, competitiveScore].filter(s => s !== null && s !== undefined);
     const brandHealthScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
 
     // Calculate deltas
