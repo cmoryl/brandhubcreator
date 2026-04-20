@@ -39,8 +39,8 @@ export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, in
   const fullscreenOpen = open ?? internalFullscreen;
   const setFullscreenOpen = onOpenChange ?? setInternalFullscreen;
 
-  const embedUrl = buildEmbedUrl(divisionId);
-  const externalUrl = buildExternalUrl(divisionId);
+  const embedUrl = buildEmbedUrl(divisionId, variantLabel);
+  const externalUrl = buildExternalUrl(divisionId, variantLabel);
 
   return (
     <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
