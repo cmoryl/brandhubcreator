@@ -119,11 +119,11 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-border/40 bg-card transition-all hover:border-primary/30 hover:shadow-2xl w-full">
       <motion.button
-        onClick={() => setBooth3DOpen(true)}
+        onClick={() => onOpenDetail()}
         className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         whileHover={{ y: -2, scale: 1.005 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        title="Open 3D booth viewer"
+        title="Open booth catalog & variants"
       >
         <div className="relative aspect-[16/10] overflow-hidden">
           {cardImage ? (
@@ -169,7 +169,7 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
             )}
             <Badge variant="secondary" className="bg-white/90 text-foreground text-xs backdrop-blur-sm border-none gap-1">
               <ExternalLink className="h-3 w-3" />
-              Open 3D Booth
+              View Variants
             </Badge>
           </div>
           {isEditable && (
@@ -216,7 +216,7 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
           )}
         </div>
 
-        {/* 3D Booth viewer (BoothHub embed) — controlled by card click */}
+        {/* 3D Booth viewer (BoothHub embed) — controlled by 3D button */}
         <Booth3DEmbed
           divisionId={booth.divisionId}
           divisionName={booth.divisionName}
@@ -230,12 +230,21 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
         <div className="flex items-center gap-1.5 flex-wrap">
           <Button
             size="sm"
-            variant="outline"
+            variant="default"
             className="h-7 text-xs gap-1.5"
             onClick={(e) => { e.stopPropagation(); onOpenDetail(); }}
           >
             <PenLine className="h-3 w-3" />
-            View details
+            View Variants
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs gap-1.5"
+            onClick={(e) => { e.stopPropagation(); setBooth3DOpen(true); }}
+          >
+            <ExternalLink className="h-3 w-3" />
+            3D Booth
           </Button>
         </div>
 
