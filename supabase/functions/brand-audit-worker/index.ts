@@ -88,23 +88,37 @@ function sectionCompletenessFromSummary(summary: Record<string, unknown>, key: s
     case 'qr': return summary.hasQrUrl ? 1 : 0;
     case 'colors': {
       const c = getCount(summary, key);
-      return c >= 6 ? 1 : c >= 4 ? 0.8 : c >= 2 ? 0.6 : c > 0 ? 0.3 : 0;
+      return c >= 6 ? 1 : c >= 4 ? 0.85 : c >= 2 ? 0.7 : c > 0 ? 0.4 : 0;
     }
     case 'typography': {
       const c = getCount(summary, key);
-      return c >= 3 ? 1 : c >= 2 ? 0.7 : c > 0 ? 0.5 : 0;
+      return c >= 3 ? 1 : c >= 2 ? 0.85 : c > 0 ? 0.65 : 0;
     }
     case 'logos': {
       const c = getCount(summary, key);
-      return c >= 4 ? 1 : c >= 2 ? 0.7 : c > 0 ? 0.4 : 0;
+      return c >= 4 ? 1 : c >= 2 ? 0.85 : c > 0 ? 0.6 : 0;
     }
     case 'values': case 'services': {
       const c = getCount(summary, key);
-      return c >= 4 ? 1 : c >= 2 ? 0.6 : c > 0 ? 0.3 : 0;
+      return c >= 4 ? 1 : c >= 2 ? 0.75 : c > 0 ? 0.4 : 0;
+    }
+    // Sections where having ANY entry is functionally complete (1 website, 1 signature, etc.)
+    case 'websites': case 'signatures': case 'social': {
+      const c = getCount(summary, key);
+      return c >= 2 ? 1 : c > 0 ? 0.9 : 0;
+    }
+    // Collateral/asset sections — a few items = complete
+    case 'templates': case 'brochures': case 'presentationTemplates':
+    case 'imagery': case 'imageAssets': case 'socialAssets':
+    case 'awards': case 'statistics': case 'clientLogos': case 'sponsorLogos':
+    case 'brandIcons': case 'iconography': case 'misuse':
+    case 'gradients': case 'patterns': case 'colorCombinations': {
+      const c = getCount(summary, key);
+      return c >= 3 ? 1 : c >= 2 ? 0.85 : c > 0 ? 0.7 : 0;
     }
     default: {
       const c = getCount(summary, key);
-      return c >= 3 ? 1 : c >= 2 ? 0.7 : c > 0 ? 0.4 : 0;
+      return c >= 3 ? 1 : c >= 2 ? 0.8 : c > 0 ? 0.6 : 0;
     }
   }
 }
@@ -348,7 +362,13 @@ For the biasReview section, apply Deep Intelligence modules:
 - Accessibility Considerations: Apply EAA 2025/2026 baseline — WCAG 2.2 readiness, alt text, color-only information, typography readability.
 - Regulatory Compliance: Score against EAA mandatory scope.
 
-Score based on ACTUAL section data provided. Empty sections should significantly reduce relevant category scores. Be specific — reference actual section names and completion levels in findings.`;
+Score based on ACTUAL section data provided. Empty sections should significantly reduce relevant category scores. Be specific — reference actual section names and completion levels in findings.
+
+CRITICAL ACCURACY RULES:
+- ONLY flag a section as missing/incomplete if its completion percentage in the Section Analysis is below 70%. Do NOT claim a section is empty or missing if the data shows it filled.
+- For sections like Website, Email Signatures, Social Profiles: a single entry counts as functionally complete (90%+).
+- Quote the exact percentage from the Section Analysis when making a finding (e.g., "Website is 90% complete with 1 entry" — not "Website section is missing").
+- Do NOT invent missing items that aren't reflected in the section completeness data.
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
