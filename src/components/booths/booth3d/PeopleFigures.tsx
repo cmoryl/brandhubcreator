@@ -195,7 +195,7 @@ export function PeopleFigures({
         const character = getCharacterBySeed(fig.seed || i, fig.isStaff);
         const url = spriteUrls[character.id];
         const figHeight = 1.62 + ((fig.seed || 0) % 7) * 0.03;
-        if (url) {
+        if (useBillboards && url) {
           return (
             <BillboardFigure
               key={i}
@@ -226,7 +226,7 @@ export function PeopleFigures({
           return spriteUrls[char.id];
         }).filter(Boolean) as string[];
 
-        if (urls.length >= 2) {
+        if (useBillboards && urls.length >= 2) {
           return (
             <BillboardConversationGroup
               key={`conv-${i}`}
