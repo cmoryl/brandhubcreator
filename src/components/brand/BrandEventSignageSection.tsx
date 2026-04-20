@@ -1231,7 +1231,7 @@ export const BrandEventSignageSection = ({
                       if (division) {
                         setDetailDivision(division);
                       } else {
-                        const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}&guest=1&public=1`;
+                        const url = buildBoothHubPresenterUrl(booth.divisionId);
                         window.open(url, '_blank', 'noopener,noreferrer');
                       }
                     }}

@@ -135,9 +135,3 @@ export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, in
     </div>
   );
 };
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
