@@ -378,7 +378,162 @@ async function enrichDemo(demoId: string, jobId?: string): Promise<{ demo: strin
     ],
   };
 
-  await patchJob(jobId, { progress: 90 });
+  // ─── 4. SECTION CARD IMAGERY (websites, QR, videos, brochures, templates, social, presentations) ─
+  const cardStyle = `Style: clean modern flat design, brand colors ${primary} and ${secondary}, no text, no logos, no watermarks, professional, high contrast, 16:9 composition.`;
+
+  // 4a. WEBSITES — generate website screenshot mockups for each existing website
+  const existingWebsites = (guide.websites as any[]) || [];
+  const websitesEnriched: any[] = [];
+  for (let i = 0; i < Math.max(existingWebsites.length, 2); i++) {
+    const w = existingWebsites[i] || { id: `w-${i}`, label: i === 0 ? "Main Website" : "Documentation", url: `https://${demo.slug}.example.com` };
+    const screenshotPrompt = `Modern website homepage screenshot mockup for "${demo.name}" (${industry}), shown on a desktop browser frame. Clean hero section with abstract ${primary} accents, navigation bar at top, content blocks below. ${cardStyle}`;
+    const screenshotUrl = await genAndUpload(screenshotPrompt, demo.slug, `website-${i}`);
+    websitesEnriched.push({
+      id: w.id || `w-${i}`,
+      label: w.label || `Website ${i + 1}`,
+      url: w.url || `https://${demo.slug}.example.com`,
+      screenshotUrl: screenshotUrl || w.screenshotUrl,
+    });
+  }
+  guide.websites = websitesEnriched;
+
+  // 4b. QR CODES — 3 QR codes with generated visual placeholders
+  const qrConcepts = demo.type === "event"
+    ? [{ label: "Event Registration", purpose: "register" }, { label: "Schedule & Agenda", purpose: "agenda" }, { label: "Speaker Directory", purpose: "speakers" }]
+    : [{ label: "Main Website", purpose: "website" }, { label: "Product Demo", purpose: "demo" }, { label: "Contact Sales", purpose: "sales" }];
+  const qrResults: any[] = [];
+  for (let i = 0; i < qrConcepts.length; i++) {
+    const qrPrompt = `Square QR code style graphic on solid white background — geometric black and ${primary} square pixel pattern arranged in a stylized QR code grid layout, with rounded corner squares in three corners. Clean, scannable look, centered, high contrast. No text.`;
+    const url = await genAndUpload(qrPrompt, demo.slug, `qr-${i}`);
+    qrResults.push({
+      id: `qr-${i}`,
+      label: qrConcepts[i].label,
+      url: `https://${demo.slug}.example.com/${qrConcepts[i].purpose}`,
+      imageUrl: url,
+      description: `QR code for ${qrConcepts[i].label.toLowerCase()} — use on print, signage, and digital materials.`,
+    });
+  }
+  guide.qrCodes = qrResults;
+
+  // 4c. VIDEOS — 3 video preview cards with thumbnails
+  const videoConcepts = [
+    { title: `${demo.name} Brand Story`, description: "Our journey, mission, and what drives us forward.", duration: "2:30" },
+    { title: demo.type === "event" ? "Event Highlights Reel" : "Product Walkthrough", description: demo.type === "event" ? "Best moments from past editions and what to expect this year." : `See ${demo.name} in action — key features and real workflows.`, duration: "3:45" },
+    { title: "Customer Stories", description: "How real customers use and benefit from our solutions.", duration: "4:12" },
+  ];
+  const videoResults: any[] = [];
+  for (let i = 0; i < videoConcepts.length; i++) {
+    const thumbPrompt = `Cinematic video thumbnail for "${videoConcepts[i].title}" related to ${demo.name} (${industry}). Atmospheric scene with ${primary} accent lighting, depth of field, professional storytelling feel. ${cardStyle}`;
+    const thumbnail = await genAndUpload(thumbPrompt, demo.slug, `video-${i}`);
+    videoResults.push({
+      id: `vid-${i}`,
+      type: "youtube",
+      title: videoConcepts[i].title,
+      description: videoConcepts[i].description,
+      duration: videoConcepts[i].duration,
+      url: `https://www.youtube.com/watch?v=demo${i}`,
+      thumbnail,
+    });
+  }
+  guide.videos = videoResults;
+
+  await patchJob(jobId, { progress: 82 });
+
+  // 4d. BROCHURES — add thumbnailUrl to each brochure (use guide.brochures already populated)
+  const brochuresWithThumbs: any[] = [];
+  for (let i = 0; i < (guide.brochures || []).length; i++) {
+    const b = guide.brochures[i];
+    const brochurePrompt = `Front cover of a corporate ${b.category || "brochure"} titled "${b.title}" for ${demo.name}. Modern minimalist layout with ${primary} accent stripe, abstract geometric shapes, premium print design feel. ${cardStyle}`;
+    const thumbnailUrl = await genAndUpload(brochurePrompt, demo.slug, `brochure-${i}`);
+    brochuresWithThumbs.push({
+      ...b,
+      thumbnailUrl,
+      previewUrl: thumbnailUrl,
+      fileType: "pdf",
+      fileSize: `${(b.pages || 12) * 0.4}MB`,
+    });
+  }
+  guide.brochures = brochuresWithThumbs;
+
+  // 4e. TEMPLATES — 4 templates with thumbnails + specifications
+  const templateConcepts = [
+    { name: "Presentation Template", fileType: "pptx", category: "Presentation", description: "Master slide deck with cover, content, and closing slide layouts following brand guidelines.", specs: { dimensions: "16:9 widescreen", slides: "20+ master layouts", fonts: "Embedded brand fonts", colorMode: "RGB" } },
+    { name: "Email Signature", fileType: "html", category: "Email", description: "HTML email signature with logo, contact details, and social links — Outlook + Gmail compatible.", specs: { dimensions: "600x150px", format: "HTML + inline CSS", logo: "Embedded SVG", compatibility: "Outlook, Gmail, Apple Mail" } },
+    { name: "Letterhead", fileType: "docx", category: "Document", description: "Branded letterhead document with header, footer, and pre-styled paragraph styles.", specs: { dimensions: "US Letter / A4", margins: "1\" all sides", header: "Logo + tagline", footer: "Address + contact" } },
+    { name: "Social Post Template", fileType: "psd", category: "Social", description: "Layered social media post template optimized for LinkedIn, Instagram, and Twitter.", specs: { dimensions: "1080x1080px", layers: "Editable text + image masks", fonts: "Brand fonts included", export: "PNG, JPG, MP4" } },
+  ];
+  const templateResults: any[] = [];
+  for (let i = 0; i < templateConcepts.length; i++) {
+    const tc = templateConcepts[i];
+    const tplPrompt = `Preview thumbnail of a ${tc.name} for ${demo.name} — clean modern layout sample, ${primary} accents, professional design system aesthetic. ${cardStyle}`;
+    const thumbnailUrl = await genAndUpload(tplPrompt, demo.slug, `template-${i}`);
+    templateResults.push({
+      id: `tmpl-${i}`,
+      name: tc.name,
+      category: tc.category,
+      description: tc.description,
+      fileType: tc.fileType,
+      fileSize: ["5.2 MB", "12 KB", "84 KB", "28 MB"][i],
+      thumbnailUrl,
+      previewUrl: thumbnailUrl,
+      specifications: tc.specs,
+    });
+  }
+  guide.templates = templateResults;
+
+  await patchJob(jobId, { progress: 88 });
+
+  // 4f. SOCIAL ASSETS — 4 platforms with preview imagery
+  const socialPlatforms = [
+    { platform: "LinkedIn", postSize: "1200x1200", coverSize: "1584x396", storySize: "1080x1920" },
+    { platform: "Instagram", postSize: "1080x1080", coverSize: "1080x566", storySize: "1080x1920" },
+    { platform: "Twitter/X", postSize: "1600x900", coverSize: "1500x500", storySize: "1080x1920" },
+    { platform: "Facebook", postSize: "1200x630", coverSize: "1640x856", storySize: "1080x1920" },
+  ];
+  const socialResults: any[] = [];
+  for (let i = 0; i < socialPlatforms.length; i++) {
+    const sp = socialPlatforms[i];
+    const socialPrompt = `Branded ${sp.platform} social media post mockup for ${demo.name}. Clean composition with ${primary} brand color, abstract imagery, room for headline overlay. ${cardStyle}`;
+    const previewImageUrl = await genAndUpload(socialPrompt, demo.slug, `social-${i}`);
+    socialResults.push({
+      id: `sa-${i}`,
+      platform: sp.platform,
+      postSize: sp.postSize,
+      coverSize: sp.coverSize,
+      storySize: sp.storySize,
+      directive: `Use brand colors (${primary}, ${secondary}) and approved imagery. Logo bottom-right with 16px clear space.`,
+      textLegibility: "High contrast required. Minimum 24pt headline, 16pt body. Test against busy backgrounds.",
+      previewImageUrl,
+    });
+  }
+  guide.socialAssets = socialResults;
+
+  // 4g. PRESENTATION TEMPLATES — 3 decks with cover thumbnails
+  const presentationConcepts = [
+    { name: "Brand Overview Deck", description: "Master corporate deck for sales, partnerships, and onboarding presentations.", slides: 24 },
+    { name: demo.type === "event" ? "Event Sponsor Deck" : "Product Pitch Deck", description: demo.type === "event" ? "Sponsorship tiers, audience demographics, activation opportunities." : "Product positioning, key features, ROI for prospect meetings.", slides: 18 },
+    { name: "Quarterly Business Review", description: "Internal QBR template with KPI dashboards, milestone tracking, and roadmap layouts.", slides: 32 },
+  ];
+  const presentationResults: any[] = [];
+  for (let i = 0; i < presentationConcepts.length; i++) {
+    const pc = presentationConcepts[i];
+    const presPrompt = `Cover slide of a "${pc.name}" presentation for ${demo.name}. Bold modern title slide with ${primary} accent, geometric layout, premium corporate design. ${cardStyle}`;
+    const cardImageUrl = await genAndUpload(presPrompt, demo.slug, `presentation-${i}`);
+    presentationResults.push({
+      id: `pt-${i}`,
+      name: pc.name,
+      description: pc.description,
+      category: "Presentation",
+      fileType: "pptx",
+      fileSize: `${pc.slides * 0.6}MB`,
+      slideCount: pc.slides,
+      cardImageUrl,
+      thumbnailUrl: cardImageUrl,
+    });
+  }
+  guide.presentationTemplates = presentationResults;
+
+  await patchJob(jobId, { progress: 95 });
 
   // ─── 4. SAVE ────────────────────────────────────────────────────────────
   const upd = await fetch(`${SUPABASE_URL}/rest/v1/demo_brands?id=eq.${demoId}`, {
