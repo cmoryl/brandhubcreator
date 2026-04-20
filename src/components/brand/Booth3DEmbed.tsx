@@ -20,21 +20,23 @@ interface Booth3DEmbedProps {
 
 const BOOTHHUB_BASE = 'https://boothhub.lovable.app';
 
+// Presenter mode: read-only 3D viewer with characters, cameras, and interactivity —
+// no editing tools, no asset assignment placeholders, no wall/asset toggles.
+const PRESENTER_PARAMS = 'embed=1&public=1&presenter=1&readonly=1&hideEditor=1&hideUI=1&characters=1&view=3d';
+const EXTERNAL_PARAMS = 'embed=1&public=1&presenter=1&readonly=1&hideEditor=1&characters=1';
+
 const buildEmbedUrl = (divisionId: string, variantLabel?: string) => {
   if (variantLabel) {
-    return `${BOOTHHUB_BASE}/booths/${encodeURIComponent(divisionId)}/variant/${encodeURIComponent(variantLabel)}?embed=1&public=1&view=3d`;
+    return `${BOOTHHUB_BASE}/booths/${encodeURIComponent(divisionId)}/variant/${encodeURIComponent(variantLabel)}?${PRESENTER_PARAMS}`;
   }
-
-  // Fallback for non-variant booth links.
-  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&embed=1&view=3d&guest=1&public=1`;
+  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&guest=1&${PRESENTER_PARAMS}`;
 };
 
 const buildExternalUrl = (divisionId: string, variantLabel?: string) => {
   if (variantLabel) {
-    return `${BOOTHHUB_BASE}/booths/${encodeURIComponent(divisionId)}/variant/${encodeURIComponent(variantLabel)}?embed=1&public=1`;
+    return `${BOOTHHUB_BASE}/booths/${encodeURIComponent(divisionId)}/variant/${encodeURIComponent(variantLabel)}?${EXTERNAL_PARAMS}`;
   }
-
-  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&guest=1&public=1`;
+  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&guest=1&${EXTERNAL_PARAMS}`;
 };
 
 export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, inline = true, open, onOpenChange, hideTriggers = false }: Booth3DEmbedProps) => {
