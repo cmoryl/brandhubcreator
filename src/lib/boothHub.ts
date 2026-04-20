@@ -7,6 +7,11 @@ const PRESENTER_QUERY = new URLSearchParams({
   readonly: '1',
   hideEditor: '1',
   hideUI: '1',
+  hideHeader: '1',
+  hideNav: '1',
+  hideFooter: '1',
+  hideChrome: '1',
+  chromeless: '1',
   characters: '1',
   view: '3d',
 });
