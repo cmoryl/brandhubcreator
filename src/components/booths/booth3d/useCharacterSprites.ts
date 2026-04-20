@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CHARACTER_CATALOG, type CharacterSprite } from './BillboardFigure';
+import { DEFAULT_CHARACTER_SPRITES } from './defaultCharacterSprites';
 
 interface SpriteState {
   /** Map of characterId → public URL */
@@ -23,13 +24,13 @@ interface GenerateSpriteOptions {
 
 export function useCharacterSprites() {
   const [state, setState] = useState<SpriteState>({
-    sprites: {},
+    sprites: DEFAULT_CHARACTER_SPRITES,
     generating: new Set(),
-    ready: false,
-    count: 0,
+    ready: true,
+    count: Object.keys(DEFAULT_CHARACTER_SPRITES).length,
   });
   const mountedRef = useRef(true);
-  const spritesRef = useRef<Record<string, string>>({});
+  const spritesRef = useRef<Record<string, string>>(DEFAULT_CHARACTER_SPRITES);
 
   const getSpriteDirectory = useCallback(async () => {
     const {
@@ -111,7 +112,12 @@ export function useCharacterSprites() {
       const spriteDir = await getSpriteDirectory();
       if (!spriteDir) {
         if (mountedRef.current) {
-          setState((prev) => ({ ...prev, ready: true }));
+          setState((prev) => ({
+            ...prev,
+            sprites: { ...DEFAULT_CHARACTER_SPRITES, ...prev.sprites },
+            ready: true,
+            count: Object.keys({ ...DEFAULT_CHARACTER_SPRITES, ...prev.sprites }).length,
+          }));
         }
         return;
       }
@@ -130,12 +136,12 @@ export function useCharacterSprites() {
         }
       }
 
-      spritesRef.current = { ...spritesRef.current, ...existing };
+      spritesRef.current = { ...DEFAULT_CHARACTER_SPRITES, ...spritesRef.current, ...existing };
       setState((prev) => ({
         ...prev,
-        sprites: { ...prev.sprites, ...existing },
+        sprites: { ...DEFAULT_CHARACTER_SPRITES, ...prev.sprites, ...existing },
         ready: true,
-        count: Object.keys({ ...prev.sprites, ...existing }).length,
+        count: Object.keys({ ...DEFAULT_CHARACTER_SPRITES, ...prev.sprites, ...existing }).length,
       }));
     } catch (err) {
       console.warn('[useCharacterSprites] Failed to check existing sprites:', err);
@@ -167,7 +173,7 @@ export function useCharacterSprites() {
 
   const generateSprite = useCallback(
     async (character: CharacterSprite) => {
-      if (state.sprites[character.id] || state.generating.has(character.id)) return;
+      if (state.generating.has(character.id)) return;
       await requestSprite(character);
     },
     [requestSprite, state.generating, state.sprites]
@@ -193,7 +199,13 @@ export function useCharacterSprites() {
       }
 
       spritesRef.current = {};
-      setState({ sprites: {}, generating: new Set(), ready: true, count: 0 });
+      spritesRef.current = DEFAULT_CHARACTER_SPRITES;
+      setState({
+        sprites: DEFAULT_CHARACTER_SPRITES,
+        generating: new Set(),
+        ready: true,
+        count: Object.keys(DEFAULT_CHARACTER_SPRITES).length,
+      });
 
       for (const char of CHARACTER_CATALOG) {
         await requestSprite(char, { forceRegenerate: true });
