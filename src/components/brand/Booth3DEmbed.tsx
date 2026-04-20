@@ -9,6 +9,11 @@ interface Booth3DEmbedProps {
   color: string;
   /** Show as inline collapsible preview (default true). Set false for modal-only trigger. */
   inline?: boolean;
+  /** Externally control the fullscreen modal (e.g. from a parent card click). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Hide internal trigger buttons when controlled externally. */
+  hideTriggers?: boolean;
 }
 
 const BOOTHHUB_BASE = 'https://boothhub.lovable.app';
