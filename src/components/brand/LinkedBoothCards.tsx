@@ -119,10 +119,11 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-border/40 bg-card transition-all hover:border-primary/30 hover:shadow-2xl w-full">
       <motion.button
-        onClick={onOpenDetail}
+        onClick={() => setBooth3DOpen(true)}
         className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         whileHover={{ y: -2, scale: 1.005 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        title="Open 3D booth viewer"
       >
         <div className="relative aspect-[16/10] overflow-hidden">
           {cardImage ? (
