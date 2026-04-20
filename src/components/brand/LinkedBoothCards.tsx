@@ -777,7 +777,7 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
               <DivisionDetail
                 division={detailDivision}
                 onClose={() => setDetailDivision(null)}
-                isAdmin={isAdmin}
+                isAdmin={false}
                 mode="modal"
               />
             </div>
