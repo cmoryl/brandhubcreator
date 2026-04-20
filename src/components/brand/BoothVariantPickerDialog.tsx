@@ -126,6 +126,7 @@ export const BoothVariantPickerDialog = ({ division, open, onOpenChange }: Booth
         divisionId={division.id}
         divisionName={`${division.name}${selectedVariant ? ` — ${selectedVariant}` : ''}`}
         color={division.color}
+        variantLabel={selectedVariant ?? undefined}
         inline={false}
         hideTriggers
         open={threeDOpen}
