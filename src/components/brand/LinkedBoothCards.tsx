@@ -705,9 +705,15 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
   };
 
   const handleOpenDetail = (booth: LinkedBoothCard) => {
-    // Open the external BoothHub app with the booth's division as a query param
-    const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    // Open the in-app booth catalog detail (variants page) as a modal
+    const division = resolveBoothDivision(booth, customDivisions);
+    if (division) {
+      setDetailDivision(division);
+    } else {
+      // Fallback: external BoothHub if division can't be resolved
+      const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
