@@ -216,12 +216,28 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
           )}
         </div>
 
-        {/* 3D Booth viewer (BoothHub embed) */}
+        {/* 3D Booth viewer (BoothHub embed) — controlled by card click */}
         <Booth3DEmbed
           divisionId={booth.divisionId}
           divisionName={booth.divisionName}
           color={booth.color}
+          inline={false}
+          hideTriggers
+          open={booth3DOpen}
+          onOpenChange={setBooth3DOpen}
         />
+
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs gap-1.5"
+            onClick={(e) => { e.stopPropagation(); onOpenDetail(); }}
+          >
+            <PenLine className="h-3 w-3" />
+            View details
+          </Button>
+        </div>
 
 
         {boothLinks.length > 0 && (
