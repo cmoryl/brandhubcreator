@@ -362,7 +362,13 @@ For the biasReview section, apply Deep Intelligence modules:
 - Accessibility Considerations: Apply EAA 2025/2026 baseline — WCAG 2.2 readiness, alt text, color-only information, typography readability.
 - Regulatory Compliance: Score against EAA mandatory scope.
 
-Score based on ACTUAL section data provided. Empty sections should significantly reduce relevant category scores. Be specific — reference actual section names and completion levels in findings.`;
+Score based on ACTUAL section data provided. Empty sections should significantly reduce relevant category scores. Be specific — reference actual section names and completion levels in findings.
+
+CRITICAL ACCURACY RULES:
+- ONLY flag a section as missing/incomplete if its completion percentage in the Section Analysis is below 70%. Do NOT claim a section is empty or missing if the data shows it filled.
+- For sections like Website, Email Signatures, Social Profiles: a single entry counts as functionally complete (90%+).
+- Quote the exact percentage from the Section Analysis when making a finding (e.g., "Website is 90% complete with 1 entry" — not "Website section is missing").
+- Do NOT invent missing items that aren't reflected in the section completeness data.
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
