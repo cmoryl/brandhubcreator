@@ -31,16 +31,24 @@ interface Demo {
 }
 
 async function createJob(entityId: string, entityType: string): Promise<string | null> {
+  // Map demo type to allowed entity_type values (brand|product|event)
+  const mapped = entityType === "brand" || entityType === "product" || entityType === "event" ? entityType : "brand";
+  // Find any real user to satisfy FK constraint
+  const uRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=user_id&limit=1`, { headers: restHeaders });
+  const users = await uRes.json();
+  const userId = users?.[0]?.user_id;
+  if (!userId) return null;
+
   const res = await fetch(`${SUPABASE_URL}/rest/v1/brand_intelligence_jobs`, {
     method: "POST",
     headers: { ...restHeaders, Prefer: "return=representation" },
     body: JSON.stringify({
       entity_id: entityId,
-      entity_type: entityType,
+      entity_type: mapped,
       status: "pending",
       progress: 0,
       organization_id: ORG_ID,
-      user_id: "00000000-0000-0000-0000-000000000000",
+      user_id: userId,
     }),
   });
   if (!res.ok) {
@@ -68,7 +76,7 @@ async function processAll(demos: Demo[], triggerStrategic: boolean) {
 
   for (const d of demos) {
     console.log(`▶ Enriching ${d.name} (${d.slug})...`);
-    const jobId = await createJob(d.id, "demo_enrichment");
+    const jobId = await createJob(d.id, d.type);
 
     const r = await invokeFn("enrich-demo-content", { demoId: d.id, jobId });
     const item: any = { demo: d.name, slug: d.slug, enrichment: r.ok ? "ok" : `failed: ${r.body?.error || r.status}` };

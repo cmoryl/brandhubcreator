@@ -98,7 +98,12 @@ async function uploadDataUrl(dataUrl: string, demoSlug: string, label: string): 
     const path = `demos/${demoSlug}/${label}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
     const upRes = await fetch(`${SUPABASE_URL}/storage/v1/object/organization-assets/${path}`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": mime, "x-upsert": "true" },
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        "Content-Type": mime,
+        "x-upsert": "true",
+      },
       body: bytes,
     });
     if (!upRes.ok) {
