@@ -63,7 +63,8 @@ export const Booth3DEmbed = ({ divisionId, divisionName, color, inline = true, o
           <Maximize2 className="h-3 w-3" />
           Fullscreen
         </Button>
-      </div>
+        </div>
+      )}
 
       {/* Inline embed */}
       {inline && expanded && (
