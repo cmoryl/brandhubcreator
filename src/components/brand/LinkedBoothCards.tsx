@@ -16,6 +16,7 @@ import { useCustomDivisions } from '@/hooks/useCustomDivisions';
 import { DivisionDetail, DIVISIONS, customToBoothDivision, type BoothDivision } from '@/pages/BoothsCatalog';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { Booth3DEmbed } from '@/components/brand/Booth3DEmbed';
+import { BoothVariantPickerDialog } from '@/components/brand/BoothVariantPickerDialog';
 
 // Icon map matching BoothsCatalog DIVISIONS
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -765,25 +766,12 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
         onLink={handleLink}
       />
 
-      {/* In-app booth catalog detail modal — shows variants */}
-      <Dialog open={!!detailDivision} onOpenChange={(open) => !open && setDetailDivision(null)}>
-        <DialogContent className="max-w-7xl w-[95vw] h-[90vh] p-0 overflow-hidden">
-          <DialogHeader className="sr-only">
-            <DialogTitle>{detailDivision?.name} Booth Catalog</DialogTitle>
-            <DialogDescription>Browse booth variants and details for {detailDivision?.name}</DialogDescription>
-          </DialogHeader>
-          {detailDivision && (
-            <div className="h-full overflow-y-auto">
-              <DivisionDetail
-                division={detailDivision}
-                onClose={() => setDetailDivision(null)}
-                isAdmin={false}
-                mode="modal"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Booth variant picker → 3D booth presentation */}
+      <BoothVariantPickerDialog
+        division={detailDivision}
+        open={!!detailDivision}
+        onOpenChange={(open) => !open && setDetailDivision(null)}
+      />
 
     </div>
   );

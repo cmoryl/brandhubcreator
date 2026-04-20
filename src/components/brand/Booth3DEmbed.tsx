@@ -7,6 +7,8 @@ interface Booth3DEmbedProps {
   divisionId: string;
   divisionName: string;
   color: string;
+  /** Optional variant label to deep-link in the 3D viewer. */
+  variantLabel?: string;
   /** Show as inline collapsible preview (default true). Set false for modal-only trigger. */
   inline?: boolean;
   /** Externally control the fullscreen modal (e.g. from a parent card click). */
@@ -18,13 +20,17 @@ interface Booth3DEmbedProps {
 
 const BOOTHHUB_BASE = 'https://boothhub.lovable.app';
 
-const buildEmbedUrl = (divisionId: string) =>
-  `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&embed=1&view=3d`;
+const buildEmbedUrl = (divisionId: string, variantLabel?: string) => {
+  const v = variantLabel ? `&variant=${encodeURIComponent(variantLabel)}` : '';
+  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&embed=1&view=3d${v}`;
+};
 
-const buildExternalUrl = (divisionId: string) =>
-  `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}`;
+const buildExternalUrl = (divisionId: string, variantLabel?: string) => {
+  const v = variantLabel ? `&variant=${encodeURIComponent(variantLabel)}` : '';
+  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}${v}`;
+};
 
-export const Booth3DEmbed = ({ divisionId, divisionName, color, inline = true, open, onOpenChange, hideTriggers = false }: Booth3DEmbedProps) => {
+export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, inline = true, open, onOpenChange, hideTriggers = false }: Booth3DEmbedProps) => {
   const [expanded, setExpanded] = useState(false);
   const [internalFullscreen, setInternalFullscreen] = useState(false);
   const [inlineLoaded, setInlineLoaded] = useState(false);
@@ -33,8 +39,8 @@ export const Booth3DEmbed = ({ divisionId, divisionName, color, inline = true, o
   const fullscreenOpen = open ?? internalFullscreen;
   const setFullscreenOpen = onOpenChange ?? setInternalFullscreen;
 
-  const embedUrl = buildEmbedUrl(divisionId);
-  const externalUrl = buildExternalUrl(divisionId);
+  const embedUrl = buildEmbedUrl(divisionId, variantLabel);
+  const externalUrl = buildExternalUrl(divisionId, variantLabel);
 
   return (
     <div className="space-y-2" onClick={(e) => e.stopPropagation()}>

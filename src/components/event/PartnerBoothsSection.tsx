@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { LinkedBoothPreviewCard, resolveBoothDivision, LinkBoothDialog } from '@/components/brand/LinkedBoothCards';
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
 import { DivisionDetail, type BoothDivision } from '@/pages/BoothsCatalog';
+import { BoothVariantPickerDialog } from '@/components/brand/BoothVariantPickerDialog';
 
 interface PartnerBoothsSectionProps {
   partnerBooths: LinkedBoothCard[];
@@ -118,25 +119,12 @@ export const PartnerBoothsSection = ({
         linkedBooths={partnerBooths}
       />
 
-      {/* In-app booth catalog detail modal — shows variants */}
-      <Dialog open={!!detailDivision} onOpenChange={(open) => !open && setDetailDivision(null)}>
-        <DialogContent className="max-w-7xl w-[95vw] h-[90vh] p-0 overflow-hidden">
-          <DialogHeader className="sr-only">
-            <DialogTitle>{detailDivision?.name} Booth Catalog</DialogTitle>
-            <DialogDescription>Browse booth variants and details for {detailDivision?.name}</DialogDescription>
-          </DialogHeader>
-          {detailDivision && (
-            <div className="h-full overflow-y-auto">
-              <DivisionDetail
-                division={detailDivision}
-                onClose={() => setDetailDivision(null)}
-                isAdmin={false}
-                mode="modal"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Booth variant picker → 3D booth presentation */}
+      <BoothVariantPickerDialog
+        division={detailDivision}
+        open={!!detailDivision}
+        onOpenChange={(open) => !open && setDetailDivision(null)}
+      />
 
     </section>
   );
