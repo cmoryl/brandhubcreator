@@ -712,7 +712,7 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
       setDetailDivision(division);
     } else {
       // Fallback: external BoothHub if division can't be resolved
-      const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}`;
+      const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}&guest=1&public=1`;
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
