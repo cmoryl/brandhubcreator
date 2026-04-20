@@ -29,6 +29,12 @@ export default defineConfig(({ mode }) => {
                 id.includes('node_modules/@hookform')) {
               return 'vendor-forms';
             }
+            // Lucide icons - bundle into a single chunk to avoid 50+ tiny
+            // network requests (each icon was previously its own ~1KB file,
+            // hurting TTI on mobile due to per-request HTTP overhead).
+            if (id.includes('node_modules/lucide-react')) {
+              return 'vendor-icons';
+            }
             // 3D libraries - deferred, only used in specific pages
             if (id.includes('node_modules/@react-three') ||
                 id.includes('node_modules/three') ||
