@@ -19,7 +19,7 @@ import { RichTextEditor, RichTextDisplay } from '@/components/ui/rich-text-edito
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { EditBrandSignageDialog } from './EditBrandSignageDialog';
 import { LinkedBoothPreviewCard, resolveBoothDivision, LinkBoothDialog } from './LinkedBoothCards';
-import { type BoothDivision } from '@/pages/BoothsCatalog';
+import { type BoothDivision, DivisionDetail } from '@/pages/BoothsCatalog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
@@ -277,6 +277,7 @@ export const BrandEventSignageSection = ({
   // Booth navigation
   const { divisions: customDivisions } = useCustomDivisions();
   const navigate = useNavigate();
+  const [detailDivision, setDetailDivision] = useState<BoothDivision | null>(null);
 
   const openPreview = (item: BrandEventSignage) => {
     setPreviewItem(item);
@@ -1224,8 +1225,13 @@ export const BrandEventSignageSection = ({
                     isEditable={!!onLinkedBoothsChange}
                     onRemove={() => onLinkedBoothsChange?.(linkedBooths.filter(b => b.id !== booth.id))}
                     onOpenDetail={() => {
-                      const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}`;
-                      window.open(url, '_blank', 'noopener,noreferrer');
+                      const division = resolveBoothDivision(booth, customDivisions);
+                      if (division) {
+                        setDetailDivision(division);
+                      } else {
+                        const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}`;
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                      }
                     }}
                   />
                 ))}
@@ -1283,6 +1289,26 @@ export const BrandEventSignageSection = ({
           brandColors={brandColors?.map(c => c.hex)}
         />
       )}
+
+      {/* In-app booth catalog detail modal — shows variants */}
+      <Dialog open={!!detailDivision} onOpenChange={(open) => !open && setDetailDivision(null)}>
+        <DialogContent className="max-w-7xl w-[95vw] h-[90vh] p-0 overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{detailDivision?.name} Booth Catalog</DialogTitle>
+            <DialogDescription>Browse booth variants and details for {detailDivision?.name}</DialogDescription>
+          </DialogHeader>
+          {detailDivision && (
+            <div className="h-full overflow-y-auto">
+              <DivisionDetail
+                division={detailDivision}
+                onClose={() => setDetailDivision(null)}
+                isAdmin={isEditable}
+                mode="modal"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </section>
   );
