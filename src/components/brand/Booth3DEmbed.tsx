@@ -22,12 +22,13 @@ const BOOTHHUB_BASE = 'https://boothhub.lovable.app';
 
 const buildEmbedUrl = (divisionId: string, variantLabel?: string) => {
   const v = variantLabel ? `&variant=${encodeURIComponent(variantLabel)}` : '';
-  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&embed=1&view=3d${v}`;
+  // guest=1 & public=1 tell BoothHub to render in read-only public mode without requiring auth
+  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&embed=1&view=3d&guest=1&public=1${v}`;
 };
 
 const buildExternalUrl = (divisionId: string, variantLabel?: string) => {
   const v = variantLabel ? `&variant=${encodeURIComponent(variantLabel)}` : '';
-  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}${v}`;
+  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&guest=1&public=1${v}`;
 };
 
 export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, inline = true, open, onOpenChange, hideTriggers = false }: Booth3DEmbedProps) => {
