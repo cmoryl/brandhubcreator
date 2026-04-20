@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Maximize2, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { buildBoothHubPresenterUrl } from '@/lib/boothHub';
 
 interface Booth3DEmbedProps {
   divisionId: string;
@@ -18,27 +19,6 @@ interface Booth3DEmbedProps {
   hideTriggers?: boolean;
 }
 
-const BOOTHHUB_BASE = 'https://boothhub.lovable.app';
-
-// Presenter mode: read-only 3D viewer with characters, cameras, and interactivity —
-// no editing tools, no asset assignment placeholders, no wall/asset toggles.
-const PRESENTER_PARAMS = 'embed=1&public=1&presenter=1&readonly=1&hideEditor=1&hideUI=1&characters=1&view=3d';
-const EXTERNAL_PARAMS = 'embed=1&public=1&presenter=1&readonly=1&hideEditor=1&characters=1';
-
-const buildEmbedUrl = (divisionId: string, variantLabel?: string) => {
-  if (variantLabel) {
-    return `${BOOTHHUB_BASE}/booths/${encodeURIComponent(divisionId)}/variant/${encodeURIComponent(variantLabel)}?${PRESENTER_PARAMS}`;
-  }
-  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&guest=1&${PRESENTER_PARAMS}`;
-};
-
-const buildExternalUrl = (divisionId: string, variantLabel?: string) => {
-  if (variantLabel) {
-    return `${BOOTHHUB_BASE}/booths/${encodeURIComponent(divisionId)}/variant/${encodeURIComponent(variantLabel)}?${EXTERNAL_PARAMS}`;
-  }
-  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&guest=1&${EXTERNAL_PARAMS}`;
-};
-
 export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, inline = true, open, onOpenChange, hideTriggers = false }: Booth3DEmbedProps) => {
   const [expanded, setExpanded] = useState(false);
   const [internalFullscreen, setInternalFullscreen] = useState(false);
@@ -48,40 +28,43 @@ export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, in
   const fullscreenOpen = open ?? internalFullscreen;
   const setFullscreenOpen = onOpenChange ?? setInternalFullscreen;
 
-  const embedUrl = buildEmbedUrl(divisionId, variantLabel);
-  const externalUrl = buildExternalUrl(divisionId, variantLabel);
+  const embedUrl = buildBoothHubPresenterUrl(divisionId, variantLabel);
+  const externalUrl = buildBoothHubPresenterUrl(divisionId, variantLabel, true);
+
+  useEffect(() => {
+    setInlineLoaded(false);
+    setModalLoaded(false);
+  }, [embedUrl]);
 
   return (
     <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
-      {/* Trigger row */}
       {!hideTriggers && (
         <div className="flex items-center gap-1.5 flex-wrap">
-        {inline && (
+          {inline && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs gap-1.5"
+              onClick={() => setExpanded((v) => !v)}
+              style={expanded ? { borderColor: color, color } : undefined}
+            >
+              <Box className="h-3 w-3" />
+              {expanded ? 'Hide 3D Booth' : 'View 3D Booth'}
+            </Button>
+          )}
           <Button
             size="sm"
-            variant="outline"
-            className="h-7 text-xs gap-1.5"
-            onClick={() => setExpanded((v) => !v)}
-            style={expanded ? { borderColor: color, color } : undefined}
+            variant="ghost"
+            className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+            onClick={() => setFullscreenOpen(true)}
+            title="Open in fullscreen"
           >
-            <Box className="h-3 w-3" />
-            {expanded ? 'Hide 3D Booth' : 'View 3D Booth'}
+            <Maximize2 className="h-3 w-3" />
+            Fullscreen
           </Button>
-        )}
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-          onClick={() => setFullscreenOpen(true)}
-          title="Open in fullscreen"
-        >
-          <Maximize2 className="h-3 w-3" />
-          Fullscreen
-        </Button>
         </div>
       )}
 
-      {/* Inline embed */}
       {inline && expanded && (
         <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-muted/30">
           {!inlineLoaded && (
@@ -90,6 +73,7 @@ export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, in
             </div>
           )}
           <iframe
+            key={`inline-${embedUrl}`}
             src={embedUrl}
             title={`${divisionName} 3D Booth`}
             className="w-full h-full"
@@ -109,7 +93,6 @@ export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, in
         </div>
       )}
 
-      {/* Fullscreen modal */}
       <Dialog open={fullscreenOpen} onOpenChange={setFullscreenOpen}>
         <DialogContent className="max-w-[95vw] w-[95vw] h-[92vh] p-0 gap-0 flex flex-col">
           <DialogHeader className="px-5 py-3 border-b border-border flex-shrink-0">
@@ -139,12 +122,19 @@ export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, in
               </div>
             )}
             <iframe
+              key={`modal-${embedUrl}`}
               src={embedUrl}
               title={`${divisionName} 3D Booth (Fullscreen)`}
               className="w-full h-full border-0"
               allow="fullscreen; xr-spatial-tracking"
               onLoad={() => setModalLoaded(true)}
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
           </div>
         </DialogContent>
       </Dialog>

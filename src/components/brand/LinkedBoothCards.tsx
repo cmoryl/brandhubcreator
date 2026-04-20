@@ -17,6 +17,7 @@ import { DivisionDetail, DIVISIONS, customToBoothDivision, type BoothDivision } 
 import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { Booth3DEmbed } from '@/components/brand/Booth3DEmbed';
 import { BoothVariantPickerDialog } from '@/components/brand/BoothVariantPickerDialog';
+import { buildBoothHubPresenterUrl } from '@/lib/boothHub';
 
 // Icon map matching BoothsCatalog DIVISIONS
 const ICON_MAP: Record<string, React.ElementType> = {

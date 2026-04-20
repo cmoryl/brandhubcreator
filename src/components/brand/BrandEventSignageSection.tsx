@@ -25,6 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
 import { useBoothImages } from '@/hooks/useBoothImages';
+import { buildBoothHubPresenterUrl } from '@/lib/boothHub';
 
 // Reference image types for AI generation context
 interface ReferenceImage {
