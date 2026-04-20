@@ -277,6 +277,7 @@ export const BrandEventSignageSection = ({
   // Booth navigation
   const { divisions: customDivisions } = useCustomDivisions();
   const navigate = useNavigate();
+  const [detailDivision, setDetailDivision] = useState<BoothDivision | null>(null);
 
   const openPreview = (item: BrandEventSignage) => {
     setPreviewItem(item);
