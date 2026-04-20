@@ -669,7 +669,9 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
   };
 
   const handleOpenDetail = (booth: LinkedBoothCard) => {
-    navigate(`/booths/${booth.divisionId}`);
+    // Open the external BoothHub app with the booth's division as a query param
+    const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (

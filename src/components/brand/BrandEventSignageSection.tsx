@@ -1224,7 +1224,8 @@ export const BrandEventSignageSection = ({
                     isEditable={!!onLinkedBoothsChange}
                     onRemove={() => onLinkedBoothsChange?.(linkedBooths.filter(b => b.id !== booth.id))}
                     onOpenDetail={() => {
-                      navigate(`/booths/${booth.divisionId}`);
+                      const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}`;
+                      window.open(url, '_blank', 'noopener,noreferrer');
                     }}
                   />
                 ))}
