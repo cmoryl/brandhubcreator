@@ -1302,7 +1302,7 @@ export const BrandEventSignageSection = ({
               <DivisionDetail
                 division={detailDivision}
                 onClose={() => setDetailDivision(null)}
-                isAdmin={isEditable}
+                isAdmin={false}
                 mode="modal"
               />
             </div>
