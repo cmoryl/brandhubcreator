@@ -8,6 +8,7 @@ import { LinkedBoothPreviewCard, resolveBoothDivision, LinkBoothDialog } from '@
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
 import { DivisionDetail, type BoothDivision } from '@/pages/BoothsCatalog';
 import { BoothVariantPickerDialog } from '@/components/brand/BoothVariantPickerDialog';
+import { buildBoothHubPresenterUrl } from '@/lib/boothHub';
 
 interface PartnerBoothsSectionProps {
   partnerBooths: LinkedBoothCard[];
@@ -58,7 +59,7 @@ export const PartnerBoothsSection = ({
     if (division) {
       setDetailDivision(division);
     } else {
-      const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}&guest=1&public=1`;
+      const url = buildBoothHubPresenterUrl(booth.divisionId);
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };

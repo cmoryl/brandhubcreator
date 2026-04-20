@@ -25,6 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
 import { useBoothImages } from '@/hooks/useBoothImages';
+import { buildBoothHubPresenterUrl } from '@/lib/boothHub';
 
 // Reference image types for AI generation context
 interface ReferenceImage {
@@ -1230,7 +1231,7 @@ export const BrandEventSignageSection = ({
                       if (division) {
                         setDetailDivision(division);
                       } else {
-                        const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}&guest=1&public=1`;
+                        const url = buildBoothHubPresenterUrl(booth.divisionId);
                         window.open(url, '_blank', 'noopener,noreferrer');
                       }
                     }}

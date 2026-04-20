@@ -17,6 +17,7 @@ import { DivisionDetail, DIVISIONS, customToBoothDivision, type BoothDivision } 
 import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { Booth3DEmbed } from '@/components/brand/Booth3DEmbed';
 import { BoothVariantPickerDialog } from '@/components/brand/BoothVariantPickerDialog';
+import { buildBoothHubPresenterUrl } from '@/lib/boothHub';
 
 // Icon map matching BoothsCatalog DIVISIONS
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -712,7 +713,7 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
       setDetailDivision(division);
     } else {
       // Fallback: external BoothHub if division can't be resolved
-      const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}&guest=1&public=1`;
+      const url = buildBoothHubPresenterUrl(booth.divisionId);
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
