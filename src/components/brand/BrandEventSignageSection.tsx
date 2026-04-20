@@ -1225,8 +1225,13 @@ export const BrandEventSignageSection = ({
                     isEditable={!!onLinkedBoothsChange}
                     onRemove={() => onLinkedBoothsChange?.(linkedBooths.filter(b => b.id !== booth.id))}
                     onOpenDetail={() => {
-                      const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}`;
-                      window.open(url, '_blank', 'noopener,noreferrer');
+                      const division = resolveBoothDivision(booth, customDivisions);
+                      if (division) {
+                        setDetailDivision(division);
+                      } else {
+                        const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}`;
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                      }
                     }}
                   />
                 ))}
