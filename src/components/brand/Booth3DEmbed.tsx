@@ -1,0 +1,128 @@
+import { useState } from 'react';
+import { Box, Maximize2, ExternalLink, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+interface Booth3DEmbedProps {
+  divisionId: string;
+  divisionName: string;
+  color: string;
+  /** Show as inline collapsible preview (default true). Set false for modal-only trigger. */
+  inline?: boolean;
+}
+
+const BOOTHHUB_BASE = 'https://boothhub.lovable.app';
+
+const buildEmbedUrl = (divisionId: string) =>
+  `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&embed=1&view=3d`;
+
+const buildExternalUrl = (divisionId: string) =>
+  `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}`;
+
+export const Booth3DEmbed = ({ divisionId, divisionName, color, inline = true }: Booth3DEmbedProps) => {
+  const [expanded, setExpanded] = useState(false);
+  const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [inlineLoaded, setInlineLoaded] = useState(false);
+  const [modalLoaded, setModalLoaded] = useState(false);
+
+  const embedUrl = buildEmbedUrl(divisionId);
+  const externalUrl = buildExternalUrl(divisionId);
+
+  return (
+    <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+      {/* Trigger row */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {inline && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs gap-1.5"
+            onClick={() => setExpanded((v) => !v)}
+            style={expanded ? { borderColor: color, color } : undefined}
+          >
+            <Box className="h-3 w-3" />
+            {expanded ? 'Hide 3D Booth' : 'View 3D Booth'}
+          </Button>
+        )}
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+          onClick={() => setFullscreenOpen(true)}
+          title="Open in fullscreen"
+        >
+          <Maximize2 className="h-3 w-3" />
+          Fullscreen
+        </Button>
+      </div>
+
+      {/* Inline embed */}
+      {inline && expanded && (
+        <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-muted/30">
+          {!inlineLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          )}
+          <iframe
+            src={embedUrl}
+            title={`${divisionName} 3D Booth`}
+            className="w-full h-full"
+            loading="lazy"
+            allow="fullscreen; xr-spatial-tracking"
+            onLoad={() => setInlineLoaded(true)}
+          />
+          <a
+            href={externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-2 right-2 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-background/80 backdrop-blur-sm text-xs text-foreground hover:bg-background border border-border"
+          >
+            <ExternalLink className="h-3 w-3" />
+            Open in BoothHub
+          </a>
+        </div>
+      )}
+
+      {/* Fullscreen modal */}
+      <Dialog open={fullscreenOpen} onOpenChange={setFullscreenOpen}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[92vh] p-0 gap-0 flex flex-col">
+          <DialogHeader className="px-5 py-3 border-b border-border flex-shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <div
+                className="flex h-7 w-7 items-center justify-center rounded-lg"
+                style={{ backgroundColor: color }}
+              >
+                <Box className="h-3.5 w-3.5 text-white" />
+              </div>
+              {divisionName} — 3D Booth
+              <a
+                href={externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Open in BoothHub
+              </a>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="relative flex-1 bg-muted/30">
+            {!modalLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            )}
+            <iframe
+              src={embedUrl}
+              title={`${divisionName} 3D Booth (Fullscreen)`}
+              className="w-full h-full border-0"
+              allow="fullscreen; xr-spatial-tracking"
+              onLoad={() => setModalLoaded(true)}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
