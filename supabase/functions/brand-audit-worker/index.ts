@@ -88,23 +88,37 @@ function sectionCompletenessFromSummary(summary: Record<string, unknown>, key: s
     case 'qr': return summary.hasQrUrl ? 1 : 0;
     case 'colors': {
       const c = getCount(summary, key);
-      return c >= 6 ? 1 : c >= 4 ? 0.8 : c >= 2 ? 0.6 : c > 0 ? 0.3 : 0;
+      return c >= 6 ? 1 : c >= 4 ? 0.85 : c >= 2 ? 0.7 : c > 0 ? 0.4 : 0;
     }
     case 'typography': {
       const c = getCount(summary, key);
-      return c >= 3 ? 1 : c >= 2 ? 0.7 : c > 0 ? 0.5 : 0;
+      return c >= 3 ? 1 : c >= 2 ? 0.85 : c > 0 ? 0.65 : 0;
     }
     case 'logos': {
       const c = getCount(summary, key);
-      return c >= 4 ? 1 : c >= 2 ? 0.7 : c > 0 ? 0.4 : 0;
+      return c >= 4 ? 1 : c >= 2 ? 0.85 : c > 0 ? 0.6 : 0;
     }
     case 'values': case 'services': {
       const c = getCount(summary, key);
-      return c >= 4 ? 1 : c >= 2 ? 0.6 : c > 0 ? 0.3 : 0;
+      return c >= 4 ? 1 : c >= 2 ? 0.75 : c > 0 ? 0.4 : 0;
+    }
+    // Sections where having ANY entry is functionally complete (1 website, 1 signature, etc.)
+    case 'websites': case 'signatures': case 'social': {
+      const c = getCount(summary, key);
+      return c >= 2 ? 1 : c > 0 ? 0.9 : 0;
+    }
+    // Collateral/asset sections — a few items = complete
+    case 'templates': case 'brochures': case 'presentationTemplates':
+    case 'imagery': case 'imageAssets': case 'socialAssets':
+    case 'awards': case 'statistics': case 'clientLogos': case 'sponsorLogos':
+    case 'brandIcons': case 'iconography': case 'misuse':
+    case 'gradients': case 'patterns': case 'colorCombinations': {
+      const c = getCount(summary, key);
+      return c >= 3 ? 1 : c >= 2 ? 0.85 : c > 0 ? 0.7 : 0;
     }
     default: {
       const c = getCount(summary, key);
-      return c >= 3 ? 1 : c >= 2 ? 0.7 : c > 0 ? 0.4 : 0;
+      return c >= 3 ? 1 : c >= 2 ? 0.8 : c > 0 ? 0.6 : 0;
     }
   }
 }
