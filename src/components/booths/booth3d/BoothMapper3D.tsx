@@ -618,7 +618,7 @@ export function BoothMapper3D({
             onWalkthroughEnd={() => setWalkthroughMode('none')}
             onTourStep={(id) => setActiveCameraPreset(id)}
             spriteUrls={characterSprites.sprites}
-            useBillboards={characterSprites.count > 0}
+            useBillboards={Object.keys(characterSprites.sprites).length > 0}
             monitorSpecs={monitorSpecs}
             activeSpecConfig={useProductionSpecs ? specConfigType : ''}
             flooringConfig={flooringConfig}

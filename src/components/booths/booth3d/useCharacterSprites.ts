@@ -173,7 +173,7 @@ export function useCharacterSprites() {
 
   const generateSprite = useCallback(
     async (character: CharacterSprite) => {
-      if (state.sprites[character.id] || state.generating.has(character.id)) return;
+      if (state.generating.has(character.id)) return;
       await requestSprite(character);
     },
     [requestSprite, state.generating, state.sprites]
