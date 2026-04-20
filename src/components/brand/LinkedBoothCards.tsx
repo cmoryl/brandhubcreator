@@ -681,6 +681,7 @@ export const LinkedBoothsSection = ({ linkedBooths, isEditable, onChange, isAdmi
   isAdmin?: boolean;
 }) => {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [detailDivision, setDetailDivision] = useState<BoothDivision | null>(null);
   const navigate = useNavigate();
   const { divisions: customDivisions } = useCustomDivisions();
 
