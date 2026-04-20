@@ -24,11 +24,14 @@ const buildEmbedUrl = (divisionId: string) =>
 const buildExternalUrl = (divisionId: string) =>
   `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}`;
 
-export const Booth3DEmbed = ({ divisionId, divisionName, color, inline = true }: Booth3DEmbedProps) => {
+export const Booth3DEmbed = ({ divisionId, divisionName, color, inline = true, open, onOpenChange, hideTriggers = false }: Booth3DEmbedProps) => {
   const [expanded, setExpanded] = useState(false);
-  const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [internalFullscreen, setInternalFullscreen] = useState(false);
   const [inlineLoaded, setInlineLoaded] = useState(false);
   const [modalLoaded, setModalLoaded] = useState(false);
+
+  const fullscreenOpen = open ?? internalFullscreen;
+  const setFullscreenOpen = onOpenChange ?? setInternalFullscreen;
 
   const embedUrl = buildEmbedUrl(divisionId);
   const externalUrl = buildExternalUrl(divisionId);
@@ -36,7 +39,8 @@ export const Booth3DEmbed = ({ divisionId, divisionName, color, inline = true }:
   return (
     <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
       {/* Trigger row */}
-      <div className="flex items-center gap-1.5 flex-wrap">
+      {!hideTriggers && (
+        <div className="flex items-center gap-1.5 flex-wrap">
         {inline && (
           <Button
             size="sm"
