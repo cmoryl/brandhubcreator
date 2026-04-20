@@ -15,6 +15,7 @@ import { useBoothImages } from '@/hooks/useBoothImages';
 import { useCustomDivisions } from '@/hooks/useCustomDivisions';
 import { DivisionDetail, DIVISIONS, customToBoothDivision, type BoothDivision } from '@/pages/BoothsCatalog';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
+import { Booth3DEmbed } from '@/components/brand/Booth3DEmbed';
 
 // Icon map matching BoothsCatalog DIVISIONS
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -213,7 +214,14 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
           )}
         </div>
 
-        {/* Links */}
+        {/* 3D Booth viewer (BoothHub embed) */}
+        <Booth3DEmbed
+          divisionId={booth.divisionId}
+          divisionName={booth.divisionName}
+          color={booth.color}
+        />
+
+
         {boothLinks.length > 0 && (
           <div className="space-y-1.5">
             {boothLinks.map((link) => (
