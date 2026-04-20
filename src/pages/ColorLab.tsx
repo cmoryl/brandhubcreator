@@ -787,7 +787,17 @@ export default function ColorLab() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ImageColorExtractor onAddColors={handleAddFromExtractor} />
+                      <ImageColorExtractor
+                        onAddColors={handleAddFromExtractor}
+                        onReplaceColors={(extracted) => {
+                          const newColors: LabColor[] = extracted.map(c => ({
+                            id: crypto.randomUUID(),
+                            hex: c.hex.toUpperCase(),
+                            name: c.name,
+                          }));
+                          setColors(newColors);
+                        }}
+                      />
                     </CardContent>
                   </Card>
                 </div>
