@@ -1230,7 +1230,7 @@ export const BrandEventSignageSection = ({
                       if (division) {
                         setDetailDivision(division);
                       } else {
-                        const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}`;
+                        const url = `https://boothhub.lovable.app/?booth=${encodeURIComponent(booth.divisionId)}&guest=1&public=1`;
                         window.open(url, '_blank', 'noopener,noreferrer');
                       }
                     }}
