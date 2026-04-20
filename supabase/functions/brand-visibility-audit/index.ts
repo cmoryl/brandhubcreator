@@ -141,25 +141,34 @@ Website Analyses: ${JSON.stringify(entityContext.website_analyses || [])}`
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    const systemPrompt = `You are a brand visibility analyst specializing in digital presence auditing. 
+    const systemPrompt = `You are a brand visibility analyst specializing in digital presence auditing.
 You analyze brands across three key visibility dimensions:
 1. SEARCH VISIBILITY — SEO health, keyword rankings, domain authority signals, content gaps, schema markup
 2. AI PLATFORM PRESENCE — How well the brand appears in AI assistants (ChatGPT, Gemini, Perplexity, Claude), knowledge graph inclusion, structured data readiness
 3. SOCIAL/MEDIA VISIBILITY — Social platform coverage, media mention gaps, competitor platform analysis
 
-Provide actionable, specific recommendations. Score each dimension 0-100.
-Always identify specific visibility GAPS — where the brand is missing that competitors likely aren't.`;
+CRITICAL ACCURACY RULES:
+- Only flag a website, social platform, or asset as "missing" if it does NOT appear in the provided Brand Context.
+- If a website URL is listed in the context, do NOT claim the brand has no website. Acknowledge what exists, then evaluate quality/SEO/coverage gaps.
+- If social profiles are listed, do NOT claim those platforms are missing — instead evaluate them for activity, content quality, or coverage of additional platforms.
+- Treat the Brand Context as the source of truth for what assets exist. Do not fabricate missing items.
+- When you list a gap, reference the actual data: e.g., "LinkedIn profile present but no YouTube" rather than "no social presence".
 
-    const userPrompt = `Perform a comprehensive visibility gap analysis for this brand:
+Provide actionable, specific recommendations. Score each dimension 0-100.
+Always identify specific visibility GAPS — only where they actually exist based on the provided context.`;
+
+    const userPrompt = `Perform a comprehensive visibility gap analysis for this brand using ONLY the data provided below as ground truth for what exists today:
 
 ${brandContext}
 
 Analyze and return results using the provided tool schema. Be specific about:
-- Which search queries this brand should rank for but likely doesn't
+- Which search queries this brand should rank for but likely doesn't (do not assume the website is missing if one is listed above)
 - Which AI platforms might not have good knowledge of this brand and why
-- Which social/media platforms are underutilized
+- Which social/media platforms are underutilized OR missing relative to the listed profiles
 - Specific actionable steps to close each gap
-- Overall visibility score and per-dimension scores`;
+- Overall visibility score and per-dimension scores
+
+Do NOT invent missing assets that contradict the context above.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

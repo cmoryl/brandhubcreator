@@ -137,7 +137,13 @@ serve(async (req) => {
     } else {
       // Live mode - use AI for compliance analysis
       const systemPrompt = `You are a brand compliance expert analyzing brand guidelines for consistency and potential issues.
-      
+
+CRITICAL ACCURACY RULES:
+- Only flag issues for assets that actually appear in the provided brand context. Do NOT invent missing items.
+- If a section has zero items (e.g., no logos provided), report it as "section empty" rather than inventing specific compliance issues for non-existent assets.
+- Reference specific asset names, color hex values, font names, or filenames from the provided data when reporting issues.
+- If you cannot determine an issue from the provided data, omit it. Confidence below 0.5 should be omitted entirely.
+
 Analyze the provided brand data and identify:
 1. Color consistency issues (contrast ratios, accessibility)
 2. Typography problems (font pairing, readability)
@@ -214,7 +220,7 @@ Return your analysis as a JSON object with this structure:
                     items: {
                       type: "object",
                       properties: {
-                        type: { type: "string", enum: ["color", "typography", "logo", "imagery", "messaging", "layout", "inclusion"] },
+                        type: { type: "string", enum: ["color", "typography", "logo", "imagery", "messaging", "layout", "inclusion", "geometry"] },
                         severity: { type: "string", enum: ["critical", "warning", "info"] },
                         assetName: { type: "string" },
                         description: { type: "string" },
