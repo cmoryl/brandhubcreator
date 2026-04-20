@@ -70,6 +70,7 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
   const [pdfFileUrlInput, setPdfFileUrlInput] = useState(booth.pdfFileUrl || '');
 
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [booth3DOpen, setBooth3DOpen] = useState(false);
   const boothLinks = booth.links || [];
 
   const handleAddLink = (e: React.MouseEvent) => {
