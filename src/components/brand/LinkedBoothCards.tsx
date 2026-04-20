@@ -169,7 +169,7 @@ export const LinkedBoothPreviewCard = ({ booth, isEditable, onRemove, onOpenDeta
             )}
             <Badge variant="secondary" className="bg-white/90 text-foreground text-xs backdrop-blur-sm border-none gap-1">
               <ExternalLink className="h-3 w-3" />
-              Booth Card
+              Open 3D Booth
             </Badge>
           </div>
           {isEditable && (
