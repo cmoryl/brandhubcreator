@@ -21,14 +21,20 @@ interface Booth3DEmbedProps {
 const BOOTHHUB_BASE = 'https://boothhub.lovable.app';
 
 const buildEmbedUrl = (divisionId: string, variantLabel?: string) => {
-  const v = variantLabel ? `&variant=${encodeURIComponent(variantLabel)}` : '';
-  // guest=1 & public=1 tell BoothHub to render in read-only public mode without requiring auth
-  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&embed=1&view=3d&guest=1&public=1${v}`;
+  if (variantLabel) {
+    return `${BOOTHHUB_BASE}/booths/${encodeURIComponent(divisionId)}/variant/${encodeURIComponent(variantLabel)}?embed=1&public=1&view=3d`;
+  }
+
+  // Fallback for non-variant booth links.
+  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&embed=1&view=3d&guest=1&public=1`;
 };
 
 const buildExternalUrl = (divisionId: string, variantLabel?: string) => {
-  const v = variantLabel ? `&variant=${encodeURIComponent(variantLabel)}` : '';
-  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&guest=1&public=1${v}`;
+  if (variantLabel) {
+    return `${BOOTHHUB_BASE}/booths/${encodeURIComponent(divisionId)}/variant/${encodeURIComponent(variantLabel)}?embed=1&public=1`;
+  }
+
+  return `${BOOTHHUB_BASE}/?booth=${encodeURIComponent(divisionId)}&guest=1&public=1`;
 };
 
 export const Booth3DEmbed = ({ divisionId, divisionName, color, variantLabel, inline = true, open, onOpenChange, hideTriggers = false }: Booth3DEmbedProps) => {
