@@ -133,9 +133,8 @@ export default function LogoDownloadActivity() {
   }, [entityId, entityType]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return logs;
-    const q = search.toLowerCase();
-    return logs.filter(l => {
+    const q = search.trim().toLowerCase();
+    const matched = !q ? logs : logs.filter(l => {
       const d = (l.details as Record<string, unknown>) || {};
       return (
         l.user_email?.toLowerCase().includes(q) ||
@@ -144,7 +143,37 @@ export default function LogoDownloadActivity() {
         String(d.format || '').toLowerCase().includes(q)
       );
     });
-  }, [logs, search]);
+
+    // Sort applies to BOTH filtered and unfiltered list, so the chosen
+    // sort is preserved while the user types in the search box.
+    const sorted = [...matched];
+    const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+    const getStr = (l: LogoDownloadLog, key: 'logo_name' | 'file_name' | 'format') =>
+      String(((l.details as Record<string, unknown>) || {})[key] || '');
+
+    sorted.sort((a, b) => {
+      switch (sortOption) {
+        case 'time-asc':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'user-asc':
+          return collator.compare(a.user_email || '', b.user_email || '');
+        case 'user-desc':
+          return collator.compare(b.user_email || '', a.user_email || '');
+        case 'logo-asc':
+          return collator.compare(getStr(a, 'logo_name'), getStr(b, 'logo_name'));
+        case 'logo-desc':
+          return collator.compare(getStr(b, 'logo_name'), getStr(a, 'logo_name'));
+        case 'format-asc':
+          return collator.compare(getStr(a, 'format'), getStr(b, 'format'));
+        case 'format-desc':
+          return collator.compare(getStr(b, 'format'), getStr(a, 'format'));
+        case 'time-desc':
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+    return sorted;
+  }, [logs, search, sortOption]);
 
   const stats = useMemo(() => {
     const uniqueUsers = new Set(logs.map(l => l.user_email).filter(Boolean));
