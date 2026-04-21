@@ -81,6 +81,7 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
     
     // Visual
     logos: asArray(guideData.logos, []) as EventGuide['logos'],
+    logoDownloadLinks: asArray(guideData.logoDownloadLinks, []) as EventGuide['logoDownloadLinks'],
     brandIcons: asArray(guideData.brandIcons, []) as EventGuide['brandIcons'],
     colors: asArray(guideData.colors, []) as EventGuide['colors'],
     colorCombinations: asArray(guideData.colorCombinations, []) as EventGuide['colorCombinations'],
