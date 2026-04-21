@@ -232,6 +232,51 @@ export const ImageryWorkspace = ({
     }
   }, [sections, onAddSection, onAddImages]);
 
+  // Detect sections that share the same (case-insensitive, trimmed) name.
+  const duplicateGroups = (() => {
+    const groups = new Map<string, ApprovedImagerySubSection[]>();
+    sections.forEach(s => {
+      const key = s.name.trim().toLowerCase();
+      const arr = groups.get(key) || [];
+      arr.push(s);
+      groups.set(key, arr);
+    });
+    return Array.from(groups.values()).filter(g => g.length > 1);
+  })();
+  const duplicateSectionCount = duplicateGroups.reduce((sum, g) => sum + (g.length - 1), 0);
+
+  const handleMergeDuplicates = useCallback(async () => {
+    if (duplicateGroups.length === 0) {
+      toast.info('No duplicate categories found');
+      return;
+    }
+    let mergedFolders = 0;
+    let mergedImages = 0;
+    for (const group of duplicateGroups) {
+      // Keep the first (oldest) section, merge the rest into it.
+      const [keeper, ...dupes] = group;
+      const existingIds = new Set(keeper.images.map(i => i.id));
+      const toMove: ApprovedImage[] = [];
+      for (const dupe of dupes) {
+        for (const img of dupe.images) {
+          if (!existingIds.has(img.id)) {
+            toMove.push(img);
+            existingIds.add(img.id);
+          }
+        }
+      }
+      if (toMove.length > 0) {
+        await onAddImages(keeper.id, toMove);
+        mergedImages += toMove.length;
+      }
+      for (const dupe of dupes) {
+        await onRemoveSection(dupe.id);
+        mergedFolders += 1;
+      }
+    }
+    toast.success(`Merged ${mergedFolders} duplicate categor${mergedFolders === 1 ? 'y' : 'ies'} (${mergedImages} image${mergedImages === 1 ? '' : 's'} consolidated)`);
+  }, [duplicateGroups, onAddImages, onRemoveSection]);
+
   const handleVisualSearchQuery = useCallback((query: string) => {
     if (sections.length > 0) {
       setSearchSectionId(sections[0].id);
