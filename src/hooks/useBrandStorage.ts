@@ -124,7 +124,7 @@ const mergeSectionOrder = (dbOrder: string[] | null): BrandGuide['sectionOrder']
 const asArray = safeArray;
 const asObject = safeObject;
 
-const dbToBrandGuide = (db: DbBrand): BrandGuide => {
+export const dbToBrandGuide = (db: DbBrand): BrandGuide => {
   const guideData = asObject<Record<string, unknown>>(db.guide_data, {});
 
   return {
@@ -203,7 +203,7 @@ const dbToBrandGuide = (db: DbBrand): BrandGuide => {
   };
 };
 
-const dbToProductGuide = (db: DbProduct): ProductGuide => {
+export const dbToProductGuide = (db: DbProduct): ProductGuide => {
   const guideData = asObject<Record<string, unknown>>(db.guide_data, {});
 
   return {
