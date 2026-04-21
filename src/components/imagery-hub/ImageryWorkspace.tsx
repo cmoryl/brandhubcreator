@@ -188,19 +188,49 @@ export const ImageryWorkspace = ({
   const handleAutoCategorizeApply = useCallback(async (
     assignments: { image: ApprovedImage; sectionId: string; newSectionName?: string; tags: string[] }[]
   ) => {
+    // Cache new sections by lowercase name so we only create each once,
+    // even when many images are categorized into the same new folder.
+    const newSectionCache = new Map<string, string>();
+    // Pre-seed with existing sections to catch case-insensitive matches.
+    sections.forEach(s => newSectionCache.set(s.name.toLowerCase(), s.id));
+
+    // Group images by target section to batch-insert and avoid race conditions.
+    const grouped = new Map<string, { sectionId: string; images: ApprovedImage[] }>();
+
     for (const assignment of assignments) {
       let targetSectionId = assignment.sectionId;
-      if (assignment.newSectionName && !targetSectionId) {
-        const newId = await onAddSection(assignment.newSectionName);
-        if (newId) targetSectionId = newId;
-        else continue;
+
+      if (!targetSectionId && assignment.newSectionName) {
+        const key = assignment.newSectionName.trim().toLowerCase();
+        const cached = newSectionCache.get(key);
+        if (cached) {
+          targetSectionId = cached;
+        } else {
+          const newId = await onAddSection(assignment.newSectionName.trim());
+          if (!newId) continue;
+          targetSectionId = newId;
+          newSectionCache.set(key, newId);
+        }
       }
-      if (targetSectionId) {
-        const imageWithTags = { ...assignment.image, tags: [...new Set([...(assignment.image.tags || []), ...assignment.tags])] };
-        await onAddImages(targetSectionId, [imageWithTags]);
+
+      if (!targetSectionId) continue;
+
+      const imageWithTags = {
+        ...assignment.image,
+        tags: [...new Set([...(assignment.image.tags || []), ...assignment.tags])],
+      };
+      const bucket = grouped.get(targetSectionId);
+      if (bucket) {
+        bucket.images.push(imageWithTags);
+      } else {
+        grouped.set(targetSectionId, { sectionId: targetSectionId, images: [imageWithTags] });
       }
     }
-  }, [onAddSection, onAddImages]);
+
+    for (const { sectionId, images } of grouped.values()) {
+      await onAddImages(sectionId, images);
+    }
+  }, [sections, onAddSection, onAddImages]);
 
   const handleVisualSearchQuery = useCallback((query: string) => {
     if (sections.length > 0) {
