@@ -125,6 +125,7 @@ export const pillarImagesList = [
   trustPillar,
   sustainabilityPillar,
   diversityPillar,
+  financialResponsibilityPillar,
 ];
 
 export const pillarImagesWithLabels = [
@@ -139,6 +140,7 @@ export const pillarImagesWithLabels = [
   { url: trustPillar, label: 'Trust', keywords: ['reliability', 'commitment', 'accountability'] },
   { url: sustainabilityPillar, label: 'Sustainability', keywords: ['environment', 'community', 'responsibility'] },
   { url: diversityPillar, label: 'Diversity', keywords: ['inclusion', 'belonging', 'respect'] },
+  { url: financialResponsibilityPillar, label: 'Financial Responsibility', keywords: ['fiscal', 'stewardship', 'finance'] },
 ];
 
 /**
