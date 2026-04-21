@@ -14,6 +14,7 @@ import diversityImg from '@/assets/pillars/diversity-pillar.jpg';
 import urgencyImg from '@/assets/pillars/urgency-pillar.jpg';
 import resultsImg from '@/assets/pillars/results-pillar.jpg';
 import transparencyImg from '@/assets/pillars/transparency-pillar.jpg';
+import financialResponsibilityImg from '@/assets/pillars/financial-responsibility-pillar.jpg';
 
 export const collaborationPillar = collaborationImg;
 export const integrityPillar = integrityImg;
@@ -26,6 +27,7 @@ export const diversityPillar = diversityImg;
 export const urgencyPillar = urgencyImg;
 export const resultsPillar = resultsImg;
 export const transparencyPillar = transparencyImg;
+export const financialResponsibilityPillar = financialResponsibilityImg;
 
 export const pillarImages: Record<string, string> = {
   // Collaboration / Teamwork
