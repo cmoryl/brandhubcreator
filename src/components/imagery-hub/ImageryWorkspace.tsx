@@ -377,6 +377,17 @@ export const ImageryWorkspace = ({
                 <DropdownMenuItem onClick={() => setAutoCategorizeOpen(true)} disabled={allImages.length === 0} className="gap-2">
                   <Sparkles className="h-4 w-4" /> Auto-Categorize
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleMergeDuplicates}
+                  disabled={duplicateSectionCount === 0}
+                  className="gap-2"
+                >
+                  <Combine className="h-4 w-4" />
+                  Merge Duplicate Categories
+                  {duplicateSectionCount > 0 && (
+                    <Badge variant="secondary" className="ml-auto text-[10px] h-5">{duplicateSectionCount}</Badge>
+                  )}
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setWebsiteScannerOpen(true)} className="gap-2">
                   <Globe className="h-4 w-4" /> Scan Website for Images
