@@ -150,6 +150,7 @@ export function LogoDownloadLinksPanel({ logoId, logoName, allLinks, canEdit, on
                   download
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => handleLinkDownload(link)}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-xs font-medium"
                   title={`Download ${link.label}`}
                 >
