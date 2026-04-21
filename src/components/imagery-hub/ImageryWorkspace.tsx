@@ -4,7 +4,7 @@
  * batch operations, auto-categorization, visual search, and quality scoring
  */
 import { useState, useCallback, useEffect } from 'react';
-import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown, Globe } from 'lucide-react';
+import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown, Globe, Combine } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -232,6 +232,51 @@ export const ImageryWorkspace = ({
     }
   }, [sections, onAddSection, onAddImages]);
 
+  // Detect sections that share the same (case-insensitive, trimmed) name.
+  const duplicateGroups = (() => {
+    const groups = new Map<string, ApprovedImagerySubSection[]>();
+    sections.forEach(s => {
+      const key = s.name.trim().toLowerCase();
+      const arr = groups.get(key) || [];
+      arr.push(s);
+      groups.set(key, arr);
+    });
+    return Array.from(groups.values()).filter(g => g.length > 1);
+  })();
+  const duplicateSectionCount = duplicateGroups.reduce((sum, g) => sum + (g.length - 1), 0);
+
+  const handleMergeDuplicates = useCallback(async () => {
+    if (duplicateGroups.length === 0) {
+      toast.info('No duplicate categories found');
+      return;
+    }
+    let mergedFolders = 0;
+    let mergedImages = 0;
+    for (const group of duplicateGroups) {
+      // Keep the first (oldest) section, merge the rest into it.
+      const [keeper, ...dupes] = group;
+      const existingIds = new Set(keeper.images.map(i => i.id));
+      const toMove: ApprovedImage[] = [];
+      for (const dupe of dupes) {
+        for (const img of dupe.images) {
+          if (!existingIds.has(img.id)) {
+            toMove.push(img);
+            existingIds.add(img.id);
+          }
+        }
+      }
+      if (toMove.length > 0) {
+        await onAddImages(keeper.id, toMove);
+        mergedImages += toMove.length;
+      }
+      for (const dupe of dupes) {
+        await onRemoveSection(dupe.id);
+        mergedFolders += 1;
+      }
+    }
+    toast.success(`Merged ${mergedFolders} duplicate categor${mergedFolders === 1 ? 'y' : 'ies'} (${mergedImages} image${mergedImages === 1 ? '' : 's'} consolidated)`);
+  }, [duplicateGroups, onAddImages, onRemoveSection]);
+
   const handleVisualSearchQuery = useCallback((query: string) => {
     if (sections.length > 0) {
       setSearchSectionId(sections[0].id);
@@ -331,6 +376,17 @@ export const ImageryWorkspace = ({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setAutoCategorizeOpen(true)} disabled={allImages.length === 0} className="gap-2">
                   <Sparkles className="h-4 w-4" /> Auto-Categorize
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleMergeDuplicates}
+                  disabled={duplicateSectionCount === 0}
+                  className="gap-2"
+                >
+                  <Combine className="h-4 w-4" />
+                  Merge Duplicate Categories
+                  {duplicateSectionCount > 0 && (
+                    <Badge variant="secondary" className="ml-auto text-[10px] h-5">{duplicateSectionCount}</Badge>
+                  )}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setWebsiteScannerOpen(true)} className="gap-2">
