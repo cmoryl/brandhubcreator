@@ -36,6 +36,7 @@ export interface BrandLogo {
   name: string;
   url: string;
   variant: 'primary' | 'secondary' | 'icon' | 'wordmark' | 'reversed' | 'monochrome';
+  description?: string;
 }
 
 // External logo download link (e.g. Dropbox direct links)
