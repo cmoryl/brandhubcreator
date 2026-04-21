@@ -108,15 +108,24 @@ export const BrandMaterialsPanel = ({
         toast.error(data.error);
         return;
       }
-      setMaterials(data?.materials || []);
+      // Drop materials the user previously excluded so they stop appearing
+      // on refresh — the excluded IDs stay persisted so the AI keeps learning
+      // what's not liked going forward.
+      const incoming: BrandMaterial[] = data?.materials || [];
+      const filtered = incoming.filter(m => !excludedIds.has(m.id));
+      const removed = incoming.length - filtered.length;
+      setMaterials(filtered);
       setGuidance(data?.guidance || null);
+      if (removed > 0) {
+        toast.success(`Refreshed — hid ${removed} previously rejected item${removed === 1 ? '' : 's'}`);
+      }
     } catch (err) {
       console.error('Failed to fetch brand materials:', err);
       toast.error('Failed to load brand materials');
     } finally {
       setIsLoading(false);
     }
-  }, [entityId, entityType, categoryName]);
+  }, [entityId, entityType, categoryName, excludedIds]);
 
   useEffect(() => {
     if (isOpen && materials.length === 0 && !isLoading) {
