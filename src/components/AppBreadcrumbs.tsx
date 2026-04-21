@@ -61,14 +61,21 @@ export const AppBreadcrumbs = React.forwardRef<
 
   // Programmatic navigation handler — guarantees React Router processes the
   // route change even if a parent component is intercepting Link clicks.
+  // Uses both stopPropagation and preventDefault to defeat any ancestor click
+  // listeners (e.g., editor cards, sticky headers) that might swallow the event.
   const handleNav = React.useCallback(
-    (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
-      // Allow modifier-clicks (open in new tab) to work normally
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-      e.preventDefault();
-      if (href !== location.pathname) {
-        navigate(href);
+    (href: string) => (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
+      // Allow modifier-clicks (open in new tab) to work normally — only on anchors
+      if (e.currentTarget.tagName === 'A') {
+        const me = e as React.MouseEvent<HTMLAnchorElement>;
+        if (me.metaKey || me.ctrlKey || me.shiftKey || me.altKey || me.button !== 0) return;
       }
+      e.preventDefault();
+      e.stopPropagation();
+      if (href === location.pathname) return;
+      // Defer to next tick so React finishes any in-flight state updates first.
+      // This prevents a parent component's setState from interrupting the navigation.
+      Promise.resolve().then(() => navigate(href));
     },
     [navigate, location.pathname],
   );
