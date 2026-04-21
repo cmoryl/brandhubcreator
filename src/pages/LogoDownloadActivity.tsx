@@ -32,53 +32,69 @@ const DeviceIcon = ({ device }: { device?: string | null }) => {
   return <Monitor className="h-3.5 w-3.5" />;
 };
 
+const PAGE_SIZE = 100;
+
 export default function LogoDownloadActivity() {
   const { entityType, entityId } = useParams<{ entityType: EntityType; entityId: string }>();
   const navigate = useNavigate();
   const [logs, setLogs] = useState<LogoDownloadLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState('');
   const [entityName, setEntityName] = useState<string>('');
+  const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
 
-  const fetchLogs = async () => {
+  const fetchPage = async (offset: number, append: boolean) => {
     if (!entityId) return;
-    setLoading(true);
+    if (append) setLoadingMore(true); else setLoading(true);
 
-    // Resolve entity display name
-    const table = entityType === 'product' ? 'products' : entityType === 'event' ? 'events' : 'brands';
-    const { data: ent } = await supabase
-      .from(table)
-      .select('name')
-      .eq('id', entityId)
-      .maybeSingle();
-    if (ent?.name) setEntityName(ent.name);
+    if (!append) {
+      // Resolve entity display name once
+      const table = entityType === 'product' ? 'products' : entityType === 'event' ? 'events' : 'brands';
+      const { data: ent } = await supabase
+        .from(table)
+        .select('name')
+        .eq('id', entityId)
+        .maybeSingle();
+      if (ent?.name) setEntityName(ent.name);
+    }
 
-    // Query audit_logs filtered to logo export events for this entity
-    const { data, error } = await supabase
+    // Server-side filtering: scoped to entity + logo download events.
+    // Request exact count on first page so we can show a total + drive hasMore.
+    const { data, error, count } = await supabase
       .from('audit_logs')
-      .select('id, created_at, user_email, entity_name, browser, device_type, details')
+      .select('id, created_at, user_email, entity_name, browser, device_type, details', {
+        count: append ? undefined : 'exact',
+      })
       .eq('brand_id', entityId)
-      .eq('action_type', 'export')
       .eq('entity_type', entityType || 'brand')
+      .eq('action_type', 'export')
+      .or('details->>download_type.eq.logo,details->>source_section.eq.logo_download_links')
       .order('created_at', { ascending: false })
-      .limit(500);
+      .range(offset, offset + PAGE_SIZE - 1);
 
     if (error) {
       console.error('Failed to load logo download activity:', error);
-      setLogs([]);
+      if (!append) setLogs([]);
     } else {
-      // Filter client-side to logo downloads only
-      const filtered = (data || []).filter(row => {
-        const d = (row.details as Record<string, unknown>) || {};
-        return d.download_type === 'logo' || d.source_section === 'logo_download_links';
-      }) as LogoDownloadLog[];
-      setLogs(filtered);
+      const rows = (data || []) as LogoDownloadLog[];
+      setLogs(prev => append ? [...prev, ...rows] : rows);
+      if (!append && typeof count === 'number') setTotalCount(count);
+      // hasMore: full page returned, OR known count exceeds what we have
+      const newLength = (append ? logs.length + rows.length : rows.length);
+      const known = !append && typeof count === 'number' ? count : totalCount;
+      setHasMore(rows.length === PAGE_SIZE && (known == null || newLength < known));
     }
-    setLoading(false);
+
+    if (append) setLoadingMore(false); else setLoading(false);
   };
 
+  const loadMore = () => fetchPage(logs.length, true);
+  const refresh = () => { setHasMore(false); setTotalCount(null); fetchPage(0, false); };
+
   useEffect(() => {
-    fetchLogs();
+    fetchPage(0, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entityId, entityType]);
 
