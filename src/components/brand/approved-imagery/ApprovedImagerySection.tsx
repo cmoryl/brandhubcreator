@@ -1,5 +1,5 @@
-import { useState, useCallback, lazy, Suspense } from 'react';
-import { Plus, ImageIcon, Check, X } from 'lucide-react';
+import { useState, useCallback, useMemo, lazy, Suspense } from 'react';
+import { Plus, ImageIcon, Check, X, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -47,8 +47,38 @@ export const ApprovedImagerySection = ({
   const [targetSectionId, setTargetSectionId] = useState<string | null>(null);
   const [newSectionName, setNewSectionName] = useState('');
   const [addingSectionMode, setAddingSectionMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const sections = approvedImagery?.sections || [];
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const isSearching = normalizedQuery.length > 0;
+
+  const matchesQuery = useCallback((image: ApprovedImage) => {
+    if (!isSearching) return true;
+    const haystack = [
+      image.title,
+      image.category,
+      image.source,
+      ...(image.tags || []),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(normalizedQuery);
+  }, [isSearching, normalizedQuery]);
+
+  const filteredSections = useMemo(() => {
+    if (!isSearching) return sections;
+    return sections
+      .map((s) => ({ ...s, images: s.images.filter(matchesQuery) }))
+      .filter((s) => s.images.length > 0 || s.name.toLowerCase().includes(normalizedQuery));
+  }, [sections, isSearching, matchesQuery, normalizedQuery]);
+
+  const matchedImageCount = useMemo(
+    () => filteredSections.reduce((sum, s) => sum + s.images.length, 0),
+    [filteredSections]
+  );
 
   const updateSections = useCallback((newSections: ApprovedImagerySubSection[]) => {
     onApprovedImageryChange?.({ sections: newSections });
@@ -119,19 +149,44 @@ export const ApprovedImagerySection = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <ImageIcon className="h-6 w-6 text-primary" />
             Approved Imagery
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            {customSubtitle || `${totalImages} approved image${totalImages !== 1 ? 's' : ''} across ${sections.length} categor${sections.length !== 1 ? 'ies' : 'y'}`}
+            {isSearching
+              ? `${matchedImageCount} match${matchedImageCount !== 1 ? 'es' : ''} for "${searchQuery.trim()}"`
+              : (customSubtitle || `${totalImages} approved image${totalImages !== 1 ? 's' : ''} across ${sections.length} categor${sections.length !== 1 ? 'ies' : 'y'}`)}
           </p>
         </div>
-        {canEdit && (
-          <div className="flex items-center gap-2">
-            {addingSectionMode ? (
+        <div className="flex items-center gap-2 flex-wrap">
+          {sections.length > 0 && (
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Search approved imagery..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 w-64 pl-8 pr-8"
+                aria-label="Search approved imagery"
+              />
+              {searchQuery && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          )}
+          {canEdit && (
+            addingSectionMode ? (
               <div className="flex items-center gap-2">
                 <Input
                   placeholder="Category name..."
@@ -152,9 +207,9 @@ export const ApprovedImagerySection = ({
               <Button size="sm" variant="outline" onClick={() => setAddingSectionMode(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Add Category
               </Button>
-            )}
-          </div>
-        )}
+            )
+          )}
+        </div>
       </div>
 
       {sections.length === 0 ? (
@@ -173,9 +228,27 @@ export const ApprovedImagerySection = ({
             )}
           </CardContent>
         </Card>
+      ) : isSearching && filteredSections.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Search className="h-10 w-10 text-muted-foreground/30 mb-3" />
+            <p className="text-muted-foreground text-center">
+              No images match "{searchQuery.trim()}". Try a different keyword, category, or tag.
+            </p>
+            <Button variant="outline" size="sm" className="mt-4" onClick={() => setSearchQuery('')}>
+              Clear search
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
-        <Accordion type="multiple" defaultValue={sections.slice(0, 2).map(s => s.id)} className="space-y-3">
-          {sections.map((section) => (
+        <Accordion
+          type="multiple"
+          // When searching, expand every matching section so results are immediately visible.
+          value={isSearching ? filteredSections.map((s) => s.id) : undefined}
+          defaultValue={isSearching ? undefined : sections.slice(0, 2).map((s) => s.id)}
+          className="space-y-3"
+        >
+          {filteredSections.map((section) => (
             <ImagerySubSection
               key={section.id}
               section={section}
