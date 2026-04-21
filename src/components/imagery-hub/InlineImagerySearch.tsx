@@ -1172,6 +1172,10 @@ export const InlineImagerySearch = ({
                               className="p-1 rounded bg-white/20 hover:bg-white/40 text-white transition-colors" title="Find similar">
                               <Eye className="h-3 w-3" />
                             </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleThumbsDown(result); }}
+                              className="p-1 rounded bg-destructive/70 hover:bg-destructive text-destructive-foreground transition-colors" title="Not for this brand — learn from this">
+                              <ThumbsDown className="h-3 w-3" />
+                            </button>
                           </div>
                         </div>
                       </div>
