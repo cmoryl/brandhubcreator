@@ -251,6 +251,7 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     // Arrays - normalized for legacy field names
     values: safeArray(g.values),
     logos: safeArray(g.logos),
+    logoDownloadLinks: safeArray(g.logoDownloadLinks),
     brandIcons: safeArray(g.brandIcons),
     colors: safeArray(g.colors),
     colorCombinations: safeArray(g.colorCombinations),
@@ -392,6 +393,7 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
       eventName: g.hero?.name || g.name || '' 
     }),
     eventLogos: safeArray(g.eventLogos),
+    logoDownloadLinks: safeArray(g.logoDownloadLinks),
     eventSignage: safeArray(g.eventSignage),
     eventBanners: safeArray(g.eventBanners),
     eventDigitalMaterials: safeArray(g.eventDigitalMaterials),
