@@ -285,8 +285,17 @@ export const ImageryWorkspace = ({
   }, [sections]);
 
   const handleWebsiteImport = useCallback(async (images: { name: string; url: string; type: string }[]) => {
-    const targetSectionId = searchSectionId || sections[0]?.id;
-    if (!targetSectionId) return;
+    if (images.length === 0) return;
+    // If no section exists yet, auto-create one so imports never get silently dropped
+    let targetSectionId = searchSectionId || sections[0]?.id;
+    if (!targetSectionId) {
+      const created = await onAddSection('Website Imports');
+      if (!created) {
+        toast.error('Could not create a category for website imports');
+        return;
+      }
+      targetSectionId = created;
+    }
     const approved: ApprovedImage[] = images.map((img, i) => ({
       id: `web-${Date.now()}-${i}`,
       url: img.url,
@@ -297,7 +306,8 @@ export const ImageryWorkspace = ({
       tags: ['website-scan'],
     }));
     await onAddImages(targetSectionId, approved);
-  }, [searchSectionId, sections, onAddImages]);
+    toast.success(`Saved ${approved.length} image(s) from website`);
+  }, [searchSectionId, sections, onAddImages, onAddSection]);
 
   // Collect all unique tags across sections
   const allTags = new Set<string>();
