@@ -13,6 +13,7 @@ import {
   Camera, PenTool, Layers, SlidersHorizontal, X, Palette, Users, Eye,
   CheckSquare, Square, FolderPlus, Bookmark, Brain, ZoomIn, ChevronLeft,
   ShieldCheck, Ruler, Ban, Grid3X3, LayoutGrid, Upload, TrendingUp, FileImage,
+  ThumbsDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
