@@ -30,6 +30,15 @@ export const transparencyPillar = transparencyImg;
 export const financialResponsibilityPillar = financialResponsibilityImg;
 
 export const pillarImages: Record<string, string> = {
+  // Financial Responsibility / Stewardship
+  // (placed first so it wins over generic "responsibility" -> sustainability)
+  'financial responsibility': financialResponsibilityPillar,
+  'fiscal responsibility': financialResponsibilityPillar,
+  'financial stewardship': financialResponsibilityPillar,
+  financial: financialResponsibilityPillar,
+  fiscal: financialResponsibilityPillar,
+  stewardship: financialResponsibilityPillar,
+
   // Collaboration / Teamwork
   collaboration: collaborationPillar,
   teamwork: collaborationPillar,
