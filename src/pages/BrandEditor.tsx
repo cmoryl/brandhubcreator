@@ -1269,22 +1269,35 @@ const BrandEditor = () => {
           <main className="flex-1 pt-2 px-4 pb-4 sm:pt-2 sm:px-6 sm:pb-6 lg:pt-3 lg:px-8 lg:pb-8 overflow-x-hidden">
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
               {/* Sticky Breadcrumbs */}
-              <StickyBreadcrumbs
-                homeHref={effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/'}
-                items={[
-                  { label: effectiveOrgName || 'Brands', icon: effectiveOrgSlug ? Building2 : FileText, href: effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/' },
-                  // Only show parent brand breadcrumb if:
-                  // 1. There is a parent brand, AND
-                  // 2. It's not the same entity name as the org (avoid "TransPerfect > TransPerfect > Games")
-                  //    When org and master brand share a name, showing both is redundant
-                  ...(parentBrand && (!effectiveOrgName || parentBrand.name.toLowerCase() !== effectiveOrgName.toLowerCase()) 
-                    ? [{ label: parentBrand.name, icon: FileText, href: `/brand/${parentBrand.slug}` }] 
-                    : []),
-                ]}
-                currentPage={brand.hero.name}
-                currentIcon={FileText}
-              />
-              
+              {(() => {
+                // When the master brand shares the org's name (e.g. "TransPerfect" → "TransPerfect"),
+                // we used to render "Home > TransPerfect > TransPerfect" — both labels identical, which
+                // made it impossible to tell which one was the link back to the org portal.
+                // Disambiguate the current page label so the org-link crumb is visually distinct.
+                const orgNameLower = (effectiveOrgName || '').toLowerCase();
+                const brandNameLower = (brand.hero.name || '').toLowerCase();
+                const sharesOrgName = !!effectiveOrgName && orgNameLower === brandNameLower && !parentBrand;
+                const currentLabel = sharesOrgName
+                  ? `${brand.hero.name} — Brand Guidelines`
+                  : brand.hero.name;
+                return (
+                  <StickyBreadcrumbs
+                    homeHref={effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/'}
+                    items={[
+                      { label: effectiveOrgName || 'Brands', icon: effectiveOrgSlug ? Building2 : FileText, href: effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/' },
+                      // Only show parent brand breadcrumb if:
+                      // 1. There is a parent brand, AND
+                      // 2. It's not the same entity name as the org (avoid "TransPerfect > TransPerfect > Games")
+                      //    When org and master brand share a name, showing both is redundant
+                      ...(parentBrand && (!effectiveOrgName || parentBrand.name.toLowerCase() !== orgNameLower)
+                        ? [{ label: parentBrand.name, icon: FileText, href: `/brand/${parentBrand.slug}` }]
+                        : []),
+                    ]}
+                    currentPage={currentLabel}
+                    currentIcon={FileText}
+                  />
+                );
+              })()}
               {viewMode === 'cards' ? (
                 <div className="animate-fade-in">
                   <SectionCardGrid
