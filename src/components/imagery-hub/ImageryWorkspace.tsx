@@ -284,10 +284,17 @@ export const ImageryWorkspace = ({
     setVisualSearchUrl(null);
   }, [sections]);
 
-  const handleWebsiteImport = useCallback(async (images: { name: string; url: string; type: string }[]) => {
+  const handleWebsiteImport = useCallback(async (
+    images: { name: string; url: string; type: string }[],
+    chosenSectionId?: string,
+  ) => {
     if (images.length === 0) return;
-    // If no section exists yet, auto-create one so imports never get silently dropped
-    let targetSectionId = searchSectionId || sections[0]?.id;
+    // Resolve destination: explicit choice → search context → first section → auto-create
+    let targetSectionId = chosenSectionId
+      && sections.some(s => s.id === chosenSectionId)
+        ? chosenSectionId
+        : (searchSectionId || sections[0]?.id);
+
     if (!targetSectionId) {
       const created = await onAddSection('Website Imports');
       if (!created) {
@@ -306,7 +313,6 @@ export const ImageryWorkspace = ({
       tags: ['website-scan'],
     }));
     await onAddImages(targetSectionId, approved);
-    toast.success(`Saved ${approved.length} image(s) from website`);
   }, [searchSectionId, sections, onAddImages, onAddSection]);
 
   // Collect all unique tags across sections
@@ -663,6 +669,8 @@ export const ImageryWorkspace = ({
         open={websiteScannerOpen}
         onOpenChange={setWebsiteScannerOpen}
         onImportImages={handleWebsiteImport}
+        destinations={sections.map(s => ({ id: s.id, name: s.name }))}
+        defaultDestinationId={searchSectionId || sections[sections.length - 1]?.id}
       />
     </div>
   );

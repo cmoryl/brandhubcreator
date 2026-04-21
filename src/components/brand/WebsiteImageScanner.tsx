@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
-import { Globe, Search, Check, Download, Loader2, ImageIcon, X, RefreshCw, Library } from 'lucide-react';
+import { useState, useCallback, useMemo } from 'react';
+import { Globe, Search, Check, Download, Loader2, ImageIcon, X, RefreshCw, Library, FolderOpen } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -15,28 +16,49 @@ interface ScannedImage {
   alt: string;
 }
 
+interface DestinationOption {
+  id: string;
+  name: string;
+}
+
 interface WebsiteImageScannerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultUrl?: string;
-  onImportImages: (images: { name: string; url: string; type: string }[]) => void | Promise<void>;
+  onImportImages: (
+    images: { name: string; url: string; type: string }[],
+    targetSectionId?: string,
+  ) => void | Promise<void>;
+  /** Optional list of destination categories the user can pick from. */
+  destinations?: DestinationOption[];
+  /** Default destination id (e.g. last-created category). */
+  defaultDestinationId?: string;
 }
+
+const NEW_FOLDER_VALUE = '__new__';
 
 export const WebsiteImageScanner = ({
   open,
   onOpenChange,
   defaultUrl = '',
   onImportImages,
+  destinations = [],
+  defaultDestinationId,
 }: WebsiteImageScannerProps) => {
   const [url, setUrl] = useState(defaultUrl);
   const [isScanning, setIsScanning] = useState(false);
   const [images, setImages] = useState<ScannedImage[]>([]);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  // Track selection by URL so the set survives filter/sort changes.
+  const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState('');
   const [hasScanned, setHasScanned] = useState(false);
-  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [scanProgress, setScanProgress] = useState('');
   const [isSavingToLibrary, setIsSavingToLibrary] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [destinationId, setDestinationId] = useState<string>(
+    defaultDestinationId || destinations[0]?.id || NEW_FOLDER_VALUE
+  );
   const { saveMultipleToLibrary } = useSaveToLibrary();
 
   const handleScan = useCallback(async () => {
@@ -47,12 +69,11 @@ export const WebsiteImageScanner = ({
 
     setIsScanning(true);
     setImages([]);
-    setSelectedIds(new Set());
+    setSelectedUrls(new Set());
     setHasScanned(false);
     setFailedImages(new Set());
     setScanProgress('Discovering pages...');
 
-    // Ensure the URL has a protocol prefix
     let scanUrl = url.trim();
     if (!/^https?:\/\//i.test(scanUrl)) {
       scanUrl = `https://${scanUrl}`;
@@ -79,66 +100,96 @@ export const WebsiteImageScanner = ({
     }
   }, [url]);
 
-  const toggleSelect = (index: number) => {
-    setSelectedIds((prev) => {
+  const filteredImages = useMemo(() => {
+    if (!filter.trim()) return images;
+    const q = filter.toLowerCase();
+    return images.filter(
+      (img) =>
+        img.filename.toLowerCase().includes(q) ||
+        img.alt.toLowerCase().includes(q) ||
+        img.url.toLowerCase().includes(q)
+    );
+  }, [images, filter]);
+
+  const toggleSelect = (url: string) => {
+    setSelectedUrls((prev) => {
       const next = new Set(prev);
-      if (next.has(index)) next.delete(index);
-      else next.add(index);
+      if (next.has(url)) next.delete(url);
+      else next.add(url);
       return next;
     });
   };
 
   const selectAll = () => {
-    const visible = filteredImages.map((_, i) => i);
-    if (selectedIds.size === visible.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(visible));
-    }
+    const visibleUrls = filteredImages.map((img) => img.url);
+    const allSelected = visibleUrls.every((u) => selectedUrls.has(u));
+    setSelectedUrls((prev) => {
+      const next = new Set(prev);
+      if (allSelected) {
+        visibleUrls.forEach((u) => next.delete(u));
+      } else {
+        visibleUrls.forEach((u) => next.add(u));
+      }
+      return next;
+    });
   };
 
   const handleImport = async () => {
-    const selected = Array.from(selectedIds).map((i) => {
-      const img = filteredImages[i];
-      const ext = img.filename.match(/\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)$/i)?.[1] || 'png';
-      return {
-        name: img.alt || img.filename || `image-${i}`,
-        url: img.url,
-        type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
-      };
-    });
+    if (selectedUrls.size === 0) return;
+    // Resolve selections back to image objects (URL-stable, filter-safe).
+    const byUrl = new Map(images.map((img) => [img.url, img]));
+    const selected = Array.from(selectedUrls)
+      .map((u, i) => {
+        const img = byUrl.get(u);
+        if (!img) return null;
+        const ext = img.filename.match(/\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)$/i)?.[1] || 'png';
+        return {
+          name: img.alt || img.filename || `image-${i}`,
+          url: img.url,
+          type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+        };
+      })
+      .filter((x): x is { name: string; url: string; type: string } => x !== null);
 
+    if (selected.length === 0) {
+      toast.error('No valid images selected');
+      return;
+    }
+
+    setIsImporting(true);
     try {
-      await Promise.resolve(onImportImages(selected));
-      toast.success(`Imported ${selected.length} images`);
+      const targetId =
+        destinationId && destinationId !== NEW_FOLDER_VALUE ? destinationId : undefined;
+      await Promise.resolve(onImportImages(selected, targetId));
+      const destLabel =
+        targetId
+          ? destinations.find((d) => d.id === targetId)?.name || 'category'
+          : 'a new "Website Imports" category';
+      toast.success(`Imported ${selected.length} image${selected.length === 1 ? '' : 's'} → ${destLabel}`);
       onOpenChange(false);
     } catch (err) {
       console.error('Website import error:', err);
       toast.error('Failed to import selected images');
+    } finally {
+      setIsImporting(false);
     }
   };
 
-  const filteredImages = images.filter((img) => {
-    if (!filter.trim()) return true;
-    const q = filter.toLowerCase();
-    return (
-      img.filename.toLowerCase().includes(q) ||
-      img.alt.toLowerCase().includes(q) ||
-      img.url.toLowerCase().includes(q)
-    );
-  });
-
   const handleSaveToLibrary = useCallback(async () => {
-    if (selectedIds.size === 0) return;
+    if (selectedUrls.size === 0) return;
     setIsSavingToLibrary(true);
     try {
-      const imagesToSave = Array.from(selectedIds).map((i) => {
-        const img = filteredImages[i];
-        return {
-          source: img.url,
-          name: img.alt || img.filename || `website-image-${i}`,
-        };
-      });
+      const byUrl = new Map(images.map((img) => [img.url, img]));
+      const imagesToSave = Array.from(selectedUrls)
+        .map((u, i) => {
+          const img = byUrl.get(u);
+          if (!img) return null;
+          return {
+            source: img.url,
+            name: img.alt || img.filename || `website-image-${i}`,
+          };
+        })
+        .filter((x): x is { source: string; name: string } => x !== null);
 
       const results = await saveMultipleToLibrary(imagesToSave, 'General');
       if (results.length > 0) {
@@ -152,11 +203,14 @@ export const WebsiteImageScanner = ({
     } finally {
       setIsSavingToLibrary(false);
     }
-  }, [selectedIds, filteredImages, saveMultipleToLibrary]);
+  }, [selectedUrls, images, saveMultipleToLibrary]);
 
-  const handleImageError = (index: number) => {
-    setFailedImages((prev) => new Set(prev).add(index));
+  const handleImageError = (url: string) => {
+    setFailedImages((prev) => new Set(prev).add(url));
   };
+
+  const allVisibleSelected =
+    filteredImages.length > 0 && filteredImages.every((img) => selectedUrls.has(img.url));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -202,20 +256,20 @@ export const WebsiteImageScanner = ({
               </div>
               <Button variant="outline" size="sm" onClick={selectAll} className="gap-1.5 text-xs">
                 <Check className="h-3.5 w-3.5" />
-                {selectedIds.size === filteredImages.length ? 'Deselect All' : 'Select All'}
+                {allVisibleSelected ? 'Deselect All' : 'Select All'}
               </Button>
               <Button variant="outline" size="sm" onClick={handleScan} className="gap-1.5 text-xs">
                 <RefreshCw className="h-3.5 w-3.5" />
                 Rescan
               </Button>
               <span className="text-xs text-muted-foreground ml-auto">
-                {filteredImages.length} images • {selectedIds.size} selected
+                {filteredImages.length} images • {selectedUrls.size} selected
               </span>
             </div>
           )}
         </div>
 
-        {/* Image Grid — native overflow scroll instead of ScrollArea */}
+        {/* Image Grid */}
         <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
           {isScanning && (
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
@@ -246,13 +300,13 @@ export const WebsiteImageScanner = ({
           {!isScanning && filteredImages.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {filteredImages.map((img, index) => {
-                const isSelected = selectedIds.has(index);
-                const isFailed = failedImages.has(index);
+                const isSelected = selectedUrls.has(img.url);
+                const isFailed = failedImages.has(img.url);
 
                 return (
                   <button
                     key={`${img.url}-${index}`}
-                    onClick={() => toggleSelect(index)}
+                    onClick={() => toggleSelect(img.url)}
                     className={cn(
                       'group relative rounded-lg border-2 overflow-hidden transition-all duration-150 text-left',
                       'hover:shadow-md hover:scale-[1.02]',
@@ -261,7 +315,6 @@ export const WebsiteImageScanner = ({
                         : 'border-border hover:border-accent'
                     )}
                   >
-                    {/* Selection Indicator */}
                     <div
                       className={cn(
                         'absolute top-1.5 left-1.5 z-10 rounded-sm transition-all',
@@ -271,7 +324,6 @@ export const WebsiteImageScanner = ({
                       <Checkbox checked={isSelected} className="h-4 w-4 bg-background/80 backdrop-blur-sm" />
                     </div>
 
-                    {/* Image */}
                     <div className="aspect-square bg-muted/50 flex items-center justify-center overflow-hidden">
                       {isFailed ? (
                         <div className="flex flex-col items-center gap-1 text-muted-foreground p-2">
@@ -284,12 +336,11 @@ export const WebsiteImageScanner = ({
                           alt={img.alt || img.filename}
                           className="w-full h-full object-cover"
                           loading="lazy"
-                          onError={() => handleImageError(index)}
+                          onError={() => handleImageError(img.url)}
                         />
                       )}
                     </div>
 
-                    {/* Label */}
                     <div className="p-1.5">
                       <p className="text-[10px] text-muted-foreground truncate" title={img.alt || img.filename}>
                         {img.alt || img.filename}
@@ -302,17 +353,31 @@ export const WebsiteImageScanner = ({
           )}
         </div>
 
-        {/* Footer */}
+        {/* Footer with Destination Picker */}
         {hasScanned && images.length > 0 && (
-          <div className="border-t border-border p-3 flex items-center justify-between bg-muted/30 shrink-0">
-            <p className="text-xs text-muted-foreground">
-              Select images to import or save to library
-            </p>
+          <div className="border-t border-border p-3 flex items-center justify-between bg-muted/30 shrink-0 flex-wrap gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <FolderOpen className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-xs text-muted-foreground shrink-0">Import to:</span>
+              <Select value={destinationId} onValueChange={setDestinationId}>
+                <SelectTrigger className="h-8 w-[220px] text-sm">
+                  <SelectValue placeholder="Choose category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {destinations.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.name}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={NEW_FOLDER_VALUE}>+ New "Website Imports" category</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 onClick={handleSaveToLibrary}
-                disabled={selectedIds.size === 0 || isSavingToLibrary}
+                disabled={selectedUrls.size === 0 || isSavingToLibrary}
                 className="gap-2"
               >
                 {isSavingToLibrary ? (
@@ -320,15 +385,21 @@ export const WebsiteImageScanner = ({
                 ) : (
                   <Library className="h-4 w-4" />
                 )}
-                {isSavingToLibrary ? 'Saving...' : `Save to Library`}
+                {isSavingToLibrary ? 'Saving...' : 'Save to Library'}
               </Button>
               <Button
                 onClick={handleImport}
-                disabled={selectedIds.size === 0}
+                disabled={selectedUrls.size === 0 || isImporting}
                 className="gap-2"
               >
-                <Download className="h-4 w-4" />
-                Import {selectedIds.size > 0 ? `${selectedIds.size} Images` : 'Selected'}
+                {isImporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {isImporting
+                  ? 'Importing...'
+                  : `Import ${selectedUrls.size > 0 ? `${selectedUrls.size} Image${selectedUrls.size === 1 ? '' : 's'}` : 'Selected'}`}
               </Button>
             </div>
           </div>
