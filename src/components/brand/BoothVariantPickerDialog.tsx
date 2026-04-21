@@ -27,7 +27,10 @@ export const BoothVariantPickerDialog = ({ division, open, onOpenChange }: Booth
 
   const handleSelectVariant = (label: string) => {
     setSelectedVariant(label);
-    setThreeDOpen(true);
+    // Close the picker entirely before opening the 3D modal so it doesn't linger underneath
+    onOpenChange(false);
+    // Defer slightly to allow the picker's exit animation to complete cleanly
+    setTimeout(() => setThreeDOpen(true), 150);
   };
 
   const handleClosePicker = (next: boolean) => {
