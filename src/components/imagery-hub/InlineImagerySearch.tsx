@@ -151,9 +151,54 @@ export const InlineImagerySearch = ({
 }: InlineImagerySearchProps) => {
   const {
     visualDna, signalCount, isAnalyzing, isLoading: dnaLoading,
-    recordApproved, recordSkipped, analyzePreferences,
+    recordApproved, recordSkipped, recordRemoved, analyzePreferences,
   } = useImageryPreferenceLearning(entityId, entityType, organizationId);
   const lastSearchContextRef = useRef<Record<string, unknown>>({});
+
+  // Per-entity persistent rejection list (thumbs-down) so we can hide
+  // disliked images on every future search and feed the learning loop.
+  const rejectedStorageKey = `shutterstock-rejected-${entityId || 'global'}`;
+  const [rejectedIds, setRejectedIds] = useState<Set<string>>(() => {
+    try {
+      const stored = typeof window !== 'undefined' ? localStorage.getItem(`shutterstock-rejected-${entityId || 'global'}`) : null;
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(rejectedStorageKey);
+      setRejectedIds(stored ? new Set(JSON.parse(stored)) : new Set());
+    } catch { /* ignore */ }
+  }, [rejectedStorageKey]);
+  const persistRejected = useCallback((next: Set<string>) => {
+    setRejectedIds(next);
+    try { localStorage.setItem(rejectedStorageKey, JSON.stringify(Array.from(next))); } catch { /* ignore */ }
+  }, [rejectedStorageKey]);
+
+  const handleThumbsDown = useCallback((result: ShutterstockSearchResult) => {
+    const next = new Set(rejectedIds);
+    next.add(result.id);
+    persistRejected(next);
+    recordRemoved(result.id, {
+      description: result.description,
+      categories: result.categories,
+      media_type: result.media_type,
+      width: result.width,
+      height: result.height,
+      source: 'search-thumbs-down',
+    });
+    // Drop from current results immediately
+    setResults(prev => prev.filter(r => r.id !== result.id));
+    setSelectedIds(prev => {
+      if (!prev.has(result.id)) return prev;
+      const n = new Set(prev);
+      n.delete(result.id);
+      return n;
+    });
+    toast.success('Got it — we\'ll learn from this and stop showing it');
+  }, [rejectedIds, persistRejected, recordRemoved]);
 
   const [query, setQuery] = useState('');
   const [orientation, setOrientation] = useState<string>('any');
