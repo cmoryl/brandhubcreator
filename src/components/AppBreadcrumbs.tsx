@@ -177,6 +177,7 @@ export const AppBreadcrumbs = React.forwardRef<
                   <BreadcrumbLink asChild>
                     <Link
                       to={item.href || '/'}
+                      onClick={handleNav(item.href || '/')}
                       className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1 rounded-md cursor-pointer pointer-events-auto"
                     >
                       {Icon && <Icon className="h-4 w-4 flex-shrink-0 hidden sm:block" />}
