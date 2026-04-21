@@ -5,14 +5,38 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Monitor, Smartphone, Tablet, RefreshCw, ExternalLink, FileDown } from 'lucide-react';
+import { ArrowLeft, Download, Monitor, Smartphone, Tablet, RefreshCw, ExternalLink, FileDown, ArrowUpDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDistanceToNow } from 'date-fns';
+
+type SortOption =
+  | 'time-desc'
+  | 'time-asc'
+  | 'user-asc'
+  | 'user-desc'
+  | 'logo-asc'
+  | 'logo-desc'
+  | 'format-asc'
+  | 'format-desc';
+
+const SORT_LABELS: Record<SortOption, string> = {
+  'time-desc': 'Newest first',
+  'time-asc': 'Oldest first',
+  'user-asc': 'User (A–Z)',
+  'user-desc': 'User (Z–A)',
+  'logo-asc': 'Logo (A–Z)',
+  'logo-desc': 'Logo (Z–A)',
+  'format-asc': 'Format (A–Z)',
+  'format-desc': 'Format (Z–A)',
+};
+
+const SORT_STORAGE_KEY = 'logoDownloadActivity.sort';
 
 type EntityType = 'brand' | 'product' | 'event';
 
