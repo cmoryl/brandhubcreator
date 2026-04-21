@@ -27,7 +27,10 @@ export const BoothVariantPickerDialog = ({ division, open, onOpenChange }: Booth
 
   const handleSelectVariant = (label: string) => {
     setSelectedVariant(label);
-    setThreeDOpen(true);
+    // Close the picker entirely before opening the 3D modal so it doesn't linger underneath
+    onOpenChange(false);
+    // Defer slightly to allow the picker's exit animation to complete cleanly
+    setTimeout(() => setThreeDOpen(true), 150);
   };
 
   const handleClosePicker = (next: boolean) => {
@@ -44,7 +47,7 @@ export const BoothVariantPickerDialog = ({ division, open, onOpenChange }: Booth
   return (
     <>
       {/* Step 1 — Variant picker */}
-      <Dialog open={open && !threeDOpen} onOpenChange={handleClosePicker}>
+      <Dialog open={open && !threeDOpen && !selectedVariant} onOpenChange={handleClosePicker}>
         <DialogContent className="max-w-5xl w-[95vw] max-h-[88vh] overflow-y-auto p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
             <div className="flex items-center gap-3">
@@ -135,6 +138,7 @@ export const BoothVariantPickerDialog = ({ division, open, onOpenChange }: Booth
           if (!next) {
             // Return to picker after closing 3D
             setSelectedVariant(null);
+            onOpenChange(true);
           }
         }}
       />
