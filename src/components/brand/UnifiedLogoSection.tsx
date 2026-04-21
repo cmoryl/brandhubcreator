@@ -755,6 +755,8 @@ export const UnifiedLogoSection = forwardRef<HTMLElement, UnifiedLogoSectionProp
                 allLinks={logoDownloadLinks}
                 canEdit={canEdit}
                 onLinksChange={onLogoDownloadLinksChange}
+                entityId={entityId}
+                entityType={entityType}
               />
             </div>
           )}

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import type { LogoDownloadLink } from '@/types/brand';
+import { useDownloadTracking } from '@/hooks/useDownloadTracking';
 
 interface LogoDownloadLinksPanelProps {
   logoId: string;
@@ -13,9 +14,33 @@ interface LogoDownloadLinksPanelProps {
   allLinks: LogoDownloadLink[];
   canEdit: boolean;
   onLinksChange?: (links: LogoDownloadLink[]) => void;
+  entityId?: string;
+  entityType?: string;
+  entityName?: string;
+  organizationId?: string;
 }
 
-export function LogoDownloadLinksPanel({ logoId, logoName, allLinks, canEdit, onLinksChange }: LogoDownloadLinksPanelProps) {
+export function LogoDownloadLinksPanel({ logoId, logoName, allLinks, canEdit, onLinksChange, entityId, entityType, entityName, organizationId }: LogoDownloadLinksPanelProps) {
+  const { trackDownload } = useDownloadTracking();
+
+  const handleLinkDownload = (link: LogoDownloadLink) => {
+    trackDownload({
+      entityId: entityId,
+      entityType: entityType || 'brand',
+      entityName: entityName || logoName,
+      organizationId,
+      details: {
+        download_type: 'logo',
+        format: link.format || 'package',
+        file_name: link.label,
+        source_section: 'logo_download_links',
+        logo_id: logoId,
+        logo_name: logoName,
+        link_id: link.id,
+        link_url: link.url,
+      },
+    });
+  };
   const [showAdd, setShowAdd] = useState(false);
   const [newLink, setNewLink] = useState({ label: '', url: '', format: '' });
 
@@ -125,6 +150,7 @@ export function LogoDownloadLinksPanel({ logoId, logoName, allLinks, canEdit, on
                   download
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => handleLinkDownload(link)}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-xs font-medium"
                   title={`Download ${link.label}`}
                 >
