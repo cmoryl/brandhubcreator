@@ -47,7 +47,7 @@ export const BoothVariantPickerDialog = ({ division, open, onOpenChange }: Booth
   return (
     <>
       {/* Step 1 — Variant picker */}
-      <Dialog open={open && !threeDOpen} onOpenChange={handleClosePicker}>
+      <Dialog open={open && !threeDOpen && !selectedVariant} onOpenChange={handleClosePicker}>
         <DialogContent className="max-w-5xl w-[95vw] max-h-[88vh] overflow-y-auto p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
             <div className="flex items-center gap-3">
