@@ -56,7 +56,22 @@ export const AppBreadcrumbs = React.forwardRef<
   homeHref = '/',
 }, ref) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const pathSegments = location.pathname.split('/').filter(Boolean);
+
+  // Programmatic navigation handler — guarantees React Router processes the
+  // route change even if a parent component is intercepting Link clicks.
+  const handleNav = React.useCallback(
+    (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+      // Allow modifier-clicks (open in new tab) to work normally
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      e.preventDefault();
+      if (href !== location.pathname) {
+        navigate(href);
+      }
+    },
+    [navigate, location.pathname],
+  );
 
   // Build breadcrumb items from path if not provided
   const breadcrumbItems: BreadcrumbConfig[] = items || [];
