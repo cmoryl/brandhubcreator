@@ -103,7 +103,6 @@ export const pillarImages: Record<string, string> = {
   community: sustainabilityPillar,
   responsibility: sustainabilityPillar,
   giving: sustainabilityPillar,
-  financial: sustainabilityPillar,
   
   // Diversity / Inclusion
   diversity: diversityPillar,
