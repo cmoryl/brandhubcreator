@@ -96,6 +96,7 @@ const SharedPalette = lazyWithRetry(() => import("./pages/SharedPalette"));
 const SocialAssetStudio = lazyWithRetry(() => import("./pages/SocialAssetStudio"));
 const AdLocalizerPage = lazyWithRetry(() => import("./pages/AdLocalizerPage"));
 const ImageryHub = lazyWithRetry(() => import("./pages/ImageryHub"));
+const LogoDownloadActivity = lazyWithRetry(() => import("./pages/LogoDownloadActivity"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -418,6 +419,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <SectionsShowcase />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="activity/logo-downloads/:entityType/:entityId"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <LogoDownloadActivity />
                         </Suspense>
                       }
                     />

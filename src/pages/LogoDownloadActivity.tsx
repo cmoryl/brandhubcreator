@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Monitor, Smartphone, Tablet, RefreshCw, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,7 @@ const DeviceIcon = ({ device }: { device?: string | null }) => {
 
 export default function LogoDownloadActivity() {
   const { entityType, entityId } = useParams<{ entityType: EntityType; entityId: string }>();
+  const navigate = useNavigate();
   const [logs, setLogs] = useState<LogoDownloadLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -106,9 +107,9 @@ export default function LogoDownloadActivity() {
       <div className="container max-w-6xl py-8 space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="space-y-1">
-            <Link to={-1 as unknown as string} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="h-3.5 w-3.5" /> Back
-            </Link>
+            </button>
             <h1 className="text-3xl font-bold tracking-tight">Logo Download Activity</h1>
             <p className="text-muted-foreground text-sm">
               {entityName ? <>Activity log for <span className="font-medium text-foreground">{entityName}</span></> : 'Lightweight log of logo link downloads'}
