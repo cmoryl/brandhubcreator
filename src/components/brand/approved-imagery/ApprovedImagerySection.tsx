@@ -47,8 +47,38 @@ export const ApprovedImagerySection = ({
   const [targetSectionId, setTargetSectionId] = useState<string | null>(null);
   const [newSectionName, setNewSectionName] = useState('');
   const [addingSectionMode, setAddingSectionMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const sections = approvedImagery?.sections || [];
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const isSearching = normalizedQuery.length > 0;
+
+  const matchesQuery = useCallback((image: ApprovedImage) => {
+    if (!isSearching) return true;
+    const haystack = [
+      image.title,
+      image.category,
+      image.source,
+      ...(image.tags || []),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(normalizedQuery);
+  }, [isSearching, normalizedQuery]);
+
+  const filteredSections = useMemo(() => {
+    if (!isSearching) return sections;
+    return sections
+      .map((s) => ({ ...s, images: s.images.filter(matchesQuery) }))
+      .filter((s) => s.images.length > 0 || s.name.toLowerCase().includes(normalizedQuery));
+  }, [sections, isSearching, matchesQuery, normalizedQuery]);
+
+  const matchedImageCount = useMemo(
+    () => filteredSections.reduce((sum, s) => sum + s.images.length, 0),
+    [filteredSections]
+  );
 
   const updateSections = useCallback((newSections: ApprovedImagerySubSection[]) => {
     onApprovedImageryChange?.({ sections: newSections });
