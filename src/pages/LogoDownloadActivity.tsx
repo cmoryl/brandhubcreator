@@ -5,7 +5,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Monitor, Smartphone, Tablet, RefreshCw, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Download, Monitor, Smartphone, Tablet, RefreshCw, ExternalLink, FileDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -101,6 +101,67 @@ export default function LogoDownloadActivity() {
     const uniqueLogos = new Set(logs.map(l => String((l.details as Record<string, unknown>)?.logo_id || '')).filter(Boolean));
     return { total: logs.length, uniqueUsers: uniqueUsers.size, uniqueLogos: uniqueLogos.size };
   }, [logs]);
+
+  const handleExportCsv = () => {
+    const rows = filtered;
+    if (rows.length === 0) return;
+
+    const headers = [
+      'Timestamp (ISO)',
+      'Timestamp (Local)',
+      'User',
+      'Entity Type',
+      'Entity Name',
+      'Logo Name',
+      'Logo ID',
+      'Link Label',
+      'Format',
+      'Link URL',
+      'Browser',
+      'Device',
+    ];
+
+    const escape = (val: unknown): string => {
+      const s = val == null ? '' : String(val);
+      if (s === '') return '';
+      // Prefix risky chars to prevent CSV formula injection
+      const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+      if (/[",\n\r]/.test(safe)) return `"${safe.replace(/"/g, '""')}"`;
+      return safe;
+    };
+
+    const lines = [headers.join(',')];
+    for (const log of rows) {
+      const d = (log.details as Record<string, unknown>) || {};
+      lines.push([
+        log.created_at,
+        new Date(log.created_at).toLocaleString(),
+        log.user_email || 'Anonymous',
+        entityType || '',
+        entityName || log.entity_name || '',
+        d.logo_name || '',
+        d.logo_id || '',
+        d.file_name || '',
+        d.format || '',
+        d.link_url || '',
+        log.browser || '',
+        log.device_type || '',
+      ].map(escape).join(','));
+    }
+
+    const csv = '\uFEFF' + lines.join('\n'); // BOM for Excel UTF-8
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const safeName = (entityName || entityType || 'activity').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `logo-downloads-${safeName}-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="min-h-screen bg-background">
