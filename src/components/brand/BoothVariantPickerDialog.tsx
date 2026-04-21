@@ -138,6 +138,7 @@ export const BoothVariantPickerDialog = ({ division, open, onOpenChange }: Booth
           if (!next) {
             // Return to picker after closing 3D
             setSelectedVariant(null);
+            onOpenChange(true);
           }
         }}
       />
