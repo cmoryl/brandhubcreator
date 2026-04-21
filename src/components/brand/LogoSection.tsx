@@ -18,6 +18,7 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
     name: logo.name,
     url: logo.url,
     variant: logo.variant,
+    description: logo.description,
   }));
 
   const handleLogosChange = onLogosChange ? (newLogos: UnifiedLogo[]) => {
@@ -26,6 +27,7 @@ export const LogoSection = ({ logos, onLogosChange, customSubtitle, onSubtitleCh
       name: logo.name,
       url: logo.url,
       variant: logo.variant as BrandLogo['variant'],
+      description: logo.description,
     }));
     onLogosChange(brandLogos);
   } : undefined;
