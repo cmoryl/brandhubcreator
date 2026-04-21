@@ -289,20 +289,29 @@ export const ImageryWorkspace = ({
     chosenSectionId?: string,
   ) => {
     if (images.length === 0) return;
-    // Resolve destination: explicit choice → search context → first section → auto-create
-    let targetSectionId = chosenSectionId
-      && sections.some(s => s.id === chosenSectionId)
-        ? chosenSectionId
-        : (searchSectionId || sections[0]?.id);
 
-    if (!targetSectionId) {
-      const created = await onAddSection('Website Imports');
-      if (!created) {
-        toast.error('Could not create a category for website imports');
-        return;
+    // Resolve destination:
+    // - If caller explicitly passed a valid section id → use it
+    // - If caller passed undefined (means "create new Website Imports") → create one
+    // - If no sections exist at all → also create one
+    let targetSectionId: string | undefined;
+    if (chosenSectionId && sections.some(s => s.id === chosenSectionId)) {
+      targetSectionId = chosenSectionId;
+    } else {
+      // Reuse an existing "Website Imports" folder if one exists, otherwise create.
+      const existing = sections.find(s => s.name.trim().toLowerCase() === 'website imports');
+      if (existing) {
+        targetSectionId = existing.id;
+      } else {
+        const created = await onAddSection('Website Imports');
+        if (!created) {
+          toast.error('Could not create a category for website imports');
+          return;
+        }
+        targetSectionId = created;
       }
-      targetSectionId = created;
     }
+
     const approved: ApprovedImage[] = images.map((img, i) => ({
       id: `web-${Date.now()}-${i}`,
       url: img.url,
@@ -313,7 +322,9 @@ export const ImageryWorkspace = ({
       tags: ['website-scan'],
     }));
     await onAddImages(targetSectionId, approved);
-  }, [searchSectionId, sections, onAddImages, onAddSection]);
+    // Make the new/used folder visible by switching the search context to it.
+    setSearchSectionId(targetSectionId);
+  }, [sections, onAddImages, onAddSection]);
 
   // Collect all unique tags across sections
   const allTags = new Set<string>();
