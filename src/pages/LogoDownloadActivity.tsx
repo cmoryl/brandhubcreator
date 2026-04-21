@@ -176,10 +176,16 @@ export default function LogoDownloadActivity() {
               {entityName ? <>Activity log for <span className="font-medium text-foreground">{entityName}</span></> : 'Lightweight log of logo link downloads'}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchLogs} disabled={loading}>
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchLogs} disabled={loading}>
+              <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button size="sm" onClick={handleExportCsv} disabled={loading || filtered.length === 0}>
+              <FileDown className="h-3.5 w-3.5 mr-1.5" />
+              Export CSV
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
