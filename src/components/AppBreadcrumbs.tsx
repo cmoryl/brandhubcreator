@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, Home, Building2, Package, FileText, Shield, HelpCircle, Settings, Star, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -56,7 +56,22 @@ export const AppBreadcrumbs = React.forwardRef<
   homeHref = '/',
 }, ref) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const pathSegments = location.pathname.split('/').filter(Boolean);
+
+  // Programmatic navigation handler — guarantees React Router processes the
+  // route change even if a parent component is intercepting Link clicks.
+  const handleNav = React.useCallback(
+    (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+      // Allow modifier-clicks (open in new tab) to work normally
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      e.preventDefault();
+      if (href !== location.pathname) {
+        navigate(href);
+      }
+    },
+    [navigate, location.pathname],
+  );
 
   // Build breadcrumb items from path if not provided
   const breadcrumbItems: BreadcrumbConfig[] = items || [];
@@ -129,6 +144,7 @@ export const AppBreadcrumbs = React.forwardRef<
               <BreadcrumbLink asChild>
                 <Link
                   to={homeHref}
+                  onClick={handleNav(homeHref)}
                   className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1 rounded-md cursor-pointer pointer-events-auto"
                 >
                   <Home className="h-4 w-4 flex-shrink-0" />
@@ -161,6 +177,7 @@ export const AppBreadcrumbs = React.forwardRef<
                   <BreadcrumbLink asChild>
                     <Link
                       to={item.href || '/'}
+                      onClick={handleNav(item.href || '/')}
                       className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1 rounded-md cursor-pointer pointer-events-auto"
                     >
                       {Icon && <Icon className="h-4 w-4 flex-shrink-0 hidden sm:block" />}
