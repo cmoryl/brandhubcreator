@@ -40,15 +40,26 @@ export const AutoCategorizeDialog = ({
     setLoading(true);
     try {
       const urls = images.map(img => img.url || img.thumbnailUrl);
-      const { data, error } = await supabase.functions.invoke('imagery-auto-categorize', {
-        body: { imageUrls: urls, existingSections: sections.map(s => s.name), entityName },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      setResults(data.assignments || []);
-      // Auto-accept high confidence
+      const BATCH_SIZE = 20;
+      const sectionNames = sections.map(s => s.name);
+      const allAssignments: CategorizeResult[] = [];
+
+      for (let i = 0; i < urls.length; i += BATCH_SIZE) {
+        const batchUrls = urls.slice(i, i + BATCH_SIZE);
+        const { data, error } = await supabase.functions.invoke('imagery-auto-categorize', {
+          body: { imageUrls: batchUrls, existingSections: sectionNames, entityName },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        // Re-map indices back to the full image list
+        (data.assignments || []).forEach((a: CategorizeResult) => {
+          allAssignments.push({ ...a, index: a.index + i });
+        });
+      }
+
+      setResults(allAssignments);
       const autoAccept = new Set<number>();
-      (data.assignments || []).forEach((a: CategorizeResult) => {
+      allAssignments.forEach(a => {
         if (a.confidence >= 80) autoAccept.add(a.index);
       });
       setAccepted(autoAccept);
