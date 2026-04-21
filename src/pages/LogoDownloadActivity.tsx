@@ -68,6 +68,16 @@ export default function LogoDownloadActivity() {
   const [entityName, setEntityName] = useState<string>('');
   const [hasMore, setHasMore] = useState(false);
   const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>(() => {
+    if (typeof window === 'undefined') return 'time-desc';
+    const stored = window.localStorage.getItem(SORT_STORAGE_KEY) as SortOption | null;
+    return stored && stored in SORT_LABELS ? stored : 'time-desc';
+  });
+
+  // Persist chosen sort across sessions and while searching
+  useEffect(() => {
+    try { window.localStorage.setItem(SORT_STORAGE_KEY, sortOption); } catch { /* ignore */ }
+  }, [sortOption]);
 
   const fetchPage = async (offset: number, append: boolean) => {
     if (!entityId) return;
