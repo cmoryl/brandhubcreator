@@ -669,6 +669,8 @@ export const ImageryWorkspace = ({
         open={websiteScannerOpen}
         onOpenChange={setWebsiteScannerOpen}
         onImportImages={handleWebsiteImport}
+        destinations={sections.map(s => ({ id: s.id, name: s.name }))}
+        defaultDestinationId={searchSectionId || sections[sections.length - 1]?.id}
       />
     </div>
   );
