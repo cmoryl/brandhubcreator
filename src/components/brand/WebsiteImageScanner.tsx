@@ -161,11 +161,12 @@ export const WebsiteImageScanner = ({
       const targetId =
         destinationId && destinationId !== NEW_FOLDER_VALUE ? destinationId : undefined;
       await Promise.resolve(onImportImages(selected, targetId));
-      const destLabel =
-        targetId
-          ? destinations.find((d) => d.id === targetId)?.name || 'category'
-          : 'a new "Website Imports" category';
-      toast.success(`Imported ${selected.length} image${selected.length === 1 ? '' : 's'} → ${destLabel}`);
+      const destLabel = targetId
+        ? destinations.find((d) => d.id === targetId)?.name || 'selected category'
+        : '"Website Imports" category';
+      toast.success(
+        `Imported ${selected.length} image${selected.length === 1 ? '' : 's'} → ${destLabel}`
+      );
       onOpenChange(false);
     } catch (err) {
       console.error('Website import error:', err);
