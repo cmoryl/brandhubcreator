@@ -120,7 +120,18 @@ export function LogoDownloadLinksPanel({ logoId, logoName, allLinks, canEdit, on
                 {link.format && <Badge variant="outline" className="text-[10px] shrink-0">{link.format}</Badge>}
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <a href={link.url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground" title="Open">
+                <a
+                  href={link.url}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-xs font-medium"
+                  title={`Download ${link.label}`}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download
+                </a>
+                <a href={link.url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground" title="Open in new tab">
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
                 {canEdit && onLinksChange && (
