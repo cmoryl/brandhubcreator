@@ -286,12 +286,25 @@ export default function LogoDownloadActivity() {
           <CardHeader>
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <CardTitle className="flex items-center gap-2"><Download className="h-4 w-4" /> Recent downloads</CardTitle>
-              <Input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search by user, logo, file, or format…"
-                className="max-w-sm h-9"
-              />
+              <div className="flex items-center gap-2 flex-wrap">
+                <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
+                  <SelectTrigger className="h-9 w-[170px]" aria-label="Sort downloads">
+                    <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(SORT_LABELS) as SortOption[]).map(opt => (
+                      <SelectItem key={opt} value={opt}>{SORT_LABELS[opt]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search by user, logo, file, or format…"
+                  className="w-full sm:w-72 h-9"
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
