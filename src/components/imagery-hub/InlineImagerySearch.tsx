@@ -1122,7 +1122,7 @@ export const InlineImagerySearch = ({
                 gridCols === 4 ? 'grid-cols-3 sm:grid-cols-4' :
                 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5'
               )}>
-                {results.map((result, idx) => {
+                {results.filter(r => !rejectedIds.has(r.id)).map((result, idx) => {
                   const isSelected = selectedIds.has(result.id);
                   return (
                     <div key={result.id}
