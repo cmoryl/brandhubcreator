@@ -53,13 +53,15 @@ export default function LogoDownloadActivity() {
       .maybeSingle();
     if (ent?.name) setEntityName(ent.name);
 
-    // Query audit_logs filtered to logo export events for this entity
+    // Server-side filter: scoped to entity (brand_id+entity_type) AND logo download events
+    // (details->>download_type = 'logo' OR details->>source_section = 'logo_download_links')
     const { data, error } = await supabase
       .from('audit_logs')
       .select('id, created_at, user_email, entity_name, browser, device_type, details')
       .eq('brand_id', entityId)
-      .eq('action_type', 'export')
       .eq('entity_type', entityType || 'brand')
+      .eq('action_type', 'export')
+      .or('details->>download_type.eq.logo,details->>source_section.eq.logo_download_links')
       .order('created_at', { ascending: false })
       .limit(500);
 
@@ -67,12 +69,7 @@ export default function LogoDownloadActivity() {
       console.error('Failed to load logo download activity:', error);
       setLogs([]);
     } else {
-      // Filter client-side to logo downloads only
-      const filtered = (data || []).filter(row => {
-        const d = (row.details as Record<string, unknown>) || {};
-        return d.download_type === 'logo' || d.source_section === 'logo_download_links';
-      }) as LogoDownloadLog[];
-      setLogs(filtered);
+      setLogs((data || []) as LogoDownloadLog[]);
     }
     setLoading(false);
   };
