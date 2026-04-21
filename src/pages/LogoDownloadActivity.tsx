@@ -5,14 +5,38 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Monitor, Smartphone, Tablet, RefreshCw, ExternalLink, FileDown } from 'lucide-react';
+import { ArrowLeft, Download, Monitor, Smartphone, Tablet, RefreshCw, ExternalLink, FileDown, ArrowUpDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDistanceToNow } from 'date-fns';
+
+type SortOption =
+  | 'time-desc'
+  | 'time-asc'
+  | 'user-asc'
+  | 'user-desc'
+  | 'logo-asc'
+  | 'logo-desc'
+  | 'format-asc'
+  | 'format-desc';
+
+const SORT_LABELS: Record<SortOption, string> = {
+  'time-desc': 'Newest first',
+  'time-asc': 'Oldest first',
+  'user-asc': 'User (A–Z)',
+  'user-desc': 'User (Z–A)',
+  'logo-asc': 'Logo (A–Z)',
+  'logo-desc': 'Logo (Z–A)',
+  'format-asc': 'Format (A–Z)',
+  'format-desc': 'Format (Z–A)',
+};
+
+const SORT_STORAGE_KEY = 'logoDownloadActivity.sort';
 
 type EntityType = 'brand' | 'product' | 'event';
 
@@ -44,6 +68,16 @@ export default function LogoDownloadActivity() {
   const [entityName, setEntityName] = useState<string>('');
   const [hasMore, setHasMore] = useState(false);
   const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>(() => {
+    if (typeof window === 'undefined') return 'time-desc';
+    const stored = window.localStorage.getItem(SORT_STORAGE_KEY) as SortOption | null;
+    return stored && stored in SORT_LABELS ? stored : 'time-desc';
+  });
+
+  // Persist chosen sort across sessions and while searching
+  useEffect(() => {
+    try { window.localStorage.setItem(SORT_STORAGE_KEY, sortOption); } catch { /* ignore */ }
+  }, [sortOption]);
 
   const fetchPage = async (offset: number, append: boolean) => {
     if (!entityId) return;
@@ -99,9 +133,8 @@ export default function LogoDownloadActivity() {
   }, [entityId, entityType]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return logs;
-    const q = search.toLowerCase();
-    return logs.filter(l => {
+    const q = search.trim().toLowerCase();
+    const matched = !q ? logs : logs.filter(l => {
       const d = (l.details as Record<string, unknown>) || {};
       return (
         l.user_email?.toLowerCase().includes(q) ||
@@ -110,7 +143,37 @@ export default function LogoDownloadActivity() {
         String(d.format || '').toLowerCase().includes(q)
       );
     });
-  }, [logs, search]);
+
+    // Sort applies to BOTH filtered and unfiltered list, so the chosen
+    // sort is preserved while the user types in the search box.
+    const sorted = [...matched];
+    const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+    const getStr = (l: LogoDownloadLog, key: 'logo_name' | 'file_name' | 'format') =>
+      String(((l.details as Record<string, unknown>) || {})[key] || '');
+
+    sorted.sort((a, b) => {
+      switch (sortOption) {
+        case 'time-asc':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'user-asc':
+          return collator.compare(a.user_email || '', b.user_email || '');
+        case 'user-desc':
+          return collator.compare(b.user_email || '', a.user_email || '');
+        case 'logo-asc':
+          return collator.compare(getStr(a, 'logo_name'), getStr(b, 'logo_name'));
+        case 'logo-desc':
+          return collator.compare(getStr(b, 'logo_name'), getStr(a, 'logo_name'));
+        case 'format-asc':
+          return collator.compare(getStr(a, 'format'), getStr(b, 'format'));
+        case 'format-desc':
+          return collator.compare(getStr(b, 'format'), getStr(a, 'format'));
+        case 'time-desc':
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+    return sorted;
+  }, [logs, search, sortOption]);
 
   const stats = useMemo(() => {
     const uniqueUsers = new Set(logs.map(l => l.user_email).filter(Boolean));
@@ -223,12 +286,25 @@ export default function LogoDownloadActivity() {
           <CardHeader>
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <CardTitle className="flex items-center gap-2"><Download className="h-4 w-4" /> Recent downloads</CardTitle>
-              <Input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search by user, logo, file, or format…"
-                className="max-w-sm h-9"
-              />
+              <div className="flex items-center gap-2 flex-wrap">
+                <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
+                  <SelectTrigger className="h-9 w-[170px]" aria-label="Sort downloads">
+                    <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(SORT_LABELS) as SortOption[]).map(opt => (
+                      <SelectItem key={opt} value={opt}>{SORT_LABELS[opt]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search by user, logo, file, or format…"
+                  className="w-full sm:w-72 h-9"
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
