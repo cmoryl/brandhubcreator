@@ -32,53 +32,69 @@ const DeviceIcon = ({ device }: { device?: string | null }) => {
   return <Monitor className="h-3.5 w-3.5" />;
 };
 
+const PAGE_SIZE = 100;
+
 export default function LogoDownloadActivity() {
   const { entityType, entityId } = useParams<{ entityType: EntityType; entityId: string }>();
   const navigate = useNavigate();
   const [logs, setLogs] = useState<LogoDownloadLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState('');
   const [entityName, setEntityName] = useState<string>('');
+  const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
 
-  const fetchLogs = async () => {
+  const fetchPage = async (offset: number, append: boolean) => {
     if (!entityId) return;
-    setLoading(true);
+    if (append) setLoadingMore(true); else setLoading(true);
 
-    // Resolve entity display name
-    const table = entityType === 'product' ? 'products' : entityType === 'event' ? 'events' : 'brands';
-    const { data: ent } = await supabase
-      .from(table)
-      .select('name')
-      .eq('id', entityId)
-      .maybeSingle();
-    if (ent?.name) setEntityName(ent.name);
+    if (!append) {
+      // Resolve entity display name once
+      const table = entityType === 'product' ? 'products' : entityType === 'event' ? 'events' : 'brands';
+      const { data: ent } = await supabase
+        .from(table)
+        .select('name')
+        .eq('id', entityId)
+        .maybeSingle();
+      if (ent?.name) setEntityName(ent.name);
+    }
 
-    // Query audit_logs filtered to logo export events for this entity
-    const { data, error } = await supabase
+    // Server-side filtering: scoped to entity + logo download events.
+    // Request exact count on first page so we can show a total + drive hasMore.
+    const { data, error, count } = await supabase
       .from('audit_logs')
-      .select('id, created_at, user_email, entity_name, browser, device_type, details')
+      .select('id, created_at, user_email, entity_name, browser, device_type, details', {
+        count: append ? undefined : 'exact',
+      })
       .eq('brand_id', entityId)
-      .eq('action_type', 'export')
       .eq('entity_type', entityType || 'brand')
+      .eq('action_type', 'export')
+      .or('details->>download_type.eq.logo,details->>source_section.eq.logo_download_links')
       .order('created_at', { ascending: false })
-      .limit(500);
+      .range(offset, offset + PAGE_SIZE - 1);
 
     if (error) {
       console.error('Failed to load logo download activity:', error);
-      setLogs([]);
+      if (!append) setLogs([]);
     } else {
-      // Filter client-side to logo downloads only
-      const filtered = (data || []).filter(row => {
-        const d = (row.details as Record<string, unknown>) || {};
-        return d.download_type === 'logo' || d.source_section === 'logo_download_links';
-      }) as LogoDownloadLog[];
-      setLogs(filtered);
+      const rows = (data || []) as LogoDownloadLog[];
+      setLogs(prev => append ? [...prev, ...rows] : rows);
+      if (!append && typeof count === 'number') setTotalCount(count);
+      // hasMore: full page returned, OR known count exceeds what we have
+      const newLength = (append ? logs.length + rows.length : rows.length);
+      const known = !append && typeof count === 'number' ? count : totalCount;
+      setHasMore(rows.length === PAGE_SIZE && (known == null || newLength < known));
     }
-    setLoading(false);
+
+    if (append) setLoadingMore(false); else setLoading(false);
   };
 
+  const loadMore = () => fetchPage(logs.length, true);
+  const refresh = () => { setHasMore(false); setTotalCount(null); fetchPage(0, false); };
+
   useEffect(() => {
-    fetchLogs();
+    fetchPage(0, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entityId, entityType]);
 
@@ -177,7 +193,7 @@ export default function LogoDownloadActivity() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={fetchLogs} disabled={loading}>
+            <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
               <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
@@ -225,38 +241,57 @@ export default function LogoDownloadActivity() {
                 {logs.length === 0 ? 'No logo downloads logged yet.' : 'No results match your search.'}
               </div>
             ) : (
-              <div className="divide-y divide-border">
-                {filtered.map(log => {
-                  const d = (log.details as Record<string, unknown>) || {};
-                  const logoName = String(d.logo_name || 'Unknown logo');
-                  const fileName = String(d.file_name || '');
-                  const format = String(d.format || '');
-                  const url = String(d.link_url || '');
-                  return (
-                    <div key={log.id} className="py-3 flex items-start justify-between gap-4">
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-sm">{logoName}</span>
-                          {format && <Badge variant="secondary" className="text-[10px]">{format}</Badge>}
-                          {fileName && <span className="text-xs text-muted-foreground truncate">— {fileName}</span>}
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                          <span>{log.user_email || 'Anonymous'}</span>
-                          <span className="inline-flex items-center gap-1"><DeviceIcon device={log.device_type} /> {log.browser || 'Unknown'}</span>
-                          <span title={new Date(log.created_at).toLocaleString()}>
-                            {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
-                          </span>
-                          {url && (
-                            <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-                              <ExternalLink className="h-3 w-3" /> Source
-                            </a>
-                          )}
+              <>
+                <div className="divide-y divide-border">
+                  {filtered.map(log => {
+                    const d = (log.details as Record<string, unknown>) || {};
+                    const logoName = String(d.logo_name || 'Unknown logo');
+                    const fileName = String(d.file_name || '');
+                    const format = String(d.format || '');
+                    const url = String(d.link_url || '');
+                    return (
+                      <div key={log.id} className="py-3 flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-sm">{logoName}</span>
+                            {format && <Badge variant="secondary" className="text-[10px]">{format}</Badge>}
+                            {fileName && <span className="text-xs text-muted-foreground truncate">— {fileName}</span>}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                            <span>{log.user_email || 'Anonymous'}</span>
+                            <span className="inline-flex items-center gap-1"><DeviceIcon device={log.device_type} /> {log.browser || 'Unknown'}</span>
+                            <span title={new Date(log.created_at).toLocaleString()}>
+                              {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                            </span>
+                            {url && (
+                              <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                                <ExternalLink className="h-3 w-3" /> Source
+                              </a>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center justify-between gap-4 pt-4 mt-2 border-t border-border">
+                  <p className="text-xs text-muted-foreground">
+                    Showing <span className="font-medium text-foreground">{logs.length}</span>
+                    {totalCount != null && <> of <span className="font-medium text-foreground">{totalCount}</span></>}
+                    {' '}event{logs.length === 1 ? '' : 's'}
+                    {search && filtered.length !== logs.length && <> ({filtered.length} match search)</>}
+                  </p>
+                  {hasMore && (
+                    <Button variant="outline" size="sm" onClick={loadMore} disabled={loadingMore}>
+                      {loadingMore ? (
+                        <><RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Loading…</>
+                      ) : (
+                        <>Load more</>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
