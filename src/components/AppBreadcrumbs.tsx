@@ -61,8 +61,9 @@ export const AppBreadcrumbs = React.forwardRef<
 
   // Programmatic navigation handler — guarantees React Router processes the
   // route change even if a parent component is intercepting Link clicks.
-  // Uses both stopPropagation and preventDefault to defeat any ancestor click
-  // listeners (e.g., editor cards, sticky headers) that might swallow the event.
+  // For cross-section navigation (e.g. brand → org portal), uses a hard browser
+  // navigation to guarantee the previous editor fully unmounts and any cached
+  // provider state (BrandProvider, EventProvider) is cleared.
   const handleNav = React.useCallback(
     (href: string) => (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
       // Allow modifier-clicks (open in new tab) to work normally — only on anchors
@@ -73,8 +74,22 @@ export const AppBreadcrumbs = React.forwardRef<
       e.preventDefault();
       e.stopPropagation();
       if (href === location.pathname) return;
-      // Defer to next tick so React finishes any in-flight state updates first.
-      // This prevents a parent component's setState from interrupting the navigation.
+
+      // Detect cross-section navigation (e.g., /brand/* → /org/*).
+      // These transitions cross provider boundaries and have historically failed
+      // to fully unmount the previous editor when using React Router's soft nav,
+      // leaving the URL updated but the old page still rendered. A hard browser
+      // navigation guarantees a clean route swap.
+      const currentSection = location.pathname.split('/').filter(Boolean)[0] || '';
+      const targetSection = href.split('/').filter(Boolean)[0] || '';
+      const isCrossSection = currentSection !== targetSection;
+
+      if (isCrossSection) {
+        window.location.href = href;
+        return;
+      }
+
+      // Same-section navigation — soft navigation is fine.
       Promise.resolve().then(() => navigate(href));
     },
     [navigate, location.pathname],
