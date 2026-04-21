@@ -193,7 +193,7 @@ export default function LogoDownloadActivity() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={fetchLogs} disabled={loading}>
+            <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
               <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
@@ -241,38 +241,57 @@ export default function LogoDownloadActivity() {
                 {logs.length === 0 ? 'No logo downloads logged yet.' : 'No results match your search.'}
               </div>
             ) : (
-              <div className="divide-y divide-border">
-                {filtered.map(log => {
-                  const d = (log.details as Record<string, unknown>) || {};
-                  const logoName = String(d.logo_name || 'Unknown logo');
-                  const fileName = String(d.file_name || '');
-                  const format = String(d.format || '');
-                  const url = String(d.link_url || '');
-                  return (
-                    <div key={log.id} className="py-3 flex items-start justify-between gap-4">
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-sm">{logoName}</span>
-                          {format && <Badge variant="secondary" className="text-[10px]">{format}</Badge>}
-                          {fileName && <span className="text-xs text-muted-foreground truncate">— {fileName}</span>}
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                          <span>{log.user_email || 'Anonymous'}</span>
-                          <span className="inline-flex items-center gap-1"><DeviceIcon device={log.device_type} /> {log.browser || 'Unknown'}</span>
-                          <span title={new Date(log.created_at).toLocaleString()}>
-                            {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
-                          </span>
-                          {url && (
-                            <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-                              <ExternalLink className="h-3 w-3" /> Source
-                            </a>
-                          )}
+              <>
+                <div className="divide-y divide-border">
+                  {filtered.map(log => {
+                    const d = (log.details as Record<string, unknown>) || {};
+                    const logoName = String(d.logo_name || 'Unknown logo');
+                    const fileName = String(d.file_name || '');
+                    const format = String(d.format || '');
+                    const url = String(d.link_url || '');
+                    return (
+                      <div key={log.id} className="py-3 flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-sm">{logoName}</span>
+                            {format && <Badge variant="secondary" className="text-[10px]">{format}</Badge>}
+                            {fileName && <span className="text-xs text-muted-foreground truncate">— {fileName}</span>}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                            <span>{log.user_email || 'Anonymous'}</span>
+                            <span className="inline-flex items-center gap-1"><DeviceIcon device={log.device_type} /> {log.browser || 'Unknown'}</span>
+                            <span title={new Date(log.created_at).toLocaleString()}>
+                              {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                            </span>
+                            {url && (
+                              <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                                <ExternalLink className="h-3 w-3" /> Source
+                              </a>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center justify-between gap-4 pt-4 mt-2 border-t border-border">
+                  <p className="text-xs text-muted-foreground">
+                    Showing <span className="font-medium text-foreground">{logs.length}</span>
+                    {totalCount != null && <> of <span className="font-medium text-foreground">{totalCount}</span></>}
+                    {' '}event{logs.length === 1 ? '' : 's'}
+                    {search && filtered.length !== logs.length && <> ({filtered.length} match search)</>}
+                  </p>
+                  {hasMore && (
+                    <Button variant="outline" size="sm" onClick={loadMore} disabled={loadingMore}>
+                      {loadingMore ? (
+                        <><RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Loading…</>
+                      ) : (
+                        <>Load more</>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
