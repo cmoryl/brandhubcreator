@@ -410,7 +410,7 @@ export const LayoutTemplateEditor = ({
                 )}
               </TabsContent>
 
-              <TabsContent value="slots" className="mt-3 space-y-3">
+              <TabsContent value="slots" className="mt-3 space-y-4">
                 {template.slots.map((slot) => {
                   const matchingStatic = (brandVisuals?.staticAssets ?? []).filter(
                     (s) => s.expressionState === slot.expressionState,
@@ -420,9 +420,15 @@ export const LayoutTemplateEditor = ({
                   );
                   const ov = customization.slotOverrides?.[slot.key];
                   const value = ov && 'assetId' in ov ? `${ov.type}:${ov.assetId}` : '__auto__';
+                  const resolvedSlot = resolved.find((r) => r.slot.key === slot.key);
+                  const previewUrl =
+                    resolvedSlot?.asset.type === 'image' || resolvedSlot?.asset.type === 'video'
+                      ? resolvedSlot.asset.url
+                      : undefined;
+                  const fitValue = customization.slotFitOverrides?.[slot.key];
 
                   return (
-                    <div key={slot.key} className="space-y-1">
+                    <div key={slot.key} className="space-y-2 rounded-lg border border-border/60 p-2">
                       <Label className="text-xs">
                         {slot.label}{' '}
                         <span className="text-muted-foreground">({slot.expressionState})</span>
@@ -449,6 +455,13 @@ export const LayoutTemplateEditor = ({
                           ))}
                         </SelectContent>
                       </Select>
+                      <SlotFitControl
+                        previewUrl={previewUrl}
+                        assetType={resolvedSlot?.asset.type ?? 'empty'}
+                        value={fitValue}
+                        onChange={(next) => setSlotFit(slot.key, next)}
+                        onReset={() => resetSlotFit(slot.key)}
+                      />
                     </div>
                   );
                 })}
