@@ -367,18 +367,17 @@ export const LayoutTemplateEditor = ({
   const handleDuplicate = () => {
     if (!onSave) return;
     const baseName = customization.name.replace(/\s*\(copy(?:\s*\d+)?\)\s*$/i, '');
-    const copyMatches = (existingCustomizations ?? [])
-      .map((c) => c.name.match(/\(copy(?:\s*(\d+))?\)\s*$/i))
-      .filter(Boolean);
-    const nextCopyN = copyMatches.length === 0 ? '' : ` ${copyMatches.length + 1}`;
+    // Use the unique-name suggester scoped against existing variants so duplicates never collide.
+    const candidate = `${baseName} (copy)`;
+    const uniqueName = isDuplicateName(candidate) ? suggestUniqueName(baseName) : candidate;
     const duplicate: LayoutTemplateCustomization = {
       ...customization,
       id: safeId(),
-      name: `${baseName} (copy${nextCopyN})`,
+      name: uniqueName,
       createdAt: new Date().toISOString(),
     };
     onSave(duplicate);
-    toast.success('Variant duplicated');
+    toast.success(`Duplicated as "${uniqueName}"`);
   };
 
   // Side-by-side compare against the unmodified base template
