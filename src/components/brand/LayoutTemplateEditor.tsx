@@ -255,7 +255,48 @@ export const LayoutTemplateEditor = ({
               customization={customization}
               presentationMode
             />
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <TooltipProvider delayDuration={200}>
+                <div className="mr-1 flex items-center gap-0.5 rounded-md border bg-background p-0.5">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0"
+                        disabled={!canUndo}
+                        onClick={undo}
+                        aria-label="Undo"
+                      >
+                        <Undo2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-[11px]">
+                      Undo (⌘Z)
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0"
+                        disabled={!canRedo}
+                        onClick={redo}
+                        aria-label="Redo"
+                      >
+                        <Redo2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-[11px]">
+                      Redo (⇧⌘Z)
+                    </TooltipContent>
+                  </Tooltip>
+                  <span className="px-1.5 text-[10px] tabular-nums text-muted-foreground">
+                    {cursor + 1}/{historySize}
+                  </span>
+                </div>
+              </TooltipProvider>
               <Button size="sm" variant="outline" onClick={handleExportPng}>
                 <FileImage className="mr-1.5 h-3.5 w-3.5" />
                 PNG
@@ -435,7 +476,9 @@ export const LayoutTemplateEditor = ({
                           template.overlay?.headline?.y ??
                           60
                         }
-                        onChange={(e) => setHeadlineY(Number(e.target.value))}
+                        onChange={(e) => setHeadlineY(Number(e.target.value), false)}
+                        onPointerUp={(e) => setHeadlineY(Number((e.target as HTMLInputElement).value), true)}
+                        onKeyUp={(e) => setHeadlineY(Number((e.target as HTMLInputElement).value), true)}
                         className="mt-1"
                       />
                     </div>
