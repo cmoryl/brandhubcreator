@@ -38,6 +38,7 @@ import {
 import { LayoutTemplateCanvas } from './LayoutTemplateCanvas';
 import { exportLayoutAsPng, exportLayoutAsPdf } from '@/lib/exportLayoutTemplate';
 import { SlotFitControl } from './SlotFitControl';
+import { SaveSlotPresetDialog } from './SlotPresetsPanel';
 
 export type ApplyTarget = 'hero' | 'social' | 'casestudy';
 
