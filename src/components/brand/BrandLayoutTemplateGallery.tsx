@@ -149,16 +149,14 @@ export const BrandLayoutTemplateGallery = ({
       ? brandLayoutTemplates.filter((t) => targets.includes(t.target))
       : brandLayoutTemplates;
     const scoped = activeTarget === 'all' ? base : base.filter((t) => t.target === activeTarget);
-    if (!industryDef || activeTarget !== 'all') return scoped;
-    // Sort recommended targets first when an industry is chosen and viewing all
+    if (!industryDef) return scoped;
+    // Sort by confidence score (high → low), keeping non-recommended at the end.
     return [...scoped].sort((a, b) => {
-      const ai = recommendedTargets.indexOf(a.target);
-      const bi = recommendedTargets.indexOf(b.target);
-      const aRank = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
-      const bRank = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
-      return aRank - bRank;
+      const sa = scoreRecommendation(industry, a)?.score ?? -1;
+      const sb = scoreRecommendation(industry, b)?.score ?? -1;
+      return sb - sa;
     });
-  }, [activeTarget, targets, industryDef, recommendedTargets]);
+  }, [activeTarget, targets, industryDef, industry]);
 
   const openEditor = (template: BrandLayoutTemplate, customization?: LayoutTemplateCustomization) => {
     // If no saved customization is being reopened, prefill copy from the
