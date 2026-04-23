@@ -36,6 +36,10 @@ import {
   saveIndustryPreference,
   type IndustryId,
 } from '@/lib/industrySuggestions';
+import {
+  CollateralPresetSwitcher,
+  type CollateralPreset,
+} from './CollateralPresetSwitcher';
 
 interface BrandLayoutTemplateGalleryProps {
   brandVisuals?: BrandVisualsBundle;
