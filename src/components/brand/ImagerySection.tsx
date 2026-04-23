@@ -25,6 +25,8 @@ import { useDropZone } from '@/components/ui/drop-zone';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { SortableImageryCard } from './imagery/SortableImageryCard';
 import { ImageryGuidelinesPanel } from './imagery/ImageryGuidelinesPanel';
+import { BrandLayoutTemplateGallery } from './BrandLayoutTemplateGallery';
+import type { BrandVisualsBundle } from '@/lib/brandLayoutTemplates';
 
 interface ImagerySectionProps {
   imagery: BrandImagery[];
@@ -34,6 +36,8 @@ interface ImagerySectionProps {
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
   isAdmin?: boolean;
+  /** Optional brand-visual bundle (Foundation/Collaborate/Transform assets) used to power layout templates. */
+  brandVisuals?: BrandVisualsBundle;
 }
 
 type ViewMode = 'split' | 'grid-2' | 'grid-3' | 'grid-4';
