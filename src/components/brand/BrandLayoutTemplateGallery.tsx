@@ -9,7 +9,7 @@
  * receives the resolved template + slot assets via `onApply`. Customize opens
  * an editor for copy / slot swap / export / apply-to-section.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LayoutTemplate, Sparkles, Image as ImageIcon, Film, Check, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,14 @@ import {
 } from '@/lib/brandLayoutTemplates';
 import { LayoutTemplateCanvas } from './LayoutTemplateCanvas';
 import { LayoutTemplateEditor, type ApplyTarget } from './LayoutTemplateEditor';
+import { IndustrySelector } from './IndustrySelector';
+import {
+  getIndustry,
+  getIndustryCopy,
+  loadIndustryPreference,
+  saveIndustryPreference,
+  type IndustryId,
+} from '@/lib/industrySuggestions';
 
 interface BrandLayoutTemplateGalleryProps {
   brandVisuals?: BrandVisualsBundle;
