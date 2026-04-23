@@ -199,11 +199,13 @@ export const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     approvedImagery: guideData.approvedImagery as BrandGuide['approvedImagery'],
     mapTheme: guideData.mapTheme as BrandGuide['mapTheme'],
     // Brand Visuals bundle (Foundation/Collaborate/Transform) — used by Layout Templates
-    brandVisuals: guideData.brandVisuals as BrandGuide['brandVisuals'],
-    layoutTemplateCustomizations: asArray(guideData.layoutTemplateCustomizations, []) as BrandGuide['layoutTemplateCustomizations'],
+    ...(guideData.brandVisuals ? { brandVisuals: guideData.brandVisuals } : {}),
+    ...(guideData.layoutTemplateCustomizations
+      ? { layoutTemplateCustomizations: asArray(guideData.layoutTemplateCustomizations, []) }
+      : {}),
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
-  };
+  } as BrandGuide;
 };
 
 export const dbToProductGuide = (db: DbProduct): ProductGuide => {
@@ -279,9 +281,14 @@ export const dbToProductGuide = (db: DbProduct): ProductGuide => {
     presentationTemplates: asArray(guideData.presentationTemplates, []) as ProductGuide['presentationTemplates'],
     approvedImagery: guideData.approvedImagery as ProductGuide['approvedImagery'],
     mapTheme: guideData.mapTheme as ProductGuide['mapTheme'],
+    // Brand Visuals bundle (Foundation/Collaborate/Transform) — used by Layout Templates
+    ...(guideData.brandVisuals ? { brandVisuals: guideData.brandVisuals } : {}),
+    ...(guideData.layoutTemplateCustomizations
+      ? { layoutTemplateCustomizations: asArray(guideData.layoutTemplateCustomizations, []) }
+      : {}),
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
-  };
+  } as ProductGuide;
 };
 
 const brandGuideToDb = (brand: Partial<BrandGuide>, userId: string, organizationId?: string | null) => {
