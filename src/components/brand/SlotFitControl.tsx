@@ -27,7 +27,10 @@ interface SlotFitControlProps {
   /** Asset kind for icon hint. */
   assetType: 'image' | 'video' | 'empty';
   value?: SlotFit;
+  /** Called on every change (including transient drag updates). */
   onChange: (next: SlotFit) => void;
+  /** Called once when an interaction commits (pointer-up, key release). Use to push history. */
+  onCommit?: (next: SlotFit) => void;
   /** Reset removes the override entirely. */
   onReset?: () => void;
 }
