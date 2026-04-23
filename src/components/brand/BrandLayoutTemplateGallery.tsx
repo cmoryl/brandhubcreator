@@ -250,6 +250,12 @@ export const BrandLayoutTemplateGallery = ({
           ) as ExpressionState[];
           const isRecommended = recommendedSet.has(template.target);
           const suggestedCopy = getIndustryCopy(industry, template.target);
+          // Quick-preview preset: reframe at the canonical aspect ratio for the
+          // collateral type without mutating the underlying template definition.
+          const previewTemplate =
+            activePreset && activePreset.target === template.target
+              ? { ...template, aspectRatio: activePreset.aspectRatio }
+              : template;
 
           return (
             <div
@@ -263,7 +269,7 @@ export const BrandLayoutTemplateGallery = ({
                     : 'border-border hover:border-primary/50 hover:shadow-md',
               )}
             >
-              <LayoutTemplateCanvas template={template} resolved={resolved} />
+              <LayoutTemplateCanvas template={previewTemplate} resolved={resolved} />
 
               <div className="space-y-1">
                 <div className="flex items-start justify-between gap-2">
