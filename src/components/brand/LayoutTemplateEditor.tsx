@@ -12,7 +12,8 @@ import { AlertTriangle, Copy, Download, FileImage, FileText, Layers, Redo2, Save
 import { validateLayoutForExport, type ValidationIssue, type ValidationResult } from '@/lib/layoutTemplateValidation';
 import { useHistoryState } from '@/hooks/useHistoryState';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -502,7 +503,7 @@ export const LayoutTemplateEditor = ({
                   'rounded-md border p-2.5 text-xs',
                   validation.errors.length > 0
                     ? 'border-destructive/40 bg-destructive/10 text-destructive'
-                    : 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+                    : 'border-warning/40 bg-warning/10 text-warning-foreground',
                 )}
               >
                 <div className="mb-1 flex items-center gap-1.5 font-semibold">
