@@ -74,9 +74,14 @@ export const LayoutTemplateEditor = ({
   template,
   brandVisuals,
   initialCustomization,
+  existingCustomizations,
   onSave,
   onApplyToSection,
 }: LayoutTemplateEditorProps) => {
+  const namePresets = useMemo(
+    () => buildNamePresets(template.name, existingCustomizations),
+    [template.name, existingCustomizations],
+  );
   const [customization, setCustomization] = useState<LayoutTemplateCustomization>(() =>
     initialCustomization ?? {
       id: safeId(),
