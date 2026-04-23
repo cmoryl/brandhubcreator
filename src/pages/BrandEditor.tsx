@@ -79,6 +79,7 @@ import { RegionalVariantWizard } from '@/components/brand/RegionalVariantWizard'
 import { TranslationHub } from '@/components/brand/TranslationHub';
 import { GlobalLinkWorkflowTrigger } from '@/components/brand/GlobalLinkWorkflowTrigger';
 import { AdminToolbar, type AdminToolbarAction } from '@/components/admin/AdminToolbar';
+import { CloneBrandDialog } from '@/components/brand/CloneBrandDialog';
 import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSelector';
@@ -1240,6 +1241,18 @@ const BrandEditor = () => {
                       organizationId={organization.id}
                     />
                   ) : null,
+                },
+                {
+                  id: 'clone-workspace',
+                  label: 'Clone to New Workspace',
+                  icon: Settings,
+                  render: () => (
+                    <CloneBrandDialog
+                      brandId={brand.id}
+                      brandName={brand.hero?.name || brand.name || 'Brand'}
+                      brandSlug={brand.slug || ''}
+                    />
+                  ),
                 },
               ] as AdminToolbarAction[] : []),
             ]}
