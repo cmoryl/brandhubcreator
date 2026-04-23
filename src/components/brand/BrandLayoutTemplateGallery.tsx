@@ -109,6 +109,7 @@ export const BrandLayoutTemplateGallery = ({
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
   const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
   const [activePreset, setActivePreset] = useState<CollateralPreset | null>(null);
+  const [presetRatioOverride, setPresetRatioOverride] = useState<number | null>(null);
   const [slotPresets, setSlotPresets] = useState<SlotPreset[]>(() => loadSlotPresets());
 
   useEffect(() => {
@@ -128,6 +129,9 @@ export const BrandLayoutTemplateGallery = ({
 
   const handlePresetChange = (preset: CollateralPreset | null) => {
     setActivePreset(preset);
+    // Always reset the manual override when the preset changes — the new
+    // preset's canonical ratio becomes the baseline.
+    setPresetRatioOverride(null);
     if (preset) {
       setActiveTarget(preset.target);
     } else {
@@ -209,6 +213,8 @@ export const BrandLayoutTemplateGallery = ({
       <CollateralPresetSwitcher
         activePresetId={activePreset?.id ?? null}
         onPresetChange={handlePresetChange}
+        ratioOverride={presetRatioOverride}
+        onRatioOverrideChange={setPresetRatioOverride}
       />
 
       {/* Reusable slot presets */}
