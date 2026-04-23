@@ -212,6 +212,13 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
 
       {isAdmin && <ImageryGuidelinesPanel canEdit={canEdit} entityId={entityId} entityType={entityType} />}
 
+      {/* Reusable layout templates — auto-place Foundation / Collaborate / Transform visuals */}
+      {brandVisuals && ((brandVisuals.staticAssets?.length ?? 0) > 0 || (brandVisuals.motionAssets?.length ?? 0) > 0) && (
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+          <BrandLayoutTemplateGallery brandVisuals={brandVisuals} />
+        </div>
+      )}
+
       <input
         ref={fileInputRef}
         type="file"
