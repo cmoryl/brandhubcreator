@@ -687,6 +687,13 @@ export const layoutTargets: { id: LayoutSectionTarget; label: string; descriptio
   { id: 'product', label: 'Product', description: 'Product suite cards' },
   { id: 'editorial', label: 'Editorial', description: 'Long-form editorial pages' },
   { id: 'divider', label: 'Divider', description: 'Inline section dividers' },
+  { id: 'web', label: 'Web', description: 'Landing page & web sections' },
+  { id: 'ad', label: 'Ad', description: 'Display & banner ad units' },
+  { id: 'email', label: 'Email', description: 'Newsletter & transactional email' },
+  { id: 'billboard', label: 'Billboard', description: 'OOH & digital billboards' },
+  { id: 'story', label: 'Story', description: 'Vertical story formats (9:16)' },
+  { id: 'carousel', label: 'Carousel', description: 'Multi-slide social carousels' },
+  { id: 'pitch', label: 'Pitch', description: 'Pitch deck slides' },
 ];
 
 export const expressionStateColor: Record<ExpressionState, string> = {
