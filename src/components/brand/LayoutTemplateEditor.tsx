@@ -251,13 +251,34 @@ export const LayoutTemplateEditor = ({
     toast.success(`Auto-filled ${filledCount} slot${filledCount === 1 ? '' : 's'}`);
   };
 
+  /** Filesystem-safe slug for downloads. Strips punctuation, collapses whitespace, lower-cases. */
+  const slugifyForFilename = (raw: string): string => {
+    const cleaned = (raw || 'variant')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '') // strip accents
+      .replace(/[^\p{Letter}\p{Number}\s\-_]+/gu, '') // drop punctuation/symbols
+      .trim()
+      .replace(/[\s_]+/g, '-') // spaces/underscores → dash
+      .replace(/-+/g, '-') // collapse dashes
+      .replace(/^-|-$/g, '')
+      .toLowerCase()
+      .slice(0, 80); // keep filenames sane
+    return cleaned || 'variant';
+  };
+
+  /** Build a download filename: "{slug}-{YYYY-MM-DD}.{ext}". */
+  const buildExportFilename = (ext: 'png' | 'pdf'): string => {
+    const slug = slugifyForFilename(customization.name);
+    const stamp = new Date().toISOString().slice(0, 10);
+    return `${slug}-${stamp}.${ext}`;
+  };
+
   const handleExportPng = async () => {
     if (!previewRef.current) return;
+    const fileName = buildExportFilename('png');
     try {
-      await exportLayoutAsPng(previewRef.current, {
-        fileName: `${customization.name.replace(/\s+/g, '-').toLowerCase()}.png`,
-      });
-      toast.success('PNG downloaded');
+      await exportLayoutAsPng(previewRef.current, { fileName });
+      toast.success(`Downloaded ${fileName}`);
     } catch {
       toast.error('Could not export PNG');
     }
@@ -265,12 +286,13 @@ export const LayoutTemplateEditor = ({
 
   const handleExportPdf = async () => {
     if (!previewRef.current) return;
+    const fileName = buildExportFilename('pdf');
     try {
       await exportLayoutAsPdf(previewRef.current, {
-        fileName: `${customization.name.replace(/\s+/g, '-').toLowerCase()}.pdf`,
+        fileName,
         aspectRatio: template.aspectRatio,
       });
-      toast.success('PDF downloaded');
+      toast.success(`Downloaded ${fileName}`);
     } catch {
       toast.error('Could not export PDF');
     }
