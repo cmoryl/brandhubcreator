@@ -334,6 +334,14 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     approvedImagery: g.approvedImagery && typeof g.approvedImagery === 'object'
       ? { sections: safeArray((g.approvedImagery as any).sections) }
       : undefined,
+
+    // Brand Visuals bundle (Foundation/Collaborate/Transform static + motion assets)
+    brandVisuals: g.brandVisuals && typeof g.brandVisuals === 'object'
+      ? {
+          staticAssets: safeArray((g.brandVisuals as any).staticAssets),
+          motionAssets: safeArray((g.brandVisuals as any).motionAssets),
+        }
+      : undefined,
     
     // Timestamps
     createdAt: g.createdAt instanceof Date ? g.createdAt : (g.createdAt ? new Date(g.createdAt) : new Date()),
