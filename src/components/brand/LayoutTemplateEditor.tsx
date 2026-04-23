@@ -7,8 +7,8 @@
  *   - export PNG / PDF
  *   - apply the resolved cover to a brand section (Hero / Social / Case Study)
  */
-import { useEffect, useMemo, useRef } from 'react';
-import { Download, FileImage, FileText, Redo2, Save, Sparkles, Undo2, Wand2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Copy, Download, FileImage, FileText, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2 } from 'lucide-react';
 import { useHistoryState } from '@/hooks/useHistoryState';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -252,6 +252,31 @@ export const LayoutTemplateEditor = ({
     onOpenChange(false);
   };
 
+  /** Duplicate: save a fresh copy (new id + "(copy)" suffix) without closing the editor. */
+  const handleDuplicate = () => {
+    if (!onSave) return;
+    const baseName = customization.name.replace(/\s*\(copy(?:\s*\d+)?\)\s*$/i, '');
+    const copyMatches = (existingCustomizations ?? [])
+      .map((c) => c.name.match(/\(copy(?:\s*(\d+))?\)\s*$/i))
+      .filter(Boolean);
+    const nextCopyN = copyMatches.length === 0 ? '' : ` ${copyMatches.length + 1}`;
+    const duplicate: LayoutTemplateCustomization = {
+      ...customization,
+      id: safeId(),
+      name: `${baseName} (copy${nextCopyN})`,
+      createdAt: new Date().toISOString(),
+    };
+    onSave(duplicate);
+    toast.success('Variant duplicated');
+  };
+
+  // Side-by-side compare against the unmodified base template
+  const [compareMode, setCompareMode] = useState(false);
+  const baseResolved = useMemo(
+    () => resolveTemplate(template, brandVisuals, undefined),
+    [template, brandVisuals],
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl">
@@ -268,13 +293,50 @@ export const LayoutTemplateEditor = ({
         <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
           {/* Live preview */}
           <div className="space-y-3">
-            <LayoutTemplateCanvas
-              ref={previewRef}
-              template={template}
-              resolved={resolved}
-              customization={customization}
-              presentationMode
-            />
+            {compareMode ? (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Base template
+                    </span>
+                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
+                      Original
+                    </span>
+                  </div>
+                  <LayoutTemplateCanvas
+                    template={template}
+                    resolved={baseResolved}
+                    presentationMode
+                  />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">
+                      Your edits
+                    </span>
+                    <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-medium text-primary">
+                      Live
+                    </span>
+                  </div>
+                  <LayoutTemplateCanvas
+                    ref={previewRef}
+                    template={template}
+                    resolved={resolved}
+                    customization={customization}
+                    presentationMode
+                  />
+                </div>
+              </div>
+            ) : (
+              <LayoutTemplateCanvas
+                ref={previewRef}
+                template={template}
+                resolved={resolved}
+                customization={customization}
+                presentationMode
+              />
+            )}
             <div className="flex flex-wrap items-center gap-2">
               <TooltipProvider delayDuration={200}>
                 <div className="mr-1 flex items-center gap-0.5 rounded-md border bg-background p-0.5">
@@ -317,6 +379,15 @@ export const LayoutTemplateEditor = ({
                   </span>
                 </div>
               </TooltipProvider>
+              <Button
+                size="sm"
+                variant={compareMode ? 'default' : 'outline'}
+                onClick={() => setCompareMode((v) => !v)}
+                title="Toggle side-by-side compare with the base template"
+              >
+                <SplitSquareHorizontal className="mr-1.5 h-3.5 w-3.5" />
+                {compareMode ? 'Exit compare' : 'Compare base'}
+              </Button>
               <Button size="sm" variant="outline" onClick={handleExportPng}>
                 <FileImage className="mr-1.5 h-3.5 w-3.5" />
                 PNG
@@ -530,6 +601,16 @@ export const LayoutTemplateEditor = ({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
+          {onSave && (
+            <Button
+              variant="outline"
+              onClick={handleDuplicate}
+              title="Save a copy of this variant without closing the editor"
+            >
+              <Copy className="mr-1.5 h-3.5 w-3.5" />
+              Duplicate variant
+            </Button>
+          )}
           {onSave && (
             <Button onClick={handleSave}>
               <Save className="mr-1.5 h-3.5 w-3.5" />
