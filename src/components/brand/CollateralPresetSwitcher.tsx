@@ -170,6 +170,63 @@ export const CollateralPresetSwitcher = ({
           );
         })}
       </div>
+
+      {/* Aspect ratio override — only meaningful when a preset is active */}
+      {activePreset && onRatioOverrideChange && (
+        <div className="mt-3 border-t border-border/60 pt-3">
+          <div className="mb-1.5 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Frame className="h-3 w-3 text-muted-foreground" />
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Reframe ratio
+              </p>
+              <span className="text-[10px] text-muted-foreground/80">
+                Canonical: <span className="font-medium text-foreground/80">{activePreset.ratioLabel}</span>
+              </span>
+            </div>
+            {ratioOverride != null && (
+              <button
+                type="button"
+                onClick={() => onRatioOverrideChange(null)}
+                className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
+                title="Reset to canonical ratio"
+              >
+                <RotateCcw className="h-3 w-3" />
+                Reset
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {aspectRatioOverrides.map((opt) => {
+              const isActive = matchedOverride?.id === opt.id;
+              const isCanonical =
+                ratioOverride == null && Math.abs(opt.ratio - activePreset.aspectRatio) < 0.001;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => onRatioOverrideChange(isActive ? null : opt.ratio)}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors',
+                    isActive
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : isCanonical
+                        ? 'border-primary/40 bg-primary/10 text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground',
+                  )}
+                  title={
+                    isCanonical
+                      ? `${opt.label} — canonical ratio for ${activePreset.label}`
+                      : `Reframe previews to ${opt.label}`
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
