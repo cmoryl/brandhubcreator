@@ -503,7 +503,7 @@ export const LayoutTemplateEditor = ({
                   'rounded-md border p-2.5 text-xs',
                   validation.errors.length > 0
                     ? 'border-destructive/40 bg-destructive/10 text-destructive'
-                    : 'border-warning/40 bg-warning/10 text-warning-foreground',
+                    : 'border-primary/40 bg-primary/5 text-foreground',
                 )}
               >
                 <div className="mb-1 flex items-center gap-1.5 font-semibold">
