@@ -602,6 +602,16 @@ export const LayoutTemplateEditor = ({
             Cancel
           </Button>
           {onSave && (
+            <Button
+              variant="outline"
+              onClick={handleDuplicate}
+              title="Save a copy of this variant without closing the editor"
+            >
+              <Copy className="mr-1.5 h-3.5 w-3.5" />
+              Duplicate variant
+            </Button>
+          )}
+          {onSave && (
             <Button onClick={handleSave}>
               <Save className="mr-1.5 h-3.5 w-3.5" />
               Save variant
