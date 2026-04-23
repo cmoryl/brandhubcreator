@@ -654,10 +654,15 @@ export interface LayoutTemplateCustomization {
   slotOverrides?: Record<string, { type: 'image' | 'video'; assetId: string } | { type: 'empty' }>;
   /** Per-slot position overrides. */
   positionOverrides?: Record<string, { x: number; y: number; width: number; height: number }>;
+  /** Per-slot crop / fit overrides (object-fit + focal point as 0–100 percent). */
+  slotFitOverrides?: Record<string, { fit: 'cover' | 'contain'; focusX: number; focusY: number }>;
   /** Overlay alignment / position overrides. */
   overlayOverrides?: BrandLayoutTemplate['overlay'];
   createdAt: string;
 }
+
+/** Default fit settings for a slot when no override exists. */
+export const defaultSlotFit = { fit: 'cover' as const, focusX: 50, focusY: 50 };
 
 export const resolveTemplate = (
   template: BrandLayoutTemplate,
