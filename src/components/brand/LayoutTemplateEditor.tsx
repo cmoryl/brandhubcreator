@@ -961,7 +961,7 @@ export const LayoutTemplateEditor = ({
                 Missing required content
               </DialogTitle>
               <DialogDescription>
-                This template is missing items that {`{ebrochure: 'ebrochures', casestudy: 'case studies', onepager: 'one-pagers', whitepaper: 'white papers'}`[template.target as 'ebrochure'] ?? 'this template type'} typically require for export.
+                This template is missing items typically required to publish a {template.target} export. Fix them now or export anyway.
               </DialogDescription>
             </DialogHeader>
             <div className="max-h-64 overflow-y-auto rounded-md border bg-muted/30 p-3">
