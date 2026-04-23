@@ -479,6 +479,93 @@ export const LayoutTemplateEditor = ({
                     onChange={(e) => setCustomization((c) => ({ ...c, name: e.target.value }))}
                     className="mt-1 h-8"
                   />
+
+                  {/* Naming format picker */}
+                  <div className="mt-2 space-y-1.5 rounded-md border border-border bg-background/60 p-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <Label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Naming format
+                      </Label>
+                      <button
+                        type="button"
+                        onClick={() => setCustomization((c) => ({ ...c, name: formattedName }))}
+                        className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                        title={`Apply: ${formattedName}`}
+                      >
+                        Apply format
+                      </button>
+                    </div>
+
+                    <Select
+                      value={namingFormat.presetId}
+                      onValueChange={(id) =>
+                        setNamingFormat((prev) => ({
+                          presetId: id,
+                          customPattern:
+                            id === 'custom' ? (prev.customPattern ?? resolvePattern(prev)) : undefined,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="h-7 text-[11px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {NAMING_FORMAT_PRESETS.map((p) => (
+                          <SelectItem key={p.id} value={p.id} className="text-[11px]">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{p.label}</span>
+                              <span className="text-[10px] text-muted-foreground">{p.description}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {namingFormat.presetId === 'custom' && (
+                      <Input
+                        value={namingFormat.customPattern ?? ''}
+                        onChange={(e) =>
+                          setNamingFormat({ presetId: 'custom', customPattern: e.target.value })
+                        }
+                        placeholder="{template} - {version} - {date}"
+                        className="h-7 text-[11px] font-mono"
+                      />
+                    )}
+
+                    {/* Channel chips — affects {channel} token */}
+                    <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                      <span className="mr-0.5 self-center text-[10px] uppercase tracking-wide text-muted-foreground">
+                        Channel:
+                      </span>
+                      {COMMON_CHANNELS.map((ch) => (
+                        <button
+                          key={ch}
+                          type="button"
+                          onClick={() => setActiveChannel(ch)}
+                          className={
+                            activeChannel === ch
+                              ? 'rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground'
+                              : 'rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary'
+                          }
+                        >
+                          {ch}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Live preview of generated name */}
+                    <div className="flex items-center gap-1.5 rounded bg-muted/50 px-2 py-1">
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Preview:</span>
+                      <span className="truncate font-mono text-[11px] text-foreground">{formattedName}</span>
+                    </div>
+
+                    <p className="text-[10px] text-muted-foreground">
+                      Tokens: <code>{'{template}'}</code> <code>{'{version}'}</code>{' '}
+                      <code>{'{channel}'}</code> <code>{'{date}'}</code> <code>{'{iso}'}</code>
+                    </p>
+                  </div>
+
+                  {/* Legacy quick chips */}
                   <div className="mt-1.5 flex flex-wrap gap-1">
                     <span className="text-[10px] uppercase tracking-wide text-muted-foreground self-center mr-0.5">
                       Quick:
