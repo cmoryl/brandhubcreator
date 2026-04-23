@@ -81,6 +81,19 @@ const ExpressionBadge = ({ state }: { state: ExpressionState }) => (
   </span>
 );
 
+/** Visual treatment per confidence level — uses semantic tokens only. */
+const confidenceLevelClasses: Record<ConfidenceLevel, string> = {
+  strong: 'bg-primary text-primary-foreground',
+  good: 'bg-primary/15 text-primary',
+  fair: 'bg-muted text-muted-foreground',
+};
+
+const confidenceLevelLabel: Record<ConfidenceLevel, string> = {
+  strong: 'Strong fit',
+  good: 'Good fit',
+  fair: 'Fair fit',
+};
+
 export const BrandLayoutTemplateGallery = ({
   brandVisuals,
   selectedTemplateId,
