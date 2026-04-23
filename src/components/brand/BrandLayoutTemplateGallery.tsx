@@ -9,7 +9,7 @@
  * receives the resolved template + slot assets via `onApply`. Customize opens
  * an editor for copy / slot swap / export / apply-to-section.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LayoutTemplate, Sparkles, Image as ImageIcon, Film, Check, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,14 @@ import {
 } from '@/lib/brandLayoutTemplates';
 import { LayoutTemplateCanvas } from './LayoutTemplateCanvas';
 import { LayoutTemplateEditor, type ApplyTarget } from './LayoutTemplateEditor';
+import { IndustrySelector } from './IndustrySelector';
+import {
+  getIndustry,
+  getIndustryCopy,
+  loadIndustryPreference,
+  saveIndustryPreference,
+  type IndustryId,
+} from '@/lib/industrySuggestions';
 
 interface BrandLayoutTemplateGalleryProps {
   brandVisuals?: BrandVisualsBundle;
@@ -69,29 +77,64 @@ export const BrandLayoutTemplateGallery = ({
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
+  const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
+
+  useEffect(() => {
+    saveIndustryPreference(industry);
+  }, [industry]);
 
   const visibleTargets = useMemo(
     () => (targets ? layoutTargets.filter((t) => targets.includes(t.id)) : layoutTargets),
     [targets],
   );
 
+  const industryDef = getIndustry(industry);
+  const recommendedTargets = industryDef?.recommendedTargets ?? [];
+  const recommendedSet = useMemo(() => new Set(recommendedTargets), [recommendedTargets]);
+
   const filtered = useMemo(() => {
     const base = targets
       ? brandLayoutTemplates.filter((t) => targets.includes(t.target))
       : brandLayoutTemplates;
-    return activeTarget === 'all' ? base : base.filter((t) => t.target === activeTarget);
-  }, [activeTarget, targets]);
+    const scoped = activeTarget === 'all' ? base : base.filter((t) => t.target === activeTarget);
+    if (!industryDef || activeTarget !== 'all') return scoped;
+    // Sort recommended targets first when an industry is chosen and viewing all
+    return [...scoped].sort((a, b) => {
+      const ai = recommendedTargets.indexOf(a.target);
+      const bi = recommendedTargets.indexOf(b.target);
+      const aRank = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
+      const bRank = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
+      return aRank - bRank;
+    });
+  }, [activeTarget, targets, industryDef, recommendedTargets]);
 
   const openEditor = (template: BrandLayoutTemplate, customization?: LayoutTemplateCustomization) => {
+    // If no saved customization is being reopened, prefill copy from the
+    // selected industry's starter blocks for this target (when available).
+    let next = customization;
+    if (!next && industry) {
+      const copy = getIndustryCopy(industry, template.target);
+      if (copy) {
+        next = {
+          id: crypto.randomUUID(),
+          baseTemplateId: template.id,
+          name: template.name,
+          copy: { eyebrow: copy.eyebrow, headline: copy.headline, cta: copy.cta },
+          slotOverrides: {},
+          overlayOverrides: template.overlay,
+          createdAt: new Date().toISOString(),
+        };
+      }
+    }
     setEditorTemplate(template);
-    setEditorCustomization(customization);
+    setEditorCustomization(next);
     setEditorOpen(true);
   };
 
   return (
     <section className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-center gap-2">
           <LayoutTemplate className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold">Layout templates</h3>
@@ -104,6 +147,13 @@ export const BrandLayoutTemplateGallery = ({
           Auto-fills with Foundation / Collaborate / Transform visuals
         </div>
       </div>
+
+      {/* Industry suggestions */}
+      <IndustrySelector
+        value={industry}
+        onChange={setIndustry}
+        className="rounded-lg border bg-muted/30 p-3"
+      />
 
       {/* Saved custom variants */}
       {savedCustomizations && savedCustomizations.length > 0 && (
@@ -146,21 +196,27 @@ export const BrandLayoutTemplateGallery = ({
           >
             All
           </button>
-          {visibleTargets.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTarget(t.id)}
-              className={cn(
-                'rounded-full border px-2.5 py-1 text-xs transition-colors',
-                activeTarget === t.id
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/50',
-              )}
-              title={t.description}
-            >
-              {t.label}
-            </button>
-          ))}
+          {visibleTargets.map((t) => {
+            const isRecommended = recommendedSet.has(t.id);
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTarget(t.id)}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors',
+                  activeTarget === t.id
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : isRecommended
+                      ? 'border-primary/50 bg-primary/5 text-foreground hover:border-primary'
+                      : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/50',
+                )}
+                title={isRecommended ? `${t.description} — recommended for your industry` : t.description}
+              >
+                {isRecommended && <Sparkles className="h-3 w-3" />}
+                {t.label}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -172,6 +228,8 @@ export const BrandLayoutTemplateGallery = ({
           const expressionStates = Array.from(
             new Set(template.slots.map((s) => s.expressionState)),
           ) as ExpressionState[];
+          const isRecommended = recommendedSet.has(template.target);
+          const suggestedCopy = getIndustryCopy(industry, template.target);
 
           return (
             <div
@@ -180,7 +238,9 @@ export const BrandLayoutTemplateGallery = ({
                 'group flex flex-col gap-2 rounded-lg border-2 bg-card p-3 transition-all',
                 isSelected
                   ? 'border-primary ring-2 ring-primary/20'
-                  : 'border-border hover:border-primary/50 hover:shadow-md',
+                  : isRecommended
+                    ? 'border-primary/40 hover:border-primary hover:shadow-md'
+                    : 'border-border hover:border-primary/50 hover:shadow-md',
               )}
             >
               <LayoutTemplateCanvas template={template} resolved={resolved} />
@@ -188,11 +248,31 @@ export const BrandLayoutTemplateGallery = ({
               <div className="space-y-1">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-medium leading-tight">{template.name}</p>
-                  {isSelected && <Check className="h-4 w-4 shrink-0 text-primary" />}
+                  {isSelected ? (
+                    <Check className="h-4 w-4 shrink-0 text-primary" />
+                  ) : isRecommended ? (
+                    <span
+                      className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary"
+                      title={`Recommended for ${industryDef?.label}`}
+                    >
+                      <Sparkles className="h-2.5 w-2.5" />
+                      Suggested
+                    </span>
+                  ) : null}
                 </div>
                 <p className="line-clamp-2 text-xs text-muted-foreground">
                   {template.description}
                 </p>
+                {suggestedCopy && (
+                  <div className="mt-1 rounded-md border border-primary/20 bg-primary/5 px-2 py-1.5">
+                    <p className="text-[9px] font-semibold uppercase tracking-wider text-primary/80">
+                      Suggested copy
+                    </p>
+                    <p className="mt-0.5 line-clamp-2 text-[11px] font-medium text-foreground">
+                      {suggestedCopy.headline}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-1">
