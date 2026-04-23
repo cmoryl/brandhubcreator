@@ -27,7 +27,10 @@ export type LayoutSectionTarget =
   | 'story'
   | 'carousel'
   | 'pitch'
-  | 'web';
+  | 'web'
+  | 'ebrochure'
+  | 'onepager'
+  | 'whitepaper';
 
 export type SlotKind = 'background' | 'feature' | 'card' | 'banner' | 'video';
 export type SlotShape = 'wide' | 'standard' | 'banner' | 'vertical' | 'square';
@@ -570,6 +573,217 @@ export const brandLayoutTemplates: BrandLayoutTemplate[] = [
     ],
     overlay: { headline: { y: 45, align: 'center' } },
   },
+
+  /* ---------------- EBROCHURE (digital brochures, A4 portrait & spreads) ---------------- */
+  {
+    id: 'ebrochure-cover-foundation',
+    name: 'Ebrochure — Cover (A4 Portrait)',
+    description: 'A4 portrait Foundation cover with overlaid title block and eyebrow tag.',
+    target: 'ebrochure',
+    aspectRatio: 210 / 297,
+    slots: [
+      { key: 'cover', expressionState: 'Foundation', kind: 'background', preferredShape: 'vertical', label: 'Foundation cover', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 8, align: 'left' }, headline: { y: 75, align: 'left' }, cta: true },
+  },
+  {
+    id: 'ebrochure-spread-feature',
+    name: 'Ebrochure — Feature Spread',
+    description: 'Two-page A4 spread: Foundation imagery left, Collaborate copy block right.',
+    target: 'ebrochure',
+    aspectRatio: 420 / 297,
+    slots: [
+      { key: 'left', expressionState: 'Foundation', kind: 'background', preferredShape: 'vertical', label: 'Foundation page', position: { x: 0, y: 0, width: 50, height: 100 } },
+      { key: 'right', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'vertical', label: 'Collaborate detail', position: { x: 50, y: 0, width: 50, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 12, align: 'right' }, headline: { y: 22, align: 'right' } },
+  },
+  {
+    id: 'ebrochure-product-grid',
+    name: 'Ebrochure — Product Grid',
+    description: 'A4 portrait page with hero band on top and 2×2 product grid below.',
+    target: 'ebrochure',
+    aspectRatio: 210 / 297,
+    slots: [
+      { key: 'hero', expressionState: 'Foundation', kind: 'background', preferredShape: 'wide', label: 'Foundation hero', position: { x: 0, y: 0, width: 100, height: 35 } },
+      { key: 'p1', expressionState: 'Collaborate', kind: 'card', preferredShape: 'square', label: 'Product A', position: { x: 4, y: 38, width: 46, height: 30 } },
+      { key: 'p2', expressionState: 'Collaborate', kind: 'card', preferredShape: 'square', label: 'Product B', position: { x: 50, y: 38, width: 46, height: 30 } },
+      { key: 'p3', expressionState: 'Transform', kind: 'card', preferredShape: 'square', label: 'Product C', position: { x: 4, y: 69, width: 46, height: 30 } },
+      { key: 'p4', expressionState: 'Transform', kind: 'card', preferredShape: 'square', label: 'Product D', position: { x: 50, y: 69, width: 46, height: 30 } },
+    ],
+    overlay: { eyebrow: { y: 6, align: 'left' }, headline: { y: 14, align: 'left' } },
+  },
+  {
+    id: 'ebrochure-back-cover',
+    name: 'Ebrochure — Back Cover & CTA',
+    description: 'A4 portrait back cover: Transform motion top, contact CTA band bottom.',
+    target: 'ebrochure',
+    aspectRatio: 210 / 297,
+    slots: [
+      { key: 'top', expressionState: 'Transform', kind: 'video', preferredShape: 'standard', allowMotion: true, label: 'Transform motion', position: { x: 0, y: 0, width: 100, height: 70 } },
+      { key: 'band', expressionState: 'Foundation', kind: 'banner', preferredShape: 'banner', label: 'Foundation CTA band', position: { x: 0, y: 70, width: 100, height: 30 } },
+    ],
+    overlay: { headline: { y: 78, align: 'center' }, cta: true },
+  },
+
+  /* ---------------- ENHANCED CASE STUDIES ---------------- */
+  {
+    id: 'casestudy-hero-metrics',
+    name: 'Case Study — Hero + Metrics',
+    description: 'Foundation hero with three Collaborate metric cards anchored bottom.',
+    target: 'casestudy',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'hero', expressionState: 'Foundation', kind: 'background', preferredShape: 'wide', label: 'Foundation hero', position: { x: 0, y: 0, width: 100, height: 65 } },
+      { key: 'm1', expressionState: 'Collaborate', kind: 'card', preferredShape: 'square', label: 'Metric 1', position: { x: 4, y: 68, width: 30, height: 28 } },
+      { key: 'm2', expressionState: 'Collaborate', kind: 'card', preferredShape: 'square', label: 'Metric 2', position: { x: 35, y: 68, width: 30, height: 28 } },
+      { key: 'm3', expressionState: 'Transform', kind: 'card', preferredShape: 'square', label: 'Metric 3', position: { x: 66, y: 68, width: 30, height: 28 } },
+    ],
+    overlay: { eyebrow: { y: 8, align: 'left' }, headline: { y: 16, align: 'left' } },
+  },
+  {
+    id: 'casestudy-problem-solution',
+    name: 'Case Study — Problem / Solution',
+    description: 'Editorial split: Foundation problem statement left, Transform solution right.',
+    target: 'casestudy',
+    aspectRatio: 16 / 10,
+    slots: [
+      { key: 'problem', expressionState: 'Foundation', kind: 'background', preferredShape: 'standard', label: 'Problem (Foundation)', position: { x: 0, y: 0, width: 50, height: 100 } },
+      { key: 'solution', expressionState: 'Transform', kind: 'feature', preferredShape: 'standard', label: 'Solution (Transform)', position: { x: 50, y: 0, width: 50, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 8, align: 'center' }, headline: { y: 18, align: 'center' } },
+  },
+  {
+    id: 'casestudy-testimonial-portrait',
+    name: 'Case Study — Testimonial Portrait',
+    description: 'Vertical Collaborate portrait card with pull-quote overlay.',
+    target: 'casestudy',
+    aspectRatio: 4 / 5,
+    slots: [
+      { key: 'portrait', expressionState: 'Collaborate', kind: 'background', preferredShape: 'vertical', label: 'Collaborate portrait', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 60, align: 'left' }, headline: { y: 70, align: 'left' } },
+  },
+  {
+    id: 'casestudy-results-band',
+    name: 'Case Study — Results Band',
+    description: 'Ultrawide Transform band for outcome / KPI summary slides.',
+    target: 'casestudy',
+    aspectRatio: 30 / 9,
+    slots: [
+      { key: 'bg', expressionState: 'Transform', kind: 'banner', preferredShape: 'banner', label: 'Transform results band', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 25, align: 'center' }, headline: { y: 50, align: 'center' } },
+  },
+
+  /* ---------------- ONE-PAGERS / SALES SHEETS ---------------- */
+  {
+    id: 'onepager-classic',
+    name: 'One-Pager — Classic Sales Sheet',
+    description: 'A4 portrait: Foundation hero, three benefit columns, Transform CTA footer.',
+    target: 'onepager',
+    aspectRatio: 210 / 297,
+    slots: [
+      { key: 'hero', expressionState: 'Foundation', kind: 'background', preferredShape: 'wide', label: 'Foundation hero', position: { x: 0, y: 0, width: 100, height: 32 } },
+      { key: 'b1', expressionState: 'Collaborate', kind: 'card', preferredShape: 'vertical', label: 'Benefit 1', position: { x: 4, y: 36, width: 30, height: 45 } },
+      { key: 'b2', expressionState: 'Collaborate', kind: 'card', preferredShape: 'vertical', label: 'Benefit 2', position: { x: 35, y: 36, width: 30, height: 45 } },
+      { key: 'b3', expressionState: 'Collaborate', kind: 'card', preferredShape: 'vertical', label: 'Benefit 3', position: { x: 66, y: 36, width: 30, height: 45 } },
+      { key: 'cta', expressionState: 'Transform', kind: 'banner', preferredShape: 'banner', label: 'Transform CTA', position: { x: 0, y: 82, width: 100, height: 18 } },
+    ],
+    overlay: { eyebrow: { y: 8, align: 'left' }, headline: { y: 16, align: 'left' }, cta: true },
+  },
+  {
+    id: 'onepager-product-spec',
+    name: 'One-Pager — Product Spec Sheet',
+    description: 'Foundation product image left (60%), specs/features stack right (40%).',
+    target: 'onepager',
+    aspectRatio: 210 / 297,
+    slots: [
+      { key: 'product', expressionState: 'Foundation', kind: 'background', preferredShape: 'vertical', label: 'Foundation product', position: { x: 0, y: 0, width: 60, height: 100 } },
+      { key: 'spec1', expressionState: 'Collaborate', kind: 'card', preferredShape: 'standard', label: 'Spec block 1', position: { x: 60, y: 0, width: 40, height: 33 } },
+      { key: 'spec2', expressionState: 'Collaborate', kind: 'card', preferredShape: 'standard', label: 'Spec block 2', position: { x: 60, y: 33, width: 40, height: 34 } },
+      { key: 'spec3', expressionState: 'Transform', kind: 'card', preferredShape: 'standard', label: 'CTA / pricing', position: { x: 60, y: 67, width: 40, height: 33 } },
+    ],
+    overlay: { eyebrow: { y: 6, align: 'right' }, headline: { y: 14, align: 'right' } },
+  },
+  {
+    id: 'onepager-service-overview',
+    name: 'One-Pager — Service Overview',
+    description: 'Hero band, 4-up Collaborate service grid, Foundation footer band.',
+    target: 'onepager',
+    aspectRatio: 210 / 297,
+    slots: [
+      { key: 'hero', expressionState: 'Foundation', kind: 'background', preferredShape: 'wide', label: 'Foundation hero', position: { x: 0, y: 0, width: 100, height: 28 } },
+      { key: 's1', expressionState: 'Collaborate', kind: 'card', preferredShape: 'square', label: 'Service A', position: { x: 4, y: 32, width: 46, height: 28 } },
+      { key: 's2', expressionState: 'Collaborate', kind: 'card', preferredShape: 'square', label: 'Service B', position: { x: 50, y: 32, width: 46, height: 28 } },
+      { key: 's3', expressionState: 'Transform', kind: 'card', preferredShape: 'square', label: 'Service C', position: { x: 4, y: 61, width: 46, height: 28 } },
+      { key: 's4', expressionState: 'Transform', kind: 'card', preferredShape: 'square', label: 'Service D', position: { x: 50, y: 61, width: 46, height: 28 } },
+      { key: 'foot', expressionState: 'Foundation', kind: 'banner', preferredShape: 'banner', label: 'Foundation footer', position: { x: 0, y: 90, width: 100, height: 10 } },
+    ],
+    overlay: { eyebrow: { y: 6, align: 'left' }, headline: { y: 14, align: 'left' } },
+  },
+
+  /* ---------------- WHITE PAPERS / REPORTS ---------------- */
+  {
+    id: 'whitepaper-cover',
+    name: 'White Paper — Cover',
+    description: 'A4 portrait Foundation cover with research title block and Collaborate accent strip.',
+    target: 'whitepaper',
+    aspectRatio: 210 / 297,
+    slots: [
+      { key: 'cover', expressionState: 'Foundation', kind: 'background', preferredShape: 'vertical', label: 'Foundation cover', position: { x: 0, y: 0, width: 100, height: 78 } },
+      { key: 'accent', expressionState: 'Collaborate', kind: 'banner', preferredShape: 'banner', label: 'Collaborate accent', position: { x: 0, y: 78, width: 100, height: 22 } },
+    ],
+    overlay: { eyebrow: { y: 6, align: 'left' }, headline: { y: 60, align: 'left' } },
+  },
+  {
+    id: 'whitepaper-toc',
+    name: 'White Paper — Table of Contents',
+    description: 'A4 portrait: Foundation header band + clean body for chapter list.',
+    target: 'whitepaper',
+    aspectRatio: 210 / 297,
+    slots: [
+      { key: 'header', expressionState: 'Foundation', kind: 'banner', preferredShape: 'banner', label: 'Foundation header', position: { x: 0, y: 0, width: 100, height: 22 } },
+      { key: 'side', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'vertical', label: 'Collaborate side accent', position: { x: 0, y: 22, width: 8, height: 78 } },
+    ],
+    overlay: { eyebrow: { y: 6, align: 'left' }, headline: { y: 12, align: 'left' } },
+  },
+  {
+    id: 'whitepaper-chapter-opener',
+    name: 'White Paper — Chapter Opener',
+    description: 'A4 portrait: Foundation chapter image (top half) and clean editorial body below.',
+    target: 'whitepaper',
+    aspectRatio: 210 / 297,
+    slots: [
+      { key: 'image', expressionState: 'Foundation', kind: 'background', preferredShape: 'wide', label: 'Foundation chapter image', position: { x: 0, y: 0, width: 100, height: 50 } },
+      { key: 'rule', expressionState: 'Collaborate', kind: 'banner', preferredShape: 'banner', label: 'Collaborate divider', position: { x: 0, y: 50, width: 100, height: 4 } },
+    ],
+    overlay: { eyebrow: { y: 56, align: 'left' }, headline: { y: 62, align: 'left' } },
+  },
+  {
+    id: 'whitepaper-data-spread',
+    name: 'White Paper — Data Spread',
+    description: 'Two-page A3 landscape spread: Collaborate chart left, Transform insight callout right.',
+    target: 'whitepaper',
+    aspectRatio: 420 / 297,
+    slots: [
+      { key: 'chart', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'standard', label: 'Collaborate chart', position: { x: 0, y: 0, width: 60, height: 100 } },
+      { key: 'insight', expressionState: 'Transform', kind: 'card', preferredShape: 'standard', label: 'Transform insight', position: { x: 60, y: 0, width: 40, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 10, align: 'right' }, headline: { y: 18, align: 'right' } },
+  },
+  {
+    id: 'whitepaper-back-cover',
+    name: 'White Paper — Back Cover',
+    description: 'A4 portrait back cover: Transform motion + author/contact band at bottom.',
+    target: 'whitepaper',
+    aspectRatio: 210 / 297,
+    slots: [
+      { key: 'top', expressionState: 'Transform', kind: 'video', preferredShape: 'standard', allowMotion: true, label: 'Transform motion', position: { x: 0, y: 0, width: 100, height: 75 } },
+      { key: 'band', expressionState: 'Foundation', kind: 'banner', preferredShape: 'banner', label: 'Foundation footer', position: { x: 0, y: 75, width: 100, height: 25 } },
+    ],
+    overlay: { headline: { y: 82, align: 'center' }, cta: true },
+  },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -836,6 +1050,9 @@ export const layoutTargets: { id: LayoutSectionTarget; label: string; descriptio
   { id: 'story', label: 'Story', description: 'Vertical story formats (9:16)' },
   { id: 'carousel', label: 'Carousel', description: 'Multi-slide social carousels' },
   { id: 'pitch', label: 'Pitch', description: 'Pitch deck slides' },
+  { id: 'ebrochure', label: 'Ebrochure', description: 'Multi-page digital brochures' },
+  { id: 'onepager', label: 'One-Pager', description: 'Single-page sales sheets & product overviews' },
+  { id: 'whitepaper', label: 'White Paper', description: 'Long-form reports & research papers' },
 ];
 
 export const expressionStateColor: Record<ExpressionState, string> = {
