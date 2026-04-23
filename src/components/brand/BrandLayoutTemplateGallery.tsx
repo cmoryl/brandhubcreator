@@ -380,6 +380,12 @@ export const BrandLayoutTemplateGallery = ({
           existingCustomizations={savedCustomizations}
           onSave={onSaveCustomization}
           onApplyToSection={onApplyToSection}
+          existingSlotPresetNames={slotPresets.map((p) => p.name)}
+          onSaveAsSlotPreset={({ name, description, template }) => {
+            setSlotPresets((current) =>
+              saveSlotPreset(current, templateToPresetPayload(template, { name, description })),
+            );
+          }}
         />
       )}
     </section>
