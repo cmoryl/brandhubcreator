@@ -222,7 +222,7 @@ export const LayoutTemplateEditor = ({
     toast.success(`Auto-filled ${filledCount} slot${filledCount === 1 ? '' : 's'}`);
   };
 
-
+  const handleExportPng = async () => {
     if (!previewRef.current) return;
     try {
       await exportLayoutAsPng(previewRef.current, {
