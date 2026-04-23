@@ -196,21 +196,27 @@ export const BrandLayoutTemplateGallery = ({
           >
             All
           </button>
-          {visibleTargets.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTarget(t.id)}
-              className={cn(
-                'rounded-full border px-2.5 py-1 text-xs transition-colors',
-                activeTarget === t.id
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/50',
-              )}
-              title={t.description}
-            >
-              {t.label}
-            </button>
-          ))}
+          {visibleTargets.map((t) => {
+            const isRecommended = recommendedSet.has(t.id);
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTarget(t.id)}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors',
+                  activeTarget === t.id
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : isRecommended
+                      ? 'border-primary/50 bg-primary/5 text-foreground hover:border-primary'
+                      : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/50',
+                )}
+                title={isRecommended ? `${t.description} — recommended for your industry` : t.description}
+              >
+                {isRecommended && <Sparkles className="h-3 w-3" />}
+                {t.label}
+              </button>
+            );
+          })}
         </div>
       )}
 
