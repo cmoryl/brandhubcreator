@@ -798,7 +798,29 @@ const BrandEditor = () => {
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateBrand({ brandIcons }))} entityId={brand.id} entityType="brand" />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => updateBrand({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateBrand({ colorCombinations }))} brandName={brand.hero.name} />;
       case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => updateBrand({ gradients }))} brandName={brand.hero.name} brandColors={brand.colors} />;
-      case 'layouttemplates': return <LayoutTemplatesSection brandVisuals={(brand as any).brandVisuals} />;
+      case 'layouttemplates': return <LayoutTemplatesSection
+        brandVisuals={(brand as any).brandVisuals}
+        savedCustomizations={(brand as any).layoutTemplateCustomizations || []}
+        onSaveCustomization={canEdit ? (variant) => {
+          const existing = (brand as any).layoutTemplateCustomizations || [];
+          const next = [...existing.filter((v: any) => v.id !== variant.id), variant];
+          updateBrand({ ...(brand as any), layoutTemplateCustomizations: next } as any);
+        } : undefined}
+        onApplyToSection={canEdit ? (target, asset) => {
+          if (target === 'hero') {
+            const heroPatch = asset.type === 'video'
+              ? { ...brand.hero, coverVideo: asset.url, useVideo: true }
+              : { ...brand.hero, coverImage: asset.url, useVideo: false };
+            updateBrand({ hero: heroPatch });
+          } else if (target === 'social') {
+            const imagery = brand.imagery || [];
+            updateBrand({ imagery: [{ id: `lt-${Date.now()}`, url: asset.url, type: 'do', description: 'Applied from layout template' } as any, ...imagery] });
+          } else if (target === 'casestudy') {
+            const cs = brand.caseStudies || [];
+            updateBrand({ caseStudies: [{ id: `lt-${Date.now()}`, title: 'New case study', description: '', imageUrl: asset.url } as any, ...cs] });
+          }
+        } : undefined}
+      />;
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => updateBrand({ patterns }))} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} brandSlug={brand.slug} customShapes={brand.customShapes} onCustomShapesChange={canEdit ? (customShapes) => updateBrand({ customShapes }) : undefined} entityId={brand.id} entityType="brand" />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => updateBrand({ typography }))} isAdmin={isGuideAdmin} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => updateBrand({ textStyles }))} adminCustomStyle={brand.adminCustomStyle} onAdminCustomStyleChange={canEdit ? (adminCustomStyle) => updateBrand({ adminCustomStyle }) : undefined} canEdit={canEdit} />;
