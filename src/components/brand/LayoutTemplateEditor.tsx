@@ -20,6 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import {
+  autoFillSlots,
   resolveTemplate,
   type BrandLayoutTemplate,
   type BrandVisualsBundle,
