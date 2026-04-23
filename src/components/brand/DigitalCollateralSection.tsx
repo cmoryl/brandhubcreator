@@ -1322,6 +1322,18 @@ export const DigitalCollateralSection = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk-regenerate from layout templates */}
+      {canEdit && onCollateralChange && (
+        <RegenerateFromTemplatesDialog
+          open={showRegenerateDialog}
+          onOpenChange={setShowRegenerateDialog}
+          collateral={collateral}
+          brandVisuals={brandVisuals}
+          savedCustomizations={layoutTemplateCustomizations}
+          onApply={onCollateralChange}
+        />
+      )}
     </section>
   );
 };
