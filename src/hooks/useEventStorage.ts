@@ -147,9 +147,15 @@ const dbToEventGuide = (db: DbEvent): EventGuide => {
     sectionLayouts: asObject(guideData.sectionLayouts, {}) as EventGuide['sectionLayouts'],
     pageSettings: asObject(guideData.pageSettings, {}) as EventGuide['pageSettings'],
     
+    // Brand Visuals bundle (Foundation/Collaborate/Transform) — used by Layout Templates
+    ...(guideData.brandVisuals ? { brandVisuals: guideData.brandVisuals } : {}),
+    ...(guideData.layoutTemplateCustomizations
+      ? { layoutTemplateCustomizations: asArray(guideData.layoutTemplateCustomizations, []) }
+      : {}),
+    
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
-  };
+  } as EventGuide;
 };
 
 const eventGuideToDb = (event: Partial<EventGuide>, userId: string, organizationId?: string | null) => {
