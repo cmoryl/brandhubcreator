@@ -250,6 +250,7 @@ export const BrandLayoutTemplateGallery = ({
           </button>
           {visibleTargets.map((t) => {
             const isRecommended = recommendedSet.has(t.id);
+            const confidence = scoreTargetForIndustry(industry, t.id);
             return (
               <button
                 key={t.id}
@@ -262,10 +263,24 @@ export const BrandLayoutTemplateGallery = ({
                       ? 'border-primary/50 bg-primary/5 text-foreground hover:border-primary'
                       : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/50',
                 )}
-                title={isRecommended ? `${t.description} — recommended for your industry` : t.description}
+                title={
+                  confidence
+                    ? `${t.description}\n\nFit for ${industryDef?.label}: ${confidence.score}% (${confidence.level})\n• ${confidence.reasons.join('\n• ')}`
+                    : t.description
+                }
               >
                 {isRecommended && <Sparkles className="h-3 w-3" />}
                 {t.label}
+                {confidence && activeTarget !== t.id && (
+                  <span
+                    className={cn(
+                      'ml-0.5 rounded-full px-1 py-0 text-[9px] font-bold tabular-nums',
+                      confidenceLevelClasses[confidence.level],
+                    )}
+                  >
+                    {confidence.score}
+                  </span>
+                )}
               </button>
             );
           })}
