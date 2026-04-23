@@ -169,6 +169,12 @@ export const BrandLayoutTemplateGallery = ({
         className="rounded-lg border bg-muted/30 p-3"
       />
 
+      {/* Quick collateral preview presets */}
+      <CollateralPresetSwitcher
+        activePresetId={activePreset?.id ?? null}
+        onPresetChange={handlePresetChange}
+      />
+
       {/* Saved custom variants */}
       {savedCustomizations && savedCustomizations.length > 0 && (
         <div className="rounded-lg border bg-muted/30 p-3">
