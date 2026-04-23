@@ -27,6 +27,7 @@ import {
 } from '@/lib/brandLayoutTemplates';
 import { LayoutTemplateCanvas } from './LayoutTemplateCanvas';
 import { exportLayoutAsPng, exportLayoutAsPdf } from '@/lib/exportLayoutTemplate';
+import { SlotFitControl } from './SlotFitControl';
 
 export type ApplyTarget = 'hero' | 'social' | 'casestudy';
 
