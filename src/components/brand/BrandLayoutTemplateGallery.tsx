@@ -45,6 +45,8 @@ import {
   deleteSlotPreset,
   loadSlotPresets,
   presetToTemplate,
+  saveSlotPreset,
+  templateToPresetPayload,
   type SlotPreset,
 } from '@/lib/slotPresets';
 
