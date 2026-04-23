@@ -36,6 +36,10 @@ import {
   saveIndustryPreference,
   type IndustryId,
 } from '@/lib/industrySuggestions';
+import {
+  CollateralPresetSwitcher,
+  type CollateralPreset,
+} from './CollateralPresetSwitcher';
 
 interface BrandLayoutTemplateGalleryProps {
   brandVisuals?: BrandVisualsBundle;
@@ -78,10 +82,20 @@ export const BrandLayoutTemplateGallery = ({
   const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
   const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
+  const [activePreset, setActivePreset] = useState<CollateralPreset | null>(null);
 
   useEffect(() => {
     saveIndustryPreference(industry);
   }, [industry]);
+
+  const handlePresetChange = (preset: CollateralPreset | null) => {
+    setActivePreset(preset);
+    if (preset) {
+      setActiveTarget(preset.target);
+    } else {
+      setActiveTarget('all');
+    }
+  };
 
   const visibleTargets = useMemo(
     () => (targets ? layoutTargets.filter((t) => targets.includes(t.id)) : layoutTargets),
@@ -153,6 +167,12 @@ export const BrandLayoutTemplateGallery = ({
         value={industry}
         onChange={setIndustry}
         className="rounded-lg border bg-muted/30 p-3"
+      />
+
+      {/* Quick collateral preview presets */}
+      <CollateralPresetSwitcher
+        activePresetId={activePreset?.id ?? null}
+        onPresetChange={handlePresetChange}
       />
 
       {/* Saved custom variants */}
@@ -230,6 +250,12 @@ export const BrandLayoutTemplateGallery = ({
           ) as ExpressionState[];
           const isRecommended = recommendedSet.has(template.target);
           const suggestedCopy = getIndustryCopy(industry, template.target);
+          // Quick-preview preset: reframe at the canonical aspect ratio for the
+          // collateral type without mutating the underlying template definition.
+          const previewTemplate =
+            activePreset && activePreset.target === template.target
+              ? { ...template, aspectRatio: activePreset.aspectRatio }
+              : template;
 
           return (
             <div
@@ -243,7 +269,7 @@ export const BrandLayoutTemplateGallery = ({
                     : 'border-border hover:border-primary/50 hover:shadow-md',
               )}
             >
-              <LayoutTemplateCanvas template={template} resolved={resolved} />
+              <LayoutTemplateCanvas template={previewTemplate} resolved={resolved} />
 
               <div className="space-y-1">
                 <div className="flex items-start justify-between gap-2">
