@@ -40,6 +40,13 @@ import {
   CollateralPresetSwitcher,
   type CollateralPreset,
 } from './CollateralPresetSwitcher';
+import { SlotPresetsPanel } from './SlotPresetsPanel';
+import {
+  deleteSlotPreset,
+  loadSlotPresets,
+  presetToTemplate,
+  type SlotPreset,
+} from '@/lib/slotPresets';
 
 interface BrandLayoutTemplateGalleryProps {
   brandVisuals?: BrandVisualsBundle;
