@@ -308,6 +308,7 @@ export const BrandLayoutTemplateGallery = ({
           ) as ExpressionState[];
           const isRecommended = recommendedSet.has(template.target);
           const suggestedCopy = getIndustryCopy(industry, template.target);
+          const confidence: RecommendationConfidence | null = scoreRecommendation(industry, template);
           // Quick-preview preset: reframe at the canonical aspect ratio for the
           // collateral type without mutating the underlying template definition.
           const previewTemplate =
@@ -334,13 +335,21 @@ export const BrandLayoutTemplateGallery = ({
                   <p className="text-sm font-medium leading-tight">{template.name}</p>
                   {isSelected ? (
                     <Check className="h-4 w-4 shrink-0 text-primary" />
-                  ) : isRecommended ? (
+                  ) : isRecommended && confidence ? (
                     <span
-                      className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary"
-                      title={`Recommended for ${industryDef?.label}`}
+                      className={cn(
+                        'inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide',
+                        confidence.level === 'strong'
+                          ? 'bg-primary text-primary-foreground'
+                          : confidence.level === 'good'
+                            ? 'border border-primary/40 bg-primary/10 text-primary'
+                            : 'border border-border bg-muted text-muted-foreground',
+                      )}
+                      title={`${confidenceLevelLabel[confidence.level]} for ${industryDef?.label} — ${confidence.score}%\n\n• ${confidence.reasons.join('\n• ')}`}
                     >
                       <Sparkles className="h-2.5 w-2.5" />
                       Suggested
+                      <span className="ml-0.5 tabular-nums">{confidence.score}%</span>
                     </span>
                   ) : null}
                 </div>
