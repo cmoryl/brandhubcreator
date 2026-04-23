@@ -237,7 +237,7 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
                 </p>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="inline-flex h-2 w-2 rounded-full bg-primary animate-pulse" />
                 {((brandVisuals.staticAssets?.length ?? 0) + (brandVisuals.motionAssets?.length ?? 0))} brand visuals connected
               </div>
             </div>
