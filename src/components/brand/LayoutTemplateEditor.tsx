@@ -176,6 +176,7 @@ export const LayoutTemplateEditor = ({
   );
 
   const previewRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   const updateCopy = (key: 'eyebrow' | 'headline' | 'cta', value: string) =>
     setCustomization((c) => ({ ...c, copy: { ...(c.copy ?? {}), [key]: value } }));
@@ -308,7 +309,55 @@ export const LayoutTemplateEditor = ({
     toast.success(`Applied to ${target === 'casestudy' ? 'Case Study' : target}`);
   };
 
+  /** Returns true if `name` collides with another saved variant (case-insensitive, trimmed). */
+  const isDuplicateName = (name: string): boolean => {
+    const norm = name.trim().toLowerCase();
+    if (!norm) return false;
+    return (existingCustomizations ?? []).some(
+      (c) => c.id !== customization.id && c.name.trim().toLowerCase() === norm,
+    );
+  };
+
+  /** Suggest a non-colliding name by appending " (n)". */
+  const suggestUniqueName = (base: string): string => {
+    const trimmed = base.trim() || template.name;
+    let n = 2;
+    let candidate = `${trimmed} (${n})`;
+    while (isDuplicateName(candidate)) {
+      n += 1;
+      candidate = `${trimmed} (${n})`;
+    }
+    return candidate;
+  };
+
+  const nameError = useMemo(() => {
+    const trimmed = customization.name.trim();
+    if (!trimmed) return 'Name is required';
+    if (isDuplicateName(trimmed)) return 'A variant with this name already exists';
+    return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customization.name, customization.id, existingCustomizations]);
+
   const handleSave = () => {
+    if (nameError) {
+      toast.error(nameError, {
+        description:
+          nameError === 'Name is required'
+            ? 'Enter a name before saving.'
+            : `Try "${suggestUniqueName(customization.name)}" or pick a different name.`,
+        action: nameError.startsWith('A variant')
+          ? {
+              label: 'Auto-rename',
+              onClick: () =>
+                setCustomization((c) => ({ ...c, name: suggestUniqueName(customization.name) })),
+            }
+          : undefined,
+      });
+      // Focus the name input so the user can edit immediately
+      nameInputRef.current?.focus();
+      nameInputRef.current?.select();
+      return;
+    }
     onSave?.(customization);
     toast.success('Variant saved');
     onOpenChange(false);
@@ -318,18 +367,17 @@ export const LayoutTemplateEditor = ({
   const handleDuplicate = () => {
     if (!onSave) return;
     const baseName = customization.name.replace(/\s*\(copy(?:\s*\d+)?\)\s*$/i, '');
-    const copyMatches = (existingCustomizations ?? [])
-      .map((c) => c.name.match(/\(copy(?:\s*(\d+))?\)\s*$/i))
-      .filter(Boolean);
-    const nextCopyN = copyMatches.length === 0 ? '' : ` ${copyMatches.length + 1}`;
+    // Use the unique-name suggester scoped against existing variants so duplicates never collide.
+    const candidate = `${baseName} (copy)`;
+    const uniqueName = isDuplicateName(candidate) ? suggestUniqueName(baseName) : candidate;
     const duplicate: LayoutTemplateCustomization = {
       ...customization,
       id: safeId(),
-      name: `${baseName} (copy${nextCopyN})`,
+      name: uniqueName,
       createdAt: new Date().toISOString(),
     };
     onSave(duplicate);
-    toast.success('Variant duplicated');
+    toast.success(`Duplicated as "${uniqueName}"`);
   };
 
   // Side-by-side compare against the unmodified base template
@@ -497,10 +545,32 @@ export const LayoutTemplateEditor = ({
                 <div>
                   <Label className="text-xs">Variant name</Label>
                   <Input
+                    ref={nameInputRef}
                     value={customization.name}
                     onChange={(e) => setCustomization((c) => ({ ...c, name: e.target.value }))}
-                    className="mt-1 h-8"
+                    aria-invalid={!!nameError}
+                    className={
+                      nameError
+                        ? 'mt-1 h-8 border-destructive focus-visible:ring-destructive'
+                        : 'mt-1 h-8'
+                    }
                   />
+                  {nameError && (
+                    <div className="mt-1 flex items-center justify-between gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-2 py-1">
+                      <span className="text-[11px] text-destructive">{nameError}</span>
+                      {nameError.startsWith('A variant') && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCustomization((c) => ({ ...c, name: suggestUniqueName(customization.name) }))
+                          }
+                          className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
+                        >
+                          Auto-rename
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Naming format picker */}
                   <div className="mt-2 space-y-1.5 rounded-md border border-border bg-background/60 p-2">
@@ -770,7 +840,7 @@ export const LayoutTemplateEditor = ({
             </Button>
           )}
           {onSave && (
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={!!nameError} title={nameError ?? undefined}>
               <Save className="mr-1.5 h-3.5 w-3.5" />
               Save variant
             </Button>
