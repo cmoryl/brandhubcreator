@@ -34,7 +34,11 @@ import {
   getIndustryCopy,
   loadIndustryPreference,
   saveIndustryPreference,
+  scoreRecommendation,
+  scoreTargetForIndustry,
+  type ConfidenceLevel,
   type IndustryId,
+  type RecommendationConfidence,
 } from '@/lib/industrySuggestions';
 import {
   CollateralPresetSwitcher,
@@ -76,6 +80,19 @@ const ExpressionBadge = ({ state }: { state: ExpressionState }) => (
     {state}
   </span>
 );
+
+/** Visual treatment per confidence level — uses semantic tokens only. */
+const confidenceLevelClasses: Record<ConfidenceLevel, string> = {
+  strong: 'bg-primary text-primary-foreground',
+  good: 'bg-primary/15 text-primary',
+  fair: 'bg-muted text-muted-foreground',
+};
+
+const confidenceLevelLabel: Record<ConfidenceLevel, string> = {
+  strong: 'Strong fit',
+  good: 'Good fit',
+  fair: 'Fair fit',
+};
 
 export const BrandLayoutTemplateGallery = ({
   brandVisuals,
@@ -132,16 +149,14 @@ export const BrandLayoutTemplateGallery = ({
       ? brandLayoutTemplates.filter((t) => targets.includes(t.target))
       : brandLayoutTemplates;
     const scoped = activeTarget === 'all' ? base : base.filter((t) => t.target === activeTarget);
-    if (!industryDef || activeTarget !== 'all') return scoped;
-    // Sort recommended targets first when an industry is chosen and viewing all
+    if (!industryDef) return scoped;
+    // Sort by confidence score (high → low), keeping non-recommended at the end.
     return [...scoped].sort((a, b) => {
-      const ai = recommendedTargets.indexOf(a.target);
-      const bi = recommendedTargets.indexOf(b.target);
-      const aRank = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
-      const bRank = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
-      return aRank - bRank;
+      const sa = scoreRecommendation(industry, a)?.score ?? -1;
+      const sb = scoreRecommendation(industry, b)?.score ?? -1;
+      return sb - sa;
     });
-  }, [activeTarget, targets, industryDef, recommendedTargets]);
+  }, [activeTarget, targets, industryDef, industry]);
 
   const openEditor = (template: BrandLayoutTemplate, customization?: LayoutTemplateCustomization) => {
     // If no saved customization is being reopened, prefill copy from the
@@ -246,6 +261,7 @@ export const BrandLayoutTemplateGallery = ({
           </button>
           {visibleTargets.map((t) => {
             const isRecommended = recommendedSet.has(t.id);
+            const confidence = scoreTargetForIndustry(industry, t.id);
             return (
               <button
                 key={t.id}
@@ -258,10 +274,24 @@ export const BrandLayoutTemplateGallery = ({
                       ? 'border-primary/50 bg-primary/5 text-foreground hover:border-primary'
                       : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/50',
                 )}
-                title={isRecommended ? `${t.description} — recommended for your industry` : t.description}
+                title={
+                  confidence
+                    ? `${t.description}\n\nFit for ${industryDef?.label}: ${confidence.score}% (${confidence.level})\n• ${confidence.reasons.join('\n• ')}`
+                    : t.description
+                }
               >
                 {isRecommended && <Sparkles className="h-3 w-3" />}
                 {t.label}
+                {confidence && activeTarget !== t.id && (
+                  <span
+                    className={cn(
+                      'ml-0.5 rounded-full px-1 py-0 text-[9px] font-bold tabular-nums',
+                      confidenceLevelClasses[confidence.level],
+                    )}
+                  >
+                    {confidence.score}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -278,6 +308,7 @@ export const BrandLayoutTemplateGallery = ({
           ) as ExpressionState[];
           const isRecommended = recommendedSet.has(template.target);
           const suggestedCopy = getIndustryCopy(industry, template.target);
+          const confidence: RecommendationConfidence | null = scoreRecommendation(industry, template);
           // Quick-preview preset: reframe at the canonical aspect ratio for the
           // collateral type without mutating the underlying template definition.
           const previewTemplate =
@@ -304,13 +335,21 @@ export const BrandLayoutTemplateGallery = ({
                   <p className="text-sm font-medium leading-tight">{template.name}</p>
                   {isSelected ? (
                     <Check className="h-4 w-4 shrink-0 text-primary" />
-                  ) : isRecommended ? (
+                  ) : isRecommended && confidence ? (
                     <span
-                      className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary"
-                      title={`Recommended for ${industryDef?.label}`}
+                      className={cn(
+                        'inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide',
+                        confidence.level === 'strong'
+                          ? 'bg-primary text-primary-foreground'
+                          : confidence.level === 'good'
+                            ? 'border border-primary/40 bg-primary/10 text-primary'
+                            : 'border border-border bg-muted text-muted-foreground',
+                      )}
+                      title={`${confidenceLevelLabel[confidence.level]} for ${industryDef?.label} — ${confidence.score}%\n\n• ${confidence.reasons.join('\n• ')}`}
                     >
                       <Sparkles className="h-2.5 w-2.5" />
                       Suggested
+                      <span className="ml-0.5 tabular-nums">{confidence.score}%</span>
                     </span>
                   ) : null}
                 </div>

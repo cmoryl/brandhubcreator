@@ -336,6 +336,98 @@ export const getIndustryCopy = (
   return getIndustry(industryId)?.copy[target];
 };
 
+/* -------------------------------------------------------------------------- */
+/*  Recommendation confidence scoring                                          */
+/* -------------------------------------------------------------------------- */
+
+export type ConfidenceLevel = 'strong' | 'good' | 'fair';
+
+export interface RecommendationConfidence {
+  /** 0–100. Higher = stronger fit between template and industry. */
+  score: number;
+  level: ConfidenceLevel;
+  /** Human-readable factors that contributed to the score (for tooltips). */
+  reasons: string[];
+}
+
+/** Minimal template shape needed to score — keeps the lib React/template-free. */
+export interface ScoreableTemplate {
+  target: LayoutSectionTarget;
+  overlay?: {
+    headline?: unknown;
+    eyebrow?: unknown;
+    cta?: boolean;
+  };
+}
+
+/**
+ * Score how strongly a template matches the selected industry.
+ *
+ * Components:
+ *  - Priority position in `recommendedTargets` (60 pts max, linear decay)
+ *  - Industry has dedicated copy for this target (+25 pts)
+ *  - Template surfaces the overlay slots the copy expects (+5 pts each, max 15)
+ *
+ * Templates whose target isn't in `recommendedTargets` return `score = 0`.
+ */
+export const scoreRecommendation = (
+  industryId: IndustryId | null | undefined,
+  template: ScoreableTemplate,
+): RecommendationConfidence | null => {
+  const industry = getIndustry(industryId);
+  if (!industry) return null;
+
+  const idx = industry.recommendedTargets.indexOf(template.target);
+  if (idx === -1) return null;
+
+  const reasons: string[] = [];
+
+  // 1. Priority position — first = 60, then 45, 30, 15…
+  const totalRanked = industry.recommendedTargets.length;
+  const priorityScore = Math.round(60 * (1 - idx / Math.max(totalRanked, 1)));
+  reasons.push(
+    idx === 0
+      ? `Top-ranked collateral for ${industry.label}`
+      : `Ranked #${idx + 1} of ${totalRanked} for ${industry.label}`,
+  );
+
+  // 2. Dedicated industry copy
+  const copy = industry.copy[template.target];
+  const copyScore = copy ? 25 : 0;
+  if (copy) reasons.push('Industry-specific starter copy available');
+
+  // 3. Template surfaces the overlay slots the copy expects
+  let overlayScore = 0;
+  if (copy && template.overlay) {
+    if (template.overlay.headline) {
+      overlayScore += 5;
+      reasons.push('Template surfaces a headline slot');
+    }
+    if (template.overlay.eyebrow) {
+      overlayScore += 5;
+      reasons.push('Template surfaces an eyebrow slot');
+    }
+    if (template.overlay.cta) {
+      overlayScore += 5;
+      reasons.push('Template surfaces a CTA slot');
+    }
+  }
+  overlayScore = Math.min(overlayScore, 15);
+
+  const score = Math.min(100, priorityScore + copyScore + overlayScore);
+  const level: ConfidenceLevel = score >= 80 ? 'strong' : score >= 55 ? 'good' : 'fair';
+
+  return { score, level, reasons };
+};
+
+/** Aggregate confidence for a target (no overlay info) — used by filter chips. */
+export const scoreTargetForIndustry = (
+  industryId: IndustryId | null | undefined,
+  target: LayoutSectionTarget,
+): RecommendationConfidence | null =>
+  scoreRecommendation(industryId, { target });
+
+
 /**
  * Persisted user choice (localStorage key).
  */
