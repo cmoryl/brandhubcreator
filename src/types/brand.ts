@@ -1178,7 +1178,7 @@ export interface BrandStudio {
 // Default section order - canonical sections only (no deprecated aliases)
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'insights', 'locations', 'webinars', 
-  'logos', 'brandicon', 'colors', 'gradients', 'patterns', 
+  'logos', 'brandicon', 'colors', 'gradients', 'patterns', 'layouttemplates',
   'typography', 'textstyles', 
   'iconography', 'socialicons', 'imagery', 
   'social', 'socialassets', 'socialmetrics', 'website', 'signatures', 'qr', 
@@ -1213,6 +1213,7 @@ export type SectionId =
   | 'colors'
   | 'gradients'
   | 'patterns'
+  | 'layouttemplates'
   | 'typography'
   | 'textstyles'
   | 'iconography'
