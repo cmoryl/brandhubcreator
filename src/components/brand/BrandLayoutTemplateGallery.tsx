@@ -243,6 +243,7 @@ export const BrandLayoutTemplateGallery = ({
           template={editorTemplate}
           brandVisuals={brandVisuals}
           initialCustomization={editorCustomization}
+          existingCustomizations={savedCustomizations}
           onSave={onSaveCustomization}
           onApplyToSection={onApplyToSection}
         />
