@@ -34,7 +34,11 @@ import {
   getIndustryCopy,
   loadIndustryPreference,
   saveIndustryPreference,
+  scoreRecommendation,
+  scoreTargetForIndustry,
+  type ConfidenceLevel,
   type IndustryId,
+  type RecommendationConfidence,
 } from '@/lib/industrySuggestions';
 import {
   CollateralPresetSwitcher,
