@@ -723,6 +723,83 @@ export const resolveTemplate = (
   });
 };
 
+/**
+ * Auto-fill empty slots in a customization with the best available brand visuals.
+ * - Skips slots that already have a non-empty manual override (preserves user choices).
+ * - For unfilled slots, prefers same-expression-state assets, then relaxes to any state
+ *   so empty slots get something visible.
+ * Returns a new customization with `slotOverrides` populated.
+ */
+export const autoFillSlots = (
+  template: BrandLayoutTemplate,
+  visuals: BrandVisualsBundle | undefined,
+  customization: LayoutTemplateCustomization,
+): { customization: LayoutTemplateCustomization; filledCount: number } => {
+  const statics = visuals?.staticAssets ?? [];
+  const motions = visuals?.motionAssets ?? [];
+  const existing = customization.slotOverrides ?? {};
+  const next: NonNullable<LayoutTemplateCustomization['slotOverrides']> = { ...existing };
+  const usedAssetIds = new Set<string>(
+    Object.values(existing)
+      .filter((o): o is { type: 'image' | 'video'; assetId: string } => 'assetId' in o)
+      .map((o) => o.assetId),
+  );
+  let filledCount = 0;
+
+  for (const slot of template.slots) {
+    const ov = existing[slot.key];
+    // Preserve real user picks (image/video override). Re-fill only when missing or explicitly empty.
+    if (ov && 'assetId' in ov) continue;
+
+    // Video slot: try motion assets first.
+    if (slot.allowMotion && slot.kind === 'video') {
+      const wantVertical = slot.preferredShape === 'vertical';
+      const motionPool = [
+        ...motions.filter((m) => m.expressionState === slot.expressionState),
+        ...motions.filter((m) => m.expressionState !== slot.expressionState),
+      ];
+      const motion =
+        motionPool.find((m) => !usedAssetIds.has(m.id) && (m.orientation === 'vertical') === wantVertical) ??
+        motionPool.find((m) => !usedAssetIds.has(m.id)) ??
+        motionPool[0];
+      if (motion) {
+        next[slot.key] = { type: 'video', assetId: motion.id };
+        usedAssetIds.add(motion.id);
+        filledCount++;
+        continue;
+      }
+    }
+
+    // Static image: prefer same expression state + best aspect, then relax.
+    const sameState = statics.filter((s) => s.expressionState === slot.expressionState);
+    const sortByShape = (pool: typeof statics) =>
+      [...pool].sort(
+        (a, b) =>
+          shapeAspectScore(slot.preferredShape, b.aspectRatio) -
+          shapeAspectScore(slot.preferredShape, a.aspectRatio),
+      );
+    const sortedSame = sortByShape(sameState);
+    const otherState = sortByShape(statics.filter((s) => s.expressionState !== slot.expressionState));
+
+    const pick =
+      sortedSame.find((s) => !usedAssetIds.has(s.id)) ??
+      sortedSame[0] ??
+      otherState.find((s) => !usedAssetIds.has(s.id)) ??
+      otherState[0];
+
+    if (pick) {
+      next[slot.key] = { type: 'image', assetId: pick.id };
+      usedAssetIds.add(pick.id);
+      filledCount++;
+    }
+  }
+
+  return {
+    customization: { ...customization, slotOverrides: next },
+    filledCount,
+  };
+};
+
 /** Merge a customization into a template to produce an effective template (overlay etc). */
 export const applyCustomization = (
   template: BrandLayoutTemplate,
