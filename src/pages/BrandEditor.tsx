@@ -1249,7 +1249,7 @@ const BrandEditor = () => {
                   render: () => (
                     <CloneBrandDialog
                       brandId={brand.id}
-                      brandName={brand.hero?.name || brand.name || 'Brand'}
+                      brandName={brand.hero?.name || 'Brand'}
                       brandSlug={brand.slug || ''}
                     />
                   ),
