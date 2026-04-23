@@ -546,10 +546,32 @@ export const LayoutTemplateEditor = ({
                 <div>
                   <Label className="text-xs">Variant name</Label>
                   <Input
+                    ref={nameInputRef}
                     value={customization.name}
                     onChange={(e) => setCustomization((c) => ({ ...c, name: e.target.value }))}
-                    className="mt-1 h-8"
+                    aria-invalid={!!nameError}
+                    className={
+                      nameError
+                        ? 'mt-1 h-8 border-destructive focus-visible:ring-destructive'
+                        : 'mt-1 h-8'
+                    }
                   />
+                  {nameError && (
+                    <div className="mt-1 flex items-center justify-between gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-2 py-1">
+                      <span className="text-[11px] text-destructive">{nameError}</span>
+                      {nameError.startsWith('A variant') && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCustomization((c) => ({ ...c, name: suggestUniqueName(customization.name) }))
+                          }
+                          className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-medium text-destructive-foreground transition-colors hover:bg-destructive/90"
+                        >
+                          Auto-rename
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Naming format picker */}
                   <div className="mt-2 space-y-1.5 rounded-md border border-border bg-background/60 p-2">
