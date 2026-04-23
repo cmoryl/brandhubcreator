@@ -40,21 +40,24 @@ export const SlotFitControl = ({
   assetType,
   value,
   onChange,
+  onCommit,
   onReset,
 }: SlotFitControlProps) => {
   const fit: SlotFit = value ?? defaultSlotFit;
   const thumbRef = useRef<HTMLDivElement>(null);
 
-  const setFromPointer = (clientX: number, clientY: number) => {
+  const computeFromPointer = (clientX: number, clientY: number): SlotFit | null => {
     const node = thumbRef.current;
-    if (!node) return;
+    if (!node) return null;
     const rect = node.getBoundingClientRect();
     const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
     const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
-    onChange({ ...fit, focusX: Math.round(x), focusY: Math.round(y) });
+    return { ...fit, focusX: Math.round(x), focusY: Math.round(y) };
   };
 
   const isDefault = fit.fit === 'cover' && fit.focusX === 50 && fit.focusY === 50;
+
+  const commit = (next: SlotFit) => (onCommit ?? onChange)(next);
 
   return (
     <div className="rounded-md border border-border bg-background/50 p-2">
@@ -67,7 +70,7 @@ export const SlotFitControl = ({
             <button
               key={mode}
               type="button"
-              onClick={() => onChange({ ...fit, fit: mode })}
+              onClick={() => commit({ ...fit, fit: mode })}
               className={cn(
                 'rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors',
                 fit.fit === mode
@@ -102,17 +105,30 @@ export const SlotFitControl = ({
         aria-label="Set focal point"
         onPointerDown={(e) => {
           (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-          setFromPointer(e.clientX, e.clientY);
+          const next = computeFromPointer(e.clientX, e.clientY);
+          if (next) onChange(next);
         }}
         onPointerMove={(e) => {
           if (e.buttons !== 1) return;
-          setFromPointer(e.clientX, e.clientY);
+          const next = computeFromPointer(e.clientX, e.clientY);
+          if (next) onChange(next);
+        }}
+        onPointerUp={(e) => {
+          const next = computeFromPointer(e.clientX, e.clientY);
+          if (next) commit(next);
         }}
         onKeyDown={(e) => {
           const step = e.shiftKey ? 10 : 5;
-          if (e.key === 'ArrowLeft') onChange({ ...fit, focusX: Math.max(0, fit.focusX - step) });
-          else if (e.key === 'ArrowRight') onChange({ ...fit, focusX: Math.min(100, fit.focusX + step) });
-          else if (e.key === 'ArrowUp') onChange({ ...fit, focusY: Math.max(0, fit.focusY - step) });
+          let next: SlotFit | null = null;
+          if (e.key === 'ArrowLeft') next = { ...fit, focusX: Math.max(0, fit.focusX - step) };
+          else if (e.key === 'ArrowRight') next = { ...fit, focusX: Math.min(100, fit.focusX + step) };
+          else if (e.key === 'ArrowUp') next = { ...fit, focusY: Math.max(0, fit.focusY - step) };
+          else if (e.key === 'ArrowDown') next = { ...fit, focusY: Math.min(100, fit.focusY + step) };
+          if (next) {
+            e.preventDefault();
+            commit(next);
+          }
+        }}
           else if (e.key === 'ArrowDown') onChange({ ...fit, focusY: Math.min(100, fit.focusY + step) });
         }}
         className="relative aspect-video w-full cursor-crosshair overflow-hidden rounded border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
