@@ -82,10 +82,20 @@ export const BrandLayoutTemplateGallery = ({
   const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
   const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
+  const [activePreset, setActivePreset] = useState<CollateralPreset | null>(null);
 
   useEffect(() => {
     saveIndustryPreference(industry);
   }, [industry]);
+
+  const handlePresetChange = (preset: CollateralPreset | null) => {
+    setActivePreset(preset);
+    if (preset) {
+      setActiveTarget(preset.target);
+    } else {
+      setActiveTarget('all');
+    }
+  };
 
   const visibleTargets = useMemo(
     () => (targets ? layoutTargets.filter((t) => targets.includes(t.id)) : layoutTargets),
