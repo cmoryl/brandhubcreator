@@ -8,9 +8,26 @@
  *
  * Pure presentation component — parent owns the active state.
  */
-import { FileText, BookOpen, FileBadge2, Newspaper, X } from 'lucide-react';
+import { FileText, BookOpen, FileBadge2, Newspaper, X, Frame, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { LayoutSectionTarget } from '@/lib/brandLayoutTemplates';
+
+/** Selectable reframe ratios offered when a preset is active. */
+export interface AspectRatioOption {
+  id: string;
+  label: string;
+  ratio: number;
+}
+
+export const aspectRatioOverrides: AspectRatioOption[] = [
+  { id: 'a4-portrait', label: 'A4 Portrait', ratio: 210 / 297 },
+  { id: 'a4-landscape', label: 'A4 Landscape', ratio: 297 / 210 },
+  { id: 'letter-portrait', label: 'US Letter', ratio: 8.5 / 11 },
+  { id: '16-9', label: '16:9', ratio: 16 / 9 },
+  { id: '4-3', label: '4:3', ratio: 4 / 3 },
+  { id: '1-1', label: 'Square', ratio: 1 },
+  { id: '9-16', label: '9:16 Story', ratio: 9 / 16 },
+];
 
 export interface CollateralPreset {
   id: string;
@@ -67,14 +84,26 @@ export const collateralPresets: CollateralPreset[] = [
 interface CollateralPresetSwitcherProps {
   activePresetId: string | null;
   onPresetChange: (preset: CollateralPreset | null) => void;
+  /** Optional ratio override applied on top of the active preset's canonical ratio. */
+  ratioOverride?: number | null;
+  /** Called when the user picks a custom reframe ratio (or clears it). */
+  onRatioOverrideChange?: (ratio: number | null) => void;
   className?: string;
 }
 
 export const CollateralPresetSwitcher = ({
   activePresetId,
   onPresetChange,
+  ratioOverride,
+  onRatioOverrideChange,
   className,
 }: CollateralPresetSwitcherProps) => {
+  const activePreset = collateralPresets.find((p) => p.id === activePresetId) ?? null;
+  const matchedOverride =
+    ratioOverride != null
+      ? aspectRatioOverrides.find((o) => Math.abs(o.ratio - ratioOverride) < 0.001) ?? null
+      : null;
+
   return (
     <div className={cn('rounded-lg border bg-muted/30 p-3', className)}>
       <div className="mb-2 flex items-center justify-between">
@@ -141,6 +170,63 @@ export const CollateralPresetSwitcher = ({
           );
         })}
       </div>
+
+      {/* Aspect ratio override — only meaningful when a preset is active */}
+      {activePreset && onRatioOverrideChange && (
+        <div className="mt-3 border-t border-border/60 pt-3">
+          <div className="mb-1.5 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Frame className="h-3 w-3 text-muted-foreground" />
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Reframe ratio
+              </p>
+              <span className="text-[10px] text-muted-foreground/80">
+                Canonical: <span className="font-medium text-foreground/80">{activePreset.ratioLabel}</span>
+              </span>
+            </div>
+            {ratioOverride != null && (
+              <button
+                type="button"
+                onClick={() => onRatioOverrideChange(null)}
+                className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
+                title="Reset to canonical ratio"
+              >
+                <RotateCcw className="h-3 w-3" />
+                Reset
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {aspectRatioOverrides.map((opt) => {
+              const isActive = matchedOverride?.id === opt.id;
+              const isCanonical =
+                ratioOverride == null && Math.abs(opt.ratio - activePreset.aspectRatio) < 0.001;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => onRatioOverrideChange(isActive ? null : opt.ratio)}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors',
+                    isActive
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : isCanonical
+                        ? 'border-primary/40 bg-primary/10 text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground',
+                  )}
+                  title={
+                    isCanonical
+                      ? `${opt.label} — canonical ratio for ${activePreset.label}`
+                      : `Reframe previews to ${opt.label}`
+                  }
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
