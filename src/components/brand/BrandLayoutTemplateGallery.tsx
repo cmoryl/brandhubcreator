@@ -90,10 +90,22 @@ export const BrandLayoutTemplateGallery = ({
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
   const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
   const [activePreset, setActivePreset] = useState<CollateralPreset | null>(null);
+  const [slotPresets, setSlotPresets] = useState<SlotPreset[]>(() => loadSlotPresets());
 
   useEffect(() => {
     saveIndustryPreference(industry);
   }, [industry]);
+
+  const handleApplySlotPreset = (preset: SlotPreset) => {
+    const template = presetToTemplate(preset);
+    setEditorTemplate(template);
+    setEditorCustomization(undefined);
+    setEditorOpen(true);
+  };
+
+  const handleDeleteSlotPreset = (id: string) => {
+    setSlotPresets((current) => deleteSlotPreset(current, id));
+  };
 
   const handlePresetChange = (preset: CollateralPreset | null) => {
     setActivePreset(preset);
