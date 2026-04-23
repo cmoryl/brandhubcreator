@@ -6,10 +6,11 @@
  * (hero, services, case study, social, etc.).
  *
  * Pure presentation: parent passes the brand's `brandVisuals` bundle and
- * receives the resolved template + slot assets via `onApply`.
+ * receives the resolved template + slot assets via `onApply`. Customize opens
+ * an editor for copy / slot swap / export / apply-to-section.
  */
 import { useMemo, useState } from 'react';
-import { LayoutTemplate, Sparkles, Image as ImageIcon, Film, Check } from 'lucide-react';
+import { LayoutTemplate, Sparkles, Image as ImageIcon, Film, Check, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,11 @@ import {
   type BrandVisualsBundle,
   type ExpressionState,
   type LayoutSectionTarget,
+  type LayoutTemplateCustomization,
   type ResolvedSlot,
 } from '@/lib/brandLayoutTemplates';
+import { LayoutTemplateCanvas } from './LayoutTemplateCanvas';
+import { LayoutTemplateEditor, type ApplyTarget } from './LayoutTemplateEditor';
 
 interface BrandLayoutTemplateGalleryProps {
   brandVisuals?: BrandVisualsBundle;
@@ -31,6 +35,12 @@ interface BrandLayoutTemplateGalleryProps {
   onApply?: (template: BrandLayoutTemplate, resolved: ResolvedSlot[]) => void;
   /** Restrict to specific targets (e.g. only show 'hero' templates in a hero editor). */
   targets?: LayoutSectionTarget[];
+  /** Saved custom variants for this brand (created via the editor). */
+  savedCustomizations?: LayoutTemplateCustomization[];
+  /** Persist a saved variant. */
+  onSaveCustomization?: (customization: LayoutTemplateCustomization) => void;
+  /** Apply the resolved cover into a brand section (hero / social / casestudy). */
+  onApplyToSection?: (target: ApplyTarget, asset: { type: 'image' | 'video'; url: string }) => void;
 }
 
 const ExpressionBadge = ({ state }: { state: ExpressionState }) => (
@@ -46,111 +56,22 @@ const ExpressionBadge = ({ state }: { state: ExpressionState }) => (
   </span>
 );
 
-const TemplatePreviewCanvas = ({
-  template,
-  resolved,
-}: {
-  template: BrandLayoutTemplate;
-  resolved: ResolvedSlot[];
-}) => (
-  <div
-    className="relative w-full overflow-hidden rounded-md border border-border bg-muted/30"
-    style={{ aspectRatio: template.aspectRatio }}
-  >
-    {resolved.map(({ slot, asset }) => {
-      const pos = slot.position ?? { x: 0, y: 0, width: 100, height: 100 };
-      return (
-        <div
-          key={slot.key}
-          className="absolute overflow-hidden"
-          style={{
-            left: `${pos.x}%`,
-            top: `${pos.y}%`,
-            width: `${pos.width}%`,
-            height: `${pos.height}%`,
-          }}
-        >
-          {asset.type === 'image' && (
-            <img
-              src={asset.url}
-              alt={slot.label}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          )}
-          {asset.type === 'video' && (
-            <video
-              src={asset.url}
-              className="h-full w-full object-cover"
-              autoPlay
-              muted
-              loop
-              playsInline
-            />
-          )}
-          {asset.type === 'empty' && (
-            <div
-              className="flex h-full w-full flex-col items-center justify-center gap-1 border border-dashed text-[10px]"
-              style={{
-                borderColor: expressionStateColor[slot.expressionState],
-                background: `${expressionStateColor[slot.expressionState]}14`,
-                color: expressionStateColor[slot.expressionState],
-              }}
-            >
-              <ImageIcon className="h-3 w-3" />
-              <span>{slot.expressionState}</span>
-            </div>
-          )}
-
-          {/* Slot type chip */}
-          <div className="absolute left-1 top-1 flex items-center gap-1">
-            <span
-              className="rounded px-1 py-0.5 text-[9px] font-medium text-white shadow-sm"
-              style={{ background: `${expressionStateColor[slot.expressionState]}cc` }}
-            >
-              {asset.type === 'video' ? (
-                <Film className="inline h-2.5 w-2.5" />
-              ) : (
-                <ImageIcon className="inline h-2.5 w-2.5" />
-              )}{' '}
-              {slot.expressionState}
-            </span>
-          </div>
-        </div>
-      );
-    })}
-
-    {/* Headline overlay hint */}
-    {template.overlay?.headline && (
-      <div
-        className="pointer-events-none absolute left-0 right-0 px-4"
-        style={{ top: `${template.overlay.headline.y}%` }}
-      >
-        <div
-          className={cn(
-            'h-1.5 w-3/5 rounded bg-foreground/40 backdrop-blur-sm',
-            template.overlay.headline.align === 'center' && 'mx-auto',
-            template.overlay.headline.align === 'right' && 'ml-auto',
-          )}
-        />
-      </div>
-    )}
-  </div>
-);
-
 export const BrandLayoutTemplateGallery = ({
   brandVisuals,
   selectedTemplateId,
   onApply,
   targets,
+  savedCustomizations,
+  onSaveCustomization,
+  onApplyToSection,
 }: BrandLayoutTemplateGalleryProps) => {
   const [activeTarget, setActiveTarget] = useState<LayoutSectionTarget | 'all'>('all');
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
+  const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
 
   const visibleTargets = useMemo(
-    () =>
-      targets
-        ? layoutTargets.filter((t) => targets.includes(t.id))
-        : layoutTargets,
+    () => (targets ? layoutTargets.filter((t) => targets.includes(t.id)) : layoutTargets),
     [targets],
   );
 
@@ -160,6 +81,12 @@ export const BrandLayoutTemplateGallery = ({
       : brandLayoutTemplates;
     return activeTarget === 'all' ? base : base.filter((t) => t.target === activeTarget);
   }, [activeTarget, targets]);
+
+  const openEditor = (template: BrandLayoutTemplate, customization?: LayoutTemplateCustomization) => {
+    setEditorTemplate(template);
+    setEditorCustomization(customization);
+    setEditorOpen(true);
+  };
 
   return (
     <section className="space-y-4">
@@ -177,6 +104,33 @@ export const BrandLayoutTemplateGallery = ({
           Auto-fills with Foundation / Collaborate / Transform visuals
         </div>
       </div>
+
+      {/* Saved custom variants */}
+      {savedCustomizations && savedCustomizations.length > 0 && (
+        <div className="rounded-lg border bg-muted/30 p-3">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Your saved variants ({savedCustomizations.length})
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {savedCustomizations.map((c) => {
+              const base = brandLayoutTemplates.find((t) => t.id === c.baseTemplateId);
+              if (!base) return null;
+              return (
+                <Button
+                  key={c.id}
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  onClick={() => openEditor(base, c)}
+                >
+                  <Wand2 className="mr-1 h-3 w-3" />
+                  {c.name}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Target filters */}
       {visibleTargets.length > 1 && (
@@ -229,7 +183,7 @@ export const BrandLayoutTemplateGallery = ({
                   : 'border-border hover:border-primary/50 hover:shadow-md',
               )}
             >
-              <TemplatePreviewCanvas template={template} resolved={resolved} />
+              <LayoutTemplateCanvas template={template} resolved={resolved} />
 
               <div className="space-y-1">
                 <div className="flex items-start justify-between gap-2">
@@ -250,16 +204,27 @@ export const BrandLayoutTemplateGallery = ({
                 </span>
               </div>
 
-              {onApply && (
+              <div className="mt-1 flex gap-1.5">
                 <Button
                   size="sm"
-                  variant={isSelected ? 'default' : 'outline'}
-                  className="mt-1 h-8 w-full text-xs"
-                  onClick={() => onApply(template, resolved)}
+                  variant="outline"
+                  className="h-8 flex-1 text-xs"
+                  onClick={() => openEditor(template)}
                 >
-                  {isSelected ? 'Applied' : 'Apply template'}
+                  <Wand2 className="mr-1 h-3 w-3" />
+                  Customize
                 </Button>
-              )}
+                {onApply && (
+                  <Button
+                    size="sm"
+                    variant={isSelected ? 'default' : 'secondary'}
+                    className="h-8 flex-1 text-xs"
+                    onClick={() => onApply(template, resolved)}
+                  >
+                    {isSelected ? 'Applied' : 'Apply'}
+                  </Button>
+                )}
+              </div>
             </div>
           );
         })}
@@ -269,6 +234,18 @@ export const BrandLayoutTemplateGallery = ({
         <p className="py-6 text-center text-xs text-muted-foreground">
           No templates available for this filter.
         </p>
+      )}
+
+      {editorTemplate && (
+        <LayoutTemplateEditor
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          template={editorTemplate}
+          brandVisuals={brandVisuals}
+          initialCustomization={editorCustomization}
+          onSave={onSaveCustomization}
+          onApplyToSection={onApplyToSection}
+        />
       )}
     </section>
   );
