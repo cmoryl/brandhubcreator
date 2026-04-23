@@ -2,18 +2,28 @@ import { useState } from 'react';
 import { ImageIcon } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
 import { BrandLayoutTemplateGallery } from './BrandLayoutTemplateGallery';
-import type { BrandVisualsBundle } from '@/lib/brandLayoutTemplates';
+import type { ApplyTarget } from './LayoutTemplateEditor';
+import type {
+  BrandVisualsBundle,
+  LayoutTemplateCustomization,
+} from '@/lib/brandLayoutTemplates';
 
 interface LayoutTemplatesSectionProps {
   brandVisuals?: BrandVisualsBundle;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  savedCustomizations?: LayoutTemplateCustomization[];
+  onSaveCustomization?: (customization: LayoutTemplateCustomization) => void;
+  onApplyToSection?: (target: ApplyTarget, asset: { type: 'image' | 'video'; url: string }) => void;
 }
 
 export const LayoutTemplatesSection = ({
   brandVisuals,
   customSubtitle,
   onSubtitleChange,
+  savedCustomizations,
+  onSaveCustomization,
+  onApplyToSection,
 }: LayoutTemplatesSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const connectedVisuals =
@@ -50,7 +60,7 @@ export const LayoutTemplatesSection = ({
                 Auto-filled from your brand visual system
               </h3>
               <p className="max-w-2xl text-sm text-muted-foreground">
-                Browse reusable layouts built specifically for the Foundation, Collaborate, and Transform asset set.
+                Browse, customize, export and apply reusable layouts built specifically for the Foundation, Collaborate, and Transform asset set.
               </p>
             </div>
 
@@ -61,7 +71,12 @@ export const LayoutTemplatesSection = ({
           </div>
 
           {connectedVisuals > 0 ? (
-            <BrandLayoutTemplateGallery brandVisuals={brandVisuals} />
+            <BrandLayoutTemplateGallery
+              brandVisuals={brandVisuals}
+              savedCustomizations={savedCustomizations}
+              onSaveCustomization={onSaveCustomization}
+              onApplyToSection={onApplyToSection}
+            />
           ) : (
             <div className="rounded-xl border border-dashed border-border bg-background/60 px-4 py-8 text-center text-sm text-muted-foreground">
               Connect static or motion brand visuals to preview reusable layout templates here.
