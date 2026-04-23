@@ -8,7 +8,8 @@
  *   - apply the resolved cover to a brand section (Hero / Social / Case Study)
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Copy, Download, FileImage, FileText, Layers, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2, Zap } from 'lucide-react';
+import { AlertTriangle, Copy, Download, FileImage, FileText, Layers, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2, Zap } from 'lucide-react';
+import { validateLayoutForExport, type ValidationIssue, type ValidationResult } from '@/lib/layoutTemplateValidation';
 import { useHistoryState } from '@/hooks/useHistoryState';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -188,6 +189,14 @@ export const LayoutTemplateEditor = ({
     [template, brandVisuals, customization],
   );
 
+  // Pre-export validation (missing CTA / cover / headline / empty slots).
+  const validation: ValidationResult = useMemo(
+    () => validateLayoutForExport({ template, resolved, customization }),
+    [template, resolved, customization],
+  );
+
+  const [pendingExport, setPendingExport] = useState<null | 'png' | 'pdf'>(null);
+
   const previewRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -287,7 +296,7 @@ export const LayoutTemplateEditor = ({
     return `${slug}-${stamp}.${ext}`;
   };
 
-  const handleExportPng = async () => {
+  const runExportPng = async () => {
     if (!previewRef.current) return;
     const fileName = buildExportFilename('png');
     try {
@@ -298,7 +307,7 @@ export const LayoutTemplateEditor = ({
     }
   };
 
-  const handleExportPdf = async () => {
+  const runExportPdf = async () => {
     if (!previewRef.current) return;
     const fileName = buildExportFilename('pdf');
     try {
@@ -310,6 +319,30 @@ export const LayoutTemplateEditor = ({
     } catch {
       toast.error('Could not export PDF');
     }
+  };
+
+  /** Public export entry-point — gates on validation. */
+  const handleExportPng = () => {
+    if (!validation.isValid) {
+      setPendingExport('png');
+      return;
+    }
+    void runExportPng();
+  };
+
+  const handleExportPdf = () => {
+    if (!validation.isValid) {
+      setPendingExport('pdf');
+      return;
+    }
+    void runExportPdf();
+  };
+
+  const confirmExportAnyway = async () => {
+    const which = pendingExport;
+    setPendingExport(null);
+    if (which === 'png') await runExportPng();
+    else if (which === 'pdf') await runExportPdf();
   };
 
   const handleApply = (target: ApplyTarget) => {
