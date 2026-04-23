@@ -51,6 +51,15 @@ interface LayoutTemplateEditorProps {
   existingCustomizations?: LayoutTemplateCustomization[];
   onSave?: (customization: LayoutTemplateCustomization) => void;
   onApplyToSection?: (target: ApplyTarget, asset: { type: 'image' | 'video'; url: string }) => void;
+  /** Optional: save the current template's slot config as a reusable slot preset. */
+  onSaveAsSlotPreset?: (payload: {
+    name: string;
+    description?: string;
+    template: BrandLayoutTemplate;
+    positionOverrides?: Record<string, { x: number; y: number; width: number; height: number }>;
+  }) => void;
+  /** Names of existing slot presets — used for duplicate-name validation. */
+  existingSlotPresetNames?: string[];
 }
 
 /** Build smart naming presets based on the template + existing variants. */
