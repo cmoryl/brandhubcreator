@@ -77,22 +77,57 @@ export const BrandLayoutTemplateGallery = ({
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
+  const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
+
+  useEffect(() => {
+    saveIndustryPreference(industry);
+  }, [industry]);
 
   const visibleTargets = useMemo(
     () => (targets ? layoutTargets.filter((t) => targets.includes(t.id)) : layoutTargets),
     [targets],
   );
 
+  const industryDef = getIndustry(industry);
+  const recommendedTargets = industryDef?.recommendedTargets ?? [];
+  const recommendedSet = useMemo(() => new Set(recommendedTargets), [recommendedTargets]);
+
   const filtered = useMemo(() => {
     const base = targets
       ? brandLayoutTemplates.filter((t) => targets.includes(t.target))
       : brandLayoutTemplates;
-    return activeTarget === 'all' ? base : base.filter((t) => t.target === activeTarget);
-  }, [activeTarget, targets]);
+    const scoped = activeTarget === 'all' ? base : base.filter((t) => t.target === activeTarget);
+    if (!industryDef || activeTarget !== 'all') return scoped;
+    // Sort recommended targets first when an industry is chosen and viewing all
+    return [...scoped].sort((a, b) => {
+      const ai = recommendedTargets.indexOf(a.target);
+      const bi = recommendedTargets.indexOf(b.target);
+      const aRank = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
+      const bRank = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
+      return aRank - bRank;
+    });
+  }, [activeTarget, targets, industryDef, recommendedTargets]);
 
   const openEditor = (template: BrandLayoutTemplate, customization?: LayoutTemplateCustomization) => {
+    // If no saved customization is being reopened, prefill copy from the
+    // selected industry's starter blocks for this target (when available).
+    let next = customization;
+    if (!next && industry) {
+      const copy = getIndustryCopy(industry, template.target);
+      if (copy) {
+        next = {
+          id: crypto.randomUUID(),
+          baseTemplateId: template.id,
+          name: template.name,
+          copy: { eyebrow: copy.eyebrow, headline: copy.headline, cta: copy.cta },
+          slotOverrides: {},
+          overlayOverrides: template.overlay,
+          createdAt: new Date().toISOString(),
+        };
+      }
+    }
     setEditorTemplate(template);
-    setEditorCustomization(customization);
+    setEditorCustomization(next);
     setEditorOpen(true);
   };
 
