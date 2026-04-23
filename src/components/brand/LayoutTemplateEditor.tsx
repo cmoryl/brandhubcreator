@@ -293,13 +293,50 @@ export const LayoutTemplateEditor = ({
         <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
           {/* Live preview */}
           <div className="space-y-3">
-            <LayoutTemplateCanvas
-              ref={previewRef}
-              template={template}
-              resolved={resolved}
-              customization={customization}
-              presentationMode
-            />
+            {compareMode ? (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Base template
+                    </span>
+                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
+                      Original
+                    </span>
+                  </div>
+                  <LayoutTemplateCanvas
+                    template={template}
+                    resolved={baseResolved}
+                    presentationMode
+                  />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">
+                      Your edits
+                    </span>
+                    <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-medium text-primary">
+                      Live
+                    </span>
+                  </div>
+                  <LayoutTemplateCanvas
+                    ref={previewRef}
+                    template={template}
+                    resolved={resolved}
+                    customization={customization}
+                    presentationMode
+                  />
+                </div>
+              </div>
+            ) : (
+              <LayoutTemplateCanvas
+                ref={previewRef}
+                template={template}
+                resolved={resolved}
+                customization={customization}
+                presentationMode
+              />
+            )}
             <div className="flex flex-wrap items-center gap-2">
               <TooltipProvider delayDuration={200}>
                 <div className="mr-1 flex items-center gap-0.5 rounded-md border bg-background p-0.5">
@@ -342,6 +379,15 @@ export const LayoutTemplateEditor = ({
                   </span>
                 </div>
               </TooltipProvider>
+              <Button
+                size="sm"
+                variant={compareMode ? 'default' : 'outline'}
+                onClick={() => setCompareMode((v) => !v)}
+                title="Toggle side-by-side compare with the base template"
+              >
+                <SplitSquareHorizontal className="mr-1.5 h-3.5 w-3.5" />
+                {compareMode ? 'Exit compare' : 'Compare base'}
+              </Button>
               <Button size="sm" variant="outline" onClick={handleExportPng}>
                 <FileImage className="mr-1.5 h-3.5 w-3.5" />
                 PNG
