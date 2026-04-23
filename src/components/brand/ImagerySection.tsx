@@ -25,7 +25,6 @@ import { useDropZone } from '@/components/ui/drop-zone';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { SortableImageryCard } from './imagery/SortableImageryCard';
 import { ImageryGuidelinesPanel } from './imagery/ImageryGuidelinesPanel';
-import { BrandLayoutTemplateGallery } from './BrandLayoutTemplateGallery';
 import type { BrandVisualsBundle } from '@/lib/brandLayoutTemplates';
 
 interface ImagerySectionProps {
@@ -36,13 +35,13 @@ interface ImagerySectionProps {
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
   isAdmin?: boolean;
-  /** Optional brand-visual bundle (Foundation/Collaborate/Transform assets) used to power layout templates. */
+  /** @deprecated Layout templates now live in their own dedicated section. */
   brandVisuals?: BrandVisualsBundle;
 }
 
 type ViewMode = 'split' | 'grid-2' | 'grid-3' | 'grid-4';
 
-export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand', isAdmin = false, brandVisuals }: ImagerySectionProps) => {
+export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand', isAdmin = false }: ImagerySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingType, setPendingType] = useState<'do' | 'dont'>('do');
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -211,40 +210,6 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
       </div>
 
       {isAdmin && <ImageryGuidelinesPanel canEdit={canEdit} entityId={entityId} entityType={entityType} />}
-
-      {/* Reusable layout templates — auto-place Foundation / Collaborate / Transform visuals.
-          Promoted to the TOP of the imagery section with a high-contrast gradient banner so
-          users can discover and apply layout starters at a glance. */}
-      {brandVisuals && ((brandVisuals.staticAssets?.length ?? 0) > 0 || (brandVisuals.motionAssets?.length ?? 0) > 0) && (
-        <div
-          id="layout-templates"
-          className="relative overflow-hidden rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-background p-5 sm:p-6 shadow-sm"
-        >
-          {/* Decorative accent */}
-          <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/10 blur-3xl" aria-hidden />
-          <div className="relative">
-            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
-                  <ImageIcon className="h-3 w-3" />
-                  Brand Visual Templates
-                </div>
-                <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                  Ready-to-use layout starters
-                </h2>
-                <p className="max-w-2xl text-sm text-muted-foreground">
-                  Pre-built layouts that auto-place your <strong className="text-foreground">Foundation</strong>, <strong className="text-foreground">Collaborate</strong>, and <strong className="text-foreground">Transform</strong> visuals into hero, social, case-study and editorial sections.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="inline-flex h-2 w-2 rounded-full bg-primary animate-pulse" />
-                {((brandVisuals.staticAssets?.length ?? 0) + (brandVisuals.motionAssets?.length ?? 0))} brand visuals connected
-              </div>
-            </div>
-            <BrandLayoutTemplateGallery brandVisuals={brandVisuals} />
-          </div>
-        </div>
-      )}
 
 
       <input

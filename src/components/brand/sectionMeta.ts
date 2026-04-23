@@ -26,6 +26,7 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   colors: { label: 'Color Palette', icon: Palette, category: 'Visual' },
   gradients: { label: 'Gradients', icon: Blend, category: 'Visual' },
   patterns: { label: 'Geometric Primitives', icon: Grid3X3, category: 'Visual' },
+  layouttemplates: { label: 'Layout Templates', icon: LayoutGrid, category: 'Visual' },
   typography: { label: 'Type Registry', icon: Type, category: 'Typography' },
   textstyles: { label: 'CSS Hierarchies', icon: Code, category: 'Typography' },
   iconography: { label: 'Iconography', icon: Layers, category: 'Assets' },

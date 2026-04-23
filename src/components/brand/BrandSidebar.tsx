@@ -31,6 +31,7 @@ const sections: { id: SectionId; label: string; icon: React.ElementType; categor
   { id: 'colors', label: 'Color Palette', icon: Palette, category: 'Visual' },
   { id: 'gradients', label: 'Gradients', icon: Blend, category: 'Visual' },
   { id: 'patterns', label: 'Geometric Primitives', icon: Grid3X3, category: 'Visual' },
+  { id: 'layouttemplates', label: 'Layout Templates', icon: LayoutGrid, category: 'Visual' },
   { id: 'typography', label: 'Type Registry', icon: Type, category: 'Typography' },
   { id: 'textstyles', label: 'CSS Hierarchies', icon: Code, category: 'Typography' },
   { id: 'iconography', label: 'Iconography', icon: Layers, category: 'Assets' },

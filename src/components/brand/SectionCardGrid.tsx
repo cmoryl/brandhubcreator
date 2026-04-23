@@ -27,6 +27,7 @@ const SECTION_DESCRIPTIONS: Record<string, string> = {
   brandicon: 'Symbol usage rules, minimum sizes, and placement standards.',
   gradients: 'Create and manage gradient combinations derived from your brand palette.',
   patterns: 'Design repeatable visual patterns, geometric primitives, and textures.',
+  layouttemplates: 'Browse reusable layout starters built from your Foundation, Collaborate, and Transform visuals.',
   textstyles: 'CSS hierarchy definitions and text style specifications.',
   iconography: 'Icon style, grid system, and usage standards.',
   socialicons: 'Platform-specific icon variants and social media markers.',
