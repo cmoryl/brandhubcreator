@@ -99,10 +99,13 @@ export const LayoutTemplateEditor = ({
   existingCustomizations,
   onSave,
   onApplyToSection,
+  onSaveAsSlotPreset,
+  existingSlotPresetNames = [],
 }: LayoutTemplateEditorProps) => {
   // Persisted user preference for variant naming format.
   const [namingFormat, setNamingFormat] = useState<StoredFormat>(() => loadNamingFormat());
   const [activeChannel, setActiveChannel] = useState<string>('Hero');
+  const [savePresetOpen, setSavePresetOpen] = useState(false);
 
   // Persist whenever the user changes their format choice.
   useEffect(() => {
