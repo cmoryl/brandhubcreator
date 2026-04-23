@@ -493,6 +493,37 @@ export const LayoutTemplateEditor = ({
                 presentationMode
               />
             )}
+
+            {/* Pre-export validation banner */}
+            {validation.issues.length > 0 && (
+              <div
+                role="alert"
+                className={cn(
+                  'rounded-md border p-2.5 text-xs',
+                  validation.errors.length > 0
+                    ? 'border-destructive/40 bg-destructive/10 text-destructive'
+                    : 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+                )}
+              >
+                <div className="mb-1 flex items-center gap-1.5 font-semibold">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {validation.errors.length > 0
+                    ? `${validation.errors.length} export blocker${validation.errors.length === 1 ? '' : 's'}`
+                    : `${validation.warnings.length} suggestion${validation.warnings.length === 1 ? '' : 's'}`}
+                </div>
+                <ul className="ml-4 list-disc space-y-0.5">
+                  {validation.issues.slice(0, 5).map((issue, idx) => (
+                    <li key={`${issue.code}-${issue.slotKey ?? idx}`}>{issue.message}</li>
+                  ))}
+                  {validation.issues.length > 5 && (
+                    <li className="opacity-70">
+                      …and {validation.issues.length - 5} more
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center gap-2">
               <TooltipProvider delayDuration={200}>
                 <div className="mr-1 flex items-center gap-0.5 rounded-md border bg-background p-0.5">
