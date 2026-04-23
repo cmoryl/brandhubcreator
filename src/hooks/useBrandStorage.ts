@@ -198,6 +198,9 @@ export const dbToBrandGuide = (db: DbBrand): BrandGuide => {
     presentationTemplates: asArray(guideData.presentationTemplates, []) as BrandGuide['presentationTemplates'],
     approvedImagery: guideData.approvedImagery as BrandGuide['approvedImagery'],
     mapTheme: guideData.mapTheme as BrandGuide['mapTheme'],
+    // Brand Visuals bundle (Foundation/Collaborate/Transform) — used by Layout Templates
+    brandVisuals: guideData.brandVisuals as BrandGuide['brandVisuals'],
+    layoutTemplateCustomizations: asArray(guideData.layoutTemplateCustomizations, []) as BrandGuide['layoutTemplateCustomizations'],
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };
