@@ -847,6 +847,18 @@ export const DigitalCollateralSection = ({
               Add Category
             </Button>
           )}
+          {canEdit && collateral.length > 0 && (
+            <Button
+              onClick={() => setShowRegenerateDialog(true)}
+              size="sm"
+              variant="outline"
+              className="gap-2 shrink-0"
+              title="Regenerate thumbnails using your latest brand layout templates"
+            >
+              <Wand2 className="h-4 w-4" />
+              Refresh from Templates
+            </Button>
+          )}
           {canEdit && (
             <Button onClick={() => setShowBannerSetDialog(true)} size="sm" variant="outline" className="gap-2 shrink-0">
               <Palette className="h-4 w-4" />
