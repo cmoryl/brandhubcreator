@@ -461,6 +461,7 @@ export const LayoutTemplateEditor = ({
                         assetType={resolvedSlot?.asset.type ?? 'empty'}
                         value={fitValue}
                         onChange={(next) => setSlotFit(slot.key, next)}
+                        onCommit={(next) => commitSlotFit(slot.key, next)}
                         onReset={() => resetSlotFit(slot.key)}
                       />
                     </div>
