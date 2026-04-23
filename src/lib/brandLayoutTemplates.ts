@@ -633,14 +633,61 @@ const shapeAspectScore = (shape: SlotShape, aspectRatio: string | undefined): nu
   }
 };
 
+/**
+ * User customization applied on top of a base template.
+ * Stored per-brand inside guide_data.layoutTemplateCustomizations[].
+ */
+export interface LayoutTemplateCustomization {
+  /** Stable id for the saved variant (timestamp or uuid). */
+  id: string;
+  /** Base template id this variant is derived from. */
+  baseTemplateId: string;
+  /** Display name for the saved variant. */
+  name: string;
+  /** Optional headline / eyebrow / cta copy overrides. */
+  copy?: {
+    eyebrow?: string;
+    headline?: string;
+    cta?: string;
+  };
+  /** Per-slot manual asset overrides (keyed by slot.key → asset id). */
+  slotOverrides?: Record<string, { type: 'image' | 'video'; assetId: string } | { type: 'empty' }>;
+  /** Per-slot position overrides. */
+  positionOverrides?: Record<string, { x: number; y: number; width: number; height: number }>;
+  /** Overlay alignment / position overrides. */
+  overlayOverrides?: BrandLayoutTemplate['overlay'];
+  createdAt: string;
+}
+
 export const resolveTemplate = (
   template: BrandLayoutTemplate,
   visuals: BrandVisualsBundle | undefined,
+  customization?: LayoutTemplateCustomization,
 ): ResolvedSlot[] => {
   const statics = visuals?.staticAssets ?? [];
   const motions = visuals?.motionAssets ?? [];
+  const overrides = customization?.slotOverrides ?? {};
 
-  return template.slots.map((slot) => {
+  return template.slots.map((rawSlot) => {
+    // Apply position overrides
+    const slot: LayoutSlot = customization?.positionOverrides?.[rawSlot.key]
+      ? { ...rawSlot, position: customization.positionOverrides[rawSlot.key] }
+      : rawSlot;
+
+    // 0) Manual override wins.
+    const ov = overrides[slot.key];
+    if (ov) {
+      if (ov.type === 'empty') return { slot, asset: { type: 'empty' } };
+      if (ov.type === 'image') {
+        const meta = statics.find((s) => s.id === ov.assetId);
+        if (meta) return { slot, asset: { type: 'image', url: meta.imageUrl, meta } };
+      }
+      if (ov.type === 'video') {
+        const meta = motions.find((m) => m.id === ov.assetId);
+        if (meta) return { slot, asset: { type: 'video', url: meta.videoUrl, meta } };
+      }
+    }
+
     // 1) For video slots, prefer motion assets matching expression state + orientation.
     if (slot.allowMotion && slot.kind === 'video') {
       const wantVertical = slot.preferredShape === 'vertical';
@@ -669,6 +716,19 @@ export const resolveTemplate = (
     )[0];
     return { slot, asset: { type: 'image', url: best.imageUrl, meta: best } };
   });
+};
+
+/** Merge a customization into a template to produce an effective template (overlay etc). */
+export const applyCustomization = (
+  template: BrandLayoutTemplate,
+  customization?: LayoutTemplateCustomization,
+): BrandLayoutTemplate => {
+  if (!customization) return template;
+  return {
+    ...template,
+    name: customization.name || template.name,
+    overlay: { ...(template.overlay ?? {}), ...(customization.overlayOverrides ?? {}) },
+  };
 };
 
 /* -------------------------------------------------------------------------- */
