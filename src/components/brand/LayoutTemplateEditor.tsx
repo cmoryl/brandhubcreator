@@ -176,6 +176,7 @@ export const LayoutTemplateEditor = ({
   );
 
   const previewRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   const updateCopy = (key: 'eyebrow' | 'headline' | 'cta', value: string) =>
     setCustomization((c) => ({ ...c, copy: { ...(c.copy ?? {}), [key]: value } }));
