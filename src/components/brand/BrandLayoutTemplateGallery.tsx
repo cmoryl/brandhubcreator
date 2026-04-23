@@ -316,10 +316,15 @@ export const BrandLayoutTemplateGallery = ({
           const suggestedCopy = getIndustryCopy(industry, template.target);
           const confidence: RecommendationConfidence | null = scoreRecommendation(industry, template);
           // Quick-preview preset: reframe at the canonical aspect ratio for the
-          // collateral type without mutating the underlying template definition.
+          // collateral type (or the user's manual override) without mutating
+          // the underlying template definition.
+          const presetMatchesTemplate = activePreset && activePreset.target === template.target;
+          const effectiveRatio = presetMatchesTemplate
+            ? presetRatioOverride ?? activePreset!.aspectRatio
+            : null;
           const previewTemplate =
-            activePreset && activePreset.target === template.target
-              ? { ...template, aspectRatio: activePreset.aspectRatio }
+            effectiveRatio != null
+              ? { ...template, aspectRatio: effectiveRatio }
               : template;
 
           return (
