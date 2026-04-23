@@ -308,7 +308,55 @@ export const LayoutTemplateEditor = ({
     toast.success(`Applied to ${target === 'casestudy' ? 'Case Study' : target}`);
   };
 
+  /** Returns true if `name` collides with another saved variant (case-insensitive, trimmed). */
+  const isDuplicateName = (name: string): boolean => {
+    const norm = name.trim().toLowerCase();
+    if (!norm) return false;
+    return (existingCustomizations ?? []).some(
+      (c) => c.id !== customization.id && c.name.trim().toLowerCase() === norm,
+    );
+  };
+
+  /** Suggest a non-colliding name by appending " (n)". */
+  const suggestUniqueName = (base: string): string => {
+    const trimmed = base.trim() || template.name;
+    let n = 2;
+    let candidate = `${trimmed} (${n})`;
+    while (isDuplicateName(candidate)) {
+      n += 1;
+      candidate = `${trimmed} (${n})`;
+    }
+    return candidate;
+  };
+
+  const nameError = useMemo(() => {
+    const trimmed = customization.name.trim();
+    if (!trimmed) return 'Name is required';
+    if (isDuplicateName(trimmed)) return 'A variant with this name already exists';
+    return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customization.name, customization.id, existingCustomizations]);
+
   const handleSave = () => {
+    if (nameError) {
+      toast.error(nameError, {
+        description:
+          nameError === 'Name is required'
+            ? 'Enter a name before saving.'
+            : `Try "${suggestUniqueName(customization.name)}" or pick a different name.`,
+        action: nameError.startsWith('A variant')
+          ? {
+              label: 'Auto-rename',
+              onClick: () =>
+                setCustomization((c) => ({ ...c, name: suggestUniqueName(customization.name) })),
+            }
+          : undefined,
+      });
+      // Focus the name input so the user can edit immediately
+      nameInputRef.current?.focus();
+      nameInputRef.current?.select();
+      return;
+    }
     onSave?.(customization);
     toast.success('Variant saved');
     onOpenChange(false);
