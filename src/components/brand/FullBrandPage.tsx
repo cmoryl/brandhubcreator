@@ -15,6 +15,7 @@ import { BrandIconsSection } from './BrandIconsSection';
 import { ColorPaletteSection } from './ColorPaletteSection';
 import { GradientsSection } from './GradientsSection';
 import { LayoutTemplatesSection } from './LayoutTemplatesSection';
+import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { PatternsSection } from './PatternsSection';
 import { TypographySection } from './TypographySection';
 import { TextStylesSection } from './TextStylesSection';
@@ -309,7 +310,19 @@ export const FullBrandPage = ({
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => onBrandUpdate({ brandIcons }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => onBrandUpdate({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => onBrandUpdate({ colorCombinations }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} />;
       case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => onBrandUpdate({ gradients }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} brandName={brand.hero.name} brandColors={brand.colors} />;
-      case 'layouttemplates': return <LayoutTemplatesSection brandVisuals={(brand as any).brandVisuals} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'layouttemplates': {
+        const explicitVisuals = (brand as any).brandVisuals;
+        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          hero: brand.hero,
+          logos: brand.logos,
+          imagery: brand.imagery,
+          patterns: brand.patterns,
+          gradients: brand.gradients,
+          approvedImagery: (brand as any).approvedImagery,
+        });
+        const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
+        return <LayoutTemplatesSection brandVisuals={derivedVisuals} isDerived={isDerived} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      }
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => onBrandUpdate({ patterns }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} brandSlug={brand.slug} customShapes={brand.customShapes} onCustomShapesChange={canEdit ? (customShapes) => onBrandUpdate({ customShapes }) : undefined} />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => onBrandUpdate({ typography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => onBrandUpdate({ textStyles }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} adminCustomStyle={brand.adminCustomStyle} onAdminCustomStyleChange={canEdit ? (adminCustomStyle) => onBrandUpdate({ adminCustomStyle }) : undefined} canEdit={canEdit} />;

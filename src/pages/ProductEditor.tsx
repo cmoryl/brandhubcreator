@@ -45,6 +45,7 @@ import { IconographySection } from '@/components/brand/IconographySection';
 import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { LayoutTemplatesSection } from '@/components/brand/LayoutTemplatesSection';
+import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { WebsiteSection } from '@/components/brand/WebsiteSection';
@@ -654,7 +655,19 @@ const ProductEditor = () => {
       case 'iconography': return <IconographySection iconography={currentProduct.iconography} onIconographyChange={editHandler((iconography) => handleUpdateProduct({ iconography }))} defaultIconColor={currentProduct.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => handleUpdateProduct({ defaultIconColor }))} brandColors={currentProduct.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} brandId={currentProduct.id} entityType="product" entityName={currentProduct.hero?.name || ''} />;
       case 'socialicons': return <SocialIconsSection socialIcons={currentProduct.socialIcons} onSocialIconsChange={editHandler((socialIcons) => handleUpdateProduct({ socialIcons }))} />;
       case 'imagery': return <ImagerySection imagery={currentProduct.imagery} onImageryChange={editHandler((imagery) => handleUpdateProduct({ imagery }))} entityId={currentProduct.id} entityType="product" isAdmin={isGuideAdmin} />;
-      case 'layouttemplates': return <LayoutTemplatesSection brandVisuals={(currentProduct as any).brandVisuals} />;
+      case 'layouttemplates': {
+        const explicitVisuals = (currentProduct as any).brandVisuals;
+        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          hero: currentProduct.hero,
+          logos: currentProduct.logos,
+          imagery: currentProduct.imagery,
+          patterns: currentProduct.patterns,
+          gradients: currentProduct.gradients,
+          approvedImagery: (currentProduct as any).approvedImagery,
+        });
+        const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
+        return <LayoutTemplatesSection brandVisuals={derivedVisuals} isDerived={isDerived} />;
+      }
       case 'social': return <SocialSection social={currentProduct.social} onSocialChange={editHandler((social) => handleUpdateProduct({ social }))} entityId={currentProduct.id} entityType="product" organizationId={currentProduct.organizationId} entityName={currentProduct.hero?.name} />;
       case 'socialassets':
         return (

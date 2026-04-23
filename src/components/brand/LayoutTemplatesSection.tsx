@@ -10,6 +10,8 @@ import type {
 
 interface LayoutTemplatesSectionProps {
   brandVisuals?: BrandVisualsBundle;
+  /** When true, indicates the bundle was auto-derived from existing brand assets. */
+  isDerived?: boolean;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   savedCustomizations?: LayoutTemplateCustomization[];
@@ -19,6 +21,7 @@ interface LayoutTemplatesSectionProps {
 
 export const LayoutTemplatesSection = ({
   brandVisuals,
+  isDerived,
   customSubtitle,
   onSubtitleChange,
   savedCustomizations,
@@ -64,9 +67,16 @@ export const LayoutTemplatesSection = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="inline-flex h-2 w-2 rounded-full bg-primary animate-pulse" />
-              {connectedVisuals} brand visuals connected
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="inline-flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+                {connectedVisuals} brand visuals connected
+              </div>
+              {isDerived && connectedVisuals > 0 && (
+                <span className="rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">
+                  Auto-derived from your brand assets
+                </span>
+              )}
             </div>
           </div>
 
@@ -79,7 +89,7 @@ export const LayoutTemplatesSection = ({
             />
           ) : (
             <div className="rounded-xl border border-dashed border-border bg-background/60 px-4 py-8 text-center text-sm text-muted-foreground">
-              Connect static or motion brand visuals to preview reusable layout templates here.
+              Add brand imagery, patterns, gradients, or a hero cover image — your Layout Templates will auto-fill from those assets.
             </div>
           )}
         </div>
