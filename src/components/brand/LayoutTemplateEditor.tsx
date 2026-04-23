@@ -8,7 +8,7 @@
  *   - apply the resolved cover to a brand section (Hero / Social / Case Study)
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Copy, Download, FileImage, FileText, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2 } from 'lucide-react';
+import { Copy, Download, FileImage, FileText, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2, Zap } from 'lucide-react';
 import { useHistoryState } from '@/hooks/useHistoryState';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
