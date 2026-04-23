@@ -399,6 +399,15 @@ export const LayoutTemplateEditor = ({
                 <SplitSquareHorizontal className="mr-1.5 h-3.5 w-3.5" />
                 {compareMode ? 'Exit compare' : 'Compare base'}
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleAutoFill}
+                title="Fill empty slots with the best-matching brand visuals"
+              >
+                <Zap className="mr-1.5 h-3.5 w-3.5" />
+                Auto-fill slots
+              </Button>
               <Button size="sm" variant="outline" onClick={handleExportPng}>
                 <FileImage className="mr-1.5 h-3.5 w-3.5" />
                 PNG
