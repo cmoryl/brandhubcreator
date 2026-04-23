@@ -7,8 +7,10 @@
  *   - export PNG / PDF
  *   - apply the resolved cover to a brand section (Hero / Social / Case Study)
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, FileImage, FileText, Save, Sparkles, Wand2 } from 'lucide-react';
+import { useEffect, useMemo, useRef } from 'react';
+import { Download, FileImage, FileText, Redo2, Save, Sparkles, Undo2, Wand2 } from 'lucide-react';
+import { useHistoryState } from '@/hooks/useHistoryState';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,35 +84,60 @@ export const LayoutTemplateEditor = ({
     () => buildNamePresets(template.name, existingCustomizations),
     [template.name, existingCustomizations],
   );
-  const [customization, setCustomization] = useState<LayoutTemplateCustomization>(() =>
-    initialCustomization ?? {
-      id: safeId(),
-      baseTemplateId: template.id,
-      name: template.name,
-      copy: { eyebrow: '', headline: '', cta: '' },
-      slotOverrides: {},
-      overlayOverrides: template.overlay,
-      createdAt: new Date().toISOString(),
-    },
+  const initialValue = useMemo<LayoutTemplateCustomization>(
+    () =>
+      initialCustomization ?? {
+        id: safeId(),
+        baseTemplateId: template.id,
+        name: template.name,
+        copy: { eyebrow: '', headline: '', cta: '' },
+        slotOverrides: {},
+        overlayOverrides: template.overlay,
+        createdAt: new Date().toISOString(),
+      },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [template.id],
   );
 
-  // Reset when a new template is opened
+  const {
+    state: customization,
+    set: setCustomization,
+    replace: replaceCustomization,
+    reset: resetHistory,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    historySize,
+    cursor,
+  } = useHistoryState<LayoutTemplateCustomization>(initialValue);
+
+  // Reset history when a new template is opened or initial customization changes
   useEffect(() => {
     if (open) {
-      setCustomization(
-        initialCustomization ?? {
-          id: safeId(),
-          baseTemplateId: template.id,
-          name: template.name,
-          copy: { eyebrow: '', headline: '', cta: '' },
-          slotOverrides: {},
-          overlayOverrides: template.overlay,
-          createdAt: new Date().toISOString(),
-        },
-      );
+      resetHistory(initialValue);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, template.id]);
+
+  // Keyboard shortcuts: Cmd/Ctrl+Z (undo), Shift+Cmd/Ctrl+Z or Cmd/Ctrl+Y (redo)
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      const key = e.key.toLowerCase();
+      if (key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if ((key === 'z' && e.shiftKey) || key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open, undo, redo]);
 
   const resolved = useMemo(
     () => resolveTemplate(template, brandVisuals, customization),
@@ -131,8 +158,10 @@ export const LayoutTemplateEditor = ({
       },
     }));
 
-  const setHeadlineY = (y: number) =>
-    setCustomization((c) => ({
+  // Slider drag — use `replace` while dragging so we don't flood history,
+  // then commit a single history entry on pointer release.
+  const setHeadlineY = (y: number, commit: boolean) => {
+    const updater = (c: LayoutTemplateCustomization) => ({
       ...c,
       overlayOverrides: {
         ...(c.overlayOverrides ?? template.overlay ?? {}),
@@ -141,7 +170,10 @@ export const LayoutTemplateEditor = ({
           align: c.overlayOverrides?.headline?.align ?? template.overlay?.headline?.align ?? 'left',
         },
       },
-    }));
+    });
+    if (commit) setCustomization(updater);
+    else replaceCustomization(updater);
+  };
 
   const setSlotOverride = (slotKey: string, assetIdAndType: string) => {
     if (assetIdAndType === '__auto__') {
