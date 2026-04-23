@@ -91,6 +91,26 @@ export const LayoutTemplateEditor = ({
   onSave,
   onApplyToSection,
 }: LayoutTemplateEditorProps) => {
+  // Persisted user preference for variant naming format.
+  const [namingFormat, setNamingFormat] = useState<StoredFormat>(() => loadNamingFormat());
+  const [activeChannel, setActiveChannel] = useState<string>('Hero');
+
+  // Persist whenever the user changes their format choice.
+  useEffect(() => {
+    saveNamingFormat(namingFormat);
+  }, [namingFormat]);
+
+  /** Generated name from the active format + channel + existing variants. */
+  const formattedName = useMemo(
+    () =>
+      formatVariantName(namingFormat, {
+        templateName: template.name,
+        channel: activeChannel,
+        existingCustomizations,
+      }),
+    [namingFormat, template.name, activeChannel, existingCustomizations],
+  );
+
   const namePresets = useMemo(
     () => buildNamePresets(template.name, existingCustomizations),
     [template.name, existingCustomizations],
