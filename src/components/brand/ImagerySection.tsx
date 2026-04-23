@@ -42,7 +42,7 @@ interface ImagerySectionProps {
 
 type ViewMode = 'split' | 'grid-2' | 'grid-3' | 'grid-4';
 
-export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand', isAdmin = false }: ImagerySectionProps) => {
+export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand', isAdmin = false, brandVisuals }: ImagerySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingType, setPendingType] = useState<'do' | 'dont'>('do');
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
