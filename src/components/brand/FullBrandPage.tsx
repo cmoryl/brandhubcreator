@@ -339,7 +339,7 @@ export const FullBrandPage = ({
       case 'imageassets': return <ImageAssetsSection imageAssets={brand.imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => onBrandUpdate({ imageAssets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} canEdit={canEdit} entityId={brandId} entityType="brand" />;
       case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => onBrandUpdate({ misuse }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'casestudies':
-      case 'brochures': return <DigitalCollateralSection collateral={brand.brochures || []} onCollateralChange={editHandler((brochures) => onBrandUpdate({ brochures }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} />;
+      case 'brochures': return <DigitalCollateralSection collateral={brand.brochures || []} onCollateralChange={editHandler((brochures) => onBrandUpdate({ brochures }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} brandVisuals={(brand as any).brandVisuals} layoutTemplateCustomizations={(brand as any).layoutTemplateCustomizations || []} />;
       case 'templates': 
         // Legacy templates section now uses PresentationTemplatesSection
         return <PresentationTemplatesSection 

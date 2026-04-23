@@ -864,7 +864,7 @@ const BrandEditor = () => {
           imagery: brand.imagery,
           patterns: brand.patterns,
           gradients: brand.gradients,
-          colors: brand.colors,
+          approvedImagery: (brand as any).approvedImagery,
         });
         return (
           <DigitalCollateralSection
