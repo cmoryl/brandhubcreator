@@ -194,6 +194,13 @@ export const BrandLayoutTemplateGallery = ({
         onPresetChange={handlePresetChange}
       />
 
+      {/* Reusable slot presets */}
+      <SlotPresetsPanel
+        presets={slotPresets}
+        onApply={handleApplySlotPreset}
+        onDelete={handleDeleteSlotPreset}
+      />
+
       {/* Saved custom variants */}
       {savedCustomizations && savedCustomizations.length > 0 && (
         <div className="rounded-lg border bg-muted/30 p-3">
