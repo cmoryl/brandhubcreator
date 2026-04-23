@@ -25,7 +25,6 @@ import { useDropZone } from '@/components/ui/drop-zone';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { SortableImageryCard } from './imagery/SortableImageryCard';
 import { ImageryGuidelinesPanel } from './imagery/ImageryGuidelinesPanel';
-import { BrandLayoutTemplateGallery } from './BrandLayoutTemplateGallery';
 import type { BrandVisualsBundle } from '@/lib/brandLayoutTemplates';
 
 interface ImagerySectionProps {
@@ -36,13 +35,13 @@ interface ImagerySectionProps {
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
   isAdmin?: boolean;
-  /** Optional brand-visual bundle (Foundation/Collaborate/Transform assets) used to power layout templates. */
+  /** @deprecated Layout templates now live in their own dedicated section. */
   brandVisuals?: BrandVisualsBundle;
 }
 
 type ViewMode = 'split' | 'grid-2' | 'grid-3' | 'grid-4';
 
-export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand', isAdmin = false, brandVisuals }: ImagerySectionProps) => {
+export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand', isAdmin = false }: ImagerySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingType, setPendingType] = useState<'do' | 'dont'>('do');
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
