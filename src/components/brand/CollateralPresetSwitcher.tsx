@@ -8,9 +8,26 @@
  *
  * Pure presentation component — parent owns the active state.
  */
-import { FileText, BookOpen, FileBadge2, Newspaper, X } from 'lucide-react';
+import { FileText, BookOpen, FileBadge2, Newspaper, X, Frame, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { LayoutSectionTarget } from '@/lib/brandLayoutTemplates';
+
+/** Selectable reframe ratios offered when a preset is active. */
+export interface AspectRatioOption {
+  id: string;
+  label: string;
+  ratio: number;
+}
+
+export const aspectRatioOverrides: AspectRatioOption[] = [
+  { id: 'a4-portrait', label: 'A4 Portrait', ratio: 210 / 297 },
+  { id: 'a4-landscape', label: 'A4 Landscape', ratio: 297 / 210 },
+  { id: 'letter-portrait', label: 'US Letter', ratio: 8.5 / 11 },
+  { id: '16-9', label: '16:9', ratio: 16 / 9 },
+  { id: '4-3', label: '4:3', ratio: 4 / 3 },
+  { id: '1-1', label: 'Square', ratio: 1 },
+  { id: '9-16', label: '9:16 Story', ratio: 9 / 16 },
+];
 
 export interface CollateralPreset {
   id: string;
@@ -67,14 +84,26 @@ export const collateralPresets: CollateralPreset[] = [
 interface CollateralPresetSwitcherProps {
   activePresetId: string | null;
   onPresetChange: (preset: CollateralPreset | null) => void;
+  /** Optional ratio override applied on top of the active preset's canonical ratio. */
+  ratioOverride?: number | null;
+  /** Called when the user picks a custom reframe ratio (or clears it). */
+  onRatioOverrideChange?: (ratio: number | null) => void;
   className?: string;
 }
 
 export const CollateralPresetSwitcher = ({
   activePresetId,
   onPresetChange,
+  ratioOverride,
+  onRatioOverrideChange,
   className,
 }: CollateralPresetSwitcherProps) => {
+  const activePreset = collateralPresets.find((p) => p.id === activePresetId) ?? null;
+  const matchedOverride =
+    ratioOverride != null
+      ? aspectRatioOverrides.find((o) => Math.abs(o.ratio - ratioOverride) < 0.001) ?? null
+      : null;
+
   return (
     <div className={cn('rounded-lg border bg-muted/30 p-3', className)}>
       <div className="mb-2 flex items-center justify-between">
