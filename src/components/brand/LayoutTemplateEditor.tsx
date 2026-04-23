@@ -212,7 +212,17 @@ export const LayoutTemplateEditor = ({
       return { ...c, slotFitOverrides: next };
     });
 
-  const handleExportPng = async () => {
+  const handleAutoFill = () => {
+    const { customization: next, filledCount } = autoFillSlots(template, brandVisuals, customization);
+    if (filledCount === 0) {
+      toast.info('All slots already filled — nothing to auto-fill');
+      return;
+    }
+    setCustomization(() => next);
+    toast.success(`Auto-filled ${filledCount} slot${filledCount === 1 ? '' : 's'}`);
+  };
+
+
     if (!previewRef.current) return;
     try {
       await exportLayoutAsPng(previewRef.current, {
