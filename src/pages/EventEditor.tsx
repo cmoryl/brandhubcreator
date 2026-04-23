@@ -50,6 +50,7 @@ import { TaglineSection } from '@/components/brand/TaglineSection';
 import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
 import { GradientsSection } from '@/components/brand/GradientsSection';
 import { LayoutTemplatesSection } from '@/components/brand/LayoutTemplatesSection';
+import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { TypographySection } from '@/components/brand/TypographySection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
@@ -625,8 +626,19 @@ const EventEditor = () => {
         return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
       case 'gradients': 
         return <GradientsSection gradients={event.gradients} onGradientsChange={editHandler((gradients) => updateEvent({ gradients }))} brandName={event.hero.name} brandColors={event.colors} />;
-      case 'layouttemplates':
-        return <LayoutTemplatesSection brandVisuals={(event as any).brandVisuals} />;
+      case 'layouttemplates': {
+        const explicitVisuals = (event as any).brandVisuals;
+        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          hero: event.hero,
+          logos: event.logos,
+          imagery: event.imagery,
+          patterns: event.patterns,
+          gradients: event.gradients,
+          approvedImagery: (event as any).approvedImagery,
+        });
+        const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
+        return <LayoutTemplatesSection brandVisuals={derivedVisuals} isDerived={isDerived} />;
+      }
       case 'typography': 
         return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} isAdmin={isGuideAdmin} />;
       case 'imagery': 
