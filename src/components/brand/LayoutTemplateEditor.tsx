@@ -8,7 +8,7 @@
  *   - apply the resolved cover to a brand section (Hero / Social / Case Study)
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Copy, Download, FileImage, FileText, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2, Zap } from 'lucide-react';
+import { Copy, Download, FileImage, FileText, Layers, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2, Zap } from 'lucide-react';
 import { useHistoryState } from '@/hooks/useHistoryState';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -38,6 +38,7 @@ import {
 import { LayoutTemplateCanvas } from './LayoutTemplateCanvas';
 import { exportLayoutAsPng, exportLayoutAsPdf } from '@/lib/exportLayoutTemplate';
 import { SlotFitControl } from './SlotFitControl';
+import { SaveSlotPresetDialog } from './SlotPresetsPanel';
 
 export type ApplyTarget = 'hero' | 'social' | 'casestudy';
 
@@ -51,6 +52,15 @@ interface LayoutTemplateEditorProps {
   existingCustomizations?: LayoutTemplateCustomization[];
   onSave?: (customization: LayoutTemplateCustomization) => void;
   onApplyToSection?: (target: ApplyTarget, asset: { type: 'image' | 'video'; url: string }) => void;
+  /** Optional: save the current template's slot config as a reusable slot preset. */
+  onSaveAsSlotPreset?: (payload: {
+    name: string;
+    description?: string;
+    template: BrandLayoutTemplate;
+    positionOverrides?: Record<string, { x: number; y: number; width: number; height: number }>;
+  }) => void;
+  /** Names of existing slot presets — used for duplicate-name validation. */
+  existingSlotPresetNames?: string[];
 }
 
 /** Build smart naming presets based on the template + existing variants. */
@@ -90,10 +100,13 @@ export const LayoutTemplateEditor = ({
   existingCustomizations,
   onSave,
   onApplyToSection,
+  onSaveAsSlotPreset,
+  existingSlotPresetNames = [],
 }: LayoutTemplateEditorProps) => {
   // Persisted user preference for variant naming format.
   const [namingFormat, setNamingFormat] = useState<StoredFormat>(() => loadNamingFormat());
   const [activeChannel, setActiveChannel] = useState<string>('Hero');
+  const [savePresetOpen, setSavePresetOpen] = useState(false);
 
   // Persist whenever the user changes their format choice.
   useEffect(() => {
@@ -825,10 +838,20 @@ export const LayoutTemplateEditor = ({
           </ScrollArea>
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
+          {onSaveAsSlotPreset && (
+            <Button
+              variant="outline"
+              onClick={() => setSavePresetOpen(true)}
+              title="Save this template's slot layout as a reusable preset"
+            >
+              <Layers className="mr-1.5 h-3.5 w-3.5" />
+              Save as slot preset
+            </Button>
+          )}
           {onSave && (
             <Button
               variant="outline"
@@ -850,6 +873,19 @@ export const LayoutTemplateEditor = ({
             Export PNG
           </Button>
         </div>
+
+        {onSaveAsSlotPreset && (
+          <SaveSlotPresetDialog
+            open={savePresetOpen}
+            onOpenChange={setSavePresetOpen}
+            defaultName={template.name}
+            existingNames={existingSlotPresetNames}
+            onConfirm={(name, description) => {
+              onSaveAsSlotPreset({ name, description, template });
+              toast.success('Slot preset saved');
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

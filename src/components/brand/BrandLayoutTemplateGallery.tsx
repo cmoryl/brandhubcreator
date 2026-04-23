@@ -40,6 +40,15 @@ import {
   CollateralPresetSwitcher,
   type CollateralPreset,
 } from './CollateralPresetSwitcher';
+import { SlotPresetsPanel } from './SlotPresetsPanel';
+import {
+  deleteSlotPreset,
+  loadSlotPresets,
+  presetToTemplate,
+  saveSlotPreset,
+  templateToPresetPayload,
+  type SlotPreset,
+} from '@/lib/slotPresets';
 
 interface BrandLayoutTemplateGalleryProps {
   brandVisuals?: BrandVisualsBundle;
@@ -83,10 +92,22 @@ export const BrandLayoutTemplateGallery = ({
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
   const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
   const [activePreset, setActivePreset] = useState<CollateralPreset | null>(null);
+  const [slotPresets, setSlotPresets] = useState<SlotPreset[]>(() => loadSlotPresets());
 
   useEffect(() => {
     saveIndustryPreference(industry);
   }, [industry]);
+
+  const handleApplySlotPreset = (preset: SlotPreset) => {
+    const template = presetToTemplate(preset);
+    setEditorTemplate(template);
+    setEditorCustomization(undefined);
+    setEditorOpen(true);
+  };
+
+  const handleDeleteSlotPreset = (id: string) => {
+    setSlotPresets((current) => deleteSlotPreset(current, id));
+  };
 
   const handlePresetChange = (preset: CollateralPreset | null) => {
     setActivePreset(preset);
@@ -173,6 +194,13 @@ export const BrandLayoutTemplateGallery = ({
       <CollateralPresetSwitcher
         activePresetId={activePreset?.id ?? null}
         onPresetChange={handlePresetChange}
+      />
+
+      {/* Reusable slot presets */}
+      <SlotPresetsPanel
+        presets={slotPresets}
+        onApply={handleApplySlotPreset}
+        onDelete={handleDeleteSlotPreset}
       />
 
       {/* Saved custom variants */}
@@ -352,6 +380,12 @@ export const BrandLayoutTemplateGallery = ({
           existingCustomizations={savedCustomizations}
           onSave={onSaveCustomization}
           onApplyToSection={onApplyToSection}
+          existingSlotPresetNames={slotPresets.map((p) => p.name)}
+          onSaveAsSlotPreset={({ name, description, template }) => {
+            setSlotPresets((current) =>
+              saveSlotPreset(current, templateToPresetPayload(template, { name, description })),
+            );
+          }}
         />
       )}
     </section>
