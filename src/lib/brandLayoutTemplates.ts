@@ -20,7 +20,14 @@ export type LayoutSectionTarget =
   | 'event'
   | 'product'
   | 'editorial'
-  | 'divider';
+  | 'divider'
+  | 'ad'
+  | 'email'
+  | 'billboard'
+  | 'story'
+  | 'carousel'
+  | 'pitch'
+  | 'web';
 
 export type SlotKind = 'background' | 'feature' | 'card' | 'banner' | 'video';
 export type SlotShape = 'wide' | 'standard' | 'banner' | 'vertical' | 'square';
