@@ -840,7 +840,7 @@ export const LayoutTemplateEditor = ({
             </Button>
           )}
           {onSave && (
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={!!nameError} title={nameError ?? undefined}>
               <Save className="mr-1.5 h-3.5 w-3.5" />
               Save variant
             </Button>
