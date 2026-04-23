@@ -34,8 +34,35 @@ interface LayoutTemplateEditorProps {
   template: BrandLayoutTemplate;
   brandVisuals?: BrandVisualsBundle;
   initialCustomization?: LayoutTemplateCustomization;
+  /** Existing saved variants for this brand — used to auto-increment version presets. */
+  existingCustomizations?: LayoutTemplateCustomization[];
   onSave?: (customization: LayoutTemplateCustomization) => void;
   onApplyToSection?: (target: ApplyTarget, asset: { type: 'image' | 'video'; url: string }) => void;
+}
+
+/** Build smart naming presets based on the template + existing variants. */
+function buildNamePresets(
+  templateName: string,
+  existing: LayoutTemplateCustomization[] = [],
+): { label: string; value: string }[] {
+  // Find next version number for "{templateName} - v{n}"
+  const versionRegex = new RegExp(`^${templateName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*-\\s*v(\\d+)$`, 'i');
+  const usedVersions = existing
+    .map((c) => c.name.match(versionRegex)?.[1])
+    .filter(Boolean)
+    .map(Number);
+  const nextVersion = usedVersions.length > 0 ? Math.max(...usedVersions) + 1 : 1;
+
+  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  return [
+    { label: `v${nextVersion}`, value: `${templateName} - v${nextVersion}` },
+    { label: 'Hero', value: `${templateName} - Hero` },
+    { label: 'Social', value: `${templateName} - Social` },
+    { label: 'Email', value: `${templateName} - Email` },
+    { label: 'Pitch', value: `${templateName} - Pitch` },
+    { label: today, value: `${templateName} - ${today}` },
+  ];
 }
 
 const safeId = () =>
