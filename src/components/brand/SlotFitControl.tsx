@@ -129,8 +129,6 @@ export const SlotFitControl = ({
             commit(next);
           }
         }}
-          else if (e.key === 'ArrowDown') onChange({ ...fit, focusY: Math.min(100, fit.focusY + step) });
-        }}
         className="relative aspect-video w-full cursor-crosshair overflow-hidden rounded border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
         style={{
           background: fit.fit === 'contain' ? 'hsl(var(--muted))' : undefined,
