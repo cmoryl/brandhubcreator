@@ -121,7 +121,7 @@ export const RegenerateFromTemplatesDialog = ({
       group: 'Built-in',
     }));
     const saved = (savedCustomizations ?? []).map((c) => {
-      const baseTpl = findTemplateById(c.templateId);
+      const baseTpl = findTemplateById(c.baseTemplateId);
       return {
         value: `${SAVED_PREFIX}${c.id}`,
         label: c.name,
@@ -140,7 +140,7 @@ export const RegenerateFromTemplatesDialog = ({
       const customization = savedCustomizations?.find(
         (c) => c.id === templateValue.slice(SAVED_PREFIX.length),
       );
-      const template = findTemplateById(customization?.templateId);
+      const template = findTemplateById(customization?.baseTemplateId);
       if (!template || !customization) return null;
       return { template, customization };
     }
