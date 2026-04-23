@@ -838,10 +838,20 @@ export const LayoutTemplateEditor = ({
           </ScrollArea>
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
+          {onSaveAsSlotPreset && (
+            <Button
+              variant="outline"
+              onClick={() => setSavePresetOpen(true)}
+              title="Save this template's slot layout as a reusable preset"
+            >
+              <Layers className="mr-1.5 h-3.5 w-3.5" />
+              Save as slot preset
+            </Button>
+          )}
           {onSave && (
             <Button
               variant="outline"
@@ -863,6 +873,19 @@ export const LayoutTemplateEditor = ({
             Export PNG
           </Button>
         </div>
+
+        {onSaveAsSlotPreset && (
+          <SaveSlotPresetDialog
+            open={savePresetOpen}
+            onOpenChange={setSavePresetOpen}
+            defaultName={template.name}
+            existingNames={existingSlotPresetNames}
+            onConfirm={(name, description) => {
+              onSaveAsSlotPreset({ name, description, template });
+              toast.success('Slot preset saved');
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
