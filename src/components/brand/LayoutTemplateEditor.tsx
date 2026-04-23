@@ -8,7 +8,7 @@
  *   - apply the resolved cover to a brand section (Hero / Social / Case Study)
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Copy, Download, FileImage, FileText, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2 } from 'lucide-react';
+import { Copy, Download, FileImage, FileText, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2, Zap } from 'lucide-react';
 import { useHistoryState } from '@/hooks/useHistoryState';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -20,6 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import {
+  autoFillSlots,
   resolveTemplate,
   type BrandLayoutTemplate,
   type BrandVisualsBundle,
@@ -211,6 +212,16 @@ export const LayoutTemplateEditor = ({
       return { ...c, slotFitOverrides: next };
     });
 
+  const handleAutoFill = () => {
+    const { customization: next, filledCount } = autoFillSlots(template, brandVisuals, customization);
+    if (filledCount === 0) {
+      toast.info('All slots already filled — nothing to auto-fill');
+      return;
+    }
+    setCustomization(() => next);
+    toast.success(`Auto-filled ${filledCount} slot${filledCount === 1 ? '' : 's'}`);
+  };
+
   const handleExportPng = async () => {
     if (!previewRef.current) return;
     try {
@@ -387,6 +398,15 @@ export const LayoutTemplateEditor = ({
               >
                 <SplitSquareHorizontal className="mr-1.5 h-3.5 w-3.5" />
                 {compareMode ? 'Exit compare' : 'Compare base'}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleAutoFill}
+                title="Fill empty slots with the best-matching brand visuals"
+              >
+                <Zap className="mr-1.5 h-3.5 w-3.5" />
+                Auto-fill slots
               </Button>
               <Button size="sm" variant="outline" onClick={handleExportPng}>
                 <FileImage className="mr-1.5 h-3.5 w-3.5" />
