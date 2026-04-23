@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2, ClipboardList, Sparkles, BookOpen, BarChart3, BookMarked, TrendingUp, Briefcase, Package, Building2, Target, CalendarDays, Link2, Globe, Folder, type LucideIcon } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2, ClipboardList, Sparkles, BookOpen, BarChart3, BookMarked, TrendingUp, Briefcase, Package, Building2, Target, CalendarDays, Link2, Globe, Folder, Wand2, type LucideIcon } from 'lucide-react';
 import { generatePdfThumbnail } from '@/lib/pdfThumbnail';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
 import { BrandBrochure } from '@/types/brand';
@@ -16,6 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { RegenerateFromTemplatesDialog } from './digital-collateral/RegenerateFromTemplatesDialog';
+import type { BrandVisualsBundle, LayoutTemplateCustomization } from '@/lib/brandLayoutTemplates';
 
 import {
   DndContext,
@@ -46,6 +48,10 @@ interface DigitalCollateralSectionProps {
   onLayoutChange?: (layout: LayoutPreset) => void;
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
+  /** Optional brand visuals bundle — enables the "Refresh from Templates" wizard. */
+  brandVisuals?: BrandVisualsBundle;
+  /** Saved layout template variants for this brand — surfaced as picker options. */
+  layoutTemplateCustomizations?: LayoutTemplateCustomization[];
 }
 
 // Lucide icon map for built-in categories
@@ -436,6 +442,8 @@ export const DigitalCollateralSection = ({
   onLayoutChange,
   entityId,
   entityType = 'brand',
+  brandVisuals,
+  layoutTemplateCustomizations,
 }: DigitalCollateralSectionProps) => {
   const collateral = Array.isArray(collateralProp) ? collateralProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -455,6 +463,7 @@ export const DigitalCollateralSection = ({
   const [bannerSetImagePreview, setBannerSetImagePreview] = useState<string | null>(null);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: '', icon: '📂' });
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   
   const { gridClass } = useLayoutClasses(layout);
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
@@ -836,6 +845,18 @@ export const DigitalCollateralSection = ({
             <Button onClick={() => setShowCategoryDialog(true)} size="sm" variant="outline" className="gap-2 shrink-0">
               <FolderPlus className="h-4 w-4" />
               Add Category
+            </Button>
+          )}
+          {canEdit && collateral.length > 0 && (
+            <Button
+              onClick={() => setShowRegenerateDialog(true)}
+              size="sm"
+              variant="outline"
+              className="gap-2 shrink-0"
+              title="Regenerate thumbnails using your latest brand layout templates"
+            >
+              <Wand2 className="h-4 w-4" />
+              Refresh from Templates
             </Button>
           )}
           {canEdit && (
@@ -1301,6 +1322,18 @@ export const DigitalCollateralSection = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk-regenerate from layout templates */}
+      {canEdit && onCollateralChange && (
+        <RegenerateFromTemplatesDialog
+          open={showRegenerateDialog}
+          onOpenChange={setShowRegenerateDialog}
+          collateral={collateral}
+          brandVisuals={brandVisuals}
+          savedCustomizations={layoutTemplateCustomizations}
+          onApply={onCollateralChange}
+        />
+      )}
     </section>
   );
 };

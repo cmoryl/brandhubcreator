@@ -30,6 +30,21 @@ export const exportLayoutAsPng = async (node: HTMLElement, opts: ExportLayoutOpt
   return dataUrl;
 };
 
+/**
+ * Render a layout node to a PNG data URL without triggering a browser download.
+ * Used by bulk-regenerate flows that want to swap thumbnails in-place.
+ */
+export const renderLayoutToDataUrl = async (
+  node: HTMLElement,
+  opts: { pixelRatio?: number } = {},
+): Promise<string> => {
+  return toPng(node, {
+    pixelRatio: opts.pixelRatio ?? 2,
+    cacheBust: true,
+    skipFonts: false,
+  });
+};
+
 export const exportLayoutAsPdf = async (
   node: HTMLElement,
   opts: ExportLayoutOptions & { aspectRatio: number },

@@ -856,7 +856,27 @@ const BrandEditor = () => {
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={editHandler((assets) => updateBrand({ assets }))} websiteUrl={brand.websites?.[0]?.url} entityId={brand.id} entityType="brand" />;
       case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => updateBrand({ misuse }))} entityId={brand.id} entityType="brand" />;
       case 'casestudies': 
-      case 'brochures': return <DigitalCollateralSection collateral={brand.brochures} onCollateralChange={editHandler((brochures) => updateBrand({ brochures }))} entityId={brand.id} entityType="brand" />;
+      case 'brochures': {
+        const explicitVisuals = (brand as any).brandVisuals;
+        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          hero: brand.hero,
+          logos: brand.logos,
+          imagery: brand.imagery,
+          patterns: brand.patterns,
+          gradients: brand.gradients,
+          approvedImagery: (brand as any).approvedImagery,
+        });
+        return (
+          <DigitalCollateralSection
+            collateral={brand.brochures}
+            onCollateralChange={editHandler((brochures) => updateBrand({ brochures }))}
+            entityId={brand.id}
+            entityType="brand"
+            brandVisuals={derivedVisuals}
+            layoutTemplateCustomizations={(brand as any).layoutTemplateCustomizations || []}
+          />
+        );
+      }
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={editHandler((templates) => updateBrand({ templates }))} entityId={brand.id} entityType="brand" />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateBrand({ templateSpecs }))} brandColors={brand.colors || []} entityId={brand.id} entityType="brand" />;
       case 'products': return <ProductsSection brandId={brand.id} />;
