@@ -228,6 +228,8 @@ export const BrandLayoutTemplateGallery = ({
           const expressionStates = Array.from(
             new Set(template.slots.map((s) => s.expressionState)),
           ) as ExpressionState[];
+          const isRecommended = recommendedSet.has(template.target);
+          const suggestedCopy = getIndustryCopy(industry, template.target);
 
           return (
             <div
@@ -236,7 +238,9 @@ export const BrandLayoutTemplateGallery = ({
                 'group flex flex-col gap-2 rounded-lg border-2 bg-card p-3 transition-all',
                 isSelected
                   ? 'border-primary ring-2 ring-primary/20'
-                  : 'border-border hover:border-primary/50 hover:shadow-md',
+                  : isRecommended
+                    ? 'border-primary/40 hover:border-primary hover:shadow-md'
+                    : 'border-border hover:border-primary/50 hover:shadow-md',
               )}
             >
               <LayoutTemplateCanvas template={template} resolved={resolved} />
@@ -244,11 +248,31 @@ export const BrandLayoutTemplateGallery = ({
               <div className="space-y-1">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-medium leading-tight">{template.name}</p>
-                  {isSelected && <Check className="h-4 w-4 shrink-0 text-primary" />}
+                  {isSelected ? (
+                    <Check className="h-4 w-4 shrink-0 text-primary" />
+                  ) : isRecommended ? (
+                    <span
+                      className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary"
+                      title={`Recommended for ${industryDef?.label}`}
+                    >
+                      <Sparkles className="h-2.5 w-2.5" />
+                      Suggested
+                    </span>
+                  ) : null}
                 </div>
                 <p className="line-clamp-2 text-xs text-muted-foreground">
                   {template.description}
                 </p>
+                {suggestedCopy && (
+                  <div className="mt-1 rounded-md border border-primary/20 bg-primary/5 px-2 py-1.5">
+                    <p className="text-[9px] font-semibold uppercase tracking-wider text-primary/80">
+                      Suggested copy
+                    </p>
+                    <p className="mt-0.5 line-clamp-2 text-[11px] font-medium text-foreground">
+                      {suggestedCopy.headline}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-1">
