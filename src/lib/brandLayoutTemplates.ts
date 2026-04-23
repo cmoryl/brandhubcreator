@@ -333,6 +333,243 @@ export const brandLayoutTemplates: BrandLayoutTemplate[] = [
       },
     ],
   },
+
+  /* ---------------- ADDITIONAL HERO ---------------- */
+  {
+    id: 'hero-split-foundation-transform',
+    name: 'Hero — Split Foundation + Transform',
+    description: 'Foundation calm anchor on left; Transform motion energy on right.',
+    target: 'hero',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'left', expressionState: 'Foundation', kind: 'background', preferredShape: 'standard', label: 'Foundation', position: { x: 0, y: 0, width: 55, height: 100 } },
+      { key: 'right', expressionState: 'Transform', kind: 'video', preferredShape: 'standard', allowMotion: true, label: 'Transform motion', position: { x: 55, y: 0, width: 45, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 18, align: 'left' }, headline: { y: 32, align: 'left' }, cta: true },
+  },
+  {
+    id: 'hero-collab-overlap',
+    name: 'Hero — Collaborate Overlap',
+    description: 'Foundation backdrop with a Collaborate floating tile overlay.',
+    target: 'hero',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'bg', expressionState: 'Foundation', kind: 'background', preferredShape: 'wide', label: 'Foundation backdrop', position: { x: 0, y: 0, width: 100, height: 100 } },
+      { key: 'tile', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'square', label: 'Collaborate tile', position: { x: 58, y: 18, width: 36, height: 64 } },
+    ],
+    overlay: { headline: { y: 28, align: 'left' }, eyebrow: { y: 18, align: 'left' }, cta: true },
+  },
+  {
+    id: 'hero-mosaic-3up',
+    name: 'Hero — Mosaic 3-up',
+    description: 'Foundation hero with two stacked Collaborate accents on the right.',
+    target: 'hero',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'main', expressionState: 'Foundation', kind: 'background', preferredShape: 'standard', label: 'Foundation main', position: { x: 0, y: 0, width: 66, height: 100 } },
+      { key: 'top', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'standard', label: 'Collaborate top', position: { x: 66, y: 0, width: 34, height: 50 } },
+      { key: 'bot', expressionState: 'Transform', kind: 'feature', preferredShape: 'standard', label: 'Transform bottom', position: { x: 66, y: 50, width: 34, height: 50 } },
+    ],
+    overlay: { headline: { y: 65, align: 'left' } },
+  },
+
+  /* ---------------- WEB / LANDING ---------------- */
+  {
+    id: 'web-feature-bento',
+    name: 'Web — Bento Feature Grid',
+    description: 'Asymmetric bento grid mixing all three expression states for landing pages.',
+    target: 'web',
+    aspectRatio: 16 / 10,
+    slots: [
+      { key: 'a', expressionState: 'Foundation', kind: 'feature', preferredShape: 'standard', label: 'Foundation', position: { x: 0, y: 0, width: 50, height: 60 } },
+      { key: 'b', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'square', label: 'Collaborate', position: { x: 50, y: 0, width: 50, height: 30 } },
+      { key: 'c', expressionState: 'Transform', kind: 'feature', preferredShape: 'standard', label: 'Transform', position: { x: 50, y: 30, width: 50, height: 30 } },
+      { key: 'd', expressionState: 'Collaborate', kind: 'banner', preferredShape: 'banner', label: 'Collaborate banner', position: { x: 0, y: 60, width: 100, height: 40 } },
+    ],
+  },
+  {
+    id: 'web-cta-band',
+    name: 'Web — Transform CTA Band',
+    description: 'Energetic Transform background for end-of-page calls to action.',
+    target: 'web',
+    aspectRatio: 30 / 8,
+    slots: [
+      { key: 'bg', expressionState: 'Transform', kind: 'video', allowMotion: true, preferredShape: 'wide', label: 'Transform CTA', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { headline: { y: 35, align: 'center' }, cta: true },
+  },
+
+  /* ---------------- AD / DISPLAY ---------------- */
+  {
+    id: 'ad-leaderboard',
+    name: 'Ad — Leaderboard 728×90',
+    description: 'Standard leaderboard banner using a Foundation background.',
+    target: 'ad',
+    aspectRatio: 728 / 90,
+    slots: [
+      { key: 'bg', expressionState: 'Foundation', kind: 'banner', preferredShape: 'banner', label: 'Foundation banner', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { headline: { y: 35, align: 'left' }, cta: true },
+  },
+  {
+    id: 'ad-mpu',
+    name: 'Ad — Medium Rectangle 300×250',
+    description: 'Square-ish display ad anchored on a Collaborate tile.',
+    target: 'ad',
+    aspectRatio: 300 / 250,
+    slots: [
+      { key: 'bg', expressionState: 'Collaborate', kind: 'card', preferredShape: 'square', label: 'Collaborate', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 12, align: 'left' }, headline: { y: 60, align: 'left' }, cta: true },
+  },
+  {
+    id: 'ad-skyscraper',
+    name: 'Ad — Skyscraper 160×600',
+    description: 'Vertical Transform skyscraper for sidebar placements.',
+    target: 'ad',
+    aspectRatio: 160 / 600,
+    slots: [
+      { key: 'bg', expressionState: 'Transform', kind: 'video', allowMotion: true, preferredShape: 'vertical', label: 'Transform vertical', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { headline: { y: 78, align: 'center' }, cta: true },
+  },
+
+  /* ---------------- EMAIL ---------------- */
+  {
+    id: 'email-header',
+    name: 'Email — Header Banner',
+    description: 'Foundation header banner sized for newsletter and transactional emails.',
+    target: 'email',
+    aspectRatio: 600 / 240,
+    slots: [
+      { key: 'bg', expressionState: 'Foundation', kind: 'banner', preferredShape: 'banner', label: 'Foundation header', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 22, align: 'left' }, headline: { y: 45, align: 'left' } },
+  },
+  {
+    id: 'email-feature-card',
+    name: 'Email — Feature Card',
+    description: 'Two-column email card pairing a Collaborate visual with copy space.',
+    target: 'email',
+    aspectRatio: 600 / 320,
+    slots: [
+      { key: 'img', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'standard', label: 'Collaborate visual', position: { x: 0, y: 0, width: 50, height: 100 } },
+      { key: 'panel', expressionState: 'Foundation', kind: 'card', preferredShape: 'standard', label: 'Foundation panel', position: { x: 50, y: 0, width: 50, height: 100 } },
+    ],
+    overlay: { headline: { y: 35, align: 'left' }, cta: true },
+  },
+
+  /* ---------------- BILLBOARD / OOH ---------------- */
+  {
+    id: 'billboard-horizontal',
+    name: 'Billboard — Horizontal 14×48',
+    description: 'Ultra-wide highway billboard format with bold Foundation imagery.',
+    target: 'billboard',
+    aspectRatio: 48 / 14,
+    slots: [
+      { key: 'bg', expressionState: 'Foundation', kind: 'background', preferredShape: 'banner', label: 'Foundation', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { headline: { y: 40, align: 'left' }, cta: true },
+  },
+  {
+    id: 'billboard-digital-motion',
+    name: 'Billboard — Digital Motion',
+    description: 'Animated digital out-of-home using the Transform Rhythm motion.',
+    target: 'billboard',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'bg', expressionState: 'Transform', kind: 'video', allowMotion: true, preferredShape: 'wide', label: 'Transform motion', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { headline: { y: 42, align: 'center' } },
+  },
+
+  /* ---------------- STORY / VERTICAL ---------------- */
+  {
+    id: 'story-foundation-9x16',
+    name: 'Story — Foundation 9×16',
+    description: 'Instagram / TikTok story with Foundation hero and bottom-aligned headline.',
+    target: 'story',
+    aspectRatio: 9 / 16,
+    slots: [
+      { key: 'bg', expressionState: 'Foundation', kind: 'background', preferredShape: 'vertical', label: 'Foundation', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { headline: { y: 78, align: 'center' }, cta: true },
+  },
+  {
+    id: 'story-split',
+    name: 'Story — Split (Foundation + Collaborate)',
+    description: 'Vertical 9:16 split story stacking Foundation above a Collaborate tile.',
+    target: 'story',
+    aspectRatio: 9 / 16,
+    slots: [
+      { key: 'top', expressionState: 'Foundation', kind: 'background', preferredShape: 'vertical', label: 'Foundation', position: { x: 0, y: 0, width: 100, height: 60 } },
+      { key: 'bottom', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'square', label: 'Collaborate', position: { x: 0, y: 60, width: 100, height: 40 } },
+    ],
+    overlay: { headline: { y: 85, align: 'center' } },
+  },
+
+  /* ---------------- CAROUSEL ---------------- */
+  {
+    id: 'carousel-square-trio',
+    name: 'Carousel — Square Trio',
+    description: 'Three Instagram-square carousel slides walking from Foundation → Collaborate → Transform.',
+    target: 'carousel',
+    aspectRatio: 3,
+    slots: [
+      { key: 's1', expressionState: 'Foundation', kind: 'card', preferredShape: 'square', label: 'Slide 1', position: { x: 0, y: 0, width: 33.33, height: 100 } },
+      { key: 's2', expressionState: 'Collaborate', kind: 'card', preferredShape: 'square', label: 'Slide 2', position: { x: 33.33, y: 0, width: 33.33, height: 100 } },
+      { key: 's3', expressionState: 'Transform', kind: 'card', preferredShape: 'square', label: 'Slide 3', position: { x: 66.66, y: 0, width: 33.34, height: 100 } },
+    ],
+  },
+
+  /* ---------------- PITCH DECK ---------------- */
+  {
+    id: 'pitch-cover',
+    name: 'Pitch — Deck Cover',
+    description: '16:9 pitch deck cover with Foundation hero and overlaid title block.',
+    target: 'pitch',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'bg', expressionState: 'Foundation', kind: 'background', preferredShape: 'standard', label: 'Foundation cover', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 70, align: 'left' }, headline: { y: 80, align: 'left' } },
+  },
+  {
+    id: 'pitch-section-divider',
+    name: 'Pitch — Section Divider',
+    description: 'Collaborate banner used between deck sections.',
+    target: 'pitch',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'bg', expressionState: 'Collaborate', kind: 'background', preferredShape: 'standard', label: 'Collaborate divider', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 45, align: 'center' }, headline: { y: 55, align: 'center' } },
+  },
+
+  /* ---------------- ADDITIONAL EDITORIAL / SOCIAL ---------------- */
+  {
+    id: 'editorial-magazine-spread',
+    name: 'Editorial — Magazine Spread',
+    description: 'Large Foundation spread with a small Transform inset for magazine layouts.',
+    target: 'editorial',
+    aspectRatio: 16 / 10,
+    slots: [
+      { key: 'main', expressionState: 'Foundation', kind: 'background', preferredShape: 'wide', label: 'Foundation spread', position: { x: 0, y: 0, width: 100, height: 100 } },
+      { key: 'inset', expressionState: 'Transform', kind: 'feature', preferredShape: 'square', label: 'Transform inset', position: { x: 5, y: 60, width: 22, height: 32 } },
+    ],
+    overlay: { eyebrow: { y: 8, align: 'left' }, headline: { y: 14, align: 'left' } },
+  },
+  {
+    id: 'social-quote-card',
+    name: 'Social — Quote Card 1:1',
+    description: 'Square social quote card with a Collaborate background tint.',
+    target: 'social',
+    aspectRatio: 1,
+    slots: [
+      { key: 'bg', expressionState: 'Collaborate', kind: 'card', preferredShape: 'square', label: 'Collaborate', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { headline: { y: 45, align: 'center' } },
+  },
 ];
 
 /* -------------------------------------------------------------------------- */
