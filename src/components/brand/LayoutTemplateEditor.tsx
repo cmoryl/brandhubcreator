@@ -8,10 +8,12 @@
  *   - apply the resolved cover to a brand section (Hero / Social / Case Study)
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Copy, Download, FileImage, FileText, Layers, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2, Zap } from 'lucide-react';
+import { AlertTriangle, Copy, Download, FileImage, FileText, Layers, Redo2, Save, Sparkles, SplitSquareHorizontal, Undo2, Wand2, Zap } from 'lucide-react';
+import { validateLayoutForExport, type ValidationIssue, type ValidationResult } from '@/lib/layoutTemplateValidation';
 import { useHistoryState } from '@/hooks/useHistoryState';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -188,6 +190,14 @@ export const LayoutTemplateEditor = ({
     [template, brandVisuals, customization],
   );
 
+  // Pre-export validation (missing CTA / cover / headline / empty slots).
+  const validation: ValidationResult = useMemo(
+    () => validateLayoutForExport({ template, resolved, customization }),
+    [template, resolved, customization],
+  );
+
+  const [pendingExport, setPendingExport] = useState<null | 'png' | 'pdf'>(null);
+
   const previewRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -287,7 +297,7 @@ export const LayoutTemplateEditor = ({
     return `${slug}-${stamp}.${ext}`;
   };
 
-  const handleExportPng = async () => {
+  const runExportPng = async () => {
     if (!previewRef.current) return;
     const fileName = buildExportFilename('png');
     try {
@@ -298,7 +308,7 @@ export const LayoutTemplateEditor = ({
     }
   };
 
-  const handleExportPdf = async () => {
+  const runExportPdf = async () => {
     if (!previewRef.current) return;
     const fileName = buildExportFilename('pdf');
     try {
@@ -310,6 +320,30 @@ export const LayoutTemplateEditor = ({
     } catch {
       toast.error('Could not export PDF');
     }
+  };
+
+  /** Public export entry-point — gates on validation. */
+  const handleExportPng = () => {
+    if (!validation.isValid) {
+      setPendingExport('png');
+      return;
+    }
+    void runExportPng();
+  };
+
+  const handleExportPdf = () => {
+    if (!validation.isValid) {
+      setPendingExport('pdf');
+      return;
+    }
+    void runExportPdf();
+  };
+
+  const confirmExportAnyway = async () => {
+    const which = pendingExport;
+    setPendingExport(null);
+    if (which === 'png') await runExportPng();
+    else if (which === 'pdf') await runExportPdf();
   };
 
   const handleApply = (target: ApplyTarget) => {
@@ -460,6 +494,37 @@ export const LayoutTemplateEditor = ({
                 presentationMode
               />
             )}
+
+            {/* Pre-export validation banner */}
+            {validation.issues.length > 0 && (
+              <div
+                role="alert"
+                className={cn(
+                  'rounded-md border p-2.5 text-xs',
+                  validation.errors.length > 0
+                    ? 'border-destructive/40 bg-destructive/10 text-destructive'
+                    : 'border-primary/40 bg-primary/5 text-foreground',
+                )}
+              >
+                <div className="mb-1 flex items-center gap-1.5 font-semibold">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {validation.errors.length > 0
+                    ? `${validation.errors.length} export blocker${validation.errors.length === 1 ? '' : 's'}`
+                    : `${validation.warnings.length} suggestion${validation.warnings.length === 1 ? '' : 's'}`}
+                </div>
+                <ul className="ml-4 list-disc space-y-0.5">
+                  {validation.issues.slice(0, 5).map((issue, idx) => (
+                    <li key={`${issue.code}-${issue.slotKey ?? idx}`}>{issue.message}</li>
+                  ))}
+                  {validation.issues.length > 5 && (
+                    <li className="opacity-70">
+                      …and {validation.issues.length - 5} more
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center gap-2">
               <TooltipProvider delayDuration={200}>
                 <div className="mr-1 flex items-center gap-0.5 rounded-md border bg-background p-0.5">
@@ -886,6 +951,44 @@ export const LayoutTemplateEditor = ({
             }}
           />
         )}
+
+        {/* Pre-export validation confirm */}
+        <Dialog open={!!pendingExport} onOpenChange={(o) => !o && setPendingExport(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                Missing required content
+              </DialogTitle>
+              <DialogDescription>
+                This template is missing items typically required to publish a {template.target} export. Fix them now or export anyway.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-64 overflow-y-auto rounded-md border bg-muted/30 p-3">
+              <ul className="ml-4 list-disc space-y-1 text-xs text-foreground">
+                {validation.errors.map((issue: ValidationIssue, idx: number) => (
+                  <li key={`err-${idx}`}>{issue.message}</li>
+                ))}
+                {validation.warnings.length > 0 && (
+                  <li className="mt-2 list-none border-t pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Suggestions
+                  </li>
+                )}
+                {validation.warnings.map((issue: ValidationIssue, idx: number) => (
+                  <li key={`warn-${idx}`} className="text-muted-foreground">{issue.message}</li>
+                ))}
+              </ul>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setPendingExport(null)}>
+                Go back &amp; fix
+              </Button>
+              <Button variant="destructive" onClick={confirmExportAnyway}>
+                Export anyway
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );
