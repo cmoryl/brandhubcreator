@@ -442,6 +442,8 @@ export const DigitalCollateralSection = ({
   onLayoutChange,
   entityId,
   entityType = 'brand',
+  brandVisuals,
+  layoutTemplateCustomizations,
 }: DigitalCollateralSectionProps) => {
   const collateral = Array.isArray(collateralProp) ? collateralProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -461,6 +463,7 @@ export const DigitalCollateralSection = ({
   const [bannerSetImagePreview, setBannerSetImagePreview] = useState<string | null>(null);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: '', icon: '📂' });
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   
   const { gridClass } = useLayoutClasses(layout);
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
