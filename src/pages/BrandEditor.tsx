@@ -43,6 +43,7 @@ import { TextStylesSection } from '@/components/brand/TextStylesSection';
 import { IconographySection } from '@/components/brand/IconographySection';
 import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
+import { LayoutTemplatesSection } from '@/components/brand/LayoutTemplatesSection';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { WebsiteSection } from '@/components/brand/WebsiteSection';
@@ -693,13 +694,13 @@ const BrandEditor = () => {
   }, [brand]);
 
   const openLayoutTemplates = useCallback(() => {
-    setActiveSection('imagery');
+    setActiveSection('layouttemplates');
     setViewMode('full');
-    setScrollToSection('imagery');
-    navigate({ pathname: location.pathname, hash: 'layout-templates' }, { replace: false });
+    setScrollToSection('layouttemplates');
+    navigate({ pathname: location.pathname, hash: 'layouttemplates' }, { replace: false });
 
     window.setTimeout(() => {
-      const target = document.getElementById('layout-templates') ?? document.getElementById('imagery');
+      const target = document.getElementById('layouttemplates') ?? document.getElementById('layout-templates');
       target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       setScrollToSection(null);
     }, 220);
@@ -797,6 +798,7 @@ const BrandEditor = () => {
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateBrand({ brandIcons }))} entityId={brand.id} entityType="brand" />;
       case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => updateBrand({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateBrand({ colorCombinations }))} brandName={brand.hero.name} />;
       case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => updateBrand({ gradients }))} brandName={brand.hero.name} brandColors={brand.colors} />;
+      case 'layouttemplates': return <LayoutTemplatesSection brandVisuals={(brand as any).brandVisuals} />;
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => updateBrand({ patterns }))} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} brandSlug={brand.slug} customShapes={brand.customShapes} onCustomShapesChange={canEdit ? (customShapes) => updateBrand({ customShapes }) : undefined} entityId={brand.id} entityType="brand" />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => updateBrand({ typography }))} isAdmin={isGuideAdmin} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => updateBrand({ textStyles }))} adminCustomStyle={brand.adminCustomStyle} onAdminCustomStyleChange={canEdit ? (adminCustomStyle) => updateBrand({ adminCustomStyle }) : undefined} canEdit={canEdit} />;
