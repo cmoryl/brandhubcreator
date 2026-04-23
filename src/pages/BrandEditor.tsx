@@ -687,6 +687,24 @@ const BrandEditor = () => {
     navigate('/');
   };
 
+  const hasLayoutTemplates = useMemo(() => {
+    const visuals = (brand as any)?.brandVisuals;
+    return ((visuals?.staticAssets?.length ?? 0) + (visuals?.motionAssets?.length ?? 0)) > 0;
+  }, [brand]);
+
+  const openLayoutTemplates = useCallback(() => {
+    setActiveSection('imagery');
+    setViewMode('full');
+    setScrollToSection('imagery');
+    navigate({ pathname: location.pathname, hash: 'layout-templates' }, { replace: false });
+
+    window.setTimeout(() => {
+      const target = document.getElementById('layout-templates') ?? document.getElementById('imagery');
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setScrollToSection(null);
+    }, 220);
+  }, [location.pathname, navigate]);
+
   const handleSectionChange = useCallback((section: SectionId) => {
     setActiveSection(section);
     if (viewMode === 'full') {
@@ -1025,6 +1043,17 @@ const BrandEditor = () => {
                   organizationSlug={organization?.slug}
                   existingShareToken={brand.shareToken}
                 />
+                {hasLayoutTemplates && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={openLayoutTemplates}
+                    className="gap-2"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    Layout templates
+                  </Button>
+                )}
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
                     <TooltipTrigger asChild>
