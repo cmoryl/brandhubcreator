@@ -951,6 +951,44 @@ export const LayoutTemplateEditor = ({
             }}
           />
         )}
+
+        {/* Pre-export validation confirm */}
+        <Dialog open={!!pendingExport} onOpenChange={(o) => !o && setPendingExport(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                Missing required content
+              </DialogTitle>
+              <DialogDescription>
+                This template is missing items that {`{ebrochure: 'ebrochures', casestudy: 'case studies', onepager: 'one-pagers', whitepaper: 'white papers'}`[template.target as 'ebrochure'] ?? 'this template type'} typically require for export.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-64 overflow-y-auto rounded-md border bg-muted/30 p-3">
+              <ul className="ml-4 list-disc space-y-1 text-xs text-foreground">
+                {validation.errors.map((issue: ValidationIssue, idx: number) => (
+                  <li key={`err-${idx}`}>{issue.message}</li>
+                ))}
+                {validation.warnings.length > 0 && (
+                  <li className="mt-2 list-none border-t pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Suggestions
+                  </li>
+                )}
+                {validation.warnings.map((issue: ValidationIssue, idx: number) => (
+                  <li key={`warn-${idx}`} className="text-muted-foreground">{issue.message}</li>
+                ))}
+              </ul>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setPendingExport(null)}>
+                Go back &amp; fix
+              </Button>
+              <Button variant="destructive" onClick={confirmExportAnyway}>
+                Export anyway
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );
