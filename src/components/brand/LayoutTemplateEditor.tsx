@@ -266,6 +266,22 @@ export const LayoutTemplateEditor = ({
                     onChange={(e) => setCustomization((c) => ({ ...c, name: e.target.value }))}
                     className="mt-1 h-8"
                   />
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground self-center mr-0.5">
+                      Quick:
+                    </span>
+                    {namePresets.map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => setCustomization((c) => ({ ...c, name: preset.value }))}
+                        className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary"
+                        title={preset.value}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {template.overlay?.eyebrow && (
                   <div>
