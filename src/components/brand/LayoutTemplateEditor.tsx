@@ -252,6 +252,31 @@ export const LayoutTemplateEditor = ({
     onOpenChange(false);
   };
 
+  /** Duplicate: save a fresh copy (new id + "(copy)" suffix) without closing the editor. */
+  const handleDuplicate = () => {
+    if (!onSave) return;
+    const baseName = customization.name.replace(/\s*\(copy(?:\s*\d+)?\)\s*$/i, '');
+    const copyMatches = (existingCustomizations ?? [])
+      .map((c) => c.name.match(/\(copy(?:\s*(\d+))?\)\s*$/i))
+      .filter(Boolean);
+    const nextCopyN = copyMatches.length === 0 ? '' : ` ${copyMatches.length + 1}`;
+    const duplicate: LayoutTemplateCustomization = {
+      ...customization,
+      id: safeId(),
+      name: `${baseName} (copy${nextCopyN})`,
+      createdAt: new Date().toISOString(),
+    };
+    onSave(duplicate);
+    toast.success('Variant duplicated');
+  };
+
+  // Side-by-side compare against the unmodified base template
+  const [compareMode, setCompareMode] = useState(false);
+  const baseResolved = useMemo(
+    () => resolveTemplate(template, brandVisuals, undefined),
+    [template, brandVisuals],
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl">
