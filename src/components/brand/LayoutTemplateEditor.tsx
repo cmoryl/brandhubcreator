@@ -191,6 +191,25 @@ export const LayoutTemplateEditor = ({
     }));
   };
 
+  const setSlotFit = (slotKey: string, next: { fit: 'cover' | 'contain'; focusX: number; focusY: number }) =>
+    replaceCustomization((c) => ({
+      ...c,
+      slotFitOverrides: { ...(c.slotFitOverrides ?? {}), [slotKey]: next },
+    }));
+
+  const commitSlotFit = (slotKey: string, next: { fit: 'cover' | 'contain'; focusX: number; focusY: number }) =>
+    setCustomization((c) => ({
+      ...c,
+      slotFitOverrides: { ...(c.slotFitOverrides ?? {}), [slotKey]: next },
+    }));
+
+  const resetSlotFit = (slotKey: string) =>
+    setCustomization((c) => {
+      const next = { ...(c.slotFitOverrides ?? {}) };
+      delete next[slotKey];
+      return { ...c, slotFitOverrides: next };
+    });
+
   const handleExportPng = async () => {
     if (!previewRef.current) return;
     try {
