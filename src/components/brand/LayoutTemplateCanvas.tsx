@@ -43,6 +43,15 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
       >
         {resolved.map(({ slot, asset }) => {
           const pos = slot.position ?? { x: 0, y: 0, width: 100, height: 100 };
+          const fit = customization?.slotFitOverrides?.[slot.key] ?? {
+            fit: 'cover' as const,
+            focusX: 50,
+            focusY: 50,
+          };
+          const mediaStyle: React.CSSProperties = {
+            objectFit: fit.fit,
+            objectPosition: `${fit.focusX}% ${fit.focusY}%`,
+          };
           return (
             <div
               key={slot.key}
@@ -52,13 +61,16 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
                 top: `${pos.y}%`,
                 width: `${pos.width}%`,
                 height: `${pos.height}%`,
+                // contain mode benefits from a subtle backdrop so letterboxing isn't pure white
+                background: fit.fit === 'contain' ? 'hsl(var(--muted))' : undefined,
               }}
             >
               {asset.type === 'image' && (
                 <img
                   src={asset.url}
                   alt={slot.label}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full"
+                  style={mediaStyle}
                   loading="lazy"
                   crossOrigin="anonymous"
                 />
@@ -66,7 +78,8 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
               {asset.type === 'video' && (
                 <video
                   src={asset.url}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full"
+                  style={mediaStyle}
                   autoPlay
                   muted
                   loop
