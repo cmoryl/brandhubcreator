@@ -134,7 +134,7 @@ export const BrandLayoutTemplateGallery = ({
   return (
     <section className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-center gap-2">
           <LayoutTemplate className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold">Layout templates</h3>
@@ -147,6 +147,13 @@ export const BrandLayoutTemplateGallery = ({
           Auto-fills with Foundation / Collaborate / Transform visuals
         </div>
       </div>
+
+      {/* Industry suggestions */}
+      <IndustrySelector
+        value={industry}
+        onChange={setIndustry}
+        className="rounded-lg border bg-muted/30 p-3"
+      />
 
       {/* Saved custom variants */}
       {savedCustomizations && savedCustomizations.length > 0 && (
