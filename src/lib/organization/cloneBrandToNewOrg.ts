@@ -84,13 +84,14 @@ export async function cloneBrandToNewOrg(opts: CloneBrandOptions): Promise<Clone
     // 5. Insert the cloned brand row
     const { data: newBrand, error: insertErr } = await supabase
       .from('brands')
-      .insert({
+      .insert([{
         name: source.name,
         slug: brandSlug,
         organization_id: newOrg.id,
         is_public: opts.isPublic ?? true,
         guide_data: guideData as any,
-      })
+        user_id: opts.userId,
+      }])
       .select('id, slug')
       .single();
 
