@@ -43,6 +43,9 @@ export interface CanvasEditorZone extends TemplateZoneLike {
   label: string;
   content?: string;
   align?: 'left' | 'center' | 'right';
+  /** Set by `hydrateZoneDefaults` when seed mode === 'ai' so the editor can
+   *  asynchronously replace the placeholder lorem with brand-aware AI copy. */
+  _seedPending?: boolean;
 }
 
 export interface TemplateCanvasEditorProps {
