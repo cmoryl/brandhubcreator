@@ -459,6 +459,110 @@ const sampleImageLuminance = (url: string): Promise<number | null> => {
   return promise;
 };
 
+// ---------------------------------------------------------------------------
+// Logo asset transparency detection
+// ---------------------------------------------------------------------------
+
+/**
+ * Cached "is this asset transparent?" answers keyed by URL. SVGs are treated as
+ * transparent by default; PNG/WebP are inspected by sampling the alpha channel.
+ * Other raster formats (JPEG, etc.) are always considered opaque.
+ */
+const assetTransparencyCache = new Map<string, boolean>();
+const assetTransparencyPending = new Map<string, Promise<boolean>>();
+
+const looksLikeSvgUrl = (url: string): boolean => {
+  if (!url) return false;
+  const lower = url.split('?')[0].split('#')[0].toLowerCase();
+  if (lower.endsWith('.svg')) return true;
+  if (url.startsWith('data:image/svg')) return true;
+  return false;
+};
+
+const looksLikeAlphaCapableRaster = (url: string): boolean => {
+  if (!url) return false;
+  const lower = url.split('?')[0].split('#')[0].toLowerCase();
+  return (
+    lower.endsWith('.png')
+    || lower.endsWith('.webp')
+    || lower.endsWith('.gif')
+    || lower.endsWith('.avif')
+    || url.startsWith('data:image/png')
+    || url.startsWith('data:image/webp')
+    || url.startsWith('data:image/gif')
+    || url.startsWith('data:image/avif')
+  );
+};
+
+/**
+ * Detect whether the given image URL has any transparent pixels. SVGs are
+ * always transparent; rasters with no alpha channel (JPEG) are always opaque.
+ * For PNG/WebP/etc. we sample the alpha channel on a downscaled canvas.
+ */
+const detectAssetTransparency = (url: string): Promise<boolean> => {
+  if (!url) return Promise.resolve(false);
+  if (assetTransparencyCache.has(url)) {
+    return Promise.resolve(assetTransparencyCache.get(url) as boolean);
+  }
+  if (looksLikeSvgUrl(url)) {
+    assetTransparencyCache.set(url, true);
+    return Promise.resolve(true);
+  }
+  if (!looksLikeAlphaCapableRaster(url)) {
+    assetTransparencyCache.set(url, false);
+    return Promise.resolve(false);
+  }
+  const pending = assetTransparencyPending.get(url);
+  if (pending) return pending;
+
+  const promise = new Promise<boolean>((resolve) => {
+    try {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const w = 32;
+          const h = 32;
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return resolve(false);
+          // Clear so any non-painted pixels read as alpha=0 (covers fully transparent).
+          ctx.clearRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          const data = ctx.getImageData(0, 0, w, h).data;
+          let transparentPixels = 0;
+          const totalPixels = data.length / 4;
+          for (let i = 0; i < data.length; i += 4) {
+            // Treat anything below near-fully-opaque as transparent so soft
+            // anti-aliased edges (very common in logos) count as transparency.
+            if (data[i + 3] < 250) {
+              transparentPixels += 1;
+              // Early exit once we've crossed a meaningful threshold.
+              if (transparentPixels / totalPixels > 0.02) break;
+            }
+          }
+          const isTransparent = transparentPixels / totalPixels > 0.02;
+          assetTransparencyCache.set(url, isTransparent);
+          resolve(isTransparent);
+        } catch {
+          resolve(false);
+        }
+      };
+      img.onerror = () => resolve(false);
+      img.src = url;
+    } catch {
+      resolve(false);
+    }
+  }).finally(() => {
+    assetTransparencyPending.delete(url);
+  });
+
+  assetTransparencyPending.set(url, promise);
+  return promise;
+};
+
 /**
  * Find the image zone that visually sits behind the given logo zone — i.e. the
  * largest image zone that overlaps the logo's footprint. Used to decide which
@@ -711,6 +815,7 @@ const TemplatePreviewDialog = ({
   const [exportIncludeGuides, setExportIncludeGuides] = useState(false);
   const [exportOriginalResolution, setExportOriginalResolution] = useState(false);
   const [exportTarget, setExportTarget] = useState<'preview' | 'frames'>('preview');
+  const [hasTransparentLogoFrame, setHasTransparentLogoFrame] = useState(false);
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const safeAreaGuide = getSafeAreaGuide(platform, template);
   const frameZones = templateZones
@@ -745,6 +850,29 @@ const TemplatePreviewDialog = ({
     });
     return () => { cancelled = true; };
   }, [activeLogoBackgroundUrl]);
+
+  // Detect whether any logo zone in this template is backed by a transparent
+  // asset (SVG / alpha PNG / WebP). This drives the smart default for the
+  // "Transparent background" toggle in the export dialog and shows a hint so
+  // users understand why we're recommending it.
+  const logoMediaUrls = templateZones
+    .filter((z) => z.type === 'logo' && !!z.mediaUrl)
+    .map((z) => z.mediaUrl as string)
+    .join('|');
+
+  useEffect(() => {
+    let cancelled = false;
+    const urls = logoMediaUrls ? logoMediaUrls.split('|') : [];
+    if (urls.length === 0) {
+      setHasTransparentLogoFrame(false);
+      return;
+    }
+    Promise.all(urls.map((url) => detectAssetTransparency(url).catch(() => false)))
+      .then((results) => {
+        if (!cancelled) setHasTransparentLogoFrame(results.some(Boolean));
+      });
+    return () => { cancelled = true; };
+  }, [logoMediaUrls]);
 
   const updateZone = (zoneIndex: number, updates: Partial<SocialTemplateZone>) => {
     const nextZones = templateZones.map((zone, index) =>
@@ -880,6 +1008,20 @@ const TemplatePreviewDialog = ({
       return null;
     }
 
+    // Logo zones with intrinsically transparent assets (SVG, alpha-PNG, WebP)
+    // must be exported with transparency preserved regardless of the global
+    // toggle — flattening them onto a white plate would defeat the entire
+    // point of shipping a transparent logo.
+    let effectiveTransparent = transparent;
+    if (zone.type === 'logo') {
+      try {
+        const assetIsTransparent = await detectAssetTransparency(zone.mediaUrl);
+        if (assetIsTransparent) effectiveTransparent = true;
+      } catch {
+        // Fall through with the requested setting.
+      }
+    }
+
     const fit = getZoneMediaFit(zone);
     const mediaW = img.naturalWidth || img.width;
     const mediaH = img.naturalHeight || img.height;
@@ -944,7 +1086,7 @@ const TemplatePreviewDialog = ({
     canvas.height = Math.max(1, outH);
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    if (!transparent) {
+    if (!effectiveTransparent) {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
@@ -988,11 +1130,19 @@ const TemplatePreviewDialog = ({
         const safeLabel = sanitizeFileName(zone.label || `frame-${i + 1}`);
         let cropDataUrl: string | null = null;
 
-        if (options.originalResolution) {
+        // Logo zones backed by a transparent asset (SVG / alpha PNG) must be
+        // rendered straight from the source so the exported file preserves
+        // transparency — slicing from the rasterized preview would bake in the
+        // template background behind the logo.
+        const logoNeedsTransparency = zone.type === 'logo'
+          && !!zone.mediaUrl
+          && await detectAssetTransparency(zone.mediaUrl).catch(() => false);
+
+        if (options.originalResolution || logoNeedsTransparency) {
           cropDataUrl = await renderFrameAtOriginalResolution(zone, options.transparent);
           if (cropDataUrl) {
-            originalUsed += 1;
-          } else {
+            if (options.originalResolution) originalUsed += 1;
+          } else if (options.originalResolution) {
             originalFallback += 1;
           }
         }
@@ -1042,6 +1192,12 @@ const TemplatePreviewDialog = ({
 
   const openExportDialog = (target: 'preview' | 'frames') => {
     setExportTarget(target);
+    // Smart default: if we're exporting frames and any logo zone is backed by
+    // a transparent asset, pre-enable the transparent toggle so logos export
+    // with their alpha channel preserved out of the box.
+    if (target === 'frames' && hasTransparentLogoFrame) {
+      setExportTransparent(true);
+    }
     setExportDialogOpen(true);
   };
 
@@ -1673,6 +1829,12 @@ const TemplatePreviewDialog = ({
               <p className="text-xs text-muted-foreground">
                 Export with a transparent canvas instead of the template background.
               </p>
+              {exportTarget === 'frames' && hasTransparentLogoFrame && (
+                <p className="text-xs font-medium text-primary">
+                  Recommended — this template includes transparent logo assets that
+                  will keep their alpha channel when exported individually.
+                </p>
+              )}
             </div>
             <Switch
               id="export-transparent"
