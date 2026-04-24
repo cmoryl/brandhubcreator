@@ -196,7 +196,8 @@ serve(async (req) => {
           toneOfVoice: identity.toneOfVoice as string[] || undefined,
           industry: guideData.industry as string || undefined,
           mission: identity.missionStatement as string || undefined,
-          fonts: (guideData.typography as BrandContext['fonts']) || []
+          fonts: (guideData.typography as BrandContext['fonts']) || [],
+          imageryAvoidList: (guideData.imageryAvoidList as BrandContext['imageryAvoidList']) || [],
         };
         organizationId = entity.organization_id;
       }
@@ -209,6 +210,10 @@ serve(async (req) => {
       const constraints = buildBrandConstraints(brandContext);
       if (constraints) {
         enhancedPrompt = `${prompt}\n\nBrand Guidelines:\n${constraints}`;
+      }
+      const avoidDirectives = buildAvoidDirectives(brandContext);
+      if (avoidDirectives) {
+        enhancedPrompt = `${enhancedPrompt}\n\n${avoidDirectives}`;
       }
     }
     
