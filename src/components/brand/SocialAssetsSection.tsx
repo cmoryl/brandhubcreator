@@ -414,6 +414,40 @@ const autoMatchLogosForZones = (
   brandLogos: BrandLogo[] | undefined,
 ) => sharedAutoMatchLogosForZones(zones, brandLogos);
 
+const getEditableZones = (
+  platform: string,
+  template: SocialAssetTemplate,
+  brandLogos?: BrandLogo[],
+): SocialTemplateZone[] => {
+  const defaultLogo = brandLogos?.find((logo) =>
+    logo.variant === 'primary' && logo.url
+  ) || brandLogos?.find((logo) => !!logo.url);
+  const defaultLogoUrl = pickDefaultBrandLogoUrl(brandLogos);
+
+  const hydrate = (zone: SocialTemplateZone): SocialTemplateZone => {
+    if (zone.type !== 'image' && zone.type !== 'logo') return { ...zone };
+    const next: SocialTemplateZone = {
+      ...zone,
+      mediaFit: zone.mediaFit || getSmartDefaultZoneFit(zone, template),
+    };
+    // Auto-fill empty logo zones with the brand's default logo so every size
+    // ships with a real logo placement out of the box. We tag the zone as
+    // auto-matched so the background-aware matcher can later swap to a better
+    // variant once the surrounding background is known.
+    if (zone.type === 'logo' && !next.mediaUrl && defaultLogoUrl) {
+      next.mediaUrl = defaultLogoUrl;
+      if (defaultLogo?.id) next.autoMatchedLogoId = defaultLogo.id;
+    }
+    return next;
+  };
+
+  if (template.templateZones?.length) {
+    return template.templateZones.map(hydrate);
+  }
+  const templateDefinition = getTemplateDefinitionForAsset(platform, template);
+  return (templateDefinition?.zones || []).map(hydrate);
+};
+
 type SafeAreaGuide = {
   x: number;
   y: number;
