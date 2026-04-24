@@ -601,6 +601,7 @@ const TemplatePreviewDialog = ({
     pixelRatio: number;
     transparent: boolean;
     includeGuides: boolean;
+    originalResolution?: boolean;
   }
 
   const renderCanvasToDataUrl = async (
