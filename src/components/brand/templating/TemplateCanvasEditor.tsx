@@ -89,7 +89,6 @@ export const TemplateCanvasEditor = ({
 }: TemplateCanvasEditorProps) => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [selectedZoneIndex, setSelectedZoneIndex] = useState<number | null>(null);
-  const [activeLogoBgLuminance, setActiveLogoBgLuminance] = useState<number | null>(null);
 
   const selectedZone = selectedZoneIndex !== null ? zones[selectedZoneIndex] : null;
 
