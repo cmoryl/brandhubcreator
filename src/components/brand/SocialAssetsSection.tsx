@@ -315,10 +315,72 @@ const defaultTemplatePreviewFit = { fit: 'cover' as const, focusX: 50, focusY: 5
 
 const getZoneMediaFit = (zone: SocialTemplateZone) => zone.mediaFit || defaultTemplatePreviewFit;
 
+const getTemplateFormat = (template: Pick<SocialAssetTemplate, 'sourceTemplateFormat' | 'sizeCategory'>) => (
+  template.sourceTemplateFormat || (template.sizeCategory === 'story'
+    ? 'story'
+    : template.sizeCategory === 'reel'
+      ? 'reel'
+      : template.sizeCategory === 'cover'
+        ? 'cover'
+        : template.sizeCategory === 'other'
+          ? 'profile'
+          : 'feed')
+);
+
+const getSmartDefaultZoneFit = (
+  zone: SocialTemplateZone,
+  template: Pick<SocialAssetTemplate, 'sourceTemplateFormat' | 'sizeCategory'>,
+) => {
+  if (zone.type === 'logo') {
+    return { fit: 'contain' as const, focusX: 50, focusY: 50 };
+  }
+
+  const format = getTemplateFormat(template);
+  const centerX = zone.x + zone.width / 2;
+  const centerY = zone.y + zone.height / 2;
+  const aspectRatio = zone.width / Math.max(zone.height, 1);
+
+  let focusX = 50;
+  if (centerX <= 30) focusX = 38;
+  else if (centerX >= 70) focusX = 62;
+
+  let focusY = 50;
+  if (format === 'story' || format === 'reel') {
+    focusY = centerY <= 34 ? 38 : centerY >= 68 ? 62 : 48;
+  } else if (format === 'cover') {
+    focusY = 46;
+  } else if (centerY <= 30) {
+    focusY = 42;
+  } else if (centerY >= 70) {
+    focusY = 58;
+  }
+
+  if (zone.width >= 85 && zone.height >= 85) {
+    focusX = 50;
+    focusY = format === 'story' || format === 'reel' ? 44 : format === 'cover' ? 46 : 50;
+  } else if (aspectRatio >= 2.2) {
+    focusY = format === 'cover' ? 46 : 50;
+  } else if (aspectRatio <= 0.7 && (format === 'story' || format === 'reel')) {
+    focusY = 40;
+  }
+
+  return { fit: 'cover' as const, focusX, focusY };
+};
+
 const getEditableZones = (platform: string, template: SocialAssetTemplate): SocialTemplateZone[] => {
-  if (template.templateZones?.length) return template.templateZones;
+  if (template.templateZones?.length) {
+    return template.templateZones.map((zone) => (
+      zone.type === 'image' || zone.type === 'logo'
+        ? { ...zone, mediaFit: zone.mediaFit || getSmartDefaultZoneFit(zone, template) }
+        : zone
+    ));
+  }
   const templateDefinition = getTemplateDefinitionForAsset(platform, template);
-  return (templateDefinition?.zones || []).map((zone) => ({ ...zone }));
+  return (templateDefinition?.zones || []).map((zone) => (
+    zone.type === 'image' || zone.type === 'logo'
+      ? { ...zone, mediaFit: getSmartDefaultZoneFit(zone, template) }
+      : { ...zone }
+  ));
 };
 
 type SafeAreaGuide = {
