@@ -459,6 +459,110 @@ const sampleImageLuminance = (url: string): Promise<number | null> => {
   return promise;
 };
 
+// ---------------------------------------------------------------------------
+// Logo asset transparency detection
+// ---------------------------------------------------------------------------
+
+/**
+ * Cached "is this asset transparent?" answers keyed by URL. SVGs are treated as
+ * transparent by default; PNG/WebP are inspected by sampling the alpha channel.
+ * Other raster formats (JPEG, etc.) are always considered opaque.
+ */
+const assetTransparencyCache = new Map<string, boolean>();
+const assetTransparencyPending = new Map<string, Promise<boolean>>();
+
+const looksLikeSvgUrl = (url: string): boolean => {
+  if (!url) return false;
+  const lower = url.split('?')[0].split('#')[0].toLowerCase();
+  if (lower.endsWith('.svg')) return true;
+  if (url.startsWith('data:image/svg')) return true;
+  return false;
+};
+
+const looksLikeAlphaCapableRaster = (url: string): boolean => {
+  if (!url) return false;
+  const lower = url.split('?')[0].split('#')[0].toLowerCase();
+  return (
+    lower.endsWith('.png')
+    || lower.endsWith('.webp')
+    || lower.endsWith('.gif')
+    || lower.endsWith('.avif')
+    || url.startsWith('data:image/png')
+    || url.startsWith('data:image/webp')
+    || url.startsWith('data:image/gif')
+    || url.startsWith('data:image/avif')
+  );
+};
+
+/**
+ * Detect whether the given image URL has any transparent pixels. SVGs are
+ * always transparent; rasters with no alpha channel (JPEG) are always opaque.
+ * For PNG/WebP/etc. we sample the alpha channel on a downscaled canvas.
+ */
+const detectAssetTransparency = (url: string): Promise<boolean> => {
+  if (!url) return Promise.resolve(false);
+  if (assetTransparencyCache.has(url)) {
+    return Promise.resolve(assetTransparencyCache.get(url) as boolean);
+  }
+  if (looksLikeSvgUrl(url)) {
+    assetTransparencyCache.set(url, true);
+    return Promise.resolve(true);
+  }
+  if (!looksLikeAlphaCapableRaster(url)) {
+    assetTransparencyCache.set(url, false);
+    return Promise.resolve(false);
+  }
+  const pending = assetTransparencyPending.get(url);
+  if (pending) return pending;
+
+  const promise = new Promise<boolean>((resolve) => {
+    try {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const w = 32;
+          const h = 32;
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return resolve(false);
+          // Clear so any non-painted pixels read as alpha=0 (covers fully transparent).
+          ctx.clearRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          const data = ctx.getImageData(0, 0, w, h).data;
+          let transparentPixels = 0;
+          const totalPixels = data.length / 4;
+          for (let i = 0; i < data.length; i += 4) {
+            // Treat anything below near-fully-opaque as transparent so soft
+            // anti-aliased edges (very common in logos) count as transparency.
+            if (data[i + 3] < 250) {
+              transparentPixels += 1;
+              // Early exit once we've crossed a meaningful threshold.
+              if (transparentPixels / totalPixels > 0.02) break;
+            }
+          }
+          const isTransparent = transparentPixels / totalPixels > 0.02;
+          assetTransparencyCache.set(url, isTransparent);
+          resolve(isTransparent);
+        } catch {
+          resolve(false);
+        }
+      };
+      img.onerror = () => resolve(false);
+      img.src = url;
+    } catch {
+      resolve(false);
+    }
+  }).finally(() => {
+    assetTransparencyPending.delete(url);
+  });
+
+  assetTransparencyPending.set(url, promise);
+  return promise;
+};
+
 /**
  * Find the image zone that visually sits behind the given logo zone — i.e. the
  * largest image zone that overlaps the logo's footprint. Used to decide which
