@@ -303,6 +303,13 @@ const zonePreviewStyles: Record<TemplateZoneType, string> = {
   cta: 'border-amber-400/80 bg-amber-500/15 text-amber-50',
 };
 
+const zoneTypeLabels: Record<TemplateZoneType, string> = {
+  image: 'Imagery frame',
+  text: 'Text layer',
+  logo: 'Logo frame',
+  cta: 'CTA layer',
+};
+
 const clampZoneValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const defaultTemplatePreviewFit = { fit: 'cover' as const, focusX: 50, focusY: 50 };
 
@@ -443,6 +450,9 @@ const TemplatePreviewDialog = ({
   const [zoomLevel, setZoomLevel] = useState('100');
   const safeAreaGuide = getSafeAreaGuide(platform, template);
   const previewFit = template.previewFit || defaultTemplatePreviewFit;
+  const frameZones = templateZones
+    .map((zone, index) => ({ zone, index }))
+    .filter(({ zone }) => zone.type === 'image' || zone.type === 'logo');
 
   useEffect(() => {
     setSelectedZoneIndex(0);
@@ -679,6 +689,39 @@ const TemplatePreviewDialog = ({
             </div>
 
             <div className="space-y-4 p-4">
+              {frameZones.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                    <Layers className="h-3.5 w-3.5" />
+                    Frame manager
+                  </div>
+                  <div className="space-y-2">
+                    {frameZones.map(({ zone, index }) => {
+                      const isSelected = selectedZoneIndex === index;
+                      return (
+                        <button
+                          key={`${template.id}-frame-${index}`}
+                          type="button"
+                          onClick={() => setSelectedZoneIndex(index)}
+                          className={cn(
+                            'flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors hover:border-primary/40',
+                            isSelected ? 'border-primary bg-primary/5' : 'border-border bg-muted/20'
+                          )}
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-foreground">{zone.label}</p>
+                            <p className="text-[11px] text-muted-foreground">{zoneTypeLabels[zone.type]}</p>
+                          </div>
+                          <div className="shrink-0 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-muted-foreground">
+                            {Math.round(zone.width)} × {Math.round(zone.height)}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <SlotFitControl
                 previewUrl={template.previewImageUrl}
                 assetType={template.previewImageUrl ? 'image' : 'empty'}
