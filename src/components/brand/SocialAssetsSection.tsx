@@ -1424,6 +1424,26 @@ const TemplatePreviewDialog = ({
               onCheckedChange={setExportIncludeGuides}
             />
           </div>
+
+          {exportTarget === 'frames' && (
+            <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
+              <div className="space-y-0.5">
+                <Label htmlFor="export-original" className="text-sm font-medium">
+                  Original media resolution
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Render each frame from its source image at full native resolution
+                  instead of the preview canvas. Frames without bound media fall back
+                  to the preview slice.
+                </p>
+              </div>
+              <Switch
+                id="export-original"
+                checked={exportOriginalResolution}
+                onCheckedChange={setExportOriginalResolution}
+              />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setExportDialogOpen(false)} disabled={isExporting}>
