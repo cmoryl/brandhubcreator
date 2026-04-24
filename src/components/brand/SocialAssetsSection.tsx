@@ -576,6 +576,121 @@ const TemplatePreviewDialog = ({
     onUpdateTemplate({ templateZones: nextZones });
   };
 
+  const sanitizeFileName = (name: string) =>
+    name.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'frame';
+
+  const triggerDownload = (dataUrl: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const renderCanvasToDataUrl = async (): Promise<string | null> => {
+    if (!canvasRef.current) return null;
+    // Temporarily hide overlays so the export is clean.
+    const previousGrid = showGrid;
+    const previousSafe = showSafeArea;
+    setShowGrid(false);
+    setShowSafeArea(false);
+    // Wait one frame for state-driven render.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    try {
+      return await toPng(canvasRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
+        skipFonts: false,
+        filter: (node) => {
+          if (!(node instanceof HTMLElement)) return true;
+          // Exclude resize handles & dashed zone borders from export.
+          return node.dataset.exportExclude !== 'true';
+        },
+      });
+    } finally {
+      setShowGrid(previousGrid);
+      setShowSafeArea(previousSafe);
+    }
+  };
+
+  const handleExportPreview = async () => {
+    setIsExporting(true);
+    try {
+      const dataUrl = await renderCanvasToDataUrl();
+      if (!dataUrl) {
+        toast.error('Preview not ready to export');
+        return;
+      }
+      triggerDownload(dataUrl, `${sanitizeFileName(template.name)}-preview.png`);
+      toast.success('Preview exported');
+    } catch (err) {
+      console.error('Export preview failed', err);
+      toast.error('Failed to export preview');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportFramesZip = async () => {
+    if (frameZones.length === 0) {
+      toast.error('No frames to export');
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const fullDataUrl = await renderCanvasToDataUrl();
+      if (!fullDataUrl || !canvasRef.current) {
+        toast.error('Preview not ready to export');
+        return;
+      }
+
+      const zip = new JSZip();
+      const folder = zip.folder(sanitizeFileName(template.name)) || zip;
+      folder.file('preview.png', fullDataUrl.split(',')[1], { base64: true });
+
+      // Load full canvas image to crop frames out of it.
+      const baseImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new globalThis.Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = fullDataUrl;
+      });
+
+      const baseW = baseImg.width;
+      const baseH = baseImg.height;
+
+      for (let i = 0; i < frameZones.length; i++) {
+        const { zone } = frameZones[i];
+        const sx = Math.max(0, Math.round((zone.x / 100) * baseW));
+        const sy = Math.max(0, Math.round((zone.y / 100) * baseH));
+        const sw = Math.max(1, Math.round((zone.width / 100) * baseW));
+        const sh = Math.max(1, Math.round((zone.height / 100) * baseH));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = sw;
+        canvas.height = sh;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) continue;
+        ctx.drawImage(baseImg, sx, sy, sw, sh, 0, 0, sw, sh);
+        const cropDataUrl = canvas.toDataURL('image/png');
+        const safeLabel = sanitizeFileName(zone.label || `frame-${i + 1}`);
+        folder.file(`${String(i + 1).padStart(2, '0')}-${safeLabel}.png`, cropDataUrl.split(',')[1], { base64: true });
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, `${sanitizeFileName(template.name)}-frames.zip`);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      toast.success(`Exported ${frameZones.length} frame${frameZones.length === 1 ? '' : 's'}`);
+    } catch (err) {
+      console.error('Export frames failed', err);
+      toast.error('Failed to export frames');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleZonePointerDown = (
     event: React.PointerEvent<HTMLElement>,
     zoneIndex: number,
