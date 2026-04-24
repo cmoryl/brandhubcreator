@@ -2371,6 +2371,7 @@ const SizeCategorySection = ({
                       template={template}
                       interactive
                       onClick={() => setSelectedTemplate(template)}
+                      brandLogos={brandLogos}
                     />
                   ) : isCanva ? (
                     <div className="flex flex-col items-center gap-2 text-center p-4">
