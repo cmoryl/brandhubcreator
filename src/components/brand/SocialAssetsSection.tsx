@@ -212,8 +212,23 @@ const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate
 };
 
 const getResolvedTemplates = (asset: BrandSocialAssetSpec): SocialAssetTemplate[] => {
-  if ((asset.templates?.length || 0) > 0) return asset.templates || [];
-  return getGeneratedTemplatesForPlatform(asset.platform);
+  const generatedTemplates = getGeneratedTemplatesForPlatform(asset.platform);
+  const savedTemplates = asset.templates || [];
+
+  if (savedTemplates.length === 0) return generatedTemplates;
+
+  return savedTemplates.map((template) => {
+    if (template.previewImageUrl) return template;
+
+    const matchedGenerated = generatedTemplates.find((generated) =>
+      generated.name === template.name ||
+      (generated.sizeCategory === template.sizeCategory && generated.dimensions === template.dimensions)
+    );
+
+    return matchedGenerated?.previewImageUrl
+      ? { ...template, previewImageUrl: matchedGenerated.previewImageUrl }
+      : template;
+  });
 };
 
 
