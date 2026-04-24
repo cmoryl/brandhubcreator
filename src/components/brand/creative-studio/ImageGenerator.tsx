@@ -8,7 +8,7 @@ import { Wand2, Sparkles, Settings2, Save, Loader2, Download, Copy, Check } from
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -254,12 +254,38 @@ export const ImageGenerator = ({
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              {(Object.entries(STYLE_PRESET_OPTIONS) as [StylePreset, { label: string }][]).map(([key, { label }]) => (
-                <SelectItem key={key} value={key}>
-                  {label}
-                </SelectItem>
-              ))}
+            <SelectContent className="max-h-[420px]">
+              <SelectGroup>
+                <SelectLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Brand Photography
+                </SelectLabel>
+                {(Object.entries(STYLE_PRESET_OPTIONS) as [StylePreset, { label: string; description: string; group: string }][])
+                  .filter(([, v]) => v.group === 'photography')
+                  .map(([key, { label, description }]) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{label}</span>
+                        <span className="text-xs text-muted-foreground">{description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+              </SelectGroup>
+              <SelectSeparator />
+              <SelectGroup>
+                <SelectLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Design & Illustration
+                </SelectLabel>
+                {(Object.entries(STYLE_PRESET_OPTIONS) as [StylePreset, { label: string; description: string; group: string }][])
+                  .filter(([, v]) => v.group === 'design')
+                  .map(([key, { label, description }]) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{label}</span>
+                        <span className="text-xs text-muted-foreground">{description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
