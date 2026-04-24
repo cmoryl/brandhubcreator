@@ -2474,6 +2474,7 @@ const SizeCategorySection = ({
         layoutOptions={categoryTemplates}
         onSelectTemplate={setSelectedTemplate}
         canEdit={canEditSocial}
+        brandLogos={brandLogos}
         onUploadZoneMedia={async (zoneIndex, file) => {
           if (!selectedTemplate) return;
 
