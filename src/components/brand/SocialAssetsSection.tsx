@@ -464,14 +464,16 @@ const TemplateCardPreview = ({
   template,
   interactive = false,
   onClick,
+  brandLogos,
 }: {
   platform: string;
   template: SocialAssetTemplate;
   interactive?: boolean;
   onClick?: () => void;
+  brandLogos?: BrandLogo[];
 }) => {
   const previewImage = template.previewImageUrl;
-  const templateZones = getEditableZones(platform, template);
+  const templateZones = getEditableZones(platform, template, brandLogos);
 
   return (
     <button
