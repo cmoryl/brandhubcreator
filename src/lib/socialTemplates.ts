@@ -334,8 +334,13 @@ export function getTemplatesForPlatformFormat(platform: string, format: string):
 
 export function getTemplateDefinitionForAsset(
   platform: string,
-  template: Pick<SocialTemplate, 'name'> & { sizeCategory?: string },
+  template: Pick<SocialTemplate, 'name'> & { sizeCategory?: string; sourceTemplateId?: string; sourceTemplateFormat?: string },
 ): SocialTemplate | undefined {
+  if (template.sourceTemplateId) {
+    const exact = socialTemplates.find((item) => item.id === template.sourceTemplateId);
+    if (exact) return exact;
+  }
+
   const formatMap: Record<string, TemplateFormat[]> = {
     post: ['feed'],
     square: ['feed'],
@@ -345,7 +350,9 @@ export function getTemplateDefinitionForAsset(
     other: ['profile', 'feed'],
   };
 
-  const candidateFormats = formatMap[template.sizeCategory || 'other'] || ['feed'];
+  const candidateFormats = template.sourceTemplateFormat
+    ? [template.sourceTemplateFormat as TemplateFormat]
+    : formatMap[template.sizeCategory || 'other'] || ['feed'];
   const candidates = candidateFormats.flatMap((format) => getTemplatesForPlatformFormat(platform, format));
 
   return candidates.find((item) => item.name === template.name);

@@ -208,6 +208,8 @@ const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate
     previewImageUrl: getTemplatePreviewImage(template),
     dimensions: template.formats.join(', '),
     sizeCategory: sizeMap[template.formats[0]] || 'other',
+    sourceTemplateId: template.id,
+    sourceTemplateFormat: template.formats[0],
   }));
 };
 
@@ -218,16 +220,18 @@ const getResolvedTemplates = (asset: BrandSocialAssetSpec): SocialAssetTemplate[
   if (savedTemplates.length === 0) return generatedTemplates;
 
   return savedTemplates.map((template) => {
-    if (template.previewImageUrl) return template;
-
     const matchedGenerated = generatedTemplates.find((generated) =>
-      generated.name === template.name ||
-      (generated.sizeCategory === template.sizeCategory && generated.dimensions === template.dimensions)
+      (template.sourceTemplateId && generated.sourceTemplateId === template.sourceTemplateId) ||
+      (template.name === generated.name && template.sourceTemplateFormat && generated.sourceTemplateFormat === template.sourceTemplateFormat) ||
+      (generated.name === template.name && generated.sizeCategory === template.sizeCategory && generated.dimensions === template.dimensions)
     );
 
-    return matchedGenerated?.previewImageUrl
-      ? { ...template, previewImageUrl: matchedGenerated.previewImageUrl }
-      : template;
+    return {
+      ...template,
+      previewImageUrl: template.previewImageUrl || matchedGenerated?.previewImageUrl,
+      sourceTemplateId: template.sourceTemplateId || matchedGenerated?.sourceTemplateId,
+      sourceTemplateFormat: template.sourceTemplateFormat || matchedGenerated?.sourceTemplateFormat,
+    };
   });
 };
 
