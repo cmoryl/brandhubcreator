@@ -31,6 +31,10 @@ import {
 } from '@/lib/templateZonePipeline';
 import type { BrandLogo } from '@/types/brand';
 import type { ZoneSeedMode } from '@/hooks/useZoneSeedMode';
+import { useZoneSeedMode } from '@/hooks/useZoneSeedMode';
+import { useAiSeedZones, type ZoneSeedBrandContext } from '@/hooks/useAiSeedZones';
+import { ZoneSeedModeSelect } from './ZoneSeedModeSelect';
+import { toast } from 'sonner';
 import { BrandLogoVariantPicker } from './BrandLogoVariantPicker';
 
 // ---------------------------------------------------------------------------
