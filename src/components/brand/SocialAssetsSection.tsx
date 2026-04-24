@@ -851,6 +851,29 @@ const TemplatePreviewDialog = ({
     return () => { cancelled = true; };
   }, [activeLogoBackgroundUrl]);
 
+  // Detect whether any logo zone in this template is backed by a transparent
+  // asset (SVG / alpha PNG / WebP). This drives the smart default for the
+  // "Transparent background" toggle in the export dialog and shows a hint so
+  // users understand why we're recommending it.
+  const logoMediaUrls = templateZones
+    .filter((z) => z.type === 'logo' && !!z.mediaUrl)
+    .map((z) => z.mediaUrl as string)
+    .join('|');
+
+  useEffect(() => {
+    let cancelled = false;
+    const urls = logoMediaUrls ? logoMediaUrls.split('|') : [];
+    if (urls.length === 0) {
+      setHasTransparentLogoFrame(false);
+      return;
+    }
+    Promise.all(urls.map((url) => detectAssetTransparency(url).catch(() => false)))
+      .then((results) => {
+        if (!cancelled) setHasTransparentLogoFrame(results.some(Boolean));
+      });
+    return () => { cancelled = true; };
+  }, [logoMediaUrls]);
+
   const updateZone = (zoneIndex: number, updates: Partial<SocialTemplateZone>) => {
     const nextZones = templateZones.map((zone, index) =>
       index === zoneIndex ? { ...zone, ...updates } : zone
