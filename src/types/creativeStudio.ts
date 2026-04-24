@@ -94,6 +94,9 @@ export type StylePreset =
   | 'photorealistic'
   | 'humanRealistic'
   | 'softTransition'
+  | 'documentaryPortrait'
+  | 'environmentalCandid'
+  | 'goldenHourIntimate'
   | 'illustration'
   | 'minimal'
   | 'bold'
@@ -118,6 +121,9 @@ export const STYLE_PRESETS: Record<StylePreset, { label: string; description: st
   photorealistic: { label: 'Photorealistic', description: 'High-quality photography style' },
   humanRealistic: { label: 'Hyper-Realistic Human', description: 'Soft light, shallow DoF, authentic human moments' },
   softTransition: { label: 'Soft Transition', description: 'Progressive blur merging photo with brand gradient' },
+  documentaryPortrait: { label: 'Documentary Portrait', description: 'Quiet, observed close-ups — single subject, available light' },
+  environmentalCandid: { label: 'Environmental Candid', description: 'Wider scenes — people in natural workspaces, no eye contact' },
+  goldenHourIntimate: { label: 'Golden Hour Intimate', description: 'Warm low-angle window light, amber rim, calm reflection' },
   illustration: { label: 'Illustration', description: 'Clean vector/digital art style' },
   minimal: { label: 'Minimal', description: 'Clean, simple, elegant' },
   bold: { label: 'Bold', description: 'Strong contrasts, impactful' },
