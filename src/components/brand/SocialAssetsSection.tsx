@@ -456,6 +456,7 @@ const TemplatePreviewDialog = ({
 
   const templateZones = getEditableZones(platform, template);
   const [selectedZoneIndex, setSelectedZoneIndex] = useState(0);
+  const [activeFrameZoneIndex, setActiveFrameZoneIndex] = useState<number | null>(null);
   const [showGrid, setShowGrid] = useState(true);
   const [showSafeArea, setShowSafeArea] = useState(true);
   const [zoomLevel, setZoomLevel] = useState('100');
@@ -465,10 +466,13 @@ const TemplatePreviewDialog = ({
     .filter(({ zone }) => zone.type === 'image' || zone.type === 'logo');
 
   useEffect(() => {
-    setSelectedZoneIndex(0);
-  }, [template?.id, open]);
+    const firstFrameIndex = frameZones[0]?.index ?? 0;
+    setSelectedZoneIndex(firstFrameIndex);
+    setActiveFrameZoneIndex(frameZones[0]?.index ?? null);
+  }, [frameZones, template?.id, open]);
 
   const selectedZone = templateZones[selectedZoneIndex] || null;
+  const activeFrameZone = activeFrameZoneIndex !== null ? templateZones[activeFrameZoneIndex] || null : null;
 
   const updateZone = (zoneIndex: number, updates: Partial<SocialTemplateZone>) => {
     const nextZones = templateZones.map((zone, index) =>
@@ -646,6 +650,7 @@ const TemplatePreviewDialog = ({
                         onClick={() => setSelectedZoneIndex(index)}
                         onPointerDown={(event) => {
                           setSelectedZoneIndex(index);
+                          if (zone.type === 'image' || zone.type === 'logo') setActiveFrameZoneIndex(index);
                           handleZonePointerDown(event, index, 'move');
                         }}
                       >
@@ -717,12 +722,15 @@ const TemplatePreviewDialog = ({
                   </div>
                   <div className="space-y-2">
                     {frameZones.map(({ zone, index }) => {
-                      const isSelected = selectedZoneIndex === index;
+                      const isSelected = activeFrameZoneIndex === index;
                       return (
                         <button
                           key={`${template.id}-frame-${index}`}
                           type="button"
-                          onClick={() => setSelectedZoneIndex(index)}
+                          onClick={() => {
+                            setSelectedZoneIndex(index);
+                            setActiveFrameZoneIndex(index);
+                          }}
                           className={cn(
                             'flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors hover:border-primary/40',
                             isSelected ? 'border-primary bg-primary/5' : 'border-border bg-muted/20'
@@ -742,19 +750,24 @@ const TemplatePreviewDialog = ({
                 </div>
               )}
 
+              {activeFrameZone && (activeFrameZone.type === 'image' || activeFrameZone.type === 'logo') && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {activeFrameZone.label} · {zoneTypeLabels[activeFrameZone.type]}
+                  </p>
+                  <SlotFitControl
+                    previewUrl={activeFrameZone.mediaUrl || template.previewImageUrl}
+                    assetType={activeFrameZone.mediaUrl ? 'image' : 'empty'}
+                    value={getZoneMediaFit(activeFrameZone)}
+                    onChange={(next) => updateZone(activeFrameZoneIndex!, { mediaFit: next })}
+                    onCommit={(next) => updateZone(activeFrameZoneIndex!, { mediaFit: next })}
+                    onReset={() => updateZone(activeFrameZoneIndex!, { mediaFit: defaultTemplatePreviewFit })}
+                  />
+                </div>
+              )}
+
               {selectedZone ? (
                 <>
-                  {(selectedZone.type === 'image' || selectedZone.type === 'logo') && (
-                    <SlotFitControl
-                      previewUrl={selectedZone.mediaUrl || template.previewImageUrl}
-                      assetType={selectedZone.mediaUrl ? 'image' : 'empty'}
-                      value={getZoneMediaFit(selectedZone)}
-                      onChange={(next) => updateZone(selectedZoneIndex, { mediaFit: next })}
-                      onCommit={(next) => updateZone(selectedZoneIndex, { mediaFit: next })}
-                      onReset={() => updateZone(selectedZoneIndex, { mediaFit: defaultTemplatePreviewFit })}
-                    />
-                  )}
-
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-muted-foreground">Label</label>
                     <Input
