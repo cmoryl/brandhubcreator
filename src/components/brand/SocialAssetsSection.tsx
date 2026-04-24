@@ -815,6 +815,7 @@ const TemplatePreviewDialog = ({
   const [exportIncludeGuides, setExportIncludeGuides] = useState(false);
   const [exportOriginalResolution, setExportOriginalResolution] = useState(false);
   const [exportTarget, setExportTarget] = useState<'preview' | 'frames'>('preview');
+  const [hasTransparentLogoFrame, setHasTransparentLogoFrame] = useState(false);
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const safeAreaGuide = getSafeAreaGuide(platform, template);
   const frameZones = templateZones
