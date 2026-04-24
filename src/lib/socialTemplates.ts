@@ -332,6 +332,25 @@ export function getTemplatesForPlatformFormat(platform: string, format: string):
   });
 }
 
+export function getTemplateDefinitionForAsset(
+  platform: string,
+  template: Pick<SocialTemplate, 'name'> & { sizeCategory?: string },
+): SocialTemplate | undefined {
+  const formatMap: Record<string, TemplateFormat[]> = {
+    post: ['feed'],
+    square: ['feed'],
+    story: ['story'],
+    reel: ['reel'],
+    cover: ['cover'],
+    other: ['profile', 'feed'],
+  };
+
+  const candidateFormats = formatMap[template.sizeCategory || 'other'] || ['feed'];
+  const candidates = candidateFormats.flatMap((format) => getTemplatesForPlatformFormat(platform, format));
+
+  return candidates.find((item) => item.name === template.name);
+}
+
 export function getTemplatePreviewImage(template: Pick<SocialTemplate, 'formats' | 'platforms' | 'category' | 'previewImageUrl'>): string | undefined {
   if (template.previewImageUrl) return template.previewImageUrl;
 
