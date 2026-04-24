@@ -341,9 +341,8 @@ const zoneTypeLabels: Record<TemplateZoneType, string> = {
 };
 
 const clampZoneValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const defaultTemplatePreviewFit = { fit: 'cover' as const, focusX: 50, focusY: 50 };
 
-const getZoneMediaFit = (zone: SocialTemplateZone) => zone.mediaFit || defaultTemplatePreviewFit;
+const getZoneMediaFit = sharedGetZoneMediaFit;
 
 const getTemplateFormat = (template: Pick<SocialAssetTemplate, 'sourceTemplateFormat' | 'sizeCategory'>) => (
   template.sourceTemplateFormat || (template.sizeCategory === 'story'
@@ -397,19 +396,7 @@ const getSmartDefaultZoneFit = (
   return { fit: 'cover' as const, focusX, focusY };
 };
 
-/**
- * Pick the best logo URL from the brand logo library to drop into a template
- * `logo` zone. Prefers `primary`, then `wordmark`, then any logo with a usable URL.
- */
-const pickDefaultBrandLogoUrl = (brandLogos?: BrandLogo[]): string | undefined => {
-  if (!brandLogos?.length) return undefined;
-  const order: BrandLogo['variant'][] = ['primary', 'wordmark', 'secondary', 'reversed', 'monochrome', 'icon'];
-  for (const variant of order) {
-    const match = brandLogos.find((logo) => logo.variant === variant && logo.url);
-    if (match?.url) return match.url;
-  }
-  return brandLogos.find((logo) => !!logo.url)?.url;
-};
+// pickDefaultBrandLogoUrl is imported from '@/lib/templateZonePipeline'.
 
 // ---------------------------------------------------------------------------
 // Background-aware logo recommendations
