@@ -1192,6 +1192,12 @@ const TemplatePreviewDialog = ({
 
   const openExportDialog = (target: 'preview' | 'frames') => {
     setExportTarget(target);
+    // Smart default: if we're exporting frames and any logo zone is backed by
+    // a transparent asset, pre-enable the transparent toggle so logos export
+    // with their alpha channel preserved out of the box.
+    if (target === 'frames' && hasTransparentLogoFrame) {
+      setExportTransparent(true);
+    }
     setExportDialogOpen(true);
   };
 
