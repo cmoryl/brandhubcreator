@@ -66,10 +66,14 @@ export const ImageAssetsSection = ({
   canEdit = false,
   entityId,
   entityType = 'brand',
+  imageryAvoidList = [],
+  onImageryAvoidListChange,
 }: ImageAssetsSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [previewAsset, setPreviewAsset] = useState<ImageAsset | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ImageAsset | null>(null);
+  const [avoidReason, setAvoidReason] = useState('');
 
   type GridDensity = 'grid-lg' | 'grid-md' | 'grid-sm' | 'list';
   const [gridDensity, setGridDensity] = useState<GridDensity>(() => {
