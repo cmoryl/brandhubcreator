@@ -1528,10 +1528,7 @@ const SizeCategorySection = ({
               if (!entityId) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                  const updatedTemplates = (activePlatform.templates || []).map(t =>
-                    t.id === template.id ? { ...t, previewImageUrl: ev.target?.result as string } : t
-                  );
-                  updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+                  persistTemplateVersion(template, { previewImageUrl: ev.target?.result as string });
                 };
                 reader.readAsDataURL(file);
                 return;
@@ -1539,15 +1536,17 @@ const SizeCategorySection = ({
               try {
                 const result = await uploadFile(file, 'asset', `template-preview-${template.id}`);
                 if (result?.url) {
-                  const updatedTemplates = (activePlatform.templates || []).map(t =>
-                    t.id === template.id ? { ...t, previewImageUrl: result.url } : t
-                  );
-                  updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+                  persistTemplateVersion(template, { previewImageUrl: result.url });
                   toast.success('Template preview updated');
                 }
               } catch {
                 toast.error('Failed to upload preview image');
               }
+            };
+
+            const handleTemplateLibrarySelect = (url: string) => {
+              persistTemplateVersion(template, { previewImageUrl: url });
+              toast.success('Template image updated from library');
             };
 
             return (
@@ -1591,11 +1590,23 @@ const SizeCategorySection = ({
                         </a>
                       )) : null}
                       {canEditSocial && (
-                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-background/90 backdrop-blur-sm text-foreground hover:bg-background shadow-lg cursor-pointer transition-colors">
-                          <Upload className="h-3 w-3" />
-                          {hasPreview ? 'Replace Image' : 'Add Image'}
-                          <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleTemplateImageUpload(file); e.target.value = ''; }} />
-                        </label>
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-background/90 backdrop-blur-sm text-foreground hover:bg-background shadow-lg cursor-pointer transition-colors">
+                            <Upload className="h-3 w-3" />
+                            {hasPreview ? 'Replace Image' : 'Add Image'}
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleTemplateImageUpload(file); e.target.value = ''; }} />
+                          </label>
+                          <ImageLibraryPicker
+                            onSelect={handleTemplateLibrarySelect}
+                            trigger={
+                              <Button type="button" size="sm" variant="secondary" className="h-8 gap-1.5 bg-background/90 shadow-lg backdrop-blur-sm">
+                                <FolderOpen className="h-3 w-3" />
+                                Library
+                              </Button>
+                            }
+                            defaultCategory="Backgrounds"
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
