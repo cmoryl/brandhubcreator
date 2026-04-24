@@ -2,7 +2,7 @@
  * Individual template preview card with hover overlay showing zone layout
  */
 import { cn } from '@/lib/utils';
-import { SocialTemplate, TemplateZone, TemplateZoneType } from '@/lib/socialTemplates';
+import { SocialTemplate, TemplateZoneType, getTemplatePreviewImage } from '@/lib/socialTemplates';
 
 interface TemplatePreviewProps {
   template: SocialTemplate;
@@ -26,6 +26,8 @@ const zoneLabelColors: Record<TemplateZoneType, string> = {
 };
 
 export const TemplatePreview = ({ template, selected, onSelect, aspectRatio = 1 }: TemplatePreviewProps) => {
+  const previewImageUrl = getTemplatePreviewImage(template);
+
   return (
     <button
       onClick={() => onSelect(template)}
@@ -38,6 +40,15 @@ export const TemplatePreview = ({ template, selected, onSelect, aspectRatio = 1 
     >
       {/* Zone preview */}
       <div className="relative bg-muted/30" style={{ aspectRatio }}>
+        {previewImageUrl && (
+          <img
+            src={previewImageUrl}
+            alt={template.name}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+          />
+        )}
+        <div className="absolute inset-0 bg-background/20 backdrop-blur-[1px]" />
         {template.zones.map((zone, i) => (
           <div
             key={i}

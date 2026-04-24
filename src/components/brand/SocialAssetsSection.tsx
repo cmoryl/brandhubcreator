@@ -19,7 +19,7 @@ import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
-import { getTemplatesForPlatformFormat } from '@/lib/socialTemplates';
+import { getTemplatePreviewImage, getTemplatesForPlatformFormat } from '@/lib/socialTemplates';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
@@ -205,6 +205,7 @@ const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate
     fileType: 'other',
     url: '',
     description: template.description,
+    previewImageUrl: getTemplatePreviewImage(template),
     dimensions: template.formats.join(', '),
     sizeCategory: sizeMap[template.formats[0]] || 'other',
   }));

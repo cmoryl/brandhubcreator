@@ -39,6 +39,7 @@ export interface SocialTemplate {
   zones: TemplateZone[];
   colorSlots: ('primary' | 'secondary' | 'accent')[];
   description: string;
+  previewImageUrl?: string;
 }
 
 export const templateCategories: { id: TemplateCategory; label: string; description: string }[] = [
@@ -329,4 +330,27 @@ export function getTemplatesForPlatformFormat(platform: string, format: string):
     const matchesFormat = template.formats.includes(normalizedFormat);
     return matchesPlatform && matchesFormat;
   });
+}
+
+export function getTemplatePreviewImage(template: Pick<SocialTemplate, 'formats' | 'platforms' | 'category' | 'previewImageUrl'>): string | undefined {
+  if (template.previewImageUrl) return template.previewImageUrl;
+
+  const [format] = template.formats;
+  const normalizedPlatforms = template.platforms.map(normalizePlatform);
+  const isLandscapeFeed = format === 'feed' && normalizedPlatforms.some((platform) => ['linkedin', 'facebook', 'x', 'youtube'].includes(platform));
+  const isCover = format === 'cover';
+  const isStory = format === 'story';
+  const isReel = format === 'reel';
+  const isProfile = format === 'profile';
+
+  if (isCover) return '/social-renders/tp-social-cover-banner.jpg';
+  if (isStory) return '/social-renders/tp-social-story-vertical.jpg';
+  if (isReel) return '/social-renders/tp-social-reel-vertical.jpg';
+  if (isProfile) return '/social-renders/tp-social-square-editorial.jpg';
+  if (isLandscapeFeed) return '/social-renders/tp-social-post-landscape.jpg';
+
+  if (template.category === 'cover') return '/social-renders/tp-social-cover-banner.jpg';
+  if (template.category === 'video') return '/social-renders/tp-social-reel-vertical.jpg';
+
+  return '/social-renders/tp-social-square-editorial.jpg';
 }
