@@ -30,6 +30,7 @@ import {
   pickDefaultBrandLogo,
 } from '@/lib/templateZonePipeline';
 import type { BrandLogo } from '@/types/brand';
+import type { ZoneSeedMode } from '@/hooks/useZoneSeedMode';
 import { BrandLogoVariantPicker } from './BrandLogoVariantPicker';
 
 // ---------------------------------------------------------------------------
