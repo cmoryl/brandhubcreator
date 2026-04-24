@@ -1328,6 +1328,35 @@ const SizeCategorySection = ({
   const hasMore = categoryTemplates.length > maxVisible;
   const visibleTemplates = expanded ? categoryTemplates : categoryTemplates.slice(0, maxVisible);
 
+  const persistTemplateVersion = useCallback(
+    (templateToSave: SocialAssetTemplate, updates: Partial<SocialAssetTemplate>) => {
+      const nextTemplate: SocialAssetTemplate = {
+        ...templateToSave,
+        ...updates,
+        sourceTemplateId: templateToSave.sourceTemplateId || updates.sourceTemplateId,
+        sourceTemplateFormat: templateToSave.sourceTemplateFormat || updates.sourceTemplateFormat,
+      };
+
+      const existingTemplates = activePlatform.templates || [];
+      const matchIndex = existingTemplates.findIndex((item) =>
+        item.id === templateToSave.id ||
+        (!!templateToSave.sourceTemplateId && item.sourceTemplateId === templateToSave.sourceTemplateId) ||
+        (!!templateToSave.sourceTemplateFormat &&
+          item.sourceTemplateFormat === templateToSave.sourceTemplateFormat &&
+          item.name === templateToSave.name)
+      );
+
+      const updatedTemplates =
+        matchIndex >= 0
+          ? existingTemplates.map((item, index) => (index === matchIndex ? { ...item, ...nextTemplate } : item))
+          : [...existingTemplates, nextTemplate];
+
+      updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+      return nextTemplate;
+    },
+    [activePlatform.id, activePlatform.templates, updateSocialAsset],
+  );
+
   return (
     <div className="space-y-3">
       {/* Sub-section header */}
@@ -1499,11 +1528,8 @@ const SizeCategorySection = ({
         canEdit={canEditSocial}
         onUpdateTemplate={(updates) => {
           if (!selectedTemplate) return;
-          const updatedTemplates = (activePlatform.templates || []).map((item) =>
-            item.id === selectedTemplate.id ? { ...item, ...updates } : item
-          );
-          updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
-          setSelectedTemplate((current) => (current ? { ...current, ...updates } : current));
+          const persistedTemplate = persistTemplateVersion(selectedTemplate, updates);
+          setSelectedTemplate(persistedTemplate);
         }}
       />
     </div>
