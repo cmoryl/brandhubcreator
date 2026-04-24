@@ -1,5 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye, LayoutGrid, Type } from 'lucide-react';
+import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye, LayoutGrid, Type, FileImage, FileArchive } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { toPng } from 'html-to-image';
+import JSZip from 'jszip';
 import { BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory, SocialTemplateZone } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
