@@ -183,13 +183,21 @@ const platformPresets: BrandSocialAssetSpec[] = [
 ];
 
 const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate[] => {
-  const generated = [
-    ...getTemplatesForPlatformFormat(platform, 'feed'),
-    ...getTemplatesForPlatformFormat(platform, 'story'),
-    ...getTemplatesForPlatformFormat(platform, 'reel'),
-    ...getTemplatesForPlatformFormat(platform, 'cover'),
-    ...getTemplatesForPlatformFormat(platform, 'profile'),
-  ];
+  const generated = platform === 'General'
+    ? [
+        ...getTemplatesForPlatformFormat('LinkedIn', 'feed').map((template) => ({ ...template, formats: ['feed'] as const })),
+        ...getTemplatesForPlatformFormat('Instagram', 'feed').map((template) => ({ ...template, formats: ['feed'] as const })),
+        ...getTemplatesForPlatformFormat('Instagram', 'story').map((template) => ({ ...template, formats: ['story'] as const })),
+        ...getTemplatesForPlatformFormat('YouTube', 'feed').map((template) => ({ ...template, formats: ['feed'] as const })),
+        ...getTemplatesForPlatformFormat('LinkedIn', 'cover').map((template) => ({ ...template, formats: ['cover'] as const })),
+      ]
+    : [
+        ...getTemplatesForPlatformFormat(platform, 'feed'),
+        ...getTemplatesForPlatformFormat(platform, 'story'),
+        ...getTemplatesForPlatformFormat(platform, 'reel'),
+        ...getTemplatesForPlatformFormat(platform, 'cover'),
+        ...getTemplatesForPlatformFormat(platform, 'profile'),
+      ];
 
   const sizeMap: Record<string, SocialSizeCategory> = {
     feed: 'post',
@@ -199,18 +207,33 @@ const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate
     profile: 'other',
   };
 
-  return generated.map((template) => ({
-    id: `generated-${template.id}`,
-    name: template.name,
-    fileType: 'other',
-    url: '',
-    description: template.description,
-    previewImageUrl: getTemplatePreviewImage(template),
-    dimensions: template.formats.join(', '),
-    sizeCategory: sizeMap[template.formats[0]] || 'other',
-    sourceTemplateId: template.id,
-    sourceTemplateFormat: template.formats[0],
-  }));
+  return generated.map((template, index): SocialAssetTemplate => {
+    const sourceFormat = template.formats[0];
+    const inferredSizeCategory = platform === 'General'
+      ? (index < getTemplatesForPlatformFormat('LinkedIn', 'feed').length
+          ? 'post'
+          : index < getTemplatesForPlatformFormat('LinkedIn', 'feed').length + getTemplatesForPlatformFormat('Instagram', 'feed').length
+            ? 'square'
+            : index < getTemplatesForPlatformFormat('LinkedIn', 'feed').length + getTemplatesForPlatformFormat('Instagram', 'feed').length + getTemplatesForPlatformFormat('Instagram', 'story').length
+              ? 'story'
+              : index < getTemplatesForPlatformFormat('LinkedIn', 'feed').length + getTemplatesForPlatformFormat('Instagram', 'feed').length + getTemplatesForPlatformFormat('Instagram', 'story').length + getTemplatesForPlatformFormat('YouTube', 'feed').length
+                ? 'reel'
+                : 'cover')
+      : (sizeMap[sourceFormat] || 'other');
+
+    return {
+      id: platform === 'General' ? `generated-general-${inferredSizeCategory}-${template.id}` : `generated-${template.id}`,
+      name: template.name,
+      fileType: 'other' as const,
+      url: '',
+      description: template.description,
+      previewImageUrl: getTemplatePreviewImage(template),
+      dimensions: template.formats.join(', '),
+      sizeCategory: inferredSizeCategory,
+      sourceTemplateId: template.id,
+      sourceTemplateFormat: sourceFormat,
+    };
+  });
 };
 
 const getResolvedTemplates = (asset: BrandSocialAssetSpec): SocialAssetTemplate[] => {
@@ -219,7 +242,7 @@ const getResolvedTemplates = (asset: BrandSocialAssetSpec): SocialAssetTemplate[
 
   if (savedTemplates.length === 0) return generatedTemplates;
 
-  return savedTemplates.map((template) => {
+  const resolvedSaved = savedTemplates.map((template) => {
     const matchedGenerated = generatedTemplates.find((generated) =>
       (template.sourceTemplateId && generated.sourceTemplateId === template.sourceTemplateId) ||
       (template.name === generated.name && template.sourceTemplateFormat && generated.sourceTemplateFormat === template.sourceTemplateFormat) ||
@@ -233,6 +256,16 @@ const getResolvedTemplates = (asset: BrandSocialAssetSpec): SocialAssetTemplate[
       sourceTemplateFormat: template.sourceTemplateFormat || matchedGenerated?.sourceTemplateFormat,
     };
   });
+
+  const remainingGenerated = generatedTemplates.filter((generated) =>
+    !resolvedSaved.some((template) =>
+      (template.sourceTemplateId && template.sourceTemplateId === generated.sourceTemplateId) ||
+      (template.name === generated.name && template.sourceTemplateFormat === generated.sourceTemplateFormat) ||
+      (template.name === generated.name && template.sizeCategory === generated.sizeCategory && template.dimensions === generated.dimensions)
+    )
+  );
+
+  return [...resolvedSaved, ...remainingGenerated];
 };
 
 const zonePreviewStyles: Record<TemplateZoneType, string> = {
