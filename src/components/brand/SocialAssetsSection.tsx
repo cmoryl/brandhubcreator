@@ -20,6 +20,7 @@ import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
 import { getTemplateDefinitionForAsset, getTemplatePreviewImage, getTemplatesForPlatformFormat, TemplateZoneType } from '@/lib/socialTemplates';
+import { SlotFitControl } from './SlotFitControl';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
@@ -276,6 +277,7 @@ const zonePreviewStyles: Record<TemplateZoneType, string> = {
 };
 
 const clampZoneValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const defaultTemplatePreviewFit = { fit: 'cover' as const, focusX: 50, focusY: 50 };
 
 const getEditableZones = (platform: string, template: SocialAssetTemplate): SocialTemplateZone[] => {
   if (template.templateZones?.length) return template.templateZones;
@@ -333,6 +335,7 @@ const TemplateCardPreview = ({
 }) => {
   const previewImage = template.previewImageUrl;
   const templateZones = getEditableZones(platform, template);
+  const previewFit = template.previewFit || defaultTemplatePreviewFit;
 
   return (
     <button
@@ -345,7 +348,12 @@ const TemplateCardPreview = ({
       )}
     >
       {previewImage ? (
-        <img src={previewImage} alt={template.name} className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={previewImage}
+          alt={template.name}
+          className="absolute inset-0 h-full w-full"
+          style={{ objectFit: previewFit.fit, objectPosition: `${previewFit.focusX}% ${previewFit.focusY}%` }}
+        />
       ) : (
         <div className="absolute inset-0 bg-muted/50" />
       )}
@@ -407,6 +415,7 @@ const TemplatePreviewDialog = ({
   const [showSafeArea, setShowSafeArea] = useState(true);
   const [zoomLevel, setZoomLevel] = useState('100');
   const safeAreaGuide = getSafeAreaGuide(platform, template);
+  const previewFit = template.previewFit || defaultTemplatePreviewFit;
 
   useEffect(() => {
     setSelectedZoneIndex(0);
@@ -533,7 +542,12 @@ const TemplatePreviewDialog = ({
                 >
                   <div data-template-canvas="true" className="relative aspect-video overflow-hidden rounded-lg bg-muted/30">
                     {template.previewImageUrl ? (
-                      <img src={template.previewImageUrl} alt={template.name} className="absolute inset-0 h-full w-full object-cover" />
+                      <img
+                        src={template.previewImageUrl}
+                        alt={template.name}
+                        className="absolute inset-0 h-full w-full"
+                        style={{ objectFit: previewFit.fit, objectPosition: `${previewFit.focusX}% ${previewFit.focusY}%` }}
+                      />
                     ) : (
                       <div className="absolute inset-0 bg-muted/50" />
                     )}
@@ -639,6 +653,15 @@ const TemplatePreviewDialog = ({
 
             {selectedZone ? (
               <div className="space-y-4 p-4">
+                <SlotFitControl
+                  previewUrl={template.previewImageUrl}
+                  assetType={template.previewImageUrl ? 'image' : 'empty'}
+                  value={previewFit}
+                  onChange={(next) => onUpdateTemplate({ previewFit: next })}
+                  onCommit={(next) => onUpdateTemplate({ previewFit: next })}
+                  onReset={() => onUpdateTemplate({ previewFit: defaultTemplatePreviewFit })}
+                />
+
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-muted-foreground">Label</label>
                   <Input
@@ -1578,8 +1601,9 @@ const SizeCategorySection = ({
             };
 
             const handleTemplateLibrarySelect = (url: string) => {
-              persistTemplateVersion(template, { previewImageUrl: url });
-              toast.success('Template image updated from library');
+              persistTemplateVersion(template, { previewImageUrl: url, previewFit: defaultTemplatePreviewFit });
+              setSelectedTemplate((current) => current?.id === template.id ? { ...current, previewImageUrl: url, previewFit: defaultTemplatePreviewFit } : current);
+              toast.success('Template image updated from library — adjust crop & fit in the larger preview');
             };
 
             return (
