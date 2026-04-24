@@ -1,8 +1,9 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2, ClipboardList, Sparkles, BookOpen, BarChart3, BookMarked, TrendingUp, Briefcase, Package, Building2, Target, CalendarDays, Link2, Globe, Folder, Wand2, type LucideIcon } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2, ClipboardList, Sparkles, BookOpen, BarChart3, BookMarked, TrendingUp, Briefcase, Package, Building2, Target, CalendarDays, Link2, Globe, Folder, Wand2, Layers, type LucideIcon } from 'lucide-react';
+import JSZip from 'jszip';
 import { generatePdfThumbnail } from '@/lib/pdfThumbnail';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
-import { BrandBrochure } from '@/types/brand';
+import { BrandBrochure, BrandLogo, SocialTemplateZone } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,6 +19,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { RegenerateFromTemplatesDialog } from './digital-collateral/RegenerateFromTemplatesDialog';
 import type { BrandVisualsBundle, LayoutTemplateCustomization } from '@/lib/brandLayoutTemplates';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  TemplateCanvasEditor,
+  CanvasEditorZone,
+} from './templating/TemplateCanvasEditor';
+import {
+  renderZoneAtOriginalResolution,
+  detectAssetTransparency,
+} from '@/lib/templateZonePipeline';
+import { useZoneSeedMode } from '@/hooks/useZoneSeedMode';
+import { buildSurfaceDefaultZones, getDefaultAspectForSurface } from '@/lib/templateZoneDefaults';
+import { safeUUID } from '@/lib/safeUUID';
 
 import {
   DndContext,
@@ -52,6 +66,8 @@ interface DigitalCollateralSectionProps {
   brandVisuals?: BrandVisualsBundle;
   /** Saved layout template variants for this brand — surfaced as picker options. */
   layoutTemplateCustomizations?: LayoutTemplateCustomization[];
+  /** Brand logo library — drives the variant picker + auto-match in the templated zone editor. */
+  brandLogos?: BrandLogo[];
 }
 
 // Lucide icon map for built-in categories
@@ -139,6 +155,7 @@ interface SortableItemProps {
   onUpdate: (updates: Partial<BrandBrochure>) => void;
   onRemoveThumbnail: () => void;
   onDoneEditing: () => void;
+  onEditZones?: () => void;
   isImage: (url: string) => boolean;
   allCategoryOptions: { value: string; label: string; icon: string }[];
   isDragging?: boolean;
@@ -156,6 +173,7 @@ const SortableCollateralItem = ({
   onUpdate,
   onRemoveThumbnail,
   onDoneEditing,
+  onEditZones,
   isImage,
   allCategoryOptions,
   isDragging,
@@ -288,6 +306,15 @@ const SortableCollateralItem = ({
               title="Add thumbnail"
             >
               <Image className="h-5 w-5" />
+            </button>
+          )}
+          {canEdit && onEditZones && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onEditZones(); }}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              title="Edit template zones"
+            >
+              <Layers className="h-5 w-5" />
             </button>
           )}
           <button
@@ -444,6 +471,7 @@ export const DigitalCollateralSection = ({
   entityType = 'brand',
   brandVisuals,
   layoutTemplateCustomizations,
+  brandLogos,
 }: DigitalCollateralSectionProps) => {
   const collateral = Array.isArray(collateralProp) ? collateralProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -464,6 +492,11 @@ export const DigitalCollateralSection = ({
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: '', icon: '📂' });
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
+  // Templated zone editor state
+  const [templateEditingId, setTemplateEditingId] = useState<string | null>(null);
+  const [exportingId, setExportingId] = useState<string | null>(null);
+  const [exportTransparent, setExportTransparent] = useState(false);
+  const { mode: seedMode } = useZoneSeedMode();
   
   const { gridClass } = useLayoutClasses(layout);
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
@@ -674,6 +707,111 @@ export const DigitalCollateralSection = ({
     if (!onCollateralChange) return;
     onCollateralChange(collateral.filter(item => item.id !== id));
     if (editingId === id) setEditingId(null);
+    if (templateEditingId === id) setTemplateEditingId(null);
+  };
+
+  // -------------------------------------------------------------------------
+  // Templated zone editor — shared canvas + export pipeline
+  // -------------------------------------------------------------------------
+  const editingTemplateItem = useMemo(
+    () => collateral.find((c) => c.id === templateEditingId) || null,
+    [collateral, templateEditingId],
+  );
+
+  /** Open the templated zone editor for an item, seeding default zones if absent. */
+  const openTemplateEditor = (item: BrandBrochure) => {
+    if (!onCollateralChange) return;
+    const hasZones = Array.isArray(item.templateZones) && item.templateZones.length > 0;
+    const surface = isSocialBannerCategory(item.category) ? 'social' : 'brochure';
+    if (!hasZones) {
+      updateItem(item.id, {
+        templateAspect: item.templateAspect || getDefaultAspectForSurface(surface),
+        templateZones: buildSurfaceDefaultZones(surface, brandLogos, seedMode),
+      });
+    }
+    setTemplateEditingId(item.id);
+  };
+
+  const toEditorZones = (zones: SocialTemplateZone[] | undefined): CanvasEditorZone[] =>
+    (zones || []).map((zone, index) => ({
+      ...zone,
+      id: `${zone.type}-${index}-${safeUUID().slice(0, 8)}`,
+      label: zone.label || `${zone.type} zone`,
+    }));
+
+  const fromEditorZones = (zones: CanvasEditorZone[]): SocialTemplateZone[] =>
+    zones.map(({ id: _id, ...rest }) => rest as SocialTemplateZone);
+
+  /** Background URL for the canvas — prefer thumbnail, then previewUrl when image. */
+  const templateBackgroundFor = (item: BrandBrochure): string | undefined => {
+    if (item.thumbnailUrl) return item.thumbnailUrl;
+    if (item.previewUrl && isImage(item.previewUrl)) return item.previewUrl;
+    return undefined;
+  };
+
+  const exportTemplateAsZip = async (item: BrandBrochure, transparent: boolean) => {
+    const zones = item.templateZones || [];
+    if (zones.length === 0) {
+      toast.error('No template zones to export');
+      return;
+    }
+    setExportingId(item.id);
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder(item.title.replace(/[^\w-]+/g, '-')) || zip;
+      let originalUsed = 0;
+      let originalFallback = 0;
+
+      for (let i = 0; i < zones.length; i++) {
+        const zone = zones[i];
+        if (!zone.mediaUrl) continue;
+        const logoNeedsTransparency = zone.type === 'logo'
+          && await detectAssetTransparency(zone.mediaUrl).catch(() => false);
+        const useTransparent = transparent || logoNeedsTransparency;
+        const dataUrl = await renderZoneAtOriginalResolution(zone, useTransparent);
+        if (!dataUrl) {
+          originalFallback += 1;
+          continue;
+        }
+        originalUsed += 1;
+        const safeLabel = (zone.label || `zone-${i + 1}`).replace(/[^\w-]+/g, '-');
+        folder.file(
+          `${String(i + 1).padStart(2, '0')}-${safeLabel}.png`,
+          dataUrl.split(',')[1],
+          { base64: true },
+        );
+      }
+
+      const bgUrl = templateBackgroundFor(item);
+      if (bgUrl) {
+        try {
+          const bgRes = await fetch(bgUrl);
+          const bgBlob = await bgRes.blob();
+          folder.file('background.png', bgBlob);
+        } catch {
+          // best effort
+        }
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${item.title.replace(/[^\w-]+/g, '-')}-zones.zip`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+      if (originalFallback > 0) {
+        toast.success(`Exported ${originalUsed} zone${originalUsed === 1 ? '' : 's'} (${originalFallback} skipped — no source media)`);
+      } else {
+        toast.success(`Exported ${originalUsed} zone${originalUsed === 1 ? '' : 's'} at original resolution`);
+      }
+    } catch (err) {
+      console.error('Collateral template export failed', err);
+      toast.error('Failed to export template zones');
+    } finally {
+      setExportingId(null);
+    }
   };
 
   const downloadItem = (item: BrandBrochure) => {
@@ -1041,6 +1179,7 @@ export const DigitalCollateralSection = ({
                           onUpdate={(updates) => updateItem(item.id, updates)}
                           onRemoveThumbnail={() => removeThumbnail(item.id)}
                           onDoneEditing={() => setEditingId(null)}
+                          onEditZones={() => openTemplateEditor(item)}
                           isImage={isImage}
                           allCategoryOptions={allCategoryOptions}
                           canEdit={canEdit}
@@ -1334,6 +1473,59 @@ export const DigitalCollateralSection = ({
           onApply={onCollateralChange}
         />
       )}
+
+      {/* Templated zone editor dialog — shared canvas + export pipeline */}
+      <Dialog open={!!editingTemplateItem} onOpenChange={(open) => !open && setTemplateEditingId(null)}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>{editingTemplateItem?.title || 'Template zones'}</DialogTitle>
+          </DialogHeader>
+          {editingTemplateItem && (
+            <div className="space-y-4">
+              <TemplateCanvasEditor
+                aspect={editingTemplateItem.templateAspect || getDefaultAspectForSurface(isSocialBannerCategory(editingTemplateItem.category) ? 'social' : 'brochure')}
+                backgroundUrl={templateBackgroundFor(editingTemplateItem)}
+                brandLogos={brandLogos}
+                onUploadFile={async (file) => {
+                  const result = await uploadFile(file, 'asset', `collateral-zone-${safeUUID()}`);
+                  return result?.url ?? null;
+                }}
+                canEdit={canEdit}
+                surfaceName={editingTemplateItem.category || 'Digital collateral'}
+                zones={toEditorZones(editingTemplateItem.templateZones)}
+                onZonesChange={(next) =>
+                  updateItem(editingTemplateItem.id, { templateZones: fromEditorZones(next) })
+                }
+              />
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id={`transparent-coll-${editingTemplateItem.id}`}
+                    checked={exportTransparent}
+                    onCheckedChange={setExportTransparent}
+                  />
+                  <Label htmlFor={`transparent-coll-${editingTemplateItem.id}`} className="text-sm">
+                    Transparent background on PNGs
+                  </Label>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => editingTemplateItem && exportTemplateAsZip(editingTemplateItem, exportTransparent)}
+                  disabled={exportingId === editingTemplateItem.id}
+                  className="gap-1.5"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {exportingId === editingTemplateItem.id ? 'Exporting…' : 'Export zones (orig. resolution)'}
+                </Button>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTemplateEditingId(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

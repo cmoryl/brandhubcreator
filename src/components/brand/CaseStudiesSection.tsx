@@ -16,13 +16,13 @@ import { safeUUID } from '@/lib/safeUUID';
 import {
   TemplateCanvasEditor,
   CanvasEditorZone,
-  hydrateZoneDefaults,
 } from './templating/TemplateCanvasEditor';
 import {
   renderZoneAtOriginalResolution,
   detectAssetTransparency,
 } from '@/lib/templateZonePipeline';
 import { useZoneSeedMode } from '@/hooks/useZoneSeedMode';
+import { buildSurfaceDefaultZones, getDefaultAspectForSurface } from '@/lib/templateZoneDefaults';
 
 interface CaseStudiesSectionProps {
   caseStudies: BrandCaseStudy[];
@@ -37,40 +37,9 @@ interface CaseStudiesSectionProps {
   brandLogos?: BrandLogo[];
 }
 
-// ---------------------------------------------------------------------------
-// Default template: a single logo zone bottom-left + a CTA chip top-right.
-// Each case study can edit / move / resize these as needed; image media is
-// supplied by the case study's own previewUrl as the canvas background.
-// ---------------------------------------------------------------------------
-const buildDefaultZones = (
-  brandLogos?: BrandLogo[],
-  seedMode: import('@/hooks/useZoneSeedMode').ZoneSeedMode = 'lorem',
-): SocialTemplateZone[] => {
-  const zones: SocialTemplateZone[] = [
-    {
-      type: 'logo',
-      x: 4, y: 76,
-      width: 22, height: 18,
-      label: 'Brand mark',
-      mediaFit: { fit: 'contain', focusX: 50, focusY: 50 },
-    },
-    {
-      type: 'cta',
-      x: 60, y: 6,
-      width: 36, height: 12,
-      label: 'CTA',
-      content: 'Read the full case study',
-      align: 'right',
-    },
-  ];
-  // Reuse the canvas editor's hydrate helper to seed the logo zone + honour
-  // the user's global zone-seed mode for any text/CTA zones that lack content.
-  return hydrateZoneDefaults(
-    zones.map((z) => ({ ...z, id: safeUUID() })) as (SocialTemplateZone & { id: string })[],
-    brandLogos,
-    seedMode,
-  ).map(({ id: _id, ...rest }) => rest as SocialTemplateZone);
-};
+// Default zones for a case study now come from the shared per-surface helper
+// (`buildSurfaceDefaultZones('caseStudy', …)`) so all templated assets stay
+// consistent.
 
 const toEditorZones = (zones: SocialTemplateZone[] | undefined): CanvasEditorZone[] =>
   (zones || []).map((zone, index) => ({
@@ -119,8 +88,8 @@ export const CaseStudiesSection = ({
       title: 'New Case Study',
       description: 'Describe the project, goals, and outcomes',
       previewUrl: '',
-      templateAspect: '16 / 9',
-      templateZones: buildDefaultZones(brandLogos, seedMode),
+      templateAspect: getDefaultAspectForSurface('caseStudy'),
+      templateZones: buildSurfaceDefaultZones('caseStudy', brandLogos, seedMode),
     };
     onCaseStudiesChange([...caseStudies, newCase]);
     setEditingId(newCase.id);

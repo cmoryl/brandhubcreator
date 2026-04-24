@@ -58,6 +58,7 @@ import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
+import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
@@ -678,9 +679,10 @@ const EventEditor = () => {
         return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} websiteUrl={(event as any).websites?.[0]?.url} entityId={event.id} entityType="event" />;
       case 'misuse': 
         return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} entityId={event.id} entityType="event" />;
-      case 'casestudies': 
+      case 'casestudies':
+        return <CaseStudiesSection caseStudies={(event as any).caseStudies || []} onCaseStudiesChange={editHandler((caseStudies) => updateEvent({ caseStudies } as any))} entityId={event.id} entityType="event" brandLogos={(event as any).logos} />;
       case 'brochures': 
-        return <DigitalCollateralSection collateral={event.brochures} onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))} entityId={event.id} entityType="event" />;
+        return <DigitalCollateralSection collateral={event.brochures} onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))} entityId={event.id} entityType="event" brandLogos={(event as any).logos} />;
       case 'templates': 
         // Handled in eventdigital unified section - no standalone render
         return null;
