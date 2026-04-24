@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
 import { getTemplateDefinitionForAsset, getTemplatePreviewImage, getTemplatesForPlatformFormat, TemplateZoneType } from '@/lib/socialTemplates';
 import { SlotFitControl } from './SlotFitControl';
+import { BrandLogoVariantPicker } from './templating/BrandLogoVariantPicker';
 import {
   defaultTemplatePreviewFit,
   getZoneMediaFit as sharedGetZoneMediaFit,
