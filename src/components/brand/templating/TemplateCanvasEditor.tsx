@@ -63,6 +63,10 @@ export interface TemplateCanvasEditorProps {
   canEdit?: boolean;
   /** When true, hides editor chrome (selection ring, handles, dashed borders) for export. */
   isExporting?: boolean;
+  /** Brand context fed to AI when seed mode === 'ai'. Optional but recommended. */
+  brandContext?: ZoneSeedBrandContext;
+  /** Human-readable label of the asset surface (e.g. "Case study card"). */
+  surfaceName?: string;
   className?: string;
 }
 
