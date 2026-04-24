@@ -2736,11 +2736,39 @@ const SizeCategorySection = ({
   );
 
   const updateTemplateZoneMedia = useCallback((templateToUpdate: SocialAssetTemplate, zoneIndex: number, mediaUrl: string) => {
-    const nextZones = getEditableZones(activePlatform.platform, templateToUpdate, brandLogos).map((zone, index) => (
-      index === zoneIndex ? { ...zone, mediaUrl } : zone
-    ));
+    const baseZones = getEditableZones(activePlatform.platform, templateToUpdate, brandLogos);
+    const targetZone = baseZones[zoneIndex];
 
-    return persistTemplateVersion(templateToUpdate, { templateZones: nextZones });
+    const nextZones = baseZones.map((zone, index) => {
+      if (index !== zoneIndex) return zone;
+      // A manual logo pick removes the auto-match flag so the matcher won't
+      // overwrite the user's choice when the background changes again later.
+      if (zone.type === 'logo') {
+        const { autoMatchedLogoId: _drop, ...rest } = zone;
+        return { ...rest, mediaUrl };
+      }
+      return { ...zone, mediaUrl };
+    });
+
+    const persisted = persistTemplateVersion(templateToUpdate, { templateZones: nextZones });
+
+    // Background-aware logo matcher: when the user updates an image zone, see
+    // if any auto-matched logo zones above it should switch to a better
+    // light/dark/reversed variant for the new background.
+    if (targetZone?.type === 'image') {
+      void autoMatchLogosForZones(nextZones, brandLogos).then((result) => {
+        if (!result.changed) return;
+        const updated = persistTemplateVersion(persisted, { templateZones: result.zones });
+        setSelectedTemplate(updated);
+        toast.success(
+          result.swapped === 1
+            ? 'Auto-matched logo variant for the new background'
+            : `Auto-matched ${result.swapped} logos for the new background`,
+        );
+      });
+    }
+
+    return persisted;
   }, [activePlatform.platform, persistTemplateVersion, brandLogos]);
 
   return (
