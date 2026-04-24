@@ -651,17 +651,17 @@ const TemplatePreviewDialog = ({
               </p>
             </div>
 
-            {selectedZone ? (
-              <div className="space-y-4 p-4">
-                <SlotFitControl
-                  previewUrl={template.previewImageUrl}
-                  assetType={template.previewImageUrl ? 'image' : 'empty'}
-                  value={previewFit}
-                  onChange={(next) => onUpdateTemplate({ previewFit: next })}
-                  onCommit={(next) => onUpdateTemplate({ previewFit: next })}
-                  onReset={() => onUpdateTemplate({ previewFit: defaultTemplatePreviewFit })}
-                />
+            <div className="space-y-4 p-4">
+              <SlotFitControl
+                previewUrl={template.previewImageUrl}
+                assetType={template.previewImageUrl ? 'image' : 'empty'}
+                value={previewFit}
+                onChange={(next) => onUpdateTemplate({ previewFit: next })}
+                onCommit={(next) => onUpdateTemplate({ previewFit: next })}
+                onReset={() => onUpdateTemplate({ previewFit: defaultTemplatePreviewFit })}
+              />
 
+              {selectedZone ? (
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-muted-foreground">Label</label>
                   <Input
@@ -742,10 +742,10 @@ const TemplatePreviewDialog = ({
                     </Select>
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="p-4 text-sm text-muted-foreground">Click a zone to edit it.</div>
-            )}
+              ) : (
+                <div className="text-sm text-muted-foreground">Click a zone to edit it.</div>
+              )}
+            </div>
           </aside>
         </div>
       </DialogContent>
@@ -1601,8 +1601,8 @@ const SizeCategorySection = ({
             };
 
             const handleTemplateLibrarySelect = (url: string) => {
-              persistTemplateVersion(template, { previewImageUrl: url, previewFit: defaultTemplatePreviewFit });
-              setSelectedTemplate((current) => current?.id === template.id ? { ...current, previewImageUrl: url, previewFit: defaultTemplatePreviewFit } : current);
+              const nextTemplate = persistTemplateVersion(template, { previewImageUrl: url, previewFit: defaultTemplatePreviewFit });
+              setSelectedTemplate(nextTemplate);
               toast.success('Template image updated from library — adjust crop & fit in the larger preview');
             };
 
