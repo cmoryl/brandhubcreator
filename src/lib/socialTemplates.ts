@@ -1,339 +1,332 @@
 /**
- * Template definitions for the Social Asset Studio template library.
- * Each template defines composition zones for layout guidance.
+ * Branded template definitions for the Social Asset Studio.
+ * Built around the TransPerfect visual system: Connection, Transformation, and Materiality.
  */
 
 export type TemplateZoneType = 'image' | 'text' | 'logo' | 'cta';
 
 export interface TemplateZone {
   type: TemplateZoneType;
-  x: number;      // percentage from left
-  y: number;      // percentage from top
-  width: number;  // percentage width
-  height: number; // percentage height
+  x: number;
+  y: number;
+  width: number;
+  height: number;
   label: string;
   colorSlot?: 'primary' | 'secondary' | 'accent' | 'background';
   fontSize?: 'sm' | 'md' | 'lg' | 'xl';
   align?: 'left' | 'center' | 'right';
 }
 
-export type TemplateCategory = 'announcement' | 'product' | 'quote' | 'event' | 'testimonial' | 'minimal';
+export type TemplateFormat = 'feed' | 'story' | 'reel' | 'cover' | 'profile';
+
+export type TemplateCategory =
+  | 'announcement'
+  | 'product'
+  | 'quote'
+  | 'event'
+  | 'testimonial'
+  | 'minimal'
+  | 'cover'
+  | 'profile'
+  | 'video';
 
 export interface SocialTemplate {
   id: string;
   name: string;
   category: TemplateCategory;
   platforms: string[];
-  formats: string[];
+  formats: TemplateFormat[];
   zones: TemplateZone[];
   colorSlots: ('primary' | 'secondary' | 'accent')[];
   description: string;
 }
 
 export const templateCategories: { id: TemplateCategory; label: string; description: string }[] = [
-  { id: 'announcement', label: 'Announcement', description: 'News, launches, and updates' },
-  { id: 'product', label: 'Product Showcase', description: 'Feature products and offerings' },
-  { id: 'quote', label: 'Quote', description: 'Quotes, testimonials, and text-first posts' },
-  { id: 'event', label: 'Event Promo', description: 'Event promotion and invitations' },
-  { id: 'testimonial', label: 'Testimonial', description: 'Customer stories and social proof' },
-  { id: 'minimal', label: 'Minimal', description: 'Clean, simple layouts' },
+  { id: 'announcement', label: 'Announcement', description: 'Launches, news, and campaign updates' },
+  { id: 'product', label: 'Offer Focus', description: 'Service, solution, and offer-led compositions' },
+  { id: 'quote', label: 'Thought Leadership', description: 'Quote-led and editorial text layouts' },
+  { id: 'event', label: 'Event Promo', description: 'Invites, sessions, webinars, and countdowns' },
+  { id: 'testimonial', label: 'Social Proof', description: 'Customer proof, outcomes, and credibility' },
+  { id: 'minimal', label: 'Minimal', description: 'Quiet brand-first layouts with strong restraint' },
+  { id: 'cover', label: 'Cover / Banner', description: 'Headers, channel art, and panoramic canvases' },
+  { id: 'profile', label: 'Profile / Icon', description: 'Avatar-safe logo and icon systems' },
+  { id: 'video', label: 'Video', description: 'Reel, Short, and motion-first frames' },
 ];
+
+const ALL_FEED = ['Instagram', 'LinkedIn', 'X', 'X (Twitter)', 'Facebook', 'YouTube', 'TikTok', 'Pinterest', 'Threads'];
+const SOCIAL_FEED = ['Instagram', 'LinkedIn', 'X', 'X (Twitter)', 'Facebook', 'Pinterest', 'Threads'];
+const VERTICAL_SOCIAL = ['Instagram', 'Facebook', 'TikTok', 'Pinterest', 'YouTube'];
+const COVER_SOCIAL = ['LinkedIn', 'X', 'X (Twitter)', 'Facebook', 'YouTube', 'TikTok'];
+const PROFILE_SOCIAL = ['Instagram', 'LinkedIn', 'X', 'X (Twitter)', 'Facebook', 'YouTube', 'TikTok', 'Pinterest', 'Threads'];
+
+const z = (
+  type: TemplateZoneType,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  label: string,
+  extra: Partial<TemplateZone> = {},
+): TemplateZone => ({ type, x, y, width, height, label, ...extra });
 
 export const socialTemplates: SocialTemplate[] = [
-  // === ANNOUNCEMENT ===
   {
-    id: 'ann-bold-header',
-    name: 'Bold Header',
+    id: 'tp-feed-foundation-hero',
+    name: 'Foundation Hero',
     category: 'announcement',
-    platforms: ['Instagram', 'LinkedIn', 'Facebook', 'Threads', 'X (Twitter)'],
-    formats: ['feed'],
-    colorSlots: ['primary', 'accent'],
-    description: 'Large headline at top with supporting image below',
-    zones: [
-      { type: 'text', x: 5, y: 5, width: 90, height: 30, label: 'Headline', colorSlot: 'primary', fontSize: 'xl', align: 'left' },
-      { type: 'image', x: 5, y: 38, width: 90, height: 45, label: 'Main Image' },
-      { type: 'logo', x: 5, y: 88, width: 15, height: 8, label: 'Logo' },
-      { type: 'cta', x: 65, y: 88, width: 30, height: 8, label: 'CTA', colorSlot: 'accent' },
-    ],
-  },
-  {
-    id: 'ann-full-bleed',
-    name: 'Full Bleed',
-    category: 'announcement',
-    platforms: ['Instagram', 'Facebook', 'TikTok', 'Pinterest'],
-    formats: ['feed', 'story'],
-    colorSlots: ['primary', 'secondary'],
-    description: 'Full-bleed background image with text overlay',
-    zones: [
-      { type: 'image', x: 0, y: 0, width: 100, height: 100, label: 'Background Image' },
-      { type: 'text', x: 8, y: 60, width: 84, height: 20, label: 'Headline', colorSlot: 'primary', fontSize: 'xl', align: 'center' },
-      { type: 'text', x: 15, y: 80, width: 70, height: 8, label: 'Subtext', fontSize: 'sm', align: 'center' },
-      { type: 'logo', x: 40, y: 5, width: 20, height: 10, label: 'Logo' },
-    ],
-  },
-  {
-    id: 'ann-split-screen',
-    name: 'Split Screen',
-    category: 'announcement',
-    platforms: ['LinkedIn', 'Facebook', 'X (Twitter)', 'Threads'],
-    formats: ['feed'],
-    colorSlots: ['primary', 'accent'],
-    description: 'Two-column layout with text and image',
-    zones: [
-      { type: 'text', x: 3, y: 10, width: 44, height: 15, label: 'Headline', colorSlot: 'primary', fontSize: 'lg', align: 'left' },
-      { type: 'text', x: 3, y: 28, width: 44, height: 30, label: 'Body Text', fontSize: 'sm', align: 'left' },
-      { type: 'cta', x: 3, y: 62, width: 30, height: 8, label: 'CTA', colorSlot: 'accent' },
-      { type: 'image', x: 50, y: 0, width: 50, height: 100, label: 'Right Image' },
-      { type: 'logo', x: 3, y: 85, width: 15, height: 8, label: 'Logo' },
-    ],
-  },
-
-  // === PRODUCT SHOWCASE ===
-  {
-    id: 'prod-centered',
-    name: 'Product Center',
-    category: 'product',
-    platforms: ['Instagram', 'Facebook', 'Pinterest', 'TikTok'],
+    platforms: ALL_FEED,
     formats: ['feed'],
     colorSlots: ['primary', 'secondary', 'accent'],
-    description: 'Product hero image centered with details below',
+    description: 'Full-bleed human-led image with quiet editorial copy and a restrained CTA band.',
     zones: [
-      { type: 'image', x: 15, y: 5, width: 70, height: 55, label: 'Product Image' },
-      { type: 'text', x: 10, y: 63, width: 80, height: 12, label: 'Product Name', colorSlot: 'primary', fontSize: 'lg', align: 'center' },
-      { type: 'text', x: 15, y: 76, width: 70, height: 8, label: 'Description', fontSize: 'sm', align: 'center' },
-      { type: 'cta', x: 30, y: 87, width: 40, height: 8, label: 'Shop Now', colorSlot: 'accent' },
+      z('image', 0, 0, 100, 100, 'Hero Image'),
+      z('text', 7, 10, 44, 16, 'Kicker', { colorSlot: 'secondary', fontSize: 'sm', align: 'left' }),
+      z('text', 7, 28, 52, 24, 'Headline', { colorSlot: 'primary', fontSize: 'xl', align: 'left' }),
+      z('text', 7, 56, 40, 12, 'Support Copy', { fontSize: 'sm', align: 'left' }),
+      z('cta', 7, 78, 28, 8, 'CTA', { colorSlot: 'accent' }),
+      z('logo', 79, 8, 14, 8, 'Logo'),
     ],
   },
   {
-    id: 'prod-grid',
-    name: 'Product Grid',
+    id: 'tp-feed-connection-editorial',
+    name: 'Connection Editorial',
+    category: 'minimal',
+    platforms: SOCIAL_FEED,
+    formats: ['feed'],
+    colorSlots: ['primary', 'accent'],
+    description: 'Candid photography with a left editorial rail for leadership, insights, or campaign copy.',
+    zones: [
+      z('text', 5, 8, 28, 12, 'Section Label', { colorSlot: 'accent', fontSize: 'sm', align: 'left' }),
+      z('text', 5, 24, 28, 26, 'Headline', { colorSlot: 'primary', fontSize: 'lg', align: 'left' }),
+      z('text', 5, 54, 28, 20, 'Body Copy', { fontSize: 'sm', align: 'left' }),
+      z('logo', 5, 86, 18, 7, 'Logo'),
+      z('image', 38, 0, 62, 100, 'Human Image'),
+    ],
+  },
+  {
+    id: 'tp-feed-materiality-panel',
+    name: 'Materiality Panel',
     category: 'product',
-    platforms: ['Instagram', 'Facebook', 'Pinterest'],
+    platforms: ['Instagram', 'LinkedIn', 'Facebook', 'Pinterest', 'Threads', 'YouTube'],
+    formats: ['feed'],
+    colorSlots: ['primary', 'secondary', 'accent'],
+    description: 'Glass-panel composition pairing a primary image with a benefit stack and action strip.',
+    zones: [
+      z('image', 6, 8, 42, 70, 'Main Image'),
+      z('text', 54, 12, 36, 12, 'Headline', { colorSlot: 'primary', fontSize: 'lg', align: 'left' }),
+      z('text', 54, 28, 36, 12, 'Proof Point 1', { colorSlot: 'secondary', fontSize: 'sm', align: 'left' }),
+      z('text', 54, 42, 36, 12, 'Proof Point 2', { colorSlot: 'secondary', fontSize: 'sm', align: 'left' }),
+      z('text', 54, 56, 36, 12, 'Proof Point 3', { colorSlot: 'secondary', fontSize: 'sm', align: 'left' }),
+      z('cta', 54, 74, 26, 8, 'CTA', { colorSlot: 'accent' }),
+      z('logo', 76, 88, 16, 6, 'Logo'),
+    ],
+  },
+  {
+    id: 'tp-feed-thought-leadership',
+    name: 'Thought Leadership',
+    category: 'quote',
+    platforms: ['LinkedIn', 'X', 'X (Twitter)', 'Facebook', 'Threads'],
     formats: ['feed'],
     colorSlots: ['primary', 'accent'],
-    description: 'Multi-product grid layout',
+    description: 'Editorial quote layout with generous whitespace and a subtle identity footer.',
     zones: [
-      { type: 'text', x: 5, y: 3, width: 90, height: 10, label: 'Collection Title', colorSlot: 'primary', fontSize: 'lg', align: 'center' },
-      { type: 'image', x: 5, y: 15, width: 43, height: 35, label: 'Product 1' },
-      { type: 'image', x: 52, y: 15, width: 43, height: 35, label: 'Product 2' },
-      { type: 'image', x: 5, y: 53, width: 43, height: 35, label: 'Product 3' },
-      { type: 'image', x: 52, y: 53, width: 43, height: 35, label: 'Product 4' },
-      { type: 'logo', x: 40, y: 91, width: 20, height: 6, label: 'Logo' },
+      z('text', 10, 14, 12, 12, 'Mark', { colorSlot: 'accent', fontSize: 'xl', align: 'left' }),
+      z('text', 16, 18, 70, 34, 'Quote', { colorSlot: 'primary', fontSize: 'xl', align: 'left' }),
+      z('text', 16, 58, 48, 8, 'Attribution', { fontSize: 'md', align: 'left' }),
+      z('text', 16, 70, 58, 8, 'Role / Context', { fontSize: 'sm', align: 'left' }),
+      z('logo', 78, 86, 14, 7, 'Logo'),
     ],
   },
   {
-    id: 'prod-story-swipe',
-    name: 'Story Swipe Up',
-    category: 'product',
-    platforms: ['Instagram', 'Facebook', 'TikTok'],
-    formats: ['story'],
-    colorSlots: ['primary', 'accent'],
-    description: 'Full-screen product with swipe-up CTA',
-    zones: [
-      { type: 'image', x: 0, y: 0, width: 100, height: 65, label: 'Product Image' },
-      { type: 'text', x: 8, y: 67, width: 84, height: 10, label: 'Product Name', colorSlot: 'primary', fontSize: 'lg', align: 'center' },
-      { type: 'text', x: 12, y: 78, width: 76, height: 6, label: 'Price / Detail', fontSize: 'md', align: 'center' },
-      { type: 'cta', x: 25, y: 87, width: 50, height: 7, label: 'Swipe Up', colorSlot: 'accent' },
-    ],
-  },
-
-  // === QUOTE ===
-  {
-    id: 'quote-centered',
-    name: 'Centered Quote',
-    category: 'quote',
-    platforms: ['Instagram', 'LinkedIn', 'Facebook', 'X (Twitter)', 'Threads'],
-    formats: ['feed'],
-    colorSlots: ['primary', 'secondary'],
-    description: 'Large centered quote with attribution',
-    zones: [
-      { type: 'text', x: 10, y: 15, width: 80, height: 45, label: '"Quote Text"', colorSlot: 'primary', fontSize: 'xl', align: 'center' },
-      { type: 'text', x: 20, y: 65, width: 60, height: 8, label: '— Attribution', colorSlot: 'secondary', fontSize: 'md', align: 'center' },
-      { type: 'logo', x: 38, y: 82, width: 24, height: 10, label: 'Logo' },
-    ],
-  },
-  {
-    id: 'quote-photo-bg',
-    name: 'Photo Quote',
-    category: 'quote',
-    platforms: ['Instagram', 'Pinterest', 'Facebook'],
-    formats: ['feed', 'story'],
-    colorSlots: ['primary'],
-    description: 'Quote overlaid on a background photo',
-    zones: [
-      { type: 'image', x: 0, y: 0, width: 100, height: 100, label: 'Background Photo' },
-      { type: 'text', x: 10, y: 25, width: 80, height: 40, label: '"Quote"', colorSlot: 'primary', fontSize: 'xl', align: 'center' },
-      { type: 'text', x: 25, y: 68, width: 50, height: 8, label: '— Author', fontSize: 'md', align: 'center' },
-      { type: 'logo', x: 5, y: 5, width: 15, height: 8, label: 'Logo' },
-    ],
-  },
-  {
-    id: 'quote-card',
-    name: 'Quote Card',
-    category: 'quote',
-    platforms: ['LinkedIn', 'X (Twitter)', 'Threads'],
-    formats: ['feed'],
-    colorSlots: ['primary', 'accent'],
-    description: 'Clean card-style quote with color accent',
-    zones: [
-      { type: 'text', x: 10, y: 8, width: 10, height: 12, label: '"', colorSlot: 'accent', fontSize: 'xl' },
-      { type: 'text', x: 10, y: 20, width: 80, height: 40, label: 'Quote Text', colorSlot: 'primary', fontSize: 'lg', align: 'left' },
-      { type: 'image', x: 10, y: 68, width: 12, height: 12, label: 'Author Photo' },
-      { type: 'text', x: 26, y: 68, width: 60, height: 12, label: 'Author & Title', fontSize: 'sm', align: 'left' },
-      { type: 'logo', x: 75, y: 88, width: 18, height: 7, label: 'Logo' },
-    ],
-  },
-
-  // === EVENT PROMO ===
-  {
-    id: 'event-banner',
-    name: 'Event Banner',
+    id: 'tp-feed-event-spotlight',
+    name: 'Event Spotlight',
     category: 'event',
-    platforms: ['Instagram', 'LinkedIn', 'Facebook', 'X (Twitter)'],
-    formats: ['feed', 'cover'],
+    platforms: ['Instagram', 'LinkedIn', 'Facebook', 'X', 'X (Twitter)', 'YouTube'],
+    formats: ['feed'],
     colorSlots: ['primary', 'accent'],
-    description: 'Event promotion with date, title, and CTA',
+    description: 'Speaker or session highlight with image-first hierarchy and event registration CTA.',
     zones: [
-      { type: 'image', x: 0, y: 0, width: 100, height: 50, label: 'Event Imagery' },
-      { type: 'text', x: 8, y: 53, width: 84, height: 12, label: 'Event Name', colorSlot: 'primary', fontSize: 'xl', align: 'center' },
-      { type: 'text', x: 20, y: 66, width: 60, height: 8, label: 'Date & Location', fontSize: 'md', align: 'center' },
-      { type: 'cta', x: 28, y: 78, width: 44, height: 8, label: 'Register Now', colorSlot: 'accent' },
-      { type: 'logo', x: 5, y: 90, width: 15, height: 7, label: 'Logo' },
+      z('image', 5, 5, 32, 56, 'Speaker / Event Image'),
+      z('text', 42, 10, 48, 10, 'Event Name', { colorSlot: 'secondary', fontSize: 'sm', align: 'left' }),
+      z('text', 42, 24, 48, 16, 'Session Headline', { colorSlot: 'primary', fontSize: 'lg', align: 'left' }),
+      z('text', 42, 44, 48, 12, 'Date / Time / Place', { fontSize: 'sm', align: 'left' }),
+      z('text', 42, 60, 48, 10, 'Speaker Name', { colorSlot: 'accent', fontSize: 'md', align: 'left' }),
+      z('cta', 42, 78, 26, 8, 'Register', { colorSlot: 'accent' }),
+      z('logo', 76, 89, 16, 6, 'Logo'),
     ],
   },
   {
-    id: 'event-countdown',
-    name: 'Countdown',
-    category: 'event',
-    platforms: ['Instagram', 'Facebook', 'TikTok'],
+    id: 'tp-feed-proof-grid',
+    name: 'Proof Grid',
+    category: 'testimonial',
+    platforms: ['Instagram', 'Facebook', 'Pinterest', 'LinkedIn'],
+    formats: ['feed'],
+    colorSlots: ['primary', 'secondary', 'accent'],
+    description: 'Multi-frame proof composition for services, outcomes, or campaign families.',
+    zones: [
+      z('text', 6, 4, 88, 10, 'Collection Title', { colorSlot: 'primary', fontSize: 'lg', align: 'center' }),
+      z('image', 6, 18, 41, 28, 'Visual 1'),
+      z('image', 53, 18, 41, 28, 'Visual 2'),
+      z('image', 6, 50, 41, 28, 'Visual 3'),
+      z('image', 53, 50, 41, 28, 'Visual 4'),
+      z('text', 16, 82, 68, 8, 'Outcome / Testimonial', { colorSlot: 'secondary', fontSize: 'sm', align: 'center' }),
+      z('logo', 42, 91, 16, 5, 'Logo'),
+    ],
+  },
+  {
+    id: 'tp-story-immersive-transition',
+    name: 'Immersive Transition',
+    category: 'announcement',
+    platforms: VERTICAL_SOCIAL,
     formats: ['story'],
     colorSlots: ['primary', 'secondary', 'accent'],
-    description: 'Story-format countdown with bold date',
+    description: 'Human image with soft-transition lower gradient and a centered action path.',
     zones: [
-      { type: 'image', x: 0, y: 0, width: 100, height: 45, label: 'Event Image' },
-      { type: 'text', x: 10, y: 48, width: 80, height: 8, label: 'COMING SOON', colorSlot: 'secondary', fontSize: 'sm', align: 'center' },
-      { type: 'text', x: 10, y: 56, width: 80, height: 15, label: 'Date', colorSlot: 'primary', fontSize: 'xl', align: 'center' },
-      { type: 'text', x: 10, y: 72, width: 80, height: 10, label: 'Event Name', fontSize: 'lg', align: 'center' },
-      { type: 'cta', x: 20, y: 85, width: 60, height: 7, label: 'Set Reminder', colorSlot: 'accent' },
+      z('logo', 38, 6, 24, 7, 'Logo'),
+      z('image', 0, 0, 100, 100, 'Full Bleed Image'),
+      z('text', 10, 52, 80, 10, 'Eyebrow', { colorSlot: 'secondary', fontSize: 'sm', align: 'center' }),
+      z('text', 10, 63, 80, 14, 'Headline', { colorSlot: 'primary', fontSize: 'xl', align: 'center' }),
+      z('text', 15, 79, 70, 7, 'Support Copy', { fontSize: 'sm', align: 'center' }),
+      z('cta', 24, 89, 52, 6, 'CTA', { colorSlot: 'accent' }),
     ],
   },
   {
-    id: 'event-speaker',
-    name: 'Speaker Spotlight',
+    id: 'tp-story-speaker-countdown',
+    name: 'Speaker Countdown',
     category: 'event',
-    platforms: ['LinkedIn', 'Instagram', 'Facebook'],
-    formats: ['feed'],
-    colorSlots: ['primary', 'accent'],
-    description: 'Featured speaker with bio and event details',
-    zones: [
-      { type: 'image', x: 5, y: 5, width: 35, height: 55, label: 'Speaker Photo' },
-      { type: 'text', x: 45, y: 8, width: 50, height: 12, label: 'Speaker Name', colorSlot: 'primary', fontSize: 'lg', align: 'left' },
-      { type: 'text', x: 45, y: 22, width: 50, height: 8, label: 'Title / Role', fontSize: 'sm', align: 'left' },
-      { type: 'text', x: 45, y: 33, width: 50, height: 25, label: 'Topic or Bio', fontSize: 'sm', align: 'left' },
-      { type: 'text', x: 5, y: 68, width: 90, height: 10, label: 'Event Name & Date', colorSlot: 'accent', fontSize: 'md', align: 'center' },
-      { type: 'cta', x: 30, y: 82, width: 40, height: 8, label: 'Register', colorSlot: 'accent' },
-      { type: 'logo', x: 5, y: 92, width: 15, height: 5, label: 'Logo' },
-    ],
-  },
-
-  // === TESTIMONIAL ===
-  {
-    id: 'test-card',
-    name: 'Review Card',
-    category: 'testimonial',
-    platforms: ['Instagram', 'LinkedIn', 'Facebook', 'Threads'],
-    formats: ['feed'],
-    colorSlots: ['primary', 'accent'],
-    description: 'Customer review with rating and photo',
-    zones: [
-      { type: 'text', x: 10, y: 8, width: 80, height: 8, label: '★★★★★', colorSlot: 'accent', fontSize: 'lg', align: 'center' },
-      { type: 'text', x: 10, y: 20, width: 80, height: 35, label: '"Customer Quote"', colorSlot: 'primary', fontSize: 'lg', align: 'center' },
-      { type: 'image', x: 38, y: 60, width: 14, height: 14, label: 'Customer Photo' },
-      { type: 'text', x: 20, y: 76, width: 60, height: 10, label: 'Name & Title', fontSize: 'sm', align: 'center' },
-      { type: 'logo', x: 38, y: 90, width: 24, height: 7, label: 'Logo' },
-    ],
-  },
-  {
-    id: 'test-before-after',
-    name: 'Before & After',
-    category: 'testimonial',
     platforms: ['Instagram', 'Facebook', 'Pinterest'],
-    formats: ['feed'],
-    colorSlots: ['primary', 'secondary'],
-    description: 'Side-by-side transformation showcase',
+    formats: ['story'],
+    colorSlots: ['primary', 'accent'],
+    description: 'Countdown story with a speaker portrait, date lockup, and strong event CTA.',
     zones: [
-      { type: 'text', x: 5, y: 3, width: 90, height: 8, label: 'Transformation Title', colorSlot: 'primary', fontSize: 'lg', align: 'center' },
-      { type: 'image', x: 3, y: 14, width: 45, height: 55, label: 'Before' },
-      { type: 'image', x: 52, y: 14, width: 45, height: 55, label: 'After' },
-      { type: 'text', x: 3, y: 71, width: 45, height: 6, label: 'BEFORE', colorSlot: 'secondary', fontSize: 'sm', align: 'center' },
-      { type: 'text', x: 52, y: 71, width: 45, height: 6, label: 'AFTER', colorSlot: 'primary', fontSize: 'sm', align: 'center' },
-      { type: 'text', x: 10, y: 80, width: 80, height: 8, label: 'Customer Quote', fontSize: 'sm', align: 'center' },
-      { type: 'logo', x: 40, y: 92, width: 20, height: 5, label: 'Logo' },
+      z('image', 18, 10, 64, 36, 'Speaker Image'),
+      z('text', 14, 50, 72, 8, 'Countdown Label', { colorSlot: 'accent', fontSize: 'sm', align: 'center' }),
+      z('text', 10, 59, 80, 14, 'Date', { colorSlot: 'primary', fontSize: 'xl', align: 'center' }),
+      z('text', 16, 75, 68, 8, 'Event Name', { fontSize: 'md', align: 'center' }),
+      z('cta', 22, 87, 56, 7, 'Set Reminder', { colorSlot: 'accent' }),
     ],
   },
   {
-    id: 'test-story',
-    name: 'Story Testimonial',
+    id: 'tp-story-proof-portrait',
+    name: 'Proof Portrait',
     category: 'testimonial',
-    platforms: ['Instagram', 'Facebook', 'TikTok'],
+    platforms: ['Instagram', 'Facebook', 'TikTok', 'YouTube'],
     formats: ['story'],
     colorSlots: ['primary', 'accent'],
-    description: 'Full-screen testimonial for stories',
+    description: 'Vertical testimonial frame with portrait, quote, and brand action footer.',
     zones: [
-      { type: 'logo', x: 38, y: 5, width: 24, height: 8, label: 'Logo' },
-      { type: 'image', x: 30, y: 18, width: 25, height: 15, label: 'Customer Photo' },
-      { type: 'text', x: 10, y: 36, width: 80, height: 30, label: '"Testimonial Quote"', colorSlot: 'primary', fontSize: 'lg', align: 'center' },
-      { type: 'text', x: 20, y: 68, width: 60, height: 6, label: 'Customer Name', fontSize: 'md', align: 'center' },
-      { type: 'text', x: 10, y: 75, width: 80, height: 5, label: '★★★★★', colorSlot: 'accent', fontSize: 'md', align: 'center' },
-      { type: 'cta', x: 20, y: 85, width: 60, height: 7, label: 'Learn More', colorSlot: 'accent' },
-    ],
-  },
-
-  // === MINIMAL ===
-  {
-    id: 'min-text-only',
-    name: 'Text Only',
-    category: 'minimal',
-    platforms: ['LinkedIn', 'X (Twitter)', 'Threads', 'Instagram'],
-    formats: ['feed'],
-    colorSlots: ['primary'],
-    description: 'Clean text-only post with brand mark',
-    zones: [
-      { type: 'text', x: 12, y: 25, width: 76, height: 40, label: 'Main Message', colorSlot: 'primary', fontSize: 'xl', align: 'center' },
-      { type: 'logo', x: 40, y: 80, width: 20, height: 10, label: 'Logo' },
+      z('logo', 39, 6, 22, 7, 'Logo'),
+      z('image', 32, 18, 36, 16, 'Portrait'),
+      z('text', 10, 40, 80, 26, 'Quote', { colorSlot: 'primary', fontSize: 'lg', align: 'center' }),
+      z('text', 20, 68, 60, 6, 'Name / Title', { fontSize: 'sm', align: 'center' }),
+      z('cta', 20, 85, 60, 7, 'Learn More', { colorSlot: 'accent' }),
     ],
   },
   {
-    id: 'min-photo-caption',
-    name: 'Photo + Caption',
-    category: 'minimal',
-    platforms: ['Instagram', 'Pinterest', 'Facebook'],
-    formats: ['feed'],
-    colorSlots: ['primary'],
-    description: 'Large photo with minimal text bar below',
-    zones: [
-      { type: 'image', x: 0, y: 0, width: 100, height: 80, label: 'Photo' },
-      { type: 'text', x: 5, y: 83, width: 70, height: 10, label: 'Caption', colorSlot: 'primary', fontSize: 'sm', align: 'left' },
-      { type: 'logo', x: 80, y: 85, width: 15, height: 8, label: 'Logo' },
-    ],
-  },
-  {
-    id: 'min-brand-moment',
-    name: 'Brand Moment',
-    category: 'minimal',
-    platforms: ['Instagram', 'Facebook', 'TikTok'],
-    formats: ['story'],
+    id: 'tp-reel-hook-frame',
+    name: 'Hook Frame',
+    category: 'video',
+    platforms: ['Instagram', 'Facebook', 'TikTok', 'YouTube'],
+    formats: ['reel'],
     colorSlots: ['primary', 'accent'],
-    description: 'Minimal full-screen brand moment',
+    description: 'Opening vertical video frame with strong hook line, brand mark, and subject image.',
     zones: [
-      { type: 'image', x: 0, y: 0, width: 100, height: 100, label: 'Full Bleed Image' },
-      { type: 'logo', x: 35, y: 42, width: 30, height: 16, label: 'Centered Logo' },
+      z('logo', 8, 6, 18, 6, 'Logo'),
+      z('text', 8, 14, 62, 12, 'Hook', { colorSlot: 'primary', fontSize: 'xl', align: 'left' }),
+      z('image', 0, 28, 100, 54, 'Video Frame'),
+      z('text', 8, 84, 52, 7, 'Caption / Topic', { fontSize: 'sm', align: 'left' }),
+      z('cta', 67, 87, 24, 5, 'Swipe / Watch', { colorSlot: 'accent' }),
+    ],
+  },
+  {
+    id: 'tp-reel-case-study',
+    name: 'Case Study Reel',
+    category: 'product',
+    platforms: ['Instagram', 'Facebook', 'TikTok', 'YouTube'],
+    formats: ['reel'],
+    colorSlots: ['primary', 'secondary', 'accent'],
+    description: 'Vertical case-study frame balancing proof copy with cinematic human imagery.',
+    zones: [
+      z('image', 0, 0, 100, 100, 'Full Video Frame'),
+      z('text', 8, 10, 58, 8, 'Sector / Region', { colorSlot: 'secondary', fontSize: 'sm', align: 'left' }),
+      z('text', 8, 20, 66, 14, 'Outcome Headline', { colorSlot: 'primary', fontSize: 'lg', align: 'left' }),
+      z('text', 8, 78, 50, 8, 'Metric / Proof', { colorSlot: 'accent', fontSize: 'md', align: 'left' }),
+      z('logo', 76, 8, 16, 6, 'Logo'),
+      z('cta', 63, 88, 28, 5, 'View More', { colorSlot: 'accent' }),
+    ],
+  },
+  {
+    id: 'tp-cover-panorama',
+    name: 'Panoramic Cover',
+    category: 'cover',
+    platforms: COVER_SOCIAL,
+    formats: ['cover'],
+    colorSlots: ['primary', 'secondary', 'accent'],
+    description: 'Panoramic header built for safe-center messaging over soft-transitional brand imagery.',
+    zones: [
+      z('image', 0, 0, 100, 100, 'Panoramic Background'),
+      z('text', 18, 28, 38, 12, 'Headline Safe Area', { colorSlot: 'primary', fontSize: 'lg', align: 'left' }),
+      z('text', 18, 44, 32, 10, 'Support Copy', { colorSlot: 'secondary', fontSize: 'sm', align: 'left' }),
+      z('logo', 78, 14, 12, 14, 'Logo'),
+      z('cta', 18, 62, 18, 10, 'CTA', { colorSlot: 'accent' }),
+    ],
+  },
+  {
+    id: 'tp-cover-channel-art',
+    name: 'Channel Art',
+    category: 'cover',
+    platforms: ['YouTube', 'LinkedIn', 'Facebook'],
+    formats: ['cover'],
+    colorSlots: ['primary', 'secondary'],
+    description: 'Wide header with center-safe storytelling and a discreet logo anchor.',
+    zones: [
+      z('image', 0, 0, 100, 100, 'Header Background'),
+      z('text', 24, 34, 32, 14, 'Channel / Brand Line', { colorSlot: 'primary', fontSize: 'lg', align: 'left' }),
+      z('text', 24, 52, 26, 8, 'Descriptor', { colorSlot: 'secondary', fontSize: 'sm', align: 'left' }),
+      z('logo', 70, 30, 12, 18, 'Logo'),
+    ],
+  },
+  {
+    id: 'tp-profile-logo-core',
+    name: 'Logo Core',
+    category: 'profile',
+    platforms: PROFILE_SOCIAL,
+    formats: ['profile'],
+    colorSlots: ['primary', 'secondary'],
+    description: 'Centered avatar-safe mark with breathing room for circular and square profile crops.',
+    zones: [
+      z('image', 18, 18, 64, 64, 'Avatar Background'),
+      z('logo', 30, 30, 40, 40, 'Primary Mark'),
+    ],
+  },
+  {
+    id: 'tp-profile-highlight-chip',
+    name: 'Highlight Chip',
+    category: 'profile',
+    platforms: ['Instagram', 'Pinterest', 'Threads'],
+    formats: ['profile'],
+    colorSlots: ['primary', 'accent'],
+    description: 'Small-format profile badge for highlights, boards, and compact community touchpoints.',
+    zones: [
+      z('image', 12, 12, 76, 76, 'Background Field'),
+      z('logo', 28, 24, 44, 32, 'Mark'),
+      z('text', 18, 63, 64, 10, 'Short Label', { colorSlot: 'accent', fontSize: 'sm', align: 'center' }),
     ],
   },
 ];
 
+const normalizePlatform = (platform: string) => {
+  if (platform === 'X' || platform === 'X (Twitter)') return 'x';
+  return platform.trim().toLowerCase();
+};
+
 export function getTemplatesForPlatformFormat(platform: string, format: string): SocialTemplate[] {
-  return socialTemplates.filter(
-    t => t.platforms.includes(platform) && t.formats.includes(format)
-  );
+  const normalizedPlatform = normalizePlatform(platform);
+  const normalizedFormat = format.trim().toLowerCase() as TemplateFormat;
+
+  return socialTemplates.filter((template) => {
+    const matchesPlatform = template.platforms.some((item) => normalizePlatform(item) === normalizedPlatform);
+    const matchesFormat = template.formats.includes(normalizedFormat);
+    return matchesPlatform && matchesFormat;
+  });
 }
