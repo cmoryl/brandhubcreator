@@ -1256,7 +1256,7 @@ const TemplatePreviewDialog = ({
     }
     // For SVGs, draw the source as the full resolved (mediaW × mediaH)
     // surface and let the source-rect math pick the right crop.
-    ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    ctx.drawImage(drawSource, sx, sy, sw, sh, dx, dy, dw, dh);
     return canvas.toDataURL('image/png');
   };
 
