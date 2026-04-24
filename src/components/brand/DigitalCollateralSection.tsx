@@ -1,8 +1,9 @@
 import { useState, useRef, useMemo } from 'react';
-import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2, ClipboardList, Sparkles, BookOpen, BarChart3, BookMarked, TrendingUp, Briefcase, Package, Building2, Target, CalendarDays, Link2, Globe, Folder, Wand2, type LucideIcon } from 'lucide-react';
+import { Plus, X, Pencil, Upload, Download, FileText, Image, Eye, GripVertical, Link, ExternalLink, Palette, FileImage, FolderPlus, Trash2, ClipboardList, Sparkles, BookOpen, BarChart3, BookMarked, TrendingUp, Briefcase, Package, Building2, Target, CalendarDays, Link2, Globe, Folder, Wand2, Layers, type LucideIcon } from 'lucide-react';
+import JSZip from 'jszip';
 import { generatePdfThumbnail } from '@/lib/pdfThumbnail';
 import { PdfThumbnailCard } from './PdfThumbnailCard';
-import { BrandBrochure } from '@/types/brand';
+import { BrandBrochure, BrandLogo, SocialTemplateZone } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
