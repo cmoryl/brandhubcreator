@@ -563,6 +563,61 @@ const detectAssetTransparency = (url: string): Promise<boolean> => {
   return promise;
 };
 
+// ---------------------------------------------------------------------------
+// SVG-aware image loading (for accurate transparent PNG export)
+// ---------------------------------------------------------------------------
+
+/**
+ * Try to determine an SVG's intrinsic pixel dimensions. Browsers are
+ * inconsistent here — Chrome will report `naturalWidth = 300, naturalHeight = 150`
+ * for SVGs that lack an explicit `width`/`height` attribute, so we fetch the
+ * source and parse the viewBox / size attrs ourselves to get a reliable
+ * resolution for canvas rasterisation.
+ */
+const resolveSvgIntrinsicSize = async (url: string): Promise<{ width: number; height: number } | null> => {
+  try {
+    let svgText: string;
+    if (url.startsWith('data:image/svg')) {
+      const commaIdx = url.indexOf(',');
+      const payload = url.slice(commaIdx + 1);
+      svgText = url.includes(';base64,') ? atob(payload) : decodeURIComponent(payload);
+    } else {
+      const res = await fetch(url, { mode: 'cors', cache: 'no-cache' });
+      if (!res.ok) return null;
+      svgText = await res.text();
+    }
+    const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+    const svg = doc.documentElement;
+    if (!svg || svg.nodeName.toLowerCase() !== 'svg') return null;
+    const widthAttr = svg.getAttribute('width');
+    const heightAttr = svg.getAttribute('height');
+    const parsePx = (v: string | null): number | null => {
+      if (!v) return null;
+      const num = parseFloat(v);
+      if (Number.isNaN(num) || num <= 0) return null;
+      // Treat unit-less / px as direct pixels; ignore %, em, etc. (fall through to viewBox).
+      if (/^\s*[\d.]+(px)?\s*$/i.test(v)) return num;
+      return null;
+    };
+    let w = parsePx(widthAttr);
+    let h = parsePx(heightAttr);
+    if (!w || !h) {
+      const vb = svg.getAttribute('viewBox');
+      if (vb) {
+        const parts = vb.trim().split(/[\s,]+/).map(Number);
+        if (parts.length === 4 && parts.every((n) => Number.isFinite(n))) {
+          if (!w) w = parts[2];
+          if (!h) h = parts[3];
+        }
+      }
+    }
+    if (!w || !h || w <= 0 || h <= 0) return null;
+    return { width: w, height: h };
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Find the image zone that visually sits behind the given logo zone — i.e. the
  * largest image zone that overlaps the logo's footprint. Used to decide which
