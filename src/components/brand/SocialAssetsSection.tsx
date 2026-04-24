@@ -507,6 +507,8 @@ const TemplatePreviewDialog = ({
   layoutOptions,
   onSelectTemplate,
   canEdit,
+  onUploadZoneMedia,
+  onSelectZoneMedia,
   onUpdateTemplate,
 }: {
   open: boolean;
@@ -516,6 +518,8 @@ const TemplatePreviewDialog = ({
   layoutOptions: SocialAssetTemplate[];
   onSelectTemplate: (template: SocialAssetTemplate) => void;
   canEdit: boolean;
+  onUploadZoneMedia: (zoneIndex: number, file: File) => Promise<void>;
+  onSelectZoneMedia: (zoneIndex: number, url: string) => void;
   onUpdateTemplate: (updates: Partial<SocialAssetTemplate>) => void;
 }) => {
   if (!template) return null;
@@ -875,6 +879,34 @@ const TemplatePreviewDialog = ({
                       </Button>
                     )}
                   </div>
+                  {canEdit && activeFrameZoneIndex !== null && (
+                    <div className="flex flex-wrap gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-muted/20 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-muted/40">
+                        <Upload className="h-3 w-3" />
+                        Upload media
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) void onUploadZoneMedia(activeFrameZoneIndex, file);
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      <ImageLibraryPicker
+                        onSelect={(url) => onSelectZoneMedia(activeFrameZoneIndex, url)}
+                        trigger={
+                          <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5">
+                            <FolderOpen className="h-3 w-3" />
+                            Library
+                          </Button>
+                        }
+                        defaultCategory="Backgrounds"
+                      />
+                    </div>
+                  )}
                   <SlotFitControl
                     previewUrl={activeFrameZone.mediaUrl || template.previewImageUrl}
                     assetType={activeFrameZone.mediaUrl ? 'image' : 'empty'}
