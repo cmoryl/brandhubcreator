@@ -155,6 +155,7 @@ interface SortableItemProps {
   onUpdate: (updates: Partial<BrandBrochure>) => void;
   onRemoveThumbnail: () => void;
   onDoneEditing: () => void;
+  onEditZones?: () => void;
   isImage: (url: string) => boolean;
   allCategoryOptions: { value: string; label: string; icon: string }[];
   isDragging?: boolean;
@@ -172,6 +173,7 @@ const SortableCollateralItem = ({
   onUpdate,
   onRemoveThumbnail,
   onDoneEditing,
+  onEditZones,
   isImage,
   allCategoryOptions,
   isDragging,
