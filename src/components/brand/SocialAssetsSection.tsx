@@ -662,14 +662,15 @@ const TemplatePreviewDialog = ({
               />
 
               {selectedZone ? (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Label</label>
-                  <Input
-                    value={selectedZone.label}
-                    onChange={(e) => updateZone(selectedZoneIndex, { label: e.target.value })}
-                    className="h-8"
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Label</label>
+                    <Input
+                      value={selectedZone.label}
+                      onChange={(e) => updateZone(selectedZoneIndex, { label: e.target.value })}
+                      className="h-8"
+                    />
+                  </div>
 
                 {(selectedZone.type === 'text' || selectedZone.type === 'cta') && (
                   <div className="space-y-2">
@@ -724,24 +725,25 @@ const TemplatePreviewDialog = ({
                   </div>
                 </div>
 
-                {(selectedZone.type === 'text' || selectedZone.type === 'cta') && (
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Alignment</label>
-                    <Select
-                      value={selectedZone.align || 'center'}
-                      onValueChange={(value) => updateZone(selectedZoneIndex, { align: value as SocialTemplateZone['align'] })}
-                    >
-                      <SelectTrigger className="h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="left">Left</SelectItem>
-                        <SelectItem value="center">Center</SelectItem>
-                        <SelectItem value="right">Right</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                  {(selectedZone.type === 'text' || selectedZone.type === 'cta') && (
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground">Alignment</label>
+                      <Select
+                        value={selectedZone.align || 'center'}
+                        onValueChange={(value) => updateZone(selectedZoneIndex, { align: value as SocialTemplateZone['align'] })}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="left">Left</SelectItem>
+                          <SelectItem value="center">Center</SelectItem>
+                          <SelectItem value="right">Right</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-sm text-muted-foreground">Click a zone to edit it.</div>
               )}
