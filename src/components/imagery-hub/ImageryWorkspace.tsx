@@ -4,7 +4,7 @@
  * batch operations, auto-categorization, visual search, and quality scoring
  */
 import { useState, useCallback, useEffect } from 'react';
-import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown, Globe, Combine } from 'lucide-react';
+import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown, Globe, Combine, Camera } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ import { DraggableImageGrid } from '@/components/imagery-hub/DraggableImageGrid'
 import { BatchOperationsToolbar } from '@/components/imagery-hub/BatchOperationsToolbar';
 import { AutoCategorizeDialog } from '@/components/imagery-hub/AutoCategorizeDialog';
 import { VisualSearchPanel } from '@/components/imagery-hub/VisualSearchPanel';
+import { BrandPhotographyGenerator } from '@/components/imagery-hub/BrandPhotographyGenerator';
 
 interface ImageryWorkspaceProps {
   entity: ImageryEntity;
@@ -61,6 +62,7 @@ export const ImageryWorkspace = ({
   const [visualSearchUrl, setVisualSearchUrl] = useState<string | null>(null);
   const [searchCollapsed, setSearchCollapsed] = useState(false);
   const [websiteScannerOpen, setWebsiteScannerOpen] = useState(false);
+  const [photoGenOpen, setPhotoGenOpen] = useState(false);
 
   const totalImages = sections.reduce((sum, s) => sum + s.images.length, 0);
   const searchSection = sections.find(s => s.id === searchSectionId);
