@@ -151,8 +151,31 @@ export const ImageAssetsSection = ({
     multiple: true,
   });
 
-  const deleteAsset = (id: string) => {
-    onImageAssetsChange?.(imageAssets.filter(a => a.id !== id));
+  const requestDelete = (asset: ImageAsset) => {
+    setAvoidReason('');
+    setPendingDelete(asset);
+  };
+
+  const confirmDelete = (alsoAvoid: boolean) => {
+    if (!pendingDelete) return;
+    const asset = pendingDelete;
+    onImageAssetsChange?.(imageAssets.filter(a => a.id !== asset.id));
+    if (alsoAvoid && onImageryAvoidListChange) {
+      const newItem: ImageryAvoidItem = {
+        id: safeUUID(),
+        url: asset.url,
+        name: asset.name,
+        thumbnailUrl: asset.url,
+        reason: avoidReason.trim() || undefined,
+        rejectedAt: new Date().toISOString(),
+      };
+      onImageryAvoidListChange([...(imageryAvoidList || []), newItem]);
+      toast.success('Got it — the AI will avoid this style going forward.');
+    } else {
+      toast.success('Image removed');
+    }
+    setPendingDelete(null);
+    setAvoidReason('');
   };
   const { trackDownload } = useDownloadTracking();
   
