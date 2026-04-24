@@ -394,6 +394,137 @@ const pickDefaultBrandLogoUrl = (brandLogos?: BrandLogo[]): string | undefined =
   return brandLogos.find((logo) => !!logo.url)?.url;
 };
 
+// ---------------------------------------------------------------------------
+// Background-aware logo recommendations
+// ---------------------------------------------------------------------------
+
+/** Cached luminance samples keyed by media URL so we don't re-decode on every render. */
+const backgroundLuminanceCache = new Map<string, number>();
+const backgroundLuminancePending = new Map<string, Promise<number | null>>();
+
+/**
+ * Load an image cross-origin and return a perceived-brightness score (0–1, where
+ * 0 is pitch black and 1 is pure white). Sampling is downscaled for speed.
+ */
+const sampleImageLuminance = (url: string): Promise<number | null> => {
+  if (!url) return Promise.resolve(null);
+  if (backgroundLuminanceCache.has(url)) {
+    return Promise.resolve(backgroundLuminanceCache.get(url) ?? null);
+  }
+  const pending = backgroundLuminancePending.get(url);
+  if (pending) return pending;
+
+  const promise = new Promise<number | null>((resolve) => {
+    try {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const w = 24;
+          const h = 24;
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return resolve(null);
+          ctx.drawImage(img, 0, 0, w, h);
+          const data = ctx.getImageData(0, 0, w, h).data;
+          let total = 0;
+          let count = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            const a = data[i + 3] / 255;
+            if (a < 0.1) continue;
+            // Rec. 709 luma
+            const lum = (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) / 255;
+            total += lum * a;
+            count += a;
+          }
+          const avg = count > 0 ? total / count : null;
+          if (avg !== null) backgroundLuminanceCache.set(url, avg);
+          resolve(avg);
+        } catch {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = url;
+    } catch {
+      resolve(null);
+    }
+  }).finally(() => {
+    backgroundLuminancePending.delete(url);
+  });
+
+  backgroundLuminancePending.set(url, promise);
+  return promise;
+};
+
+/**
+ * Find the image zone that visually sits behind the given logo zone — i.e. the
+ * largest image zone that overlaps the logo's footprint. Used to decide which
+ * logo variant (light/dark/etc.) reads best on top.
+ */
+const findBackgroundZoneForLogo = (
+  logoZone: SocialTemplateZone,
+  zones: SocialTemplateZone[],
+): SocialTemplateZone | null => {
+  const logoCx = logoZone.x + logoZone.width / 2;
+  const logoCy = logoZone.y + logoZone.height / 2;
+  let best: { zone: SocialTemplateZone; area: number } | null = null;
+  for (const zone of zones) {
+    if (zone === logoZone) continue;
+    if (zone.type !== 'image') continue;
+    if (!zone.mediaUrl) continue;
+    // Center of the logo must fall within this image zone
+    if (
+      logoCx < zone.x ||
+      logoCx > zone.x + zone.width ||
+      logoCy < zone.y ||
+      logoCy > zone.y + zone.height
+    ) continue;
+    const area = zone.width * zone.height;
+    if (!best || area > best.area) best = { zone, area };
+  }
+  return best?.zone ?? null;
+};
+
+/**
+ * Score a logo variant for legibility on a background of the given luminance.
+ * Higher score = better fit. Returns 0–1.
+ *  - dark backgrounds favour reversed / monochrome-light / wordmark-light
+ *  - light backgrounds favour primary / secondary / monochrome-dark
+ */
+const scoreLogoForBackground = (
+  variant: BrandLogo['variant'],
+  bgLuminance: number,
+): number => {
+  const isDarkBg = bgLuminance < 0.5;
+  // Base affinities — higher means "designed for this background tone"
+  const lightBgAffinity: Record<BrandLogo['variant'], number> = {
+    primary: 0.95,
+    secondary: 0.85,
+    wordmark: 0.8,
+    icon: 0.75,
+    monochrome: 0.7,
+    reversed: 0.15,
+  };
+  const darkBgAffinity: Record<BrandLogo['variant'], number> = {
+    reversed: 0.98,
+    monochrome: 0.7,
+    icon: 0.55,
+    wordmark: 0.5,
+    secondary: 0.35,
+    primary: 0.2,
+  };
+  return isDarkBg ? darkBgAffinity[variant] : lightBgAffinity[variant];
+};
+
+const describeBackgroundTone = (lum: number): 'dark' | 'mid' | 'light' => {
+  if (lum < 0.35) return 'dark';
+  if (lum > 0.65) return 'light';
+  return 'mid';
+};
+
 const getEditableZones = (
   platform: string,
   template: SocialAssetTemplate,
@@ -594,6 +725,26 @@ const TemplatePreviewDialog = ({
 
   const selectedZone = templateZones[selectedZoneIndex] || null;
   const activeFrameZone = activeFrameZoneIndex !== null ? templateZones[activeFrameZoneIndex] || null : null;
+
+  // Detect the image zone that sits behind the active logo zone so we can
+  // recommend a logo variant whose contrast reads well on top of it.
+  const activeLogoBackgroundZone = activeFrameZone && activeFrameZone.type === 'logo'
+    ? findBackgroundZoneForLogo(activeFrameZone, templateZones)
+    : null;
+  const activeLogoBackgroundUrl = activeLogoBackgroundZone?.mediaUrl;
+  const [activeLogoBgLuminance, setActiveLogoBgLuminance] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!activeLogoBackgroundUrl) {
+      setActiveLogoBgLuminance(null);
+      return;
+    }
+    sampleImageLuminance(activeLogoBackgroundUrl).then((value) => {
+      if (!cancelled) setActiveLogoBgLuminance(value);
+    });
+    return () => { cancelled = true; };
+  }, [activeLogoBackgroundUrl]);
 
   const updateZone = (zoneIndex: number, updates: Partial<SocialTemplateZone>) => {
     const nextZones = templateZones.map((zone, index) =>
@@ -1289,41 +1440,85 @@ const TemplatePreviewDialog = ({
                   {canEdit
                     && activeFrameZoneIndex !== null
                     && activeFrameZone.type === 'logo'
-                    && (brandLogos?.length ?? 0) > 0 && (
-                    <div className="space-y-1.5 rounded-lg border border-dashed border-border bg-muted/10 p-2">
-                      <p className="text-[11px] font-medium text-muted-foreground">
-                        Brand logo variants
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {brandLogos!.filter((logo) => !!logo.url).map((logo) => {
-                          const isActive = activeFrameZone.mediaUrl === logo.url;
-                          return (
-                            <button
-                              key={logo.id}
-                              type="button"
-                              title={`${logo.name} (${logo.variant})`}
-                              onClick={() => onSelectZoneMedia(activeFrameZoneIndex!, logo.url)}
-                              className={cn(
-                                'flex h-12 w-16 items-center justify-center overflow-hidden rounded-md border bg-background p-1 transition-colors',
-                                isActive
-                                  ? 'border-primary ring-2 ring-primary ring-offset-1 ring-offset-background'
-                                  : 'border-border hover:border-primary/40',
-                              )}
-                            >
-                              <img
-                                src={logo.url}
-                                alt={logo.name}
-                                className="max-h-full max-w-full object-contain"
-                              />
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        Tap a variant to drop it into this logo zone.
-                      </p>
-                    </div>
-                  )}
+                    && (brandLogos?.length ?? 0) > 0 && (() => {
+                      const usableLogos = brandLogos!.filter((logo) => !!logo.url);
+                      const bgLum = activeLogoBgLuminance;
+                      const bgTone = bgLum !== null ? describeBackgroundTone(bgLum) : null;
+                      const ranked = usableLogos
+                        .map((logo) => ({
+                          logo,
+                          score: bgLum !== null ? scoreLogoForBackground(logo.variant, bgLum) : 0.5,
+                        }))
+                        .sort((a, b) => b.score - a.score);
+                      const topScore = ranked[0]?.score ?? 0;
+                      return (
+                        <div className="space-y-1.5 rounded-lg border border-dashed border-border bg-muted/10 p-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-[11px] font-medium text-muted-foreground">
+                              Brand logo variants
+                            </p>
+                            {bgTone && (
+                              <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                <span
+                                  className={cn(
+                                    'h-2.5 w-2.5 rounded-full border border-border',
+                                    bgTone === 'dark' && 'bg-foreground',
+                                    bgTone === 'light' && 'bg-background',
+                                    bgTone === 'mid' && 'bg-muted',
+                                  )}
+                                />
+                                {bgTone === 'dark' ? 'Dark' : bgTone === 'light' ? 'Light' : 'Mid-tone'} background
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ranked.map(({ logo, score }) => {
+                              const isActive = activeFrameZone.mediaUrl === logo.url;
+                              const isRecommended = bgLum !== null && score === topScore && score >= 0.7;
+                              const isPoorMatch = bgLum !== null && score < 0.3;
+                              return (
+                                <button
+                                  key={logo.id}
+                                  type="button"
+                                  title={`${logo.name} (${logo.variant})${isRecommended ? ' — recommended for this background' : isPoorMatch ? ' — low contrast on this background' : ''}`}
+                                  onClick={() => onSelectZoneMedia(activeFrameZoneIndex!, logo.url)}
+                                  className={cn(
+                                    'relative flex h-12 w-16 items-center justify-center overflow-hidden rounded-md border p-1 transition-colors',
+                                    // Preview each swatch on the tone it's designed for so the
+                                    // light-on-dark variants don't look invisible in the picker.
+                                    logo.variant === 'reversed' || logo.variant === 'monochrome'
+                                      ? 'bg-foreground'
+                                      : 'bg-background',
+                                    isActive
+                                      ? 'border-primary ring-2 ring-primary ring-offset-1 ring-offset-background'
+                                      : isRecommended
+                                        ? 'border-primary/60 hover:border-primary'
+                                        : 'border-border hover:border-primary/40',
+                                    isPoorMatch && !isActive && 'opacity-50',
+                                  )}
+                                >
+                                  <img
+                                    src={logo.url}
+                                    alt={logo.name}
+                                    className="max-h-full max-w-full object-contain"
+                                  />
+                                  {isRecommended && (
+                                    <span className="absolute -top-1 -right-1 rounded-full bg-primary px-1 text-[8px] font-semibold leading-3 text-primary-foreground shadow">
+                                      ★
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">
+                            {bgTone
+                              ? 'Variants are ranked by contrast against the background. Tap to drop one in.'
+                              : 'Tap a variant to drop it into this logo zone.'}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   <SlotFitControl
                     previewUrl={activeFrameZone.mediaUrl || template.previewImageUrl}
                     assetType={activeFrameZone.mediaUrl ? 'image' : 'empty'}
