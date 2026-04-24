@@ -726,6 +726,26 @@ const TemplatePreviewDialog = ({
   const selectedZone = templateZones[selectedZoneIndex] || null;
   const activeFrameZone = activeFrameZoneIndex !== null ? templateZones[activeFrameZoneIndex] || null : null;
 
+  // Detect the image zone that sits behind the active logo zone so we can
+  // recommend a logo variant whose contrast reads well on top of it.
+  const activeLogoBackgroundZone = activeFrameZone && activeFrameZone.type === 'logo'
+    ? findBackgroundZoneForLogo(activeFrameZone, templateZones)
+    : null;
+  const activeLogoBackgroundUrl = activeLogoBackgroundZone?.mediaUrl;
+  const [activeLogoBgLuminance, setActiveLogoBgLuminance] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!activeLogoBackgroundUrl) {
+      setActiveLogoBgLuminance(null);
+      return;
+    }
+    sampleImageLuminance(activeLogoBackgroundUrl).then((value) => {
+      if (!cancelled) setActiveLogoBgLuminance(value);
+    });
+    return () => { cancelled = true; };
+  }, [activeLogoBackgroundUrl]);
+
   const updateZone = (zoneIndex: number, updates: Partial<SocialTemplateZone>) => {
     const nextZones = templateZones.map((zone, index) =>
       index === zoneIndex ? { ...zone, ...updates } : zone
