@@ -695,6 +695,16 @@ export const ImageryWorkspace = ({
         destinations={sections.map(s => ({ id: s.id, name: s.name }))}
         defaultDestinationId={searchSectionId || sections[sections.length - 1]?.id}
       />
+
+      {/* Brand Photography Generator */}
+      <BrandPhotographyGenerator
+        open={photoGenOpen}
+        onOpenChange={setPhotoGenOpen}
+        entity={entity}
+        sections={sections}
+        onAddImages={onAddImages}
+        onAddSection={onAddSection}
+      />
     </div>
   );
 };
