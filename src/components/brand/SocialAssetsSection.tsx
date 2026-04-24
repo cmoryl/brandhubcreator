@@ -2825,6 +2825,7 @@ export const SocialAssetsSection = ({
                         updateSocialAsset={updateSocialAsset}
                         uploadFile={uploadFile}
                         cardGridClass={cardGridClass}
+                        brandLogos={brandLogos}
                       />
                     );
                   });
