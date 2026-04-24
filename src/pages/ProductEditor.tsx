@@ -54,6 +54,7 @@ import { QRSection } from '@/components/brand/QRSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
+import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
@@ -685,8 +686,8 @@ const ProductEditor = () => {
       case 'videos': return <VideosSection videos={currentProduct.videos} onVideosChange={editHandler((videos) => handleUpdateProduct({ videos }))} entityName={currentProduct.hero?.name} entityType="product" industry={(currentProduct as any).industry} websiteUrl={(currentProduct as any).websites?.[0]?.url} />;
       case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={editHandler((assets) => handleUpdateProduct({ assets }))} websiteUrl={currentProduct.websites?.[0]?.url} entityId={currentProduct.id} entityType="product" />;
       case 'misuse': return <MisuseSection misuse={currentProduct.misuse} onMisuseChange={editHandler((misuse) => handleUpdateProduct({ misuse }))} entityId={currentProduct.id} entityType="product" />;
-      case 'casestudies':
-      case 'brochures': return <DigitalCollateralSection collateral={currentProduct.brochures} onCollateralChange={editHandler((brochures) => handleUpdateProduct({ brochures }))} entityId={currentProduct.id} entityType="product" />;
+      case 'casestudies': return <CaseStudiesSection caseStudies={(currentProduct as any).caseStudies || []} onCaseStudiesChange={editHandler((caseStudies) => handleUpdateProduct({ caseStudies } as any))} entityId={currentProduct.id} entityType="product" brandLogos={currentProduct.logos} />;
+      case 'brochures': return <DigitalCollateralSection collateral={currentProduct.brochures} onCollateralChange={editHandler((brochures) => handleUpdateProduct({ brochures }))} entityId={currentProduct.id} entityType="product" brandLogos={currentProduct.logos} />;
       case 'templates': return <TemplatesSection templates={currentProduct.templates} onTemplatesChange={editHandler((templates) => handleUpdateProduct({ templates }))} entityId={currentProduct.id} entityType="product" />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={currentProduct.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => handleUpdateProduct({ templateSpecs }))} brandColors={currentProduct.colors || []} entityId={currentProduct.id} entityType="product" />;
       case 'products': return <ProductsSection productId={currentProduct.id} linkedGuides={currentProduct.linkedGuides || []} onLinkedGuidesChange={editHandler((linkedGuides) => handleUpdateProduct({ linkedGuides }))} />;
