@@ -330,7 +330,7 @@ const TemplatePreviewDialog = ({
   const templateZones = getEditableZones(platform, template);
 
   const handleZonePointerDown = (
-    event: React.PointerEvent<HTMLDivElement>,
+    event: React.PointerEvent<HTMLElement>,
     zoneIndex: number,
     mode: 'move' | 'resize',
   ) => {
@@ -1363,6 +1363,15 @@ const SizeCategorySection = ({
         onOpenChange={(open) => !open && setSelectedTemplate(null)}
         platform={activePlatform.platform}
         template={selectedTemplate}
+        canEdit={canEditSocial}
+        onUpdateTemplate={(updates) => {
+          if (!selectedTemplate) return;
+          const updatedTemplates = (activePlatform.templates || []).map((item) =>
+            item.id === selectedTemplate.id ? { ...item, ...updates } : item
+          );
+          updateSocialAsset(activePlatform.id, { templates: updatedTemplates });
+          setSelectedTemplate((current) => (current ? { ...current, ...updates } : current));
+        }}
       />
     </div>
   );
