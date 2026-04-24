@@ -42,6 +42,8 @@ interface SocialAssetsProps {
   onLayoutChange?: (layout: LayoutPreset) => void;
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
+  /** Brand logo library — used to auto-place a real logo into template `logo` zones. */
+  brandLogos?: BrandLogo[];
 }
 
 const platformIcons: Record<string, React.ElementType> = {
