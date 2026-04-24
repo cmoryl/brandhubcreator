@@ -1793,6 +1793,14 @@ const SizeCategorySection = ({
     [activePlatform.id, activePlatform.templates, updateSocialAsset],
   );
 
+  const updateTemplateZoneMedia = useCallback((templateToUpdate: SocialAssetTemplate, zoneIndex: number, mediaUrl: string) => {
+    const nextZones = getEditableZones(activePlatform.platform, templateToUpdate).map((zone, index) => (
+      index === zoneIndex ? { ...zone, mediaUrl } : zone
+    ));
+
+    return persistTemplateVersion(templateToUpdate, { templateZones: nextZones });
+  }, [activePlatform.platform, persistTemplateVersion]);
+
   return (
     <div className="space-y-3">
       {/* Sub-section header */}
@@ -1976,6 +1984,36 @@ const SizeCategorySection = ({
         layoutOptions={categoryTemplates}
         onSelectTemplate={setSelectedTemplate}
         canEdit={canEditSocial}
+        onUploadZoneMedia={async (zoneIndex, file) => {
+          if (!selectedTemplate) return;
+
+          if (!entityId) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              const nextTemplate = updateTemplateZoneMedia(selectedTemplate, zoneIndex, ev.target?.result as string);
+              setSelectedTemplate(nextTemplate);
+            };
+            reader.readAsDataURL(file);
+            return;
+          }
+
+          try {
+            const result = await uploadFile(file, 'asset', `template-zone-${selectedTemplate.id}-${zoneIndex}`);
+            if (result?.url) {
+              const nextTemplate = updateTemplateZoneMedia(selectedTemplate, zoneIndex, result.url);
+              setSelectedTemplate(nextTemplate);
+              toast.success('Frame media updated');
+            }
+          } catch {
+            toast.error('Failed to upload frame media');
+          }
+        }}
+        onSelectZoneMedia={(zoneIndex, url) => {
+          if (!selectedTemplate) return;
+          const nextTemplate = updateTemplateZoneMedia(selectedTemplate, zoneIndex, url);
+          setSelectedTemplate(nextTemplate);
+          toast.success('Frame media updated from library');
+        }}
         onUpdateTemplate={(updates) => {
           if (!selectedTemplate) return;
           const persistedTemplate = persistTemplateVersion(selectedTemplate, updates);
