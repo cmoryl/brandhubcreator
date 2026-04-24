@@ -1440,41 +1440,85 @@ const TemplatePreviewDialog = ({
                   {canEdit
                     && activeFrameZoneIndex !== null
                     && activeFrameZone.type === 'logo'
-                    && (brandLogos?.length ?? 0) > 0 && (
-                    <div className="space-y-1.5 rounded-lg border border-dashed border-border bg-muted/10 p-2">
-                      <p className="text-[11px] font-medium text-muted-foreground">
-                        Brand logo variants
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {brandLogos!.filter((logo) => !!logo.url).map((logo) => {
-                          const isActive = activeFrameZone.mediaUrl === logo.url;
-                          return (
-                            <button
-                              key={logo.id}
-                              type="button"
-                              title={`${logo.name} (${logo.variant})`}
-                              onClick={() => onSelectZoneMedia(activeFrameZoneIndex!, logo.url)}
-                              className={cn(
-                                'flex h-12 w-16 items-center justify-center overflow-hidden rounded-md border bg-background p-1 transition-colors',
-                                isActive
-                                  ? 'border-primary ring-2 ring-primary ring-offset-1 ring-offset-background'
-                                  : 'border-border hover:border-primary/40',
-                              )}
-                            >
-                              <img
-                                src={logo.url}
-                                alt={logo.name}
-                                className="max-h-full max-w-full object-contain"
-                              />
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        Tap a variant to drop it into this logo zone.
-                      </p>
-                    </div>
-                  )}
+                    && (brandLogos?.length ?? 0) > 0 && (() => {
+                      const usableLogos = brandLogos!.filter((logo) => !!logo.url);
+                      const bgLum = activeLogoBgLuminance;
+                      const bgTone = bgLum !== null ? describeBackgroundTone(bgLum) : null;
+                      const ranked = usableLogos
+                        .map((logo) => ({
+                          logo,
+                          score: bgLum !== null ? scoreLogoForBackground(logo.variant, bgLum) : 0.5,
+                        }))
+                        .sort((a, b) => b.score - a.score);
+                      const topScore = ranked[0]?.score ?? 0;
+                      return (
+                        <div className="space-y-1.5 rounded-lg border border-dashed border-border bg-muted/10 p-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-[11px] font-medium text-muted-foreground">
+                              Brand logo variants
+                            </p>
+                            {bgTone && (
+                              <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                <span
+                                  className={cn(
+                                    'h-2.5 w-2.5 rounded-full border border-border',
+                                    bgTone === 'dark' && 'bg-foreground',
+                                    bgTone === 'light' && 'bg-background',
+                                    bgTone === 'mid' && 'bg-muted',
+                                  )}
+                                />
+                                {bgTone === 'dark' ? 'Dark' : bgTone === 'light' ? 'Light' : 'Mid-tone'} background
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ranked.map(({ logo, score }) => {
+                              const isActive = activeFrameZone.mediaUrl === logo.url;
+                              const isRecommended = bgLum !== null && score === topScore && score >= 0.7;
+                              const isPoorMatch = bgLum !== null && score < 0.3;
+                              return (
+                                <button
+                                  key={logo.id}
+                                  type="button"
+                                  title={`${logo.name} (${logo.variant})${isRecommended ? ' — recommended for this background' : isPoorMatch ? ' — low contrast on this background' : ''}`}
+                                  onClick={() => onSelectZoneMedia(activeFrameZoneIndex!, logo.url)}
+                                  className={cn(
+                                    'relative flex h-12 w-16 items-center justify-center overflow-hidden rounded-md border p-1 transition-colors',
+                                    // Preview each swatch on the tone it's designed for so the
+                                    // light-on-dark variants don't look invisible in the picker.
+                                    logo.variant === 'reversed' || logo.variant === 'monochrome'
+                                      ? 'bg-foreground'
+                                      : 'bg-background',
+                                    isActive
+                                      ? 'border-primary ring-2 ring-primary ring-offset-1 ring-offset-background'
+                                      : isRecommended
+                                        ? 'border-primary/60 hover:border-primary'
+                                        : 'border-border hover:border-primary/40',
+                                    isPoorMatch && !isActive && 'opacity-50',
+                                  )}
+                                >
+                                  <img
+                                    src={logo.url}
+                                    alt={logo.name}
+                                    className="max-h-full max-w-full object-contain"
+                                  />
+                                  {isRecommended && (
+                                    <span className="absolute -top-1 -right-1 rounded-full bg-primary px-1 text-[8px] font-semibold leading-3 text-primary-foreground shadow">
+                                      ★
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">
+                            {bgTone
+                              ? 'Variants are ranked by contrast against the background. Tap to drop one in.'
+                              : 'Tap a variant to drop it into this logo zone.'}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   <SlotFitControl
                     previewUrl={activeFrameZone.mediaUrl || template.previewImageUrl}
                     assetType={activeFrameZone.mediaUrl ? 'image' : 'empty'}
