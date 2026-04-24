@@ -24,15 +24,13 @@ import {
   TemplateZoneType,
   defaultTemplatePreviewFit,
   getZoneMediaFit,
-  scoreLogoForBackground,
-  describeBackgroundTone,
-  sampleImageLuminance,
   findBackgroundZoneForLogo,
   autoMatchLogosForZones,
   pickDefaultBrandLogoUrl,
   pickDefaultBrandLogo,
 } from '@/lib/templateZonePipeline';
 import type { BrandLogo } from '@/types/brand';
+import { BrandLogoVariantPicker } from './BrandLogoVariantPicker';
 
 // ---------------------------------------------------------------------------
 // Public types
