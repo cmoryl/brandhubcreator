@@ -1179,6 +1179,7 @@ export const DigitalCollateralSection = ({
                           onUpdate={(updates) => updateItem(item.id, updates)}
                           onRemoveThumbnail={() => removeThumbnail(item.id)}
                           onDoneEditing={() => setEditingId(null)}
+                          onEditZones={() => openTemplateEditor(item)}
                           isImage={isImage}
                           allCategoryOptions={allCategoryOptions}
                           canEdit={canEdit}
