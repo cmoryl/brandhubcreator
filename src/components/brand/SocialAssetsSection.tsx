@@ -19,6 +19,7 @@ import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
+import { getTemplatesForPlatformFormat } from '@/lib/socialTemplates';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
@@ -180,6 +181,39 @@ const platformPresets: BrandSocialAssetSpec[] = [
     previewImageUrl: '/images/social-defaults/threads-default.jpg',
   },
 ];
+
+const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate[] => {
+  const generated = [
+    ...getTemplatesForPlatformFormat(platform, 'feed'),
+    ...getTemplatesForPlatformFormat(platform, 'story'),
+    ...getTemplatesForPlatformFormat(platform, 'reel'),
+    ...getTemplatesForPlatformFormat(platform, 'cover'),
+    ...getTemplatesForPlatformFormat(platform, 'profile'),
+  ];
+
+  const sizeMap: Record<string, SocialSizeCategory> = {
+    feed: 'post',
+    story: 'story',
+    reel: 'reel',
+    cover: 'cover',
+    profile: 'other',
+  };
+
+  return generated.map((template) => ({
+    id: `generated-${template.id}`,
+    name: template.name,
+    fileType: 'other',
+    url: '',
+    description: template.description,
+    dimensions: template.formats.join(', '),
+    sizeCategory: sizeMap[template.formats[0]] || 'other',
+  }));
+};
+
+const getResolvedTemplates = (asset: BrandSocialAssetSpec): SocialAssetTemplate[] => {
+  if ((asset.templates?.length || 0) > 0) return asset.templates || [];
+  return getGeneratedTemplatesForPlatform(asset.platform);
+};
 
 
 // Compact Platform Card Component
