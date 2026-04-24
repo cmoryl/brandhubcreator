@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toPng } from 'html-to-image';
 import JSZip from 'jszip';
-import { BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory, SocialTemplateZone } from '@/types/brand';
+import { BrandLogo, BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory, SocialTemplateZone } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 import { parseCanvaUrl, CANVA_LOGO_SVG } from '@/lib/canvaUtils';
@@ -42,6 +42,8 @@ interface SocialAssetsProps {
   onLayoutChange?: (layout: LayoutPreset) => void;
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
+  /** Brand logo library — used to auto-place a real logo into template `logo` zones. */
+  brandLogos?: BrandLogo[];
 }
 
 const platformIcons: Record<string, React.ElementType> = {
@@ -378,20 +380,46 @@ const getSmartDefaultZoneFit = (
   return { fit: 'cover' as const, focusX, focusY };
 };
 
-const getEditableZones = (platform: string, template: SocialAssetTemplate): SocialTemplateZone[] => {
+/**
+ * Pick the best logo URL from the brand logo library to drop into a template
+ * `logo` zone. Prefers `primary`, then `wordmark`, then any logo with a usable URL.
+ */
+const pickDefaultBrandLogoUrl = (brandLogos?: BrandLogo[]): string | undefined => {
+  if (!brandLogos?.length) return undefined;
+  const order: BrandLogo['variant'][] = ['primary', 'wordmark', 'secondary', 'reversed', 'monochrome', 'icon'];
+  for (const variant of order) {
+    const match = brandLogos.find((logo) => logo.variant === variant && logo.url);
+    if (match?.url) return match.url;
+  }
+  return brandLogos.find((logo) => !!logo.url)?.url;
+};
+
+const getEditableZones = (
+  platform: string,
+  template: SocialAssetTemplate,
+  brandLogos?: BrandLogo[],
+): SocialTemplateZone[] => {
+  const defaultLogoUrl = pickDefaultBrandLogoUrl(brandLogos);
+
+  const hydrate = (zone: SocialTemplateZone): SocialTemplateZone => {
+    if (zone.type !== 'image' && zone.type !== 'logo') return { ...zone };
+    const next: SocialTemplateZone = {
+      ...zone,
+      mediaFit: zone.mediaFit || getSmartDefaultZoneFit(zone, template),
+    };
+    // Auto-fill empty logo zones with the brand's default logo so every size
+    // ships with a real logo placement out of the box.
+    if (zone.type === 'logo' && !next.mediaUrl && defaultLogoUrl) {
+      next.mediaUrl = defaultLogoUrl;
+    }
+    return next;
+  };
+
   if (template.templateZones?.length) {
-    return template.templateZones.map((zone) => (
-      zone.type === 'image' || zone.type === 'logo'
-        ? { ...zone, mediaFit: zone.mediaFit || getSmartDefaultZoneFit(zone, template) }
-        : zone
-    ));
+    return template.templateZones.map(hydrate);
   }
   const templateDefinition = getTemplateDefinitionForAsset(platform, template);
-  return (templateDefinition?.zones || []).map((zone) => (
-    zone.type === 'image' || zone.type === 'logo'
-      ? { ...zone, mediaFit: getSmartDefaultZoneFit(zone, template) }
-      : { ...zone }
-  ));
+  return (templateDefinition?.zones || []).map(hydrate);
 };
 
 type SafeAreaGuide = {
@@ -436,14 +464,16 @@ const TemplateCardPreview = ({
   template,
   interactive = false,
   onClick,
+  brandLogos,
 }: {
   platform: string;
   template: SocialAssetTemplate;
   interactive?: boolean;
   onClick?: () => void;
+  brandLogos?: BrandLogo[];
 }) => {
   const previewImage = template.previewImageUrl;
-  const templateZones = getEditableZones(platform, template);
+  const templateZones = getEditableZones(platform, template, brandLogos);
 
   return (
     <button
@@ -521,6 +551,7 @@ const TemplatePreviewDialog = ({
   onUploadZoneMedia,
   onSelectZoneMedia,
   onUpdateTemplate,
+  brandLogos,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -532,10 +563,11 @@ const TemplatePreviewDialog = ({
   onUploadZoneMedia: (zoneIndex: number, file: File) => Promise<void>;
   onSelectZoneMedia: (zoneIndex: number, url: string) => void;
   onUpdateTemplate: (updates: Partial<SocialAssetTemplate>) => void;
+  brandLogos?: BrandLogo[];
 }) => {
   if (!template) return null;
 
-  const templateZones = getEditableZones(platform, template);
+  const templateZones = getEditableZones(platform, template, brandLogos);
   const [selectedZoneIndex, setSelectedZoneIndex] = useState(0);
   const [activeFrameZoneIndex, setActiveFrameZoneIndex] = useState<number | null>(null);
   const [showGrid, setShowGrid] = useState(true);
@@ -1252,6 +1284,44 @@ const TemplatePreviewDialog = ({
                         }
                         defaultCategory="Backgrounds"
                       />
+                    </div>
+                  )}
+                  {canEdit
+                    && activeFrameZoneIndex !== null
+                    && activeFrameZone.type === 'logo'
+                    && (brandLogos?.length ?? 0) > 0 && (
+                    <div className="space-y-1.5 rounded-lg border border-dashed border-border bg-muted/10 p-2">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        Brand logo variants
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {brandLogos!.filter((logo) => !!logo.url).map((logo) => {
+                          const isActive = activeFrameZone.mediaUrl === logo.url;
+                          return (
+                            <button
+                              key={logo.id}
+                              type="button"
+                              title={`${logo.name} (${logo.variant})`}
+                              onClick={() => onSelectZoneMedia(activeFrameZoneIndex!, logo.url)}
+                              className={cn(
+                                'flex h-12 w-16 items-center justify-center overflow-hidden rounded-md border bg-background p-1 transition-colors',
+                                isActive
+                                  ? 'border-primary ring-2 ring-primary ring-offset-1 ring-offset-background'
+                                  : 'border-border hover:border-primary/40',
+                              )}
+                            >
+                              <img
+                                src={logo.url}
+                                alt={logo.name}
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Tap a variant to drop it into this logo zone.
+                      </p>
                     </div>
                   )}
                   <SlotFitControl
@@ -2203,6 +2273,7 @@ const SizeCategorySection = ({
   updateSocialAsset,
   uploadFile,
   cardGridClass,
+  brandLogos,
 }: {
   category: { key: string; label: string; spec: string };
   categoryTemplates: SocialAssetTemplate[];
@@ -2212,6 +2283,7 @@ const SizeCategorySection = ({
   updateSocialAsset: (id: string, updates: Partial<BrandSocialAssetSpec>) => void;
   uploadFile: (file: File, type: string, prefix: string) => Promise<{ url: string } | undefined>;
   cardGridClass: string;
+  brandLogos?: BrandLogo[];
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<SocialAssetTemplate | null>(null);
@@ -2249,12 +2321,12 @@ const SizeCategorySection = ({
   );
 
   const updateTemplateZoneMedia = useCallback((templateToUpdate: SocialAssetTemplate, zoneIndex: number, mediaUrl: string) => {
-    const nextZones = getEditableZones(activePlatform.platform, templateToUpdate).map((zone, index) => (
+    const nextZones = getEditableZones(activePlatform.platform, templateToUpdate, brandLogos).map((zone, index) => (
       index === zoneIndex ? { ...zone, mediaUrl } : zone
     ));
 
     return persistTemplateVersion(templateToUpdate, { templateZones: nextZones });
-  }, [activePlatform.platform, persistTemplateVersion]);
+  }, [activePlatform.platform, persistTemplateVersion, brandLogos]);
 
   return (
     <div className="space-y-3">
@@ -2337,6 +2409,7 @@ const SizeCategorySection = ({
                       template={template}
                       interactive
                       onClick={() => setSelectedTemplate(template)}
+                      brandLogos={brandLogos}
                     />
                   ) : isCanva ? (
                     <div className="flex flex-col items-center gap-2 text-center p-4">
@@ -2439,6 +2512,7 @@ const SizeCategorySection = ({
         layoutOptions={categoryTemplates}
         onSelectTemplate={setSelectedTemplate}
         canEdit={canEditSocial}
+        brandLogos={brandLogos}
         onUploadZoneMedia={async (zoneIndex, file) => {
           if (!selectedTemplate) return;
 
@@ -2488,6 +2562,7 @@ export const SocialAssetsSection = ({
   onLayoutChange,
   entityId,
   entityType,
+  brandLogos,
 }: SocialAssetsProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
@@ -2789,6 +2864,7 @@ export const SocialAssetsSection = ({
                         updateSocialAsset={updateSocialAsset}
                         uploadFile={uploadFile}
                         cardGridClass={cardGridClass}
+                        brandLogos={brandLogos}
                       />
                     );
                   });

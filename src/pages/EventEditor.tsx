@@ -650,7 +650,9 @@ const EventEditor = () => {
           <SocialAssetsSection
             socialAssets={event.socialAssets || []}
             onSocialAssetsChange={editHandler((socialAssets) => updateEvent({ socialAssets }))}
-            
+            entityId={event.id}
+            entityType="event"
+            brandLogos={event.logos}
           />
         );
       case 'eventspeakers':
