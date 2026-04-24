@@ -629,11 +629,33 @@ const describeBackgroundTone = (lum: number): 'dark' | 'mid' | 'light' => {
   return 'mid';
 };
 
+/**
+ * Pick the brand logo whose variant best matches a background luminance.
+ * Returns the highest-scoring usable logo (or undefined if there are none).
+ */
+const pickBestBrandLogoForLuminance = (
+  brandLogos: BrandLogo[] | undefined,
+  bgLuminance: number,
+): BrandLogo | undefined => {
+  if (!brandLogos?.length) return undefined;
+  const usable = brandLogos.filter((logo) => !!logo.url);
+  if (!usable.length) return undefined;
+  let best: { logo: BrandLogo; score: number } | null = null;
+  for (const logo of usable) {
+    const score = scoreLogoForBackground(logo.variant, bgLuminance);
+    if (!best || score > best.score) best = { logo, score };
+  }
+  return best?.logo;
+};
+
 const getEditableZones = (
   platform: string,
   template: SocialAssetTemplate,
   brandLogos?: BrandLogo[],
 ): SocialTemplateZone[] => {
+  const defaultLogo = brandLogos?.find((logo) =>
+    logo.variant === 'primary' && logo.url
+  ) || brandLogos?.find((logo) => !!logo.url);
   const defaultLogoUrl = pickDefaultBrandLogoUrl(brandLogos);
 
   const hydrate = (zone: SocialTemplateZone): SocialTemplateZone => {
@@ -643,9 +665,12 @@ const getEditableZones = (
       mediaFit: zone.mediaFit || getSmartDefaultZoneFit(zone, template),
     };
     // Auto-fill empty logo zones with the brand's default logo so every size
-    // ships with a real logo placement out of the box.
+    // ships with a real logo placement out of the box. We tag the zone as
+    // auto-matched so the background-aware matcher can later swap to a better
+    // variant once the surrounding background is known.
     if (zone.type === 'logo' && !next.mediaUrl && defaultLogoUrl) {
       next.mediaUrl = defaultLogoUrl;
+      if (defaultLogo?.id) next.autoMatchedLogoId = defaultLogo.id;
     }
     return next;
   };
@@ -655,6 +680,39 @@ const getEditableZones = (
   }
   const templateDefinition = getTemplateDefinitionForAsset(platform, template);
   return (templateDefinition?.zones || []).map(hydrate);
+};
+
+/**
+ * Walk every logo zone in the template, look up the image zone that sits
+ * behind it, and — if that logo zone is still flagged as auto-matched —
+ * swap its mediaUrl to whichever brand-logo variant scores highest against
+ * the background's sampled luminance. Returns a new array (or the input
+ * unchanged if nothing needed to move).
+ */
+const autoMatchLogosForZones = async (
+  zones: SocialTemplateZone[],
+  brandLogos: BrandLogo[] | undefined,
+): Promise<{ zones: SocialTemplateZone[]; changed: boolean; swapped: number }> => {
+  if (!brandLogos?.length) return { zones, changed: false, swapped: 0 };
+  let changed = false;
+  let swapped = 0;
+  const next = await Promise.all(zones.map(async (zone) => {
+    if (zone.type !== 'logo') return zone;
+    if (!zone.autoMatchedLogoId) return zone; // user has taken manual control
+    const bgZone = findBackgroundZoneForLogo(zone, zones);
+    if (!bgZone?.mediaUrl) return zone;
+    const lum = await sampleImageLuminance(bgZone.mediaUrl);
+    if (lum === null) return zone;
+    const best = pickBestBrandLogoForLuminance(brandLogos, lum);
+    if (!best?.url) return zone;
+    if (best.id === zone.autoMatchedLogoId && zone.mediaUrl === best.url) {
+      return zone;
+    }
+    changed = true;
+    swapped += 1;
+    return { ...zone, mediaUrl: best.url, autoMatchedLogoId: best.id };
+  }));
+  return { zones: next, changed, swapped };
 };
 
 type SafeAreaGuide = {
