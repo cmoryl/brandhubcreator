@@ -51,6 +51,8 @@ const ASPECT_RATIO_OPTIONS: Record<AspectRatio, { label: string; dimensions: str
 
 const STYLE_PRESET_OPTIONS: Record<StylePreset, { label: string; description: string }> = {
   'photorealistic': { label: 'Photorealistic', description: 'High-quality photography' },
+  'humanRealistic': { label: 'Hyper-Realistic Human', description: 'Soft light, shallow DoF, authentic moments' },
+  'softTransition': { label: 'Soft Transition', description: 'Photo merged with progressive brand-color blur' },
   'illustration': { label: 'Illustration', description: 'Digital art style' },
   'minimal': { label: 'Minimal', description: 'Clean and simple' },
   'bold': { label: 'Bold', description: 'Strong contrasts' },
