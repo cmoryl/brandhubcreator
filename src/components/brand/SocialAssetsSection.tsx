@@ -596,12 +596,22 @@ const TemplatePreviewDialog = ({
     document.body.removeChild(link);
   };
 
-  const renderCanvasToDataUrl = async (): Promise<string | null> => {
+  interface ExportRenderOptions {
+    pixelRatio: number;
+    transparent: boolean;
+    includeGuides: boolean;
+  }
+
+  const renderCanvasToDataUrl = async (
+    options: ExportRenderOptions,
+  ): Promise<string | null> => {
     if (!canvasRef.current) return null;
     const previousGrid = showGrid;
     const previousSafe = showSafeArea;
-    setShowGrid(false);
-    setShowSafeArea(false);
+    if (!options.includeGuides) {
+      setShowGrid(false);
+      setShowSafeArea(false);
+    }
     setIsExporting(true);
     // Wait two frames so React commits the chrome-hiding state before capture.
     await new Promise<void>((resolve) =>
@@ -609,13 +619,28 @@ const TemplatePreviewDialog = ({
     );
     try {
       return await toPng(canvasRef.current, {
-        pixelRatio: 2,
+        pixelRatio: options.pixelRatio,
         cacheBust: true,
         skipFonts: false,
+        backgroundColor: options.transparent ? undefined : undefined,
+        // html-to-image: setting `style.background = transparent` via filter wrapper is not supported,
+        // but PNG output preserves transparency unless an explicit backgroundColor is set.
+        // When transparent=false we let the canvas's own background paint through.
         filter: (node) => {
           if (!(node instanceof HTMLElement)) return true;
-          return node.dataset.exportExclude !== 'true';
+          if (node.dataset.exportExclude === 'true') return false;
+          if (options.transparent && node === canvasRef.current) {
+            node.dataset.exportPrevBg = node.style.background || '';
+            node.style.background = 'transparent';
+          }
+          return true;
         },
+      }).finally(() => {
+        if (options.transparent && canvasRef.current) {
+          const prev = canvasRef.current.dataset.exportPrevBg ?? '';
+          canvasRef.current.style.background = prev;
+          delete canvasRef.current.dataset.exportPrevBg;
+        }
       });
     } finally {
       setShowGrid(previousGrid);
@@ -624,15 +649,15 @@ const TemplatePreviewDialog = ({
     }
   };
 
-  const handleExportPreview = async () => {
+  const handleExportPreview = async (options: ExportRenderOptions) => {
     setIsExporting(true);
     try {
-      const dataUrl = await renderCanvasToDataUrl();
+      const dataUrl = await renderCanvasToDataUrl(options);
       if (!dataUrl) {
         toast.error('Preview not ready to export');
         return;
       }
-      triggerDownload(dataUrl, `${sanitizeFileName(template.name)}-preview.png`);
+      triggerDownload(dataUrl, `${sanitizeFileName(template.name)}-preview@${options.pixelRatio}x.png`);
       toast.success('Preview exported');
     } catch (err) {
       console.error('Export preview failed', err);
@@ -642,14 +667,14 @@ const TemplatePreviewDialog = ({
     }
   };
 
-  const handleExportFramesZip = async () => {
+  const handleExportFramesZip = async (options: ExportRenderOptions) => {
     if (frameZones.length === 0) {
       toast.error('No frames to export');
       return;
     }
     setIsExporting(true);
     try {
-      const fullDataUrl = await renderCanvasToDataUrl();
+      const fullDataUrl = await renderCanvasToDataUrl(options);
       if (!fullDataUrl || !canvasRef.current) {
         toast.error('Preview not ready to export');
         return;
@@ -682,6 +707,9 @@ const TemplatePreviewDialog = ({
         canvas.height = sh;
         const ctx = canvas.getContext('2d');
         if (!ctx) continue;
+        if (!options.transparent) {
+          // Fill with white when not transparent, since source PNG may already be opaque (no-op).
+        }
         ctx.drawImage(baseImg, sx, sy, sw, sh, 0, 0, sw, sh);
         const cropDataUrl = canvas.toDataURL('image/png');
         const safeLabel = sanitizeFileName(zone.label || `frame-${i + 1}`);
@@ -690,7 +718,7 @@ const TemplatePreviewDialog = ({
 
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(blob);
-      triggerDownload(url, `${sanitizeFileName(template.name)}-frames.zip`);
+      triggerDownload(url, `${sanitizeFileName(template.name)}-frames@${options.pixelRatio}x.zip`);
       setTimeout(() => URL.revokeObjectURL(url), 2000);
       toast.success(`Exported ${frameZones.length} frame${frameZones.length === 1 ? '' : 's'}`);
     } catch (err) {
@@ -698,6 +726,25 @@ const TemplatePreviewDialog = ({
       toast.error('Failed to export frames');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const openExportDialog = (target: 'preview' | 'frames') => {
+    setExportTarget(target);
+    setExportDialogOpen(true);
+  };
+
+  const runExportFromDialog = async () => {
+    const options: ExportRenderOptions = {
+      pixelRatio: Number(exportScale),
+      transparent: exportTransparent,
+      includeGuides: exportIncludeGuides,
+    };
+    setExportDialogOpen(false);
+    if (exportTarget === 'preview') {
+      await handleExportPreview(options);
+    } else {
+      await handleExportFramesZip(options);
     }
   };
 
