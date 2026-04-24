@@ -435,9 +435,48 @@ export const TemplateCanvasEditor = ({
 };
 
 // ---------------------------------------------------------------------------
+// Helper: pick a sensible piece of demo copy for an empty text / CTA zone so
+// new templated assets render with realistic content instead of the raw zone
+// label. Match is keyword-based on the zone label and falls back to a generic
+// per-type default.
+// ---------------------------------------------------------------------------
+
+const demoTextByKeyword: Array<{ test: RegExp; text: string }> = [
+  { test: /head(line|er)|title/i, text: 'Bold headline that anchors the story' },
+  { test: /sub(head|title)|tagline/i, text: 'A short supporting line that frames the message' },
+  { test: /body|description|paragraph|copy|text/i, text: 'Lorem ipsum supporting copy that explains the value, the audience and the outcome in two or three sentences.' },
+  { test: /quote|testimonial/i, text: '"This partnership transformed how we go to market." — Client Name, Title' },
+  { test: /stat|metric|number|kpi/i, text: '+42% lift in qualified pipeline' },
+  { test: /date|when/i, text: 'Q4 2025' },
+  { test: /location|where|venue/i, text: 'New York, NY' },
+  { test: /name|author|by/i, text: 'Jane Doe, Brand Lead' },
+];
+
+const demoCtaByKeyword: Array<{ test: RegExp; text: string }> = [
+  { test: /learn|read more|details/i, text: 'Learn more' },
+  { test: /download|pdf|brochure/i, text: 'Download PDF' },
+  { test: /register|rsvp|sign ?up/i, text: 'Register now' },
+  { test: /contact|talk|reach/i, text: 'Get in touch' },
+  { test: /case|story/i, text: 'Read the full case study' },
+  { test: /demo|trial/i, text: 'Request a demo' },
+];
+
+const pickDemoContent = (zone: CanvasEditorZone): string | undefined => {
+  if (zone.type !== 'text' && zone.type !== 'cta') return undefined;
+  const label = zone.label || '';
+  const table = zone.type === 'cta' ? demoCtaByKeyword : demoTextByKeyword;
+  const match = table.find((entry) => entry.test.test(label));
+  if (match) return match.text;
+  // Generic fallbacks so the zone never renders as just its label.
+  if (zone.type === 'cta') return 'Learn more';
+  return 'Lorem ipsum supporting copy that explains the value, the audience and the outcome in two or three sentences.';
+};
+
+// ---------------------------------------------------------------------------
 // Helper: hydrate a default zone array with brand logos pre-applied (and
-// tagged for auto-matching). Sections that ship default templates can use this
-// to ensure logo zones have a real logo on first paint.
+// tagged for auto-matching) plus demo copy for empty text / CTA zones.
+// Sections that ship default templates can use this so new assets always
+// render with realistic content on first paint.
 // ---------------------------------------------------------------------------
 
 export const hydrateZoneDefaults = <Z extends CanvasEditorZone>(
@@ -447,6 +486,11 @@ export const hydrateZoneDefaults = <Z extends CanvasEditorZone>(
   const defaultLogo = pickDefaultBrandLogo(brandLogos);
   const defaultLogoUrl = pickDefaultBrandLogoUrl(brandLogos);
   return zones.map((zone) => {
+    // Seed demo copy for empty text / CTA zones.
+    if ((zone.type === 'text' || zone.type === 'cta') && !zone.content) {
+      const demo = pickDemoContent(zone);
+      if (demo) zone = { ...zone, content: demo };
+    }
     if (zone.type !== 'logo') return zone;
     if (zone.mediaUrl) return zone;
     if (!defaultLogoUrl) return zone;
