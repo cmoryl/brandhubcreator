@@ -313,6 +313,8 @@ const zoneTypeLabels: Record<TemplateZoneType, string> = {
 const clampZoneValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const defaultTemplatePreviewFit = { fit: 'cover' as const, focusX: 50, focusY: 50 };
 
+const getZoneMediaFit = (zone: SocialTemplateZone) => zone.mediaFit || defaultTemplatePreviewFit;
+
 const getEditableZones = (platform: string, template: SocialAssetTemplate): SocialTemplateZone[] => {
   if (template.templateZones?.length) return template.templateZones;
   const templateDefinition = getTemplateDefinitionForAsset(platform, template);
@@ -369,7 +371,6 @@ const TemplateCardPreview = ({
 }) => {
   const previewImage = template.previewImageUrl;
   const templateZones = getEditableZones(platform, template);
-  const previewFit = template.previewFit || defaultTemplatePreviewFit;
 
   return (
     <button
@@ -385,8 +386,7 @@ const TemplateCardPreview = ({
         <img
           src={previewImage}
           alt={template.name}
-          className="absolute inset-0 h-full w-full"
-          style={{ objectFit: previewFit.fit, objectPosition: `${previewFit.focusX}% ${previewFit.focusY}%` }}
+          className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
         <div className="absolute inset-0 bg-muted/50" />
@@ -399,7 +399,7 @@ const TemplateCardPreview = ({
             <div
               key={`${template.id}-zone-${index}`}
               className={cn(
-                'absolute rounded border border-dashed backdrop-blur-[1px] transition-all',
+                'absolute overflow-hidden rounded border border-dashed backdrop-blur-[1px] transition-all',
                 zonePreviewStyles[zone.type],
               )}
               style={{
@@ -409,7 +409,18 @@ const TemplateCardPreview = ({
                 height: `${zone.height}%`,
               }}
             >
-              <div className="flex h-full w-full items-center justify-center px-1 text-center text-[9px] font-medium leading-tight">
+              {(zone.type === 'image' || zone.type === 'logo') && zone.mediaUrl ? (
+                <img
+                  src={zone.mediaUrl}
+                  alt={zone.label}
+                  className="absolute inset-0 h-full w-full"
+                  style={{
+                    objectFit: getZoneMediaFit(zone).fit,
+                    objectPosition: `${getZoneMediaFit(zone).focusX}% ${getZoneMediaFit(zone).focusY}%`,
+                  }}
+                />
+              ) : null}
+              <div className="relative flex h-full w-full items-center justify-center px-1 text-center text-[9px] font-medium leading-tight">
                 <span className="truncate">{zone.label}</span>
               </div>
             </div>
@@ -449,7 +460,6 @@ const TemplatePreviewDialog = ({
   const [showSafeArea, setShowSafeArea] = useState(true);
   const [zoomLevel, setZoomLevel] = useState('100');
   const safeAreaGuide = getSafeAreaGuide(platform, template);
-  const previewFit = template.previewFit || defaultTemplatePreviewFit;
   const frameZones = templateZones
     .map((zone, index) => ({ zone, index }))
     .filter(({ zone }) => zone.type === 'image' || zone.type === 'logo');
@@ -582,8 +592,7 @@ const TemplatePreviewDialog = ({
                       <img
                         src={template.previewImageUrl}
                         alt={template.name}
-                        className="absolute inset-0 h-full w-full"
-                        style={{ objectFit: previewFit.fit, objectPosition: `${previewFit.focusX}% ${previewFit.focusY}%` }}
+                        className="absolute inset-0 h-full w-full object-cover"
                       />
                     ) : (
                       <div className="absolute inset-0 bg-muted/50" />
@@ -623,7 +632,7 @@ const TemplatePreviewDialog = ({
                       <div
                         key={`${template.id}-editor-zone-${index}`}
                         className={cn(
-                          'absolute rounded border-2 border-dashed shadow-sm backdrop-blur-[1px] transition-all',
+                          'absolute overflow-hidden rounded border-2 border-dashed shadow-sm backdrop-blur-[1px] transition-all',
                           zonePreviewStyles[zone.type],
                           canEdit && 'cursor-move',
                           selectedZoneIndex === index && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
@@ -640,7 +649,18 @@ const TemplatePreviewDialog = ({
                           handleZonePointerDown(event, index, 'move');
                         }}
                       >
-                        <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight">
+                        {(zone.type === 'image' || zone.type === 'logo') && zone.mediaUrl ? (
+                          <img
+                            src={zone.mediaUrl}
+                            alt={zone.label}
+                            className="absolute inset-0 h-full w-full"
+                            style={{
+                              objectFit: getZoneMediaFit(zone).fit,
+                              objectPosition: `${getZoneMediaFit(zone).focusX}% ${getZoneMediaFit(zone).focusY}%`,
+                            }}
+                          />
+                        ) : null}
+                        <div className="relative flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight">
                           <span className="truncate">{zone.content || zone.label}</span>
                         </div>
                         {canEdit && zone.type !== 'image' && (
@@ -722,17 +742,19 @@ const TemplatePreviewDialog = ({
                 </div>
               )}
 
-              <SlotFitControl
-                previewUrl={template.previewImageUrl}
-                assetType={template.previewImageUrl ? 'image' : 'empty'}
-                value={previewFit}
-                onChange={(next) => onUpdateTemplate({ previewFit: next })}
-                onCommit={(next) => onUpdateTemplate({ previewFit: next })}
-                onReset={() => onUpdateTemplate({ previewFit: defaultTemplatePreviewFit })}
-              />
-
               {selectedZone ? (
                 <>
+                  {(selectedZone.type === 'image' || selectedZone.type === 'logo') && (
+                    <SlotFitControl
+                      previewUrl={selectedZone.mediaUrl || template.previewImageUrl}
+                      assetType={selectedZone.mediaUrl ? 'image' : 'empty'}
+                      value={getZoneMediaFit(selectedZone)}
+                      onChange={(next) => updateZone(selectedZoneIndex, { mediaFit: next })}
+                      onCommit={(next) => updateZone(selectedZoneIndex, { mediaFit: next })}
+                      onReset={() => updateZone(selectedZoneIndex, { mediaFit: defaultTemplatePreviewFit })}
+                    />
+                  )}
+
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-muted-foreground">Label</label>
                     <Input
