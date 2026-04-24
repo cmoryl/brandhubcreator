@@ -460,6 +460,7 @@ export const DigitalCollateralSection = ({
   entityType = 'brand',
   brandVisuals,
   layoutTemplateCustomizations,
+  brandLogos,
 }: DigitalCollateralSectionProps) => {
   const collateral = Array.isArray(collateralProp) ? collateralProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
