@@ -97,10 +97,31 @@ export const TemplateCanvasEditor = ({
   onUploadFile,
   canEdit = true,
   isExporting = false,
+  brandContext,
+  surfaceName,
   className,
 }: TemplateCanvasEditorProps) => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [selectedZoneIndex, setSelectedZoneIndex] = useState<number | null>(null);
+
+  // Global "how should empty text/CTA zones be seeded" preference. The select
+  // for this lives in the side-panel header so users can flip modes inline.
+  const { mode: seedMode } = useZoneSeedMode();
+
+  // When seed mode === 'ai', `hydrateZoneDefaults` (run by the calling section)
+  // marks fresh zones with `_seedPending`. This hook batches them into a
+  // single edge-function call and writes brand-aware copy back.
+  useAiSeedZones({
+    zones,
+    onZonesChange,
+    brand: brandContext,
+    surface: surfaceName,
+    enabled: canEdit && seedMode === 'ai',
+    onError: (msg) => {
+      // Quietly inform once — the lorem placeholder remains visible.
+      toast.error(`AI demo copy unavailable: ${msg}`);
+    },
+  });
 
   const selectedZone = selectedZoneIndex !== null ? zones[selectedZoneIndex] : null;
 
