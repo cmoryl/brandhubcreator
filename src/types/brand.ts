@@ -776,6 +776,18 @@ export interface BrandService {
 // SOCIAL ASSET TEMPLATE - Downloadable design files for social platforms
 export type SocialSizeCategory = 'post' | 'square' | 'story' | 'reel' | 'cover' | 'other';
 
+export interface SocialTemplateZone {
+  type: 'image' | 'text' | 'logo' | 'cta';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label: string;
+  colorSlot?: 'primary' | 'secondary' | 'accent' | 'background';
+  fontSize?: 'sm' | 'md' | 'lg' | 'xl';
+  align?: 'left' | 'center' | 'right';
+}
+
 export interface SocialAssetTemplate {
   id: string;
   name: string;
@@ -785,6 +797,7 @@ export interface SocialAssetTemplate {
   previewImageUrl?: string;
   dimensions?: string;
   sizeCategory?: SocialSizeCategory;
+  templateZones?: SocialTemplateZone[];
 }
 
 // SOCIAL ASSETS - Platform Specifications
