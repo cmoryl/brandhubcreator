@@ -380,20 +380,46 @@ const getSmartDefaultZoneFit = (
   return { fit: 'cover' as const, focusX, focusY };
 };
 
-const getEditableZones = (platform: string, template: SocialAssetTemplate): SocialTemplateZone[] => {
+/**
+ * Pick the best logo URL from the brand logo library to drop into a template
+ * `logo` zone. Prefers `primary`, then `wordmark`, then any logo with a usable URL.
+ */
+const pickDefaultBrandLogoUrl = (brandLogos?: BrandLogo[]): string | undefined => {
+  if (!brandLogos?.length) return undefined;
+  const order: BrandLogo['variant'][] = ['primary', 'wordmark', 'secondary', 'reversed', 'monochrome', 'icon'];
+  for (const variant of order) {
+    const match = brandLogos.find((logo) => logo.variant === variant && logo.url);
+    if (match?.url) return match.url;
+  }
+  return brandLogos.find((logo) => !!logo.url)?.url;
+};
+
+const getEditableZones = (
+  platform: string,
+  template: SocialAssetTemplate,
+  brandLogos?: BrandLogo[],
+): SocialTemplateZone[] => {
+  const defaultLogoUrl = pickDefaultBrandLogoUrl(brandLogos);
+
+  const hydrate = (zone: SocialTemplateZone): SocialTemplateZone => {
+    if (zone.type !== 'image' && zone.type !== 'logo') return { ...zone };
+    const next: SocialTemplateZone = {
+      ...zone,
+      mediaFit: zone.mediaFit || getSmartDefaultZoneFit(zone, template),
+    };
+    // Auto-fill empty logo zones with the brand's default logo so every size
+    // ships with a real logo placement out of the box.
+    if (zone.type === 'logo' && !next.mediaUrl && defaultLogoUrl) {
+      next.mediaUrl = defaultLogoUrl;
+    }
+    return next;
+  };
+
   if (template.templateZones?.length) {
-    return template.templateZones.map((zone) => (
-      zone.type === 'image' || zone.type === 'logo'
-        ? { ...zone, mediaFit: zone.mediaFit || getSmartDefaultZoneFit(zone, template) }
-        : zone
-    ));
+    return template.templateZones.map(hydrate);
   }
   const templateDefinition = getTemplateDefinitionForAsset(platform, template);
-  return (templateDefinition?.zones || []).map((zone) => (
-    zone.type === 'image' || zone.type === 'logo'
-      ? { ...zone, mediaFit: getSmartDefaultZoneFit(zone, template) }
-      : { ...zone }
-  ));
+  return (templateDefinition?.zones || []).map(hydrate);
 };
 
 type SafeAreaGuide = {
