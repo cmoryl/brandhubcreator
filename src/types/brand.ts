@@ -793,6 +793,15 @@ export interface SocialTemplateZone {
   colorSlot?: 'primary' | 'secondary' | 'accent' | 'background';
   fontSize?: 'sm' | 'md' | 'lg' | 'xl';
   align?: 'left' | 'center' | 'right';
+  /**
+   * For logo zones: when the mediaUrl was auto-applied by the background-aware
+   * logo matcher, this records the brand-logo id we picked. As long as the
+   * field is present, the matcher is free to swap to a better variant when the
+   * underlying background changes. The first time a user manually picks a
+   * logo (via library, upload, or the variant picker) we clear this marker so
+   * we never overwrite their choice.
+   */
+  autoMatchedLogoId?: string;
 }
 
 export interface SocialAssetTemplate {
