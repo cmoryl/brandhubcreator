@@ -332,6 +332,20 @@ const TemplatePreviewDialog = ({
   if (!template) return null;
 
   const templateZones = getEditableZones(platform, template);
+  const [selectedZoneIndex, setSelectedZoneIndex] = useState(0);
+
+  useEffect(() => {
+    setSelectedZoneIndex(0);
+  }, [template?.id, open]);
+
+  const selectedZone = templateZones[selectedZoneIndex] || null;
+
+  const updateZone = (zoneIndex: number, updates: Partial<SocialTemplateZone>) => {
+    const nextZones = templateZones.map((zone, index) =>
+      index === zoneIndex ? { ...zone, ...updates } : zone
+    );
+    onUpdateTemplate({ templateZones: nextZones });
+  };
 
   const handleZonePointerDown = (
     event: React.PointerEvent<HTMLElement>,
@@ -388,59 +402,174 @@ const TemplatePreviewDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl">
+      <DialogContent className="max-w-6xl">
         <DialogHeader>
           <DialogTitle>{template.name}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <div data-template-canvas="true" className="relative aspect-video overflow-hidden bg-muted/30">
-              {template.previewImageUrl ? (
-                <img src={template.previewImageUrl} alt={template.name} className="absolute inset-0 h-full w-full object-cover" />
-              ) : (
-                <div className="absolute inset-0 bg-muted/50" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-background/55 via-background/5 to-transparent" />
-              {templateZones.map((zone, index) => (
-                <div
-                  key={`${template.id}-editor-zone-${index}`}
-                  className={cn(
-                    'absolute rounded border-2 border-dashed shadow-sm backdrop-blur-[1px]',
-                    zonePreviewStyles[zone.type],
-                    canEdit && 'cursor-move',
-                  )}
-                  style={{
-                    left: `${zone.x}%`,
-                    top: `${zone.y}%`,
-                    width: `${zone.width}%`,
-                    height: `${zone.height}%`,
-                  }}
-                  onPointerDown={(event) => handleZonePointerDown(event, index, 'move')}
-                >
-                  <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight">
-                    <span className="truncate">{zone.label}</span>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-4">
+            <div className="overflow-hidden rounded-xl border border-border bg-card">
+              <div data-template-canvas="true" className="relative aspect-video overflow-hidden bg-muted/30">
+                {template.previewImageUrl ? (
+                  <img src={template.previewImageUrl} alt={template.name} className="absolute inset-0 h-full w-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 bg-muted/50" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/55 via-background/5 to-transparent" />
+                {templateZones.map((zone, index) => (
+                  <div
+                    key={`${template.id}-editor-zone-${index}`}
+                    className={cn(
+                      'absolute rounded border-2 border-dashed shadow-sm backdrop-blur-[1px] transition-all',
+                      zonePreviewStyles[zone.type],
+                      canEdit && 'cursor-move',
+                      selectedZoneIndex === index && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                    )}
+                    style={{
+                      left: `${zone.x}%`,
+                      top: `${zone.y}%`,
+                      width: `${zone.width}%`,
+                      height: `${zone.height}%`,
+                    }}
+                    onClick={() => setSelectedZoneIndex(index)}
+                    onPointerDown={(event) => {
+                      setSelectedZoneIndex(index);
+                      handleZonePointerDown(event, index, 'move');
+                    }}
+                  >
+                    <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight">
+                      <span className="truncate">{zone.content || zone.label}</span>
+                    </div>
+                    {canEdit && zone.type !== 'image' && (
+                      <button
+                        type="button"
+                        className="absolute -bottom-2 -right-2 h-4 w-4 rounded-full border border-border bg-background shadow-sm"
+                        onPointerDown={(event) => {
+                          setSelectedZoneIndex(index);
+                          handleZonePointerDown(event, index, 'resize');
+                        }}
+                      />
+                    )}
                   </div>
-                  {canEdit && zone.type !== 'image' && (
-                    <button
-                      type="button"
-                      className="absolute -bottom-2 -right-2 h-4 w-4 rounded-full border border-border bg-background shadow-sm"
-                      onPointerDown={(event) => handleZonePointerDown(event, index, 'resize')}
-                    />
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+
+            {templateZones.length > 0 && (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {templateZones.map((zone, index) => (
+                  <button
+                    key={`${template.id}-detail-${index}`}
+                    type="button"
+                    onClick={() => setSelectedZoneIndex(index)}
+                    className={cn(
+                      'rounded-lg border bg-muted/20 p-3 text-left transition-colors hover:border-primary/40',
+                      selectedZoneIndex === index ? 'border-primary bg-primary/5' : 'border-border'
+                    )}
+                  >
+                    <p className="text-sm font-medium text-foreground">{zone.label}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{zone.type.toUpperCase()}</p>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          {templateZones.length > 0 && (
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {templateZones.map((zone, index) => (
-                <div key={`${template.id}-detail-${index}`} className="rounded-lg border border-border bg-muted/20 p-3">
-                  <p className="text-sm font-medium text-foreground">{zone.label}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{zone.type.toUpperCase()}</p>
-                </div>
-              ))}
+
+          <aside className="rounded-xl border border-border bg-card">
+            <div className="border-b border-border px-4 py-3">
+              <p className="text-sm font-semibold text-foreground">Zone editor</p>
+              <p className="text-xs text-muted-foreground">
+                {selectedZone ? `${selectedZone.label} · ${selectedZone.type}` : 'Select a zone'}
+              </p>
             </div>
-          )}
+
+            {selectedZone ? (
+              <div className="space-y-4 p-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Label</label>
+                  <Input
+                    value={selectedZone.label}
+                    onChange={(e) => updateZone(selectedZoneIndex, { label: e.target.value })}
+                    className="h-8"
+                  />
+                </div>
+
+                {(selectedZone.type === 'text' || selectedZone.type === 'cta') && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Content</label>
+                    <Textarea
+                      value={selectedZone.content || ''}
+                      onChange={(e) => updateZone(selectedZoneIndex, { content: e.target.value })}
+                      placeholder="Enter editable text"
+                      className="min-h-[92px]"
+                    />
+                  </div>
+                )}
+
+                {(selectedZone.type === 'image' || selectedZone.type === 'logo') && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Media URL</label>
+                    <Input
+                      value={selectedZone.mediaUrl || ''}
+                      onChange={(e) => updateZone(selectedZoneIndex, { mediaUrl: e.target.value })}
+                      placeholder="Paste media or logo URL"
+                      className="h-8"
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Width %</label>
+                    <Input
+                      type="number"
+                      min={8}
+                      max={100}
+                      value={Math.round(selectedZone.width)}
+                      onChange={(e) => updateZone(selectedZoneIndex, {
+                        width: clampZoneValue(Number(e.target.value) || selectedZone.width, 8, 100 - selectedZone.x),
+                      })}
+                      className="h-8"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Height %</label>
+                    <Input
+                      type="number"
+                      min={6}
+                      max={100}
+                      value={Math.round(selectedZone.height)}
+                      onChange={(e) => updateZone(selectedZoneIndex, {
+                        height: clampZoneValue(Number(e.target.value) || selectedZone.height, 6, 100 - selectedZone.y),
+                      })}
+                      className="h-8"
+                    />
+                  </div>
+                </div>
+
+                {(selectedZone.type === 'text' || selectedZone.type === 'cta') && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Alignment</label>
+                    <Select
+                      value={selectedZone.align || 'center'}
+                      onValueChange={(value) => updateZone(selectedZoneIndex, { align: value as SocialTemplateZone['align'] })}
+                    >
+                      <SelectTrigger className="h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="left">Left</SelectItem>
+                        <SelectItem value="center">Center</SelectItem>
+                        <SelectItem value="right">Right</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 text-sm text-muted-foreground">Click a zone to edit it.</div>
+            )}
+          </aside>
         </div>
       </DialogContent>
     </Dialog>

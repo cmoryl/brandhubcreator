@@ -783,6 +783,8 @@ export interface SocialTemplateZone {
   width: number;
   height: number;
   label: string;
+  content?: string;
+  mediaUrl?: string;
   colorSlot?: 'primary' | 'secondary' | 'accent' | 'background';
   fontSize?: 'sm' | 'md' | 'lg' | 'xl';
   align?: 'left' | 'center' | 'right';
