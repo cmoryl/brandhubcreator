@@ -1164,6 +1164,25 @@ const TemplatePreviewDialog = ({
     }
     if (mediaW === 0 || mediaH === 0) return null;
 
+    // For SVGs, pre-rasterise the source onto a transparent offscreen canvas at
+    // the resolved (mediaW × mediaH) resolution so that subsequent crop math
+    // works in real pixel space and the SVG's transparent regions survive
+    // intact through the source-rect copy below.
+    let drawSource: CanvasImageSource = img;
+    if (isSvg) {
+      const sourceCanvas = document.createElement('canvas');
+      sourceCanvas.width = mediaW;
+      sourceCanvas.height = mediaH;
+      const sourceCtx = sourceCanvas.getContext('2d');
+      if (!sourceCtx) return null;
+      sourceCtx.imageSmoothingEnabled = true;
+      sourceCtx.imageSmoothingQuality = 'high';
+      // Explicit clear keeps alpha=0 everywhere the SVG doesn't paint.
+      sourceCtx.clearRect(0, 0, mediaW, mediaH);
+      sourceCtx.drawImage(img, 0, 0, mediaW, mediaH);
+      drawSource = sourceCanvas;
+    }
+
     // Frame aspect from the zone's percentage dimensions.
     const zoneAspect = zone.width / zone.height;
     const mediaAspect = mediaW / mediaH;
