@@ -68,6 +68,25 @@ function buildBrandConstraints(brand: BrandContext): string {
   return parts.join('. ');
 }
 
+function buildAvoidDirectives(brand: BrandContext): string {
+  if (!brand.imageryAvoidList || brand.imageryAvoidList.length === 0) return '';
+  // Cap at the 12 most recent rejections to keep prompt size sane
+  const recent = brand.imageryAvoidList.slice(-12);
+  const reasons = recent
+    .map((item) => item.reason?.trim())
+    .filter((r): r is string => !!r && r.length > 0);
+
+  const lines: string[] = [];
+  lines.push('NEGATIVE FEEDBACK — these directions have been explicitly rejected by the brand team. DO NOT generate imagery in this style, composition, or subject matter:');
+  if (reasons.length > 0) {
+    const unique = Array.from(new Set(reasons)).slice(0, 10);
+    unique.forEach((r) => lines.push(`- Avoid: ${r}`));
+  } else {
+    lines.push(`- ${recent.length} previously rejected reference${recent.length === 1 ? '' : 's'}; steer clearly away from their style and treatment.`);
+  }
+  return lines.join('\n');
+}
+
 function getAspectRatioDimensions(ratio: string): { width: number; height: number } {
   switch (ratio) {
     case '16:9': return { width: 1920, height: 1080 };
