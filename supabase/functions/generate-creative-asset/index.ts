@@ -16,6 +16,7 @@ interface BrandContext {
   mission?: string;
   values?: string[];
   fonts?: Array<{ family: string; role?: string }>;
+  imageryAvoidList?: Array<{ name?: string; reason?: string; url?: string }>;
 }
 
 interface GenerateRequest {
@@ -65,6 +66,25 @@ function buildBrandConstraints(brand: BrandContext): string {
   }
   
   return parts.join('. ');
+}
+
+function buildAvoidDirectives(brand: BrandContext): string {
+  if (!brand.imageryAvoidList || brand.imageryAvoidList.length === 0) return '';
+  // Cap at the 12 most recent rejections to keep prompt size sane
+  const recent = brand.imageryAvoidList.slice(-12);
+  const reasons = recent
+    .map((item) => item.reason?.trim())
+    .filter((r): r is string => !!r && r.length > 0);
+
+  const lines: string[] = [];
+  lines.push('NEGATIVE FEEDBACK — these directions have been explicitly rejected by the brand team. DO NOT generate imagery in this style, composition, or subject matter:');
+  if (reasons.length > 0) {
+    const unique = Array.from(new Set(reasons)).slice(0, 10);
+    unique.forEach((r) => lines.push(`- Avoid: ${r}`));
+  } else {
+    lines.push(`- ${recent.length} previously rejected reference${recent.length === 1 ? '' : 's'}; steer clearly away from their style and treatment.`);
+  }
+  return lines.join('\n');
 }
 
 function getAspectRatioDimensions(ratio: string): { width: number; height: number } {
@@ -176,7 +196,8 @@ serve(async (req) => {
           toneOfVoice: identity.toneOfVoice as string[] || undefined,
           industry: guideData.industry as string || undefined,
           mission: identity.missionStatement as string || undefined,
-          fonts: (guideData.typography as BrandContext['fonts']) || []
+          fonts: (guideData.typography as BrandContext['fonts']) || [],
+          imageryAvoidList: (guideData.imageryAvoidList as BrandContext['imageryAvoidList']) || [],
         };
         organizationId = entity.organization_id;
       }
@@ -189,6 +210,10 @@ serve(async (req) => {
       const constraints = buildBrandConstraints(brandContext);
       if (constraints) {
         enhancedPrompt = `${prompt}\n\nBrand Guidelines:\n${constraints}`;
+      }
+      const avoidDirectives = buildAvoidDirectives(brandContext);
+      if (avoidDirectives) {
+        enhancedPrompt = `${enhancedPrompt}\n\n${avoidDirectives}`;
       }
     }
     

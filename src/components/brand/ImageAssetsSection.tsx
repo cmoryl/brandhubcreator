@@ -1,16 +1,28 @@
 import { useState, useCallback } from 'react';
-import { X, Download, Upload, Image as ImageIcon, Expand, FolderOpen, Loader2, Grid3X3, LayoutGrid, Grid2X2, List } from 'lucide-react';
+import { X, Download, Upload, Image as ImageIcon, Expand, FolderOpen, Loader2, Grid3X3, LayoutGrid, Grid2X2, List, ThumbsDown, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { safeUUID } from '@/lib/safeUUID';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 import { useDownloadTracking } from '@/hooks/useDownloadTracking';
+
+// Item the AI should learn to AVOID generating in this style/direction
+export interface ImageryAvoidItem {
+  id: string;
+  url: string;
+  name?: string;
+  reason?: string;
+  thumbnailUrl?: string;
+  rejectedAt: string;
+}
 
 // Image Asset type
 export interface ImageAsset {
@@ -35,6 +47,9 @@ interface ImageAssetsSectionProps {
   entityId?: string;
   /** Entity type for storage uploads */
   entityType?: 'brand' | 'event' | 'product';
+  /** Negative-feedback list — AI will avoid generating images in this style/direction */
+  imageryAvoidList?: ImageryAvoidItem[];
+  onImageryAvoidListChange?: (list: ImageryAvoidItem[]) => void;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -51,10 +66,14 @@ export const ImageAssetsSection = ({
   canEdit = false,
   entityId,
   entityType = 'brand',
+  imageryAvoidList = [],
+  onImageryAvoidListChange,
 }: ImageAssetsSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [previewAsset, setPreviewAsset] = useState<ImageAsset | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ImageAsset | null>(null);
+  const [avoidReason, setAvoidReason] = useState('');
 
   type GridDensity = 'grid-lg' | 'grid-md' | 'grid-sm' | 'list';
   const [gridDensity, setGridDensity] = useState<GridDensity>(() => {
@@ -132,8 +151,31 @@ export const ImageAssetsSection = ({
     multiple: true,
   });
 
-  const deleteAsset = (id: string) => {
-    onImageAssetsChange?.(imageAssets.filter(a => a.id !== id));
+  const requestDelete = (asset: ImageAsset) => {
+    setAvoidReason('');
+    setPendingDelete(asset);
+  };
+
+  const confirmDelete = (alsoAvoid: boolean) => {
+    if (!pendingDelete) return;
+    const asset = pendingDelete;
+    onImageAssetsChange?.(imageAssets.filter(a => a.id !== asset.id));
+    if (alsoAvoid && onImageryAvoidListChange) {
+      const newItem: ImageryAvoidItem = {
+        id: safeUUID(),
+        url: asset.url,
+        name: asset.name,
+        thumbnailUrl: asset.url,
+        reason: avoidReason.trim() || undefined,
+        rejectedAt: new Date().toISOString(),
+      };
+      onImageryAvoidListChange([...(imageryAvoidList || []), newItem]);
+      toast.success('Got it — the AI will avoid this style going forward.');
+    } else {
+      toast.success('Image removed');
+    }
+    setPendingDelete(null);
+    setAvoidReason('');
   };
   const { trackDownload } = useDownloadTracking();
   
@@ -290,7 +332,7 @@ export const ImageAssetsSection = ({
                   <Download className="h-3.5 w-3.5" />
                 </Button>
                 {canEdit && (
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteAsset(asset.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => requestDelete(asset)}>
                     <X className="h-3.5 w-3.5" />
                   </Button>
                 )}
@@ -320,7 +362,7 @@ export const ImageAssetsSection = ({
                     <Download className={cn(isCompact ? "h-3 w-3" : "h-4 w-4")} />
                   </Button>
                   {canEdit && (
-                    <Button variant="destructive" size="icon" className={cn(isCompact ? "h-7 w-7" : "h-9 w-9")} onClick={() => deleteAsset(asset.id)}>
+                    <Button variant="destructive" size="icon" className={cn(isCompact ? "h-7 w-7" : "h-9 w-9")} onClick={() => requestDelete(asset)}>
                       <X className={cn(isCompact ? "h-3 w-3" : "h-4 w-4")} />
                     </Button>
                   )}
@@ -365,6 +407,61 @@ export const ImageAssetsSection = ({
         type="image"
         aspectRatio="auto"
       />
+
+      {/* Delete confirmation with optional thumbs-down (avoid this style) */}
+      <Dialog open={!!pendingDelete} onOpenChange={(open) => { if (!open) { setPendingDelete(null); setAvoidReason(''); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Remove this image?</DialogTitle>
+            <DialogDescription>
+              Choose how you'd like to remove it. Marking it as "avoid" trains the brand AI to steer away from this style, subject, or composition in future generations.
+            </DialogDescription>
+          </DialogHeader>
+
+          {pendingDelete && (
+            <div className="flex gap-3 items-start p-3 rounded-lg border border-border bg-muted/30">
+              <div className="h-16 w-16 shrink-0 rounded-md overflow-hidden bg-muted">
+                <img src={pendingDelete.url} alt={pendingDelete.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate">{pendingDelete.name}</p>
+                <p className="text-xs text-muted-foreground">{pendingDelete.size}</p>
+              </div>
+            </div>
+          )}
+
+          {onImageryAvoidListChange && (
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Why should the AI avoid this? <span className="opacity-60">(optional but helpful)</span>
+              </label>
+              <Textarea
+                value={avoidReason}
+                onChange={(e) => setAvoidReason(e.target.value)}
+                placeholder="e.g. Too literal, wrong color tone, off-brand composition, contains people, looks like a stock photo…"
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+          )}
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-2">
+            <Button variant="ghost" onClick={() => { setPendingDelete(null); setAvoidReason(''); }} className="sm:mr-auto">
+              Cancel
+            </Button>
+            <Button variant="outline" onClick={() => confirmDelete(false)} className="gap-2">
+              <Trash2 className="h-4 w-4" />
+              Just remove
+            </Button>
+            {onImageryAvoidListChange && (
+              <Button variant="destructive" onClick={() => confirmDelete(true)} className="gap-2">
+                <ThumbsDown className="h-4 w-4" />
+                Remove & avoid
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
