@@ -1139,8 +1139,29 @@ const TemplatePreviewDialog = ({
     }
 
     const fit = getZoneMediaFit(zone);
-    const mediaW = img.naturalWidth || img.width;
-    const mediaH = img.naturalHeight || img.height;
+    const isSvg = looksLikeSvgUrl(zone.mediaUrl);
+
+    // SVGs lack reliable intrinsic pixel dimensions in <img>: Chrome falls
+    // back to 300×150 when no explicit width/height is set. Parse the SVG
+    // source so we can rasterise at a meaningful resolution.
+    let mediaW = img.naturalWidth || img.width;
+    let mediaH = img.naturalHeight || img.height;
+    if (isSvg) {
+      const intrinsic = await resolveSvgIntrinsicSize(zone.mediaUrl);
+      if (intrinsic) {
+        mediaW = intrinsic.width;
+        mediaH = intrinsic.height;
+      }
+      // Upscale SVG to a high target so the rasterised PNG is crisp at
+      // typical print/social usage (>= 2048px on the long side).
+      const SVG_TARGET = 2048;
+      const longSide = Math.max(mediaW, mediaH);
+      if (longSide > 0 && longSide < SVG_TARGET) {
+        const scale = SVG_TARGET / longSide;
+        mediaW = Math.round(mediaW * scale);
+        mediaH = Math.round(mediaH * scale);
+      }
+    }
     if (mediaW === 0 || mediaH === 0) return null;
 
     // Frame aspect from the zone's percentage dimensions.
@@ -1202,10 +1223,20 @@ const TemplatePreviewDialog = ({
     canvas.height = Math.max(1, outH);
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    if (!effectiveTransparent) {
+    // High-quality resampling — matters for SVG → raster and small logos.
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    if (effectiveTransparent) {
+      // Explicit clear so the destination canvas starts with a fully
+      // transparent alpha channel — guarantees SVG transparent regions
+      // survive into the exported PNG.
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    } else {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
+    // For SVGs, draw the source as the full resolved (mediaW × mediaH)
+    // surface and let the source-rect math pick the right crop.
     ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
     return canvas.toDataURL('image/png');
   };
