@@ -1048,10 +1048,13 @@ const TemplatePreviewDialog = ({
         pixelRatio: options.pixelRatio,
         cacheBust: true,
         skipFonts: false,
-        backgroundColor: options.transparent ? undefined : undefined,
-        // html-to-image: setting `style.background = transparent` via filter wrapper is not supported,
-        // but PNG output preserves transparency unless an explicit backgroundColor is set.
-        // When transparent=false we let the canvas's own background paint through.
+        // When the user wants transparency we explicitly omit the background
+        // color so html-to-image's foreignObject renderer leaves the alpha
+        // channel intact for SVG logos and any other transparent assets.
+        // When they don't, we paint an explicit white plate to flatten any
+        // transparent SVGs into a deterministic, opaque PNG instead of
+        // letting the page's background bleed through.
+        backgroundColor: options.transparent ? undefined : '#ffffff',
         filter: (node) => {
           if (!(node instanceof HTMLElement)) return true;
           if (node.dataset.exportExclude === 'true') return false;
