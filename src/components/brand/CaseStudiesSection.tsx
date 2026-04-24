@@ -41,7 +41,10 @@ interface CaseStudiesSectionProps {
 // Each case study can edit / move / resize these as needed; image media is
 // supplied by the case study's own previewUrl as the canvas background.
 // ---------------------------------------------------------------------------
-const buildDefaultZones = (brandLogos?: BrandLogo[]): SocialTemplateZone[] => {
+const buildDefaultZones = (
+  brandLogos?: BrandLogo[],
+  seedMode: import('@/hooks/useZoneSeedMode').ZoneSeedMode = 'lorem',
+): SocialTemplateZone[] => {
   const zones: SocialTemplateZone[] = [
     {
       type: 'logo',
@@ -59,10 +62,12 @@ const buildDefaultZones = (brandLogos?: BrandLogo[]): SocialTemplateZone[] => {
       align: 'right',
     },
   ];
-  // Reuse the canvas editor's hydrate helper to seed the logo zone.
+  // Reuse the canvas editor's hydrate helper to seed the logo zone + honour
+  // the user's global zone-seed mode for any text/CTA zones that lack content.
   return hydrateZoneDefaults(
     zones.map((z) => ({ ...z, id: safeUUID() })) as (SocialTemplateZone & { id: string })[],
     brandLogos,
+    seedMode,
   ).map(({ id: _id, ...rest }) => rest as SocialTemplateZone);
 };
 
