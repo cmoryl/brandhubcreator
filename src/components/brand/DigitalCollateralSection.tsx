@@ -19,6 +19,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { RegenerateFromTemplatesDialog } from './digital-collateral/RegenerateFromTemplatesDialog';
 import type { BrandVisualsBundle, LayoutTemplateCustomization } from '@/lib/brandLayoutTemplates';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  TemplateCanvasEditor,
+  CanvasEditorZone,
+} from './templating/TemplateCanvasEditor';
+import {
+  renderZoneAtOriginalResolution,
+  detectAssetTransparency,
+} from '@/lib/templateZonePipeline';
+import { useZoneSeedMode } from '@/hooks/useZoneSeedMode';
+import { buildSurfaceDefaultZones, getDefaultAspectForSurface } from '@/lib/templateZoneDefaults';
+import { safeUUID } from '@/lib/safeUUID';
 
 import {
   DndContext,
@@ -53,6 +66,8 @@ interface DigitalCollateralSectionProps {
   brandVisuals?: BrandVisualsBundle;
   /** Saved layout template variants for this brand — surfaced as picker options. */
   layoutTemplateCustomizations?: LayoutTemplateCustomization[];
+  /** Brand logo library — drives the variant picker + auto-match in the templated zone editor. */
+  brandLogos?: BrandLogo[];
 }
 
 // Lucide icon map for built-in categories
