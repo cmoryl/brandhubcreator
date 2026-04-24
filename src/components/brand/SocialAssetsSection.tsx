@@ -237,7 +237,8 @@ const PlatformCard = ({
   entityType?: 'brand' | 'product' | 'event';
 }) => {
   const IconComponent = platformIcons[asset.platform] || Monitor;
-  const hasTemplates = (asset.templates?.length || 0) > 0;
+  const resolvedTemplates = getResolvedTemplates(asset);
+  const hasTemplates = resolvedTemplates.length > 0;
   const sizeCount = [asset.postSize, asset.storySize, asset.reelSize, asset.coverSize].filter(s => s && s !== 'N/A').length;
   const [uploadingCard, setUploadingCard] = useState(false);
   const cardFileInputRef = useRef<HTMLInputElement>(null);
@@ -357,7 +358,7 @@ const PlatformCard = ({
           {hasTemplates && (
             <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 gap-1">
               <Download className="h-2.5 w-2.5" />
-              {asset.templates?.length}
+              {resolvedTemplates.length}
             </Badge>
           )}
         </div>
@@ -1258,7 +1259,7 @@ export const SocialAssetsSection = ({
           {[...socialAssets].sort((a, b) => a.platform === 'General' ? -1 : b.platform === 'General' ? 1 : 0).map((asset) => {
             const IconComponent = platformIcons[asset.platform] || Monitor;
             const isActive = activePlatformId === asset.id;
-            const templateCount = asset.templates?.length || 0;
+            const templateCount = getResolvedTemplates(asset).length;
             return (
               <button
                 key={asset.id}
@@ -1400,7 +1401,7 @@ export const SocialAssetsSection = ({
                   />
                 </div>
                 {(() => {
-                  const allTemplates = activePlatform.templates || [];
+                  const allTemplates = getResolvedTemplates(activePlatform);
                   
                   // Consistent size categories across all platforms
                    const sizeCategories: { key: string; label: string; spec: string }[] = [
