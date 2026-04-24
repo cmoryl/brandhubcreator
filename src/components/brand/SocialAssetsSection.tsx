@@ -867,6 +867,7 @@ const TemplatePreviewDialog = ({
       pixelRatio: Number(exportScale),
       transparent: exportTransparent,
       includeGuides: exportIncludeGuides,
+      originalResolution: exportTarget === 'frames' && exportOriginalResolution,
     };
     setExportDialogOpen(false);
     if (exportTarget === 'preview') {
