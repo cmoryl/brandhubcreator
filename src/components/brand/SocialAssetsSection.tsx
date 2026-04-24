@@ -1227,6 +1227,87 @@ const TemplatePreviewDialog = ({
         </div>
       </DialogContent>
     </Dialog>
+    <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Export options</DialogTitle>
+          <DialogDescription>
+            {exportTarget === 'preview'
+              ? 'Configure how the preview PNG is rendered.'
+              : 'Configure how the ZIP archive of frame assets is rendered.'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-5 py-2">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">PNG scale</Label>
+            <RadioGroup
+              value={exportScale}
+              onValueChange={(value) => setExportScale(value as '1' | '2' | '3')}
+              className="grid grid-cols-3 gap-2"
+            >
+              {(['1', '2', '3'] as const).map((scale) => (
+                <Label
+                  key={scale}
+                  htmlFor={`export-scale-${scale}`}
+                  className={cn(
+                    'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:bg-accent',
+                    exportScale === scale && 'border-primary bg-accent'
+                  )}
+                >
+                  <RadioGroupItem id={`export-scale-${scale}`} value={scale} className="sr-only" />
+                  <span className="font-medium">{scale}x</span>
+                </Label>
+              ))}
+            </RadioGroup>
+            <p className="text-xs text-muted-foreground">
+              Higher scales produce sharper images at larger file sizes.
+            </p>
+          </div>
+
+          <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
+            <div className="space-y-0.5">
+              <Label htmlFor="export-transparent" className="text-sm font-medium">
+                Transparent background
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Export with a transparent canvas instead of the template background.
+              </p>
+            </div>
+            <Switch
+              id="export-transparent"
+              checked={exportTransparent}
+              onCheckedChange={setExportTransparent}
+            />
+          </div>
+
+          <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
+            <div className="space-y-0.5">
+              <Label htmlFor="export-guides" className="text-sm font-medium">
+                Include guides
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Render the grid and safe-area overlays in the exported file.
+              </p>
+            </div>
+            <Switch
+              id="export-guides"
+              checked={exportIncludeGuides}
+              onCheckedChange={setExportIncludeGuides}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setExportDialogOpen(false)} disabled={isExporting}>
+            Cancel
+          </Button>
+          <Button onClick={runExportFromDialog} disabled={isExporting}>
+            <Download className="mr-2 h-4 w-4" />
+            {isExporting ? 'Exporting…' : exportTarget === 'preview' ? 'Export PNG' : 'Export ZIP'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
