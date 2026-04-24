@@ -827,7 +827,7 @@ const TemplatePreviewDialog = ({
                     minWidth: Number(zoomLevel) < 100 ? `${zoomLevel}%` : undefined,
                   }}
                 >
-                  <div data-template-canvas="true" className="relative aspect-video overflow-hidden rounded-lg bg-muted/30">
+                  <div ref={canvasRef} data-template-canvas="true" className="relative aspect-video overflow-hidden rounded-lg bg-muted/30">
                     {template.previewImageUrl ? (
                       <img
                         src={template.previewImageUrl}
