@@ -63,6 +63,40 @@ export const ImageryWorkspace = ({
   const [searchCollapsed, setSearchCollapsed] = useState(false);
   const [websiteScannerOpen, setWebsiteScannerOpen] = useState(false);
   const [photoGenOpen, setPhotoGenOpen] = useState(false);
+  const [photoOnly, setPhotoOnly] = useState(false);
+  const [presetFilter, setPresetFilter] = useState<string | null>(null);
+
+  // Brand photography preset keys (kept in sync with BrandPhotographyGenerator)
+  const PHOTO_PRESETS: { key: string; label: string }[] = [
+    { key: 'humanRealistic', label: 'Hyper-Realistic Human' },
+    { key: 'softTransition', label: 'Soft Transition' },
+    { key: 'documentaryPortrait', label: 'Documentary Portrait' },
+    { key: 'environmentalCandid', label: 'Environmental Candid' },
+    { key: 'goldenHourIntimate', label: 'Golden Hour Intimate' },
+  ];
+
+  const isBrandPhoto = (img: ApprovedImage) =>
+    !!img.tags?.includes('ai-generated') && !!img.tags?.includes('brand-photography');
+
+  // Apply Brand Photography + preset filters to sections (hide empty sections after filtering)
+  const displaySections = (photoOnly || presetFilter)
+    ? sections
+        .map(s => ({
+          ...s,
+          images: s.images.filter(img => {
+            if (photoOnly && !isBrandPhoto(img)) return false;
+            if (presetFilter && !img.tags?.includes(presetFilter)) return false;
+            return true;
+          }),
+        }))
+        .filter(s => s.images.length > 0)
+    : sections;
+
+  // Count brand-photography images (across all sections, ignoring preset filter for the badge)
+  const photoCount = sections.reduce(
+    (sum, s) => sum + s.images.filter(isBrandPhoto).length,
+    0,
+  );
 
   const totalImages = sections.reduce((sum, s) => sum + s.images.length, 0);
   const searchSection = sections.find(s => s.id === searchSectionId);
