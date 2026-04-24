@@ -22,12 +22,14 @@ import {
   BrandTypography,
   BrandTemplate,
   BrandBrochure,
+  BrandCaseStudy,
   StatisticItem,
   BrandWebinar,
   BrandAward,
   ImageAsset,
   ClientLogo,
   SponsorLogo,
+  SocialTemplateZone,
 } from '@/types/brand';
 import { 
   EventGuide, 
@@ -189,6 +191,31 @@ export const normalizeGradients = (gradients: unknown[]): BrandGradient[] =>
     };
   });
 
+/**
+ * Coerce a stored value into a safe SocialTemplateZone array. Filters out
+ * malformed entries so the templated single-page editor never crashes on
+ * legacy data missing geometry. Returns `undefined` (not `[]`) when the input
+ * is missing entirely so we never persist empty `templateZones: []` markers
+ * back to assets that never opted in.
+ */
+export const normalizeTemplateZones = (
+  value: unknown,
+): SocialTemplateZone[] | undefined => {
+  if (value == null) return undefined;
+  if (!Array.isArray(value)) return undefined;
+  const cleaned = value.filter((z: any): z is SocialTemplateZone => (
+    z
+    && typeof z === 'object'
+    && typeof z.type === 'string'
+    && ['image', 'text', 'logo', 'cta'].includes(z.type)
+    && typeof z.x === 'number' && Number.isFinite(z.x)
+    && typeof z.y === 'number' && Number.isFinite(z.y)
+    && typeof z.width === 'number' && Number.isFinite(z.width)
+    && typeof z.height === 'number' && Number.isFinite(z.height)
+  ));
+  return cleaned.length > 0 ? cleaned : undefined;
+};
+
 /** Normalize legacy brochures data (imageUrl -> previewUrl, name -> title) */
 export const normalizeBrochures = (brochures: unknown[]): BrandBrochure[] =>
   safeArray(brochures).map((b: any) => ({
@@ -197,6 +224,23 @@ export const normalizeBrochures = (brochures: unknown[]): BrandBrochure[] =>
     title: b.title || b.name || 'Untitled',
     previewUrl: b.previewUrl || b.imageUrl || '',
     description: b.description || '',
+    templateAspect: typeof b.templateAspect === 'string' ? b.templateAspect : undefined,
+    templateZones: normalizeTemplateZones(b.templateZones),
+  }));
+
+/**
+ * Normalize case studies, preserving optional templated single-page canvas
+ * geometry. Legacy entries without `templateZones` pass through untouched.
+ */
+export const normalizeCaseStudies = (caseStudies: unknown[]): BrandCaseStudy[] =>
+  safeArray(caseStudies).map((c: any) => ({
+    ...c,
+    id: c.id || crypto.randomUUID(),
+    title: c.title || c.name || 'Untitled',
+    description: c.description || '',
+    previewUrl: c.previewUrl || c.imageUrl || c.coverImage || '',
+    templateAspect: typeof c.templateAspect === 'string' ? c.templateAspect : undefined,
+    templateZones: normalizeTemplateZones(c.templateZones),
   }));
 
 // ============================================================
@@ -279,7 +323,7 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     assets: safeArray(g.assets),
     imageAssets: safeArray<ImageAsset>(g.imageAssets),
     misuse: safeArray(g.misuse),
-    caseStudies: safeArray(g.caseStudies),
+    caseStudies: normalizeCaseStudies(g.caseStudies),
     brochures: normalizeBrochures(g.brochures),
     templates: normalizeTemplates(g.templates),
     services: safeArray(g.services),
@@ -405,8 +449,21 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
     eventSignage: safeArray(g.eventSignage),
     eventBanners: safeArray(g.eventBanners),
     eventDigitalMaterials: safeArray(g.eventDigitalMaterials),
-    eventPrintMaterials: safeArray(g.eventPrintMaterials),
-    eventSponsorshipMaterials: safeArray(g.eventSponsorshipMaterials),
+    // Print materials may carry templated single-page canvas geometry — coerce
+    // it through the shared zone sanitizer so legacy/malformed entries can't
+    // crash the editor.
+    eventPrintMaterials: safeArray(g.eventPrintMaterials).map((m: any) => ({
+      ...m,
+      id: m?.id || crypto.randomUUID(),
+      templateAspect: typeof m?.templateAspect === 'string' ? m.templateAspect : undefined,
+      templateZones: normalizeTemplateZones(m?.templateZones),
+    })),
+    eventSponsorshipMaterials: safeArray(g.eventSponsorshipMaterials).map((m: any) => ({
+      ...m,
+      id: m?.id || crypto.randomUUID(),
+      templateAspect: typeof m?.templateAspect === 'string' ? m.templateAspect : undefined,
+      templateZones: normalizeTemplateZones(m?.templateZones),
+    })),
     eventInfographics: safeArray(g.eventInfographics),
     eventApplications: safeArray(g.eventApplications),
     eventDigitalAssets: safeArray(g.eventDigitalAssets),
@@ -432,8 +489,8 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
     presentationTemplates: safeArray(g.presentationTemplates),
     presentations: safeArray(g.presentations),
     templateSpecs: safeArray(g.templateSpecs),
-    caseStudies: safeArray(g.caseStudies),
-    brochures: safeArray(g.brochures),
+    caseStudies: normalizeCaseStudies(g.caseStudies),
+    brochures: normalizeBrochures(g.brochures),
     templates: safeArray(g.templates),
     services: safeArray(g.services),
     
