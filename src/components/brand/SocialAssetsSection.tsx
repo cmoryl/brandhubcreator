@@ -1829,6 +1829,12 @@ const TemplatePreviewDialog = ({
               <p className="text-xs text-muted-foreground">
                 Export with a transparent canvas instead of the template background.
               </p>
+              {exportTarget === 'frames' && hasTransparentLogoFrame && (
+                <p className="text-xs font-medium text-primary">
+                  Recommended — this template includes transparent logo assets that
+                  will keep their alpha channel when exported individually.
+                </p>
+              )}
             </div>
             <Switch
               id="export-transparent"
