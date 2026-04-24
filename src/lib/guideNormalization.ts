@@ -323,7 +323,7 @@ export function normalizeGuide(rawGuide: unknown): BaseGuide {
     assets: safeArray(g.assets),
     imageAssets: safeArray<ImageAsset>(g.imageAssets),
     misuse: safeArray(g.misuse),
-    caseStudies: safeArray(g.caseStudies),
+    caseStudies: normalizeCaseStudies(g.caseStudies),
     brochures: normalizeBrochures(g.brochures),
     templates: normalizeTemplates(g.templates),
     services: safeArray(g.services),
@@ -449,8 +449,21 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
     eventSignage: safeArray(g.eventSignage),
     eventBanners: safeArray(g.eventBanners),
     eventDigitalMaterials: safeArray(g.eventDigitalMaterials),
-    eventPrintMaterials: safeArray(g.eventPrintMaterials),
-    eventSponsorshipMaterials: safeArray(g.eventSponsorshipMaterials),
+    // Print materials may carry templated single-page canvas geometry — coerce
+    // it through the shared zone sanitizer so legacy/malformed entries can't
+    // crash the editor.
+    eventPrintMaterials: safeArray(g.eventPrintMaterials).map((m: any) => ({
+      ...m,
+      id: m?.id || crypto.randomUUID(),
+      templateAspect: typeof m?.templateAspect === 'string' ? m.templateAspect : undefined,
+      templateZones: normalizeTemplateZones(m?.templateZones),
+    })),
+    eventSponsorshipMaterials: safeArray(g.eventSponsorshipMaterials).map((m: any) => ({
+      ...m,
+      id: m?.id || crypto.randomUUID(),
+      templateAspect: typeof m?.templateAspect === 'string' ? m.templateAspect : undefined,
+      templateZones: normalizeTemplateZones(m?.templateZones),
+    })),
     eventInfographics: safeArray(g.eventInfographics),
     eventApplications: safeArray(g.eventApplications),
     eventDigitalAssets: safeArray(g.eventDigitalAssets),
@@ -476,8 +489,8 @@ export function normalizeEventGuide(rawGuide: unknown): EventGuide {
     presentationTemplates: safeArray(g.presentationTemplates),
     presentations: safeArray(g.presentations),
     templateSpecs: safeArray(g.templateSpecs),
-    caseStudies: safeArray(g.caseStudies),
-    brochures: safeArray(g.brochures),
+    caseStudies: normalizeCaseStudies(g.caseStudies),
+    brochures: normalizeBrochures(g.brochures),
     templates: safeArray(g.templates),
     services: safeArray(g.services),
     
