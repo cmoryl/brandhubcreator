@@ -20,6 +20,7 @@ import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
 import { getTemplateDefinitionForAsset, getTemplatePreviewImage, getTemplatesForPlatformFormat, TemplateZoneType } from '@/lib/socialTemplates';
+import { SlotFitControl } from './SlotFitControl';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
@@ -276,6 +277,7 @@ const zonePreviewStyles: Record<TemplateZoneType, string> = {
 };
 
 const clampZoneValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const defaultTemplatePreviewFit = { fit: 'cover' as const, focusX: 50, focusY: 50 };
 
 const getEditableZones = (platform: string, template: SocialAssetTemplate): SocialTemplateZone[] => {
   if (template.templateZones?.length) return template.templateZones;
@@ -333,6 +335,7 @@ const TemplateCardPreview = ({
 }) => {
   const previewImage = template.previewImageUrl;
   const templateZones = getEditableZones(platform, template);
+  const previewFit = template.previewFit || defaultTemplatePreviewFit;
 
   return (
     <button
@@ -345,7 +348,12 @@ const TemplateCardPreview = ({
       )}
     >
       {previewImage ? (
-        <img src={previewImage} alt={template.name} className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={previewImage}
+          alt={template.name}
+          className="absolute inset-0 h-full w-full"
+          style={{ objectFit: previewFit.fit, objectPosition: `${previewFit.focusX}% ${previewFit.focusY}%` }}
+        />
       ) : (
         <div className="absolute inset-0 bg-muted/50" />
       )}
@@ -407,6 +415,7 @@ const TemplatePreviewDialog = ({
   const [showSafeArea, setShowSafeArea] = useState(true);
   const [zoomLevel, setZoomLevel] = useState('100');
   const safeAreaGuide = getSafeAreaGuide(platform, template);
+  const previewFit = template.previewFit || defaultTemplatePreviewFit;
 
   useEffect(() => {
     setSelectedZoneIndex(0);
@@ -533,7 +542,12 @@ const TemplatePreviewDialog = ({
                 >
                   <div data-template-canvas="true" className="relative aspect-video overflow-hidden rounded-lg bg-muted/30">
                     {template.previewImageUrl ? (
-                      <img src={template.previewImageUrl} alt={template.name} className="absolute inset-0 h-full w-full object-cover" />
+                      <img
+                        src={template.previewImageUrl}
+                        alt={template.name}
+                        className="absolute inset-0 h-full w-full"
+                        style={{ objectFit: previewFit.fit, objectPosition: `${previewFit.focusX}% ${previewFit.focusY}%` }}
+                      />
                     ) : (
                       <div className="absolute inset-0 bg-muted/50" />
                     )}
@@ -637,16 +651,26 @@ const TemplatePreviewDialog = ({
               </p>
             </div>
 
-            {selectedZone ? (
-              <div className="space-y-4 p-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Label</label>
-                  <Input
-                    value={selectedZone.label}
-                    onChange={(e) => updateZone(selectedZoneIndex, { label: e.target.value })}
-                    className="h-8"
-                  />
-                </div>
+            <div className="space-y-4 p-4">
+              <SlotFitControl
+                previewUrl={template.previewImageUrl}
+                assetType={template.previewImageUrl ? 'image' : 'empty'}
+                value={previewFit}
+                onChange={(next) => onUpdateTemplate({ previewFit: next })}
+                onCommit={(next) => onUpdateTemplate({ previewFit: next })}
+                onReset={() => onUpdateTemplate({ previewFit: defaultTemplatePreviewFit })}
+              />
+
+              {selectedZone ? (
+                <>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Label</label>
+                    <Input
+                      value={selectedZone.label}
+                      onChange={(e) => updateZone(selectedZoneIndex, { label: e.target.value })}
+                      className="h-8"
+                    />
+                  </div>
 
                 {(selectedZone.type === 'text' || selectedZone.type === 'cta') && (
                   <div className="space-y-2">
@@ -701,28 +725,29 @@ const TemplatePreviewDialog = ({
                   </div>
                 </div>
 
-                {(selectedZone.type === 'text' || selectedZone.type === 'cta') && (
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Alignment</label>
-                    <Select
-                      value={selectedZone.align || 'center'}
-                      onValueChange={(value) => updateZone(selectedZoneIndex, { align: value as SocialTemplateZone['align'] })}
-                    >
-                      <SelectTrigger className="h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="left">Left</SelectItem>
-                        <SelectItem value="center">Center</SelectItem>
-                        <SelectItem value="right">Right</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="p-4 text-sm text-muted-foreground">Click a zone to edit it.</div>
-            )}
+                  {(selectedZone.type === 'text' || selectedZone.type === 'cta') && (
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground">Alignment</label>
+                      <Select
+                        value={selectedZone.align || 'center'}
+                        onValueChange={(value) => updateZone(selectedZoneIndex, { align: value as SocialTemplateZone['align'] })}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="left">Left</SelectItem>
+                          <SelectItem value="center">Center</SelectItem>
+                          <SelectItem value="right">Right</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-sm text-muted-foreground">Click a zone to edit it.</div>
+              )}
+            </div>
           </aside>
         </div>
       </DialogContent>
@@ -1578,8 +1603,9 @@ const SizeCategorySection = ({
             };
 
             const handleTemplateLibrarySelect = (url: string) => {
-              persistTemplateVersion(template, { previewImageUrl: url });
-              toast.success('Template image updated from library');
+              const nextTemplate = persistTemplateVersion(template, { previewImageUrl: url, previewFit: defaultTemplatePreviewFit });
+              setSelectedTemplate(nextTemplate);
+              toast.success('Template image updated from library — adjust crop & fit in the larger preview');
             };
 
             return (
