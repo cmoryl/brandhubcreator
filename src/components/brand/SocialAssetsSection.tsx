@@ -563,6 +563,61 @@ const detectAssetTransparency = (url: string): Promise<boolean> => {
   return promise;
 };
 
+// ---------------------------------------------------------------------------
+// SVG-aware image loading (for accurate transparent PNG export)
+// ---------------------------------------------------------------------------
+
+/**
+ * Try to determine an SVG's intrinsic pixel dimensions. Browsers are
+ * inconsistent here — Chrome will report `naturalWidth = 300, naturalHeight = 150`
+ * for SVGs that lack an explicit `width`/`height` attribute, so we fetch the
+ * source and parse the viewBox / size attrs ourselves to get a reliable
+ * resolution for canvas rasterisation.
+ */
+const resolveSvgIntrinsicSize = async (url: string): Promise<{ width: number; height: number } | null> => {
+  try {
+    let svgText: string;
+    if (url.startsWith('data:image/svg')) {
+      const commaIdx = url.indexOf(',');
+      const payload = url.slice(commaIdx + 1);
+      svgText = url.includes(';base64,') ? atob(payload) : decodeURIComponent(payload);
+    } else {
+      const res = await fetch(url, { mode: 'cors', cache: 'no-cache' });
+      if (!res.ok) return null;
+      svgText = await res.text();
+    }
+    const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+    const svg = doc.documentElement;
+    if (!svg || svg.nodeName.toLowerCase() !== 'svg') return null;
+    const widthAttr = svg.getAttribute('width');
+    const heightAttr = svg.getAttribute('height');
+    const parsePx = (v: string | null): number | null => {
+      if (!v) return null;
+      const num = parseFloat(v);
+      if (Number.isNaN(num) || num <= 0) return null;
+      // Treat unit-less / px as direct pixels; ignore %, em, etc. (fall through to viewBox).
+      if (/^\s*[\d.]+(px)?\s*$/i.test(v)) return num;
+      return null;
+    };
+    let w = parsePx(widthAttr);
+    let h = parsePx(heightAttr);
+    if (!w || !h) {
+      const vb = svg.getAttribute('viewBox');
+      if (vb) {
+        const parts = vb.trim().split(/[\s,]+/).map(Number);
+        if (parts.length === 4 && parts.every((n) => Number.isFinite(n))) {
+          if (!w) w = parts[2];
+          if (!h) h = parts[3];
+        }
+      }
+    }
+    if (!w || !h || w <= 0 || h <= 0) return null;
+    return { width: w, height: h };
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Find the image zone that visually sits behind the given logo zone — i.e. the
  * largest image zone that overlaps the logo's footprint. Used to decide which
@@ -993,10 +1048,13 @@ const TemplatePreviewDialog = ({
         pixelRatio: options.pixelRatio,
         cacheBust: true,
         skipFonts: false,
-        backgroundColor: options.transparent ? undefined : undefined,
-        // html-to-image: setting `style.background = transparent` via filter wrapper is not supported,
-        // but PNG output preserves transparency unless an explicit backgroundColor is set.
-        // When transparent=false we let the canvas's own background paint through.
+        // When the user wants transparency we explicitly omit the background
+        // color so html-to-image's foreignObject renderer leaves the alpha
+        // channel intact for SVG logos and any other transparent assets.
+        // When they don't, we paint an explicit white plate to flatten any
+        // transparent SVGs into a deterministic, opaque PNG instead of
+        // letting the page's background bleed through.
+        backgroundColor: options.transparent ? undefined : '#ffffff',
         filter: (node) => {
           if (!(node instanceof HTMLElement)) return true;
           if (node.dataset.exportExclude === 'true') return false;
@@ -1081,9 +1139,49 @@ const TemplatePreviewDialog = ({
     }
 
     const fit = getZoneMediaFit(zone);
-    const mediaW = img.naturalWidth || img.width;
-    const mediaH = img.naturalHeight || img.height;
+    const isSvg = looksLikeSvgUrl(zone.mediaUrl);
+
+    // SVGs lack reliable intrinsic pixel dimensions in <img>: Chrome falls
+    // back to 300×150 when no explicit width/height is set. Parse the SVG
+    // source so we can rasterise at a meaningful resolution.
+    let mediaW = img.naturalWidth || img.width;
+    let mediaH = img.naturalHeight || img.height;
+    if (isSvg) {
+      const intrinsic = await resolveSvgIntrinsicSize(zone.mediaUrl);
+      if (intrinsic) {
+        mediaW = intrinsic.width;
+        mediaH = intrinsic.height;
+      }
+      // Upscale SVG to a high target so the rasterised PNG is crisp at
+      // typical print/social usage (>= 2048px on the long side).
+      const SVG_TARGET = 2048;
+      const longSide = Math.max(mediaW, mediaH);
+      if (longSide > 0 && longSide < SVG_TARGET) {
+        const scale = SVG_TARGET / longSide;
+        mediaW = Math.round(mediaW * scale);
+        mediaH = Math.round(mediaH * scale);
+      }
+    }
     if (mediaW === 0 || mediaH === 0) return null;
+
+    // For SVGs, pre-rasterise the source onto a transparent offscreen canvas at
+    // the resolved (mediaW × mediaH) resolution so that subsequent crop math
+    // works in real pixel space and the SVG's transparent regions survive
+    // intact through the source-rect copy below.
+    let drawSource: CanvasImageSource = img;
+    if (isSvg) {
+      const sourceCanvas = document.createElement('canvas');
+      sourceCanvas.width = mediaW;
+      sourceCanvas.height = mediaH;
+      const sourceCtx = sourceCanvas.getContext('2d');
+      if (!sourceCtx) return null;
+      sourceCtx.imageSmoothingEnabled = true;
+      sourceCtx.imageSmoothingQuality = 'high';
+      // Explicit clear keeps alpha=0 everywhere the SVG doesn't paint.
+      sourceCtx.clearRect(0, 0, mediaW, mediaH);
+      sourceCtx.drawImage(img, 0, 0, mediaW, mediaH);
+      drawSource = sourceCanvas;
+    }
 
     // Frame aspect from the zone's percentage dimensions.
     const zoneAspect = zone.width / zone.height;
@@ -1144,11 +1242,21 @@ const TemplatePreviewDialog = ({
     canvas.height = Math.max(1, outH);
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    if (!effectiveTransparent) {
+    // High-quality resampling — matters for SVG → raster and small logos.
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    if (effectiveTransparent) {
+      // Explicit clear so the destination canvas starts with a fully
+      // transparent alpha channel — guarantees SVG transparent regions
+      // survive into the exported PNG.
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    } else {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-    ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    // For SVGs, draw the source as the full resolved (mediaW × mediaH)
+    // surface and let the source-rect math pick the right crop.
+    ctx.drawImage(drawSource, sx, sy, sw, sh, dx, dy, dw, dh);
     return canvas.toDataURL('image/png');
   };
 
