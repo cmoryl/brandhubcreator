@@ -669,6 +669,106 @@ const TemplatePreviewDialog = ({
     }
   };
 
+  const loadImageElement = (src: string): Promise<HTMLImageElement> => (
+    new Promise((resolve, reject) => {
+      const img = new globalThis.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = (err) => reject(err);
+      img.src = src;
+    })
+  );
+
+  /**
+   * Render a single frame zone from its source media at the media's native
+   * resolution, replicating object-fit: cover/contain + focus point cropping
+   * so the output matches what the canvas previews on-screen.
+   */
+  const renderFrameAtOriginalResolution = async (
+    zone: SocialTemplateZone,
+    transparent: boolean,
+  ): Promise<string | null> => {
+    if (!zone.mediaUrl) return null;
+    let img: HTMLImageElement;
+    try {
+      img = await loadImageElement(zone.mediaUrl);
+    } catch (err) {
+      console.warn('Failed to load frame media for original-resolution export', err);
+      return null;
+    }
+
+    const fit = getZoneMediaFit(zone);
+    const mediaW = img.naturalWidth || img.width;
+    const mediaH = img.naturalHeight || img.height;
+    if (mediaW === 0 || mediaH === 0) return null;
+
+    // Frame aspect from the zone's percentage dimensions.
+    const zoneAspect = zone.width / zone.height;
+    const mediaAspect = mediaW / mediaH;
+
+    let outW: number;
+    let outH: number;
+    let sx = 0;
+    let sy = 0;
+    let sw = mediaW;
+    let sh = mediaH;
+    let dx = 0;
+    let dy = 0;
+    let dw: number;
+    let dh: number;
+
+    if (fit.fit === 'cover') {
+      // Crop the source to the zone's aspect; output is full res of the visible crop.
+      if (mediaAspect > zoneAspect) {
+        // Media is wider than the frame — crop horizontally.
+        sh = mediaH;
+        sw = Math.round(mediaH * zoneAspect);
+        const focusPx = ((fit.focusX ?? 50) / 100) * mediaW;
+        sx = Math.round(Math.max(0, Math.min(mediaW - sw, focusPx - sw / 2)));
+        sy = 0;
+      } else {
+        // Media is taller — crop vertically.
+        sw = mediaW;
+        sh = Math.round(mediaW / zoneAspect);
+        const focusPy = ((fit.focusY ?? 50) / 100) * mediaH;
+        sy = Math.round(Math.max(0, Math.min(mediaH - sh, focusPy - sh / 2)));
+        sx = 0;
+      }
+      outW = sw;
+      outH = sh;
+      dw = outW;
+      dh = outH;
+    } else {
+      // contain: keep entire media, letterbox onto a frame-shaped canvas at media's max dimension.
+      // Use the longer media side as the basis to preserve resolution.
+      if (mediaAspect > zoneAspect) {
+        outW = mediaW;
+        outH = Math.round(mediaW / zoneAspect);
+      } else {
+        outH = mediaH;
+        outW = Math.round(mediaH * zoneAspect);
+      }
+      dw = mediaW;
+      dh = mediaH;
+      const focusPx = ((fit.focusX ?? 50) / 100) * (outW - dw);
+      const focusPy = ((fit.focusY ?? 50) / 100) * (outH - dh);
+      dx = Math.round(Math.max(0, Math.min(outW - dw, focusPx)));
+      dy = Math.round(Math.max(0, Math.min(outH - dh, focusPy)));
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, outW);
+    canvas.height = Math.max(1, outH);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    if (!transparent) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    return canvas.toDataURL('image/png');
+  };
+
   const handleExportFramesZip = async (options: ExportRenderOptions) => {
     if (frameZones.length === 0) {
       toast.error('No frames to export');
@@ -686,7 +786,8 @@ const TemplatePreviewDialog = ({
       const folder = zip.folder(sanitizeFileName(template.name)) || zip;
       folder.file('preview.png', fullDataUrl.split(',')[1], { base64: true });
 
-      // Load full canvas image to crop frames out of it.
+      // Load full canvas image — used as the fallback source when a frame has no
+      // bound media or when original-resolution export is disabled.
       const baseImg = await new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new globalThis.Image();
         img.onload = () => resolve(img);
@@ -696,33 +797,58 @@ const TemplatePreviewDialog = ({
 
       const baseW = baseImg.width;
       const baseH = baseImg.height;
+      let originalUsed = 0;
+      let originalFallback = 0;
 
       for (let i = 0; i < frameZones.length; i++) {
         const { zone } = frameZones[i];
-        const sx = Math.max(0, Math.round((zone.x / 100) * baseW));
-        const sy = Math.max(0, Math.round((zone.y / 100) * baseH));
-        const sw = Math.max(1, Math.round((zone.width / 100) * baseW));
-        const sh = Math.max(1, Math.round((zone.height / 100) * baseH));
-
-        const canvas = document.createElement('canvas');
-        canvas.width = sw;
-        canvas.height = sh;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) continue;
-        if (!options.transparent) {
-          // Fill with white when not transparent, since source PNG may already be opaque (no-op).
-        }
-        ctx.drawImage(baseImg, sx, sy, sw, sh, 0, 0, sw, sh);
-        const cropDataUrl = canvas.toDataURL('image/png');
         const safeLabel = sanitizeFileName(zone.label || `frame-${i + 1}`);
-        folder.file(`${String(i + 1).padStart(2, '0')}-${safeLabel}.png`, cropDataUrl.split(',')[1], { base64: true });
+        let cropDataUrl: string | null = null;
+
+        if (options.originalResolution) {
+          cropDataUrl = await renderFrameAtOriginalResolution(zone, options.transparent);
+          if (cropDataUrl) {
+            originalUsed += 1;
+          } else {
+            originalFallback += 1;
+          }
+        }
+
+        if (!cropDataUrl) {
+          // Fallback: slice from the rasterized preview canvas.
+          const sx = Math.max(0, Math.round((zone.x / 100) * baseW));
+          const sy = Math.max(0, Math.round((zone.y / 100) * baseH));
+          const sw = Math.max(1, Math.round((zone.width / 100) * baseW));
+          const sh = Math.max(1, Math.round((zone.height / 100) * baseH));
+
+          const canvas = document.createElement('canvas');
+          canvas.width = sw;
+          canvas.height = sh;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) continue;
+          ctx.drawImage(baseImg, sx, sy, sw, sh, 0, 0, sw, sh);
+          cropDataUrl = canvas.toDataURL('image/png');
+        }
+
+        folder.file(
+          `${String(i + 1).padStart(2, '0')}-${safeLabel}.png`,
+          cropDataUrl.split(',')[1],
+          { base64: true },
+        );
       }
 
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(blob);
-      triggerDownload(url, `${sanitizeFileName(template.name)}-frames@${options.pixelRatio}x.zip`);
+      const suffix = options.originalResolution ? 'orig' : `${options.pixelRatio}x`;
+      triggerDownload(url, `${sanitizeFileName(template.name)}-frames@${suffix}.zip`);
       setTimeout(() => URL.revokeObjectURL(url), 2000);
-      toast.success(`Exported ${frameZones.length} frame${frameZones.length === 1 ? '' : 's'}`);
+      if (options.originalResolution && originalFallback > 0) {
+        toast.success(
+          `Exported ${frameZones.length} frame${frameZones.length === 1 ? '' : 's'} (${originalUsed} at original, ${originalFallback} from preview)`,
+        );
+      } else {
+        toast.success(`Exported ${frameZones.length} frame${frameZones.length === 1 ? '' : 's'}`);
+      }
     } catch (err) {
       console.error('Export frames failed', err);
       toast.error('Failed to export frames');
