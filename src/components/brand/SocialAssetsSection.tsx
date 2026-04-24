@@ -547,6 +547,21 @@ const TemplatePreviewDialog = ({
     onUpdateTemplate({ templateZones: nextZones });
   };
 
+  const applyCropToAllFrames = () => {
+    if (activeFrameZoneIndex === null) return;
+    const sourceZone = templateZones[activeFrameZoneIndex];
+    if (!sourceZone || (sourceZone.type !== 'image' && sourceZone.type !== 'logo')) return;
+
+    const sourceFit = getZoneMediaFit(sourceZone);
+    const nextZones = templateZones.map((zone) => (
+      zone.type === 'image' || zone.type === 'logo'
+        ? { ...zone, mediaFit: { ...sourceFit } }
+        : zone
+    ));
+
+    onUpdateTemplate({ templateZones: nextZones });
+  };
+
   const handleZonePointerDown = (
     event: React.PointerEvent<HTMLElement>,
     zoneIndex: number,
@@ -844,9 +859,22 @@ const TemplatePreviewDialog = ({
 
               {activeFrameZone && (activeFrameZone.type === 'image' || activeFrameZone.type === 'logo') && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {activeFrameZone.label} · {zoneTypeLabels[activeFrameZone.type]}
-                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {activeFrameZone.label} · {zoneTypeLabels[activeFrameZone.type]}
+                    </p>
+                    {frameZones.length > 1 && canEdit && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 text-[11px]"
+                        onClick={applyCropToAllFrames}
+                      >
+                        Apply to all frames
+                      </Button>
+                    )}
+                  </div>
                   <SlotFitControl
                     previewUrl={activeFrameZone.mediaUrl || template.previewImageUrl}
                     assetType={activeFrameZone.mediaUrl ? 'image' : 'empty'}
