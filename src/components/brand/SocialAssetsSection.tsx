@@ -803,6 +803,34 @@ const TemplatePreviewDialog = ({
                     <Eye className="h-3.5 w-3.5" />
                     Safe area
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="default"
+                        className="h-8 gap-1.5"
+                        disabled={isExporting}
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        {isExporting ? 'Exporting…' : 'Export'}
+                        <ChevronDown className="h-3 w-3 opacity-70" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={handleExportPreview} disabled={isExporting}>
+                        <FileImage className="mr-2 h-4 w-4" />
+                        Download preview (PNG)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleExportFramesZip}
+                        disabled={isExporting || frameZones.length === 0}
+                      >
+                        <FileArchive className="mr-2 h-4 w-4" />
+                        Download frames (ZIP)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <div className="flex items-center gap-2">
