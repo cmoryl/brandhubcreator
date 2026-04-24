@@ -93,27 +93,12 @@ export const TemplateCanvasEditor = ({
 
   const selectedZone = selectedZoneIndex !== null ? zones[selectedZoneIndex] : null;
 
-  // -------------------------------------------------------------------------
-  // Background-aware logo recommendations: sample the luminance of whatever
-  // image zone sits behind the currently-selected logo zone so the variant
-  // swatches in the side panel can be ranked + flagged.
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    let cancelled = false;
-    if (!selectedZone || selectedZone.type !== 'logo') {
-      setActiveLogoBgLuminance(null);
-      return;
-    }
+  // Resolve the background URL sitting behind the active logo zone (if any) so
+  // the reusable picker can sample its luminance and rank variants.
+  const activeLogoBackgroundUrl = useMemo(() => {
+    if (!selectedZone || selectedZone.type !== 'logo') return undefined;
     const bgZone = findBackgroundZoneForLogo(selectedZone, zones);
-    const url = bgZone?.mediaUrl || backgroundUrl;
-    if (!url) {
-      setActiveLogoBgLuminance(null);
-      return;
-    }
-    void sampleImageLuminance(url).then((lum) => {
-      if (!cancelled) setActiveLogoBgLuminance(lum);
-    });
-    return () => { cancelled = true; };
+    return bgZone?.mediaUrl || backgroundUrl;
   }, [selectedZone, zones, backgroundUrl]);
 
   // -------------------------------------------------------------------------
