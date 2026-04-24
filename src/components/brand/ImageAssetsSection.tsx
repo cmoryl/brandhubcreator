@@ -407,6 +407,61 @@ export const ImageAssetsSection = ({
         type="image"
         aspectRatio="auto"
       />
+
+      {/* Delete confirmation with optional thumbs-down (avoid this style) */}
+      <Dialog open={!!pendingDelete} onOpenChange={(open) => { if (!open) { setPendingDelete(null); setAvoidReason(''); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Remove this image?</DialogTitle>
+            <DialogDescription>
+              Choose how you'd like to remove it. Marking it as "avoid" trains the brand AI to steer away from this style, subject, or composition in future generations.
+            </DialogDescription>
+          </DialogHeader>
+
+          {pendingDelete && (
+            <div className="flex gap-3 items-start p-3 rounded-lg border border-border bg-muted/30">
+              <div className="h-16 w-16 shrink-0 rounded-md overflow-hidden bg-muted">
+                <img src={pendingDelete.url} alt={pendingDelete.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate">{pendingDelete.name}</p>
+                <p className="text-xs text-muted-foreground">{pendingDelete.size}</p>
+              </div>
+            </div>
+          )}
+
+          {onImageryAvoidListChange && (
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Why should the AI avoid this? <span className="opacity-60">(optional but helpful)</span>
+              </label>
+              <Textarea
+                value={avoidReason}
+                onChange={(e) => setAvoidReason(e.target.value)}
+                placeholder="e.g. Too literal, wrong color tone, off-brand composition, contains people, looks like a stock photo…"
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+          )}
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-2">
+            <Button variant="ghost" onClick={() => { setPendingDelete(null); setAvoidReason(''); }} className="sm:mr-auto">
+              Cancel
+            </Button>
+            <Button variant="outline" onClick={() => confirmDelete(false)} className="gap-2">
+              <Trash2 className="h-4 w-4" />
+              Just remove
+            </Button>
+            {onImageryAvoidListChange && (
+              <Button variant="destructive" onClick={() => confirmDelete(true)} className="gap-2">
+                <ThumbsDown className="h-4 w-4" />
+                Remove & avoid
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
