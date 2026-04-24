@@ -2235,6 +2235,7 @@ const SizeCategorySection = ({
   updateSocialAsset,
   uploadFile,
   cardGridClass,
+  brandLogos,
 }: {
   category: { key: string; label: string; spec: string };
   categoryTemplates: SocialAssetTemplate[];
@@ -2244,6 +2245,7 @@ const SizeCategorySection = ({
   updateSocialAsset: (id: string, updates: Partial<BrandSocialAssetSpec>) => void;
   uploadFile: (file: File, type: string, prefix: string) => Promise<{ url: string } | undefined>;
   cardGridClass: string;
+  brandLogos?: BrandLogo[];
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<SocialAssetTemplate | null>(null);
