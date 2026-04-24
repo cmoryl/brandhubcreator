@@ -1,16 +1,28 @@
 import { useState, useCallback } from 'react';
-import { X, Download, Upload, Image as ImageIcon, Expand, FolderOpen, Loader2, Grid3X3, LayoutGrid, Grid2X2, List } from 'lucide-react';
+import { X, Download, Upload, Image as ImageIcon, Expand, FolderOpen, Loader2, Grid3X3, LayoutGrid, Grid2X2, List, ThumbsDown, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from './SectionHeader';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { PreviewDialog } from '@/components/ui/preview-dialog';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { safeUUID } from '@/lib/safeUUID';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 import { useDownloadTracking } from '@/hooks/useDownloadTracking';
+
+// Item the AI should learn to AVOID generating in this style/direction
+export interface ImageryAvoidItem {
+  id: string;
+  url: string;
+  name?: string;
+  reason?: string;
+  thumbnailUrl?: string;
+  rejectedAt: string;
+}
 
 // Image Asset type
 export interface ImageAsset {
