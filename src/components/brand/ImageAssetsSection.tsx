@@ -280,7 +280,7 @@ export const ImageAssetsSection = ({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{asset.name}</p>
-                <p className="text-xs text-muted-foreground">{asset.size} • {asset.type.split('/')[1]?.toUpperCase() || 'IMAGE'}</p>
+                <p className="text-xs text-muted-foreground">{asset.size} • {asset.type?.split('/')[1]?.toUpperCase() || 'IMAGE'}</p>
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPreviewAsset(asset)}>
@@ -329,7 +329,7 @@ export const ImageAssetsSection = ({
               {!isCompact && (
                 <div className="p-3 space-y-1">
                   <p className="text-sm font-medium truncate" title={asset.name}>{asset.name}</p>
-                  <p className="text-xs text-muted-foreground">{asset.size} • {asset.type.split('/')[1]?.toUpperCase() || 'IMAGE'}</p>
+                  <p className="text-xs text-muted-foreground">{asset.size} • {asset.type?.split('/')[1]?.toUpperCase() || 'IMAGE'}</p>
                 </div>
               )}
             </div>
