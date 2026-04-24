@@ -481,6 +481,11 @@ export const DigitalCollateralSection = ({
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: '', icon: '📂' });
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
+  // Templated zone editor state
+  const [templateEditingId, setTemplateEditingId] = useState<string | null>(null);
+  const [exportingId, setExportingId] = useState<string | null>(null);
+  const [exportTransparent, setExportTransparent] = useState(false);
+  const { mode: seedMode } = useZoneSeedMode();
   
   const { gridClass } = useLayoutClasses(layout);
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
