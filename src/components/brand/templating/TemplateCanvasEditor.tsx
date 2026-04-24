@@ -202,11 +202,6 @@ export const TemplateCanvasEditor = ({
   // Render
   // -------------------------------------------------------------------------
 
-  const usableLogos = useMemo(
-    () => (brandLogos || []).filter((logo) => !!logo.url),
-    [brandLogos],
-  );
-
   return (
     <div className={cn('grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]', className)}>
       {/* Canvas */}
