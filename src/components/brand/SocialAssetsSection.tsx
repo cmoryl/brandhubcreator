@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye, LayoutGrid, Type } from 'lucide-react';
-import { BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory } from '@/types/brand';
+import { BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory, SocialTemplateZone } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 import { parseCanvaUrl, CANVA_LOGO_SVG } from '@/lib/canvaUtils';
@@ -238,6 +238,14 @@ const zonePreviewStyles: Record<TemplateZoneType, string> = {
   cta: 'border-amber-400/80 bg-amber-500/15 text-amber-50',
 };
 
+const clampZoneValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const getEditableZones = (platform: string, template: SocialAssetTemplate): SocialTemplateZone[] => {
+  if (template.templateZones?.length) return template.templateZones;
+  const templateDefinition = getTemplateDefinitionForAsset(platform, template);
+  return (templateDefinition?.zones || []).map((zone) => ({ ...zone }));
+};
+
 const TemplateCardPreview = ({
   platform,
   template,
@@ -250,7 +258,7 @@ const TemplateCardPreview = ({
   onClick?: () => void;
 }) => {
   const previewImage = template.previewImageUrl;
-  const templateDefinition = getTemplateDefinitionForAsset(platform, template);
+  const templateZones = getEditableZones(platform, template);
 
   return (
     <button
@@ -269,9 +277,9 @@ const TemplateCardPreview = ({
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-background/10 to-transparent" />
 
-      {templateDefinition ? (
+      {templateZones.length > 0 ? (
         <div className="absolute inset-0 p-3">
-          {templateDefinition.zones.map((zone, index) => (
+          {templateZones.map((zone, index) => (
             <div
               key={`${template.id}-zone-${index}`}
               className={cn(
@@ -307,15 +315,72 @@ const TemplatePreviewDialog = ({
   onOpenChange,
   platform,
   template,
+  canEdit,
+  onUpdateTemplate,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   platform: string;
   template: SocialAssetTemplate | null;
+  canEdit: boolean;
+  onUpdateTemplate: (updates: Partial<SocialAssetTemplate>) => void;
 }) => {
   if (!template) return null;
 
-  const templateDefinition = getTemplateDefinitionForAsset(platform, template);
+  const templateZones = getEditableZones(platform, template);
+
+  const handleZonePointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+    zoneIndex: number,
+    mode: 'move' | 'resize',
+  ) => {
+    if (!canEdit) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const container = event.currentTarget.closest('[data-template-canvas="true"]') as HTMLDivElement | null;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startZone = templateZones[zoneIndex];
+    if (!startZone) return;
+
+    const onMove = (moveEvent: PointerEvent) => {
+      const deltaX = ((moveEvent.clientX - startX) / rect.width) * 100;
+      const deltaY = ((moveEvent.clientY - startY) / rect.height) * 100;
+
+      const nextZones = templateZones.map((zone, index) => {
+        if (index !== zoneIndex) return zone;
+
+        if (mode === 'move') {
+          return {
+            ...zone,
+            x: clampZoneValue(startZone.x + deltaX, 0, 100 - startZone.width),
+            y: clampZoneValue(startZone.y + deltaY, 0, 100 - startZone.height),
+          };
+        }
+
+        return {
+          ...zone,
+          width: clampZoneValue(startZone.width + deltaX, 8, 100 - startZone.x),
+          height: clampZoneValue(startZone.height + deltaY, 6, 100 - startZone.y),
+        };
+      });
+
+      onUpdateTemplate({ templateZones: nextZones });
+    };
+
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -325,11 +390,46 @@ const TemplatePreviewDialog = ({
         </DialogHeader>
         <div className="space-y-4">
           <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <TemplateCardPreview platform={platform} template={template} />
+            <div data-template-canvas="true" className="relative aspect-video overflow-hidden bg-muted/30">
+              {template.previewImageUrl ? (
+                <img src={template.previewImageUrl} alt={template.name} className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 bg-muted/50" />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-background/55 via-background/5 to-transparent" />
+              {templateZones.map((zone, index) => (
+                <div
+                  key={`${template.id}-editor-zone-${index}`}
+                  className={cn(
+                    'absolute rounded border-2 border-dashed shadow-sm backdrop-blur-[1px]',
+                    zonePreviewStyles[zone.type],
+                    canEdit && 'cursor-move',
+                  )}
+                  style={{
+                    left: `${zone.x}%`,
+                    top: `${zone.y}%`,
+                    width: `${zone.width}%`,
+                    height: `${zone.height}%`,
+                  }}
+                  onPointerDown={(event) => handleZonePointerDown(event, index, 'move')}
+                >
+                  <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight">
+                    <span className="truncate">{zone.label}</span>
+                  </div>
+                  {canEdit && zone.type !== 'image' && (
+                    <button
+                      type="button"
+                      className="absolute -bottom-2 -right-2 h-4 w-4 rounded-full border border-border bg-background shadow-sm"
+                      onPointerDown={(event) => handleZonePointerDown(event, index, 'resize')}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-          {templateDefinition && (
+          {templateZones.length > 0 && (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {templateDefinition.zones.map((zone, index) => (
+              {templateZones.map((zone, index) => (
                 <div key={`${template.id}-detail-${index}`} className="rounded-lg border border-border bg-muted/20 p-3">
                   <p className="text-sm font-medium text-foreground">{zone.label}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{zone.type.toUpperCase()}</p>
