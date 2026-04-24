@@ -461,7 +461,7 @@ const demoCtaByKeyword: Array<{ test: RegExp; text: string }> = [
   { test: /demo|trial/i, text: 'Request a demo' },
 ];
 
-const pickDemoContent = (zone: CanvasEditorZone): string | undefined => {
+const pickLoremContent = (zone: CanvasEditorZone): string | undefined => {
   if (zone.type !== 'text' && zone.type !== 'cta') return undefined;
   const label = zone.label || '';
   const table = zone.type === 'cta' ? demoCtaByKeyword : demoTextByKeyword;
@@ -472,24 +472,46 @@ const pickDemoContent = (zone: CanvasEditorZone): string | undefined => {
   return 'Lorem ipsum supporting copy that explains the value, the audience and the outcome in two or three sentences.';
 };
 
+/**
+ * @deprecated Use `pickLoremContent` directly, or call `hydrateZoneDefaults`
+ * with an explicit `mode`. Kept for backwards compatibility.
+ */
+const pickDemoContent = pickLoremContent;
+void pickDemoContent;
+
 // ---------------------------------------------------------------------------
 // Helper: hydrate a default zone array with brand logos pre-applied (and
 // tagged for auto-matching) plus demo copy for empty text / CTA zones.
 // Sections that ship default templates can use this so new assets always
 // render with realistic content on first paint.
+//
+// `mode` controls how empty text / CTA zones are seeded:
+//   - 'lorem' (default): synchronously seed curated keyword-matched copy.
+//   - 'blank' : leave content undefined.
+//   - 'ai'    : seed lorem as an immediate placeholder AND tag the zone with
+//               `_seedPending: true` so the editor can replace it with
+//               brand-aware AI copy on mount.
 // ---------------------------------------------------------------------------
+
+import type { ZoneSeedMode } from '@/hooks/useZoneSeedMode';
 
 export const hydrateZoneDefaults = <Z extends CanvasEditorZone>(
   zones: Z[],
   brandLogos?: BrandLogo[],
+  mode: ZoneSeedMode = 'lorem',
 ): Z[] => {
   const defaultLogo = pickDefaultBrandLogo(brandLogos);
   const defaultLogoUrl = pickDefaultBrandLogoUrl(brandLogos);
   return zones.map((zone) => {
-    // Seed demo copy for empty text / CTA zones.
+    // Seed demo copy for empty text / CTA zones based on mode.
     if ((zone.type === 'text' || zone.type === 'cta') && !zone.content) {
-      const demo = pickDemoContent(zone);
-      if (demo) zone = { ...zone, content: demo };
+      if (mode === 'lorem' || mode === 'ai') {
+        const demo = pickLoremContent(zone);
+        if (demo) zone = { ...zone, content: demo };
+      }
+      if (mode === 'ai') {
+        zone = { ...zone, _seedPending: true } as Z;
+      }
     }
     if (zone.type !== 'logo') return zone;
     if (zone.mediaUrl) return zone;
