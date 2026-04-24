@@ -439,6 +439,7 @@ export const CaseStudiesSection = ({
                 brandLogos={brandLogos}
                 onUploadFile={persistFile}
                 canEdit={canEdit}
+                surfaceName="Case study card"
                 zones={toEditorZones(editingStudy.templateZones)}
                 onZonesChange={(next) =>
                   updateCaseStudy(editingStudy.id, { templateZones: fromEditorZones(next) })
