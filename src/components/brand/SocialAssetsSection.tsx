@@ -1106,11 +1106,19 @@ const TemplatePreviewDialog = ({
         const safeLabel = sanitizeFileName(zone.label || `frame-${i + 1}`);
         let cropDataUrl: string | null = null;
 
-        if (options.originalResolution) {
+        // Logo zones backed by a transparent asset (SVG / alpha PNG) must be
+        // rendered straight from the source so the exported file preserves
+        // transparency — slicing from the rasterized preview would bake in the
+        // template background behind the logo.
+        const logoNeedsTransparency = zone.type === 'logo'
+          && !!zone.mediaUrl
+          && await detectAssetTransparency(zone.mediaUrl).catch(() => false);
+
+        if (options.originalResolution || logoNeedsTransparency) {
           cropDataUrl = await renderFrameAtOriginalResolution(zone, options.transparent);
           if (cropDataUrl) {
-            originalUsed += 1;
-          } else {
+            if (options.originalResolution) originalUsed += 1;
+          } else if (options.originalResolution) {
             originalFallback += 1;
           }
         }
