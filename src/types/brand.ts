@@ -798,6 +798,8 @@ export interface SocialAssetTemplate {
   dimensions?: string;
   sizeCategory?: SocialSizeCategory;
   templateZones?: SocialTemplateZone[];
+  sourceTemplateId?: string;
+  sourceTemplateFormat?: 'feed' | 'story' | 'reel' | 'cover' | 'profile';
 }
 
 // SOCIAL ASSETS - Platform Specifications
