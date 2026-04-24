@@ -32,6 +32,7 @@ import { AssetsSection } from './AssetsSection';
 import { ImageAssetsSection } from './ImageAssetsSection';
 import { MisuseSection } from './MisuseSection';
 import { DigitalCollateralSection } from './DigitalCollateralSection';
+import { CaseStudiesSection } from './CaseStudiesSection';
 import { TemplatesSection } from './TemplatesSection';
 import { TemplateSpecsSection } from './TemplateSpecsSection';
 import { ProductsSection } from './ProductsSection';

@@ -54,6 +54,7 @@ import { VideosSection } from '@/components/brand/VideosSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
+import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
