@@ -332,7 +332,7 @@ export const ImageAssetsSection = ({
                   <Download className="h-3.5 w-3.5" />
                 </Button>
                 {canEdit && (
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteAsset(asset.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => requestDelete(asset)}>
                     <X className="h-3.5 w-3.5" />
                   </Button>
                 )}
@@ -362,7 +362,7 @@ export const ImageAssetsSection = ({
                     <Download className={cn(isCompact ? "h-3 w-3" : "h-4 w-4")} />
                   </Button>
                   {canEdit && (
-                    <Button variant="destructive" size="icon" className={cn(isCompact ? "h-7 w-7" : "h-9 w-9")} onClick={() => deleteAsset(asset.id)}>
+                    <Button variant="destructive" size="icon" className={cn(isCompact ? "h-7 w-7" : "h-9 w-9")} onClick={() => requestDelete(asset)}>
                       <X className={cn(isCompact ? "h-3 w-3" : "h-4 w-4")} />
                     </Button>
                   )}
