@@ -12,7 +12,7 @@
  * picker, brand-logo variants with auto-match scoring) is built in.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Upload, FolderOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -24,15 +24,13 @@ import {
   TemplateZoneType,
   defaultTemplatePreviewFit,
   getZoneMediaFit,
-  scoreLogoForBackground,
-  describeBackgroundTone,
-  sampleImageLuminance,
   findBackgroundZoneForLogo,
   autoMatchLogosForZones,
   pickDefaultBrandLogoUrl,
   pickDefaultBrandLogo,
 } from '@/lib/templateZonePipeline';
 import type { BrandLogo } from '@/types/brand';
+import { BrandLogoVariantPicker } from './BrandLogoVariantPicker';
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -91,31 +89,15 @@ export const TemplateCanvasEditor = ({
 }: TemplateCanvasEditorProps) => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [selectedZoneIndex, setSelectedZoneIndex] = useState<number | null>(null);
-  const [activeLogoBgLuminance, setActiveLogoBgLuminance] = useState<number | null>(null);
 
   const selectedZone = selectedZoneIndex !== null ? zones[selectedZoneIndex] : null;
 
-  // -------------------------------------------------------------------------
-  // Background-aware logo recommendations: sample the luminance of whatever
-  // image zone sits behind the currently-selected logo zone so the variant
-  // swatches in the side panel can be ranked + flagged.
-  // -------------------------------------------------------------------------
-  useEffect(() => {
-    let cancelled = false;
-    if (!selectedZone || selectedZone.type !== 'logo') {
-      setActiveLogoBgLuminance(null);
-      return;
-    }
+  // Resolve the background URL sitting behind the active logo zone (if any) so
+  // the reusable picker can sample its luminance and rank variants.
+  const activeLogoBackgroundUrl = useMemo(() => {
+    if (!selectedZone || selectedZone.type !== 'logo') return undefined;
     const bgZone = findBackgroundZoneForLogo(selectedZone, zones);
-    const url = bgZone?.mediaUrl || backgroundUrl;
-    if (!url) {
-      setActiveLogoBgLuminance(null);
-      return;
-    }
-    void sampleImageLuminance(url).then((lum) => {
-      if (!cancelled) setActiveLogoBgLuminance(lum);
-    });
-    return () => { cancelled = true; };
+    return bgZone?.mediaUrl || backgroundUrl;
   }, [selectedZone, zones, backgroundUrl]);
 
   // -------------------------------------------------------------------------
@@ -219,11 +201,6 @@ export const TemplateCanvasEditor = ({
   // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
-
-  const usableLogos = useMemo(
-    () => (brandLogos || []).filter((logo) => !!logo.url),
-    [brandLogos],
-  );
 
   return (
     <div className={cn('grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]', className)}>
@@ -397,80 +374,15 @@ export const TemplateCanvasEditor = ({
               )}
 
               {/* Logo variant picker with background-aware ranking */}
-              {selectedZone.type === 'logo' && usableLogos.length > 0 && (() => {
-                const bgLum = activeLogoBgLuminance;
-                const bgTone = bgLum !== null ? describeBackgroundTone(bgLum) : null;
-                const ranked = usableLogos
-                  .map((logo) => ({
-                    logo,
-                    score: bgLum !== null ? scoreLogoForBackground(logo.variant, bgLum) : 0.5,
-                  }))
-                  .sort((a, b) => b.score - a.score);
-                const topScore = ranked[0]?.score ?? 0;
-                return (
-                  <div className="space-y-1.5 rounded-lg border border-dashed border-border bg-muted/10 p-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-[11px] font-medium text-muted-foreground">
-                        Brand logo variants
-                      </p>
-                      {bgTone && (
-                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                          <span
-                            className={cn(
-                              'h-2.5 w-2.5 rounded-full border border-border',
-                              bgTone === 'dark' && 'bg-foreground',
-                              bgTone === 'light' && 'bg-background',
-                              bgTone === 'mid' && 'bg-muted',
-                            )}
-                          />
-                          {bgTone === 'dark' ? 'Dark' : bgTone === 'light' ? 'Light' : 'Mid-tone'} background
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {ranked.map(({ logo, score }) => {
-                        const isActive = selectedZone.mediaUrl === logo.url;
-                        const isRecommended = bgLum !== null && score === topScore && score >= 0.7;
-                        const isPoorMatch = bgLum !== null && score < 0.3;
-                        return (
-                          <button
-                            key={logo.id}
-                            type="button"
-                            title={`${logo.name} (${logo.variant})${
-                              isRecommended ? ' — recommended for this background'
-                              : isPoorMatch ? ' — low contrast on this background' : ''
-                            }`}
-                            onClick={() => setZoneLogoUrl(selectedZoneIndex!, logo.url)}
-                            className={cn(
-                              'relative flex h-12 w-16 items-center justify-center overflow-hidden rounded-md border p-1 transition-colors',
-                              logo.variant === 'reversed' || logo.variant === 'monochrome'
-                                ? 'bg-foreground'
-                                : 'bg-background',
-                              isActive
-                                ? 'border-primary ring-2 ring-primary ring-offset-1 ring-offset-background'
-                                : isRecommended
-                                  ? 'border-primary/60 hover:border-primary'
-                                  : 'border-border hover:border-primary/40',
-                              isPoorMatch && !isActive && 'opacity-50',
-                            )}
-                          >
-                            <img
-                              src={logo.url}
-                              alt={logo.name}
-                              className="max-h-full max-w-full object-contain"
-                            />
-                            {isRecommended && (
-                              <span className="absolute -top-1 -right-1 rounded-full bg-primary px-1 text-[8px] font-semibold leading-3 text-primary-foreground shadow">
-                                ★
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
+              {selectedZone.type === 'logo' && (
+                <BrandLogoVariantPicker
+                  brandLogos={brandLogos}
+                  selectedUrl={selectedZone.mediaUrl}
+                  backgroundUrl={activeLogoBackgroundUrl}
+                  autoMatchedLogoId={selectedZone.autoMatchedLogoId}
+                  onSelect={(url) => setZoneLogoUrl(selectedZoneIndex!, url)}
+                />
+              )}
 
               {/* Text content */}
               {(selectedZone.type === 'text' || selectedZone.type === 'cta') && (
