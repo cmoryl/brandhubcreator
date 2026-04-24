@@ -88,8 +88,8 @@ export const CaseStudiesSection = ({
       title: 'New Case Study',
       description: 'Describe the project, goals, and outcomes',
       previewUrl: '',
-      templateAspect: '16 / 9',
-      templateZones: buildDefaultZones(brandLogos, seedMode),
+      templateAspect: getDefaultAspectForSurface('caseStudy'),
+      templateZones: buildSurfaceDefaultZones('caseStudy', brandLogos, seedMode),
     };
     onCaseStudiesChange([...caseStudies, newCase]);
     setEditingId(newCase.id);
