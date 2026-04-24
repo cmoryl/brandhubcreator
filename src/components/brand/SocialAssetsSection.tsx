@@ -32,6 +32,22 @@ import { cn } from '@/lib/utils';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
 import { getTemplateDefinitionForAsset, getTemplatePreviewImage, getTemplatesForPlatformFormat, TemplateZoneType } from '@/lib/socialTemplates';
 import { SlotFitControl } from './SlotFitControl';
+import {
+  defaultTemplatePreviewFit,
+  getZoneMediaFit as sharedGetZoneMediaFit,
+  looksLikeSvgUrl,
+  looksLikeAlphaCapableRaster,
+  detectAssetTransparency,
+  resolveSvgIntrinsicSize,
+  sampleImageLuminance,
+  pickDefaultBrandLogoUrl,
+  scoreLogoForBackground,
+  describeBackgroundTone,
+  pickBestBrandLogoForLuminance,
+  findBackgroundZoneForLogo as sharedFindBackgroundZoneForLogo,
+  autoMatchLogosForZones as sharedAutoMatchLogosForZones,
+  renderZoneAtOriginalResolution,
+} from '@/lib/templateZonePipeline';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
@@ -324,9 +340,8 @@ const zoneTypeLabels: Record<TemplateZoneType, string> = {
 };
 
 const clampZoneValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const defaultTemplatePreviewFit = { fit: 'cover' as const, focusX: 50, focusY: 50 };
 
-const getZoneMediaFit = (zone: SocialTemplateZone) => zone.mediaFit || defaultTemplatePreviewFit;
+const getZoneMediaFit = sharedGetZoneMediaFit;
 
 const getTemplateFormat = (template: Pick<SocialAssetTemplate, 'sourceTemplateFormat' | 'sizeCategory'>) => (
   template.sourceTemplateFormat || (template.sizeCategory === 'story'
@@ -380,328 +395,23 @@ const getSmartDefaultZoneFit = (
   return { fit: 'cover' as const, focusX, focusY };
 };
 
-/**
- * Pick the best logo URL from the brand logo library to drop into a template
- * `logo` zone. Prefers `primary`, then `wordmark`, then any logo with a usable URL.
- */
-const pickDefaultBrandLogoUrl = (brandLogos?: BrandLogo[]): string | undefined => {
-  if (!brandLogos?.length) return undefined;
-  const order: BrandLogo['variant'][] = ['primary', 'wordmark', 'secondary', 'reversed', 'monochrome', 'icon'];
-  for (const variant of order) {
-    const match = brandLogos.find((logo) => logo.variant === variant && logo.url);
-    if (match?.url) return match.url;
-  }
-  return brandLogos.find((logo) => !!logo.url)?.url;
-};
+// pickDefaultBrandLogoUrl, sampleImageLuminance, detectAssetTransparency,
+// resolveSvgIntrinsicSize, scoreLogoForBackground, describeBackgroundTone,
+// pickBestBrandLogoForLuminance, looksLikeSvgUrl, looksLikeAlphaCapableRaster,
+// loadImageElement, and renderZoneAtOriginalResolution are imported from
+// '@/lib/templateZonePipeline'. Local aliases below preserve the original
+// (SocialTemplateZone-typed) call sites without behavioural change.
 
-// ---------------------------------------------------------------------------
-// Background-aware logo recommendations
-// ---------------------------------------------------------------------------
-
-/** Cached luminance samples keyed by media URL so we don't re-decode on every render. */
-const backgroundLuminanceCache = new Map<string, number>();
-const backgroundLuminancePending = new Map<string, Promise<number | null>>();
-
-/**
- * Load an image cross-origin and return a perceived-brightness score (0–1, where
- * 0 is pitch black and 1 is pure white). Sampling is downscaled for speed.
- */
-const sampleImageLuminance = (url: string): Promise<number | null> => {
-  if (!url) return Promise.resolve(null);
-  if (backgroundLuminanceCache.has(url)) {
-    return Promise.resolve(backgroundLuminanceCache.get(url) ?? null);
-  }
-  const pending = backgroundLuminancePending.get(url);
-  if (pending) return pending;
-
-  const promise = new Promise<number | null>((resolve) => {
-    try {
-      const img = new window.Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        try {
-          const w = 24;
-          const h = 24;
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return resolve(null);
-          ctx.drawImage(img, 0, 0, w, h);
-          const data = ctx.getImageData(0, 0, w, h).data;
-          let total = 0;
-          let count = 0;
-          for (let i = 0; i < data.length; i += 4) {
-            const a = data[i + 3] / 255;
-            if (a < 0.1) continue;
-            // Rec. 709 luma
-            const lum = (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) / 255;
-            total += lum * a;
-            count += a;
-          }
-          const avg = count > 0 ? total / count : null;
-          if (avg !== null) backgroundLuminanceCache.set(url, avg);
-          resolve(avg);
-        } catch {
-          resolve(null);
-        }
-      };
-      img.onerror = () => resolve(null);
-      img.src = url;
-    } catch {
-      resolve(null);
-    }
-  }).finally(() => {
-    backgroundLuminancePending.delete(url);
-  });
-
-  backgroundLuminancePending.set(url, promise);
-  return promise;
-};
-
-// ---------------------------------------------------------------------------
-// Logo asset transparency detection
-// ---------------------------------------------------------------------------
-
-/**
- * Cached "is this asset transparent?" answers keyed by URL. SVGs are treated as
- * transparent by default; PNG/WebP are inspected by sampling the alpha channel.
- * Other raster formats (JPEG, etc.) are always considered opaque.
- */
-const assetTransparencyCache = new Map<string, boolean>();
-const assetTransparencyPending = new Map<string, Promise<boolean>>();
-
-const looksLikeSvgUrl = (url: string): boolean => {
-  if (!url) return false;
-  const lower = url.split('?')[0].split('#')[0].toLowerCase();
-  if (lower.endsWith('.svg')) return true;
-  if (url.startsWith('data:image/svg')) return true;
-  return false;
-};
-
-const looksLikeAlphaCapableRaster = (url: string): boolean => {
-  if (!url) return false;
-  const lower = url.split('?')[0].split('#')[0].toLowerCase();
-  return (
-    lower.endsWith('.png')
-    || lower.endsWith('.webp')
-    || lower.endsWith('.gif')
-    || lower.endsWith('.avif')
-    || url.startsWith('data:image/png')
-    || url.startsWith('data:image/webp')
-    || url.startsWith('data:image/gif')
-    || url.startsWith('data:image/avif')
-  );
-};
-
-/**
- * Detect whether the given image URL has any transparent pixels. SVGs are
- * always transparent; rasters with no alpha channel (JPEG) are always opaque.
- * For PNG/WebP/etc. we sample the alpha channel on a downscaled canvas.
- */
-const detectAssetTransparency = (url: string): Promise<boolean> => {
-  if (!url) return Promise.resolve(false);
-  if (assetTransparencyCache.has(url)) {
-    return Promise.resolve(assetTransparencyCache.get(url) as boolean);
-  }
-  if (looksLikeSvgUrl(url)) {
-    assetTransparencyCache.set(url, true);
-    return Promise.resolve(true);
-  }
-  if (!looksLikeAlphaCapableRaster(url)) {
-    assetTransparencyCache.set(url, false);
-    return Promise.resolve(false);
-  }
-  const pending = assetTransparencyPending.get(url);
-  if (pending) return pending;
-
-  const promise = new Promise<boolean>((resolve) => {
-    try {
-      const img = new window.Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        try {
-          const w = 32;
-          const h = 32;
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return resolve(false);
-          // Clear so any non-painted pixels read as alpha=0 (covers fully transparent).
-          ctx.clearRect(0, 0, w, h);
-          ctx.drawImage(img, 0, 0, w, h);
-          const data = ctx.getImageData(0, 0, w, h).data;
-          let transparentPixels = 0;
-          const totalPixels = data.length / 4;
-          for (let i = 0; i < data.length; i += 4) {
-            // Treat anything below near-fully-opaque as transparent so soft
-            // anti-aliased edges (very common in logos) count as transparency.
-            if (data[i + 3] < 250) {
-              transparentPixels += 1;
-              // Early exit once we've crossed a meaningful threshold.
-              if (transparentPixels / totalPixels > 0.02) break;
-            }
-          }
-          const isTransparent = transparentPixels / totalPixels > 0.02;
-          assetTransparencyCache.set(url, isTransparent);
-          resolve(isTransparent);
-        } catch {
-          resolve(false);
-        }
-      };
-      img.onerror = () => resolve(false);
-      img.src = url;
-    } catch {
-      resolve(false);
-    }
-  }).finally(() => {
-    assetTransparencyPending.delete(url);
-  });
-
-  assetTransparencyPending.set(url, promise);
-  return promise;
-};
-
-// ---------------------------------------------------------------------------
-// SVG-aware image loading (for accurate transparent PNG export)
-// ---------------------------------------------------------------------------
-
-/**
- * Try to determine an SVG's intrinsic pixel dimensions. Browsers are
- * inconsistent here — Chrome will report `naturalWidth = 300, naturalHeight = 150`
- * for SVGs that lack an explicit `width`/`height` attribute, so we fetch the
- * source and parse the viewBox / size attrs ourselves to get a reliable
- * resolution for canvas rasterisation.
- */
-const resolveSvgIntrinsicSize = async (url: string): Promise<{ width: number; height: number } | null> => {
-  try {
-    let svgText: string;
-    if (url.startsWith('data:image/svg')) {
-      const commaIdx = url.indexOf(',');
-      const payload = url.slice(commaIdx + 1);
-      svgText = url.includes(';base64,') ? atob(payload) : decodeURIComponent(payload);
-    } else {
-      const res = await fetch(url, { mode: 'cors', cache: 'no-cache' });
-      if (!res.ok) return null;
-      svgText = await res.text();
-    }
-    const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
-    const svg = doc.documentElement;
-    if (!svg || svg.nodeName.toLowerCase() !== 'svg') return null;
-    const widthAttr = svg.getAttribute('width');
-    const heightAttr = svg.getAttribute('height');
-    const parsePx = (v: string | null): number | null => {
-      if (!v) return null;
-      const num = parseFloat(v);
-      if (Number.isNaN(num) || num <= 0) return null;
-      // Treat unit-less / px as direct pixels; ignore %, em, etc. (fall through to viewBox).
-      if (/^\s*[\d.]+(px)?\s*$/i.test(v)) return num;
-      return null;
-    };
-    let w = parsePx(widthAttr);
-    let h = parsePx(heightAttr);
-    if (!w || !h) {
-      const vb = svg.getAttribute('viewBox');
-      if (vb) {
-        const parts = vb.trim().split(/[\s,]+/).map(Number);
-        if (parts.length === 4 && parts.every((n) => Number.isFinite(n))) {
-          if (!w) w = parts[2];
-          if (!h) h = parts[3];
-        }
-      }
-    }
-    if (!w || !h || w <= 0 || h <= 0) return null;
-    return { width: w, height: h };
-  } catch {
-    return null;
-  }
-};
-
-/**
- * Find the image zone that visually sits behind the given logo zone — i.e. the
- * largest image zone that overlaps the logo's footprint. Used to decide which
- * logo variant (light/dark/etc.) reads best on top.
- */
 const findBackgroundZoneForLogo = (
   logoZone: SocialTemplateZone,
   zones: SocialTemplateZone[],
-): SocialTemplateZone | null => {
-  const logoCx = logoZone.x + logoZone.width / 2;
-  const logoCy = logoZone.y + logoZone.height / 2;
-  let best: { zone: SocialTemplateZone; area: number } | null = null;
-  for (const zone of zones) {
-    if (zone === logoZone) continue;
-    if (zone.type !== 'image') continue;
-    if (!zone.mediaUrl) continue;
-    // Center of the logo must fall within this image zone
-    if (
-      logoCx < zone.x ||
-      logoCx > zone.x + zone.width ||
-      logoCy < zone.y ||
-      logoCy > zone.y + zone.height
-    ) continue;
-    const area = zone.width * zone.height;
-    if (!best || area > best.area) best = { zone, area };
-  }
-  return best?.zone ?? null;
-};
+): SocialTemplateZone | null =>
+  sharedFindBackgroundZoneForLogo(logoZone, zones);
 
-/**
- * Score a logo variant for legibility on a background of the given luminance.
- * Higher score = better fit. Returns 0–1.
- *  - dark backgrounds favour reversed / monochrome-light / wordmark-light
- *  - light backgrounds favour primary / secondary / monochrome-dark
- */
-const scoreLogoForBackground = (
-  variant: BrandLogo['variant'],
-  bgLuminance: number,
-): number => {
-  const isDarkBg = bgLuminance < 0.5;
-  // Base affinities — higher means "designed for this background tone"
-  const lightBgAffinity: Record<BrandLogo['variant'], number> = {
-    primary: 0.95,
-    secondary: 0.85,
-    wordmark: 0.8,
-    icon: 0.75,
-    monochrome: 0.7,
-    reversed: 0.15,
-  };
-  const darkBgAffinity: Record<BrandLogo['variant'], number> = {
-    reversed: 0.98,
-    monochrome: 0.7,
-    icon: 0.55,
-    wordmark: 0.5,
-    secondary: 0.35,
-    primary: 0.2,
-  };
-  return isDarkBg ? darkBgAffinity[variant] : lightBgAffinity[variant];
-};
-
-const describeBackgroundTone = (lum: number): 'dark' | 'mid' | 'light' => {
-  if (lum < 0.35) return 'dark';
-  if (lum > 0.65) return 'light';
-  return 'mid';
-};
-
-/**
- * Pick the brand logo whose variant best matches a background luminance.
- * Returns the highest-scoring usable logo (or undefined if there are none).
- */
-const pickBestBrandLogoForLuminance = (
+const autoMatchLogosForZones = (
+  zones: SocialTemplateZone[],
   brandLogos: BrandLogo[] | undefined,
-  bgLuminance: number,
-): BrandLogo | undefined => {
-  if (!brandLogos?.length) return undefined;
-  const usable = brandLogos.filter((logo) => !!logo.url);
-  if (!usable.length) return undefined;
-  let best: { logo: BrandLogo; score: number } | null = null;
-  for (const logo of usable) {
-    const score = scoreLogoForBackground(logo.variant, bgLuminance);
-    if (!best || score > best.score) best = { logo, score };
-  }
-  return best?.logo;
-};
+) => sharedAutoMatchLogosForZones(zones, brandLogos);
 
 const getEditableZones = (
   platform: string,
@@ -735,39 +445,6 @@ const getEditableZones = (
   }
   const templateDefinition = getTemplateDefinitionForAsset(platform, template);
   return (templateDefinition?.zones || []).map(hydrate);
-};
-
-/**
- * Walk every logo zone in the template, look up the image zone that sits
- * behind it, and — if that logo zone is still flagged as auto-matched —
- * swap its mediaUrl to whichever brand-logo variant scores highest against
- * the background's sampled luminance. Returns a new array (or the input
- * unchanged if nothing needed to move).
- */
-const autoMatchLogosForZones = async (
-  zones: SocialTemplateZone[],
-  brandLogos: BrandLogo[] | undefined,
-): Promise<{ zones: SocialTemplateZone[]; changed: boolean; swapped: number }> => {
-  if (!brandLogos?.length) return { zones, changed: false, swapped: 0 };
-  let changed = false;
-  let swapped = 0;
-  const next = await Promise.all(zones.map(async (zone) => {
-    if (zone.type !== 'logo') return zone;
-    if (!zone.autoMatchedLogoId) return zone; // user has taken manual control
-    const bgZone = findBackgroundZoneForLogo(zone, zones);
-    if (!bgZone?.mediaUrl) return zone;
-    const lum = await sampleImageLuminance(bgZone.mediaUrl);
-    if (lum === null) return zone;
-    const best = pickBestBrandLogoForLuminance(brandLogos, lum);
-    if (!best?.url) return zone;
-    if (best.id === zone.autoMatchedLogoId && zone.mediaUrl === best.url) {
-      return zone;
-    }
-    changed = true;
-    swapped += 1;
-    return { ...zone, mediaUrl: best.url, autoMatchedLogoId: best.id };
-  }));
-  return { zones: next, changed, swapped };
 };
 
 type SafeAreaGuide = {
@@ -1096,169 +773,13 @@ const TemplatePreviewDialog = ({
     }
   };
 
-  const loadImageElement = (src: string): Promise<HTMLImageElement> => (
-    new Promise((resolve, reject) => {
-      const img = new globalThis.Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = (err) => reject(err);
-      img.src = src;
-    })
-  );
-
-  /**
-   * Render a single frame zone from its source media at the media's native
-   * resolution, replicating object-fit: cover/contain + focus point cropping
-   * so the output matches what the canvas previews on-screen.
-   */
-  const renderFrameAtOriginalResolution = async (
+  // loadImageElement and renderFrameAtOriginalResolution now live in
+  // '@/lib/templateZonePipeline'. The local alias keeps the existing call
+  // site signature stable.
+  const renderFrameAtOriginalResolution = (
     zone: SocialTemplateZone,
     transparent: boolean,
-  ): Promise<string | null> => {
-    if (!zone.mediaUrl) return null;
-    let img: HTMLImageElement;
-    try {
-      img = await loadImageElement(zone.mediaUrl);
-    } catch (err) {
-      console.warn('Failed to load frame media for original-resolution export', err);
-      return null;
-    }
-
-    // Logo zones with intrinsically transparent assets (SVG, alpha-PNG, WebP)
-    // must be exported with transparency preserved regardless of the global
-    // toggle — flattening them onto a white plate would defeat the entire
-    // point of shipping a transparent logo.
-    let effectiveTransparent = transparent;
-    if (zone.type === 'logo') {
-      try {
-        const assetIsTransparent = await detectAssetTransparency(zone.mediaUrl);
-        if (assetIsTransparent) effectiveTransparent = true;
-      } catch {
-        // Fall through with the requested setting.
-      }
-    }
-
-    const fit = getZoneMediaFit(zone);
-    const isSvg = looksLikeSvgUrl(zone.mediaUrl);
-
-    // SVGs lack reliable intrinsic pixel dimensions in <img>: Chrome falls
-    // back to 300×150 when no explicit width/height is set. Parse the SVG
-    // source so we can rasterise at a meaningful resolution.
-    let mediaW = img.naturalWidth || img.width;
-    let mediaH = img.naturalHeight || img.height;
-    if (isSvg) {
-      const intrinsic = await resolveSvgIntrinsicSize(zone.mediaUrl);
-      if (intrinsic) {
-        mediaW = intrinsic.width;
-        mediaH = intrinsic.height;
-      }
-      // Upscale SVG to a high target so the rasterised PNG is crisp at
-      // typical print/social usage (>= 2048px on the long side).
-      const SVG_TARGET = 2048;
-      const longSide = Math.max(mediaW, mediaH);
-      if (longSide > 0 && longSide < SVG_TARGET) {
-        const scale = SVG_TARGET / longSide;
-        mediaW = Math.round(mediaW * scale);
-        mediaH = Math.round(mediaH * scale);
-      }
-    }
-    if (mediaW === 0 || mediaH === 0) return null;
-
-    // For SVGs, pre-rasterise the source onto a transparent offscreen canvas at
-    // the resolved (mediaW × mediaH) resolution so that subsequent crop math
-    // works in real pixel space and the SVG's transparent regions survive
-    // intact through the source-rect copy below.
-    let drawSource: CanvasImageSource = img;
-    if (isSvg) {
-      const sourceCanvas = document.createElement('canvas');
-      sourceCanvas.width = mediaW;
-      sourceCanvas.height = mediaH;
-      const sourceCtx = sourceCanvas.getContext('2d');
-      if (!sourceCtx) return null;
-      sourceCtx.imageSmoothingEnabled = true;
-      sourceCtx.imageSmoothingQuality = 'high';
-      // Explicit clear keeps alpha=0 everywhere the SVG doesn't paint.
-      sourceCtx.clearRect(0, 0, mediaW, mediaH);
-      sourceCtx.drawImage(img, 0, 0, mediaW, mediaH);
-      drawSource = sourceCanvas;
-    }
-
-    // Frame aspect from the zone's percentage dimensions.
-    const zoneAspect = zone.width / zone.height;
-    const mediaAspect = mediaW / mediaH;
-
-    let outW: number;
-    let outH: number;
-    let sx = 0;
-    let sy = 0;
-    let sw = mediaW;
-    let sh = mediaH;
-    let dx = 0;
-    let dy = 0;
-    let dw: number;
-    let dh: number;
-
-    if (fit.fit === 'cover') {
-      // Crop the source to the zone's aspect; output is full res of the visible crop.
-      if (mediaAspect > zoneAspect) {
-        // Media is wider than the frame — crop horizontally.
-        sh = mediaH;
-        sw = Math.round(mediaH * zoneAspect);
-        const focusPx = ((fit.focusX ?? 50) / 100) * mediaW;
-        sx = Math.round(Math.max(0, Math.min(mediaW - sw, focusPx - sw / 2)));
-        sy = 0;
-      } else {
-        // Media is taller — crop vertically.
-        sw = mediaW;
-        sh = Math.round(mediaW / zoneAspect);
-        const focusPy = ((fit.focusY ?? 50) / 100) * mediaH;
-        sy = Math.round(Math.max(0, Math.min(mediaH - sh, focusPy - sh / 2)));
-        sx = 0;
-      }
-      outW = sw;
-      outH = sh;
-      dw = outW;
-      dh = outH;
-    } else {
-      // contain: keep entire media, letterbox onto a frame-shaped canvas at media's max dimension.
-      // Use the longer media side as the basis to preserve resolution.
-      if (mediaAspect > zoneAspect) {
-        outW = mediaW;
-        outH = Math.round(mediaW / zoneAspect);
-      } else {
-        outH = mediaH;
-        outW = Math.round(mediaH * zoneAspect);
-      }
-      dw = mediaW;
-      dh = mediaH;
-      const focusPx = ((fit.focusX ?? 50) / 100) * (outW - dw);
-      const focusPy = ((fit.focusY ?? 50) / 100) * (outH - dh);
-      dx = Math.round(Math.max(0, Math.min(outW - dw, focusPx)));
-      dy = Math.round(Math.max(0, Math.min(outH - dh, focusPy)));
-    }
-
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, outW);
-    canvas.height = Math.max(1, outH);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-    // High-quality resampling — matters for SVG → raster and small logos.
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    if (effectiveTransparent) {
-      // Explicit clear so the destination canvas starts with a fully
-      // transparent alpha channel — guarantees SVG transparent regions
-      // survive into the exported PNG.
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    } else {
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    // For SVGs, draw the source as the full resolved (mediaW × mediaH)
-    // surface and let the source-rect math pick the right crop.
-    ctx.drawImage(drawSource, sx, sy, sw, sh, dx, dy, dw, dh);
-    return canvas.toDataURL('image/png');
-  };
+  ) => renderZoneAtOriginalResolution(zone, transparent);
 
   const handleExportFramesZip = async (options: ExportRenderOptions) => {
     if (frameZones.length === 0) {
