@@ -186,18 +186,58 @@ const platformPresets: BrandSocialAssetSpec[] = [
 const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate[] => {
   const generated = platform === 'General'
     ? [
-        ...getTemplatesForPlatformFormat('LinkedIn', 'feed').map((template) => ({ ...template, formats: ['feed'] as const })),
-        ...getTemplatesForPlatformFormat('Instagram', 'feed').map((template) => ({ ...template, formats: ['feed'] as const })),
-        ...getTemplatesForPlatformFormat('Instagram', 'story').map((template) => ({ ...template, formats: ['story'] as const })),
-        ...getTemplatesForPlatformFormat('YouTube', 'feed').map((template) => ({ ...template, formats: ['feed'] as const })),
-        ...getTemplatesForPlatformFormat('LinkedIn', 'cover').map((template) => ({ ...template, formats: ['cover'] as const })),
+        ...getTemplatesForPlatformFormat('LinkedIn', 'feed').map((template) => ({
+          template,
+          sizeCategory: 'post' as SocialSizeCategory,
+          sourceFormat: 'feed' as const,
+        })),
+        ...getTemplatesForPlatformFormat('Instagram', 'feed').map((template) => ({
+          template,
+          sizeCategory: 'square' as SocialSizeCategory,
+          sourceFormat: 'feed' as const,
+        })),
+        ...getTemplatesForPlatformFormat('Instagram', 'story').map((template) => ({
+          template,
+          sizeCategory: 'story' as SocialSizeCategory,
+          sourceFormat: 'story' as const,
+        })),
+        ...getTemplatesForPlatformFormat('YouTube', 'reel').map((template) => ({
+          template,
+          sizeCategory: 'reel' as SocialSizeCategory,
+          sourceFormat: 'reel' as const,
+        })),
+        ...getTemplatesForPlatformFormat('LinkedIn', 'cover').map((template) => ({
+          template,
+          sizeCategory: 'cover' as SocialSizeCategory,
+          sourceFormat: 'cover' as const,
+        })),
       ]
     : [
-        ...getTemplatesForPlatformFormat(platform, 'feed'),
-        ...getTemplatesForPlatformFormat(platform, 'story'),
-        ...getTemplatesForPlatformFormat(platform, 'reel'),
-        ...getTemplatesForPlatformFormat(platform, 'cover'),
-        ...getTemplatesForPlatformFormat(platform, 'profile'),
+        ...getTemplatesForPlatformFormat(platform, 'feed').map((template) => ({
+          template,
+          sizeCategory: 'post' as SocialSizeCategory,
+          sourceFormat: 'feed' as const,
+        })),
+        ...getTemplatesForPlatformFormat(platform, 'story').map((template) => ({
+          template,
+          sizeCategory: 'story' as SocialSizeCategory,
+          sourceFormat: 'story' as const,
+        })),
+        ...getTemplatesForPlatformFormat(platform, 'reel').map((template) => ({
+          template,
+          sizeCategory: 'reel' as SocialSizeCategory,
+          sourceFormat: 'reel' as const,
+        })),
+        ...getTemplatesForPlatformFormat(platform, 'cover').map((template) => ({
+          template,
+          sizeCategory: 'cover' as SocialSizeCategory,
+          sourceFormat: 'cover' as const,
+        })),
+        ...getTemplatesForPlatformFormat(platform, 'profile').map((template) => ({
+          template,
+          sizeCategory: 'other' as SocialSizeCategory,
+          sourceFormat: 'profile' as const,
+        })),
       ];
 
   const sizeMap: Record<string, SocialSizeCategory> = {
@@ -208,29 +248,16 @@ const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate
     profile: 'other',
   };
 
-  return generated.map((template, index): SocialAssetTemplate => {
-    const sourceFormat = template.formats[0];
-    const inferredSizeCategory = platform === 'General'
-      ? (index < getTemplatesForPlatformFormat('LinkedIn', 'feed').length
-          ? 'post'
-          : index < getTemplatesForPlatformFormat('LinkedIn', 'feed').length + getTemplatesForPlatformFormat('Instagram', 'feed').length
-            ? 'square'
-            : index < getTemplatesForPlatformFormat('LinkedIn', 'feed').length + getTemplatesForPlatformFormat('Instagram', 'feed').length + getTemplatesForPlatformFormat('Instagram', 'story').length
-              ? 'story'
-              : index < getTemplatesForPlatformFormat('LinkedIn', 'feed').length + getTemplatesForPlatformFormat('Instagram', 'feed').length + getTemplatesForPlatformFormat('Instagram', 'story').length + getTemplatesForPlatformFormat('YouTube', 'feed').length
-                ? 'reel'
-                : 'cover')
-      : (sizeMap[sourceFormat] || 'other');
-
+  return generated.map(({ template, sizeCategory, sourceFormat }): SocialAssetTemplate => {
     return {
-      id: platform === 'General' ? `generated-general-${inferredSizeCategory}-${template.id}` : `generated-${template.id}`,
+      id: platform === 'General' ? `generated-general-${sizeCategory}-${template.id}` : `generated-${template.id}`,
       name: template.name,
       fileType: 'other' as const,
       url: '',
       description: template.description,
       previewImageUrl: getTemplatePreviewImage(template),
       dimensions: template.formats.join(', '),
-      sizeCategory: inferredSizeCategory,
+      sizeCategory: sizeCategory || sizeMap[sourceFormat] || 'other',
       sourceTemplateId: template.id,
       sourceTemplateFormat: sourceFormat,
     };
