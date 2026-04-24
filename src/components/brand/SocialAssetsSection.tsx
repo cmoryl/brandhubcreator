@@ -1286,6 +1286,44 @@ const TemplatePreviewDialog = ({
                       />
                     </div>
                   )}
+                  {canEdit
+                    && activeFrameZoneIndex !== null
+                    && activeFrameZone.type === 'logo'
+                    && (brandLogos?.length ?? 0) > 0 && (
+                    <div className="space-y-1.5 rounded-lg border border-dashed border-border bg-muted/10 p-2">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        Brand logo variants
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {brandLogos!.filter((logo) => !!logo.url).map((logo) => {
+                          const isActive = activeFrameZone.mediaUrl === logo.url;
+                          return (
+                            <button
+                              key={logo.id}
+                              type="button"
+                              title={`${logo.name} (${logo.variant})`}
+                              onClick={() => onSelectZoneMedia(activeFrameZoneIndex!, logo.url)}
+                              className={cn(
+                                'flex h-12 w-16 items-center justify-center overflow-hidden rounded-md border bg-background p-1 transition-colors',
+                                isActive
+                                  ? 'border-primary ring-2 ring-primary ring-offset-1 ring-offset-background'
+                                  : 'border-border hover:border-primary/40',
+                              )}
+                            >
+                              <img
+                                src={logo.url}
+                                alt={logo.name}
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Tap a variant to drop it into this logo zone.
+                      </p>
+                    </div>
+                  )}
                   <SlotFitControl
                     previewUrl={activeFrameZone.mediaUrl || template.previewImageUrl}
                     assetType={activeFrameZone.mediaUrl ? 'image' : 'empty'}
