@@ -615,6 +615,10 @@ export interface BrandCaseStudy {
   title: string;
   description: string;
   previewUrl: string;
+  /** Aspect ratio for the templated single-page canvas (e.g. '16/9', '4/3', '1/1'). */
+  templateAspect?: string;
+  /** Zones drawn over the previewUrl for the templated single-page editor. */
+  templateZones?: SocialTemplateZone[];
 }
 
 // BROCHURES - Digital Collateral
