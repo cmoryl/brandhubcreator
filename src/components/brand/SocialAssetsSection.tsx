@@ -19,7 +19,7 @@ import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
-import { getTemplatePreviewImage, getTemplatesForPlatformFormat } from '@/lib/socialTemplates';
+import { getTemplateDefinitionForAsset, getTemplatePreviewImage, getTemplatesForPlatformFormat, TemplateZoneType } from '@/lib/socialTemplates';
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
@@ -229,6 +229,118 @@ const getResolvedTemplates = (asset: BrandSocialAssetSpec): SocialAssetTemplate[
       ? { ...template, previewImageUrl: matchedGenerated.previewImageUrl }
       : template;
   });
+};
+
+const zonePreviewStyles: Record<TemplateZoneType, string> = {
+  image: 'border-sky-400/80 bg-sky-500/15 text-sky-50',
+  text: 'border-violet-400/80 bg-violet-500/15 text-violet-50',
+  logo: 'border-emerald-400/80 bg-emerald-500/15 text-emerald-50',
+  cta: 'border-amber-400/80 bg-amber-500/15 text-amber-50',
+};
+
+const TemplateCardPreview = ({
+  platform,
+  template,
+  interactive = false,
+  onClick,
+}: {
+  platform: string;
+  template: SocialAssetTemplate;
+  interactive?: boolean;
+  onClick?: () => void;
+}) => {
+  const previewImage = template.previewImageUrl;
+  const templateDefinition = getTemplateDefinitionForAsset(platform, template);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!interactive}
+      className={cn(
+        'relative aspect-video w-full overflow-hidden bg-muted/30 text-left',
+        interactive && 'cursor-zoom-in',
+      )}
+    >
+      {previewImage ? (
+        <img src={previewImage} alt={template.name} className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 bg-muted/50" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-background/10 to-transparent" />
+
+      {templateDefinition ? (
+        <div className="absolute inset-0 p-3">
+          {templateDefinition.zones.map((zone, index) => (
+            <div
+              key={`${template.id}-zone-${index}`}
+              className={cn(
+                'absolute rounded border border-dashed backdrop-blur-[1px] transition-all',
+                zonePreviewStyles[zone.type],
+              )}
+              style={{
+                left: `${zone.x}%`,
+                top: `${zone.y}%`,
+                width: `${zone.width}%`,
+                height: `${zone.height}%`,
+              }}
+            >
+              <div className="flex h-full w-full items-center justify-center px-1 text-center text-[9px] font-medium leading-tight">
+                <span className="truncate">{zone.label}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {interactive && (
+        <div className="absolute right-3 top-3 rounded-md bg-background/85 px-2 py-1 text-[10px] font-medium text-foreground shadow-sm">
+          View larger
+        </div>
+      )}
+    </button>
+  );
+};
+
+const TemplatePreviewDialog = ({
+  open,
+  onOpenChange,
+  platform,
+  template,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  platform: string;
+  template: SocialAssetTemplate | null;
+}) => {
+  if (!template) return null;
+
+  const templateDefinition = getTemplateDefinitionForAsset(platform, template);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-5xl">
+        <DialogHeader>
+          <DialogTitle>{template.name}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <TemplateCardPreview platform={platform} template={template} />
+          </div>
+          {templateDefinition && (
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {templateDefinition.zones.map((zone, index) => (
+                <div key={`${template.id}-detail-${index}`} className="rounded-lg border border-border bg-muted/20 p-3">
+                  <p className="text-sm font-medium text-foreground">{zone.label}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{zone.type.toUpperCase()}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 
