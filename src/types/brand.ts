@@ -629,6 +629,15 @@ export interface BrandBrochure {
   previewUrl: string;
   thumbnailUrl?: string; // Optional image preview/screenshot
   externalUrl?: string; // External link (Dropbox, GlobalLink Share, etc.)
+  /** Aspect ratio for the templated single-page canvas (e.g. '16/9', '4/3', '1/1'). */
+  templateAspect?: string;
+  /**
+   * Zones drawn over the previewUrl/thumbnailUrl for the templated single-page
+   * editor — shared with Case Studies, Digital Collateral and Event Print
+   * Collateral. Always optional so legacy assets created before the templated
+   * canvas existed continue to render unchanged.
+   */
+  templateZones?: SocialTemplateZone[];
 }
 
 // TEMPLATES - Master Scaffolds

@@ -135,6 +135,14 @@ export interface EventPrintMaterial {
   liveFileUrl?: string;   // Link to live design files (Figma, Google Drive, Dropbox, etc.)
   description?: string;
   quantity?: string;
+  /** Aspect ratio for the templated single-page canvas (e.g. '16/9', '4/3', '1/1'). */
+  templateAspect?: string;
+  /**
+   * Zones drawn over the previewUrl for the shared templated single-page
+   * editor. Optional — legacy print materials created before the editor
+   * existed render unchanged when this is absent.
+   */
+  templateZones?: import('./brand').SocialTemplateZone[];
 }
 
 export interface EventInfographic {
