@@ -2283,12 +2283,12 @@ const SizeCategorySection = ({
   );
 
   const updateTemplateZoneMedia = useCallback((templateToUpdate: SocialAssetTemplate, zoneIndex: number, mediaUrl: string) => {
-    const nextZones = getEditableZones(activePlatform.platform, templateToUpdate).map((zone, index) => (
+    const nextZones = getEditableZones(activePlatform.platform, templateToUpdate, brandLogos).map((zone, index) => (
       index === zoneIndex ? { ...zone, mediaUrl } : zone
     ));
 
     return persistTemplateVersion(templateToUpdate, { templateZones: nextZones });
-  }, [activePlatform.platform, persistTemplateVersion]);
+  }, [activePlatform.platform, persistTemplateVersion, brandLogos]);
 
   return (
     <div className="space-y-3">
