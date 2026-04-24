@@ -392,6 +392,16 @@ export const ImageryWorkspace = ({
             {/* Divider */}
             <div className="h-6 w-px bg-border" />
 
+            {/* Generate Brand Photography — primary AI action */}
+            <Button
+              variant="default"
+              size="default"
+              onClick={() => setPhotoGenOpen(true)}
+              className="gap-2 h-9"
+            >
+              <Camera className="h-4 w-4" /> Generate Photography
+            </Button>
+
             {/* AI & analysis group */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
