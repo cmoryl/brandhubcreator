@@ -1367,31 +1367,38 @@ const TemplatePreviewDialog = ({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-5 py-2">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">PNG scale</Label>
-            <RadioGroup
-              value={exportScale}
-              onValueChange={(value) => setExportScale(value as '1' | '2' | '3')}
-              className="grid grid-cols-3 gap-2"
-            >
-              {(['1', '2', '3'] as const).map((scale) => (
-                <Label
-                  key={scale}
-                  htmlFor={`export-scale-${scale}`}
-                  className={cn(
-                    'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:bg-accent',
-                    exportScale === scale && 'border-primary bg-accent'
-                  )}
+          {(() => {
+            const scaleDisabled = exportTarget === 'frames' && exportOriginalResolution;
+            return (
+              <div className={cn('space-y-2', scaleDisabled && 'opacity-50 pointer-events-none')}>
+                <Label className="text-sm font-medium">PNG scale</Label>
+                <RadioGroup
+                  value={exportScale}
+                  onValueChange={(value) => setExportScale(value as '1' | '2' | '3')}
+                  className="grid grid-cols-3 gap-2"
                 >
-                  <RadioGroupItem id={`export-scale-${scale}`} value={scale} className="sr-only" />
-                  <span className="font-medium">{scale}x</span>
-                </Label>
-              ))}
-            </RadioGroup>
-            <p className="text-xs text-muted-foreground">
-              Higher scales produce sharper images at larger file sizes.
-            </p>
-          </div>
+                  {(['1', '2', '3'] as const).map((scale) => (
+                    <Label
+                      key={scale}
+                      htmlFor={`export-scale-${scale}`}
+                      className={cn(
+                        'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:bg-accent',
+                        exportScale === scale && 'border-primary bg-accent'
+                      )}
+                    >
+                      <RadioGroupItem id={`export-scale-${scale}`} value={scale} className="sr-only" />
+                      <span className="font-medium">{scale}x</span>
+                    </Label>
+                  ))}
+                </RadioGroup>
+                <p className="text-xs text-muted-foreground">
+                  {scaleDisabled
+                    ? 'Scale is ignored when exporting at original media resolution.'
+                    : 'Higher scales produce sharper images at larger file sizes.'}
+                </p>
+              </div>
+            );
+          })()}
 
           <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
             <div className="space-y-0.5">
