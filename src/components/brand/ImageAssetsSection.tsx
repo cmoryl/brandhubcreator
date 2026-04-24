@@ -47,6 +47,9 @@ interface ImageAssetsSectionProps {
   entityId?: string;
   /** Entity type for storage uploads */
   entityType?: 'brand' | 'event' | 'product';
+  /** Negative-feedback list — AI will avoid generating images in this style/direction */
+  imageryAvoidList?: ImageryAvoidItem[];
+  onImageryAvoidListChange?: (list: ImageryAvoidItem[]) => void;
 }
 
 const formatFileSize = (bytes: number): string => {
