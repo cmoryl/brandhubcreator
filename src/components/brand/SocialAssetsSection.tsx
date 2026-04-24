@@ -872,10 +872,11 @@ const TemplatePreviewDialog = ({
                       <div
                         key={`${template.id}-editor-zone-${index}`}
                         className={cn(
-                          'absolute overflow-hidden rounded border-2 border-dashed shadow-sm backdrop-blur-[1px] transition-all',
-                          zonePreviewStyles[zone.type],
-                          canEdit && 'cursor-move',
-                          selectedZoneIndex === index && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                          'absolute overflow-hidden rounded shadow-sm backdrop-blur-[1px] transition-all',
+                          !isExporting && 'border-2 border-dashed',
+                          !isExporting && zonePreviewStyles[zone.type],
+                          canEdit && !isExporting && 'cursor-move',
+                          !isExporting && selectedZoneIndex === index && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
                         )}
                         style={{
                           left: `${zone.x}%`,
@@ -901,12 +902,18 @@ const TemplatePreviewDialog = ({
                             }}
                           />
                         ) : null}
-                        <div className="relative flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight">
-                          <span className="truncate">{zone.content || zone.label}</span>
-                        </div>
-                        {canEdit && zone.type !== 'image' && (
+                        {!isExporting && (
+                          <div
+                            data-export-exclude="true"
+                            className="relative flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight"
+                          >
+                            <span className="truncate">{zone.content || zone.label}</span>
+                          </div>
+                        )}
+                        {canEdit && zone.type !== 'image' && !isExporting && (
                           <button
                             type="button"
+                            data-export-exclude="true"
                             className="absolute -bottom-2 -right-2 h-4 w-4 rounded-full border border-border bg-background shadow-sm"
                             onPointerDown={(event) => {
                               setSelectedZoneIndex(index);
