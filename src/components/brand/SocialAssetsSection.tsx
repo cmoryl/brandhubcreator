@@ -442,6 +442,8 @@ const TemplatePreviewDialog = ({
   onOpenChange,
   platform,
   template,
+  layoutOptions,
+  onSelectTemplate,
   canEdit,
   onUpdateTemplate,
 }: {
@@ -449,6 +451,8 @@ const TemplatePreviewDialog = ({
   onOpenChange: (open: boolean) => void;
   platform: string;
   template: SocialAssetTemplate | null;
+  layoutOptions: SocialAssetTemplate[];
+  onSelectTemplate: (template: SocialAssetTemplate) => void;
   canEdit: boolean;
   onUpdateTemplate: (updates: Partial<SocialAssetTemplate>) => void;
 }) => {
@@ -542,6 +546,32 @@ const TemplatePreviewDialog = ({
         </DialogHeader>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-4">
+            {layoutOptions.length > 1 && (
+              <div className="rounded-xl border border-border bg-card p-3">
+                <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <Layers className="h-3.5 w-3.5" />
+                  Layout switcher
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {layoutOptions.map((option) => {
+                    const isActive = option.id === template.id;
+                    return (
+                      <Button
+                        key={option.id}
+                        type="button"
+                        size="sm"
+                        variant={isActive ? 'default' : 'outline'}
+                        className="h-8"
+                        onClick={() => onSelectTemplate(option)}
+                      >
+                        {option.name}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-3 overflow-hidden rounded-xl border border-border bg-card p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
@@ -1821,6 +1851,8 @@ const SizeCategorySection = ({
         onOpenChange={(open) => !open && setSelectedTemplate(null)}
         platform={activePlatform.platform}
         template={selectedTemplate}
+        layoutOptions={categoryTemplates}
+        onSelectTemplate={setSelectedTemplate}
         canEdit={canEditSocial}
         onUpdateTemplate={(updates) => {
           if (!selectedTemplate) return;
