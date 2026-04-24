@@ -250,6 +250,43 @@ const getEditableZones = (platform: string, template: SocialAssetTemplate): Soci
   return (templateDefinition?.zones || []).map((zone) => ({ ...zone }));
 };
 
+type SafeAreaGuide = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label: string;
+};
+
+const getSafeAreaGuide = (platform: string, template: SocialAssetTemplate): SafeAreaGuide => {
+  const format = template.sourceTemplateFormat || (template.sizeCategory === 'story'
+    ? 'story'
+    : template.sizeCategory === 'reel'
+      ? 'reel'
+      : template.sizeCategory === 'cover'
+        ? 'cover'
+        : 'feed');
+
+  if (format === 'story' || format === 'reel') {
+    if (platform === 'TikTok') return { x: 10, y: 14, width: 76, height: 64, label: 'Safe area' };
+    if (platform === 'YouTube') return { x: 10, y: 12, width: 80, height: 68, label: 'Safe area' };
+    return { x: 8, y: 12, width: 84, height: 70, label: 'Safe area' };
+  }
+
+  if (format === 'cover') {
+    if (platform === 'YouTube') return { x: 22, y: 34, width: 56, height: 32, label: 'Center-safe zone' };
+    if (platform === 'LinkedIn') return { x: 18, y: 20, width: 64, height: 54, label: 'Center-safe zone' };
+    if (platform === 'Facebook') return { x: 20, y: 18, width: 60, height: 58, label: 'Center-safe zone' };
+    return { x: 18, y: 20, width: 64, height: 56, label: 'Center-safe zone' };
+  }
+
+  if (format === 'profile') {
+    return { x: 16, y: 16, width: 68, height: 68, label: 'Avatar-safe zone' };
+  }
+
+  return { x: 6, y: 6, width: 88, height: 88, label: 'Content-safe zone' };
+};
+
 const TemplateCardPreview = ({
   platform,
   template,
@@ -333,6 +370,10 @@ const TemplatePreviewDialog = ({
 
   const templateZones = getEditableZones(platform, template);
   const [selectedZoneIndex, setSelectedZoneIndex] = useState(0);
+  const [showGrid, setShowGrid] = useState(true);
+  const [showSafeArea, setShowSafeArea] = useState(true);
+  const [zoomLevel, setZoomLevel] = useState('100');
+  const safeAreaGuide = getSafeAreaGuide(platform, template);
 
   useEffect(() => {
     setSelectedZoneIndex(0);
@@ -408,50 +449,130 @@ const TemplatePreviewDialog = ({
         </DialogHeader>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-4">
-            <div className="overflow-hidden rounded-xl border border-border bg-card">
-              <div data-template-canvas="true" className="relative aspect-video overflow-hidden bg-muted/30">
-                {template.previewImageUrl ? (
-                  <img src={template.previewImageUrl} alt={template.name} className="absolute inset-0 h-full w-full object-cover" />
-                ) : (
-                  <div className="absolute inset-0 bg-muted/50" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/55 via-background/5 to-transparent" />
-                {templateZones.map((zone, index) => (
-                  <div
-                    key={`${template.id}-editor-zone-${index}`}
-                    className={cn(
-                      'absolute rounded border-2 border-dashed shadow-sm backdrop-blur-[1px] transition-all',
-                      zonePreviewStyles[zone.type],
-                      canEdit && 'cursor-move',
-                      selectedZoneIndex === index && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
-                    )}
-                    style={{
-                      left: `${zone.x}%`,
-                      top: `${zone.y}%`,
-                      width: `${zone.width}%`,
-                      height: `${zone.height}%`,
-                    }}
-                    onClick={() => setSelectedZoneIndex(index)}
-                    onPointerDown={(event) => {
-                      setSelectedZoneIndex(index);
-                      handleZonePointerDown(event, index, 'move');
-                    }}
+            <div className="space-y-3 overflow-hidden rounded-xl border border-border bg-card p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={showGrid ? 'default' : 'outline'}
+                    className="h-8 gap-1.5"
+                    onClick={() => setShowGrid((current) => !current)}
                   >
-                    <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight">
-                      <span className="truncate">{zone.content || zone.label}</span>
-                    </div>
-                    {canEdit && zone.type !== 'image' && (
-                      <button
-                        type="button"
-                        className="absolute -bottom-2 -right-2 h-4 w-4 rounded-full border border-border bg-background shadow-sm"
-                        onPointerDown={(event) => {
-                          setSelectedZoneIndex(index);
-                          handleZonePointerDown(event, index, 'resize');
+                    <LayoutGrid className="h-3.5 w-3.5" />
+                    Grid
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={showSafeArea ? 'default' : 'outline'}
+                    className="h-8 gap-1.5"
+                    onClick={() => setShowSafeArea((current) => !current)}
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    Safe area
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">Zoom</span>
+                  <Select value={zoomLevel} onValueChange={setZoomLevel}>
+                    <SelectTrigger className="h-8 w-[96px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="75">75%</SelectItem>
+                      <SelectItem value="100">100%</SelectItem>
+                      <SelectItem value="125">125%</SelectItem>
+                      <SelectItem value="150">150%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="overflow-auto rounded-xl border border-border bg-muted/20 p-3">
+                <div
+                  className="mx-auto"
+                  style={{
+                    width: `${Math.max(Number(zoomLevel), 100)}%`,
+                    minWidth: Number(zoomLevel) < 100 ? `${zoomLevel}%` : undefined,
+                  }}
+                >
+                  <div data-template-canvas="true" className="relative aspect-video overflow-hidden rounded-lg bg-muted/30">
+                    {template.previewImageUrl ? (
+                      <img src={template.previewImageUrl} alt={template.name} className="absolute inset-0 h-full w-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 bg-muted/50" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/55 via-background/5 to-transparent" />
+
+                    {showGrid && (
+                      <div
+                        className="pointer-events-none absolute inset-0"
+                        aria-hidden="true"
+                        style={{
+                          backgroundImage:
+                            'linear-gradient(to right, hsl(var(--foreground) / 0.14) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--foreground) / 0.14) 1px, transparent 1px)',
+                          backgroundSize: '10% 100%, 100% 10%',
                         }}
                       />
                     )}
+
+                    {showSafeArea && (
+                      <div
+                        className="pointer-events-none absolute rounded border border-dashed border-primary/80 bg-primary/10"
+                        aria-hidden="true"
+                        style={{
+                          left: `${safeAreaGuide.x}%`,
+                          top: `${safeAreaGuide.y}%`,
+                          width: `${safeAreaGuide.width}%`,
+                          height: `${safeAreaGuide.height}%`,
+                        }}
+                      >
+                        <span className="absolute left-2 top-2 rounded bg-background/90 px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm">
+                          {safeAreaGuide.label}
+                        </span>
+                      </div>
+                    )}
+
+                    {templateZones.map((zone, index) => (
+                      <div
+                        key={`${template.id}-editor-zone-${index}`}
+                        className={cn(
+                          'absolute rounded border-2 border-dashed shadow-sm backdrop-blur-[1px] transition-all',
+                          zonePreviewStyles[zone.type],
+                          canEdit && 'cursor-move',
+                          selectedZoneIndex === index && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                        )}
+                        style={{
+                          left: `${zone.x}%`,
+                          top: `${zone.y}%`,
+                          width: `${zone.width}%`,
+                          height: `${zone.height}%`,
+                        }}
+                        onClick={() => setSelectedZoneIndex(index)}
+                        onPointerDown={(event) => {
+                          setSelectedZoneIndex(index);
+                          handleZonePointerDown(event, index, 'move');
+                        }}
+                      >
+                        <div className="flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight">
+                          <span className="truncate">{zone.content || zone.label}</span>
+                        </div>
+                        {canEdit && zone.type !== 'image' && (
+                          <button
+                            type="button"
+                            className="absolute -bottom-2 -right-2 h-4 w-4 rounded-full border border-border bg-background shadow-sm"
+                            onPointerDown={(event) => {
+                              setSelectedZoneIndex(index);
+                              handleZonePointerDown(event, index, 'resize');
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
 
