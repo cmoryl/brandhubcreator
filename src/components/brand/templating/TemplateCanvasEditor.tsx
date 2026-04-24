@@ -340,6 +340,12 @@ export const TemplateCanvasEditor = ({
       {/* Side panel */}
       {canEdit && (
         <aside className="space-y-3 rounded-xl border border-border bg-card p-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Zone seeding
+            </span>
+            <ZoneSeedModeSelect />
+          </div>
           {!selectedZone && (
             <p className="text-xs text-muted-foreground">
               Click a zone to edit its label, media, or position.
