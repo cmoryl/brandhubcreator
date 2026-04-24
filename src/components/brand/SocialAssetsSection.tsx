@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toPng } from 'html-to-image';
 import JSZip from 'jszip';
-import { BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory, SocialTemplateZone } from '@/types/brand';
+import { BrandLogo, BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory, SocialTemplateZone } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 import { parseCanvaUrl, CANVA_LOGO_SVG } from '@/lib/canvaUtils';
