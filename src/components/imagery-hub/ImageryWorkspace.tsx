@@ -552,6 +552,52 @@ export const ImageryWorkspace = ({
           <ImageryAnalytics entity={entity} sections={sections} />
         )}
 
+        {/* Brand Photography Filter Bar */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <Camera className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Button
+            variant={photoOnly ? 'default' : 'outline'}
+            size="sm"
+            className="h-9 gap-2"
+            onClick={() => {
+              const next = !photoOnly;
+              setPhotoOnly(next);
+              if (!next) setPresetFilter(null);
+            }}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            AI Brand Photography
+            <Badge variant="secondary" className="ml-1 text-[10px] h-5">{photoCount}</Badge>
+          </Button>
+          {photoOnly && (
+            <div className="flex gap-1.5 flex-wrap items-center">
+              <span className="text-xs text-muted-foreground">Preset:</span>
+              {PHOTO_PRESETS.map(p => {
+                const count = sections.reduce(
+                  (sum, s) => sum + s.images.filter(img => isBrandPhoto(img) && img.tags?.includes(p.key)).length,
+                  0,
+                );
+                if (count === 0) return null;
+                return (
+                  <Badge
+                    key={p.key}
+                    variant={presetFilter === p.key ? 'default' : 'outline'}
+                    className="text-xs cursor-pointer px-2.5 py-1"
+                    onClick={() => setPresetFilter(presetFilter === p.key ? null : p.key)}
+                  >
+                    {p.label} <span className="ml-1 opacity-60">{count}</span>
+                  </Badge>
+                );
+              })}
+              {presetFilter && (
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setPresetFilter(null)}>
+                  Clear preset
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Tag Filter Bar */}
         {allTags.size > 0 && (
           <div className="flex items-center gap-3 flex-wrap">
