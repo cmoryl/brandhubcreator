@@ -984,6 +984,20 @@ const TemplatePreviewDialog = ({
       return null;
     }
 
+    // Logo zones with intrinsically transparent assets (SVG, alpha-PNG, WebP)
+    // must be exported with transparency preserved regardless of the global
+    // toggle — flattening them onto a white plate would defeat the entire
+    // point of shipping a transparent logo.
+    let effectiveTransparent = transparent;
+    if (zone.type === 'logo') {
+      try {
+        const assetIsTransparent = await detectAssetTransparency(zone.mediaUrl);
+        if (assetIsTransparent) effectiveTransparent = true;
+      } catch {
+        // Fall through with the requested setting.
+      }
+    }
+
     const fit = getZoneMediaFit(zone);
     const mediaW = img.naturalWidth || img.width;
     const mediaH = img.naturalHeight || img.height;
@@ -1048,7 +1062,7 @@ const TemplatePreviewDialog = ({
     canvas.height = Math.max(1, outH);
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    if (!transparent) {
+    if (!effectiveTransparent) {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
