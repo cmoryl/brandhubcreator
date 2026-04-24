@@ -16,6 +16,7 @@ interface BrandContext {
   mission?: string;
   values?: string[];
   fonts?: Array<{ family: string; role?: string }>;
+  imageryAvoidList?: Array<{ name?: string; reason?: string; url?: string }>;
 }
 
 interface GenerateRequest {
