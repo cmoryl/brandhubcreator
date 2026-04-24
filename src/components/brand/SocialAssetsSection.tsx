@@ -207,7 +207,7 @@ const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate
     profile: 'other',
   };
 
-  return generated.map((template, index) => {
+  return generated.map((template, index): SocialAssetTemplate => {
     const sourceFormat = template.formats[0];
     const inferredSizeCategory = platform === 'General'
       ? (index < getTemplatesForPlatformFormat('LinkedIn', 'feed').length
@@ -224,7 +224,7 @@ const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate
     return {
       id: platform === 'General' ? `generated-general-${inferredSizeCategory}-${template.id}` : `generated-${template.id}`,
       name: template.name,
-      fileType: 'other',
+      fileType: 'other' as const,
       url: '',
       description: template.description,
       previewImageUrl: getTemplatePreviewImage(template),
