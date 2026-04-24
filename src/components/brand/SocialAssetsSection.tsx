@@ -567,7 +567,7 @@ const TemplatePreviewDialog = ({
 }) => {
   if (!template) return null;
 
-  const templateZones = getEditableZones(platform, template);
+  const templateZones = getEditableZones(platform, template, brandLogos);
   const [selectedZoneIndex, setSelectedZoneIndex] = useState(0);
   const [activeFrameZoneIndex, setActiveFrameZoneIndex] = useState<number | null>(null);
   const [showGrid, setShowGrid] = useState(true);
