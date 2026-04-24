@@ -22,6 +22,7 @@ import {
   renderZoneAtOriginalResolution,
   detectAssetTransparency,
 } from '@/lib/templateZonePipeline';
+import { useZoneSeedMode } from '@/hooks/useZoneSeedMode';
 
 interface CaseStudiesSectionProps {
   caseStudies: BrandCaseStudy[];
