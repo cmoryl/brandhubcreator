@@ -497,8 +497,6 @@ void pickDemoContent;
 //               brand-aware AI copy on mount.
 // ---------------------------------------------------------------------------
 
-import type { ZoneSeedMode } from '@/hooks/useZoneSeedMode';
-
 export const hydrateZoneDefaults = <Z extends CanvasEditorZone>(
   zones: Z[],
   brandLogos?: BrandLogo[],
