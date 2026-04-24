@@ -551,6 +551,7 @@ const TemplatePreviewDialog = ({
   onUploadZoneMedia,
   onSelectZoneMedia,
   onUpdateTemplate,
+  brandLogos,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
