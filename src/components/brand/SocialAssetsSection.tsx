@@ -873,16 +873,16 @@ const TemplatePreviewDialog = ({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem onClick={handleExportPreview} disabled={isExporting}>
+                      <DropdownMenuItem onClick={() => openExportDialog('preview')} disabled={isExporting}>
                         <FileImage className="mr-2 h-4 w-4" />
-                        Download preview (PNG)
+                        Export preview (PNG)…
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={handleExportFramesZip}
+                        onClick={() => openExportDialog('frames')}
                         disabled={isExporting || frameZones.length === 0}
                       >
                         <FileArchive className="mr-2 h-4 w-4" />
-                        Download frames (ZIP)
+                        Export frames (ZIP)…
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
