@@ -590,13 +590,15 @@ const TemplatePreviewDialog = ({
 
   const renderCanvasToDataUrl = async (): Promise<string | null> => {
     if (!canvasRef.current) return null;
-    // Temporarily hide overlays so the export is clean.
     const previousGrid = showGrid;
     const previousSafe = showSafeArea;
     setShowGrid(false);
     setShowSafeArea(false);
-    // Wait one frame for state-driven render.
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    setIsExporting(true);
+    // Wait two frames so React commits the chrome-hiding state before capture.
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    );
     try {
       return await toPng(canvasRef.current, {
         pixelRatio: 2,
@@ -604,13 +606,13 @@ const TemplatePreviewDialog = ({
         skipFonts: false,
         filter: (node) => {
           if (!(node instanceof HTMLElement)) return true;
-          // Exclude resize handles & dashed zone borders from export.
           return node.dataset.exportExclude !== 'true';
         },
       });
     } finally {
       setShowGrid(previousGrid);
       setShowSafeArea(previousSafe);
+      setIsExporting(false);
     }
   };
 
