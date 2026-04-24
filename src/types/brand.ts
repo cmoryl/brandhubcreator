@@ -797,6 +797,11 @@ export interface SocialAssetTemplate {
   url: string;
   description?: string;
   previewImageUrl?: string;
+  previewFit?: {
+    fit: 'cover' | 'contain';
+    focusX: number;
+    focusY: number;
+  };
   dimensions?: string;
   sizeCategory?: SocialSizeCategory;
   templateZones?: SocialTemplateZone[];
