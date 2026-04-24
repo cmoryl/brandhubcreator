@@ -30,6 +30,11 @@ import {
   pickDefaultBrandLogo,
 } from '@/lib/templateZonePipeline';
 import type { BrandLogo } from '@/types/brand';
+import type { ZoneSeedMode } from '@/hooks/useZoneSeedMode';
+import { useZoneSeedMode } from '@/hooks/useZoneSeedMode';
+import { useAiSeedZones, type ZoneSeedBrandContext } from '@/hooks/useAiSeedZones';
+import { ZoneSeedModeSelect } from './ZoneSeedModeSelect';
+import { toast } from 'sonner';
 import { BrandLogoVariantPicker } from './BrandLogoVariantPicker';
 
 // ---------------------------------------------------------------------------
@@ -42,6 +47,9 @@ export interface CanvasEditorZone extends TemplateZoneLike {
   label: string;
   content?: string;
   align?: 'left' | 'center' | 'right';
+  /** Set by `hydrateZoneDefaults` when seed mode === 'ai' so the editor can
+   *  asynchronously replace the placeholder lorem with brand-aware AI copy. */
+  _seedPending?: boolean;
 }
 
 export interface TemplateCanvasEditorProps {
@@ -59,6 +67,10 @@ export interface TemplateCanvasEditorProps {
   canEdit?: boolean;
   /** When true, hides editor chrome (selection ring, handles, dashed borders) for export. */
   isExporting?: boolean;
+  /** Brand context fed to AI when seed mode === 'ai'. Optional but recommended. */
+  brandContext?: ZoneSeedBrandContext;
+  /** Human-readable label of the asset surface (e.g. "Case study card"). */
+  surfaceName?: string;
   className?: string;
 }
 
@@ -85,10 +97,31 @@ export const TemplateCanvasEditor = ({
   onUploadFile,
   canEdit = true,
   isExporting = false,
+  brandContext,
+  surfaceName,
   className,
 }: TemplateCanvasEditorProps) => {
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [selectedZoneIndex, setSelectedZoneIndex] = useState<number | null>(null);
+
+  // Global "how should empty text/CTA zones be seeded" preference. The select
+  // for this lives in the side-panel header so users can flip modes inline.
+  const { mode: seedMode } = useZoneSeedMode();
+
+  // When seed mode === 'ai', `hydrateZoneDefaults` (run by the calling section)
+  // marks fresh zones with `_seedPending`. This hook batches them into a
+  // single edge-function call and writes brand-aware copy back.
+  useAiSeedZones({
+    zones,
+    onZonesChange,
+    brand: brandContext,
+    surface: surfaceName,
+    enabled: canEdit && seedMode === 'ai',
+    onError: (msg) => {
+      // Quietly inform once — the lorem placeholder remains visible.
+      toast.error(`AI demo copy unavailable: ${msg}`);
+    },
+  });
 
   const selectedZone = selectedZoneIndex !== null ? zones[selectedZoneIndex] : null;
 
@@ -307,6 +340,12 @@ export const TemplateCanvasEditor = ({
       {/* Side panel */}
       {canEdit && (
         <aside className="space-y-3 rounded-xl border border-border bg-card p-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Zone seeding
+            </span>
+            <ZoneSeedModeSelect />
+          </div>
           {!selectedZone && (
             <p className="text-xs text-muted-foreground">
               Click a zone to edit its label, media, or position.
@@ -461,7 +500,7 @@ const demoCtaByKeyword: Array<{ test: RegExp; text: string }> = [
   { test: /demo|trial/i, text: 'Request a demo' },
 ];
 
-const pickDemoContent = (zone: CanvasEditorZone): string | undefined => {
+const pickLoremContent = (zone: CanvasEditorZone): string | undefined => {
   if (zone.type !== 'text' && zone.type !== 'cta') return undefined;
   const label = zone.label || '';
   const table = zone.type === 'cta' ? demoCtaByKeyword : demoTextByKeyword;
@@ -472,24 +511,44 @@ const pickDemoContent = (zone: CanvasEditorZone): string | undefined => {
   return 'Lorem ipsum supporting copy that explains the value, the audience and the outcome in two or three sentences.';
 };
 
+/**
+ * @deprecated Use `pickLoremContent` directly, or call `hydrateZoneDefaults`
+ * with an explicit `mode`. Kept for backwards compatibility.
+ */
+const pickDemoContent = pickLoremContent;
+void pickDemoContent;
+
 // ---------------------------------------------------------------------------
 // Helper: hydrate a default zone array with brand logos pre-applied (and
 // tagged for auto-matching) plus demo copy for empty text / CTA zones.
 // Sections that ship default templates can use this so new assets always
 // render with realistic content on first paint.
+//
+// `mode` controls how empty text / CTA zones are seeded:
+//   - 'lorem' (default): synchronously seed curated keyword-matched copy.
+//   - 'blank' : leave content undefined.
+//   - 'ai'    : seed lorem as an immediate placeholder AND tag the zone with
+//               `_seedPending: true` so the editor can replace it with
+//               brand-aware AI copy on mount.
 // ---------------------------------------------------------------------------
 
 export const hydrateZoneDefaults = <Z extends CanvasEditorZone>(
   zones: Z[],
   brandLogos?: BrandLogo[],
+  mode: ZoneSeedMode = 'lorem',
 ): Z[] => {
   const defaultLogo = pickDefaultBrandLogo(brandLogos);
   const defaultLogoUrl = pickDefaultBrandLogoUrl(brandLogos);
   return zones.map((zone) => {
-    // Seed demo copy for empty text / CTA zones.
+    // Seed demo copy for empty text / CTA zones based on mode.
     if ((zone.type === 'text' || zone.type === 'cta') && !zone.content) {
-      const demo = pickDemoContent(zone);
-      if (demo) zone = { ...zone, content: demo };
+      if (mode === 'lorem' || mode === 'ai') {
+        const demo = pickLoremContent(zone);
+        if (demo) zone = { ...zone, content: demo };
+      }
+      if (mode === 'ai') {
+        zone = { ...zone, _seedPending: true } as Z;
+      }
     }
     if (zone.type !== 'logo') return zone;
     if (zone.mediaUrl) return zone;

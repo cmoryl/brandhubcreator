@@ -164,3 +164,6 @@ verify_jwt = false
 [functions.enrich-demos-orchestrator]
 verify_jwt = false
 
+
+[functions.seed-zone-copy]
+verify_jwt = false

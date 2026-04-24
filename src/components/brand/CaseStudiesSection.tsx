@@ -22,6 +22,7 @@ import {
   renderZoneAtOriginalResolution,
   detectAssetTransparency,
 } from '@/lib/templateZonePipeline';
+import { useZoneSeedMode } from '@/hooks/useZoneSeedMode';
 
 interface CaseStudiesSectionProps {
   caseStudies: BrandCaseStudy[];
@@ -41,7 +42,10 @@ interface CaseStudiesSectionProps {
 // Each case study can edit / move / resize these as needed; image media is
 // supplied by the case study's own previewUrl as the canvas background.
 // ---------------------------------------------------------------------------
-const buildDefaultZones = (brandLogos?: BrandLogo[]): SocialTemplateZone[] => {
+const buildDefaultZones = (
+  brandLogos?: BrandLogo[],
+  seedMode: import('@/hooks/useZoneSeedMode').ZoneSeedMode = 'lorem',
+): SocialTemplateZone[] => {
   const zones: SocialTemplateZone[] = [
     {
       type: 'logo',
@@ -59,10 +63,12 @@ const buildDefaultZones = (brandLogos?: BrandLogo[]): SocialTemplateZone[] => {
       align: 'right',
     },
   ];
-  // Reuse the canvas editor's hydrate helper to seed the logo zone.
+  // Reuse the canvas editor's hydrate helper to seed the logo zone + honour
+  // the user's global zone-seed mode for any text/CTA zones that lack content.
   return hydrateZoneDefaults(
     zones.map((z) => ({ ...z, id: safeUUID() })) as (SocialTemplateZone & { id: string })[],
     brandLogos,
+    seedMode,
   ).map(({ id: _id, ...rest }) => rest as SocialTemplateZone);
 };
 
@@ -97,6 +103,7 @@ export const CaseStudiesSection = ({
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const { uploadFile } = useStorageUpload({ entityType, entityId });
+  const { mode: seedMode } = useZoneSeedMode();
 
   const { gridClass } = useLayoutClasses(layout);
 
@@ -113,7 +120,7 @@ export const CaseStudiesSection = ({
       description: 'Describe the project, goals, and outcomes',
       previewUrl: '',
       templateAspect: '16 / 9',
-      templateZones: buildDefaultZones(brandLogos),
+      templateZones: buildDefaultZones(brandLogos, seedMode),
     };
     onCaseStudiesChange([...caseStudies, newCase]);
     setEditingId(newCase.id);
@@ -432,6 +439,7 @@ export const CaseStudiesSection = ({
                 brandLogos={brandLogos}
                 onUploadFile={persistFile}
                 canEdit={canEdit}
+                surfaceName="Case study card"
                 zones={toEditorZones(editingStudy.templateZones)}
                 onZonesChange={(next) =>
                   updateCaseStudy(editingStudy.id, { templateZones: fromEditorZones(next) })
