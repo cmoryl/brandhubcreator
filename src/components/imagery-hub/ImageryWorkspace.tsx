@@ -641,9 +641,21 @@ export const ImageryWorkspace = ({
               </Button>
             </CardContent>
           </Card>
+        ) : displaySections.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-10 text-center space-y-2">
+              <Camera className="h-10 w-10 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">
+                No images match the current filter.
+              </p>
+              <Button variant="outline" size="sm" onClick={() => { setPhotoOnly(false); setPresetFilter(null); }}>
+                Clear filters
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-5">
-            {sections.map(section => (
+            {displaySections.map(section => (
               <Collapsible key={section.id} defaultOpen>
                 <Card className="border-border/50">
                   <div className="p-4 flex items-center justify-between">
