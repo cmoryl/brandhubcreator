@@ -1,5 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye, LayoutGrid, Type } from 'lucide-react';
+import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye, LayoutGrid, Type, FileImage, FileArchive } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { toPng } from 'html-to-image';
+import JSZip from 'jszip';
 import { BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory, SocialTemplateZone } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
@@ -530,6 +538,8 @@ const TemplatePreviewDialog = ({
   const [showGrid, setShowGrid] = useState(true);
   const [showSafeArea, setShowSafeArea] = useState(true);
   const [zoomLevel, setZoomLevel] = useState('100');
+  const [isExporting, setIsExporting] = useState(false);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
   const safeAreaGuide = getSafeAreaGuide(platform, template);
   const frameZones = templateZones
     .map((zone, index) => ({ zone, index }))
@@ -564,6 +574,123 @@ const TemplatePreviewDialog = ({
     ));
 
     onUpdateTemplate({ templateZones: nextZones });
+  };
+
+  const sanitizeFileName = (name: string) =>
+    name.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'frame';
+
+  const triggerDownload = (dataUrl: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const renderCanvasToDataUrl = async (): Promise<string | null> => {
+    if (!canvasRef.current) return null;
+    const previousGrid = showGrid;
+    const previousSafe = showSafeArea;
+    setShowGrid(false);
+    setShowSafeArea(false);
+    setIsExporting(true);
+    // Wait two frames so React commits the chrome-hiding state before capture.
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    );
+    try {
+      return await toPng(canvasRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
+        skipFonts: false,
+        filter: (node) => {
+          if (!(node instanceof HTMLElement)) return true;
+          return node.dataset.exportExclude !== 'true';
+        },
+      });
+    } finally {
+      setShowGrid(previousGrid);
+      setShowSafeArea(previousSafe);
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPreview = async () => {
+    setIsExporting(true);
+    try {
+      const dataUrl = await renderCanvasToDataUrl();
+      if (!dataUrl) {
+        toast.error('Preview not ready to export');
+        return;
+      }
+      triggerDownload(dataUrl, `${sanitizeFileName(template.name)}-preview.png`);
+      toast.success('Preview exported');
+    } catch (err) {
+      console.error('Export preview failed', err);
+      toast.error('Failed to export preview');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportFramesZip = async () => {
+    if (frameZones.length === 0) {
+      toast.error('No frames to export');
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const fullDataUrl = await renderCanvasToDataUrl();
+      if (!fullDataUrl || !canvasRef.current) {
+        toast.error('Preview not ready to export');
+        return;
+      }
+
+      const zip = new JSZip();
+      const folder = zip.folder(sanitizeFileName(template.name)) || zip;
+      folder.file('preview.png', fullDataUrl.split(',')[1], { base64: true });
+
+      // Load full canvas image to crop frames out of it.
+      const baseImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new globalThis.Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = fullDataUrl;
+      });
+
+      const baseW = baseImg.width;
+      const baseH = baseImg.height;
+
+      for (let i = 0; i < frameZones.length; i++) {
+        const { zone } = frameZones[i];
+        const sx = Math.max(0, Math.round((zone.x / 100) * baseW));
+        const sy = Math.max(0, Math.round((zone.y / 100) * baseH));
+        const sw = Math.max(1, Math.round((zone.width / 100) * baseW));
+        const sh = Math.max(1, Math.round((zone.height / 100) * baseH));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = sw;
+        canvas.height = sh;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) continue;
+        ctx.drawImage(baseImg, sx, sy, sw, sh, 0, 0, sw, sh);
+        const cropDataUrl = canvas.toDataURL('image/png');
+        const safeLabel = sanitizeFileName(zone.label || `frame-${i + 1}`);
+        folder.file(`${String(i + 1).padStart(2, '0')}-${safeLabel}.png`, cropDataUrl.split(',')[1], { base64: true });
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, `${sanitizeFileName(template.name)}-frames.zip`);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      toast.success(`Exported ${frameZones.length} frame${frameZones.length === 1 ? '' : 's'}`);
+    } catch (err) {
+      console.error('Export frames failed', err);
+      toast.error('Failed to export frames');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleZonePointerDown = (
@@ -676,6 +803,34 @@ const TemplatePreviewDialog = ({
                     <Eye className="h-3.5 w-3.5" />
                     Safe area
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="default"
+                        className="h-8 gap-1.5"
+                        disabled={isExporting}
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        {isExporting ? 'Exporting…' : 'Export'}
+                        <ChevronDown className="h-3 w-3 opacity-70" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={handleExportPreview} disabled={isExporting}>
+                        <FileImage className="mr-2 h-4 w-4" />
+                        Download preview (PNG)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleExportFramesZip}
+                        disabled={isExporting || frameZones.length === 0}
+                      >
+                        <FileArchive className="mr-2 h-4 w-4" />
+                        Download frames (ZIP)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -702,7 +857,7 @@ const TemplatePreviewDialog = ({
                     minWidth: Number(zoomLevel) < 100 ? `${zoomLevel}%` : undefined,
                   }}
                 >
-                  <div data-template-canvas="true" className="relative aspect-video overflow-hidden rounded-lg bg-muted/30">
+                  <div ref={canvasRef} data-template-canvas="true" className="relative aspect-video overflow-hidden rounded-lg bg-muted/30">
                     {template.previewImageUrl ? (
                       <img
                         src={template.previewImageUrl}
@@ -747,10 +902,11 @@ const TemplatePreviewDialog = ({
                       <div
                         key={`${template.id}-editor-zone-${index}`}
                         className={cn(
-                          'absolute overflow-hidden rounded border-2 border-dashed shadow-sm backdrop-blur-[1px] transition-all',
-                          zonePreviewStyles[zone.type],
-                          canEdit && 'cursor-move',
-                          selectedZoneIndex === index && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+                          'absolute overflow-hidden rounded shadow-sm backdrop-blur-[1px] transition-all',
+                          !isExporting && 'border-2 border-dashed',
+                          !isExporting && zonePreviewStyles[zone.type],
+                          canEdit && !isExporting && 'cursor-move',
+                          !isExporting && selectedZoneIndex === index && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
                         )}
                         style={{
                           left: `${zone.x}%`,
@@ -776,12 +932,18 @@ const TemplatePreviewDialog = ({
                             }}
                           />
                         ) : null}
-                        <div className="relative flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight">
-                          <span className="truncate">{zone.content || zone.label}</span>
-                        </div>
-                        {canEdit && zone.type !== 'image' && (
+                        {!isExporting && (
+                          <div
+                            data-export-exclude="true"
+                            className="relative flex h-full w-full items-center justify-center px-2 text-center text-xs font-medium leading-tight"
+                          >
+                            <span className="truncate">{zone.content || zone.label}</span>
+                          </div>
+                        )}
+                        {canEdit && zone.type !== 'image' && !isExporting && (
                           <button
                             type="button"
+                            data-export-exclude="true"
                             className="absolute -bottom-2 -right-2 h-4 w-4 rounded-full border border-border bg-background shadow-sm"
                             onPointerDown={(event) => {
                               setSelectedZoneIndex(index);
