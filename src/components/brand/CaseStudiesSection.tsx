@@ -102,6 +102,7 @@ export const CaseStudiesSection = ({
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const { uploadFile } = useStorageUpload({ entityType, entityId });
+  const { mode: seedMode } = useZoneSeedMode();
 
   const { gridClass } = useLayoutClasses(layout);
 
@@ -118,7 +119,7 @@ export const CaseStudiesSection = ({
       description: 'Describe the project, goals, and outcomes',
       previewUrl: '',
       templateAspect: '16 / 9',
-      templateZones: buildDefaultZones(brandLogos),
+      templateZones: buildDefaultZones(brandLogos, seedMode),
     };
     onCaseStudiesChange([...caseStudies, newCase]);
     setEditingId(newCase.id);
