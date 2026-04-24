@@ -1473,6 +1473,59 @@ export const DigitalCollateralSection = ({
           onApply={onCollateralChange}
         />
       )}
+
+      {/* Templated zone editor dialog — shared canvas + export pipeline */}
+      <Dialog open={!!editingTemplateItem} onOpenChange={(open) => !open && setTemplateEditingId(null)}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>{editingTemplateItem?.title || 'Template zones'}</DialogTitle>
+          </DialogHeader>
+          {editingTemplateItem && (
+            <div className="space-y-4">
+              <TemplateCanvasEditor
+                aspect={editingTemplateItem.templateAspect || getDefaultAspectForSurface(isSocialBannerCategory(editingTemplateItem.category) ? 'social' : 'brochure')}
+                backgroundUrl={templateBackgroundFor(editingTemplateItem)}
+                brandLogos={brandLogos}
+                onUploadFile={async (file) => {
+                  const result = await uploadFile(file, 'asset', `collateral-zone-${safeUUID()}`);
+                  return result?.url ?? null;
+                }}
+                canEdit={canEdit}
+                surfaceName={editingTemplateItem.category || 'Digital collateral'}
+                zones={toEditorZones(editingTemplateItem.templateZones)}
+                onZonesChange={(next) =>
+                  updateItem(editingTemplateItem.id, { templateZones: fromEditorZones(next) })
+                }
+              />
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id={`transparent-coll-${editingTemplateItem.id}`}
+                    checked={exportTransparent}
+                    onCheckedChange={setExportTransparent}
+                  />
+                  <Label htmlFor={`transparent-coll-${editingTemplateItem.id}`} className="text-sm">
+                    Transparent background on PNGs
+                  </Label>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => editingTemplateItem && exportTemplateAsZip(editingTemplateItem, exportTransparent)}
+                  disabled={exportingId === editingTemplateItem.id}
+                  className="gap-1.5"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {exportingId === editingTemplateItem.id ? 'Exporting…' : 'Export zones (orig. resolution)'}
+                </Button>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTemplateEditingId(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
