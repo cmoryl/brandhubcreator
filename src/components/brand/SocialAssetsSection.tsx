@@ -1629,8 +1629,8 @@ const SizeCategorySection = ({
                       <span className="text-xs text-muted-foreground">{typeInfo.label}</span>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-foreground/0 group-hover/card:bg-foreground/10 transition-colors flex flex-col items-center justify-center gap-2">
-                    <div className="opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center gap-2">
+                  <div className="pointer-events-none absolute inset-0 bg-foreground/0 group-hover/card:bg-foreground/10 transition-colors flex flex-col items-center justify-center gap-2">
+                    <div className="pointer-events-auto opacity-0 group-hover/card:opacity-100 transition-opacity flex flex-col items-center gap-2">
                       {template.url ? (isCanva ? (
                         <button
                           onClick={() => {
