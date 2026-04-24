@@ -169,6 +169,7 @@ const renderMockup = (platform: SocialPlatform, format: string, sizeSpec: Platfo
   switch (platform) {
     case 'Instagram': return <InstagramMockup {...props} />;
     case 'LinkedIn': return <LinkedInMockup {...props} />;
+    case 'X':
     case 'X (Twitter)': return <TwitterMockup {...props} />;
     case 'Facebook': return <FacebookMockup {...props} />;
     case 'YouTube': return <YouTubeMockup {...props} />;
