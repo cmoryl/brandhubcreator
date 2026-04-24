@@ -785,6 +785,11 @@ export interface SocialTemplateZone {
   label: string;
   content?: string;
   mediaUrl?: string;
+  mediaFit?: {
+    fit: 'cover' | 'contain';
+    focusX: number;
+    focusY: number;
+  };
   colorSlot?: 'primary' | 'secondary' | 'accent' | 'background';
   fontSize?: 'sm' | 'md' | 'lg' | 'xl';
   align?: 'left' | 'center' | 'right';
