@@ -563,6 +563,7 @@ const TemplatePreviewDialog = ({
   onUploadZoneMedia: (zoneIndex: number, file: File) => Promise<void>;
   onSelectZoneMedia: (zoneIndex: number, url: string) => void;
   onUpdateTemplate: (updates: Partial<SocialAssetTemplate>) => void;
+  brandLogos?: BrandLogo[];
 }) => {
   if (!template) return null;
 
