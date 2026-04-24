@@ -101,6 +101,26 @@ function getStyleModifiers(preset: string): string {
   switch (preset) {
     case 'photorealistic':
       return 'Photorealistic, high-resolution photography, professional lighting, sharp focus, ultra high detail.';
+    case 'humanRealistic':
+      return [
+        'Hyper-realistic editorial photography of real people in candid, unposed moments.',
+        'Subjects: diverse adults in natural conversation, collaboration, or quiet reflection — never staged, never looking at camera.',
+        'Lighting: soft, warm, alive — natural window light or gentle ambient. Colors balanced and natural, slightly desaturated, never over-saturated.',
+        'Lens: shallow depth of field (f/1.8–f/2.4), shot on full-frame mirrorless (Sony A7 / Leica Q feel), 50–85mm prime.',
+        'Composition: tight crops, off-center framing, partial faces / out-of-focus foreground elements at edges to create human intimacy and spatiality.',
+        'Mood: empathy, calm confidence, authenticity, human connection — the feeling of "the people behind progress".',
+        'Skin: real texture preserved, natural pores, no plastic retouching, no beauty-filter smoothing.',
+        'STRICT NEGATIVES: no stock-photo look, no corporate handshakes, no smiling at camera, no studio backdrops, no harsh flash, no HDR, no AI plastic skin, no exaggerated bokeh balls, no logos or text in frame.',
+      ].join(' ');
+    case 'softTransition':
+      return [
+        'Hyper-realistic human-focused photography (same rules as humanRealistic preset) treated with a soft progressive blur transition.',
+        'A portion of the image — typically the lower third or one edge — dissolves into a smooth gaussian blur of the brand\'s primary gradient colors (use the brand color palette provided above, sampled directly from the subject\'s clothing or background tones).',
+        'The blur is gradient-masked: sharp on the subject\'s face/eyes, progressively softening outward into pure color field with no visible edge between photo and gradient.',
+        'Effect should feel like the photograph is melting into the brand\'s abstract visual language — connecting the human and the abstract.',
+        'Use sparingly and elegantly. The human moment must remain the hero; the gradient is a quiet extension, never a frame or vignette.',
+        'STRICT NEGATIVES: no hard mask edges, no rectangular crop borders, no posterization, no duotone filter look, no Instagram presets, no double-exposure overlay.',
+      ].join(' ');
     case 'illustration':
       return 'Digital illustration style, clean vector aesthetics, modern design, flat color areas with subtle gradients.';
     case 'minimal':

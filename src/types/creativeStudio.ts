@@ -92,6 +92,8 @@ export type AspectRatio = '1:1' | '16:9' | '4:3' | '9:16' | 'custom';
 
 export type StylePreset = 
   | 'photorealistic'
+  | 'humanRealistic'
+  | 'softTransition'
   | 'illustration'
   | 'minimal'
   | 'bold'
@@ -114,6 +116,8 @@ export const PROMPT_CATEGORIES: Record<PromptCategory, { label: string; icon: st
 
 export const STYLE_PRESETS: Record<StylePreset, { label: string; description: string }> = {
   photorealistic: { label: 'Photorealistic', description: 'High-quality photography style' },
+  humanRealistic: { label: 'Hyper-Realistic Human', description: 'Soft light, shallow DoF, authentic human moments' },
+  softTransition: { label: 'Soft Transition', description: 'Progressive blur merging photo with brand gradient' },
   illustration: { label: 'Illustration', description: 'Clean vector/digital art style' },
   minimal: { label: 'Minimal', description: 'Clean, simple, elegant' },
   bold: { label: 'Bold', description: 'Strong contrasts, impactful' },
