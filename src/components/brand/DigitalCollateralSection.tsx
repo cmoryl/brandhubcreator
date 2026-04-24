@@ -696,6 +696,111 @@ export const DigitalCollateralSection = ({
     if (!onCollateralChange) return;
     onCollateralChange(collateral.filter(item => item.id !== id));
     if (editingId === id) setEditingId(null);
+    if (templateEditingId === id) setTemplateEditingId(null);
+  };
+
+  // -------------------------------------------------------------------------
+  // Templated zone editor — shared canvas + export pipeline
+  // -------------------------------------------------------------------------
+  const editingTemplateItem = useMemo(
+    () => collateral.find((c) => c.id === templateEditingId) || null,
+    [collateral, templateEditingId],
+  );
+
+  /** Open the templated zone editor for an item, seeding default zones if absent. */
+  const openTemplateEditor = (item: BrandBrochure) => {
+    if (!onCollateralChange) return;
+    const hasZones = Array.isArray(item.templateZones) && item.templateZones.length > 0;
+    const surface = isSocialBannerCategory(item.category) ? 'social' : 'brochure';
+    if (!hasZones) {
+      updateItem(item.id, {
+        templateAspect: item.templateAspect || getDefaultAspectForSurface(surface),
+        templateZones: buildSurfaceDefaultZones(surface, brandLogos, seedMode),
+      });
+    }
+    setTemplateEditingId(item.id);
+  };
+
+  const toEditorZones = (zones: SocialTemplateZone[] | undefined): CanvasEditorZone[] =>
+    (zones || []).map((zone, index) => ({
+      ...zone,
+      id: `${zone.type}-${index}-${safeUUID().slice(0, 8)}`,
+      label: zone.label || `${zone.type} zone`,
+    }));
+
+  const fromEditorZones = (zones: CanvasEditorZone[]): SocialTemplateZone[] =>
+    zones.map(({ id: _id, ...rest }) => rest as SocialTemplateZone);
+
+  /** Background URL for the canvas — prefer thumbnail, then previewUrl when image. */
+  const templateBackgroundFor = (item: BrandBrochure): string | undefined => {
+    if (item.thumbnailUrl) return item.thumbnailUrl;
+    if (item.previewUrl && isImage(item.previewUrl)) return item.previewUrl;
+    return undefined;
+  };
+
+  const exportTemplateAsZip = async (item: BrandBrochure, transparent: boolean) => {
+    const zones = item.templateZones || [];
+    if (zones.length === 0) {
+      toast.error('No template zones to export');
+      return;
+    }
+    setExportingId(item.id);
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder(item.title.replace(/[^\w-]+/g, '-')) || zip;
+      let originalUsed = 0;
+      let originalFallback = 0;
+
+      for (let i = 0; i < zones.length; i++) {
+        const zone = zones[i];
+        if (!zone.mediaUrl) continue;
+        const logoNeedsTransparency = zone.type === 'logo'
+          && await detectAssetTransparency(zone.mediaUrl).catch(() => false);
+        const useTransparent = transparent || logoNeedsTransparency;
+        const dataUrl = await renderZoneAtOriginalResolution(zone, useTransparent);
+        if (!dataUrl) {
+          originalFallback += 1;
+          continue;
+        }
+        originalUsed += 1;
+        const safeLabel = (zone.label || `zone-${i + 1}`).replace(/[^\w-]+/g, '-');
+        folder.file(
+          `${String(i + 1).padStart(2, '0')}-${safeLabel}.png`,
+          dataUrl.split(',')[1],
+          { base64: true },
+        );
+      }
+
+      const bgUrl = templateBackgroundFor(item);
+      if (bgUrl) {
+        try {
+          const bgRes = await fetch(bgUrl);
+          const bgBlob = await bgRes.blob();
+          folder.file('background.png', bgBlob);
+        } catch {
+          // best effort
+        }
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${item.title.replace(/[^\w-]+/g, '-')}-zones.zip`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+      if (originalFallback > 0) {
+        toast.success(`Exported ${originalUsed} zone${originalUsed === 1 ? '' : 's'} (${originalFallback} skipped — no source media)`);
+      } else {
+        toast.success(`Exported ${originalUsed} zone${originalUsed === 1 ? '' : 's'} at original resolution`);
+      }
+    } catch (err) {
+      console.error('Collateral template export failed', err);
+      toast.error('Failed to export template zones');
+    } finally {
+      setExportingId(null);
+    }
   };
 
   const downloadItem = (item: BrandBrochure) => {
