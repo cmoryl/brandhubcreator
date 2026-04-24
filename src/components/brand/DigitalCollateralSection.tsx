@@ -308,6 +308,15 @@ const SortableCollateralItem = ({
               <Image className="h-5 w-5" />
             </button>
           )}
+          {canEdit && onEditZones && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onEditZones(); }}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              title="Edit template zones"
+            >
+              <Layers className="h-5 w-5" />
+            </button>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); onDownload(); }}
             className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
