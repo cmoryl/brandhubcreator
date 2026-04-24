@@ -46,7 +46,6 @@ import {
   pickBestBrandLogoForLuminance,
   findBackgroundZoneForLogo as sharedFindBackgroundZoneForLogo,
   autoMatchLogosForZones as sharedAutoMatchLogosForZones,
-  loadImageElement as sharedLoadImageElement,
   renderZoneAtOriginalResolution,
 } from '@/lib/templateZonePipeline';
 
