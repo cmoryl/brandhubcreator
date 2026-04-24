@@ -1090,6 +1090,7 @@ const SizeCategorySection = ({
   cardGridClass: string;
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<SocialAssetTemplate | null>(null);
   const maxVisible = DEFAULT_VISIBLE_ROWS * CARDS_PER_ROW;
   const hasMore = categoryTemplates.length > maxVisible;
   const visibleTemplates = expanded ? categoryTemplates : categoryTemplates.slice(0, maxVisible);
@@ -1168,9 +1169,14 @@ const SizeCategorySection = ({
 
             return (
               <div key={template.id} className="group/card bg-card rounded-xl border border-border overflow-hidden hover:border-primary/30 hover:shadow-md transition-all">
-                <div className="relative aspect-video bg-muted/30 flex items-center justify-center overflow-hidden">
+                <div className="relative overflow-hidden">
                   {hasPreview ? (
-                    <img src={template.previewImageUrl} alt={template.name} className="w-full h-full object-cover" />
+                    <TemplateCardPreview
+                      platform={activePlatform.platform}
+                      template={template}
+                      interactive
+                      onClick={() => setSelectedTemplate(template)}
+                    />
                   ) : isCanva ? (
                     <div className="flex flex-col items-center gap-2 text-center p-4">
                       <img src={CANVA_LOGO_SVG} alt="Canva" className="w-10 h-10" />
@@ -1251,6 +1257,13 @@ const SizeCategorySection = ({
           {expanded ? 'Show less' : `View ${categoryTemplates.length - maxVisible} more`}
         </button>
       )}
+
+      <TemplatePreviewDialog
+        open={!!selectedTemplate}
+        onOpenChange={(open) => !open && setSelectedTemplate(null)}
+        platform={activePlatform.platform}
+        template={selectedTemplate}
+      />
     </div>
   );
 };
