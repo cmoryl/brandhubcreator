@@ -121,6 +121,15 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
           );
         })}
 
+        {/* Advanced gradient blur overlays — separate imagery zones & boost copy legibility */}
+        {customization?.gradientBlurOverlays?.map((ov) => (
+          <div
+            key={ov.id}
+            aria-hidden
+            style={gradientBlurOverlayStyle(ov, primaryColor ?? 'hsl(229 100% 12%)')}
+          />
+        ))}
+
         {/* Overlay copy */}
         {merged.overlay?.eyebrow && (copy?.eyebrow || presentationMode) && (
           <div
