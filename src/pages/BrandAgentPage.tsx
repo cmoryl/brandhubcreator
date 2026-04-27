@@ -341,7 +341,7 @@ const BrandAgentPage = () => {
       try {
         // Agentic loop — continue until no more tool_use blocks
         let continueLoop = true;
-        let loopHistory = apiHistory;
+        let loopHistory: Array<{ role: string; content: any }> = apiHistory;
         const accumulatedToolCalls: ToolCall[] = [];
 
         while (continueLoop) {
