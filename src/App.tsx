@@ -97,6 +97,7 @@ const SocialAssetStudio = lazyWithRetry(() => import("./pages/SocialAssetStudio"
 const AdLocalizerPage = lazyWithRetry(() => import("./pages/AdLocalizerPage"));
 const ImageryHub = lazyWithRetry(() => import("./pages/ImageryHub"));
 const LogoDownloadActivity = lazyWithRetry(() => import("./pages/LogoDownloadActivity"));
+const BrandAgentPage = lazyWithRetry(() => import("./pages/BrandAgentPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -427,6 +428,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <LogoDownloadActivity />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="agent"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BrandAgentPage />
                         </Suspense>
                       }
                     />
