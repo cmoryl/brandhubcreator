@@ -225,16 +225,16 @@ const BrandAgentPage = () => {
 
     const summaries: BrandSummary[] = brands.map((b) => {
       const heroColors: string[] = [];
-      if (b.colorPalette) {
-        b.colorPalette.slice(0, 4).forEach((c) => {
-          if (c.hex) heroColors.push(c.hex);
+      if (Array.isArray(b.colors)) {
+        b.colors.slice(0, 4).forEach((c) => {
+          if (c?.hex) heroColors.push(c.hex);
         });
       }
       const brandProducts = products.filter((p) => p.parentBrandId === b.id);
       return {
         id: b.id,
-        name: b.name,
-        slug: b.slug,
+        name: b.hero?.name || b.slug || 'Untitled brand',
+        slug: b.slug || '',
         colors: heroColors,
         tagline: b.hero?.tagline || '',
         productCount: brandProducts.length,
