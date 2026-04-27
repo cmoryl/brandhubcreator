@@ -1,3 +1,4 @@
+import type React from 'react';
 /**
  * Brand Guide Layout Templates
  *
