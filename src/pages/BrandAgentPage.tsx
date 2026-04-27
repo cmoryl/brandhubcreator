@@ -278,9 +278,7 @@ const BrandAgentPage = () => {
         try {
           const { data: brandData, error } = await supabase
             .from('brands')
-            .select(
-              'id, name, slug, description, created_at, updated_at'
-            )
+            .select('id, name, slug, created_at, updated_at')
             .eq('slug', slug)
             .maybeSingle();
 
@@ -295,10 +293,9 @@ const BrandAgentPage = () => {
           return JSON.stringify({
             name: brandData.name,
             slug: brandData.slug,
-            description: brandData.description,
             productCount: brandProducts.length,
             products: brandProducts.map((p) => ({
-              name: p.name,
+              name: p.hero?.name || p.slug || 'Untitled product',
               slug: p.slug,
             })),
             createdAt: brandData.created_at,
