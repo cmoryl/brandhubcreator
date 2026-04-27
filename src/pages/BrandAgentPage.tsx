@@ -619,7 +619,6 @@ const BrandAgentPage = () => {
             )}
           </div>
         ) : (
-          /* ── Message thread ─────────────────────────────────────────── */}
           <ScrollArea className="flex-1 py-6" ref={scrollRef as React.RefObject<HTMLDivElement>}>
             <div className="space-y-6">
               {messages.map((msg) => (
