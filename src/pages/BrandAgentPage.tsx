@@ -168,7 +168,7 @@ const BrandAgentPage = () => {
 
   useEffect(() => {
     if (!organization) return;
-    const summaries = brands.map((b) => ({ id: b.id, name: b.name, slug: b.slug }));
+    const summaries = brands.map((b) => ({ id: b.id, name: b.hero?.name || b.slug || 'Untitled brand', slug: b.slug }));
     setBrandSummaries(summaries);
     if (summaries.length > 0) setPrimaryBrandId(summaries[0].id);
     setIsContextReady(true);
