@@ -1,23 +1,13 @@
 /**
  * BrandAgent — Dedicated AI agent page for BrandHUB
  *
- * Capabilities:
- *  • Answer questions about the org's brands (reads live Supabase data)
- *  • Generate / suggest brand assets and content
- *  • Automate tasks (trigger exports, backups, edits)
- *  • Provide intelligence insights & recommendations
- *
- * Architecture:
- *  1. On load, fetch org brands + products from Supabase and build a rich
- *     system-prompt context string.
- *  2. Each user turn is sent to the Anthropic API (claude-sonnet-4-20250514)
- *     via the existing api.anthropic.com proxy that the app already uses.
- *  3. Tool definitions let the agent call back into the app (navigate, export,
- *     trigger backup, etc.) without leaving the page.
- *  4. Conversation history is kept in React state for multi-turn context.
+ * Routes all AI calls through the existing `dataforce-assistant` Supabase edge
+ * function (same as BrandAgentWidget), which proxies to the Lovable AI gateway.
+ * Navigation is handled client-side by parsing the [[nav:...]] link format the
+ * edge function already emits.
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -44,6 +34,7 @@ import {
   Lightbulb,
   Shield,
   Globe,
+  ExternalLink,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -54,25 +45,21 @@ interface Message {
   id: string;
   role: Role;
   content: string;
-  toolCalls?: ToolCall[];
   timestamp: Date;
 }
 
-interface ToolCall {
-  name: string;
-  result: string;
+interface NavLink {
+  label: string;
+  path: string;
 }
 
 interface BrandSummary {
   id: string;
   name: string;
   slug: string;
-  colors: string[];
-  tagline: string;
-  productCount: number;
 }
 
-// ─── Suggested prompts per capability ────────────────────────────────────────
+// ─── Suggested prompts ───────────────────────────────────────────────────────
 
 const PROMPT_GROUPS = [
   {
@@ -97,12 +84,12 @@ const PROMPT_GROUPS = [
   },
   {
     icon: Zap,
-    label: 'Automate tasks',
+    label: 'Navigate app',
     color: 'text-emerald-500',
     prompts: [
-      'Open the Brand Editor for my newest brand',
       'Take me to the Color Lab',
-      'Navigate to Social Asset Studio',
+      'Open Social Asset Studio',
+      'Show me the Expo Floor Planner',
     ],
   },
   {
@@ -117,86 +104,50 @@ const PROMPT_GROUPS = [
   },
 ];
 
-// ─── Build system prompt from live Supabase data ──────────────────────────────
+// ─── Nav link parser ──────────────────────────────────────────────────────────
+// Handles [[nav:TYPE:SLUG:SECTION|LABEL]] markers emitted by dataforce-assistant
 
-function buildSystemPrompt(
-  orgName: string,
-  brands: BrandSummary[],
-  userEmail: string
-): string {
-  const brandList = brands
-    .map(
-      (b) =>
-        `- **${b.name}** (slug: ${b.slug}): "${b.tagline || 'no tagline'}", ` +
-        `${b.productCount} product(s), ` +
-        `colors: ${b.colors.length > 0 ? b.colors.join(', ') : 'none set'}`
-    )
-    .join('\n');
-
-  return `You are BrandAgent, an expert AI assistant embedded inside BrandHUB — a brand management platform used by ${orgName}.
-
-You are talking to ${userEmail}.
-
-## Your capabilities
-1. **Answer questions** about the organization's brands and brand system.
-2. **Generate content** — taglines, voice descriptions, social copy, naming suggestions, color recommendations.
-3. **Automate tasks** — you can navigate to specific pages or trigger actions by calling the built-in tools provided.
-4. **Provide intelligence** — audit brand consistency, surface gaps, score portfolio health, and give actionable recommendations.
-
-## Organization: ${orgName}
-## Current brand portfolio (${brands.length} brand${brands.length !== 1 ? 's' : ''})
-${brandList || '(no brands yet)'}
-
-## Guidelines
-- Be concise and direct. Use markdown formatting (bold, lists, headers) for clarity.
-- When asked to navigate or open a page, use the navigate_to tool — always confirm you did it.
-- When suggesting colors, use hex codes.
-- When you see a brand with missing data (no tagline, no colors), proactively flag it.
-- Never fabricate brand data — only reference what's provided above.
-- Today's date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.`;
+function parseNavLinks(text: string): NavLink[] {
+  const regex = /\[\[nav:([^:\]]+):([^:\]|]+)(?::([^|\]]+))?\|([^\]]+)\]\]/g;
+  const links: NavLink[] = [];
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const [, type, slug, section = '', label] = match;
+    let path = '';
+    if (type === 'brand') path = `/brand/${slug}${section ? `#${section}` : ''}`;
+    else if (type === 'product') path = `/product/${slug}${section ? `#${section}` : ''}`;
+    else if (type === 'event') path = `/event/${slug}${section ? `#${section}` : ''}`;
+    if (path) links.push({ label, path });
+  }
+  return links;
 }
 
-// ─── Tool definitions (sent to Claude) ───────────────────────────────────────
+function stripNavMarkers(text: string): string {
+  return text.replace(/\[\[nav:[^\]]+\]\]/g, '').replace(/ {2,}/g, ' ').trim();
+}
 
-const TOOLS = [
-  {
-    name: 'navigate_to',
-    description:
-      'Navigate the user to a specific page within BrandHUB. Use this when the user asks to open a page, go somewhere, or trigger a navigation action.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        path: {
-          type: 'string',
-          description:
-            'The app path to navigate to, e.g. "/color-lab", "/brand/my-brand", "/social-studio", "/dashboard"',
-        },
-        reason: {
-          type: 'string',
-          description: 'Short explanation of why navigating there',
-        },
-      },
-      required: ['path', 'reason'],
-    },
-  },
-  {
-    name: 'get_brand_details',
-    description:
-      'Retrieve full details for a specific brand by its slug. Use this when the user asks detailed questions about a specific brand.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        brand_slug: {
-          type: 'string',
-          description: 'The slug of the brand to look up',
-        },
-      },
-      required: ['brand_slug'],
-    },
-  },
+// ─── Page shortcut navigation ─────────────────────────────────────────────────
+
+const PAGE_SHORTCUTS: Array<{ keywords: string[]; path: string }> = [
+  { keywords: ['color lab', 'colour lab'], path: '/color-lab' },
+  { keywords: ['social studio', 'social asset studio'], path: '/social-studio' },
+  { keywords: ['ad localizer'], path: '/ad-localizer' },
+  { keywords: ['expo floor', 'floor planner', 'floor plan'], path: '/expo-floor' },
+  { keywords: ['booth catalog', 'booths catalog'], path: '/booths' },
+  { keywords: ['imagery hub'], path: '/imagery-hub' },
+  { keywords: ['admin dashboard', 'admin panel'], path: '/admin' },
+  { keywords: ['knowledge base', 'help center'], path: '/knowledge' },
 ];
 
-// ─── Main component ───────────────────────────────────────────────────────────
+function detectPageNav(text: string): string | null {
+  const lower = text.toLowerCase();
+  for (const s of PAGE_SHORTCUTS) {
+    if (s.keywords.some((kw) => lower.includes(kw))) return s.path;
+  }
+  return null;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const BrandAgentPage = () => {
   const navigate = useNavigate();
@@ -209,115 +160,30 @@ const BrandAgentPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isContextReady, setIsContextReady] = useState(false);
   const [brandSummaries, setBrandSummaries] = useState<BrandSummary[]>([]);
-  const [systemPrompt, setSystemPrompt] = useState('');
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [primaryBrandId, setPrimaryBrandId] = useState<string | null>(null);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const abortRef = useRef<AbortController | null>(null);
-
-  // ── Build brand summaries from BrandContext + Supabase product counts ──────
 
   useEffect(() => {
-    if (!organization || brands.length === 0) {
-      setIsContextReady(true);
-      return;
-    }
-
-    const summaries: BrandSummary[] = brands.map((b) => {
-      const heroColors: string[] = [];
-      if (Array.isArray(b.colors)) {
-        b.colors.slice(0, 4).forEach((c) => {
-          if (c?.hex) heroColors.push(c.hex);
-        });
-      }
-      const brandProducts = products.filter((p) => p.parentBrandId === b.id);
-      return {
-        id: b.id,
-        name: b.hero?.name || b.slug || 'Untitled brand',
-        slug: b.slug || '',
-        colors: heroColors,
-        tagline: b.hero?.tagline || '',
-        productCount: brandProducts.length,
-      };
-    });
-
+    if (!organization) return;
+    const summaries = brands.map((b) => ({ id: b.id, name: b.hero?.name || b.slug || 'Untitled brand', slug: b.slug }));
     setBrandSummaries(summaries);
-    setSystemPrompt(
-      buildSystemPrompt(
-        organization.name,
-        summaries,
-        user?.email || 'the user'
-      )
-    );
+    if (summaries.length > 0) setPrimaryBrandId(summaries[0].id);
     setIsContextReady(true);
-  }, [brands, products, organization, user]);
-
-  // ── Auto-scroll ───────────────────────────────────────────────────────────
+  }, [brands, products, organization]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
-
-  // ── Tool execution (client-side) ──────────────────────────────────────────
-
-  const executeTool = useCallback(
-    async (
-      toolName: string,
-      toolInput: Record<string, string>
-    ): Promise<string> => {
-      if (toolName === 'navigate_to') {
-        const path = toolInput.path as string;
-        navigate(path);
-        return `Navigated to ${path}`;
-      }
-
-      if (toolName === 'get_brand_details') {
-        const slug = toolInput.brand_slug as string;
-        try {
-          const { data: brandData, error } = await supabase
-            .from('brands')
-            .select('id, name, slug, created_at, updated_at')
-            .eq('slug', slug)
-            .maybeSingle();
-
-          if (error || !brandData) {
-            return `Could not find brand with slug "${slug}"`;
-          }
-
-          const brandProducts = products.filter(
-            (p) => p.parentBrandId === brandData.id
-          );
-
-          return JSON.stringify({
-            name: brandData.name,
-            slug: brandData.slug,
-            productCount: brandProducts.length,
-            products: brandProducts.map((p) => ({
-              name: p.hero?.name || p.slug || 'Untitled product',
-              slug: p.slug,
-            })),
-            createdAt: brandData.created_at,
-            lastUpdated: brandData.updated_at,
-          });
-        } catch {
-          return `Error fetching brand details for "${slug}"`;
-        }
-      }
-
-      return `Unknown tool: ${toolName}`;
-    },
-    [navigate, products]
-  );
-
-  // ── Core send / agentic loop ──────────────────────────────────────────────
 
   const sendMessage = useCallback(
     async (overrideText?: string) => {
       const text = (overrideText ?? input).trim();
-      if (!text || isLoading || !systemPrompt) return;
+      if (!text || isLoading || !organization?.id) return;
 
+      const pageNav = detectPageNav(text);
       setInput('');
       setIsLoading(true);
 
@@ -327,123 +193,46 @@ const BrandAgentPage = () => {
         content: text,
         timestamp: new Date(),
       };
-
       setMessages((prev) => [...prev, userMsg]);
 
-      // Build messages array for the API (exclude tool metadata, just role+content)
-      const apiHistory = [...messages, userMsg].map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      abortRef.current = new AbortController();
-
       try {
-        // Agentic loop — continue until no more tool_use blocks
-        let continueLoop = true;
-        let loopHistory: Array<{ role: string; content: any }> = apiHistory;
-        const accumulatedToolCalls: ToolCall[] = [];
+        const { data, error } = await supabase.functions.invoke('dataforce-assistant', {
+          body: {
+            organization_id: organization.id,
+            entity_type: primaryBrandId ? 'brand' : undefined,
+            entity_id: primaryBrandId ?? undefined,
+            message: text,
+            conversation_id: conversationId,
+            language_code: 'en_US',
+            conversation_style: 'direct',
+          },
+        });
 
-        while (continueLoop) {
-          const response = await fetch(
-            'https://api.anthropic.com/v1/messages',
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              signal: abortRef.current.signal,
-              body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
-                max_tokens: 1024,
-                system: systemPrompt,
-                tools: TOOLS,
-                messages: loopHistory,
-              }),
-            }
-          );
+        if (error) throw new Error(error.message);
+        if (!data?.success) throw new Error(data?.error || 'Failed to get response');
 
-          if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
-          }
+        if (data.conversationId) setConversationId(data.conversationId);
 
-          const data = await response.json();
-
-          // Collect text content
-          const textBlocks: string[] = data.content
-            .filter((b: { type: string }) => b.type === 'text')
-            .map((b: { text: string }) => b.text);
-
-          const toolUseBlocks = data.content.filter(
-            (b: { type: string }) => b.type === 'tool_use'
-          );
-
-          if (toolUseBlocks.length > 0) {
-            // Execute each tool
-            const toolResults: Array<{
-              type: string;
-              tool_use_id: string;
-              content: string;
-            }> = [];
-
-            for (const toolBlock of toolUseBlocks) {
-              const result = await executeTool(
-                toolBlock.name,
-                toolBlock.input as Record<string, string>
-              );
-              accumulatedToolCalls.push({
-                name: toolBlock.name,
-                result,
-              });
-              toolResults.push({
-                type: 'tool_result',
-                tool_use_id: toolBlock.id,
-                content: result,
-              });
-            }
-
-            // Continue loop with tool results appended
-            loopHistory = [
-              ...loopHistory,
-              { role: 'assistant', content: data.content },
-              { role: 'user', content: toolResults },
-            ];
-
-            // If there's already a text block and stop_reason is end_turn, stop
-            if (data.stop_reason === 'end_turn' && textBlocks.length > 0) {
-              continueLoop = false;
-            }
-          } else {
-            // No tool use — final response
-            continueLoop = false;
-
-            const assistantText =
-              textBlocks.join('\n\n') ||
-              "I've completed the action.";
-
-            const assistantMsg: Message = {
-              id: crypto.randomUUID(),
-              role: 'assistant',
-              content: assistantText,
-              toolCalls:
-                accumulatedToolCalls.length > 0
-                  ? accumulatedToolCalls
-                  : undefined,
-              timestamp: new Date(),
-            };
-
-            setMessages((prev) => [...prev, assistantMsg]);
-          }
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name === 'AbortError') return;
-        console.error('[BrandAgent] Error:', err);
-        toast.error('Agent error — please try again');
         setMessages((prev) => [
           ...prev,
           {
             id: crypto.randomUUID(),
             role: 'assistant',
-            content:
-              'Sorry, I encountered an error. Please try again.',
+            content: data.message,
+            timestamp: new Date(),
+          },
+        ]);
+
+        if (pageNav) setTimeout(() => navigate(pageNav), 800);
+      } catch (err) {
+        console.error('[BrandAgent]', err);
+        toast.error(err instanceof Error ? err.message : 'Agent error — please try again');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: 'Sorry, I encountered an error. Please try again.',
             timestamp: new Date(),
           },
         ]);
@@ -451,7 +240,7 @@ const BrandAgentPage = () => {
         setIsLoading(false);
       }
     },
-    [input, isLoading, systemPrompt, messages, executeTool]
+    [input, isLoading, organization?.id, primaryBrandId, conversationId, navigate]
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -461,51 +250,56 @@ const BrandAgentPage = () => {
     }
   };
 
-  const clearConversation = () => {
-    setMessages([]);
-    inputRef.current?.focus();
+  const mdComponents: Components = useMemo(
+    () => ({
+      a: ({ href, children, ...props }) => (
+        <a {...props} href={href} target="_blank" rel="noopener noreferrer"
+          className="text-primary underline underline-offset-2">
+          {children}
+        </a>
+      ),
+      code: ({ children, ...props }) => (
+        <code {...props} className="bg-background px-1.5 py-0.5 rounded text-sm font-mono">
+          {children}
+        </code>
+      ),
+    }),
+    []
+  );
+
+  const renderAssistantMessage = (msg: Message) => {
+    const navLinks = parseNavLinks(msg.content);
+    const displayText = stripNavMarkers(msg.content);
+    return (
+      <>
+        <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h2]:text-sm [&>h3]:text-sm">
+          <ReactMarkdown components={mdComponents}>{displayText}</ReactMarkdown>
+        </div>
+        {navLinks.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {navLinks.map((link, i) => (
+              <button key={i} onClick={() => navigate(link.path)}
+                className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-colors">
+                <ExternalLink className="h-3 w-3" />
+                {link.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </>
+    );
   };
-
-  // ── Markdown renderer ─────────────────────────────────────────────────────
-
-  const mdComponents: Components = {
-    a: ({ href, children, ...props }) => (
-      <a
-        {...props}
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-primary underline underline-offset-2"
-      >
-        {children}
-      </a>
-    ),
-    code: ({ children, ...props }) => (
-      <code
-        {...props}
-        className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono"
-      >
-        {children}
-      </code>
-    ),
-  };
-
-  // ── Empty state ───────────────────────────────────────────────────────────
 
   const isEmpty = messages.length === 0;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* ── Header ─────────────────────────────────────────────────────── */}
+      {/* Header */}
       <header className="border-b border-border/60 bg-background/95 backdrop-blur-sm sticky top-0 z-20">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-              className="gap-1.5 text-muted-foreground hover:text-foreground"
-            >
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}
+              className="gap-1.5 text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
             </Button>
@@ -515,25 +309,16 @@ const BrandAgentPage = () => {
                 <Bot className="h-4 w-4 text-primary" />
               </div>
               <span className="font-semibold text-sm">BrandAgent</span>
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-                Beta
-              </Badge>
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">Beta</Badge>
             </div>
           </div>
-
           <div className="flex items-center gap-2">
             {organization && (
-              <span className="text-xs text-muted-foreground hidden sm:inline">
-                {organization.name}
-              </span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">{organization.name}</span>
             )}
             {messages.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearConversation}
-                className="gap-1.5 text-muted-foreground hover:text-foreground text-xs"
-              >
+              <Button variant="ghost" size="sm" onClick={() => { setMessages([]); setConversationId(null); }}
+                className="gap-1.5 text-muted-foreground hover:text-foreground text-xs">
                 <RefreshCw className="h-3.5 w-3.5" />
                 New chat
               </Button>
@@ -542,61 +327,40 @@ const BrandAgentPage = () => {
         </div>
       </header>
 
-      {/* ── Main area ──────────────────────────────────────────────────── */}
+      {/* Main */}
       <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 pb-4">
         {isEmpty ? (
-          /* ── Empty / welcome state ─────────────────────────────────── */
           <div className="flex-1 flex flex-col items-center justify-center py-16 gap-10">
-            {/* Hero */}
             <div className="text-center space-y-3">
               <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
                 <Sparkles className="h-7 w-7 text-primary" />
               </div>
-              <h1 className="text-2xl font-semibold tracking-tight">
-                BrandAgent
-              </h1>
+              <h1 className="text-2xl font-semibold tracking-tight">BrandAgent</h1>
               <p className="text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">
-                Your AI assistant for brand management.{' '}
                 {isContextReady && brandSummaries.length > 0 ? (
-                  <>
-                    I have context on{' '}
-                    <span className="text-foreground font-medium">
-                      {brandSummaries.length} brand
-                      {brandSummaries.length !== 1 ? 's' : ''}
-                    </span>{' '}
-                    in your portfolio.
-                  </>
+                  <>I have context on <span className="text-foreground font-medium">
+                    {brandSummaries.length} brand{brandSummaries.length !== 1 ? 's' : ''}
+                  </span> in your portfolio. Ask me anything.</>
                 ) : (
-                  'Ask anything about your brands, get content generated, or let me navigate for you.'
+                  'Your AI assistant for brand management. Ask anything about your brands.'
                 )}
               </p>
             </div>
 
-            {/* Capability pills */}
             <div className="grid grid-cols-2 gap-3 w-full max-w-xl">
               {PROMPT_GROUPS.map((group) => {
                 const Icon = group.icon;
                 return (
-                  <div
-                    key={group.label}
-                    className="rounded-xl border border-border/60 bg-card p-4 space-y-3"
-                  >
+                  <div key={group.label} className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
                     <div className="flex items-center gap-2">
-                      <Icon
-                        className={`h-4 w-4 ${group.color}`}
-                      />
-                      <span className="text-xs font-medium text-muted-foreground">
-                        {group.label}
-                      </span>
+                      <Icon className={`h-4 w-4 ${group.color}`} />
+                      <span className="text-xs font-medium text-muted-foreground">{group.label}</span>
                     </div>
                     <div className="space-y-1.5">
                       {group.prompts.map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => sendMessage(p)}
+                        <button key={p} onClick={() => sendMessage(p)}
                           disabled={!isContextReady || isLoading}
-                          className="w-full text-left text-xs px-2.5 py-1.5 rounded-lg hover:bg-muted transition-colors text-foreground/80 hover:text-foreground flex items-center justify-between group"
-                        >
+                          className="w-full text-left text-xs px-2.5 py-1.5 rounded-lg hover:bg-muted transition-colors text-foreground/80 hover:text-foreground flex items-center justify-between group disabled:opacity-40 disabled:cursor-not-allowed">
                           <span>{p}</span>
                           <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity shrink-0" />
                         </button>
@@ -607,7 +371,6 @@ const BrandAgentPage = () => {
               })}
             </div>
 
-            {/* Context status */}
             {!isContextReady && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -616,56 +379,22 @@ const BrandAgentPage = () => {
             )}
           </div>
         ) : (
-          <ScrollArea className="flex-1 py-6" ref={scrollRef as React.RefObject<HTMLDivElement>}>
+          <ScrollArea className="flex-1 py-6">
             <div className="space-y-6">
               {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex gap-3 ${
-                    msg.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-                >
+                <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {msg.role === 'assistant' && (
                     <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                       <Bot className="h-4 w-4 text-primary" />
                     </div>
                   )}
-
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                      msg.role === 'user'
-                        ? 'bg-primary text-primary-foreground rounded-tr-sm'
-                        : 'bg-muted rounded-tl-sm'
-                    }`}
-                  >
-                    {msg.role === 'assistant' ? (
-                      <>
-                        <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h1]:text-base [&>h2]:text-sm [&>h3]:text-sm">
-                          <ReactMarkdown components={mdComponents}>
-                            {msg.content}
-                          </ReactMarkdown>
-                        </div>
-
-                        {/* Tool call badges */}
-                        {msg.toolCalls && msg.toolCalls.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1.5">
-                            {msg.toolCalls.map((tc, i) => (
-                              <span
-                                key={i}
-                                className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-background/60 border border-border/50 text-muted-foreground"
-                              >
-                                <Zap className="h-2.5 w-2.5" />
-                                {tc.name.replace(/_/g, ' ')}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <p>{msg.content}</p>
-                    )}
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-primary text-primary-foreground rounded-tr-sm'
+                      : 'bg-muted rounded-tl-sm'
+                  }`}>
+                    {msg.role === 'assistant' ? renderAssistantMessage(msg) : <p>{msg.content}</p>}
                   </div>
-
                   {msg.role === 'user' && (
                     <div className="h-7 w-7 rounded-lg bg-secondary flex items-center justify-center shrink-0 mt-0.5">
                       <User className="h-4 w-4 text-muted-foreground" />
@@ -673,8 +402,6 @@ const BrandAgentPage = () => {
                   )}
                 </div>
               ))}
-
-              {/* Typing indicator */}
               {isLoading && (
                 <div className="flex gap-3 justify-start">
                   <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -689,11 +416,12 @@ const BrandAgentPage = () => {
                   </div>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
         )}
 
-        {/* ── Input bar ──────────────────────────────────────────────── */}
+        {/* Input */}
         <div className={`${isEmpty ? 'max-w-xl mx-auto w-full' : ''} mt-4`}>
           <div className="relative flex items-end gap-2 rounded-2xl border border-border/80 bg-card shadow-sm focus-within:border-border focus-within:ring-1 focus-within:ring-ring/20 transition-all px-4 py-3">
             <textarea
@@ -702,8 +430,7 @@ const BrandAgentPage = () => {
               onChange={(e) => {
                 setInput(e.target.value);
                 e.target.style.height = 'auto';
-                e.target.style.height =
-                  Math.min(e.target.scrollHeight, 160) + 'px';
+                e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
               }}
               onKeyDown={handleKeyDown}
               placeholder="Ask BrandAgent anything…"
@@ -712,21 +439,12 @@ const BrandAgentPage = () => {
               className="flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none min-h-[24px] max-h-[160px] leading-relaxed disabled:opacity-50"
               style={{ height: '24px' }}
             />
-            <Button
-              size="sm"
-              onClick={() => sendMessage()}
+            <Button size="sm" onClick={() => sendMessage()}
               disabled={!input.trim() || isLoading || !isContextReady}
-              className="h-8 w-8 p-0 rounded-lg shrink-0"
-            >
-              {isLoading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Send className="h-3.5 w-3.5" />
-              )}
+              className="h-8 w-8 p-0 rounded-lg shrink-0">
+              {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
             </Button>
           </div>
-
-          {/* Capability hint strip */}
           <div className="flex items-center justify-center gap-4 mt-2.5 flex-wrap">
             {[
               { icon: Palette, label: 'Brand data' },
@@ -734,10 +452,7 @@ const BrandAgentPage = () => {
               { icon: Globe, label: 'Navigation' },
               { icon: Shield, label: 'Intelligence' },
             ].map(({ icon: Icon, label }) => (
-              <span
-                key={label}
-                className="flex items-center gap-1 text-[10px] text-muted-foreground/60"
-              >
+              <span key={label} className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
                 <Icon className="h-3 w-3" />
                 {label}
               </span>
