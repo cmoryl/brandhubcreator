@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import {
   applyCustomization,
   expressionStateColor,
+  gradientBlurOverlayStyle,
   type BrandLayoutTemplate,
   type LayoutTemplateCustomization,
   type ResolvedSlot,
