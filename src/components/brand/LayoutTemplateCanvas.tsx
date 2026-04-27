@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import {
   applyCustomization,
   expressionStateColor,
+  gradientBlurOverlayStyle,
   type BrandLayoutTemplate,
   type LayoutTemplateCustomization,
   type ResolvedSlot,
@@ -119,6 +120,15 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
             </div>
           );
         })}
+
+        {/* Advanced gradient blur overlays — separate imagery zones & boost copy legibility */}
+        {customization?.gradientBlurOverlays?.map((ov) => (
+          <div
+            key={ov.id}
+            aria-hidden
+            style={gradientBlurOverlayStyle(ov, primaryColor ?? 'hsl(229 100% 12%)')}
+          />
+        ))}
 
         {/* Overlay copy */}
         {merged.overlay?.eyebrow && (copy?.eyebrow || presentationMode) && (

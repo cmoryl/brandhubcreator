@@ -1,3 +1,4 @@
+import type React from 'react';
 /**
  * Brand Guide Layout Templates
  *
@@ -872,8 +873,125 @@ export interface LayoutTemplateCustomization {
   slotFitOverrides?: Record<string, { fit: 'cover' | 'contain'; focusX: number; focusY: number }>;
   /** Overlay alignment / position overrides. */
   overlayOverrides?: BrandLayoutTemplate['overlay'];
+  /**
+   * Advanced gradient blur overlays for separating imagery zones,
+   * creating depth, and enhancing copy legibility.
+   * Multiple overlays stack in order (first = bottom layer).
+   */
+  gradientBlurOverlays?: GradientBlurOverlay[];
   createdAt: string;
 }
+
+/** Preset gradient blur overlay styles for imagery template separation. */
+export type GradientBlurPreset =
+  | 'edge-fade-bottom'
+  | 'edge-fade-top'
+  | 'edge-fade-left'
+  | 'edge-fade-right'
+  | 'vignette'
+  | 'split-horizontal'
+  | 'split-vertical'
+  | 'radial-spotlight'
+  | 'diagonal-sweep'
+  | 'frosted-band-bottom'
+  | 'frosted-band-top'
+  | 'corner-glow';
+
+export interface GradientBlurOverlay {
+  id: string;
+  preset: GradientBlurPreset;
+  /** Tint color (hex or hsl string). Defaults to brand primary or black. */
+  color?: string;
+  /** 0–100 — overall opacity of the overlay. */
+  opacity?: number;
+  /** 0–40 — backdrop blur strength in px applied behind the gradient. */
+  blur?: number;
+  /** Optional blend mode. */
+  blendMode?: 'normal' | 'multiply' | 'overlay' | 'soft-light' | 'screen';
+  /** When true, only the gradient (not blur) extends to full canvas. */
+  fullBleed?: boolean;
+}
+
+/**
+ * Build CSS background + backdrop-filter for a gradient blur overlay preset.
+ * Returns inline style + className-friendly object.
+ */
+export const gradientBlurOverlayStyle = (
+  ov: GradientBlurOverlay,
+  fallbackColor = 'hsl(229 100% 12%)',
+): React.CSSProperties => {
+  const color = ov.color ?? fallbackColor;
+  const opacity = (ov.opacity ?? 70) / 100;
+  const blur = ov.blur ?? 12;
+  const blend = ov.blendMode ?? 'normal';
+
+  const transparent = 'transparent';
+  let background = '';
+  switch (ov.preset) {
+    case 'edge-fade-bottom':
+      background = `linear-gradient(to top, ${color} 0%, ${color}cc 25%, ${transparent} 70%)`;
+      break;
+    case 'edge-fade-top':
+      background = `linear-gradient(to bottom, ${color} 0%, ${color}cc 25%, ${transparent} 70%)`;
+      break;
+    case 'edge-fade-left':
+      background = `linear-gradient(to right, ${color} 0%, ${color}cc 25%, ${transparent} 70%)`;
+      break;
+    case 'edge-fade-right':
+      background = `linear-gradient(to left, ${color} 0%, ${color}cc 25%, ${transparent} 70%)`;
+      break;
+    case 'vignette':
+      background = `radial-gradient(ellipse at center, ${transparent} 45%, ${color}aa 90%, ${color} 100%)`;
+      break;
+    case 'split-horizontal':
+      background = `linear-gradient(to bottom, ${color} 0%, ${color} 49%, ${transparent} 50%, ${transparent} 100%)`;
+      break;
+    case 'split-vertical':
+      background = `linear-gradient(to right, ${color} 0%, ${color} 49%, ${transparent} 50%, ${transparent} 100%)`;
+      break;
+    case 'radial-spotlight':
+      background = `radial-gradient(circle at 50% 45%, ${transparent} 25%, ${color}80 60%, ${color} 95%)`;
+      break;
+    case 'diagonal-sweep':
+      background = `linear-gradient(135deg, ${color} 0%, ${color}99 30%, ${transparent} 65%)`;
+      break;
+    case 'frosted-band-bottom':
+      background = `linear-gradient(to top, ${color}e6 0%, ${color}b3 60%, ${transparent} 100%)`;
+      break;
+    case 'frosted-band-top':
+      background = `linear-gradient(to bottom, ${color}e6 0%, ${color}b3 60%, ${transparent} 100%)`;
+      break;
+    case 'corner-glow':
+      background = `radial-gradient(circle at 100% 0%, ${color} 0%, ${color}66 25%, ${transparent} 55%)`;
+      break;
+  }
+
+  return {
+    position: 'absolute',
+    inset: 0,
+    background,
+    opacity,
+    mixBlendMode: blend,
+    backdropFilter: blur > 0 ? `blur(${blur}px)` : undefined,
+    WebkitBackdropFilter: blur > 0 ? `blur(${blur}px)` : undefined,
+    pointerEvents: 'none',
+  };
+};
+
+export const gradientBlurPresetLabels: Record<GradientBlurPreset, string> = {
+  'edge-fade-bottom': 'Edge Fade · Bottom',
+  'edge-fade-top': 'Edge Fade · Top',
+  'edge-fade-left': 'Edge Fade · Left',
+  'edge-fade-right': 'Edge Fade · Right',
+  vignette: 'Vignette',
+  'split-horizontal': 'Split · Horizontal',
+  'split-vertical': 'Split · Vertical',
+  'radial-spotlight': 'Radial Spotlight',
+  'diagonal-sweep': 'Diagonal Sweep',
+  'frosted-band-bottom': 'Frosted Band · Bottom',
+  'frosted-band-top': 'Frosted Band · Top',
+  'corner-glow': 'Corner Glow',
+};
 
 /** Default fit settings for a slot when no override exists. */
 export const defaultSlotFit = { fit: 'cover' as const, focusX: 50, focusY: 50 };
