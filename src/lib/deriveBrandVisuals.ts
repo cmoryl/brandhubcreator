@@ -25,12 +25,14 @@ import type {
   BrandMotionAsset,
   ExpressionState,
 } from './brandLayoutTemplates';
+import { getStartersForBrand } from './brandPhotographyStarters';
 
 interface DeriveSource {
   brandSlug?: string;
   hero?: { coverImage?: string; coverVideo?: string; useVideo?: boolean; name?: string };
   logos?: Array<{ id?: string; url?: string; name?: string; variant?: string }>;
   imagery?: Array<{ id?: string; url?: string; imageUrl?: string; name?: string; title?: string; description?: string; category?: string; pillar?: string; tags?: string[] }>;
+  /** Patterns are accepted for back-compat but intentionally ignored — they no longer feed layout templates. */
   patterns?: Array<{ id?: string; url?: string; name?: string }>;
   gradients?: Array<{ id?: string; name?: string; css?: string; preview?: string; previewImage?: string }>;
   approvedImagery?: { sections?: Array<{ name?: string; images?: Array<{ url?: string; tags?: string[] }> }> };
@@ -81,14 +83,22 @@ function guessAspect(url: string | undefined): string {
  *  template — keyed by ExpressionState. */
 const TP_CANONICAL_ASSETS: BrandStaticAsset[] = [
   // Foundation — luminous dome
-  { id: 'tp-canonical-hero-dome-3000', name: 'TP Hero Dome (wide)', expressionState: 'Foundation', aspectRatio: '30:13', imageUrl: '/orbs/tp-hero-dome-3000x1300.png', description: 'TransPerfect canonical foundation hero — luminous dome' },
-  { id: 'tp-canonical-hero-dome-2400', name: 'TP Hero Dome', expressionState: 'Foundation', aspectRatio: '16:10', imageUrl: '/orbs/tp-hero-dome-2400x1500.png', description: 'TransPerfect canonical foundation hero' },
-  { id: 'tp-canonical-card-portrait', name: 'TP Card Portrait', expressionState: 'Foundation', aspectRatio: '12:13', imageUrl: '/orbs/tp-card-portrait-2400x2600.png', description: 'TransPerfect canonical portrait card gradient' },
+  { id: 'tp-canonical-hero-dome-3000', name: 'TP Hero Dome (wide)', expressionState: 'Foundation', aspectRatio: '30:13', category: 'abstract', imageUrl: '/orbs/tp-hero-dome-3000x1300.png', description: 'TransPerfect canonical foundation hero — luminous dome' },
+  { id: 'tp-canonical-hero-dome-2400', name: 'TP Hero Dome', expressionState: 'Foundation', aspectRatio: '16:10', category: 'abstract', imageUrl: '/orbs/tp-hero-dome-2400x1500.png', description: 'TransPerfect canonical foundation hero' },
+  { id: 'tp-canonical-card-portrait', name: 'TP Card Portrait', expressionState: 'Foundation', aspectRatio: '12:13', category: 'abstract', imageUrl: '/orbs/tp-card-portrait-2400x2600.png', description: 'TransPerfect canonical portrait card gradient' },
   // Collaborate — twin/intersecting orbs
-  { id: 'tp-canonical-illustrative-duo', name: 'TP Illustrative Duo', expressionState: 'Collaborate', aspectRatio: '16:10', imageUrl: '/orbs/tp-illustrative-duo-2400x1500.png', description: 'TransPerfect canonical collaborate — illustrative orb duo' },
-  { id: 'tp-canonical-casestudy-duo', name: 'TP Case Study Duo', expressionState: 'Collaborate', aspectRatio: '20:11', imageUrl: '/orbs/tp-casestudy-duo-2400x1290.png', description: 'TransPerfect canonical collaborate — case study orb duo' },
-  { id: 'tp-canonical-casestudy-banner', name: 'TP Case Study Banner', expressionState: 'Collaborate', aspectRatio: '125:26', imageUrl: '/orbs/tp-casestudy-banner-3000x624.png', description: 'TransPerfect canonical collaborate — banner orb pair' },
+  { id: 'tp-canonical-illustrative-duo', name: 'TP Illustrative Duo', expressionState: 'Collaborate', aspectRatio: '16:10', category: 'abstract', imageUrl: '/orbs/tp-illustrative-duo-2400x1500.png', description: 'TransPerfect canonical collaborate — illustrative orb duo' },
+  { id: 'tp-canonical-casestudy-duo', name: 'TP Case Study Duo', expressionState: 'Collaborate', aspectRatio: '20:11', category: 'abstract', imageUrl: '/orbs/tp-casestudy-duo-2400x1290.png', description: 'TransPerfect canonical collaborate — case study orb duo' },
+  { id: 'tp-canonical-casestudy-banner', name: 'TP Case Study Banner', expressionState: 'Collaborate', aspectRatio: '125:26', category: 'abstract', imageUrl: '/orbs/tp-casestudy-banner-3000x624.png', description: 'TransPerfect canonical collaborate — banner orb pair' },
 ];
+
+/** Map a photography starter preset to an ExpressionState for layout slotting. */
+function starterToState(presets: string[], idx: number): ExpressionState {
+  if (presets.includes('softTransition')) return 'Transform'; // brand-gradient washes
+  if (presets.includes('goldenHourIntimate')) return 'Foundation'; // calm, anchor
+  if (presets.includes('documentaryPortrait')) return 'Collaborate'; // people, partnership
+  return idx % 3 === 0 ? 'Foundation' : idx % 3 === 1 ? 'Collaborate' : 'Transform';
+}
 
 export function deriveBrandVisuals(source: DeriveSource | undefined): BrandVisualsBundle {
   if (!source) return { staticAssets: [], motionAssets: [] };
@@ -97,9 +107,25 @@ export function deriveBrandVisuals(source: DeriveSource | undefined): BrandVisua
   const motionAssets: BrandMotionAsset[] = [];
 
   // 0. Brand-canonical pre-approved abstract assets (highest priority)
-  if (source.brandSlug?.toLowerCase() === 'transperfect') {
+  const slug = source.brandSlug?.toLowerCase();
+  if (slug === 'transperfect') {
     staticAssets.push(...TP_CANONICAL_ASSETS);
   }
+
+  // 0b. Brand photography starters → human-category assets, available alongside abstract.
+  const starters = getStartersForBrand(slug);
+  starters.forEach((s, idx) => {
+    staticAssets.push({
+      id: `starter-${s.id}`,
+      name: s.title,
+      expressionState: starterToState(s.presets as string[], idx),
+      aspectRatio: '1:1',
+      category: 'human',
+      imageUrl: s.url,
+      tags: s.tags,
+      description: s.title,
+    });
+  });
 
   // 1. Hero — Foundation anchor (only if not human photography)
   if (source.hero?.coverImage && !isHumanPhotography(source.hero.coverImage)) {
@@ -169,18 +195,9 @@ export function deriveBrandVisuals(source: DeriveSource | undefined): BrandVisua
   });
 
 
-  // 5. Patterns — Collaborate (texture, depth, partnership feel)
-  (source.patterns ?? []).forEach((p, idx) => {
-    if (!p.url) return;
-    staticAssets.push({
-      id: `derived-pattern-${p.id ?? idx}`,
-      name: p.name || `Pattern ${idx + 1}`,
-      expressionState: classifyState(p.name, 'Collaborate'),
-      aspectRatio: '1:1',
-      imageUrl: p.url,
-      description: 'Brand pattern',
-    });
-  });
+  // 5. Patterns intentionally REMOVED from layout-template visuals.
+  //    They belong to the Patterns library section, not the Foundation /
+  //    Collaborate / Transform abstract slots.
 
   // 6. Gradients — Transform (energy, motion). Use preview image if available.
   (source.gradients ?? []).forEach((g, idx) => {

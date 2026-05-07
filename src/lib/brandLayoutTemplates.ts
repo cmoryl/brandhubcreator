@@ -47,6 +47,12 @@ export interface LayoutSlot {
   preferredShape: SlotShape;
   /** Allow motion (video) assets in addition to static. */
   allowMotion?: boolean;
+  /**
+   * Preferred asset category. When set to 'human', the resolver will only
+   * place realistic human photography in this slot. When 'abstract', only
+   * abstract/gradient assets. Omit to allow either.
+   */
+  preferredCategory?: 'abstract' | 'human';
   /** Human label shown in the editor preview. */
   label: string;
   /** Optional CSS grid placement, percentages of the canvas. */
@@ -785,6 +791,150 @@ export const brandLayoutTemplates: BrandLayoutTemplate[] = [
     ],
     overlay: { headline: { y: 82, align: 'center' }, cta: true },
   },
+
+  /* ---------------- HUMAN-LED TEMPLATES (TransPerfect look & feel) ----------------
+   * These templates pair real human photography (preferredCategory: 'human')
+   * with the TransPerfect orb/gradient abstract surfaces. Documentary humans
+   * lead with story; abstract orbs anchor the brand voice. */
+  {
+    id: 'hero-human-foundation-orb',
+    name: 'Hero — Human Lead + Orb Anchor',
+    description: 'Cinematic human portrait left, luminous Foundation orb right.',
+    target: 'hero',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'human', expressionState: 'Foundation', kind: 'background', preferredShape: 'standard', preferredCategory: 'human', label: 'Human portrait', position: { x: 0, y: 0, width: 60, height: 100 } },
+      { key: 'orb', expressionState: 'Foundation', kind: 'feature', preferredShape: 'standard', preferredCategory: 'abstract', label: 'TP orb anchor', position: { x: 60, y: 0, width: 40, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 14, align: 'left' }, headline: { y: 24, align: 'left' }, cta: true },
+  },
+  {
+    id: 'hero-human-fullbleed',
+    name: 'Hero — Human Full-Bleed (Brand Wash)',
+    description: 'Full-bleed brand-gradient human photo with overlaid title.',
+    target: 'hero',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'bg', expressionState: 'Transform', kind: 'background', preferredShape: 'standard', preferredCategory: 'human', label: 'Brand-wash human', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 60, align: 'left' }, headline: { y: 70, align: 'left' }, cta: true },
+  },
+  {
+    id: 'hero-human-orb-overlap',
+    name: 'Hero — Human + Floating Orb Tile',
+    description: 'Wide documentary portrait with a floating TP orb tile overlay.',
+    target: 'hero',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'bg', expressionState: 'Collaborate', kind: 'background', preferredShape: 'wide', preferredCategory: 'human', label: 'Human backdrop', position: { x: 0, y: 0, width: 100, height: 100 } },
+      { key: 'tile', expressionState: 'Foundation', kind: 'feature', preferredShape: 'square', preferredCategory: 'abstract', label: 'TP orb tile', position: { x: 60, y: 18, width: 34, height: 64 } },
+    ],
+    overlay: { eyebrow: { y: 16, align: 'left' }, headline: { y: 26, align: 'left' }, cta: true },
+  },
+  {
+    id: 'services-human-trio',
+    name: 'Services — Human Trio',
+    description: 'Three documentary human moments — people-led service grid.',
+    target: 'services',
+    aspectRatio: 16 / 6,
+    slots: [
+      { key: 'a', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'standard', preferredCategory: 'human', label: 'People A', position: { x: 0, y: 0, width: 33.33, height: 100 } },
+      { key: 'b', expressionState: 'Foundation', kind: 'feature', preferredShape: 'standard', preferredCategory: 'human', label: 'People B', position: { x: 33.33, y: 0, width: 33.33, height: 100 } },
+      { key: 'c', expressionState: 'Transform', kind: 'feature', preferredShape: 'standard', preferredCategory: 'human', label: 'People C', position: { x: 66.66, y: 0, width: 33.34, height: 100 } },
+    ],
+  },
+  {
+    id: 'services-human-orb-mix',
+    name: 'Services — Human + Orb Bento',
+    description: 'Bento mixing two human portraits with an orb anchor and brand banner.',
+    target: 'services',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'human1', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'standard', preferredCategory: 'human', label: 'Human A', position: { x: 0, y: 0, width: 50, height: 60 } },
+      { key: 'orb', expressionState: 'Foundation', kind: 'feature', preferredShape: 'square', preferredCategory: 'abstract', label: 'TP orb', position: { x: 50, y: 0, width: 50, height: 60 } },
+      { key: 'human2', expressionState: 'Transform', kind: 'feature', preferredShape: 'standard', preferredCategory: 'human', label: 'Human B', position: { x: 0, y: 60, width: 65, height: 40 } },
+      { key: 'banner', expressionState: 'Collaborate', kind: 'banner', preferredShape: 'banner', preferredCategory: 'abstract', label: 'TP brand banner', position: { x: 65, y: 60, width: 35, height: 40 } },
+    ],
+  },
+  {
+    id: 'casestudy-human-cover',
+    name: 'Case Study — Human Cover',
+    description: '16:9 documentary human cover with title overlay.',
+    target: 'casestudy',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'cover', expressionState: 'Collaborate', kind: 'background', preferredShape: 'standard', preferredCategory: 'human', label: 'Human cover', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 68, align: 'left' }, headline: { y: 78, align: 'left' }, cta: true },
+  },
+  {
+    id: 'casestudy-human-orb-split',
+    name: 'Case Study — Human + Orb Split',
+    description: 'Human story left, brand orb right — for testimonial covers.',
+    target: 'casestudy',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'human', expressionState: 'Foundation', kind: 'background', preferredShape: 'standard', preferredCategory: 'human', label: 'Human portrait', position: { x: 0, y: 0, width: 55, height: 100 } },
+      { key: 'orb', expressionState: 'Collaborate', kind: 'feature', preferredShape: 'standard', preferredCategory: 'abstract', label: 'TP orb panel', position: { x: 55, y: 0, width: 45, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 60, align: 'right' }, headline: { y: 70, align: 'right' } },
+  },
+  {
+    id: 'social-human-vertical',
+    name: 'Social — Human Vertical 9×16',
+    description: 'Vertical human portrait for Reels / Stories with brand-wash treatment.',
+    target: 'social',
+    aspectRatio: 9 / 16,
+    slots: [
+      { key: 'bg', expressionState: 'Transform', kind: 'background', preferredShape: 'vertical', preferredCategory: 'human', label: 'Brand-wash human', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { headline: { y: 78, align: 'center' }, cta: true },
+  },
+  {
+    id: 'social-human-square',
+    name: 'Social — Human Square',
+    description: 'Square documentary human card for feed posts.',
+    target: 'social',
+    aspectRatio: 1,
+    slots: [
+      { key: 'bg', expressionState: 'Collaborate', kind: 'card', preferredShape: 'square', preferredCategory: 'human', label: 'Human square', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 8, align: 'left' }, headline: { y: 75, align: 'left' } },
+  },
+  {
+    id: 'editorial-human-spread',
+    name: 'Editorial — Human Spread',
+    description: 'Human-led editorial spread with orb inset accent.',
+    target: 'editorial',
+    aspectRatio: 16 / 10,
+    slots: [
+      { key: 'main', expressionState: 'Foundation', kind: 'background', preferredShape: 'wide', preferredCategory: 'human', label: 'Human spread', position: { x: 0, y: 0, width: 100, height: 100 } },
+      { key: 'inset', expressionState: 'Foundation', kind: 'feature', preferredShape: 'square', preferredCategory: 'abstract', label: 'TP orb inset', position: { x: 5, y: 60, width: 22, height: 32 } },
+    ],
+    overlay: { eyebrow: { y: 8, align: 'left' }, headline: { y: 14, align: 'left' } },
+  },
+  {
+    id: 'product-human-card',
+    name: 'Product — Human Card',
+    description: 'People-led product suite cover.',
+    target: 'product',
+    aspectRatio: 16 / 10,
+    slots: [
+      { key: 'bg', expressionState: 'Foundation', kind: 'card', preferredShape: 'standard', preferredCategory: 'human', label: 'Human cover', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 10, align: 'left' }, headline: { y: 75, align: 'left' } },
+  },
+  {
+    id: 'event-human-banner',
+    name: 'Event — Human + Brand Wash',
+    description: 'Human-led event hero with TP brand-gradient treatment.',
+    target: 'event',
+    aspectRatio: 16 / 9,
+    slots: [
+      { key: 'bg', expressionState: 'Transform', kind: 'background', preferredShape: 'wide', preferredCategory: 'human', label: 'Brand-wash human', position: { x: 0, y: 0, width: 100, height: 100 } },
+    ],
+    overlay: { eyebrow: { y: 14, align: 'center' }, headline: { y: 60, align: 'center' }, cta: true },
+  },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -797,6 +947,12 @@ export interface BrandStaticAsset {
   expressionState: ExpressionState;
   aspectRatio: string;
   imageUrl: string;
+  /**
+   * Asset category — used by templates to request a specific kind of imagery.
+   * - 'abstract' (default): orbs, gradients, abstract brand visuals
+   * - 'human': realistic human photography
+   */
+  category?: 'abstract' | 'human';
   tags?: string[];
   recommendedUse?: string;
   description?: string;
@@ -1041,8 +1197,14 @@ export const resolveTemplate = (
       }
     }
 
-    // 2) Fall back to best-matching static asset for expression state + shape.
-    const candidates = statics.filter((s) => s.expressionState === slot.expressionState);
+    // 2) Fall back to best-matching static asset for expression state + shape + category.
+    const matchesCategory = (s: BrandStaticAsset) =>
+      !slot.preferredCategory || (s.category ?? 'abstract') === slot.preferredCategory;
+    let candidates = statics.filter((s) => s.expressionState === slot.expressionState && matchesCategory(s));
+    // If slot demands a category and no in-state matches, relax expression state but keep category.
+    if (candidates.length === 0 && slot.preferredCategory) {
+      candidates = statics.filter(matchesCategory);
+    }
     if (candidates.length === 0) {
       return { slot, asset: { type: 'empty' } };
     }
@@ -1102,16 +1264,19 @@ export const autoFillSlots = (
       }
     }
 
-    // Static image: prefer same expression state + best aspect, then relax.
-    const sameState = statics.filter((s) => s.expressionState === slot.expressionState);
-    const sortByShape = (pool: typeof statics) =>
-      [...pool].sort(
+    // Static image: prefer same expression state + category + best aspect, then relax.
+    const matchesCategory = (s: BrandStaticAsset) =>
+      !slot.preferredCategory || (s.category ?? 'abstract') === slot.preferredCategory;
+    const pool = statics.filter(matchesCategory);
+    const sameState = pool.filter((s) => s.expressionState === slot.expressionState);
+    const sortByShape = (p: typeof statics) =>
+      [...p].sort(
         (a, b) =>
           shapeAspectScore(slot.preferredShape, b.aspectRatio) -
           shapeAspectScore(slot.preferredShape, a.aspectRatio),
       );
     const sortedSame = sortByShape(sameState);
-    const otherState = sortByShape(statics.filter((s) => s.expressionState !== slot.expressionState));
+    const otherState = sortByShape(pool.filter((s) => s.expressionState !== slot.expressionState));
 
     const pick =
       sortedSame.find((s) => !usedAssetIds.has(s.id)) ??
