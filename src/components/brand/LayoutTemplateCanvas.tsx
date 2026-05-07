@@ -130,70 +130,71 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
           />
         ))}
 
-        {/* Overlay copy */}
-        {merged.overlay?.eyebrow && (copy?.eyebrow || presentationMode) && (
-          <div
-            className="pointer-events-none absolute left-0 right-0 px-[6%]"
-            style={{ top: `${merged.overlay.eyebrow.y}%` }}
-          >
-            <p
-              className={cn(
-                'text-[10px] font-semibold uppercase tracking-[0.2em] text-white/90 drop-shadow',
-                merged.overlay.eyebrow.align === 'center' && 'text-center',
-                merged.overlay.eyebrow.align === 'right' && 'text-right',
-              )}
-              style={{ color: primaryColor }}
-            >
-              {copy?.eyebrow ?? 'Eyebrow'}
-            </p>
-          </div>
-        )}
+        {/* Overlay copy — falls back to per-target demo copy when user hasn't set their own. */}
+        {(() => {
+          const demo = getDemoCopy(template.target);
+          const eyebrowText = copy?.eyebrow ?? demo.eyebrow;
+          const headlineText = copy?.headline ?? demo.headline;
+          const ctaText = copy?.cta ?? demo.cta;
+          const fontStyle: React.CSSProperties = { fontFamily: APPROVED_FONT_STACK };
 
-        {merged.overlay?.headline && (
-          <div
-            className="pointer-events-none absolute left-0 right-0 px-[6%]"
-            style={{ top: `${merged.overlay.headline.y}%` }}
-          >
-            {copy?.headline ? (
-              <h2
-                className={cn(
-                  'text-[clamp(0.95rem,3vw,2.25rem)] font-bold leading-tight text-white drop-shadow-md',
-                  merged.overlay.headline.align === 'center' && 'text-center',
-                  merged.overlay.headline.align === 'right' && 'text-right',
-                )}
-              >
-                {copy.headline}
-              </h2>
-            ) : (
-              !presentationMode && (
+          return (
+            <>
+              {merged.overlay?.eyebrow && (
                 <div
-                  className={cn(
-                    'h-1.5 w-3/5 rounded bg-foreground/40',
-                    merged.overlay.headline.align === 'center' && 'mx-auto',
-                    merged.overlay.headline.align === 'right' && 'ml-auto',
-                  )}
-                />
-              )
-            )}
-          </div>
-        )}
+                  className="pointer-events-none absolute left-0 right-0 px-[6%]"
+                  style={{ top: `${merged.overlay.eyebrow.y}%` }}
+                >
+                  <p
+                    className={cn(
+                      'text-[10px] font-semibold uppercase tracking-[0.2em] text-white/90 drop-shadow',
+                      merged.overlay.eyebrow.align === 'center' && 'text-center',
+                      merged.overlay.eyebrow.align === 'right' && 'text-right',
+                    )}
+                    style={{ ...fontStyle, color: primaryColor }}
+                  >
+                    {eyebrowText}
+                  </p>
+                </div>
+              )}
 
-        {merged.overlay?.cta && copy?.cta && (
-          <div
-            className="pointer-events-none absolute left-0 right-0 px-[6%]"
-            style={{
-              top: `${(merged.overlay.headline?.y ?? 70) + 12}%`,
-              textAlign: merged.overlay.headline?.align ?? 'left',
-            }}
-          >
-            <span
-              className="inline-block rounded-full px-3 py-1 text-[11px] font-semibold text-white shadow"
-              style={{ background: primaryColor ?? 'hsl(229 100% 39%)' }}
-            >
-              {copy.cta}
-            </span>
-          </div>
-        )}
+              {merged.overlay?.headline && (
+                <div
+                  className="pointer-events-none absolute left-0 right-0 px-[6%]"
+                  style={{ top: `${merged.overlay.headline.y}%` }}
+                >
+                  <h2
+                    className={cn(
+                      'text-[clamp(0.95rem,3vw,2.25rem)] font-bold leading-tight text-white drop-shadow-md',
+                      merged.overlay.headline.align === 'center' && 'text-center',
+                      merged.overlay.headline.align === 'right' && 'text-right',
+                    )}
+                    style={fontStyle}
+                  >
+                    {headlineText}
+                  </h2>
+                </div>
+              )}
+
+              {merged.overlay?.cta && (
+                <div
+                  className="pointer-events-none absolute left-0 right-0 px-[6%]"
+                  style={{
+                    top: `${(merged.overlay.headline?.y ?? 70) + 12}%`,
+                    textAlign: merged.overlay.headline?.align ?? 'left',
+                  }}
+                >
+                  <span
+                    className="inline-block rounded-full px-3 py-1 text-[11px] font-semibold text-white shadow"
+                    style={{ ...fontStyle, background: primaryColor ?? 'hsl(229 100% 39%)' }}
+                  >
+                    {ctaText}
+                  </span>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
     );
   },
