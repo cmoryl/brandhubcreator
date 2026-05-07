@@ -203,31 +203,33 @@ export const BrandLayoutTemplateGallery = ({
       </div>
 
       {/* Industry suggestions */}
-      <IndustrySelector
-        value={industry}
-        onChange={setIndustry}
-        className="rounded-lg border bg-muted/30 p-3"
-      />
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-sm [&_*]:!text-white/80 [&_button]:!border-white/15 [&_button]:!bg-white/5 hover:[&_button]:!border-white/30">
+        <IndustrySelector value={industry} onChange={setIndustry} />
+      </div>
 
       {/* Quick collateral preview presets */}
-      <CollateralPresetSwitcher
-        activePresetId={activePreset?.id ?? null}
-        onPresetChange={handlePresetChange}
-        ratioOverride={presetRatioOverride}
-        onRatioOverrideChange={setPresetRatioOverride}
-      />
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-sm">
+        <CollateralPresetSwitcher
+          activePresetId={activePreset?.id ?? null}
+          onPresetChange={handlePresetChange}
+          ratioOverride={presetRatioOverride}
+          onRatioOverrideChange={setPresetRatioOverride}
+        />
+      </div>
 
       {/* Reusable slot presets */}
-      <SlotPresetsPanel
-        presets={slotPresets}
-        onApply={handleApplySlotPreset}
-        onDelete={handleDeleteSlotPreset}
-      />
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-sm">
+        <SlotPresetsPanel
+          presets={slotPresets}
+          onApply={handleApplySlotPreset}
+          onDelete={handleDeleteSlotPreset}
+        />
+      </div>
 
       {/* Saved custom variants */}
       {savedCustomizations && savedCustomizations.length > 0 && (
-        <div className="rounded-lg border bg-muted/30 p-3">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-sm">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">
             Your saved variants ({savedCustomizations.length})
           </p>
           <div className="flex flex-wrap gap-2">
@@ -239,7 +241,7 @@ export const BrandLayoutTemplateGallery = ({
                   key={c.id}
                   size="sm"
                   variant="outline"
-                  className="h-7 text-xs"
+                  className="h-7 border-white/15 bg-white/5 text-xs text-white hover:border-white/30 hover:bg-white/10"
                   onClick={() => openEditor(base, c)}
                 >
                   <Wand2 className="mr-1 h-3 w-3" />
