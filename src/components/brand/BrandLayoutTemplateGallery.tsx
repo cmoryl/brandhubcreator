@@ -113,6 +113,22 @@ export const BrandLayoutTemplateGallery = ({
   const [activeTarget, setActiveTarget] = useState<LayoutSectionTarget | 'all'>('all');
   const [editorOpen, setEditorOpen] = useState(false);
   const [previewTpl, setPreviewTpl] = useState<{ template: BrandLayoutTemplate; resolved: ResolvedSlot[] } | null>(null);
+
+  /** Pick the best brand-approved logo for use on dark imagery overlays.
+   *  Preference order: reversed → monochrome → primary → first available. */
+  const approvedLogoUrl = useMemo(() => {
+    if (!brandLogos?.length) return undefined;
+    const order = ['reversed', 'monochrome', 'primary'];
+    for (const v of order) {
+      const hit = brandLogos.find((l) => l.variant === v && l.url);
+      if (hit?.url) return hit.url;
+    }
+    return brandLogos.find((l) => l.url)?.url;
+  }, [brandLogos]);
+  const approvedLogoVariant = useMemo(() => {
+    if (!approvedLogoUrl) return undefined;
+    return brandLogos?.find((l) => l.url === approvedLogoUrl)?.variant;
+  }, [approvedLogoUrl, brandLogos]);
   const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
   const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
