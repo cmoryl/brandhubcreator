@@ -47,6 +47,12 @@ export interface LayoutSlot {
   preferredShape: SlotShape;
   /** Allow motion (video) assets in addition to static. */
   allowMotion?: boolean;
+  /**
+   * Preferred asset category. When set to 'human', the resolver will only
+   * place realistic human photography in this slot. When 'abstract', only
+   * abstract/gradient assets. Omit to allow either.
+   */
+  preferredCategory?: 'abstract' | 'human';
   /** Human label shown in the editor preview. */
   label: string;
   /** Optional CSS grid placement, percentages of the canvas. */
