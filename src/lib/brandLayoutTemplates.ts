@@ -797,6 +797,12 @@ export interface BrandStaticAsset {
   expressionState: ExpressionState;
   aspectRatio: string;
   imageUrl: string;
+  /**
+   * Asset category — used by templates to request a specific kind of imagery.
+   * - 'abstract' (default): orbs, gradients, abstract brand visuals
+   * - 'human': realistic human photography
+   */
+  category?: 'abstract' | 'human';
   tags?: string[];
   recommendedUse?: string;
   description?: string;
