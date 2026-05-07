@@ -13,7 +13,7 @@ import {
   type ResolvedSlot,
 } from '@/lib/brandLayoutTemplates';
 import { Image as ImageIcon, Film } from 'lucide-react';
-import { getDemoCopy, APPROVED_FONT_STACK } from '@/lib/layoutTemplateDemoCopy';
+import { getDemoCopy, getTemplateTypography, overlayTypeToStyle } from '@/lib/layoutTemplateDemoCopy';
 
 export interface LayoutTemplateCanvasProps {
   template: BrandLayoutTemplate;
