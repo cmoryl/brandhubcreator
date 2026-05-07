@@ -101,6 +101,8 @@ export const LayoutTemplateEditor = ({
   onOpenChange,
   template,
   brandVisuals,
+  approvedLogoUrl,
+  approvedLogoVariant,
   initialCustomization,
   existingCustomizations,
   onSave,
