@@ -114,6 +114,7 @@ export const LayoutTemplatesSection = ({
           {totalConnected > 0 ? (
             <BrandLayoutTemplateGallery
               brandVisuals={brandVisuals}
+              brandLogos={brandLogos}
               savedCustomizations={savedCustomizations}
               onSaveCustomization={onSaveCustomization}
               onApplyToSection={onApplyToSection}
