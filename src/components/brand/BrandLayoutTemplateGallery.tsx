@@ -57,6 +57,7 @@ import {
 
 interface BrandLayoutTemplateGalleryProps {
   brandVisuals?: BrandVisualsBundle;
+  brandLogos?: Array<{ id?: string; url?: string; name?: string; variant?: string }>;
   selectedTemplateId?: string;
   onApply?: (template: BrandLayoutTemplate, resolved: ResolvedSlot[]) => void;
   /** Restrict to specific targets (e.g. only show 'hero' templates in a hero editor). */
