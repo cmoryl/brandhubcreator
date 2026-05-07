@@ -659,6 +659,7 @@ const ProductEditor = () => {
       case 'layouttemplates': {
         const explicitVisuals = (currentProduct as any).brandVisuals;
         const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          brandSlug: (currentProduct as any).brandSlug || (currentProduct as any).parentBrandSlug,
           hero: currentProduct.hero,
           logos: currentProduct.logos,
           imagery: currentProduct.imagery,
