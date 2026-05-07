@@ -71,6 +71,24 @@ export const BrandPhotographyGenerator = ({
   const [newSectionName, setNewSectionName] = useState('AI Photography');
   const [generating, setGenerating] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedStarters, setSelectedStarters] = useState<Set<string>>(new Set());
+  const [savingStarters, setSavingStarters] = useState(false);
+
+  // Resolve starter library by brand slug. For products/events under a brand,
+  // try the parent brand's slug-ified name as a fallback.
+  const starters = useMemo<PhotographyStarter[]>(() => {
+    const slugCandidates = [
+      entity.slug,
+      entity.type !== 'brand'
+        ? entity.parentBrandName?.toLowerCase().replace(/\s+/g, '-')
+        : undefined,
+    ].filter(Boolean) as string[];
+    for (const s of slugCandidates) {
+      const found = getStartersForBrand(s);
+      if (found.length) return found;
+    }
+    return [];
+  }, [entity.slug, entity.parentBrandName, entity.type]);
 
   const presetMeta = BRAND_PHOTO_PRESETS.find(p => p.key === stylePreset)!;
   const isNewSection = targetSectionId === '__new__';
