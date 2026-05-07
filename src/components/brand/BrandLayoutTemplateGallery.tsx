@@ -186,19 +186,19 @@ export const BrandLayoutTemplateGallery = ({
   };
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 text-white">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-center gap-2">
-          <LayoutTemplate className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold">Layout templates</h3>
-          <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+          <LayoutTemplate className="h-4 w-4 text-[hsl(229_100%_75%)]" />
+          <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/80">Templates</h3>
+          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/70">
             {filtered.length}
-          </Badge>
+          </span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-[11px] text-white/50">
           <Sparkles className="h-3 w-3" />
-          Auto-fills with Foundation / Collaborate / Transform visuals
+          Foundation · Collaborate · Transform — auto-placed
         </div>
       </div>
 
