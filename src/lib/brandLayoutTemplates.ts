@@ -1120,16 +1120,19 @@ export const autoFillSlots = (
       }
     }
 
-    // Static image: prefer same expression state + best aspect, then relax.
-    const sameState = statics.filter((s) => s.expressionState === slot.expressionState);
-    const sortByShape = (pool: typeof statics) =>
-      [...pool].sort(
+    // Static image: prefer same expression state + category + best aspect, then relax.
+    const matchesCategory = (s: BrandStaticAsset) =>
+      !slot.preferredCategory || (s.category ?? 'abstract') === slot.preferredCategory;
+    const pool = statics.filter(matchesCategory);
+    const sameState = pool.filter((s) => s.expressionState === slot.expressionState);
+    const sortByShape = (p: typeof statics) =>
+      [...p].sort(
         (a, b) =>
           shapeAspectScore(slot.preferredShape, b.aspectRatio) -
           shapeAspectScore(slot.preferredShape, a.aspectRatio),
       );
     const sortedSame = sortByShape(sameState);
-    const otherState = sortByShape(statics.filter((s) => s.expressionState !== slot.expressionState));
+    const otherState = sortByShape(pool.filter((s) => s.expressionState !== slot.expressionState));
 
     const pick =
       sortedSame.find((s) => !usedAssetIds.has(s.id)) ??
