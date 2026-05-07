@@ -115,18 +115,24 @@ export const BrandLayoutTemplateGallery = ({
   const [previewTpl, setPreviewTpl] = useState<{ template: BrandLayoutTemplate; resolved: ResolvedSlot[] } | null>(null);
 
   /** Pick the best brand-approved logo for use on dark imagery overlays.
-   *  Preference order: reversed → monochrome → primary → first available. */
+   *  Preference order: reversed → monochrome → primary → first available.
+   *  Falls back to the canonical TransPerfect white wordmark so every
+   *  template carries an approved mark even before logos are uploaded. */
+  const TP_FALLBACK_LOGO = '/logos/tp-logo-white.svg';
   const approvedLogoUrl = useMemo(() => {
-    if (!brandLogos?.length) return undefined;
-    const order = ['reversed', 'monochrome', 'primary'];
-    for (const v of order) {
-      const hit = brandLogos.find((l) => l.variant === v && l.url);
-      if (hit?.url) return hit.url;
+    if (brandLogos?.length) {
+      const order = ['reversed', 'monochrome', 'primary'];
+      for (const v of order) {
+        const hit = brandLogos.find((l) => l.variant === v && l.url);
+        if (hit?.url) return hit.url;
+      }
+      const any = brandLogos.find((l) => l.url)?.url;
+      if (any) return any;
     }
-    return brandLogos.find((l) => l.url)?.url;
+    return TP_FALLBACK_LOGO;
   }, [brandLogos]);
   const approvedLogoVariant = useMemo(() => {
-    if (!approvedLogoUrl) return undefined;
+    if (approvedLogoUrl === TP_FALLBACK_LOGO) return 'reversed';
     return brandLogos?.find((l) => l.url === approvedLogoUrl)?.variant;
   }, [approvedLogoUrl, brandLogos]);
   const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
