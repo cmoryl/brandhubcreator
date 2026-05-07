@@ -149,22 +149,6 @@ export function deriveBrandVisuals(source: DeriveSource | undefined): BrandVisua
     });
   });
 
-  // 4. Approved imagery sections — additional Collaborate / Foundation depth
-  (source.approvedImagery?.sections ?? []).forEach((section, sIdx) => {
-    (section.images ?? []).forEach((img, iIdx) => {
-      if (!img.url) return;
-      const text = `${section.name ?? ''} ${(img.tags ?? []).join(' ')}`;
-      const state = classifyState(text, sIdx % 2 === 0 ? 'Foundation' : 'Collaborate');
-      staticAssets.push({
-        id: `derived-approved-${sIdx}-${iIdx}`,
-        name: section.name || 'Approved visual',
-        expressionState: state,
-        aspectRatio: guessAspect(img.url),
-        imageUrl: img.url,
-        tags: img.tags,
-      });
-    });
-  });
 
   // 5. Patterns — Collaborate (texture, depth, partnership feel)
   (source.patterns ?? []).forEach((p, idx) => {
