@@ -102,6 +102,7 @@ const confidenceLevelLabel: Record<ConfidenceLevel, string> = {
 
 export const BrandLayoutTemplateGallery = ({
   brandVisuals,
+  brandLogos,
   selectedTemplateId,
   onApply,
   targets,
