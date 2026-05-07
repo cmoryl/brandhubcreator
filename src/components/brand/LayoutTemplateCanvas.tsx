@@ -32,7 +32,7 @@ export interface LayoutTemplateCanvasProps {
 
 export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCanvasProps>(
   (
-    { template, resolved, customization, presentationMode = false, className, primaryColor },
+    { template, resolved, customization, presentationMode = false, className, primaryColor, logoUrl, logoVariant },
     ref,
   ) => {
     const merged = applyCustomization(template, customization);
