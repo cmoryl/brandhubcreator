@@ -259,10 +259,10 @@ export const BrandLayoutTemplateGallery = ({
           <button
             onClick={() => setActiveTarget('all')}
             className={cn(
-              'rounded-full border px-2.5 py-1 text-xs transition-colors',
+              'rounded-full border px-3 py-1 text-xs font-medium transition-all',
               activeTarget === 'all'
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/50',
+                ? 'border-white bg-white text-[hsl(229_45%_8%)] shadow-[0_0_24px_-6px_rgba(255,255,255,0.4)]'
+                : 'border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white',
             )}
           >
             All
@@ -270,17 +270,18 @@ export const BrandLayoutTemplateGallery = ({
           {visibleTargets.map((t) => {
             const isRecommended = recommendedSet.has(t.id);
             const confidence = scoreTargetForIndustry(industry, t.id);
+            const isActive = activeTarget === t.id;
             return (
               <button
                 key={t.id}
                 onClick={() => setActiveTarget(t.id)}
                 className={cn(
-                  'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors',
-                  activeTarget === t.id
-                    ? 'border-primary bg-primary text-primary-foreground'
+                  'inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-all',
+                  isActive
+                    ? 'border-white bg-white text-[hsl(229_45%_8%)] shadow-[0_0_24px_-6px_rgba(255,255,255,0.4)]'
                     : isRecommended
-                      ? 'border-primary/50 bg-primary/5 text-foreground hover:border-primary'
-                      : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/50',
+                      ? 'border-[hsl(265_90%_75%)]/40 bg-[hsl(265_90%_75%)]/10 text-white hover:border-[hsl(265_90%_75%)]/70'
+                      : 'border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white',
                 )}
                 title={
                   confidence
@@ -290,13 +291,8 @@ export const BrandLayoutTemplateGallery = ({
               >
                 {isRecommended && <Sparkles className="h-3 w-3" />}
                 {t.label}
-                {confidence && activeTarget !== t.id && (
-                  <span
-                    className={cn(
-                      'ml-0.5 rounded-full px-1 py-0 text-[9px] font-bold tabular-nums',
-                      confidenceLevelClasses[confidence.level],
-                    )}
-                  >
+                {confidence && !isActive && (
+                  <span className="ml-0.5 rounded-full bg-white/15 px-1 py-0 text-[9px] font-bold tabular-nums text-white">
                     {confidence.score}
                   </span>
                 )}
