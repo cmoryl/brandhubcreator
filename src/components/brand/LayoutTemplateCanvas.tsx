@@ -13,7 +13,7 @@ import {
   type ResolvedSlot,
 } from '@/lib/brandLayoutTemplates';
 import { Image as ImageIcon, Film } from 'lucide-react';
-import { getDemoCopy, APPROVED_FONT_STACK } from '@/lib/layoutTemplateDemoCopy';
+import { getDemoCopy, getTemplateTypography, overlayTypeToStyle } from '@/lib/layoutTemplateDemoCopy';
 
 export interface LayoutTemplateCanvasProps {
   template: BrandLayoutTemplate;
@@ -134,10 +134,10 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
         {/* Overlay copy — falls back to per-target demo copy when user hasn't set their own. */}
         {(() => {
           const demo = getDemoCopy(template.target);
+          const type = getTemplateTypography(template.target);
           const eyebrowText = copy?.eyebrow ?? demo.eyebrow;
           const headlineText = copy?.headline ?? demo.headline;
           const ctaText = copy?.cta ?? demo.cta;
-          const fontStyle: React.CSSProperties = { fontFamily: APPROVED_FONT_STACK };
 
           return (
             <>
@@ -148,11 +148,11 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
                 >
                   <p
                     className={cn(
-                      'text-[10px] font-semibold uppercase tracking-[0.2em] text-white/90 drop-shadow',
+                      'text-white/90 drop-shadow',
                       merged.overlay.eyebrow.align === 'center' && 'text-center',
                       merged.overlay.eyebrow.align === 'right' && 'text-right',
                     )}
-                    style={{ ...fontStyle, color: primaryColor }}
+                    style={{ ...overlayTypeToStyle(type.eyebrow), color: primaryColor }}
                   >
                     {eyebrowText}
                   </p>
@@ -166,11 +166,11 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
                 >
                   <h2
                     className={cn(
-                      'text-[clamp(0.95rem,3vw,2.25rem)] font-bold leading-tight text-white drop-shadow-md',
+                      'text-white drop-shadow-md',
                       merged.overlay.headline.align === 'center' && 'text-center',
                       merged.overlay.headline.align === 'right' && 'text-right',
                     )}
-                    style={fontStyle}
+                    style={overlayTypeToStyle(type.headline)}
                   >
                     {headlineText}
                   </h2>
@@ -181,13 +181,13 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
                 <div
                   className="pointer-events-none absolute left-0 right-0 px-[6%]"
                   style={{
-                    top: `${(merged.overlay.headline?.y ?? 70) + 12}%`,
+                    top: `${(merged.overlay.headline?.y ?? 70) + 14}%`,
                     textAlign: merged.overlay.headline?.align ?? 'left',
                   }}
                 >
                   <span
-                    className="inline-block rounded-full px-3 py-1 text-[11px] font-semibold text-white shadow"
-                    style={{ ...fontStyle, background: primaryColor ?? 'hsl(229 100% 39%)' }}
+                    className="inline-block rounded-full px-3 py-1.5 text-white shadow"
+                    style={{ ...overlayTypeToStyle(type.cta), background: primaryColor ?? 'hsl(229 100% 39%)' }}
                   >
                     {ctaText}
                   </span>
