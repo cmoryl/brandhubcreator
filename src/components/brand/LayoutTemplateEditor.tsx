@@ -436,16 +436,30 @@ export const LayoutTemplateEditor = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Wand2 className="h-4 w-4 text-primary" />
-            Customize "{template.name}"
-          </DialogTitle>
-          <DialogDescription>
-            Edit headline copy, swap individual visuals, then export or apply to a brand section.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-5xl overflow-hidden p-0">
+        <div className="relative bg-[hsl(229_45%_8%)] px-6 pb-5 pt-6 text-white">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-[hsl(229_100%_60%)] opacity-30 blur-[100px]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-16 -bottom-16 h-56 w-56 rounded-full bg-[hsl(265_100%_65%)] opacity-25 blur-[100px]"
+          />
+          <DialogHeader className="relative">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80">
+              <Wand2 className="h-3 w-3" />
+              Template Editor
+            </div>
+            <DialogTitle className="mt-3 font-[Poppins] text-2xl font-bold text-white">
+              {template.name}
+            </DialogTitle>
+            <DialogDescription className="text-white/60">
+              Edit copy, swap visuals, then export or apply to a brand section.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+        <div className="px-6 py-4">
 
         <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
           {/* Live preview */}
@@ -989,6 +1003,7 @@ export const LayoutTemplateEditor = ({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </DialogContent>
     </Dialog>
   );

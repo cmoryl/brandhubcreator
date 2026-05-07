@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ImageIcon } from 'lucide-react';
+import { Layers, Sparkles, Wand2 } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
 import { BrandLayoutTemplateGallery } from './BrandLayoutTemplateGallery';
 import type { ApplyTarget } from './LayoutTemplateEditor';
@@ -10,7 +10,6 @@ import type {
 
 interface LayoutTemplatesSectionProps {
   brandVisuals?: BrandVisualsBundle;
-  /** When true, indicates the bundle was auto-derived from existing brand assets. */
   isDerived?: boolean;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
@@ -29,58 +28,88 @@ export const LayoutTemplatesSection = ({
   onApplyToSection,
 }: LayoutTemplatesSectionProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
-  const connectedVisuals =
-    (brandVisuals?.staticAssets?.length ?? 0) + (brandVisuals?.motionAssets?.length ?? 0);
+  const staticCount = brandVisuals?.staticAssets?.length ?? 0;
+  const motionCount = brandVisuals?.motionAssets?.length ?? 0;
+  const humanCount = brandVisuals?.staticAssets?.filter((a) => a.category === 'human').length ?? 0;
+  const abstractCount = staticCount - humanCount;
+  const variantCount = savedCustomizations?.length ?? 0;
+  const totalConnected = staticCount + motionCount;
 
   return (
     <section className="space-y-4 sm:space-y-6">
       <SectionHeader
-        title="Layout Templates"
-        defaultSubtitle="Ready-to-use layouts that automatically place Foundation, Collaborate, and Transform visuals into hero, social, editorial, and case-study compositions."
+        title="Brand Visual Templates"
+        defaultSubtitle="An editorial system for composing on-brand layouts — pairs Foundation, Collaborate, and Transform expressions with brand-approved photography and gradient orbs."
         customSubtitle={customSubtitle}
         onSubtitleChange={onSubtitleChange}
         isEditing={isHeaderEditing}
         onEditToggle={() => setIsHeaderEditing(!isHeaderEditing)}
       />
 
+      {/* Editorial dark shell */}
       <div
         id="layout-templates"
-        className="relative overflow-hidden rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-background p-5 shadow-sm sm:p-6"
+        className="relative overflow-hidden rounded-3xl border border-foreground/10 bg-[hsl(229_45%_8%)] text-white shadow-[0_30px_80px_-30px_hsl(229_60%_4%/0.6)]"
       >
+        {/* Ambient orbs */}
         <div
-          className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/10 blur-3xl"
           aria-hidden
+          className="pointer-events-none absolute -left-32 -top-32 h-[420px] w-[420px] rounded-full bg-[hsl(229_100%_60%)] opacity-25 blur-[120px]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-24 top-40 h-[360px] w-[360px] rounded-full bg-[hsl(265_100%_65%)] opacity-20 blur-[120px]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-overlay"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+            backgroundSize: '24px 24px',
+          }}
         />
 
-        <div className="relative space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
-                <ImageIcon className="h-3 w-3" />
-                Brand Visual Templates
+        {/* Hero header */}
+        <div className="relative px-6 pb-6 pt-8 sm:px-10 sm:pt-12 sm:pb-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80 backdrop-blur">
+                <Layers className="h-3 w-3" />
+                Layout System · Editorial
               </div>
-              <h3 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                Auto-filled from your brand visual system
-              </h3>
-              <p className="max-w-2xl text-sm text-muted-foreground">
-                Browse, customize, export and apply reusable layouts built specifically for the Foundation, Collaborate, and Transform asset set.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-end gap-1">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="inline-flex h-2 w-2 rounded-full bg-primary animate-pulse" />
-                {connectedVisuals} brand visuals connected
-              </div>
-              {isDerived && connectedVisuals > 0 && (
-                <span className="rounded-full border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">
-                  Auto-derived from your brand assets
+              <h3 className="font-[Poppins] text-3xl font-bold leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">
+                Design like a magazine.
+                <span className="block bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">
+                  Built like a brand system.
                 </span>
+              </h3>
+              <p className="max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">
+                Browse, customize, export, and apply reusable compositions that automatically pull from
+                your Foundation orbs, Collaborate human moments, and Transform gradient washes.
+              </p>
+
+              {isDerived && totalConnected > 0 && (
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/70">
+                  <Sparkles className="h-3 w-3 text-[hsl(265_90%_75%)]" />
+                  Auto-derived from your live brand assets
+                </div>
               )}
             </div>
-          </div>
 
-          {connectedVisuals > 0 ? (
+            {/* Stats strip */}
+            <div className="grid w-full max-w-md grid-cols-2 gap-2 sm:grid-cols-4 lg:w-auto">
+              <Stat label="Abstract" value={abstractCount} accent="hsl(229 100% 70%)" />
+              <Stat label="Human" value={humanCount} accent="hsl(15 90% 65%)" />
+              <Stat label="Motion" value={motionCount} accent="hsl(155 70% 55%)" />
+              <Stat label="Variants" value={variantCount} accent="hsl(265 90% 75%)" icon={<Wand2 className="h-3 w-3" />} />
+            </div>
+          </div>
+        </div>
+
+        {/* Gallery surface */}
+        <div className="relative border-t border-white/10 bg-[hsl(229_40%_6%)]/60 px-3 py-6 backdrop-blur-sm sm:px-6 sm:py-8">
+          {totalConnected > 0 ? (
             <BrandLayoutTemplateGallery
               brandVisuals={brandVisuals}
               savedCustomizations={savedCustomizations}
@@ -88,8 +117,11 @@ export const LayoutTemplatesSection = ({
               onApplyToSection={onApplyToSection}
             />
           ) : (
-            <div className="rounded-xl border border-dashed border-border bg-background/60 px-4 py-8 text-center text-sm text-muted-foreground">
-              Add brand imagery, patterns, gradients, or a hero cover image — your Layout Templates will auto-fill from those assets.
+            <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-6 py-16 text-center">
+              <Layers className="mx-auto h-8 w-8 text-white/40" />
+              <p className="mt-3 text-sm text-white/70">
+                Add brand imagery, gradient orbs, or a hero cover image — your Layout Templates auto-fill from those assets.
+              </p>
             </div>
           )}
         </div>
@@ -97,5 +129,31 @@ export const LayoutTemplatesSection = ({
     </section>
   );
 };
+
+interface StatProps {
+  label: string;
+  value: number;
+  accent: string;
+  icon?: React.ReactNode;
+}
+
+const Stat = ({ label, value, accent, icon }: StatProps) => (
+  <div className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-sm transition-colors hover:border-white/20">
+    <div
+      aria-hidden
+      className="absolute inset-x-0 top-0 h-px"
+      style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
+    />
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
+        {label}
+      </span>
+      {icon && <span className="text-white/40">{icon}</span>}
+    </div>
+    <div className="mt-1 font-[Poppins] text-2xl font-bold tabular-nums text-white">
+      {value}
+    </div>
+  </div>
+);
 
 export default LayoutTemplatesSection;

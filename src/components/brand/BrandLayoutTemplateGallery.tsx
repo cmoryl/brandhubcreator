@@ -70,8 +70,12 @@ interface BrandLayoutTemplateGalleryProps {
 
 const ExpressionBadge = ({ state }: { state: ExpressionState }) => (
   <span
-    className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium border"
-    style={{ borderColor: expressionStateColor[state], color: expressionStateColor[state] }}
+    className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+    style={{
+      borderColor: `${expressionStateColor[state]}55`,
+      color: expressionStateColor[state],
+      background: `${expressionStateColor[state]}14`,
+    }}
   >
     <span
       className="h-1.5 w-1.5 rounded-full"
@@ -186,48 +190,50 @@ export const BrandLayoutTemplateGallery = ({
   };
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-4 text-white">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-center gap-2">
-          <LayoutTemplate className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold">Layout templates</h3>
-          <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+          <LayoutTemplate className="h-4 w-4 text-[hsl(229_100%_75%)]" />
+          <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-white/80">Templates</h3>
+          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/70">
             {filtered.length}
-          </Badge>
+          </span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-[11px] text-white/50">
           <Sparkles className="h-3 w-3" />
-          Auto-fills with Foundation / Collaborate / Transform visuals
+          Foundation · Collaborate · Transform — auto-placed
         </div>
       </div>
 
       {/* Industry suggestions */}
-      <IndustrySelector
-        value={industry}
-        onChange={setIndustry}
-        className="rounded-lg border bg-muted/30 p-3"
-      />
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-sm [&_*]:!text-white/80 [&_button]:!border-white/15 [&_button]:!bg-white/5 hover:[&_button]:!border-white/30">
+        <IndustrySelector value={industry} onChange={setIndustry} />
+      </div>
 
       {/* Quick collateral preview presets */}
-      <CollateralPresetSwitcher
-        activePresetId={activePreset?.id ?? null}
-        onPresetChange={handlePresetChange}
-        ratioOverride={presetRatioOverride}
-        onRatioOverrideChange={setPresetRatioOverride}
-      />
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-sm">
+        <CollateralPresetSwitcher
+          activePresetId={activePreset?.id ?? null}
+          onPresetChange={handlePresetChange}
+          ratioOverride={presetRatioOverride}
+          onRatioOverrideChange={setPresetRatioOverride}
+        />
+      </div>
 
       {/* Reusable slot presets */}
-      <SlotPresetsPanel
-        presets={slotPresets}
-        onApply={handleApplySlotPreset}
-        onDelete={handleDeleteSlotPreset}
-      />
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-sm">
+        <SlotPresetsPanel
+          presets={slotPresets}
+          onApply={handleApplySlotPreset}
+          onDelete={handleDeleteSlotPreset}
+        />
+      </div>
 
       {/* Saved custom variants */}
       {savedCustomizations && savedCustomizations.length > 0 && (
-        <div className="rounded-lg border bg-muted/30 p-3">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur-sm">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">
             Your saved variants ({savedCustomizations.length})
           </p>
           <div className="flex flex-wrap gap-2">
@@ -239,7 +245,7 @@ export const BrandLayoutTemplateGallery = ({
                   key={c.id}
                   size="sm"
                   variant="outline"
-                  className="h-7 text-xs"
+                  className="h-7 border-white/15 bg-white/5 text-xs text-white hover:border-white/30 hover:bg-white/10"
                   onClick={() => openEditor(base, c)}
                 >
                   <Wand2 className="mr-1 h-3 w-3" />
@@ -257,10 +263,10 @@ export const BrandLayoutTemplateGallery = ({
           <button
             onClick={() => setActiveTarget('all')}
             className={cn(
-              'rounded-full border px-2.5 py-1 text-xs transition-colors',
+              'rounded-full border px-3 py-1 text-xs font-medium transition-all',
               activeTarget === 'all'
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/50',
+                ? 'border-white bg-white text-[hsl(229_45%_8%)] shadow-[0_0_24px_-6px_rgba(255,255,255,0.4)]'
+                : 'border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white',
             )}
           >
             All
@@ -268,17 +274,18 @@ export const BrandLayoutTemplateGallery = ({
           {visibleTargets.map((t) => {
             const isRecommended = recommendedSet.has(t.id);
             const confidence = scoreTargetForIndustry(industry, t.id);
+            const isActive = activeTarget === t.id;
             return (
               <button
                 key={t.id}
                 onClick={() => setActiveTarget(t.id)}
                 className={cn(
-                  'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors',
-                  activeTarget === t.id
-                    ? 'border-primary bg-primary text-primary-foreground'
+                  'inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-all',
+                  isActive
+                    ? 'border-white bg-white text-[hsl(229_45%_8%)] shadow-[0_0_24px_-6px_rgba(255,255,255,0.4)]'
                     : isRecommended
-                      ? 'border-primary/50 bg-primary/5 text-foreground hover:border-primary'
-                      : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/50',
+                      ? 'border-[hsl(265_90%_75%)]/40 bg-[hsl(265_90%_75%)]/10 text-white hover:border-[hsl(265_90%_75%)]/70'
+                      : 'border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white',
                 )}
                 title={
                   confidence
@@ -288,13 +295,8 @@ export const BrandLayoutTemplateGallery = ({
               >
                 {isRecommended && <Sparkles className="h-3 w-3" />}
                 {t.label}
-                {confidence && activeTarget !== t.id && (
-                  <span
-                    className={cn(
-                      'ml-0.5 rounded-full px-1 py-0 text-[9px] font-bold tabular-nums',
-                      confidenceLevelClasses[confidence.level],
-                    )}
-                  >
+                {confidence && !isActive && (
+                  <span className="ml-0.5 rounded-full bg-white/15 px-1 py-0 text-[9px] font-bold tabular-nums text-white">
                     {confidence.score}
                   </span>
                 )}
@@ -304,9 +306,9 @@ export const BrandLayoutTemplateGallery = ({
         </div>
       )}
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((template) => {
+      {/* Bento grid — wide targets span 2 cols */}
+      <div className="grid auto-rows-[minmax(0,auto)] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {filtered.map((template, idx) => {
           const resolved = resolveTemplate(template, brandVisuals);
           const isSelected = selectedTemplateId === template.id;
           const expressionStates = Array.from(
@@ -315,9 +317,6 @@ export const BrandLayoutTemplateGallery = ({
           const isRecommended = recommendedSet.has(template.target);
           const suggestedCopy = getIndustryCopy(industry, template.target);
           const confidence: RecommendationConfidence | null = scoreRecommendation(industry, template);
-          // Quick-preview preset: reframe at the canonical aspect ratio for the
-          // collateral type (or the user's manual override) without mutating
-          // the underlying template definition.
           const presetMatchesTemplate = activePreset && activePreset.target === template.target;
           const effectiveRatio = presetMatchesTemplate
             ? presetRatioOverride ?? activePreset!.aspectRatio
@@ -327,72 +326,100 @@ export const BrandLayoutTemplateGallery = ({
               ? { ...template, aspectRatio: effectiveRatio }
               : template;
 
+          // Bento sizing: wide aspects (>1.6) get 2 cols; first hero/billboard gets 4 cols
+          const ratio = previewTemplate.aspectRatio;
+          const wideTargets = new Set(['hero', 'billboard', 'web', 'editorial', 'casestudy', 'email']);
+          const isFeature = idx === 0 && (wideTargets.has(template.target) || ratio >= 2);
+          const isWide = !isFeature && (wideTargets.has(template.target) || ratio >= 1.6);
+          const spanClass = isFeature
+            ? 'sm:col-span-2 lg:col-span-4'
+            : isWide
+              ? 'sm:col-span-2 lg:col-span-2'
+              : 'lg:col-span-2 xl:col-span-1';
+
           return (
             <div
               key={template.id}
               className={cn(
-                'group flex flex-col gap-2 rounded-lg border-2 bg-card p-3 transition-all',
+                'group relative flex flex-col gap-3 overflow-hidden rounded-2xl border bg-white/[0.03] p-3 backdrop-blur-sm transition-all duration-300',
+                'hover:-translate-y-0.5 hover:bg-white/[0.06] hover:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)]',
                 isSelected
-                  ? 'border-primary ring-2 ring-primary/20'
+                  ? 'border-white shadow-[0_0_0_1px_rgba(255,255,255,0.6),0_20px_50px_-20px_rgba(255,255,255,0.25)]'
                   : isRecommended
-                    ? 'border-primary/40 hover:border-primary hover:shadow-md'
-                    : 'border-border hover:border-primary/50 hover:shadow-md',
+                    ? 'border-[hsl(265_90%_75%)]/40 hover:border-[hsl(265_90%_75%)]/70'
+                    : 'border-white/10 hover:border-white/25',
+                spanClass,
               )}
             >
-              <LayoutTemplateCanvas template={previewTemplate} resolved={resolved} />
+              {/* Subtle inner glow on featured */}
+              {isFeature && (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-px rounded-2xl opacity-60"
+                  style={{
+                    background:
+                      'radial-gradient(120% 60% at 0% 0%, hsl(229 100% 60% / 0.18), transparent 60%), radial-gradient(80% 60% at 100% 100%, hsl(265 100% 65% / 0.18), transparent 60%)',
+                  }}
+                />
+              )}
 
-              <div className="space-y-1">
+              <div className="relative overflow-hidden rounded-xl ring-1 ring-white/10">
+                <LayoutTemplateCanvas template={previewTemplate} resolved={resolved} />
+              </div>
+
+              <div className="relative space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-medium leading-tight">{template.name}</p>
+                  <p className="font-[Poppins] text-sm font-semibold leading-tight text-white">
+                    {template.name}
+                  </p>
                   {isSelected ? (
-                    <Check className="h-4 w-4 shrink-0 text-primary" />
+                    <Check className="h-4 w-4 shrink-0 text-white" />
                   ) : isRecommended && confidence ? (
                     <span
                       className={cn(
                         'inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide',
                         confidence.level === 'strong'
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'bg-[hsl(265_90%_75%)] text-[hsl(229_45%_8%)]'
                           : confidence.level === 'good'
-                            ? 'border border-primary/40 bg-primary/10 text-primary'
-                            : 'border border-border bg-muted text-muted-foreground',
+                            ? 'border border-[hsl(265_90%_75%)]/40 bg-[hsl(265_90%_75%)]/10 text-[hsl(265_90%_85%)]'
+                            : 'border border-white/15 bg-white/5 text-white/60',
                       )}
                       title={`${confidenceLevelLabel[confidence.level]} for ${industryDef?.label} — ${confidence.score}%\n\n• ${confidence.reasons.join('\n• ')}`}
                     >
                       <Sparkles className="h-2.5 w-2.5" />
-                      Suggested
-                      <span className="ml-0.5 tabular-nums">{confidence.score}%</span>
+                      {confidence.score}%
                     </span>
                   ) : null}
                 </div>
-                <p className="line-clamp-2 text-xs text-muted-foreground">
+                <p className="line-clamp-2 text-xs leading-relaxed text-white/55">
                   {template.description}
                 </p>
                 {suggestedCopy && (
-                  <div className="mt-1 rounded-md border border-primary/20 bg-primary/5 px-2 py-1.5">
-                    <p className="text-[9px] font-semibold uppercase tracking-wider text-primary/80">
+                  <div className="mt-1 rounded-lg border border-[hsl(265_90%_75%)]/20 bg-[hsl(265_90%_75%)]/5 px-2 py-1.5">
+                    <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[hsl(265_90%_85%)]/80">
                       Suggested copy
                     </p>
-                    <p className="mt-0.5 line-clamp-2 text-[11px] font-medium text-foreground">
+                    <p className="mt-0.5 line-clamp-2 text-[11px] font-medium text-white/85">
                       {suggestedCopy.headline}
                     </p>
                   </div>
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-1">
+              <div className="relative flex flex-wrap items-center gap-1">
                 {expressionStates.map((state) => (
                   <ExpressionBadge key={state} state={state} />
                 ))}
-                <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">
+                <span className="ml-auto text-[10px] uppercase tracking-[0.14em] text-white/40">
                   {template.target}
                 </span>
               </div>
 
-              <div className="mt-1 flex gap-1.5">
+              <div className="relative mt-auto flex gap-1.5">
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 flex-1 text-xs"
+                  className="h-8 flex-1 border-white/15 bg-white/5 text-xs text-white hover:border-white/30 hover:bg-white/10"
                   onClick={() => openEditor(template)}
                 >
                   <Wand2 className="mr-1 h-3 w-3" />
@@ -401,8 +428,12 @@ export const BrandLayoutTemplateGallery = ({
                 {onApply && (
                   <Button
                     size="sm"
-                    variant={isSelected ? 'default' : 'secondary'}
-                    className="h-8 flex-1 text-xs"
+                    className={cn(
+                      'h-8 flex-1 text-xs',
+                      isSelected
+                        ? 'bg-white text-[hsl(229_45%_8%)] hover:bg-white/90'
+                        : 'bg-[hsl(229_100%_60%)] text-white hover:bg-[hsl(229_100%_55%)]',
+                    )}
                     onClick={() => onApply(template, resolved)}
                   >
                     {isSelected ? 'Applied' : 'Apply'}
@@ -415,7 +446,7 @@ export const BrandLayoutTemplateGallery = ({
       </div>
 
       {filtered.length === 0 && (
-        <p className="py-6 text-center text-xs text-muted-foreground">
+        <p className="py-6 text-center text-xs text-white/50">
           No templates available for this filter.
         </p>
       )}
