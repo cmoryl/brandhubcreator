@@ -389,7 +389,12 @@ export const BrandLayoutTemplateGallery = ({
                 className="group/preview relative block w-full overflow-hidden rounded-xl ring-1 ring-white/10 transition-all hover:ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 aria-label={`View ${template.name} full size`}
               >
-                <LayoutTemplateCanvas template={previewTemplate} resolved={resolved} />
+                <LayoutTemplateCanvas
+                  template={previewTemplate}
+                  resolved={resolved}
+                  logoUrl={approvedLogoUrl}
+                  logoVariant={approvedLogoVariant}
+                />
                 <span
                   aria-hidden
                   className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover/preview:bg-black/30 group-hover/preview:opacity-100"
