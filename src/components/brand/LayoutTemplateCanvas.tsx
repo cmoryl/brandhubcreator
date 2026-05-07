@@ -24,6 +24,10 @@ export interface LayoutTemplateCanvasProps {
   className?: string;
   /** Optional brand colours for the overlay text. */
   primaryColor?: string;
+  /** Optional brand-approved logo URL — placed in the designated safe corner. */
+  logoUrl?: string;
+  /** Variant of the supplied logo (controls light/dark choice handling upstream). */
+  logoVariant?: 'reversed' | 'monochrome' | 'primary' | string;
 }
 
 export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCanvasProps>(
