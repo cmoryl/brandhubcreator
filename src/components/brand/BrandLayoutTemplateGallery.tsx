@@ -110,6 +110,7 @@ export const BrandLayoutTemplateGallery = ({
 }: BrandLayoutTemplateGalleryProps) => {
   const [activeTarget, setActiveTarget] = useState<LayoutSectionTarget | 'all'>('all');
   const [editorOpen, setEditorOpen] = useState(false);
+  const [previewTpl, setPreviewTpl] = useState<{ template: BrandLayoutTemplate; resolved: ResolvedSlot[] } | null>(null);
   const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
   const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
