@@ -76,14 +76,33 @@ function guessAspect(url: string | undefined): string {
   return '16:9';
 }
 
+/** Canonical TransPerfect abstract orb/gradient assets. These are the
+ *  brand-approved non-human visuals that should populate every TP layout
+ *  template — keyed by ExpressionState. */
+const TP_CANONICAL_ASSETS: BrandStaticAsset[] = [
+  // Foundation — luminous dome
+  { id: 'tp-canonical-hero-dome-3000', name: 'TP Hero Dome (wide)', expressionState: 'Foundation', aspectRatio: '30:13', imageUrl: '/orbs/tp-hero-dome-3000x1300.png', description: 'TransPerfect canonical foundation hero — luminous dome' },
+  { id: 'tp-canonical-hero-dome-2400', name: 'TP Hero Dome', expressionState: 'Foundation', aspectRatio: '16:10', imageUrl: '/orbs/tp-hero-dome-2400x1500.png', description: 'TransPerfect canonical foundation hero' },
+  { id: 'tp-canonical-card-portrait', name: 'TP Card Portrait', expressionState: 'Foundation', aspectRatio: '12:13', imageUrl: '/orbs/tp-card-portrait-2400x2600.png', description: 'TransPerfect canonical portrait card gradient' },
+  // Collaborate — twin/intersecting orbs
+  { id: 'tp-canonical-illustrative-duo', name: 'TP Illustrative Duo', expressionState: 'Collaborate', aspectRatio: '16:10', imageUrl: '/orbs/tp-illustrative-duo-2400x1500.png', description: 'TransPerfect canonical collaborate — illustrative orb duo' },
+  { id: 'tp-canonical-casestudy-duo', name: 'TP Case Study Duo', expressionState: 'Collaborate', aspectRatio: '20:11', imageUrl: '/orbs/tp-casestudy-duo-2400x1290.png', description: 'TransPerfect canonical collaborate — case study orb duo' },
+  { id: 'tp-canonical-casestudy-banner', name: 'TP Case Study Banner', expressionState: 'Collaborate', aspectRatio: '125:26', imageUrl: '/orbs/tp-casestudy-banner-3000x624.png', description: 'TransPerfect canonical collaborate — banner orb pair' },
+];
+
 export function deriveBrandVisuals(source: DeriveSource | undefined): BrandVisualsBundle {
   if (!source) return { staticAssets: [], motionAssets: [] };
 
   const staticAssets: BrandStaticAsset[] = [];
   const motionAssets: BrandMotionAsset[] = [];
 
-  // 1. Hero — Foundation anchor
-  if (source.hero?.coverImage) {
+  // 0. Brand-canonical pre-approved abstract assets (highest priority)
+  if (source.brandSlug?.toLowerCase() === 'transperfect') {
+    staticAssets.push(...TP_CANONICAL_ASSETS);
+  }
+
+  // 1. Hero — Foundation anchor (only if not human photography)
+  if (source.hero?.coverImage && !isHumanPhotography(source.hero.coverImage)) {
     staticAssets.push({
       id: 'derived-hero-cover',
       name: source.hero.name ? `${source.hero.name} hero` : 'Hero cover',
