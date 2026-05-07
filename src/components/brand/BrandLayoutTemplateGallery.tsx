@@ -10,10 +10,11 @@
  * an editor for copy / slot swap / export / apply-to-section.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { LayoutTemplate, Sparkles, Image as ImageIcon, Film, Check, Wand2 } from 'lucide-react';
+import { LayoutTemplate, Sparkles, Image as ImageIcon, Film, Check, Wand2, Maximize2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   brandLayoutTemplates,
   layoutTargets,
@@ -109,6 +110,7 @@ export const BrandLayoutTemplateGallery = ({
 }: BrandLayoutTemplateGalleryProps) => {
   const [activeTarget, setActiveTarget] = useState<LayoutSectionTarget | 'all'>('all');
   const [editorOpen, setEditorOpen] = useState(false);
+  const [previewTpl, setPreviewTpl] = useState<{ template: BrandLayoutTemplate; resolved: ResolvedSlot[] } | null>(null);
   const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
   const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
@@ -363,9 +365,23 @@ export const BrandLayoutTemplateGallery = ({
                 />
               )}
 
-              <div className="relative overflow-hidden rounded-xl ring-1 ring-white/10">
+              <button
+                type="button"
+                onClick={() => setPreviewTpl({ template: previewTemplate, resolved })}
+                className="group/preview relative block w-full overflow-hidden rounded-xl ring-1 ring-white/10 transition-all hover:ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                aria-label={`View ${template.name} full size`}
+              >
                 <LayoutTemplateCanvas template={previewTemplate} resolved={resolved} />
-              </div>
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover/preview:bg-black/30 group-hover/preview:opacity-100"
+                >
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-[hsl(229_45%_8%)] shadow-lg">
+                    <Maximize2 className="h-3 w-3" />
+                    View full size
+                  </span>
+                </span>
+              </button>
 
               <div className="relative space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
@@ -469,6 +485,55 @@ export const BrandLayoutTemplateGallery = ({
           }}
         />
       )}
+
+      {/* Full-size preview dialog */}
+      <Dialog open={!!previewTpl} onOpenChange={(o) => !o && setPreviewTpl(null)}>
+        <DialogContent className="max-w-[95vw] overflow-hidden border-white/10 bg-[hsl(229_45%_6%)] p-0 sm:max-w-6xl">
+          {previewTpl && (
+            <div className="relative">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
+                <div className="min-w-0">
+                  <p className="truncate font-[Poppins] text-sm font-semibold text-white">
+                    {previewTpl.template.name}
+                  </p>
+                  <p className="truncate text-[11px] uppercase tracking-[0.16em] text-white/50">
+                    {previewTpl.template.target} · {previewTpl.template.description}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 border-white/15 bg-white/5 text-xs text-white hover:border-white/30 hover:bg-white/10"
+                    onClick={() => {
+                      const tpl = brandLayoutTemplates.find((t) => t.id === previewTpl.template.id) ?? previewTpl.template;
+                      setPreviewTpl(null);
+                      openEditor(tpl);
+                    }}
+                  >
+                    <Wand2 className="mr-1 h-3 w-3" />
+                    Customize
+                  </Button>
+                  <button
+                    onClick={() => setPreviewTpl(null)}
+                    className="rounded-md p-1.5 text-white/60 hover:bg-white/10 hover:text-white"
+                    aria-label="Close preview"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="max-h-[85vh] overflow-auto p-4 sm:p-6">
+                <LayoutTemplateCanvas
+                  template={previewTpl.template}
+                  resolved={previewTpl.resolved}
+                  presentationMode
+                />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
