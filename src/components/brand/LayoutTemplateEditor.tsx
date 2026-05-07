@@ -484,6 +484,8 @@ export const LayoutTemplateEditor = ({
                     template={template}
                     resolved={baseResolved}
                     presentationMode
+                    logoUrl={approvedLogoUrl}
+                    logoVariant={approvedLogoVariant}
                   />
                 </div>
                 <div className="space-y-1">
@@ -501,6 +503,8 @@ export const LayoutTemplateEditor = ({
                     resolved={resolved}
                     customization={customization}
                     presentationMode
+                    logoUrl={approvedLogoUrl}
+                    logoVariant={approvedLogoVariant}
                   />
                 </div>
               </div>
@@ -511,6 +515,8 @@ export const LayoutTemplateEditor = ({
                 resolved={resolved}
                 customization={customization}
                 presentationMode
+                logoUrl={approvedLogoUrl}
+                logoVariant={approvedLogoVariant}
               />
             )}
 
