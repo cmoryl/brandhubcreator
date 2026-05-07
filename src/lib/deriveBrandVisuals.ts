@@ -25,13 +25,13 @@ import type {
   BrandMotionAsset,
   ExpressionState,
 } from './brandLayoutTemplates';
+import { getStartersForBrand } from './brandPhotographyStarters';
 
 interface DeriveSource {
   brandSlug?: string;
   hero?: { coverImage?: string; coverVideo?: string; useVideo?: boolean; name?: string };
   logos?: Array<{ id?: string; url?: string; name?: string; variant?: string }>;
   imagery?: Array<{ id?: string; url?: string; imageUrl?: string; name?: string; title?: string; description?: string; category?: string; pillar?: string; tags?: string[] }>;
-  patterns?: Array<{ id?: string; url?: string; name?: string }>;
   gradients?: Array<{ id?: string; name?: string; css?: string; preview?: string; previewImage?: string }>;
   approvedImagery?: { sections?: Array<{ name?: string; images?: Array<{ url?: string; tags?: string[] }> }> };
 }
