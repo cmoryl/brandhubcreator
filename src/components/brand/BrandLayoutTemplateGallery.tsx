@@ -485,6 +485,55 @@ export const BrandLayoutTemplateGallery = ({
           }}
         />
       )}
+
+      {/* Full-size preview dialog */}
+      <Dialog open={!!previewTpl} onOpenChange={(o) => !o && setPreviewTpl(null)}>
+        <DialogContent className="max-w-[95vw] overflow-hidden border-white/10 bg-[hsl(229_45%_6%)] p-0 sm:max-w-6xl">
+          {previewTpl && (
+            <div className="relative">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-3">
+                <div className="min-w-0">
+                  <p className="truncate font-[Poppins] text-sm font-semibold text-white">
+                    {previewTpl.template.name}
+                  </p>
+                  <p className="truncate text-[11px] uppercase tracking-[0.16em] text-white/50">
+                    {previewTpl.template.target} · {previewTpl.template.description}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 border-white/15 bg-white/5 text-xs text-white hover:border-white/30 hover:bg-white/10"
+                    onClick={() => {
+                      const tpl = brandLayoutTemplates.find((t) => t.id === previewTpl.template.id) ?? previewTpl.template;
+                      setPreviewTpl(null);
+                      openEditor(tpl);
+                    }}
+                  >
+                    <Wand2 className="mr-1 h-3 w-3" />
+                    Customize
+                  </Button>
+                  <button
+                    onClick={() => setPreviewTpl(null)}
+                    className="rounded-md p-1.5 text-white/60 hover:bg-white/10 hover:text-white"
+                    aria-label="Close preview"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="max-h-[85vh] overflow-auto p-4 sm:p-6">
+                <LayoutTemplateCanvas
+                  template={previewTpl.template}
+                  resolved={previewTpl.resolved}
+                  presentationMode
+                />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
