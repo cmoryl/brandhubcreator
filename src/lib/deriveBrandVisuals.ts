@@ -109,23 +109,43 @@ export function deriveBrandVisuals(source: DeriveSource | undefined): BrandVisua
     });
   }
 
-  // 3. Imagery — distributed across all three states by description/keyword
+  // 3. Imagery — distributed across all three states by pillar/keyword.
+  //    Skip human-photography items: they belong to the separate
+  //    "Human Realistic" photography system, not the abstract layout slots.
   (source.imagery ?? []).forEach((img, idx) => {
     const url = img.imageUrl || img.url;
     if (!url) return;
-    const text = `${img.name ?? ''} ${img.description ?? ''} ${(img.tags ?? []).join(' ')}`.trim();
-    // Round-robin fallback across states so we always populate all three buckets
+    const text = `${img.name ?? ''} ${img.title ?? ''} ${img.description ?? ''} ${(img.tags ?? []).join(' ')}`.trim();
+    if (isHumanPhotography(text) || isHumanPhotography(url)) return;
     const fallback: ExpressionState =
       idx % 3 === 0 ? 'Foundation' : idx % 3 === 1 ? 'Collaborate' : 'Transform';
-    const state = classifyState(text, fallback);
+    const state = pillarToState(img.pillar) ?? classifyState(text, fallback);
     staticAssets.push({
       id: `derived-imagery-${img.id ?? idx}`,
-      name: img.name || img.description?.slice(0, 60) || `Brand visual ${idx + 1}`,
+      name: img.title || img.name || img.description?.slice(0, 60) || `Brand visual ${idx + 1}`,
       expressionState: state,
       aspectRatio: guessAspect(url),
       imageUrl: url,
       description: img.description,
       tags: img.tags,
+    });
+  });
+
+  // 4. Approved imagery sections — additional Collaborate / Foundation depth
+  (source.approvedImagery?.sections ?? []).forEach((section, sIdx) => {
+    (section.images ?? []).forEach((img, iIdx) => {
+      if (!img.url) return;
+      const text = `${section.name ?? ''} ${(img.tags ?? []).join(' ')}`;
+      if (isHumanPhotography(text) || isHumanPhotography(img.url)) return;
+      const state = classifyState(text, sIdx % 2 === 0 ? 'Foundation' : 'Collaborate');
+      staticAssets.push({
+        id: `derived-approved-${sIdx}-${iIdx}`,
+        name: section.name || 'Approved visual',
+        expressionState: state,
+        aspectRatio: guessAspect(img.url),
+        imageUrl: img.url,
+        tags: img.tags,
+      });
     });
   });
 
