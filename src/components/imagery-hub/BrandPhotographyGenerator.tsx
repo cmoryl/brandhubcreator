@@ -6,8 +6,8 @@
  * documentaryPortrait, environmentalCandid, goldenHourIntimate). Generated
  * images are saved directly into a chosen Imagery Hub section.
  */
-import { useState } from 'react';
-import { Sparkles, Loader2, Camera, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Sparkles, Loader2, Camera, Plus, Library, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,8 @@ import { Badge } from '@/components/ui/badge';
 import { ApprovedImage, ApprovedImagerySubSection } from '@/types/brand';
 import { ImageryEntity } from '@/hooks/useImageryHubEntities';
 import { StylePreset } from '@/types/creativeStudio';
+import { getStartersForBrand, type PhotographyStarter } from '@/lib/brandPhotographyStarters';
+import { cn } from '@/lib/utils';
 
 const BRAND_PHOTO_PRESETS: { key: StylePreset; label: string; description: string }[] = [
   { key: 'humanRealistic', label: 'Hyper-Realistic Human', description: 'Soft light, shallow DoF, authentic moments — the canonical brand photography style' },
