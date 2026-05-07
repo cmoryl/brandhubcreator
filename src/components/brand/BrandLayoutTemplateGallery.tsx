@@ -70,8 +70,12 @@ interface BrandLayoutTemplateGalleryProps {
 
 const ExpressionBadge = ({ state }: { state: ExpressionState }) => (
   <span
-    className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium border"
-    style={{ borderColor: expressionStateColor[state], color: expressionStateColor[state] }}
+    className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+    style={{
+      borderColor: `${expressionStateColor[state]}55`,
+      color: expressionStateColor[state],
+      background: `${expressionStateColor[state]}14`,
+    }}
   >
     <span
       className="h-1.5 w-1.5 rounded-full"
