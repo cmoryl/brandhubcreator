@@ -10,10 +10,11 @@
  * an editor for copy / slot swap / export / apply-to-section.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { LayoutTemplate, Sparkles, Image as ImageIcon, Film, Check, Wand2 } from 'lucide-react';
+import { LayoutTemplate, Sparkles, Image as ImageIcon, Film, Check, Wand2, Maximize2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   brandLayoutTemplates,
   layoutTargets,
