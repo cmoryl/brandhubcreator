@@ -107,9 +107,25 @@ export function deriveBrandVisuals(source: DeriveSource | undefined): BrandVisua
   const motionAssets: BrandMotionAsset[] = [];
 
   // 0. Brand-canonical pre-approved abstract assets (highest priority)
-  if (source.brandSlug?.toLowerCase() === 'transperfect') {
+  const slug = source.brandSlug?.toLowerCase();
+  if (slug === 'transperfect') {
     staticAssets.push(...TP_CANONICAL_ASSETS);
   }
+
+  // 0b. Brand photography starters → human-category assets, available alongside abstract.
+  const starters = getStartersForBrand(slug);
+  starters.forEach((s, idx) => {
+    staticAssets.push({
+      id: `starter-${s.id}`,
+      name: s.title,
+      expressionState: starterToState(s.presets as string[], idx),
+      aspectRatio: '1:1',
+      category: 'human',
+      imageUrl: s.url,
+      tags: s.tags,
+      description: s.title,
+    });
+  });
 
   // 1. Hero — Foundation anchor (only if not human photography)
   if (source.hero?.coverImage && !isHumanPhotography(source.hero.coverImage)) {
