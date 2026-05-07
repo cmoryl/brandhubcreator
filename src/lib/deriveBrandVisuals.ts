@@ -27,17 +27,36 @@ import type {
 } from './brandLayoutTemplates';
 
 interface DeriveSource {
+  brandSlug?: string;
   hero?: { coverImage?: string; coverVideo?: string; useVideo?: boolean; name?: string };
   logos?: Array<{ id?: string; url?: string; name?: string; variant?: string }>;
-  imagery?: Array<{ id?: string; url?: string; imageUrl?: string; name?: string; description?: string; category?: string; tags?: string[] }>;
+  imagery?: Array<{ id?: string; url?: string; imageUrl?: string; name?: string; title?: string; description?: string; category?: string; pillar?: string; tags?: string[] }>;
   patterns?: Array<{ id?: string; url?: string; name?: string }>;
   gradients?: Array<{ id?: string; name?: string; css?: string; preview?: string; previewImage?: string }>;
   approvedImagery?: { sections?: Array<{ name?: string; images?: Array<{ url?: string; tags?: string[] }> }> };
 }
 
-const collabKeywords = ['collab', 'orb', 'merge', 'partner', 'connect', 'intersect', 'union', 'team'];
+const collabKeywords = ['collab', 'orb', 'merge', 'partner', 'connect', 'intersect', 'union', 'team', 'materiality'];
 const transformKeywords = ['transform', 'streak', 'flow', 'motion', 'aurora', 'rhythm', 'energy', 'momentum', 'wave', 'gradient'];
 const foundationKeywords = ['foundation', 'hero', 'primary', 'core', 'anchor', 'identity', 'mark'];
+
+/** Items that depict realistic human photography — these belong to a separate
+ *  imagery system (BrandPhotographyGenerator / humanRealistic preset) and must
+ *  NOT populate abstract layout-template slots. */
+const HUMAN_PHOTO_PATTERNS = /\b(photo|photography|human|portrait|people|person|face|hand|model)\b/i;
+function isHumanPhotography(text: string | undefined): boolean {
+  if (!text) return false;
+  return HUMAN_PHOTO_PATTERNS.test(text);
+}
+
+function pillarToState(pillar: string | undefined): ExpressionState | null {
+  if (!pillar) return null;
+  const p = pillar.toLowerCase();
+  if (p.includes('foundation')) return 'Foundation';
+  if (p.includes('transform')) return 'Transform';
+  if (p.includes('connect') || p.includes('collab') || p.includes('material')) return 'Collaborate';
+  return null;
+}
 
 function classifyState(text: string | undefined, fallback: ExpressionState): ExpressionState {
   if (!text) return fallback;
