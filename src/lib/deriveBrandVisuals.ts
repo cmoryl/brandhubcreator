@@ -83,14 +83,22 @@ function guessAspect(url: string | undefined): string {
  *  template — keyed by ExpressionState. */
 const TP_CANONICAL_ASSETS: BrandStaticAsset[] = [
   // Foundation — luminous dome
-  { id: 'tp-canonical-hero-dome-3000', name: 'TP Hero Dome (wide)', expressionState: 'Foundation', aspectRatio: '30:13', imageUrl: '/orbs/tp-hero-dome-3000x1300.png', description: 'TransPerfect canonical foundation hero — luminous dome' },
-  { id: 'tp-canonical-hero-dome-2400', name: 'TP Hero Dome', expressionState: 'Foundation', aspectRatio: '16:10', imageUrl: '/orbs/tp-hero-dome-2400x1500.png', description: 'TransPerfect canonical foundation hero' },
-  { id: 'tp-canonical-card-portrait', name: 'TP Card Portrait', expressionState: 'Foundation', aspectRatio: '12:13', imageUrl: '/orbs/tp-card-portrait-2400x2600.png', description: 'TransPerfect canonical portrait card gradient' },
+  { id: 'tp-canonical-hero-dome-3000', name: 'TP Hero Dome (wide)', expressionState: 'Foundation', aspectRatio: '30:13', category: 'abstract', imageUrl: '/orbs/tp-hero-dome-3000x1300.png', description: 'TransPerfect canonical foundation hero — luminous dome' },
+  { id: 'tp-canonical-hero-dome-2400', name: 'TP Hero Dome', expressionState: 'Foundation', aspectRatio: '16:10', category: 'abstract', imageUrl: '/orbs/tp-hero-dome-2400x1500.png', description: 'TransPerfect canonical foundation hero' },
+  { id: 'tp-canonical-card-portrait', name: 'TP Card Portrait', expressionState: 'Foundation', aspectRatio: '12:13', category: 'abstract', imageUrl: '/orbs/tp-card-portrait-2400x2600.png', description: 'TransPerfect canonical portrait card gradient' },
   // Collaborate — twin/intersecting orbs
-  { id: 'tp-canonical-illustrative-duo', name: 'TP Illustrative Duo', expressionState: 'Collaborate', aspectRatio: '16:10', imageUrl: '/orbs/tp-illustrative-duo-2400x1500.png', description: 'TransPerfect canonical collaborate — illustrative orb duo' },
-  { id: 'tp-canonical-casestudy-duo', name: 'TP Case Study Duo', expressionState: 'Collaborate', aspectRatio: '20:11', imageUrl: '/orbs/tp-casestudy-duo-2400x1290.png', description: 'TransPerfect canonical collaborate — case study orb duo' },
-  { id: 'tp-canonical-casestudy-banner', name: 'TP Case Study Banner', expressionState: 'Collaborate', aspectRatio: '125:26', imageUrl: '/orbs/tp-casestudy-banner-3000x624.png', description: 'TransPerfect canonical collaborate — banner orb pair' },
+  { id: 'tp-canonical-illustrative-duo', name: 'TP Illustrative Duo', expressionState: 'Collaborate', aspectRatio: '16:10', category: 'abstract', imageUrl: '/orbs/tp-illustrative-duo-2400x1500.png', description: 'TransPerfect canonical collaborate — illustrative orb duo' },
+  { id: 'tp-canonical-casestudy-duo', name: 'TP Case Study Duo', expressionState: 'Collaborate', aspectRatio: '20:11', category: 'abstract', imageUrl: '/orbs/tp-casestudy-duo-2400x1290.png', description: 'TransPerfect canonical collaborate — case study orb duo' },
+  { id: 'tp-canonical-casestudy-banner', name: 'TP Case Study Banner', expressionState: 'Collaborate', aspectRatio: '125:26', category: 'abstract', imageUrl: '/orbs/tp-casestudy-banner-3000x624.png', description: 'TransPerfect canonical collaborate — banner orb pair' },
 ];
+
+/** Map a photography starter preset to an ExpressionState for layout slotting. */
+function starterToState(presets: string[], idx: number): ExpressionState {
+  if (presets.includes('softTransition')) return 'Transform'; // brand-gradient washes
+  if (presets.includes('goldenHourIntimate')) return 'Foundation'; // calm, anchor
+  if (presets.includes('documentaryPortrait')) return 'Collaborate'; // people, partnership
+  return idx % 3 === 0 ? 'Foundation' : idx % 3 === 1 ? 'Collaborate' : 'Transform';
+}
 
 export function deriveBrandVisuals(source: DeriveSource | undefined): BrandVisualsBundle {
   if (!source) return { staticAssets: [], motionAssets: [] };
