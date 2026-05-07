@@ -6,8 +6,8 @@
  * documentaryPortrait, environmentalCandid, goldenHourIntimate). Generated
  * images are saved directly into a chosen Imagery Hub section.
  */
-import { useState } from 'react';
-import { Sparkles, Loader2, Camera, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Sparkles, Loader2, Camera, Plus, Library, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,8 @@ import { Badge } from '@/components/ui/badge';
 import { ApprovedImage, ApprovedImagerySubSection } from '@/types/brand';
 import { ImageryEntity } from '@/hooks/useImageryHubEntities';
 import { StylePreset } from '@/types/creativeStudio';
+import { getStartersForBrand, type PhotographyStarter } from '@/lib/brandPhotographyStarters';
+import { cn } from '@/lib/utils';
 
 const BRAND_PHOTO_PRESETS: { key: StylePreset; label: string; description: string }[] = [
   { key: 'humanRealistic', label: 'Hyper-Realistic Human', description: 'Soft light, shallow DoF, authentic moments — the canonical brand photography style' },
@@ -69,6 +71,24 @@ export const BrandPhotographyGenerator = ({
   const [newSectionName, setNewSectionName] = useState('AI Photography');
   const [generating, setGenerating] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedStarters, setSelectedStarters] = useState<Set<string>>(new Set());
+  const [savingStarters, setSavingStarters] = useState(false);
+
+  // Resolve starter library by brand slug. For products/events under a brand,
+  // try the parent brand's slug-ified name as a fallback.
+  const starters = useMemo<PhotographyStarter[]>(() => {
+    const slugCandidates = [
+      entity.slug,
+      entity.type !== 'brand'
+        ? entity.parentBrandName?.toLowerCase().replace(/\s+/g, '-')
+        : undefined,
+    ].filter(Boolean) as string[];
+    for (const s of slugCandidates) {
+      const found = getStartersForBrand(s);
+      if (found.length) return found;
+    }
+    return [];
+  }, [entity.slug, entity.parentBrandName, entity.type]);
 
   const presetMeta = BRAND_PHOTO_PRESETS.find(p => p.key === stylePreset)!;
   const isNewSection = targetSectionId === '__new__';
@@ -134,6 +154,45 @@ export const BrandPhotographyGenerator = ({
     onOpenChange(false);
   };
 
+  const toggleStarter = (id: string) => {
+    setSelectedStarters(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleAddStarters = async () => {
+    if (selectedStarters.size === 0) return;
+    setSavingStarters(true);
+    try {
+      let sectionId = targetSectionId;
+      if (isNewSection) {
+        const created = await onAddSection(newSectionName.trim() || 'Brand Photography');
+        if (!created) { toast.error('Could not create section'); return; }
+        sectionId = created;
+      }
+      const picked = starters.filter(s => selectedStarters.has(s.id));
+      const images: ApprovedImage[] = picked.map(s => ({
+        id: `starter-${s.id}-${Date.now()}`,
+        url: s.url,
+        thumbnailUrl: s.url,
+        title: s.title,
+        source: 'brand-starter' as any,
+        category: 'Brand Photography',
+        approvedAt: new Date().toISOString(),
+        tags: ['brand-photography', 'starter-library', ...s.presets, ...(s.tags ?? [])],
+      }));
+      await onAddImages(sectionId, images);
+      toast.success(`Added ${images.length} starter ${images.length === 1 ? 'image' : 'images'}`);
+      setSelectedStarters(new Set());
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Could not add starters');
+    } finally {
+      setSavingStarters(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -150,6 +209,57 @@ export const BrandPhotographyGenerator = ({
         </DialogHeader>
 
         <div className="space-y-5 py-2">
+          {starters.length > 0 && (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Library className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold">Brand Starter Library</span>
+                  <Badge variant="outline" className="text-[10px]">{starters.length} approved</Badge>
+                </div>
+                <Button
+                  size="sm"
+                  variant="default"
+                  disabled={selectedStarters.size === 0 || savingStarters}
+                  onClick={handleAddStarters}
+                  className="gap-1"
+                >
+                  {savingStarters ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                  Add {selectedStarters.size || ''} to library
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Pre-approved on-brand human photography. Pick any to add to the imagery hub — also used as visual reference seeds for AI generation.
+              </p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                {starters.map(s => {
+                  const selected = selectedStarters.has(s.id);
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => toggleStarter(s.id)}
+                      className={cn(
+                        'group relative aspect-[4/3] overflow-hidden rounded-md border-2 bg-muted transition-all',
+                        selected ? 'border-primary ring-2 ring-primary/30' : 'border-transparent hover:border-primary/40',
+                      )}
+                      title={s.title}
+                    >
+                      <img src={s.url} alt={s.title} className="h-full w-full object-cover" loading="lazy" />
+                      {selected && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-primary/30">
+                          <div className="rounded-full bg-primary p-1 shadow">
+                            <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>What do you want to photograph?</Label>
             <Textarea
