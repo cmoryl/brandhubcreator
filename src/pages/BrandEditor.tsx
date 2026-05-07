@@ -814,6 +814,7 @@ const BrandEditor = () => {
         const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
         return <LayoutTemplatesSection
           brandVisuals={derivedVisuals}
+          brandLogos={brand.logos}
           isDerived={isDerived}
           savedCustomizations={(brand as any).layoutTemplateCustomizations || []}
           onSaveCustomization={canEdit ? (variant) => {
