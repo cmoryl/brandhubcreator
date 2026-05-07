@@ -49,6 +49,9 @@ interface LayoutTemplateEditorProps {
   onOpenChange: (open: boolean) => void;
   template: BrandLayoutTemplate;
   brandVisuals?: BrandVisualsBundle;
+  /** Brand-approved logo to render in the designated safe corner of every preview. */
+  approvedLogoUrl?: string;
+  approvedLogoVariant?: string;
   initialCustomization?: LayoutTemplateCustomization;
   /** Existing saved variants for this brand — used to auto-increment version presets. */
   existingCustomizations?: LayoutTemplateCustomization[];
