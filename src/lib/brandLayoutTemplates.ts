@@ -1053,8 +1053,14 @@ export const resolveTemplate = (
       }
     }
 
-    // 2) Fall back to best-matching static asset for expression state + shape.
-    const candidates = statics.filter((s) => s.expressionState === slot.expressionState);
+    // 2) Fall back to best-matching static asset for expression state + shape + category.
+    const matchesCategory = (s: BrandStaticAsset) =>
+      !slot.preferredCategory || (s.category ?? 'abstract') === slot.preferredCategory;
+    let candidates = statics.filter((s) => s.expressionState === slot.expressionState && matchesCategory(s));
+    // If slot demands a category and no in-state matches, relax expression state but keep category.
+    if (candidates.length === 0 && slot.preferredCategory) {
+      candidates = statics.filter(matchesCategory);
+    }
     if (candidates.length === 0) {
       return { slot, asset: { type: 'empty' } };
     }
