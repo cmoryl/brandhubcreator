@@ -21,6 +21,7 @@ interface LayoutTemplatesSectionProps {
 
 export const LayoutTemplatesSection = ({
   brandVisuals,
+  brandLogos,
   isDerived,
   customSubtitle,
   onSubtitleChange,
