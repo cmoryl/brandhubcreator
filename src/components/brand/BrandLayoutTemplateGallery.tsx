@@ -118,23 +118,20 @@ export const BrandLayoutTemplateGallery = ({
    *  Preference order: reversed → monochrome → primary → first available.
    *  Falls back to the canonical TransPerfect white wordmark so every
    *  template carries an approved mark even before logos are uploaded. */
-  const TP_FALLBACK_LOGO = '/logos/tp-logo-white.svg';
+  // Canonical TransPerfect approved white wordmark — always used on the
+  // dark template imagery so the mark stays consistent and on-brand even
+  // when the brand's uploaded logo set contains color/full-color variants
+  // that wouldn't read correctly on photography. Cache-busted so updates
+  // to the SVG file propagate immediately.
+  const TP_APPROVED_WHITE_LOGO = '/logos/tp-logo-white.svg?v=2';
   const approvedLogoUrl = useMemo(() => {
-    if (brandLogos?.length) {
-      const order = ['reversed', 'monochrome', 'primary'];
-      for (const v of order) {
-        const hit = brandLogos.find((l) => l.variant === v && l.url);
-        if (hit?.url) return hit.url;
-      }
-      const any = brandLogos.find((l) => l.url)?.url;
-      if (any) return any;
-    }
-    return TP_FALLBACK_LOGO;
+    // Prefer an explicitly-tagged "reversed" (white-on-dark) brand logo
+    // if one is uploaded; otherwise fall through to the canonical white
+    // wordmark so every template renders an approved mark.
+    const reversed = brandLogos?.find((l) => l.variant === 'reversed' && l.url)?.url;
+    return reversed ?? TP_APPROVED_WHITE_LOGO;
   }, [brandLogos]);
-  const approvedLogoVariant = useMemo(() => {
-    if (approvedLogoUrl === TP_FALLBACK_LOGO) return 'reversed';
-    return brandLogos?.find((l) => l.url === approvedLogoUrl)?.variant;
-  }, [approvedLogoUrl, brandLogos]);
+  const approvedLogoVariant = 'reversed' as const;
   const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
   const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
