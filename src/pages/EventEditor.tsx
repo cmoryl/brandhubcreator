@@ -630,6 +630,7 @@ const EventEditor = () => {
       case 'layouttemplates': {
         const explicitVisuals = (event as any).brandVisuals;
         const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          brandSlug: (event as any).brandSlug || (event as any).parentBrandSlug,
           hero: event.hero,
           logos: event.logos,
           imagery: event.imagery,

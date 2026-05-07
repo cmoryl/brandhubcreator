@@ -803,6 +803,7 @@ const BrandEditor = () => {
       case 'layouttemplates': {
         const explicitVisuals = (brand as any).brandVisuals;
         const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          brandSlug: brand.slug,
           hero: brand.hero,
           logos: brand.logos,
           imagery: brand.imagery,
@@ -870,6 +871,7 @@ const BrandEditor = () => {
       case 'brochures': {
         const explicitVisuals = (brand as any).brandVisuals;
         const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          brandSlug: brand.slug,
           hero: brand.hero,
           logos: brand.logos,
           imagery: brand.imagery,
