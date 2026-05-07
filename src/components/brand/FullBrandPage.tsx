@@ -323,7 +323,7 @@ export const FullBrandPage = ({
           approvedImagery: (brand as any).approvedImagery,
         });
         const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
-        return <LayoutTemplatesSection brandVisuals={derivedVisuals} isDerived={isDerived} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+        return <LayoutTemplatesSection brandVisuals={derivedVisuals} brandLogos={brand.logos} isDerived={isDerived} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       }
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => onBrandUpdate({ patterns }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} brandSlug={brand.slug} customShapes={brand.customShapes} onCustomShapesChange={canEdit ? (customShapes) => onBrandUpdate({ customShapes }) : undefined} />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => onBrandUpdate({ typography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;

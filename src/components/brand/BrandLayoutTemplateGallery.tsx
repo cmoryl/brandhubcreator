@@ -57,6 +57,7 @@ import {
 
 interface BrandLayoutTemplateGalleryProps {
   brandVisuals?: BrandVisualsBundle;
+  brandLogos?: Array<{ id?: string; url?: string; name?: string; variant?: string }>;
   selectedTemplateId?: string;
   onApply?: (template: BrandLayoutTemplate, resolved: ResolvedSlot[]) => void;
   /** Restrict to specific targets (e.g. only show 'hero' templates in a hero editor). */
@@ -101,6 +102,7 @@ const confidenceLevelLabel: Record<ConfidenceLevel, string> = {
 
 export const BrandLayoutTemplateGallery = ({
   brandVisuals,
+  brandLogos,
   selectedTemplateId,
   onApply,
   targets,
@@ -111,6 +113,22 @@ export const BrandLayoutTemplateGallery = ({
   const [activeTarget, setActiveTarget] = useState<LayoutSectionTarget | 'all'>('all');
   const [editorOpen, setEditorOpen] = useState(false);
   const [previewTpl, setPreviewTpl] = useState<{ template: BrandLayoutTemplate; resolved: ResolvedSlot[] } | null>(null);
+
+  /** Pick the best brand-approved logo for use on dark imagery overlays.
+   *  Preference order: reversed → monochrome → primary → first available. */
+  const approvedLogoUrl = useMemo(() => {
+    if (!brandLogos?.length) return undefined;
+    const order = ['reversed', 'monochrome', 'primary'];
+    for (const v of order) {
+      const hit = brandLogos.find((l) => l.variant === v && l.url);
+      if (hit?.url) return hit.url;
+    }
+    return brandLogos.find((l) => l.url)?.url;
+  }, [brandLogos]);
+  const approvedLogoVariant = useMemo(() => {
+    if (!approvedLogoUrl) return undefined;
+    return brandLogos?.find((l) => l.url === approvedLogoUrl)?.variant;
+  }, [approvedLogoUrl, brandLogos]);
   const [editorTemplate, setEditorTemplate] = useState<BrandLayoutTemplate | null>(null);
   const [editorCustomization, setEditorCustomization] = useState<LayoutTemplateCustomization | undefined>();
   const [industry, setIndustry] = useState<IndustryId | null>(() => loadIndustryPreference());
@@ -371,7 +389,12 @@ export const BrandLayoutTemplateGallery = ({
                 className="group/preview relative block w-full overflow-hidden rounded-xl ring-1 ring-white/10 transition-all hover:ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 aria-label={`View ${template.name} full size`}
               >
-                <LayoutTemplateCanvas template={previewTemplate} resolved={resolved} />
+                <LayoutTemplateCanvas
+                  template={previewTemplate}
+                  resolved={resolved}
+                  logoUrl={approvedLogoUrl}
+                  logoVariant={approvedLogoVariant}
+                />
                 <span
                   aria-hidden
                   className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover/preview:bg-black/30 group-hover/preview:opacity-100"
@@ -473,6 +496,8 @@ export const BrandLayoutTemplateGallery = ({
           onOpenChange={setEditorOpen}
           template={editorTemplate}
           brandVisuals={brandVisuals}
+          approvedLogoUrl={approvedLogoUrl}
+          approvedLogoVariant={approvedLogoVariant}
           initialCustomization={editorCustomization}
           existingCustomizations={savedCustomizations}
           onSave={onSaveCustomization}
@@ -528,6 +553,8 @@ export const BrandLayoutTemplateGallery = ({
                   template={previewTpl.template}
                   resolved={previewTpl.resolved}
                   presentationMode
+                  logoUrl={approvedLogoUrl}
+                  logoVariant={approvedLogoVariant}
                 />
               </div>
             </div>

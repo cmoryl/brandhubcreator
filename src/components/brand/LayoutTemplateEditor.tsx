@@ -49,6 +49,9 @@ interface LayoutTemplateEditorProps {
   onOpenChange: (open: boolean) => void;
   template: BrandLayoutTemplate;
   brandVisuals?: BrandVisualsBundle;
+  /** Brand-approved logo to render in the designated safe corner of every preview. */
+  approvedLogoUrl?: string;
+  approvedLogoVariant?: string;
   initialCustomization?: LayoutTemplateCustomization;
   /** Existing saved variants for this brand — used to auto-increment version presets. */
   existingCustomizations?: LayoutTemplateCustomization[];
@@ -98,6 +101,8 @@ export const LayoutTemplateEditor = ({
   onOpenChange,
   template,
   brandVisuals,
+  approvedLogoUrl,
+  approvedLogoVariant,
   initialCustomization,
   existingCustomizations,
   onSave,
@@ -479,6 +484,8 @@ export const LayoutTemplateEditor = ({
                     template={template}
                     resolved={baseResolved}
                     presentationMode
+                    logoUrl={approvedLogoUrl}
+                    logoVariant={approvedLogoVariant}
                   />
                 </div>
                 <div className="space-y-1">
@@ -496,6 +503,8 @@ export const LayoutTemplateEditor = ({
                     resolved={resolved}
                     customization={customization}
                     presentationMode
+                    logoUrl={approvedLogoUrl}
+                    logoVariant={approvedLogoVariant}
                   />
                 </div>
               </div>
@@ -506,6 +515,8 @@ export const LayoutTemplateEditor = ({
                 resolved={resolved}
                 customization={customization}
                 presentationMode
+                logoUrl={approvedLogoUrl}
+                logoVariant={approvedLogoVariant}
               />
             )}
 

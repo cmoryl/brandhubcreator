@@ -24,11 +24,15 @@ export interface LayoutTemplateCanvasProps {
   className?: string;
   /** Optional brand colours for the overlay text. */
   primaryColor?: string;
+  /** Optional brand-approved logo URL — placed in the designated safe corner. */
+  logoUrl?: string;
+  /** Variant of the supplied logo (controls light/dark choice handling upstream). */
+  logoVariant?: 'reversed' | 'monochrome' | 'primary' | string;
 }
 
 export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCanvasProps>(
   (
-    { template, resolved, customization, presentationMode = false, className, primaryColor },
+    { template, resolved, customization, presentationMode = false, className, primaryColor, logoUrl, logoVariant },
     ref,
   ) => {
     const merged = applyCustomization(template, customization);
@@ -194,6 +198,48 @@ export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCan
                 </div>
               )}
             </>
+          );
+        })()}
+
+        {/* Brand-approved logo — placed in a designated safe corner that
+            avoids the overlay copy. Headline alignment drives the corner so
+            the logo never collides with the headline. */}
+        {logoUrl && (() => {
+          const align = merged.overlay?.headline?.align ?? merged.overlay?.eyebrow?.align ?? 'left';
+          const corner =
+            align === 'right'
+              ? 'top-3 left-3'
+              : align === 'center'
+                ? 'bottom-3 right-3'
+                : 'top-3 right-3';
+          return (
+            <div
+              className={cn('pointer-events-none absolute z-10', corner)}
+              aria-hidden
+            >
+              <div
+                className="flex items-center justify-center rounded-md px-2 py-1 backdrop-blur-sm"
+                style={{
+                  background: 'rgba(0,0,0,0.35)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                }}
+              >
+                <img
+                  src={logoUrl}
+                  alt=""
+                  className="h-5 w-auto sm:h-6"
+                  style={{
+                    maxWidth: '22%',
+                    minWidth: 28,
+                    filter:
+                      logoVariant === 'monochrome' || logoVariant === 'reversed'
+                        ? undefined
+                        : 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+                  }}
+                  crossOrigin="anonymous"
+                />
+              </div>
+            </div>
           );
         })()}
       </div>

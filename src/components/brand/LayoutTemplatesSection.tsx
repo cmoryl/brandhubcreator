@@ -10,6 +10,7 @@ import type {
 
 interface LayoutTemplatesSectionProps {
   brandVisuals?: BrandVisualsBundle;
+  brandLogos?: Array<{ id?: string; url?: string; name?: string; variant?: string }>;
   isDerived?: boolean;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
@@ -20,6 +21,7 @@ interface LayoutTemplatesSectionProps {
 
 export const LayoutTemplatesSection = ({
   brandVisuals,
+  brandLogos,
   isDerived,
   customSubtitle,
   onSubtitleChange,
@@ -112,6 +114,7 @@ export const LayoutTemplatesSection = ({
           {totalConnected > 0 ? (
             <BrandLayoutTemplateGallery
               brandVisuals={brandVisuals}
+              brandLogos={brandLogos}
               savedCustomizations={savedCustomizations}
               onSaveCustomization={onSaveCustomization}
               onApplyToSection={onApplyToSection}
