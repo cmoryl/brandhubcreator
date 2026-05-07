@@ -1003,6 +1003,7 @@ export const LayoutTemplateEditor = ({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </DialogContent>
     </Dialog>
   );
