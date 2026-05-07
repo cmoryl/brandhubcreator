@@ -169,18 +169,9 @@ export function deriveBrandVisuals(source: DeriveSource | undefined): BrandVisua
   });
 
 
-  // 5. Patterns — Collaborate (texture, depth, partnership feel)
-  (source.patterns ?? []).forEach((p, idx) => {
-    if (!p.url) return;
-    staticAssets.push({
-      id: `derived-pattern-${p.id ?? idx}`,
-      name: p.name || `Pattern ${idx + 1}`,
-      expressionState: classifyState(p.name, 'Collaborate'),
-      aspectRatio: '1:1',
-      imageUrl: p.url,
-      description: 'Brand pattern',
-    });
-  });
+  // 5. Patterns intentionally REMOVED from layout-template visuals.
+  //    They belong to the Patterns library section, not the Foundation /
+  //    Collaborate / Transform abstract slots.
 
   // 6. Gradients — Transform (energy, motion). Use preview image if available.
   (source.gradients ?? []).forEach((g, idx) => {
