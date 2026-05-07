@@ -551,6 +551,8 @@ export const BrandLayoutTemplateGallery = ({
                   template={previewTpl.template}
                   resolved={previewTpl.resolved}
                   presentationMode
+                  logoUrl={approvedLogoUrl}
+                  logoVariant={approvedLogoVariant}
                 />
               </div>
             </div>
