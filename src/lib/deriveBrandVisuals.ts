@@ -32,6 +32,8 @@ interface DeriveSource {
   hero?: { coverImage?: string; coverVideo?: string; useVideo?: boolean; name?: string };
   logos?: Array<{ id?: string; url?: string; name?: string; variant?: string }>;
   imagery?: Array<{ id?: string; url?: string; imageUrl?: string; name?: string; title?: string; description?: string; category?: string; pillar?: string; tags?: string[] }>;
+  /** Patterns are accepted for back-compat but intentionally ignored — they no longer feed layout templates. */
+  patterns?: Array<{ id?: string; url?: string; name?: string }>;
   gradients?: Array<{ id?: string; name?: string; css?: string; preview?: string; previewImage?: string }>;
   approvedImagery?: { sections?: Array<{ name?: string; images?: Array<{ url?: string; tags?: string[] }> }> };
 }
