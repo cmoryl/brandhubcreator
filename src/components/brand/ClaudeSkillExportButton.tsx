@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, Link2, Package, Beaker, ScanText, Globe, ShieldCheck, Fingerprint, Send, History, Settings2 } from 'lucide-react';
+import { Sparkles, Loader2, Link2, Package, Beaker, ScanText, Globe, ShieldCheck, Fingerprint, Send, History, Settings2, Rocket } from 'lucide-react';
 import { SkillQARunner } from './SkillQARunner';
 import { Button } from '@/components/ui/button';
 import {
@@ -109,6 +109,42 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
     }
   };
 
+  const buildAndPush = async () => {
+    if (busy) return;
+    setBusy(true);
+    setProgress(null);
+    const toastId = toast.loading('Building skill & pushing to Claude…');
+    try {
+      const res = await pushSkillToAnthropic(guide, { recordHistory: true });
+      if (!res.ok) {
+        toast.error(res.error || 'Push failed', {
+          id: toastId,
+          description: res.hint || (res.status ? `Status ${res.status}` : undefined),
+          duration: 12000,
+        });
+      } else {
+        toast.success('Built & pushed to Claude', {
+          id: toastId,
+          description: 'See the Pushes tab for full history.',
+        });
+      }
+    } catch (e: any) {
+      if (e instanceof ClaudeSkillValidationError) {
+        const errs = e.issues.filter(i => i.severity === 'error');
+        toast.error(`Build blocked: ${errs.length} validation error${errs.length === 1 ? '' : 's'}`, {
+          id: toastId,
+          description: errs.slice(0, 3).map(i => `• ${i.path ? `${i.path}: ` : ''}${i.message}`).join('\n'),
+          duration: 12000,
+        });
+      } else {
+        toast.error(e?.message || 'Build & push failed', { id: toastId });
+      }
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
+  };
+
   const label = busy
     ? progress
       ? `Bundling… ${progress.done}/${progress.total}`
@@ -123,6 +159,10 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
           Export Claude Skill
         </DropdownMenuSubTrigger>
         <DropdownMenuSubContent>
+          <DropdownMenuItem onClick={(e) => { e.preventDefault(); buildAndPush(); }}>
+            <Rocket className="h-4 w-4 mr-2" /> Build &amp; push to Claude
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={(e) => { e.preventDefault(); run(false); }}>
             <Link2 className="h-4 w-4 mr-2" /> Links only (fast)
           </DropdownMenuItem>
@@ -130,7 +170,7 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
             <Package className="h-4 w-4 mr-2" /> Bundle assets (slower)
           </DropdownMenuItem>
           <DropdownMenuItem onClick={(e) => { e.preventDefault(); pushToClaude(); }}>
-            <Send className="h-4 w-4 mr-2" /> Push to Claude
+            <Send className="h-4 w-4 mr-2" /> Push to Claude only
           </DropdownMenuItem>
         </DropdownMenuSubContent>
       </DropdownMenuSub>
@@ -147,6 +187,14 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel>Export Claude Skill</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={buildAndPush} disabled={busy} className="bg-primary/5 focus:bg-primary/10">
+          <Rocket className="h-4 w-4 mr-2 text-primary" />
+          <div className="flex flex-col">
+            <span className="font-medium">Build &amp; push to Claude</span>
+            <span className="text-xs text-muted-foreground">One-click: validate → build → upload → record.</span>
+          </div>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => run(false)} disabled={busy}>
           <Link2 className="h-4 w-4 mr-2" />
