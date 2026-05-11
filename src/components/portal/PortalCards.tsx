@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { PortalBrand, PortalProduct, PortalEvent, PortalLinkedGuide } from '@/hooks/usePortalData';
 import { ComplianceScoreBadge } from '@/components/dataforce/ComplianceScoreBadge';
+import { SkillReadinessBadge } from '@/components/brand/SkillReadinessBadge';
 import { cn } from '@/lib/utils';
 
 interface CardColors {
@@ -177,6 +178,7 @@ export const PortalBrandCard = memo(React.forwardRef<HTMLDivElement, BrandCardPr
               </Button>
               <div className="flex items-center gap-2">
                 <ComplianceScoreBadge score={complianceScore} size="sm" />
+                <SkillReadinessBadge entityType="brand" entityId={brand.id} compact />
                 {isMasterBrand && (
                   <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     Brand Hub
