@@ -946,10 +946,19 @@ export async function exportGuideAsClaudeSkill(
   }
 
 
-  // Write the manifest LAST so it can list every file actually included
+  // Write the manifest before validation so it appears in required-file scans
   const includedFiles: string[] = [];
   zip.folder(folder)!.forEach((relPath) => { includedFiles.push(relPath); });
   root.file('MANIFEST.md', buildManifest(guide, kind, includedFiles.sort()));
+
+  // Pre-export validation — fail loudly with a clear report
+  if (!opts.skipValidation) {
+    const issues = await validateSkillZip(root, guide, kind, includeIntel);
+    const report = formatValidationReport(issues);
+    root.file('VALIDATION.md', report);
+    const hasErrors = issues.some(i => i.severity === 'error');
+    if (hasErrors) throw new ClaudeSkillValidationError(issues, report);
+  }
 
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
   return { blob, filename: `${folder}.zip`, folder, bundled, failed: failedCount };
