@@ -372,7 +372,29 @@ function buildManifest(guide: AnyGuide, kind: string, includedFiles: string[]): 
   return lines.join('\n');
 }
 
-function buildColors(guide: AnyGuide): string {
+function buildOverview(guide: AnyGuide, kind: string): string {
+  const h = guide.hero || ({} as any);
+  const id: any = (guide as any).identity || {};
+  const lines: string[] = [];
+  lines.push(`# Overview — ${h.name || ''}`);
+  if (h.tagline) lines.push(`\n_${h.tagline}_\n`);
+  lines.push('## Table of contents');
+  lines.push('- Identity (mission, vision, positioning, archetype)');
+  lines.push('- Values');
+  lines.push('');
+  lines.push(`**Type:** ${kind}`);
+  if ((guide as any).slug) lines.push(`**Slug:** ${(guide as any).slug}`);
+  if (id.mission) lines.push(`\n## Mission\n${id.mission}`);
+  if (id.vision) lines.push(`\n## Vision\n${id.vision}`);
+  if (id.positioning) lines.push(`\n## Positioning\n${id.positioning}`);
+  if (id.archetype) lines.push(`\n## Archetype\n${id.archetype}`);
+  const values = safeArr((guide as any).values);
+  if (values.length) {
+    lines.push(`\n## Values`);
+    values.forEach((v: any) => lines.push(`- **${v.name || v.title || ''}** — ${v.description || ''}`));
+  }
+  return lines.join('\n');
+}
   const colors = safeArr((guide as any).colors);
   const combos = safeArr((guide as any).colorCombinations);
   const lines = ['# Colors', ''];
