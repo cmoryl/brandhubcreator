@@ -218,7 +218,7 @@ Be specific and actionable in your findings. Score each dimension 0-100.`;
             Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: "google/gemini-3-flash-preview",
             messages: [
               { role: "system", content: systemPrompt },
               {

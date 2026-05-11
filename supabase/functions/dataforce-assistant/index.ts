@@ -859,7 +859,7 @@ Only use slugs that exist in the entity directory. Do not fabricate slugs. If no
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: 'google/gemini-2.5-flash-lite',
+              model: 'google/gemini-3.1-flash-lite-preview',
               temperature: 0.3,
               max_tokens: 1024,
               messages: [
@@ -949,7 +949,7 @@ Only use slugs that exist in the entity directory. Do not fabricate slugs. If no
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: 'google/gemini-2.5-flash-lite',
+              model: 'google/gemini-3.1-flash-lite-preview',
               temperature: 0.2,
               max_tokens: 512,
               messages: [
@@ -1012,7 +1012,7 @@ Only use slugs that exist in the entity directory. Do not fabricate slugs. If no
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-lite',
+            model: 'google/gemini-3.1-flash-lite-preview',
             temperature: 0.1,
             max_tokens: 512,
             messages: [

@@ -215,7 +215,7 @@ When writing recommendations, reference specific asset sources (e.g. "Approved I
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: "You are a brand imagery auditor. Inspect any provided thumbnails alongside the textual inventory. Return structured JSON via the supplied tool only." },
           { role: "user", content: userContent },

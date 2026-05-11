@@ -69,7 +69,7 @@ Return realistic estimates for ALL of the following metrics. Use your knowledge 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-3.1-flash-lite-preview",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },

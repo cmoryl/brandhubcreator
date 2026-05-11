@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
           method: 'POST',
           headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-lite',
+            model: 'google/gemini-3.1-flash-lite-preview',
             temperature: 0.1,
             messages: [
               { role: 'system', content: 'You compress brand reference markdown into a SINGLE 2-3 sentence pointer summary suitable for inlining inside SKILL.md. Preserve the most load-bearing facts (HEX, font names, hard rules). Never invent. Output plain text only.' },

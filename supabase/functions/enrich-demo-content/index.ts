@@ -35,7 +35,7 @@ async function patchJob(jobId: string | undefined, updates: Record<string, unkno
   });
 }
 
-async function callAIText(prompt: string, system: string, model = "google/gemini-2.5-flash"): Promise<string> {
+async function callAIText(prompt: string, system: string, model = "google/gemini-3-flash-preview"): Promise<string> {
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },

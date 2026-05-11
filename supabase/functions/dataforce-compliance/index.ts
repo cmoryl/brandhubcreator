@@ -201,7 +201,7 @@ Return your analysis as a JSON object with this structure:
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: complianceImages.length > 0 ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview",
+          model: complianceImages.length > 0 ? "google/gemini-3-flash-preview" : "google/gemini-3-flash-preview",
           messages: [
             { role: "system", content: systemPrompt + '\n\nIMPORTANT: You will receive actual brand images. Analyze them for visual consistency, proper logo usage, color accuracy, typography compliance, and imagery quality. Report specific issues found in the actual visuals.' },
             { role: "user", content: userContent }

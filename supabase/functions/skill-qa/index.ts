@@ -31,13 +31,13 @@ type SectionId =
 type ModelTier = 'haiku' | 'sonnet' | 'opus';
 
 const MODEL_MAP: Record<ModelTier, string> = {
-  haiku: 'google/gemini-2.5-flash-lite',
+  haiku: 'google/gemini-3.1-flash-lite-preview',
   sonnet: 'google/gemini-3-flash-preview',
   opus: 'google/gemini-3.1-pro-preview',
 };
 const JUDGE_MODEL = 'openai/gpt-5.2';
 const IMAGE_MODEL = 'google/gemini-3.1-flash-image-preview';
-const VISION_JUDGE = 'google/gemini-2.5-pro';
+const VISION_JUDGE = 'google/gemini-3.1-pro-preview';
 
 interface SkillPayload {
   brandName: string;

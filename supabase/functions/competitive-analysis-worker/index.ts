@@ -160,7 +160,7 @@ Create one competitorProfile per competitor. Scores 1-10 integers. Be specific a
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-3.1-flash-lite-preview",
         messages: [
           { role: "system", content: "You are an expert brand strategist. Return valid JSON only matching the schema exactly." },
           { role: "user", content: prompt },

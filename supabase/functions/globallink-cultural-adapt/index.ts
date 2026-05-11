@@ -91,7 +91,7 @@ Be specific to ${localeName}. Keep each category to 2-3 sentences.`;
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-lite',
+            model: 'google/gemini-3.1-flash-lite-preview',
             messages: [
               { role: 'system', content: 'You are a cultural branding and localization expert. Provide concise, actionable cultural adaptation guidance.' },
               { role: 'user', content: prompt },

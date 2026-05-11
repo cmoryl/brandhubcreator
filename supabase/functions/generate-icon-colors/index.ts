@@ -60,7 +60,7 @@ Return ONLY a JSON object with this structure:
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
+          model: "google/gemini-3.1-flash-lite-preview",
           messages: [
             { role: "system", content: "You are a color expert for icon design. Return valid JSON only, no markdown." },
             { role: "user", content: prompt },
