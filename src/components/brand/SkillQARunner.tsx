@@ -388,10 +388,19 @@ const AutofixPanel = ({ guide, report }: { guide: AnyGuide; report: SkillQARepor
 // ---------------- Ask-the-skill chat ----------------
 interface ChatMsg { role: 'user' | 'assistant'; content: string }
 
+const CHAT_MODELS: Array<{ id: string; label: string; provider: 'claude' | 'gemini' }> = [
+  { id: 'claude-sonnet-4-5', label: 'Claude Sonnet 4.5 (real Claude)', provider: 'claude' },
+  { id: 'claude-opus-4-1', label: 'Claude Opus 4.1 (premium)', provider: 'claude' },
+  { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5 (fast)', provider: 'claude' },
+  { id: 'google/gemini-3-flash-preview', label: 'Gemini 3 Flash (default)', provider: 'gemini' },
+  { id: 'google/gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro', provider: 'gemini' },
+];
+
 const SkillChatPanel = ({ guide }: { guide: AnyGuide }) => {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
+  const [model, setModel] = useState<string>('claude-sonnet-4-5');
   const [skill, setSkill] = useState<{ skillMd: string; sections: Record<string, string> } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -416,7 +425,7 @@ const SkillChatPanel = ({ guide }: { guide: AnyGuide }) => {
     abortRef.current = new AbortController();
     try {
       let acc = '';
-      for await (const chunk of streamSkillChat(skill, next.slice(0, -1), { signal: abortRef.current.signal })) {
+      for await (const chunk of streamSkillChat(skill, next.slice(0, -1), { model, signal: abortRef.current.signal })) {
         acc += chunk;
         setMessages((m) => {
           const copy = [...m];
@@ -441,6 +450,22 @@ const SkillChatPanel = ({ guide }: { guide: AnyGuide }) => {
 
   return (
     <div className="flex flex-col h-[60vh]">
+      <div className="flex items-center justify-between gap-2 pb-2 border-b mb-2">
+        <div className="text-xs text-muted-foreground">
+          Model: {CHAT_MODELS.find(m => m.id === model)?.provider === 'claude' ? 'Anthropic Claude' : 'Lovable AI Gateway'}
+        </div>
+        <select
+          value={model}
+          onChange={(e) => setModel(e.target.value)}
+          disabled={streaming}
+          className="text-xs rounded-md border border-input bg-background px-2 py-1"
+          aria-label="Chat model"
+        >
+          {CHAT_MODELS.map((m) => (
+            <option key={m.id} value={m.id}>{m.label}</option>
+          ))}
+        </select>
+      </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 p-1">
         {messages.length === 0 && (
           <div className="text-sm text-muted-foreground space-y-2 p-2">
