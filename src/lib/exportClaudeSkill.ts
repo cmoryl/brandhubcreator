@@ -994,6 +994,15 @@ export async function exportGuideAsClaudeSkill(
   refs.file('assets.md', buildAssets(guide));
   if (hasAntiPatterns) refs.file('anti-patterns.md', buildAntiPatterns(guide));
 
+  // Optional: enrich with vision-extracted identity from linked PDFs
+  if (opts.enrichWithPdfVision) {
+    const enriched = await fetchPdfVisionEnrichment(guide);
+    if (enriched) {
+      refs.file('pdf-extracted-identity.md', enriched.md);
+      root.file('pdf-vision-tokens.json', JSON.stringify(enriched.tokens, null, 2));
+    }
+  }
+
   const intel = await intelPromise;
   if (includeIntel) {
     const intelDir = root.folder('intelligence')!;
