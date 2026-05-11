@@ -25,6 +25,7 @@ import { SkillDiffViewer } from './SkillDiffViewer';
 import { SkillPushHistoryPanel } from './SkillPushHistoryPanel';
 import { AutoImproveLoopPanel } from './AutoImproveLoopPanel';
 import { SkillScoreHistoryChart } from './SkillScoreHistoryChart';
+import { SkillRegressionAlert } from './SkillRegressionAlert';
 
 type AnyGuide = BrandGuide | ProductGuide | EventGuide;
 interface Props { guide: AnyGuide; trigger?: React.ReactNode }
@@ -155,6 +156,7 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
 
           <TabsContent value="history" className="space-y-3">
             {history.length === 0 && <p className="text-sm text-muted-foreground p-4">No previous runs.</p>}
+            {history.length > 0 && <SkillRegressionAlert history={history} />}
             {history.length > 0 && <SkillScoreHistoryChart history={history} />}
             {history.map((h) => (
               <div key={h.id} className="rounded-md border p-3 space-y-2">
