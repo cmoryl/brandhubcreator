@@ -76,33 +76,54 @@ Deno.serve(async (req) => {
 - Preserve all factual brand data (HEXes, font names, URLs) verbatim — never invent.
 - Make the language concrete, scannable, and instructional ("Use #003D7A for primary CTA. Never tint or shade.").
 - Strengthen anti-pattern callouts where misuses indicate the model invented values or used forbidden phrasing.
-- Output ONLY a tool call to submit_patches with the FULL revised markdown for each changed file.`,
+- Output ONLY a tool call to submit_patches.
+- The "patches" argument MUST be a non-empty object whose KEYS are file paths (e.g. "SKILL.md", "references/colors.md", "references/anti-patterns.md") and whose VALUES are the COMPLETE revised markdown for that file (not a diff, not a summary, not a description of changes — the entire new file contents).
+- "changed_sections" must list those exact file path keys, identical to the keys of "patches".
+- If nothing genuinely needs changing, still return at least one file in "patches" with its current contents unchanged rather than omitting the field.`,
       },
       {
         role: 'user',
-        content: `Current SKILL.md:\n\n${skill.skillMd}\n\n=== Section files ===\n${sectionContext}\n\n=== Recurring misuses ===\n${misuseList}\n\n=== Sections missed by ≥2 models ===\n${missingList}\n\nPropose patches now.`,
+        content: `Current SKILL.md:\n\n${skill.skillMd}\n\n=== Section files ===\n${sectionContext}\n\n=== Recurring misuses ===\n${misuseList}\n\n=== Sections missed by ≥2 models ===\n${missingList}\n\nPropose patches now. Remember: "patches" must be an object mapping file paths to full revised markdown.`,
       },
     ];
 
-    const res = await fetch(GATEWAY_URL, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'openai/gpt-5.2',
-        temperature: 0.1,
-        tools: [tool],
-        tool_choice: { type: 'function', function: { name: 'submit_patches' } },
-        messages,
-      }),
-    });
-    const raw = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      return new Response(JSON.stringify({ error: 'autofix_failed', status: res.status, detail: raw?.error }), { status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    async function callModel(model: string, extraMessages: any[] = []) {
+      const r = await fetch(GATEWAY_URL, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          tools: [tool],
+          tool_choice: { type: 'function', function: { name: 'submit_patches' } },
+          messages: [...messages, ...extraMessages],
+        }),
+      });
+      const j = await r.json().catch(() => ({}));
+      return { ok: r.ok, status: r.status, json: j };
     }
-    const call = raw?.choices?.[0]?.message?.tool_calls?.[0];
+
+    let { ok, status, json: raw } = await callModel('openai/gpt-5');
+    if (!ok) {
+      return new Response(JSON.stringify({ error: 'autofix_failed', status, detail: raw?.error }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    let call = raw?.choices?.[0]?.message?.tool_calls?.[0];
     let parsed: any = {};
     try { parsed = JSON.parse(call?.function?.arguments || '{}'); } catch { parsed = {}; }
-    if (!parsed?.patches || typeof parsed.patches !== 'object') {
+
+    // Retry once if the model returned the tool call without the required "patches" object.
+    if (!parsed?.patches || typeof parsed.patches !== 'object' || Object.keys(parsed.patches).length === 0) {
+      const retry = await callModel('openai/gpt-5', [
+        { role: 'assistant', content: null, tool_calls: call ? [call] : [] },
+        { role: 'tool', tool_call_id: call?.id || 'missing', name: 'submit_patches', content: 'ERROR: "patches" field was missing or empty. You MUST resubmit submit_patches with patches as an object mapping file paths to the FULL revised markdown for each file you listed in changed_sections.' },
+      ]);
+      if (retry.ok) {
+        raw = retry.json;
+        call = raw?.choices?.[0]?.message?.tool_calls?.[0];
+        try { parsed = JSON.parse(call?.function?.arguments || '{}'); } catch { parsed = {}; }
+      }
+    }
+
+    if (!parsed?.patches || typeof parsed.patches !== 'object' || Object.keys(parsed.patches).length === 0) {
       return new Response(JSON.stringify({ error: 'no_patches_returned', raw }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
