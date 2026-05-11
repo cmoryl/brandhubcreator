@@ -109,7 +109,52 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
     }
   };
 
-  const label = busy
+  const buildAndPush = async () => {
+    if (busy) return;
+    setBusy(true);
+    const toastId = toast.loading('Building skill & pushing to Claude…');
+    try {
+      // 1. Build + record export history
+      const { bundled, failed } = await downloadGuideAsClaudeSkill(guide, {
+        embedAssets: false,
+        includeLocales,
+        includeComplianceGuardrails,
+        includeBrandDna,
+        recordHistory: true,
+        exportedTo: ['anthropic'],
+        skipDownload: true,
+        onProgress: (done, total) => setProgress({ done, total }),
+      } as any);
+      // 2. Push to Anthropic (recordPushOutcome attaches to the row we just created)
+      toast.loading('Uploading to Claude…', { id: toastId });
+      const res = await pushSkillToAnthropic(guide);
+      if (!res.ok) {
+        toast.error(res.error || 'Push failed', {
+          id: toastId,
+          description: res.hint || (res.status ? `Status ${res.status}` : undefined),
+          duration: 12000,
+        });
+      } else {
+        toast.success(`Built & pushed to Claude${failed ? ` (${failed} asset${failed === 1 ? '' : 's'} skipped)` : ''}`, { id: toastId });
+      }
+    } catch (e: any) {
+      if (e instanceof ClaudeSkillValidationError) {
+        const errs = e.issues.filter(i => i.severity === 'error');
+        toast.error(`Build blocked: ${errs.length} validation error${errs.length === 1 ? '' : 's'}`, {
+          id: toastId,
+          description: errs.slice(0, 3).map(i => `• ${i.path ? `${i.path}: ` : ''}${i.message}`).join('\n'),
+          duration: 12000,
+        });
+      } else {
+        toast.error(e?.message || 'Build & push failed', { id: toastId });
+      }
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
+  };
+
+
     ? progress
       ? `Bundling… ${progress.done}/${progress.total}`
       : 'Exporting…'
