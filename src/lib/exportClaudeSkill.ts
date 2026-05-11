@@ -793,6 +793,12 @@ export async function exportGuideAsClaudeSkill(
     refs.file('bundled-assets.md', buildBundledAssetsMd(manifest, failed));
   }
 
+
+  // Write the manifest LAST so it can list every file actually included
+  const includedFiles: string[] = [];
+  zip.folder(folder)!.forEach((relPath) => { includedFiles.push(relPath); });
+  root.file('MANIFEST.md', buildManifest(guide, kind, includedFiles.sort()));
+
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
   return { blob, filename: `${folder}.zip`, folder, bundled, failed: failedCount };
 }
