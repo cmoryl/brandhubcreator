@@ -395,6 +395,8 @@ function buildOverview(guide: AnyGuide, kind: string): string {
   }
   return lines.join('\n');
 }
+
+function buildColors(guide: AnyGuide): string {
   const colors = safeArr((guide as any).colors);
   const combos = safeArr((guide as any).colorCombinations);
   const lines = ['# Colors', ''];
