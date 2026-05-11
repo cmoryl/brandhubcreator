@@ -159,6 +159,10 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
           Export Claude Skill
         </DropdownMenuSubTrigger>
         <DropdownMenuSubContent>
+          <DropdownMenuItem onClick={(e) => { e.preventDefault(); buildAndPush(); }}>
+            <Rocket className="h-4 w-4 mr-2" /> Build &amp; push to Claude
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={(e) => { e.preventDefault(); run(false); }}>
             <Link2 className="h-4 w-4 mr-2" /> Links only (fast)
           </DropdownMenuItem>
@@ -166,7 +170,7 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
             <Package className="h-4 w-4 mr-2" /> Bundle assets (slower)
           </DropdownMenuItem>
           <DropdownMenuItem onClick={(e) => { e.preventDefault(); pushToClaude(); }}>
-            <Send className="h-4 w-4 mr-2" /> Push to Claude
+            <Send className="h-4 w-4 mr-2" /> Push to Claude only
           </DropdownMenuItem>
         </DropdownMenuSubContent>
       </DropdownMenuSub>
