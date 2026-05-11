@@ -42,7 +42,6 @@ async function fetchIntelligenceBundle(guide: AnyGuide): Promise<IntelligenceBun
   const tableName = kind === 'product' ? 'products' : kind === 'event' ? 'events' : 'brands';
 
   const out: IntelligenceBundle = {};
-  const tasks: Promise<any>[] = [];
 
   const safe = async <T,>(p: Promise<any> | any, assign: (v: any) => void) => {
     try { const r = await p; assign(r?.data ?? r); } catch { /* ignore */ }
