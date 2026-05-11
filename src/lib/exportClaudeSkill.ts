@@ -1176,6 +1176,32 @@ export async function exportGuideAsClaudeSkill(
     intelDir.file('intelligence.json', JSON.stringify(intel, null, 2));
   }
 
+  // Optional: locales (GlobalLink regional variants)
+  let bundledLocales: string[] = [];
+  if (opts.includeLocales) {
+    const variants = await fetchRegionalVariants(guide);
+    if (variants.length) {
+      const localesDir = root.folder('locales')!;
+      variants.forEach((v) => {
+        const safe = (v.locale || 'unknown').toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        localesDir.file(`${safe}.md`, buildLocaleMd(v));
+        bundledLocales.push(safe);
+      });
+    }
+  }
+
+  // Optional: compliance + cultural guardrails
+  if (opts.includeComplianceGuardrails) {
+    const md = await fetchComplianceGuardrails(guide);
+    if (md) refs.file('compliance-guardrails.md', md);
+  }
+
+  // Optional: brand DNA Lock as anti-patterns extension
+  if (opts.includeBrandDna) {
+    const dnaMd = await fetchBrandDnaRules(guide);
+    if (dnaMd) refs.file('brand-dna-rules.md', dnaMd);
+  }
+
   let bundled = 0;
   let failedCount = 0;
   if (opts.embedAssets) {
@@ -1186,6 +1212,26 @@ export async function exportGuideAsClaudeSkill(
     refs.file('bundled-assets.md', buildBundledAssetsMd(manifest, failed));
   }
 
+
+  // Compute token + file counts for versioning
+  let approxTokens = 0; let fileCount = 0;
+  const tokenPaths: string[] = [];
+  zip.folder(folder)!.forEach((rel, entry) => { if (!entry.dir) { fileCount++; if (/\.(md|json|txt)$/i.test(rel)) tokenPaths.push(rel); } });
+  for (const rel of tokenPaths) {
+    const f = root.file(rel); if (!f) continue;
+    approxTokens += Math.round((await f.async('string')).length / 4);
+  }
+
+  // Versioning + changelog
+  let versionInfo = { version: '1.0.0', prev: null as string | null, changelog: 'Initial export.' };
+  if (opts.recordHistory) {
+    versionInfo = await computeNextVersionAndChangelog(guide, approxTokens, fileCount);
+    root.file('CHANGELOG.md', `# Changelog\n\n## ${versionInfo.version} — ${new Date().toISOString().slice(0, 10)}\n${versionInfo.changelog}\n${versionInfo.prev ? `\n_Previous version: ${versionInfo.prev}_` : ''}\n`);
+    // Re-stamp the version into SKILL.md frontmatter
+    const skillBody = await root.file('SKILL.md')!.async('string');
+    const stamped = skillBody.replace(/^version:\s*[^\n]+/m, `version: ${versionInfo.version}`);
+    root.file('SKILL.md', stamped);
+  }
 
   // Write the manifest before validation so it appears in required-file scans
   const includedFiles: string[] = [];
@@ -1199,6 +1245,14 @@ export async function exportGuideAsClaudeSkill(
     root.file('VALIDATION.md', report);
     const hasErrors = issues.some(i => i.severity === 'error');
     if (hasErrors) throw new ClaudeSkillValidationError(issues, report);
+  }
+
+  if (opts.recordHistory) {
+    await recordExportHistory(guide, {
+      version: versionInfo.version, prev: versionInfo.prev, changelog: versionInfo.changelog,
+      tokens: approxTokens, files: fileCount,
+      locales: bundledLocales, exportedTo: opts.exportedTo || ['download'],
+    });
   }
 
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
