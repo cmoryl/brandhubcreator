@@ -762,6 +762,7 @@ export default function AdminDashboard() {
                   <TabsTrigger value="multicultural" className="gap-2 text-xs sm:text-sm"><Users className="h-4 w-4" />Multicultural</TabsTrigger>
                   <TabsTrigger value="research" className="gap-2 text-xs sm:text-sm"><Eye className="h-4 w-4" />Research</TabsTrigger>
                   <TabsTrigger value="visibility" className="gap-2 text-xs sm:text-sm"><Eye className="h-4 w-4" />Visibility</TabsTrigger>
+                  <TabsTrigger value="model-audit" className="gap-2 text-xs sm:text-sm"><BarChart3 className="h-4 w-4" />Model Audit</TabsTrigger>
                 </TabsList>
                 <TabsContent value="oracle"><OracleBrainPanel organizationId={organizations[0]?.id} /></TabsContent>
                 <TabsContent value="ai-analysis"><AIMarketAnalysis /></TabsContent>
@@ -774,6 +775,7 @@ export default function AdminDashboard() {
                     <p className="text-sm text-muted-foreground text-center py-8">No organization found</p>
                   )}
                 </TabsContent>
+                <TabsContent value="model-audit"><ModelAuditPanel /></TabsContent>
               </Tabs>
             </Suspense>
           </TabsContent>
