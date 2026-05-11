@@ -69,6 +69,7 @@ const AccessibilityStandardsPanel = lazy(() => import('@/components/admin/Access
 const HealthTimelinePanel = lazy(() => import('@/components/admin/HealthTimelinePanel').then(m => ({ default: m.HealthTimelinePanel })));
 const PortfolioInsightsPanel = lazy(() => import('@/components/admin/PortfolioInsightsPanel').then(m => ({ default: m.PortfolioInsightsPanel })));
 const AICenterOfExcellence = lazy(() => import('@/components/admin/AICenterOfExcellence').then(m => ({ default: m.AICenterOfExcellence })));
+const ModelAuditPanel = lazy(() => import('@/components/admin/ModelAuditPanel').then(m => ({ default: m.ModelAuditPanel })));
 const VisibilityDashboard = lazy(() => import('@/components/admin/VisibilityDashboard').then(m => ({ default: m.VisibilityDashboard })));
 
 import { AdminSidebar, AdminMobileNav } from '@/components/admin/AdminSidebar';
