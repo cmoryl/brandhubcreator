@@ -141,6 +141,10 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
             <SkillChatPanel guide={guide} />
           </TabsContent>
 
+          <TabsContent value="pushes">
+            <SkillPushHistoryPanel guide={guide} />
+          </TabsContent>
+
           <TabsContent value="history" className="space-y-3">
             {history.length === 0 && <p className="text-sm text-muted-foreground p-4">No previous runs.</p>}
             {history.map((h) => (
