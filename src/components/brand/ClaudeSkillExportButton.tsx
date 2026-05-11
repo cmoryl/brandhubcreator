@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, Link2, Package, Beaker, ScanText, Globe, ShieldCheck, Fingerprint, Send, History, Settings2, Rocket } from 'lucide-react';
+import { Sparkles, Loader2, Link2, Package, Beaker, ScanText, Globe, ShieldCheck, Fingerprint, Send, History, Settings2, Rocket, Layers } from 'lucide-react';
+import { SURFACE_PRESETS, ALL_SURFACES, type SkillSurface } from '@/lib/skillSurfacePresets';
 import { SkillQARunner } from './SkillQARunner';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,6 +29,7 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
   const [includeLocales, setIncludeLocales] = useState(false);
   const [includeComplianceGuardrails, setIncludeCompliance] = useState(false);
   const [includeBrandDna, setIncludeBrandDna] = useState(false);
+  const [surface, setSurface] = useState<SkillSurface>('general');
   const { trackDownload } = useDownloadTracking();
 
   const run = async (embedAssets: boolean, enrichWithPdfVision = false) => {
@@ -46,6 +48,7 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
         includeLocales,
         includeComplianceGuardrails,
         includeBrandDna,
+        surface,
         recordHistory: true,
         exportedTo: ['download'],
         onProgress: (done, total) => setProgress({ done, total }),
@@ -217,6 +220,28 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
             <span className="text-xs text-muted-foreground">Vision-extracts identity from brand PDFs.</span>
           </div>
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="flex items-center gap-2 text-xs">
+          <Layers className="h-3.5 w-3.5" /> Surface variant
+        </DropdownMenuLabel>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Layers className="h-4 w-4 mr-2" />
+            <span className="flex-1">{SURFACE_PRESETS[surface].label}</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            {ALL_SURFACES.map((s) => (
+              <DropdownMenuCheckboxItem
+                key={s}
+                checked={surface === s}
+                onCheckedChange={() => setSurface(s)}
+                onSelect={(e) => e.preventDefault()}
+              >
+                {SURFACE_PRESETS[s].label}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         <DropdownMenuSeparator />
         <DropdownMenuLabel className="flex items-center gap-2 text-xs">
           <Settings2 className="h-3.5 w-3.5" /> Advanced options
