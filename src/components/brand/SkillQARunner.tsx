@@ -425,7 +425,7 @@ const SkillChatPanel = ({ guide }: { guide: AnyGuide }) => {
     abortRef.current = new AbortController();
     try {
       let acc = '';
-      for await (const chunk of streamSkillChat(skill, next.slice(0, -1), { signal: abortRef.current.signal })) {
+      for await (const chunk of streamSkillChat(skill, next.slice(0, -1), { model, signal: abortRef.current.signal })) {
         acc += chunk;
         setMessages((m) => {
           const copy = [...m];
