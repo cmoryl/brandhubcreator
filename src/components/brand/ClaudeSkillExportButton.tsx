@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, Link2, Package, Beaker } from 'lucide-react';
+import { Sparkles, Loader2, Link2, Package, Beaker, ScanText } from 'lucide-react';
 import { SkillQARunner } from './SkillQARunner';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,16 +32,19 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const { trackDownload } = useDownloadTracking();
 
-  const run = async (embedAssets: boolean) => {
+  const run = async (embedAssets: boolean, enrichWithPdfVision = false) => {
     if (busy) return;
     setBusy(true);
     setProgress(null);
     const toastId = toast.loading(
-      embedAssets ? 'Bundling assets into Claude skill…' : 'Exporting Claude skill…'
+      enrichWithPdfVision
+        ? 'Extracting identity from PDFs + exporting skill…'
+        : embedAssets ? 'Bundling assets into Claude skill…' : 'Exporting Claude skill…'
     );
     try {
       const { bundled, failed } = await downloadGuideAsClaudeSkill(guide, {
         embedAssets,
+        enrichWithPdfVision,
         onProgress: (done, total) => setProgress({ done, total }),
       });
       trackDownload({
@@ -128,6 +131,13 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
           <div className="flex flex-col">
             <span>Bundle assets</span>
             <span className="text-xs text-muted-foreground">Embed images, fonts &amp; docs.</span>
+          </div>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => run(true, true)} disabled={busy}>
+          <ScanText className="h-4 w-4 mr-2" />
+          <div className="flex flex-col">
+            <span>Bundle + extract from PDFs</span>
+            <span className="text-xs text-muted-foreground">Vision-extracts identity from brand PDFs.</span>
           </div>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
