@@ -754,6 +754,8 @@ export interface ExportOptions {
   recordHistory?: boolean;
   /** Where this export is being sent (for history tagging). */
   exportedTo?: string[];
+  /** Per-surface variant: 'social' | 'deck' | 'rfp' | 'ads' | 'email' | 'general'. */
+  surface?: import('./skillSurfacePresets').SkillSurface;
   onProgress?: (done: number, total: number) => void;
 }
 
@@ -1132,7 +1134,10 @@ export async function exportGuideAsClaudeSkill(
   opts: ExportOptions = {},
 ): Promise<{ blob: Blob; filename: string; folder: string; bundled: number; failed: number }> {
   const kind = (guide as any).type || 'brand';
-  const folder = slugify(guide.hero?.name || (guide as any).slug || kind) + '-skill';
+  const { SURFACE_PRESETS } = await import('./skillSurfacePresets');
+  const surface = SURFACE_PRESETS[opts.surface || 'general'];
+  const baseSlug = slugify(guide.hero?.name || (guide as any).slug || kind);
+  const folder = baseSlug + '-skill' + (surface.nameSuffix || '');
   const includeIntel = opts.includeIntelligence !== false;
 
   const zip = new JSZip();
@@ -1144,7 +1149,24 @@ export async function exportGuideAsClaudeSkill(
   const hasAntiPatterns = safeArr((guide as any).antiPatterns).length > 0;
   const hasIntel = includeIntel;
 
-  root.file('SKILL.md', buildSkillMd(guide, kind, hasIntel, hasAntiPatterns));
+  let skillMd = buildSkillMd(guide, kind, hasIntel, hasAntiPatterns);
+  if (surface.preamble) {
+    // Inject preamble after the "When to use this skill" block
+    skillMd = skillMd.replace(
+      /(## When to use this skill[\s\S]*?)(\n## )/,
+      `$1\n\n${surface.preamble}\n$2`,
+    );
+    // Suffix the skill name in frontmatter so Claude can disambiguate variants
+    skillMd = skillMd.replace(/^name: (.+)$/m, (_m, n) => `name: ${n}${surface.nameSuffix}`);
+    // Append surface-specific triggers to description
+    if (surface.triggers.length) {
+      skillMd = skillMd.replace(/^description: "(.+)"$/m, (_m, d) => {
+        const extra = ` Triggers: ${surface.triggers.join(', ')}.`;
+        return `description: ${JSON.stringify(d + extra)}`;
+      });
+    }
+  }
+  root.file('SKILL.md', skillMd);
   root.file('README.md', buildReadme(guide, kind));
   root.file('guide.json', JSON.stringify(guide, null, 2));
 
