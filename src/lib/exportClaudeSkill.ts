@@ -757,7 +757,10 @@ export async function exportGuideAsClaudeSkill(
   // Fetch intelligence in parallel with zip scaffolding
   const intelPromise = includeIntel ? fetchIntelligenceBundle(guide) : Promise.resolve({} as IntelligenceBundle);
 
-  root.file('SKILL.md', buildSkillMd(guide, kind));
+  const hasAntiPatterns = safeArr((guide as any).antiPatterns).length > 0;
+  const hasIntel = includeIntel;
+
+  root.file('SKILL.md', buildSkillMd(guide, kind, hasIntel, hasAntiPatterns));
   root.file('README.md', buildReadme(guide, kind));
   root.file('guide.json', JSON.stringify(guide, null, 2));
 
@@ -769,6 +772,7 @@ export async function exportGuideAsClaudeSkill(
   refs.file('voice-and-messaging.md', buildVoice(guide));
   refs.file('imagery.md', buildImagery(guide));
   refs.file('assets.md', buildAssets(guide));
+  if (hasAntiPatterns) refs.file('anti-patterns.md', buildAntiPatterns(guide));
 
   const intel = await intelPromise;
   if (includeIntel) {
