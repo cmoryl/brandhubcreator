@@ -450,6 +450,22 @@ const SkillChatPanel = ({ guide }: { guide: AnyGuide }) => {
 
   return (
     <div className="flex flex-col h-[60vh]">
+      <div className="flex items-center justify-between gap-2 pb-2 border-b mb-2">
+        <div className="text-xs text-muted-foreground">
+          Model: {CHAT_MODELS.find(m => m.id === model)?.provider === 'claude' ? 'Anthropic Claude' : 'Lovable AI Gateway'}
+        </div>
+        <select
+          value={model}
+          onChange={(e) => setModel(e.target.value)}
+          disabled={streaming}
+          className="text-xs rounded-md border border-input bg-background px-2 py-1"
+          aria-label="Chat model"
+        >
+          {CHAT_MODELS.map((m) => (
+            <option key={m.id} value={m.id}>{m.label}</option>
+          ))}
+        </select>
+      </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 p-1">
         {messages.length === 0 && (
           <div className="text-sm text-muted-foreground space-y-2 p-2">
