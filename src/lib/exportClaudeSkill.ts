@@ -740,7 +740,159 @@ function buildBundledAssetsMd(
 export interface ExportOptions {
   embedAssets?: boolean;
   includeIntelligence?: boolean;
+  /** Skip the pre-export validator (NOT recommended). */
+  skipValidation?: boolean;
   onProgress?: (done: number, total: number) => void;
+}
+
+export interface ValidationIssue {
+  severity: 'error' | 'warning';
+  code: string;
+  message: string;
+  path?: string;
+}
+
+export class ClaudeSkillValidationError extends Error {
+  issues: ValidationIssue[];
+  report: string;
+  constructor(issues: ValidationIssue[], report: string) {
+    super(`Claude Skill export blocked: ${issues.filter(i => i.severity === 'error').length} error(s).`);
+    this.name = 'ClaudeSkillValidationError';
+    this.issues = issues;
+    this.report = report;
+  }
+}
+
+const RESERVED_FRONTMATTER_WORDS = ['anthropic', 'claude'];
+const BANNED_CONTENT_PATTERNS: Array<{ re: RegExp; label: string }> = [
+  { re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/i, label: 'private key' },
+  { re: /AKIA[0-9A-Z]{16}/, label: 'AWS access key' },
+  { re: /sk-[a-zA-Z0-9]{20,}/, label: 'OpenAI-style secret key' },
+  { re: /eyJhbGciOi[A-Za-z0-9_=-]{20,}\.[A-Za-z0-9_=-]{20,}\.[A-Za-z0-9_.+/=-]{10,}/, label: 'JWT token' },
+  { re: /xox[baprs]-[A-Za-z0-9-]{10,}/, label: 'Slack token' },
+  { re: /<script\b[^>]*>[\s\S]*?<\/script>/i, label: 'inline <script> tag' },
+];
+
+async function validateSkillZip(
+  root: JSZip,
+  guide: AnyGuide,
+  kind: string,
+  hasIntel: boolean,
+): Promise<ValidationIssue[]> {
+  const issues: ValidationIssue[] = [];
+  const push = (severity: 'error' | 'warning', code: string, message: string, path?: string) =>
+    issues.push({ severity, code, message, path });
+
+  const required = [
+    'SKILL.md',
+    'README.md',
+    'guide.json',
+    'references/overview.md',
+    'references/colors.md',
+    'references/typography.md',
+    'references/logos.md',
+    'references/voice-and-messaging.md',
+    'references/imagery.md',
+    'references/assets.md',
+  ];
+  if (hasIntel) {
+    required.push(
+      'intelligence/brand-brain.md',
+      'intelligence/oracle.md',
+      'intelligence/research-and-competitive.md',
+      'intelligence/intelligence.json',
+    );
+  }
+  for (const path of required) {
+    if (!root.file(path)) push('error', 'missing_file', 'Required file is missing.', path);
+  }
+
+  const skillFile = root.file('SKILL.md');
+  if (skillFile) {
+    const md = await skillFile.async('string');
+    const fm = md.match(/^---\s*\n([\s\S]*?)\n---\s*\n/);
+    if (!fm) {
+      push('error', 'frontmatter_missing', 'SKILL.md has no YAML frontmatter block.', 'SKILL.md');
+    } else {
+      const fmBody = fm[1];
+      const nameMatch = fmBody.match(/^name:\s*(.+)$/m);
+      const descMatch = fmBody.match(/^description:\s*(.+)$/m);
+
+      if (!nameMatch) {
+        push('error', 'frontmatter_name_missing', 'Frontmatter `name` is required.', 'SKILL.md');
+      } else {
+        const name = nameMatch[1].trim().replace(/^["']|["']$/g, '');
+        if (!name) push('error', 'name_empty', '`name` cannot be empty.', 'SKILL.md');
+        if (name.length > 64) push('error', 'name_too_long', `\`name\` exceeds 64 chars (${name.length}).`, 'SKILL.md');
+        if (!/^[a-z0-9-]+$/.test(name)) push('error', 'name_invalid_chars', `\`name\` must be lowercase letters/numbers/hyphens only. Got: "${name}".`, 'SKILL.md');
+        if (/<[^>]+>/.test(name)) push('error', 'name_xml', '`name` cannot contain XML tags.', 'SKILL.md');
+        for (const r of RESERVED_FRONTMATTER_WORDS) {
+          if (name.toLowerCase().includes(r)) push('error', 'name_reserved', `\`name\` cannot contain reserved word "${r}".`, 'SKILL.md');
+        }
+      }
+
+      if (!descMatch) {
+        push('error', 'frontmatter_description_missing', 'Frontmatter `description` is required.', 'SKILL.md');
+      } else {
+        let desc = descMatch[1].trim();
+        try { if (/^".*"$/s.test(desc)) desc = JSON.parse(desc); } catch { /* keep raw */ }
+        if (!desc) push('error', 'description_empty', '`description` cannot be empty.', 'SKILL.md');
+        if (desc.length > 1024) push('error', 'description_too_long', `\`description\` exceeds 1024 chars (${desc.length}).`, 'SKILL.md');
+        if (/<[^>]+>/.test(desc)) push('error', 'description_xml', '`description` cannot contain XML tags.', 'SKILL.md');
+        if (/\b(I can|I will|I'll|you can use|we can)\b/i.test(desc)) {
+          push('warning', 'description_not_third_person', '`description` should be in third person.', 'SKILL.md');
+        }
+      }
+    }
+
+    const bodyLines = md.split('\n').length;
+    if (bodyLines > 500) push('warning', 'skill_md_too_long', `SKILL.md is ${bodyLines} lines (recommended < 500).`, 'SKILL.md');
+  }
+
+  if (!guide.hero?.name) push('error', 'guide_missing_name', 'Guide is missing `hero.name`.', 'guide.json');
+  if (!['brand', 'product', 'event'].includes(kind)) push('warning', 'unknown_kind', `Unrecognized guide kind "${kind}".`);
+  if (safeArr((guide as any).colors).length === 0) push('warning', 'no_colors', 'Guide defines no colors.', 'references/colors.md');
+  if (safeArr((guide as any).typography).length === 0) push('warning', 'no_typography', 'Guide defines no typography.', 'references/typography.md');
+  if (safeArr((guide as any).logos).length === 0) push('warning', 'no_logos', 'Guide defines no logos.', 'references/logos.md');
+
+  const textPaths: string[] = [];
+  root.forEach((relPath, entry) => {
+    if (entry.dir) return;
+    if (/\.(md|json|txt|yml|yaml)$/i.test(relPath)) textPaths.push(relPath);
+  });
+  for (const relPath of textPaths) {
+    const f = root.file(relPath);
+    if (!f) continue;
+    const text = await f.async('string');
+    for (const { re, label } of BANNED_CONTENT_PATTERNS) {
+      if (re.test(text)) push('error', 'banned_content', `Detected banned content: ${label}.`, relPath);
+    }
+  }
+
+  let fileCount = 0;
+  root.forEach((_p, entry) => { if (!entry.dir) fileCount++; });
+  if (fileCount > 5000) push('error', 'too_many_files', `Skill contains ${fileCount} files (max 5000).`);
+  if (fileCount < required.length) push('error', 'too_few_files', `Skill contains only ${fileCount} files (expected ≥ ${required.length}).`);
+
+  return issues;
+}
+
+function formatValidationReport(issues: ValidationIssue[]): string {
+  if (!issues.length) return 'All checks passed.';
+  const errors = issues.filter(i => i.severity === 'error');
+  const warnings = issues.filter(i => i.severity === 'warning');
+  const lines: string[] = [];
+  lines.push(`Claude Skill validation: ${errors.length} error(s), ${warnings.length} warning(s)`, '');
+  if (errors.length) {
+    lines.push('ERRORS (block export):');
+    errors.forEach((i) => lines.push(`  • [${i.code}] ${i.path ? `${i.path} — ` : ''}${i.message}`));
+    lines.push('');
+  }
+  if (warnings.length) {
+    lines.push('WARNINGS:');
+    warnings.forEach((i) => lines.push(`  • [${i.code}] ${i.path ? `${i.path} — ` : ''}${i.message}`));
+  }
+  return lines.join('\n');
 }
 
 export async function exportGuideAsClaudeSkill(
