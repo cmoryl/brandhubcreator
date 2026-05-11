@@ -112,21 +112,9 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
   const buildAndPush = async () => {
     if (busy) return;
     setBusy(true);
+    setProgress(null);
     const toastId = toast.loading('Building skill & pushing to Claude…');
     try {
-      // 1. Build + record export history
-      const { bundled, failed } = await downloadGuideAsClaudeSkill(guide, {
-        embedAssets: false,
-        includeLocales,
-        includeComplianceGuardrails,
-        includeBrandDna,
-        recordHistory: true,
-        exportedTo: ['anthropic'],
-        skipDownload: true,
-        onProgress: (done, total) => setProgress({ done, total }),
-      } as any);
-      // 2. Push to Anthropic (recordPushOutcome attaches to the row we just created)
-      toast.loading('Uploading to Claude…', { id: toastId });
       const res = await pushSkillToAnthropic(guide);
       if (!res.ok) {
         toast.error(res.error || 'Push failed', {
@@ -135,7 +123,10 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
           duration: 12000,
         });
       } else {
-        toast.success(`Built & pushed to Claude${failed ? ` (${failed} asset${failed === 1 ? '' : 's'} skipped)` : ''}`, { id: toastId });
+        toast.success('Built & pushed to Claude', {
+          id: toastId,
+          description: 'See the Pushes tab for full history.',
+        });
       }
     } catch (e: any) {
       if (e instanceof ClaudeSkillValidationError) {
