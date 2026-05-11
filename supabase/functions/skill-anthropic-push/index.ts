@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       headers: {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'skills-2025-01-01',
+        'anthropic-beta': 'skills-2025-10-02',
       },
       body: fd,
     });
