@@ -751,7 +751,7 @@ async function fetchPdfVisionEnrichment(guide: AnyGuide): Promise<{ md: string; 
   try {
     const orgId = (guide as any).organizationId || (guide as any).organization_id || null;
     if (!orgId) return null;
-    const { data: docs } = await supabase
+    const { data: docs } = await (supabase as any)
       .from('pdf_documents')
       .select('file_url, name')
       .eq('organization_id', orgId)
