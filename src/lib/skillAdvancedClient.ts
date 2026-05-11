@@ -127,13 +127,20 @@ export interface ExportHistoryRow {
   id: string; created_at: string; version: string; prev_version: string | null;
   changelog: string | null; approx_tokens: number | null; file_count: number | null;
   locales: string[] | null; exported_to: string[] | null;
+  pushed_to_claude?: boolean | null;
+  push_status?: string | null;
+  push_http_status?: number | null;
+  push_error?: string | null;
+  anthropic_skill_id?: string | null;
+  pushed_at?: string | null;
 }
 
 export async function fetchExportHistory(entityType: string, entityId: string, limit = 20): Promise<ExportHistoryRow[]> {
   const { data } = await (supabase as any)
     .from('skill_export_history')
-    .select('id, created_at, version, prev_version, changelog, approx_tokens, file_count, locales, exported_to')
+    .select('id, created_at, version, prev_version, changelog, approx_tokens, file_count, locales, exported_to, pushed_to_claude, push_status, push_http_status, push_error, anthropic_skill_id, pushed_at')
     .eq('entity_type', entityType).eq('entity_id', entityId)
     .order('created_at', { ascending: false }).limit(limit);
   return (data as any) || [];
 }
+
