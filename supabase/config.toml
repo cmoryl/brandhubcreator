@@ -179,3 +179,12 @@ verify_jwt = false
 
 [functions.skill-chat]
 verify_jwt = false
+
+[functions.skill-anthropic-push]
+verify_jwt = false
+
+[functions.skill-token-optimizer]
+verify_jwt = false
+
+[functions.skill-qa-scheduled]
+verify_jwt = false

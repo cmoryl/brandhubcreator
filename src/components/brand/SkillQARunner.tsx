@@ -18,6 +18,10 @@ import {
 } from '@/lib/skillEnhanceClient';
 import type { BrandGuide, ProductGuide } from '@/types/brand';
 import type { EventGuide } from '@/types/event';
+import { SkillCoverageMap } from './SkillCoverageMap';
+import { SkillTokenOptimizer } from './SkillTokenOptimizer';
+import { SkillQASchedulePanel } from './SkillQASchedulePanel';
+import { SkillDiffViewer } from './SkillDiffViewer';
 
 type AnyGuide = BrandGuide | ProductGuide | EventGuide;
 interface Props { guide: AnyGuide; trigger?: React.ReactNode }
@@ -92,9 +96,12 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
         </DialogHeader>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="current">Current run</TabsTrigger>
-            <TabsTrigger value="chat" className="gap-1"><MessageSquare className="h-3.5 w-3.5" /> Ask the skill</TabsTrigger>
+            <TabsTrigger value="coverage">Coverage</TabsTrigger>
+            <TabsTrigger value="optimize">Optimize</TabsTrigger>
+            <TabsTrigger value="schedule">Schedule</TabsTrigger>
+            <TabsTrigger value="chat" className="gap-1"><MessageSquare className="h-3.5 w-3.5" /> Ask</TabsTrigger>
             <TabsTrigger value="history" className="gap-1"><History className="h-3.5 w-3.5" /> History ({history.length})</TabsTrigger>
           </TabsList>
 
@@ -123,6 +130,10 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
               </>
             )}
           </TabsContent>
+
+          <TabsContent value="coverage"><SkillCoverageMap guide={guide} /></TabsContent>
+          <TabsContent value="optimize"><SkillTokenOptimizer guide={guide} /></TabsContent>
+          <TabsContent value="schedule"><SkillQASchedulePanel guide={guide} /></TabsContent>
 
           <TabsContent value="chat">
             <SkillChatPanel guide={guide} />
