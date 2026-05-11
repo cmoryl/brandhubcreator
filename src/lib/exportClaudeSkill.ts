@@ -242,66 +242,133 @@ const fence = (lang: string, body: string) => '```' + lang + '\n' + body + '\n``
 
 const safeArr = <T,>(v: T[] | undefined | null): T[] => (Array.isArray(v) ? v : []);
 
-function buildSkillMd(guide: AnyGuide, kind: string): string {
-  const name = slugify(guide.hero?.name || 'guide');
+function buildSkillMd(guide: AnyGuide, kind: string, hasIntel: boolean, hasAntiPatterns: boolean): string {
   const displayName = guide.hero?.name || 'Untitled';
   const tagline = guide.hero?.tagline || '';
-  const description = `${displayName} ${kind} brand skill. ${tagline}`.slice(0, 480).trim();
+  const name = buildSkillName(displayName, kind);
+
+  // Discovery triggers — keywords Claude will match user intent against
+  const triggers = [
+    displayName.toLowerCase(),
+    `${displayName.toLowerCase()} brand`,
+    `${displayName.toLowerCase()} ${kind}`,
+    'brand guidelines',
+    'visual identity',
+    'on-brand copy',
+    'brand colors',
+    'brand voice',
+  ];
+  const description = buildSkillDescription(displayName, kind, tagline, triggers);
+
+  // Inline quick-reference so Claude can answer trivial questions
+  // without opening reference files (per Anthropic's "concise is key").
+  const colors = safeArr((guide as any).colors).slice(0, 6);
+  const fonts = safeArr((guide as any).typography).slice(0, 4);
+  const voice: any = (guide as any).voice || {};
+  const dos = safeArr(voice.dos).slice(0, 4);
+  const donts = safeArr(voice.donts).slice(0, 4);
+
+  const quickColors = colors.length
+    ? colors.map((c: any) => `- ${c.name || c.role || 'Color'}: \`${c.hex}\`${c.role ? ` (${c.role})` : ''}`).join('\n')
+    : '_See `references/colors.md`._';
+  const quickFonts = fonts.length
+    ? fonts.map((f: any) => `- ${f.role || 'Font'}: **${f.fontFamily || f.name}**${f.weight ? ` ${f.weight}` : ''}`).join('\n')
+    : '_See `references/typography.md`._';
+  const quickDos = dos.length
+    ? dos.map((x: any) => `- ${typeof x === 'string' ? x : x?.text || ''}`).join('\n')
+    : '';
+  const quickDonts = donts.length
+    ? donts.map((x: any) => `- ${typeof x === 'string' ? x : x?.text || ''}`).join('\n')
+    : '';
 
   return `---
 name: ${name}
 description: ${JSON.stringify(description)}
+version: 1.0.0
+generated_at: ${new Date().toISOString()}
+entity_type: ${kind}
+entity_name: ${JSON.stringify(displayName)}
 ---
 
 # ${displayName} — ${kind[0].toUpperCase() + kind.slice(1)} Brand Skill
 
 ${tagline ? `> ${tagline}\n` : ''}
-This skill encodes the official brand system for **${displayName}**. Use it
-whenever generating copy, designs, social posts, decks, or any artifact that
-must stay on-brand.
+This skill encodes the official brand system for **${displayName}**. Apply it
+whenever generating, reviewing, or critiquing any artifact that represents
+the brand.
 
 ## When to use this skill
-- The user references "${displayName}" or any of its products/events.
-- The user asks for on-brand copy, slogans, social posts, or visuals.
-- The user requests color, typography, logo usage, voice, or imagery guidance.
+- The user mentions "${displayName}" or any of its products/events.
+- The user asks for on-brand copy, taglines, social posts, ads, or visuals.
+- The user requests color, typography, logo, voice, or imagery guidance.
+- The user reviews or critiques content for brand consistency.
 
-## How to use
-1. Read \`references/overview.md\` for positioning and identity.
-2. Pull color values from \`references/colors.md\` (HEX is canonical).
-3. Use only fonts in \`references/typography.md\`.
-4. Match the tone described in \`references/voice-and-messaging.md\`.
-5. Logo + asset URLs are in \`references/logos.md\` and \`references/assets.md\`.
-6. Full structured data lives in \`guide.json\` for programmatic lookup.
-7. Strategic context, audience, market, and learned insights live in \`intelligence/\`:
-   - \`brand-brain.md\` — synthesized brand intelligence + aggregated entity context
-   - \`oracle.md\` — organization-wide Oracle intelligence + knowledge base
-   - \`research-and-competitive.md\` — research briefings + competitive reports
-   - \`intelligence.json\` — full structured intelligence payload
+## Quick reference (inline — no file load needed)
 
-## Hard rules
-- Never invent colors, fonts, or logo variants outside this skill.
-- Never modify approved logos (no recoloring, stretching, or effects).
-- Always respect the voice, do/don't lists, and any anti-patterns noted.
+### Primary colors
+${quickColors}
+
+### Typography
+${quickFonts}
+${quickDos ? `\n### Do\n${quickDos}` : ''}${quickDonts ? `\n\n### Don't\n${quickDonts}` : ''}
+
+## Reference files (load on demand)
+- \`references/overview.md\` — positioning, mission, vision, archetype, values
+- \`references/colors.md\` — full palette + approved combinations
+- \`references/typography.md\` — complete type system + downloads
+- \`references/logos.md\` — variants, clearspace, download links
+- \`references/voice-and-messaging.md\` — tone, personality, full do/don't, taglines
+- \`references/imagery.md\` — approved imagery direction and examples
+- \`references/assets.md\` — brochures, case studies, patterns, gradients, icons${hasAntiPatterns ? '\n- `references/anti-patterns.md` — explicitly forbidden patterns and misuse examples' : ''}
+- \`guide.json\` — full structured payload for programmatic lookup${hasIntel ? `
+- \`intelligence/brand-brain.md\` — synthesized brand intelligence + entity context
+- \`intelligence/oracle.md\` — organization-wide Oracle intelligence + knowledge base
+- \`intelligence/research-and-competitive.md\` — research briefings + competitive reports
+- \`intelligence/intelligence.json\` — full structured intelligence payload` : ''}
+
+## Hard rules (low-freedom — do NOT deviate)
+1. **Colors:** Use ONLY HEX values listed in \`references/colors.md\`. Never invent, tint, shade, or "close enough" approximate.
+2. **Typography:** Use ONLY font families in \`references/typography.md\`. No substitutions (no "Arial as a fallback for X").
+3. **Logos:** Use ONLY approved variants from \`references/logos.md\`. Never recolor, stretch, rotate, add effects, or place on disallowed backgrounds.
+4. **Voice:** Match the tone and personality in \`references/voice-and-messaging.md\`. Respect every Do/Don't.
+5. **Imagery:** Only use imagery matching the direction in \`references/imagery.md\`.${hasAntiPatterns ? '\n6. **Anti-patterns:** Review `references/anti-patterns.md` — these patterns are explicitly forbidden.' : ''}
+
+## Pre-flight checklist (run before delivering any artifact)
+- [ ] Every color is from the approved palette
+- [ ] Every font is from the approved type system
+- [ ] Logo (if any) is an approved variant, untouched
+- [ ] Tone matches the voice profile
+- [ ] No items from the Don't list appear
+- [ ] Imagery matches approved direction
 `;
 }
 
-function buildOverview(guide: AnyGuide, kind: string): string {
-  const h = guide.hero || ({} as any);
-  const id: any = (guide as any).identity || {};
-  const lines: string[] = [];
-  lines.push(`# Overview — ${h.name || ''}`);
-  if (h.tagline) lines.push(`\n_${h.tagline}_\n`);
-  lines.push(`**Type:** ${kind}`);
-  if ((guide as any).slug) lines.push(`**Slug:** ${(guide as any).slug}`);
-  if (id.mission) lines.push(`\n## Mission\n${id.mission}`);
-  if (id.vision) lines.push(`\n## Vision\n${id.vision}`);
-  if (id.positioning) lines.push(`\n## Positioning\n${id.positioning}`);
-  if (id.archetype) lines.push(`\n## Archetype\n${id.archetype}`);
-  const values = safeArr((guide as any).values);
-  if (values.length) {
-    lines.push(`\n## Values`);
-    values.forEach((v: any) => lines.push(`- **${v.name || v.title || ''}** — ${v.description || ''}`));
-  }
+function buildAntiPatterns(guide: AnyGuide): string {
+  const aps = safeArr((guide as any).antiPatterns);
+  const lines = ['# Anti-patterns (forbidden)', '', 'These patterns are explicitly forbidden by the brand. Reject or rewrite content that uses them.', ''];
+  if (!aps.length) return lines.concat(['_No anti-patterns explicitly defined._']).join('\n');
+  aps.forEach((p: any) => {
+    lines.push(`## ${p.name || p.title || 'Anti-pattern'}`);
+    if (p.description) lines.push(p.description);
+    if (p.example) lines.push(`\n_Example:_ ${p.example}`);
+    if (p.reason) lines.push(`\n_Why:_ ${p.reason}`);
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+function buildManifest(guide: AnyGuide, kind: string, includedFiles: string[]): string {
+  const displayName = guide.hero?.name || 'Untitled';
+  const lines = [
+    `# Manifest — ${displayName}`,
+    '',
+    `Type: **${kind}**`,
+    `Generated: ${new Date().toISOString()}`,
+    '',
+    '## Files in this skill',
+    '',
+    ...includedFiles.map((f) => `- \`${f}\``),
+  ];
   return lines.join('\n');
 }
 
