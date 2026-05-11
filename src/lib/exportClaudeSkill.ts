@@ -523,6 +523,7 @@ function buildBundledAssetsMd(
 
 export interface ExportOptions {
   embedAssets?: boolean;
+  includeIntelligence?: boolean;
   onProgress?: (done: number, total: number) => void;
 }
 
@@ -532,9 +533,13 @@ export async function exportGuideAsClaudeSkill(
 ): Promise<{ blob: Blob; filename: string; folder: string; bundled: number; failed: number }> {
   const kind = (guide as any).type || 'brand';
   const folder = slugify(guide.hero?.name || (guide as any).slug || kind) + '-skill';
+  const includeIntel = opts.includeIntelligence !== false;
 
   const zip = new JSZip();
   const root = zip.folder(folder)!;
+
+  // Fetch intelligence in parallel with zip scaffolding
+  const intelPromise = includeIntel ? fetchIntelligenceBundle(guide) : Promise.resolve({} as IntelligenceBundle);
 
   root.file('SKILL.md', buildSkillMd(guide, kind));
   root.file('README.md', buildReadme(guide, kind));
@@ -548,6 +553,15 @@ export async function exportGuideAsClaudeSkill(
   refs.file('voice-and-messaging.md', buildVoice(guide));
   refs.file('imagery.md', buildImagery(guide));
   refs.file('assets.md', buildAssets(guide));
+
+  const intel = await intelPromise;
+  if (includeIntel) {
+    const intelDir = root.folder('intelligence')!;
+    intelDir.file('brand-brain.md', buildBrandIntelligenceMd(intel.brandIntelligence, intel.entityContext));
+    intelDir.file('oracle.md', buildOracleMd(intel.oracleIntelligence, intel.oracleKnowledge));
+    intelDir.file('research-and-competitive.md', buildResearchMd(intel.competitiveReports, intel.researchBriefings));
+    intelDir.file('intelligence.json', JSON.stringify(intel, null, 2));
+  }
 
   let bundled = 0;
   let failedCount = 0;
