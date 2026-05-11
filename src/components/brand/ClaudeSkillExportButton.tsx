@@ -184,6 +184,14 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel>Export Claude Skill</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={buildAndPush} disabled={busy} className="bg-primary/5 focus:bg-primary/10">
+          <Rocket className="h-4 w-4 mr-2 text-primary" />
+          <div className="flex flex-col">
+            <span className="font-medium">Build &amp; push to Claude</span>
+            <span className="text-xs text-muted-foreground">One-click: validate → build → upload → record.</span>
+          </div>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => run(false)} disabled={busy}>
           <Link2 className="h-4 w-4 mr-2" />
           <div className="flex flex-col">
