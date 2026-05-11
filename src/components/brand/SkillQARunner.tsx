@@ -388,10 +388,19 @@ const AutofixPanel = ({ guide, report }: { guide: AnyGuide; report: SkillQARepor
 // ---------------- Ask-the-skill chat ----------------
 interface ChatMsg { role: 'user' | 'assistant'; content: string }
 
+const CHAT_MODELS: Array<{ id: string; label: string; provider: 'claude' | 'gemini' }> = [
+  { id: 'claude-sonnet-4-5', label: 'Claude Sonnet 4.5 (real Claude)', provider: 'claude' },
+  { id: 'claude-opus-4-1', label: 'Claude Opus 4.1 (premium)', provider: 'claude' },
+  { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5 (fast)', provider: 'claude' },
+  { id: 'google/gemini-3-flash-preview', label: 'Gemini 3 Flash (default)', provider: 'gemini' },
+  { id: 'google/gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro', provider: 'gemini' },
+];
+
 const SkillChatPanel = ({ guide }: { guide: AnyGuide }) => {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
+  const [model, setModel] = useState<string>('claude-sonnet-4-5');
   const [skill, setSkill] = useState<{ skillMd: string; sections: Record<string, string> } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
