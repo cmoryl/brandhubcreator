@@ -94,11 +94,23 @@ export interface RunOptions {
   sections?: SectionId[];
   includeVisualRegression?: boolean;
   onProgress?: (job: SkillQAJobRow) => void;
+  /** Override the skill payload (used by the auto-improve loop after applying patches). */
+  overrideSkill?: { brandName?: string; skillMd: string; sections: Partial<Record<SectionId, string>>; referenceImageUrl?: string | null };
 }
 
 /** Starts an async skill-qa job and resolves when it completes. */
 export async function runSkillQA(guide: AnyGuide, opts: RunOptions = {}): Promise<SkillQAReport> {
-  const skill = await buildSkillPayload(guide);
+  const baseSkill = opts.overrideSkill ? null : await buildSkillPayload(guide);
+  const skill = opts.overrideSkill
+    ? {
+        brandName: opts.overrideSkill.brandName || guide.hero?.name || 'Guide',
+        skillMd: opts.overrideSkill.skillMd,
+        sections: opts.overrideSkill.sections,
+        referenceImageUrl:
+          opts.overrideSkill.referenceImageUrl ??
+          ((guide as any).hero?.coverImage || (guide as any).hero?.cardImage || null),
+      }
+    : baseSkill!;
   const kind = ((guide as any).type || 'brand') as 'brand' | 'product' | 'event';
   const { data: userData } = await supabase.auth.getUser();
 

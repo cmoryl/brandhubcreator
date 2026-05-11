@@ -23,6 +23,8 @@ import { SkillTokenOptimizer } from './SkillTokenOptimizer';
 import { SkillQASchedulePanel } from './SkillQASchedulePanel';
 import { SkillDiffViewer } from './SkillDiffViewer';
 import { SkillPushHistoryPanel } from './SkillPushHistoryPanel';
+import { AutoImproveLoopPanel } from './AutoImproveLoopPanel';
+import { SkillScoreHistoryChart } from './SkillScoreHistoryChart';
 
 type AnyGuide = BrandGuide | ProductGuide | EventGuide;
 interface Props { guide: AnyGuide; trigger?: React.ReactNode }
@@ -128,6 +130,12 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
             {report && (
               <>
                 <ReportView report={report} onDownload={() => download(report)} onRerun={run} />
+                <AutoImproveLoopPanel
+                  guide={guide}
+                  initialReport={report}
+                  onLatestReport={(r) => setReport(r)}
+                  onLoopComplete={loadHistory}
+                />
                 <AutofixPanel guide={guide} report={report} />
               </>
             )}
@@ -147,6 +155,7 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
 
           <TabsContent value="history" className="space-y-3">
             {history.length === 0 && <p className="text-sm text-muted-foreground p-4">No previous runs.</p>}
+            {history.length > 0 && <SkillScoreHistoryChart history={history} />}
             {history.map((h) => (
               <div key={h.id} className="rounded-md border p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
