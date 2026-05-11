@@ -94,6 +94,7 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
             <TabsTrigger value="current">Current run</TabsTrigger>
+            <TabsTrigger value="chat" className="gap-1"><MessageSquare className="h-3.5 w-3.5" /> Ask the skill</TabsTrigger>
             <TabsTrigger value="history" className="gap-1"><History className="h-3.5 w-3.5" /> History ({history.length})</TabsTrigger>
           </TabsList>
 
@@ -115,7 +116,16 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
               <div className="p-6 text-center"><Button onClick={run}>Run QA now</Button></div>
             )}
 
-            {report && <ReportView report={report} onDownload={() => download(report)} onRerun={run} />}
+            {report && (
+              <>
+                <ReportView report={report} onDownload={() => download(report)} onRerun={run} />
+                <AutofixPanel guide={guide} report={report} />
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chat">
+            <SkillChatPanel guide={guide} />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-3">
