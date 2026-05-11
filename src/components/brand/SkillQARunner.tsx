@@ -22,6 +22,7 @@ import { SkillCoverageMap } from './SkillCoverageMap';
 import { SkillTokenOptimizer } from './SkillTokenOptimizer';
 import { SkillQASchedulePanel } from './SkillQASchedulePanel';
 import { SkillDiffViewer } from './SkillDiffViewer';
+import { SkillPushHistoryPanel } from './SkillPushHistoryPanel';
 
 type AnyGuide = BrandGuide | ProductGuide | EventGuide;
 interface Props { guide: AnyGuide; trigger?: React.ReactNode }
