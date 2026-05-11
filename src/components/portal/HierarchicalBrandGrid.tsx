@@ -13,6 +13,7 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { PortalBrand } from '@/hooks/usePortalData';
 import { ComplianceScoreBadge } from '@/components/dataforce/ComplianceScoreBadge';
+import { SkillReadinessBadge } from '@/components/brand/SkillReadinessBadge';
 import { ComplianceScoreEntry } from '@/hooks/dataforce/useLatestComplianceScores';
 import { cn } from '@/lib/utils';
 
@@ -80,6 +81,7 @@ const SubBrandCard = memo(forwardRef<HTMLDivElement, SubBrandCardProps>(({ brand
             {complianceScore != null && (
               <ComplianceScoreBadge score={complianceScore} size="sm" />
             )}
+            <SkillReadinessBadge entityType="brand" entityId={brand.id} compact />
             <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all" />
           </div>
         </div>
@@ -150,9 +152,12 @@ const StandaloneBrandCard = memo(forwardRef<HTMLDivElement, StandaloneBrandCardP
               View
               <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
             </Button>
-            {complianceScore != null && (
-              <ComplianceScoreBadge score={complianceScore} size="sm" />
-            )}
+            <div className="flex items-center gap-2">
+              {complianceScore != null && (
+                <ComplianceScoreBadge score={complianceScore} size="sm" />
+              )}
+              <SkillReadinessBadge entityType="brand" entityId={brand.id} compact />
+            </div>
           </div>
         </div>
       </CardContent>
@@ -284,6 +289,7 @@ const MasterBrandSection = memo(({
                 {complianceScores?.get(brand.id) != null && (
                   <ComplianceScoreBadge score={complianceScores.get(brand.id)!.score} size="sm" />
                 )}
+                <SkillReadinessBadge entityType="brand" entityId={brand.id} compact />
                 
                 {subBrands.length > 0 && (
                   <Button
