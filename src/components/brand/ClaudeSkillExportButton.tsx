@@ -130,6 +130,19 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
             <span className="text-xs text-muted-foreground">Embed images, fonts &amp; docs.</span>
           </div>
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <SkillQARunner
+          guide={guide}
+          trigger={
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Beaker className="h-4 w-4 mr-2" />
+              <div className="flex flex-col">
+                <span>Test skill against models</span>
+                <span className="text-xs text-muted-foreground">Run QA across 3 model tiers.</span>
+              </div>
+            </DropdownMenuItem>
+          }
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
