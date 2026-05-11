@@ -286,6 +286,7 @@ const ReportView = ({ report, onDownload, onRerun }: { report: SkillQAReport; on
 const AutofixPanel = ({ guide, report }: { guide: AnyGuide; report: SkillQAReport }) => {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<AutofixResult | null>(null);
+  const [originals, setOriginals] = useState<Record<string, string>>({});
   const [downloading, setDownloading] = useState(false);
   const hasIssues = report.summary.recurringMisuses.length > 0 || report.summary.consistentlyMissing.length > 0;
 
@@ -297,6 +298,21 @@ const AutofixPanel = ({ guide, report }: { guide: AnyGuide; report: SkillQARepor
       const skill = await buildSkillContextFromGuide(guide);
       const r = await requestSkillAutofix(skill, report);
       setResult(r);
+      // Build the unbundled skill once to source the "before" content for each patched file
+      try {
+        const { exportGuideAsClaudeSkill } = await import('@/lib/exportClaudeSkill');
+        const { blob } = await exportGuideAsClaudeSkill(guide, { embedAssets: false, includeIntelligence: false, skipValidation: true });
+        const JSZip = (await import('jszip')).default;
+        const zip = await JSZip.loadAsync(blob);
+        const root = Object.keys(zip.files)[0]?.split('/')[0] || '';
+        const orig: Record<string, string> = {};
+        for (const path of Object.keys(r.patches)) {
+          const key = `${root}/${path}`;
+          const f = zip.file(key);
+          orig[path] = f ? await f.async('string') : '';
+        }
+        setOriginals(orig);
+      } catch { /* diff will fall back to empty originals */ }
       toast.success(`AI proposed ${Object.keys(r.patches).length} patch${Object.keys(r.patches).length === 1 ? '' : 'es'}`);
     } catch (e: any) {
       toast.error(e?.message || 'Auto-fix failed');
