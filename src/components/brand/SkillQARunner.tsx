@@ -1,16 +1,21 @@
-import { useEffect, useState } from 'react';
-import { Beaker, Loader2, Download, AlertTriangle, CheckCircle2, History, Image as ImageIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Beaker, Loader2, Download, AlertTriangle, CheckCircle2, History, Image as ImageIcon, Wand2, MessageSquare, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
   runSkillQA, reportToMarkdown, fetchSkillQAHistory,
   type SkillQAReport, type SkillQAJobRow, type SkillQAHistoryRow,
 } from '@/lib/skillQAClient';
+import {
+  requestSkillAutofix, downloadPatchedSkill, streamSkillChat, buildSkillContextFromGuide,
+  type AutofixResult,
+} from '@/lib/skillEnhanceClient';
 import type { BrandGuide, ProductGuide } from '@/types/brand';
 import type { EventGuide } from '@/types/event';
 
