@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, Link2, Package, Beaker, ScanText, Globe, ShieldCheck, Fingerprint, Send, History, Settings2 } from 'lucide-react';
+import { Sparkles, Loader2, Link2, Package, Beaker, ScanText, Globe, ShieldCheck, Fingerprint, Send, History, Settings2, Rocket } from 'lucide-react';
 import { SkillQARunner } from './SkillQARunner';
 import { Button } from '@/components/ui/button';
 import {
