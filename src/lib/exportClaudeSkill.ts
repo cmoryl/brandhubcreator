@@ -410,7 +410,22 @@ Generated ${new Date().toISOString()}.
 
 interface AssetRef {
   url: string;
-  category: 'logos' | 'imagery' | 'icons' | 'patterns' | 'gradients' | 'brochures' | 'case-studies' | 'fonts' | 'misc';
+  category:
+    | 'logos'
+    | 'imagery'
+    | 'approved-imagery'
+    | 'image-library'
+    | 'icons'
+    | 'patterns'
+    | 'gradients'
+    | 'brochures'
+    | 'case-studies'
+    | 'presentations'
+    | 'templates'
+    | 'pdf-thumbnails'
+    | 'fonts'
+    | 'hero'
+    | 'misc';
   name?: string;
 }
 
@@ -427,14 +442,81 @@ function collectAssetRefs(guide: AnyGuide): AssetRef[] {
       }
     });
   };
+
+  // Hero / cover
+  const hero: any = (guide as any).hero || {};
+  [hero.coverImage, hero.cardImage, hero.backgroundImage, hero.videoUrl].forEach((u) => {
+    if (u && /^https?:\/\//i.test(u)) out.push({ url: u, category: 'hero', name: 'hero' });
+  });
+
   push('logos', safeArr((guide as any).logos), [(a) => a.url]);
   push('imagery', safeArr((guide as any).imagery), [(a) => a.url]);
+
+  // Approved imagery sections (full curated visual identity)
+  const approvedSections = safeArr((guide as any).approvedImagery?.sections);
+  approvedSections.forEach((s: any) => {
+    safeArr(s?.images).forEach((img: any) => {
+      const url = img?.url;
+      if (url && /^https?:\/\//i.test(url)) {
+        out.push({ url, category: 'approved-imagery', name: `${s?.name || 'section'}-${img?.name || ''}` });
+      }
+    });
+  });
+
+  // Image library / image assets
+  push('image-library', safeArr((guide as any).imageAssets), [(a) => a.url || a.thumbnailUrl]);
+
   push('icons', safeArr((guide as any).brandIcons), [(a) => a.url || a.svgUrl]);
   push('icons', safeArr((guide as any).socialIcons), [(a) => a.url]);
   push('patterns', safeArr((guide as any).patterns), [(a) => a.url || a.imageUrl]);
   push('gradients', safeArr((guide as any).gradients), [(a) => a.url || a.imageUrl]);
-  push('brochures', safeArr((guide as any).brochures), [(a) => a.fileUrl || a.url]);
-  push('case-studies', safeArr((guide as any).caseStudies), [(a) => a.fileUrl || a.url || a.imageUrl]);
+
+  // Brochures: include both the PDF file AND its thumbnail
+  safeArr((guide as any).brochures).forEach((b: any) => {
+    const file = b?.fileUrl || b?.url;
+    if (file && /^https?:\/\//i.test(file)) out.push({ url: file, category: 'brochures', name: b?.title });
+    const thumb = b?.thumbnailUrl || b?.previewUrl;
+    if (thumb && /^https?:\/\//i.test(thumb) && thumb !== file) {
+      out.push({ url: thumb, category: 'pdf-thumbnails', name: `${b?.title || 'brochure'}-thumb` });
+    }
+  });
+
+  // Case studies: PDF + cover image
+  safeArr((guide as any).caseStudies).forEach((c: any) => {
+    const file = c?.fileUrl || c?.url;
+    if (file && /^https?:\/\//i.test(file)) out.push({ url: file, category: 'case-studies', name: c?.title });
+    const img = c?.imageUrl || c?.coverImage || c?.thumbnailUrl;
+    if (img && /^https?:\/\//i.test(img) && img !== file) {
+      out.push({ url: img, category: 'case-studies', name: `${c?.title || 'case-study'}-cover` });
+    }
+  });
+
+  // Presentation templates: file + slide thumbnails
+  safeArr((guide as any).presentationTemplates).forEach((p: any) => {
+    const file = p?.fileUrl || p?.url;
+    if (file && /^https?:\/\//i.test(file)) out.push({ url: file, category: 'presentations', name: p?.name });
+    const thumb = p?.cardImageUrl || p?.thumbnailUrl;
+    if (thumb && /^https?:\/\//i.test(thumb) && thumb !== file) {
+      out.push({ url: thumb, category: 'pdf-thumbnails', name: `${p?.name || 'deck'}-thumb` });
+    }
+    safeArr(p?.slides).forEach((s: any, i: number) => {
+      const sthumb = s?.thumbnailUrl || s?.imageUrl;
+      if (sthumb && /^https?:\/\//i.test(sthumb)) {
+        out.push({ url: sthumb, category: 'pdf-thumbnails', name: `${p?.name || 'deck'}-slide-${i + 1}` });
+      }
+    });
+  });
+
+  // Templates (digital collateral)
+  safeArr((guide as any).templates).forEach((t: any) => {
+    const file = t?.fileUrl || t?.url;
+    if (file && /^https?:\/\//i.test(file)) out.push({ url: file, category: 'templates', name: t?.name });
+    const thumb = t?.thumbnailUrl;
+    if (thumb && /^https?:\/\//i.test(thumb) && thumb !== file) {
+      out.push({ url: thumb, category: 'pdf-thumbnails', name: `${t?.name || 'template'}-thumb` });
+    }
+  });
+
   push('fonts', safeArr((guide as any).typography), [(a) => a.downloadUrl]);
   return out;
 }
