@@ -742,7 +742,75 @@ export interface ExportOptions {
   includeIntelligence?: boolean;
   /** Skip the pre-export validator (NOT recommended). */
   skipValidation?: boolean;
+  /** Run skill-pdf-vision over linked brand PDFs and bake extracted tokens into the skill. */
+  enrichWithPdfVision?: boolean;
   onProgress?: (done: number, total: number) => void;
+}
+
+async function fetchPdfVisionEnrichment(guide: AnyGuide): Promise<{ md: string; tokens: any } | null> {
+  try {
+    const orgId = (guide as any).organizationId || (guide as any).organization_id || null;
+    if (!orgId) return null;
+    const { data: docs } = await supabase
+      .from('pdf_documents')
+      .select('file_url, name')
+      .eq('organization_id', orgId)
+      .order('created_at', { ascending: false })
+      .limit(8);
+    const urls = (docs || []).map((d: any) => d.file_url).filter(Boolean);
+    if (!urls.length) return null;
+    const { data, error } = await supabase.functions.invoke('skill-pdf-vision', {
+      body: { pdfs: urls, brandName: guide.hero?.name || 'Brand' },
+    });
+    if (error || !data?.tokens) return null;
+    const t = data.tokens;
+    const lines = ['# PDF-Extracted Visual Identity', ''];
+    lines.push(`_Source: ${urls.length} PDF${urls.length === 1 ? '' : 's'} via gemini-2.5-pro multimodal. Confidence: ${t.confidence ?? 'n/a'}/100_`, '');
+    if (Array.isArray(t.colors) && t.colors.length) {
+      lines.push('## Colors (from PDFs)');
+      t.colors.forEach((c: any) => lines.push(`- ${c.name || 'Color'}: \`${c.hex || ''}\`${c.role ? ` _(${c.role})_` : ''}${c.notes ? ` — ${c.notes}` : ''}`));
+      lines.push('');
+    }
+    if (Array.isArray(t.typography) && t.typography.length) {
+      lines.push('## Typography (from PDFs)');
+      t.typography.forEach((f: any) => lines.push(`- **${f.family || ''}** ${f.weights?.length ? `(${f.weights.join(', ')})` : ''} — ${f.usage || ''}${f.pairing ? ` · pairs with ${f.pairing}` : ''}`));
+      lines.push('');
+    }
+    if (t.logos) {
+      lines.push('## Logos (from PDFs)');
+      if (t.logos.variants?.length) lines.push(`- Variants: ${t.logos.variants.join(', ')}`);
+      if (t.logos.clearspace) lines.push(`- Clearspace: ${t.logos.clearspace}`);
+      if (t.logos.minSize) lines.push(`- Min size: ${t.logos.minSize}`);
+      if (t.logos.backgrounds?.length) lines.push(`- Approved backgrounds: ${t.logos.backgrounds.join(', ')}`);
+      if (t.logos.donts?.length) { lines.push('- Don\'ts:'); t.logos.donts.forEach((d: string) => lines.push(`  - ${d}`)); }
+      lines.push('');
+    }
+    if (t.layout) {
+      lines.push('## Layout System (from PDFs)');
+      Object.entries(t.layout).forEach(([k, v]) => v && lines.push(`- ${k}: ${v}`));
+      lines.push('');
+    }
+    if (t.imagery) {
+      lines.push('## Imagery Direction (from PDFs)');
+      if (t.imagery.direction) lines.push(t.imagery.direction);
+      if (t.imagery.subjects?.length) lines.push(`- Subjects: ${t.imagery.subjects.join(', ')}`);
+      if (t.imagery.composition) lines.push(`- Composition: ${t.imagery.composition}`);
+      if (t.imagery.colorTreatment) lines.push(`- Color treatment: ${t.imagery.colorTreatment}`);
+      if (t.imagery.banned?.length) lines.push(`- Banned: ${t.imagery.banned.join(', ')}`);
+      lines.push('');
+    }
+    if (t.doDont) {
+      if (t.doDont.do?.length) { lines.push('## Do (from PDFs)'); t.doDont.do.forEach((x: string) => lines.push(`- ${x}`)); lines.push(''); }
+      if (t.doDont.dont?.length) { lines.push('## Don\'t (from PDFs)'); t.doDont.dont.forEach((x: string) => lines.push(`- ${x}`)); lines.push(''); }
+    }
+    if (Array.isArray(t.sourceNotes) && t.sourceNotes.length) {
+      lines.push('## Source Notes');
+      t.sourceNotes.forEach((s: string) => lines.push(`- ${s}`));
+    }
+    return { md: lines.join('\n'), tokens: t };
+  } catch {
+    return null;
+  }
 }
 
 export interface ValidationIssue {
