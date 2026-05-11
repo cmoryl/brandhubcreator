@@ -1,16 +1,21 @@
-import { useEffect, useState } from 'react';
-import { Beaker, Loader2, Download, AlertTriangle, CheckCircle2, History, Image as ImageIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Beaker, Loader2, Download, AlertTriangle, CheckCircle2, History, Image as ImageIcon, Wand2, MessageSquare, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
   runSkillQA, reportToMarkdown, fetchSkillQAHistory,
   type SkillQAReport, type SkillQAJobRow, type SkillQAHistoryRow,
 } from '@/lib/skillQAClient';
+import {
+  requestSkillAutofix, downloadPatchedSkill, streamSkillChat, buildSkillContextFromGuide,
+  type AutofixResult,
+} from '@/lib/skillEnhanceClient';
 import type { BrandGuide, ProductGuide } from '@/types/brand';
 import type { EventGuide } from '@/types/event';
 
@@ -89,6 +94,7 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
             <TabsTrigger value="current">Current run</TabsTrigger>
+            <TabsTrigger value="chat" className="gap-1"><MessageSquare className="h-3.5 w-3.5" /> Ask the skill</TabsTrigger>
             <TabsTrigger value="history" className="gap-1"><History className="h-3.5 w-3.5" /> History ({history.length})</TabsTrigger>
           </TabsList>
 
@@ -110,7 +116,16 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
               <div className="p-6 text-center"><Button onClick={run}>Run QA now</Button></div>
             )}
 
-            {report && <ReportView report={report} onDownload={() => download(report)} onRerun={run} />}
+            {report && (
+              <>
+                <ReportView report={report} onDownload={() => download(report)} onRerun={run} />
+                <AutofixPanel guide={guide} report={report} />
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chat">
+            <SkillChatPanel guide={guide} />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-3">
@@ -255,3 +270,176 @@ const ReportView = ({ report, onDownload, onRerun }: { report: SkillQAReport; on
     </Accordion>
   </div>
 );
+
+// ---------------- Auto-fix panel ----------------
+const AutofixPanel = ({ guide, report }: { guide: AnyGuide; report: SkillQAReport }) => {
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<AutofixResult | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const hasIssues = report.summary.recurringMisuses.length > 0 || report.summary.consistentlyMissing.length > 0;
+
+  if (!hasIssues) return null;
+
+  const propose = async () => {
+    setBusy(true);
+    try {
+      const skill = await buildSkillContextFromGuide(guide);
+      const r = await requestSkillAutofix(skill, report);
+      setResult(r);
+      toast.success(`AI proposed ${Object.keys(r.patches).length} patch${Object.keys(r.patches).length === 1 ? '' : 'es'}`);
+    } catch (e: any) {
+      toast.error(e?.message || 'Auto-fix failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const apply = async () => {
+    if (!result) return;
+    setDownloading(true);
+    try {
+      await downloadPatchedSkill(guide, result.patches);
+      toast.success('Patched skill downloaded');
+    } catch (e: any) {
+      toast.error(e?.message || 'Download failed');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-md border p-3 space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 font-medium text-sm">
+          <Wand2 className="h-4 w-4 text-primary" /> Auto-fix suggestions
+        </div>
+        {!result && (
+          <Button size="sm" onClick={propose} disabled={busy} className="gap-2">
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+            Propose patches
+          </Button>
+        )}
+      </div>
+      {result && (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">{result.rationale}</p>
+          <div>
+            <div className="text-xs font-medium mb-1">Files to update ({Object.keys(result.patches).length})</div>
+            <ul className="text-xs ml-4 list-disc">
+              {Object.keys(result.patches).map((p) => <li key={p}><code>{p}</code></li>)}
+            </ul>
+          </div>
+          <Accordion type="multiple" className="w-full">
+            {Object.entries(result.patches).map(([path, content]) => (
+              <AccordionItem key={path} value={path}>
+                <AccordionTrigger className="text-xs">{path}</AccordionTrigger>
+                <AccordionContent>
+                  <pre className="text-xs whitespace-pre-wrap rounded bg-muted p-2 max-h-64 overflow-y-auto">{content}</pre>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+          <div className="flex gap-2 justify-end">
+            <Button size="sm" variant="outline" onClick={propose} disabled={busy}>Re-propose</Button>
+            <Button size="sm" onClick={apply} disabled={downloading} className="gap-2">
+              {downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+              Download patched skill
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ---------------- Ask-the-skill chat ----------------
+interface ChatMsg { role: 'user' | 'assistant'; content: string }
+
+const SkillChatPanel = ({ guide }: { guide: AnyGuide }) => {
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [input, setInput] = useState('');
+  const [streaming, setStreaming] = useState(false);
+  const [skill, setSkill] = useState<{ skillMd: string; sections: Record<string, string> } | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let alive = true;
+    buildSkillContextFromGuide(guide).then((s) => { if (alive) setSkill(s); }).catch(() => {});
+    return () => { alive = false; abortRef.current?.abort(); };
+  }, [guide.id]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [messages, streaming]);
+
+  const send = async () => {
+    const text = input.trim();
+    if (!text || !skill || streaming) return;
+    const next: ChatMsg[] = [...messages, { role: 'user', content: text }, { role: 'assistant', content: '' }];
+    setMessages(next);
+    setInput('');
+    setStreaming(true);
+    abortRef.current = new AbortController();
+    try {
+      let acc = '';
+      for await (const chunk of streamSkillChat(skill, next.slice(0, -1), { signal: abortRef.current.signal })) {
+        acc += chunk;
+        setMessages((m) => {
+          const copy = [...m];
+          copy[copy.length - 1] = { role: 'assistant', content: acc };
+          return copy;
+        });
+      }
+    } catch (e: any) {
+      if (e?.name !== 'AbortError') toast.error(e?.message || 'Chat failed');
+    } finally {
+      setStreaming(false);
+      abortRef.current = null;
+    }
+  };
+
+  const suggestions = [
+    'Write a 240-char product announcement tweet.',
+    'What HEX should I use for a CTA on a dark background?',
+    'List 3 imagery directions that match this brand.',
+    "Critique this copy: 'BUY NOW!!! 🚀 amazing deal'.",
+  ];
+
+  return (
+    <div className="flex flex-col h-[60vh]">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 p-1">
+        {messages.length === 0 && (
+          <div className="text-sm text-muted-foreground space-y-2 p-2">
+            <p>Stress-test the skill before exporting. The assistant is constrained to ONLY use values from the exported SKILL.md.</p>
+            <div className="flex flex-wrap gap-2">
+              {suggestions.map((s) => (
+                <Button key={s} variant="outline" size="sm" className="text-xs h-auto py-1" onClick={() => setInput(s)}>{s}</Button>
+              ))}
+            </div>
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
+            <div className={`max-w-[85%] rounded-md px-3 py-2 text-sm whitespace-pre-wrap ${m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+              {m.content || (streaming && i === messages.length - 1 ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : '')}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="border-t pt-3 flex gap-2 items-end">
+        <Textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={skill ? 'Ask the skill anything…' : 'Loading skill context…'}
+          disabled={!skill || streaming}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+          className="min-h-[44px] max-h-32"
+        />
+        <Button onClick={send} disabled={!input.trim() || !skill || streaming} className="gap-2">
+          {streaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        </Button>
+      </div>
+    </div>
+  );
+};

@@ -938,7 +938,22 @@ async function validateSkillZip(
   }
 
   let fileCount = 0;
+  let totalBytes = 0;
   root.forEach((_p, entry) => { if (!entry.dir) fileCount++; });
+  // Approximate Claude context tokens (~4 chars per token) across all text files.
+  for (const relPath of textPaths) {
+    const f = root.file(relPath);
+    if (!f) continue;
+    const t = await f.async('string');
+    totalBytes += t.length;
+  }
+  const approxTokens = Math.round(totalBytes / 4);
+  // Claude skill best-practice: keep activated skill content well under 100k tokens.
+  if (approxTokens > 150_000) {
+    push('error', 'context_too_large', `Skill is ~${approxTokens.toLocaleString()} tokens (max 150k). Trim references or split into multiple skills.`);
+  } else if (approxTokens > 80_000) {
+    push('warning', 'context_large', `Skill is ~${approxTokens.toLocaleString()} tokens. Recommend < 80k for fast activation.`);
+  }
   if (fileCount > 5000) push('error', 'too_many_files', `Skill contains ${fileCount} files (max 5000).`);
   if (fileCount < required.length) push('error', 'too_few_files', `Skill contains only ${fileCount} files (expected ≥ ${required.length}).`);
 

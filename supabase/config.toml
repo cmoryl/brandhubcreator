@@ -173,3 +173,9 @@ verify_jwt = false
 
 [functions.skill-pdf-vision]
 verify_jwt = false
+
+[functions.skill-autofix]
+verify_jwt = false
+
+[functions.skill-chat]
+verify_jwt = false
