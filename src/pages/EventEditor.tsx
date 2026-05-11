@@ -88,6 +88,7 @@ import { ValuesSection } from '@/components/brand/ValuesSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { EventExportPdfButton } from '@/components/event/EventExportPdfButton';
+import { ClaudeSkillExportButton } from '@/components/brand/ClaudeSkillExportButton';
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
 import { AdminToolbar, type AdminToolbarAction } from '@/components/admin/AdminToolbar';
@@ -1200,6 +1201,12 @@ const EventEditor = () => {
                   label: 'Export PDF',
                   icon: Download,
                   render: () => <EventExportPdfButton event={event} />,
+                },
+                {
+                  id: 'claude-skill',
+                  label: 'Claude Skill',
+                  icon: Download,
+                  render: () => <ClaudeSkillExportButton guide={event as any} />,
                 },
               ] as AdminToolbarAction[] : []),
             ]}
