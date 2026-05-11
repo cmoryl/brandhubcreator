@@ -1,21 +1,15 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, Link2, Package, Beaker, ScanText } from 'lucide-react';
+import { Sparkles, Loader2, Link2, Package, Beaker, ScanText, Globe, ShieldCheck, Fingerprint, Send, History, Settings2 } from 'lucide-react';
 import { SkillQARunner } from './SkillQARunner';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
+  DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { downloadGuideAsClaudeSkill } from '@/lib/exportClaudeSkill';
-import { ClaudeSkillValidationError } from '@/lib/exportClaudeSkill';
+import { downloadGuideAsClaudeSkill, ClaudeSkillValidationError } from '@/lib/exportClaudeSkill';
+import { pushSkillToAnthropic } from '@/lib/skillAdvancedClient';
 import { useDownloadTracking } from '@/hooks/useDownloadTracking';
 import type { BrandGuide, ProductGuide } from '@/types/brand';
 import type { EventGuide } from '@/types/event';
@@ -30,6 +24,10 @@ interface Props {
 export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) => {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  // Advanced toggles persist across export modes
+  const [includeLocales, setIncludeLocales] = useState(false);
+  const [includeComplianceGuardrails, setIncludeCompliance] = useState(false);
+  const [includeBrandDna, setIncludeBrandDna] = useState(false);
   const { trackDownload } = useDownloadTracking();
 
   const run = async (embedAssets: boolean, enrichWithPdfVision = false) => {
@@ -45,6 +43,11 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
       const { bundled, failed } = await downloadGuideAsClaudeSkill(guide, {
         embedAssets,
         enrichWithPdfVision,
+        includeLocales,
+        includeComplianceGuardrails,
+        includeBrandDna,
+        recordHistory: true,
+        exportedTo: ['download'],
         onProgress: (done, total) => setProgress({ done, total }),
       });
       trackDownload({
@@ -56,6 +59,9 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
           format: embedAssets ? 'claude-skill-bundled' : 'claude-skill',
           source_section: 'claude_skill_export',
           item_count: bundled,
+          locales: includeLocales,
+          compliance: includeComplianceGuardrails,
+          brand_dna: includeBrandDna,
         },
         organizationId: (guide as any).organizationId || undefined,
       });
@@ -81,6 +87,28 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
     }
   };
 
+  const pushToClaude = async () => {
+    if (busy) return;
+    setBusy(true);
+    const toastId = toast.loading('Uploading skill to Claude…');
+    try {
+      const res = await pushSkillToAnthropic(guide);
+      if (!res.ok) {
+        toast.error(res.error || 'Push failed', {
+          id: toastId,
+          description: res.hint || (res.status ? `Status ${res.status}` : undefined),
+          duration: 12000,
+        });
+      } else {
+        toast.success('Skill pushed to Claude', { id: toastId });
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Push failed', { id: toastId });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const label = busy
     ? progress
       ? `Bundling… ${progress.done}/${progress.total}`
@@ -96,12 +124,13 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
         </DropdownMenuSubTrigger>
         <DropdownMenuSubContent>
           <DropdownMenuItem onClick={(e) => { e.preventDefault(); run(false); }}>
-            <Link2 className="h-4 w-4 mr-2" />
-            Links only (fast)
+            <Link2 className="h-4 w-4 mr-2" /> Links only (fast)
           </DropdownMenuItem>
           <DropdownMenuItem onClick={(e) => { e.preventDefault(); run(true); }}>
-            <Package className="h-4 w-4 mr-2" />
-            Bundle assets (slower)
+            <Package className="h-4 w-4 mr-2" /> Bundle assets (slower)
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={(e) => { e.preventDefault(); pushToClaude(); }}>
+            <Send className="h-4 w-4 mr-2" /> Push to Claude
           </DropdownMenuItem>
         </DropdownMenuSubContent>
       </DropdownMenuSub>
@@ -116,7 +145,7 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
           {label}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel>Export Claude Skill</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => run(false)} disabled={busy}>
@@ -141,14 +170,35 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
           </div>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuLabel className="flex items-center gap-2 text-xs">
+          <Settings2 className="h-3.5 w-3.5" /> Advanced options
+        </DropdownMenuLabel>
+        <DropdownMenuCheckboxItem checked={includeLocales} onCheckedChange={(v) => setIncludeLocales(!!v)} onSelect={(e) => e.preventDefault()}>
+          <Globe className="h-4 w-4 mr-2" /> Include locales (GlobalLink)
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem checked={includeComplianceGuardrails} onCheckedChange={(v) => setIncludeCompliance(!!v)} onSelect={(e) => e.preventDefault()}>
+          <ShieldCheck className="h-4 w-4 mr-2" /> Compliance &amp; cultural guardrails
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem checked={includeBrandDna} onCheckedChange={(v) => setIncludeBrandDna(!!v)} onSelect={(e) => e.preventDefault()}>
+          <Fingerprint className="h-4 w-4 mr-2" /> Brand DNA anti-patterns
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={pushToClaude} disabled={busy}>
+          <Send className="h-4 w-4 mr-2" />
+          <div className="flex flex-col">
+            <span>Push to Claude</span>
+            <span className="text-xs text-muted-foreground">Upload via Anthropic Skills API.</span>
+          </div>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <SkillQARunner
           guide={guide}
           trigger={
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               <Beaker className="h-4 w-4 mr-2" />
               <div className="flex flex-col">
-                <span>Test skill against models</span>
-                <span className="text-xs text-muted-foreground">Run QA across 3 model tiers.</span>
+                <span>Test, optimize &amp; schedule</span>
+                <span className="text-xs text-muted-foreground">QA, coverage, history, schedules.</span>
               </div>
             </DropdownMenuItem>
           }
