@@ -115,7 +115,7 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
     setProgress(null);
     const toastId = toast.loading('Building skill & pushing to Claude…');
     try {
-      const res = await pushSkillToAnthropic(guide);
+      const res = await pushSkillToAnthropic(guide, { recordHistory: true });
       if (!res.ok) {
         toast.error(res.error || 'Push failed', {
           id: toastId,
