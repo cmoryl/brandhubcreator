@@ -316,7 +316,7 @@ Provide insights that are specific to this brand's positioning, values, and mark
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: marketImageUrls.length > 0 ? 'google/gemini-2.5-flash' : 'google/gemini-3-flash-preview',
+        model: marketImageUrls.length > 0 ? 'google/gemini-3-flash-preview' : 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt + (marketImageUrls.length > 0 ? '\n\nYou will also receive brand visual assets (logos, imagery, patterns). Analyze them to strengthen your market positioning assessment and visual identity evaluation.' : '') },
           { role: 'user', content: userMessageContent }

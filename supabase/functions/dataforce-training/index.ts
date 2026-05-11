@@ -141,7 +141,7 @@ serve(async (req) => {
         samples_collected: isDemo ? samplesAvailable : 0,
         samples_target: training_config?.epochs ? training_config.epochs * 10 : 100,
         training_config: training_config || {
-          baseModel: config?.training_model_base || 'gemini-2.5-flash',
+          baseModel: config?.training_model_base || 'gemini-3-flash-preview',
           learningRate: 0.001,
           epochs: 10,
           batchSize: 8

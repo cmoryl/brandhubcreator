@@ -56,7 +56,7 @@ Use the analyze_colors tool to return structured results.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-3.1-flash-lite-preview",
         messages: [{ role: "user", content: prompt }],
         tools: [
           {

@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
+        model: 'google/gemini-3.1-pro-preview',
         temperature: 0,
         response_format: { type: 'json_object' },
         messages: [{ role: 'user', content }],

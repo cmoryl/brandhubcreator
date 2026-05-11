@@ -87,7 +87,7 @@ Based on the image titles/descriptions, evaluate visual consistency. Be concise.
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
+          model: "google/gemini-3.1-flash-lite-preview",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: `Analyze these ${limitedImages.length} images for visual style consistency:\n\n${imageDescriptions}\n\nProvide cohesion score, palette, style tags, any outliers, and recommendations.` },

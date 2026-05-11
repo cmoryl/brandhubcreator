@@ -225,7 +225,7 @@ CRITICAL REQUIREMENTS:
 
 Return ONLY the complete <svg> element. No explanation.`;
 
-    const traceModels = ["google/gemini-2.5-pro", "google/gemini-2.5-flash"];
+    const traceModels = ["google/gemini-3.1-pro-preview", "google/gemini-3-flash-preview"];
     let traceContent = "";
     let lastTraceStatus: number | null = null;
 
