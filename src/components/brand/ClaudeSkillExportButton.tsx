@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { downloadGuideAsClaudeSkill } from '@/lib/exportClaudeSkill';
+import { ClaudeSkillValidationError } from '@/lib/exportClaudeSkill';
 import { useDownloadTracking } from '@/hooks/useDownloadTracking';
 import type { BrandGuide, ProductGuide } from '@/types/brand';
 import type { EventGuide } from '@/types/event';
@@ -60,7 +61,16 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
       toast.success(`Exported Claude skill for ${guide.hero?.name || 'guide'}${detail}`, { id: toastId });
     } catch (e) {
       console.error(e);
-      toast.error('Failed to export Claude skill', { id: toastId });
+      if (e instanceof ClaudeSkillValidationError) {
+        const errs = e.issues.filter(i => i.severity === 'error');
+        toast.error(`Export blocked: ${errs.length} validation error${errs.length === 1 ? '' : 's'}`, {
+          id: toastId,
+          description: errs.slice(0, 3).map(i => `• ${i.path ? `${i.path}: ` : ''}${i.message}`).join('\n'),
+          duration: 12000,
+        });
+      } else {
+        toast.error('Failed to export Claude skill', { id: toastId });
+      }
     } finally {
       setBusy(false);
       setProgress(null);
