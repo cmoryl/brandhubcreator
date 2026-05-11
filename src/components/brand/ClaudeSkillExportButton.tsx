@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, Link2, Package } from 'lucide-react';
+import { Sparkles, Loader2, Link2, Package, Beaker } from 'lucide-react';
+import { SkillQARunner } from './SkillQARunner';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
