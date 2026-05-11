@@ -744,7 +744,156 @@ export interface ExportOptions {
   skipValidation?: boolean;
   /** Run skill-pdf-vision over linked brand PDFs and bake extracted tokens into the skill. */
   enrichWithPdfVision?: boolean;
+  /** Bundle regional variants as locales/<lang>.md (GlobalLink). */
+  includeLocales?: boolean;
+  /** Inject DataForce compliance + cultural readiness as guardrails. */
+  includeComplianceGuardrails?: boolean;
+  /** Inject IconKIT brand-DNA rules into anti-patterns. */
+  includeBrandDna?: boolean;
+  /** Persist a row in skill_export_history with auto-bumped version + changelog. */
+  recordHistory?: boolean;
+  /** Where this export is being sent (for history tagging). */
+  exportedTo?: string[];
   onProgress?: (done: number, total: number) => void;
+}
+
+// ---------- Locales (GlobalLink regional variants) ----------
+async function fetchRegionalVariants(guide: AnyGuide): Promise<Array<{ locale: string; name: string; overrides: any }>> {
+  try {
+    const entityId = guide.id;
+    const kind = (guide as any).type || 'brand';
+    const entityType = kind === 'product' ? 'product' : kind === 'event' ? 'event' : 'brand';
+    const { data } = await (supabase as any)
+      .from('brand_regional_variants')
+      .select('locale, region_name, overrides')
+      .eq('entity_type', entityType).eq('entity_id', entityId);
+    return (data || []).map((r: any) => ({
+      locale: r.locale || 'unknown',
+      name: r.region_name || r.locale,
+      overrides: r.overrides || {},
+    }));
+  } catch { return []; }
+}
+
+function buildLocaleMd(v: { locale: string; name: string; overrides: any }): string {
+  const o = v.overrides || {};
+  const lines = [`# Locale: ${v.name} (${v.locale})`, ''];
+  if (o.colors?.length) {
+    lines.push('## Color overrides');
+    o.colors.forEach((c: any) => lines.push(`- ${c.name || c.role || 'Color'}: \`${c.hex}\``));
+    lines.push('');
+  }
+  if (o.typography?.length) {
+    lines.push('## Typography overrides');
+    o.typography.forEach((f: any) => lines.push(`- ${f.role || 'Font'}: ${f.fontFamily || f.family} ${f.weight || ''}`));
+    lines.push('');
+  }
+  if (o.messaging) lines.push('## Messaging overrides', typeof o.messaging === 'string' ? o.messaging : JSON.stringify(o.messaging, null, 2), '');
+  if (o.voice) lines.push('## Voice overrides', '```json', JSON.stringify(o.voice, null, 2), '```', '');
+  if (o.imagery?.length) {
+    lines.push('## Imagery overrides');
+    o.imagery.forEach((i: any) => lines.push(`- ${i.description || i.url || ''}`));
+    lines.push('');
+  }
+  if (lines.length === 2) lines.push('_No regional overrides defined; uses parent values._');
+  return lines.join('\n');
+}
+
+// ---------- DataForce / cultural guardrails ----------
+async function fetchComplianceGuardrails(guide: AnyGuide): Promise<string | null> {
+  try {
+    const orgId = (guide as any).organizationId || (guide as any).organization_id || null;
+    if (!orgId) return null;
+    const { data: latest } = await (supabase as any)
+      .from('compliance_scans')
+      .select('overall_score, findings, created_at')
+      .eq('entity_id', guide.id)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    const lines = ['# Compliance & Cultural Guardrails', ''];
+    if (latest) {
+      lines.push(`**Latest compliance score:** ${latest.overall_score ?? 'n/a'}/100 (${new Date(latest.created_at).toLocaleDateString()})`, '');
+      const findings = Array.isArray(latest.findings) ? latest.findings : [];
+      if (findings.length) {
+        lines.push('## Outstanding compliance findings (treat as hard constraints)');
+        findings.slice(0, 12).forEach((f: any) => lines.push(`- **${f.severity || 'note'}**: ${f.message || f.title || JSON.stringify(f)}`));
+        lines.push('');
+      }
+    }
+    const cultural = (guide as any).culturalReadiness || {};
+    if (cultural && Object.keys(cultural).length) {
+      lines.push('## Cultural readiness');
+      lines.push('```json', JSON.stringify(cultural, null, 2), '```', '');
+    }
+    if (lines.length === 2) return null;
+    lines.push('## Hard rules', '- Never produce output that re-introduces a finding flagged here.', '- Treat low cultural-readiness signals as a STOP — defer or ask before generating.');
+    return lines.join('\n');
+  } catch { return null; }
+}
+
+// ---------- Brand DNA Lock (IconKIT) ----------
+async function fetchBrandDnaRules(guide: AnyGuide): Promise<string | null> {
+  try {
+    const orgId = (guide as any).organizationId || (guide as any).organization_id || null;
+    if (!orgId) return null;
+    const { data: libs } = await (supabase as any)
+      .from('icon_libraries')
+      .select('name, dna_lock')
+      .eq('organization_id', orgId)
+      .not('dna_lock', 'is', null).limit(3);
+    if (!libs?.length) return null;
+    const lines = ['# Brand DNA Lock — Anti-patterns', '', 'These DNA rules from IconKIT are absolute. Any output that violates them is a misuse.', ''];
+    libs.forEach((lib: any) => {
+      const dna = lib.dna_lock || {};
+      lines.push(`## Library: ${lib.name}`);
+      if (dna.stroke) lines.push(`- Stroke: ${JSON.stringify(dna.stroke)}`);
+      if (dna.cap) lines.push(`- Cap: ${dna.cap}`);
+      if (dna.corner) lines.push(`- Corner radius: ${dna.corner}`);
+      if (dna.grid) lines.push(`- Grid: ${dna.grid}`);
+      if (Array.isArray(dna.forbidden)) dna.forbidden.forEach((f: string) => lines.push(`- FORBIDDEN: ${f}`));
+      lines.push('');
+    });
+    return lines.join('\n');
+  } catch { return null; }
+}
+
+// ---------- Versioning + changelog ----------
+async function computeNextVersionAndChangelog(guide: AnyGuide, currentTokens: number, currentFiles: number): Promise<{ version: string; prev: string | null; changelog: string }> {
+  try {
+    const kind = (guide as any).type || 'brand';
+    const entityType = kind === 'product' ? 'product' : kind === 'event' ? 'event' : 'brand';
+    const { data: prev } = await (supabase as any)
+      .from('skill_export_history')
+      .select('version, approx_tokens, file_count')
+      .eq('entity_type', entityType).eq('entity_id', guide.id)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    if (!prev) return { version: '1.0.0', prev: null, changelog: 'Initial export.' };
+    const parts = String(prev.version || '1.0.0').split('.').map((n: string) => parseInt(n, 10) || 0);
+    while (parts.length < 3) parts.push(0);
+    parts[2] += 1; // patch bump by default
+    const dTokens = currentTokens - (prev.approx_tokens || 0);
+    const dFiles = currentFiles - (prev.file_count || 0);
+    const lines = [
+      `Auto-generated changelog vs ${prev.version}:`,
+      `- Tokens: ${dTokens >= 0 ? '+' : ''}${dTokens.toLocaleString()} (now ~${currentTokens.toLocaleString()})`,
+      `- Files: ${dFiles >= 0 ? '+' : ''}${dFiles}`,
+    ];
+    return { version: parts.join('.'), prev: prev.version, changelog: lines.join('\n') };
+  } catch { return { version: '1.0.0', prev: null, changelog: 'Initial export.' }; }
+}
+
+async function recordExportHistory(guide: AnyGuide, args: { version: string; prev: string | null; changelog: string; tokens: number; files: number; locales: string[]; exportedTo: string[] }) {
+  try {
+    const kind = (guide as any).type || 'brand';
+    const entityType = kind === 'product' ? 'product' : kind === 'event' ? 'event' : 'brand';
+    await (supabase as any).from('skill_export_history').insert({
+      organization_id: (guide as any).organizationId || (guide as any).organization_id || null,
+      entity_type: entityType, entity_id: guide.id,
+      brand_name: guide.hero?.name || 'Untitled',
+      version: args.version, prev_version: args.prev, changelog: args.changelog,
+      approx_tokens: args.tokens, file_count: args.files,
+      locales: args.locales, exported_to: args.exportedTo,
+    });
+  } catch { /* non-fatal */ }
 }
 
 async function fetchPdfVisionEnrichment(guide: AnyGuide): Promise<{ md: string; tokens: any } | null> {
