@@ -200,6 +200,44 @@ const slugify = (s: string) =>
     .replace(/^-+|-+$/g, '')
     .slice(0, 64);
 
+/**
+ * Build a Claude-Skill-compliant `name`:
+ *  - lowercase letters/numbers/hyphens only
+ *  - <= 64 chars
+ *  - cannot contain reserved words "anthropic" / "claude"
+ *  - prefer gerund form (using-<brand>-brand) for discovery
+ */
+function buildSkillName(displayName: string, kind: string): string {
+  const base = slugify(displayName)
+    .replace(/anthropic/g, 'a-corp')
+    .replace(/claude/g, 'guide');
+  const prefix = 'using-';
+  const suffix = `-${kind}`;
+  const allowed = 64 - prefix.length - suffix.length;
+  return `${prefix}${base.slice(0, allowed)}${suffix}`.replace(/-+/g, '-').slice(0, 64);
+}
+
+/**
+ * Build a Claude-Skill-compliant `description`:
+ *  - third-person
+ *  - <= 1024 chars
+ *  - includes WHAT and WHEN
+ *  - YAML-safe (escape quotes, strip newlines)
+ */
+function buildSkillDescription(displayName: string, kind: string, tagline: string, triggers: string[]): string {
+  const what =
+    `Official ${displayName} ${kind} brand system. ` +
+    `Provides approved colors (HEX/RGB/CMYK/Pantone), typography, logo variants, ` +
+    `voice and tone rules, imagery direction, do/don't lists, and strategic ` +
+    `intelligence (audience, market, competitive landscape).`;
+  const when =
+    `Use when generating, reviewing, or critiquing any artifact for ${displayName} — ` +
+    `including copy, slogans, social posts, ads, decks, web pages, emails, ` +
+    `print collateral, or visuals — or when the user mentions ${triggers.join(', ')}.`;
+  const tail = tagline ? ` Tagline: "${tagline.replace(/"/g, "'")}".` : '';
+  return `${what} ${when}${tail}`.replace(/\s+/g, ' ').trim().slice(0, 1024);
+}
+
 const fence = (lang: string, body: string) => '```' + lang + '\n' + body + '\n```';
 
 const safeArr = <T,>(v: T[] | undefined | null): T[] => (Array.isArray(v) ? v : []);
