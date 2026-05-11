@@ -232,7 +232,135 @@ Generated ${new Date().toISOString()}.
 `;
 }
 
-export async function exportGuideAsClaudeSkill(guide: AnyGuide): Promise<{ blob: Blob; filename: string; folder: string }> {
+/* ---------- Asset bundling ---------- */
+
+interface AssetRef {
+  url: string;
+  category: 'logos' | 'imagery' | 'icons' | 'patterns' | 'gradients' | 'brochures' | 'case-studies' | 'fonts' | 'misc';
+  name?: string;
+}
+
+function collectAssetRefs(guide: AnyGuide): AssetRef[] {
+  const out: AssetRef[] = [];
+  const push = (category: AssetRef['category'], items: any[], pickers: ((a: any) => string | undefined)[]) => {
+    items.forEach((a) => {
+      for (const p of pickers) {
+        const url = p(a);
+        if (url && /^https?:\/\//i.test(url)) {
+          out.push({ url, category, name: a?.name || a?.title });
+          break;
+        }
+      }
+    });
+  };
+  push('logos', safeArr((guide as any).logos), [(a) => a.url]);
+  push('imagery', safeArr((guide as any).imagery), [(a) => a.url]);
+  push('icons', safeArr((guide as any).brandIcons), [(a) => a.url || a.svgUrl]);
+  push('icons', safeArr((guide as any).socialIcons), [(a) => a.url]);
+  push('patterns', safeArr((guide as any).patterns), [(a) => a.url || a.imageUrl]);
+  push('gradients', safeArr((guide as any).gradients), [(a) => a.url || a.imageUrl]);
+  push('brochures', safeArr((guide as any).brochures), [(a) => a.fileUrl || a.url]);
+  push('case-studies', safeArr((guide as any).caseStudies), [(a) => a.fileUrl || a.url || a.imageUrl]);
+  push('fonts', safeArr((guide as any).typography), [(a) => a.downloadUrl]);
+  return out;
+}
+
+function filenameFromUrl(url: string, fallback: string): string {
+  try {
+    const u = new URL(url);
+    const last = u.pathname.split('/').filter(Boolean).pop() || fallback;
+    return decodeURIComponent(last).replace(/[^\w.\-]+/g, '_').slice(0, 100) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function fetchAsBlob(url: string, timeoutMs = 15000): Promise<Blob | null> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, mode: 'cors' });
+    if (!res.ok) return null;
+    return await res.blob();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+async function bundleAssets(
+  zipRoot: JSZip,
+  refs: AssetRef[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<{ manifest: Array<{ url: string; path?: string; ok: boolean }>; failed: AssetRef[] }> {
+  const manifest: Array<{ url: string; path?: string; ok: boolean }> = [];
+  const failed: AssetRef[] = [];
+  const used = new Set<string>();
+  let done = 0;
+  const concurrency = 6;
+
+  // De-dupe by URL
+  const unique = Array.from(new Map(refs.map((r) => [r.url, r])).values());
+
+  const worker = async (queue: AssetRef[]) => {
+    while (queue.length) {
+      const ref = queue.shift()!;
+      const blob = await fetchAsBlob(ref.url);
+      done++;
+      onProgress?.(done, unique.length);
+      if (!blob) {
+        failed.push(ref);
+        manifest.push({ url: ref.url, ok: false });
+        continue;
+      }
+      let base = filenameFromUrl(ref.url, `${ref.category}-${done}.bin`);
+      let path = `assets/${ref.category}/${base}`;
+      let i = 1;
+      while (used.has(path)) {
+        const dot = base.lastIndexOf('.');
+        const stem = dot > 0 ? base.slice(0, dot) : base;
+        const ext = dot > 0 ? base.slice(dot) : '';
+        path = `assets/${ref.category}/${stem}-${i++}${ext}`;
+      }
+      used.add(path);
+      zipRoot.file(path, blob);
+      manifest.push({ url: ref.url, path, ok: true });
+    }
+  };
+
+  const queue = [...unique];
+  await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, () => worker(queue)));
+  return { manifest, failed };
+}
+
+function buildBundledAssetsMd(
+  manifest: Array<{ url: string; path?: string; ok: boolean }>,
+  failed: AssetRef[],
+): string {
+  const lines = ['# Bundled assets', ''];
+  const ok = manifest.filter((m) => m.ok);
+  if (!ok.length) lines.push('_No assets were successfully bundled._');
+  ok.forEach((m) => lines.push(`- \`${m.path}\` ← ${m.url}`));
+  if (failed.length) {
+    lines.push('', '## Failed downloads');
+    lines.push('These URLs could not be fetched (CORS, 404, or timeout). Use the original URL:');
+    failed.forEach((f) => lines.push(`- ${f.url}`));
+  }
+  return lines.join('\n');
+}
+
+/* ---------- Export ---------- */
+
+export interface ExportOptions {
+  embedAssets?: boolean;
+  onProgress?: (done: number, total: number) => void;
+}
+
+export async function exportGuideAsClaudeSkill(
+  guide: AnyGuide,
+  opts: ExportOptions = {},
+): Promise<{ blob: Blob; filename: string; folder: string; bundled: number; failed: number }> {
   const kind = (guide as any).type || 'brand';
   const folder = slugify(guide.hero?.name || (guide as any).slug || kind) + '-skill';
 
@@ -252,12 +380,25 @@ export async function exportGuideAsClaudeSkill(guide: AnyGuide): Promise<{ blob:
   refs.file('imagery.md', buildImagery(guide));
   refs.file('assets.md', buildAssets(guide));
 
+  let bundled = 0;
+  let failedCount = 0;
+  if (opts.embedAssets) {
+    const refsList = collectAssetRefs(guide);
+    const { manifest, failed } = await bundleAssets(root, refsList, opts.onProgress);
+    bundled = manifest.filter((m) => m.ok).length;
+    failedCount = failed.length;
+    refs.file('bundled-assets.md', buildBundledAssetsMd(manifest, failed));
+  }
+
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-  return { blob, filename: `${folder}.zip`, folder };
+  return { blob, filename: `${folder}.zip`, folder, bundled, failed: failedCount };
 }
 
-export async function downloadGuideAsClaudeSkill(guide: AnyGuide): Promise<void> {
-  const { blob, filename } = await exportGuideAsClaudeSkill(guide);
+export async function downloadGuideAsClaudeSkill(
+  guide: AnyGuide,
+  opts: ExportOptions = {},
+): Promise<{ bundled: number; failed: number }> {
+  const { blob, filename, bundled, failed } = await exportGuideAsClaudeSkill(guide, opts);
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -266,4 +407,6 @@ export async function downloadGuideAsClaudeSkill(guide: AnyGuide): Promise<void>
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  return { bundled, failed };
 }
+
