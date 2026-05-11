@@ -5401,6 +5401,63 @@ export type Database = {
           },
         ]
       }
+      skill_export_history: {
+        Row: {
+          approx_tokens: number | null
+          brand_name: string
+          changelog: string | null
+          created_at: string
+          diff_summary: Json | null
+          entity_id: string
+          entity_type: string
+          exported_to: string[] | null
+          file_count: number | null
+          id: string
+          locales: string[] | null
+          organization_id: string | null
+          prev_version: string | null
+          skill_meta: Json | null
+          user_id: string | null
+          version: string
+        }
+        Insert: {
+          approx_tokens?: number | null
+          brand_name: string
+          changelog?: string | null
+          created_at?: string
+          diff_summary?: Json | null
+          entity_id: string
+          entity_type: string
+          exported_to?: string[] | null
+          file_count?: number | null
+          id?: string
+          locales?: string[] | null
+          organization_id?: string | null
+          prev_version?: string | null
+          skill_meta?: Json | null
+          user_id?: string | null
+          version: string
+        }
+        Update: {
+          approx_tokens?: number | null
+          brand_name?: string
+          changelog?: string | null
+          created_at?: string
+          diff_summary?: Json | null
+          entity_id?: string
+          entity_type?: string
+          exported_to?: string[] | null
+          file_count?: number | null
+          id?: string
+          locales?: string[] | null
+          organization_id?: string | null
+          prev_version?: string | null
+          skill_meta?: Json | null
+          user_id?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
       skill_qa_jobs: {
         Row: {
           brand_name: string
@@ -5513,6 +5570,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      skill_qa_schedules: {
+        Row: {
+          cadence: string
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          entity_id: string
+          entity_type: string
+          id: string
+          last_run_at: string | null
+          next_run_at: string | null
+          organization_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          cadence?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          entity_id: string
+          entity_type: string
+          id?: string
+          last_run_at?: string | null
+          next_run_at?: string | null
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cadence?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          last_run_at?: string | null
+          next_run_at?: string | null
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       social_asset_analyses: {
         Row: {
