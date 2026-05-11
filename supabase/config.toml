@@ -167,3 +167,9 @@ verify_jwt = false
 
 [functions.seed-zone-copy]
 verify_jwt = false
+
+[functions.skill-qa]
+verify_jwt = false
+
+[functions.skill-pdf-vision]
+verify_jwt = false

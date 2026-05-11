@@ -5401,6 +5401,119 @@ export type Database = {
           },
         ]
       }
+      skill_qa_jobs: {
+        Row: {
+          brand_name: string
+          completed_at: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          error: string | null
+          id: string
+          include_visual_regression: boolean
+          organization_id: string | null
+          partial_results: Json | null
+          progress: Json
+          sections: string[]
+          started_at: string | null
+          status: string
+          tiers: string[]
+          user_id: string | null
+        }
+        Insert: {
+          brand_name: string
+          completed_at?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          error?: string | null
+          id?: string
+          include_visual_regression?: boolean
+          organization_id?: string | null
+          partial_results?: Json | null
+          progress?: Json
+          sections?: string[]
+          started_at?: string | null
+          status?: string
+          tiers?: string[]
+          user_id?: string | null
+        }
+        Update: {
+          brand_name?: string
+          completed_at?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          error?: string | null
+          id?: string
+          include_visual_regression?: boolean
+          organization_id?: string | null
+          partial_results?: Json | null
+          progress?: Json
+          sections?: string[]
+          started_at?: string | null
+          status?: string
+          tiers?: string[]
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      skill_qa_reports: {
+        Row: {
+          avg_score_by_tier: Json
+          brand_name: string
+          consistently_missing: string[]
+          created_at: string
+          entity_id: string
+          entity_type: string
+          full_report: Json
+          id: string
+          job_id: string | null
+          organization_id: string | null
+          pdf_vision: Json | null
+          recurring_misuses: Json
+          visual_regression: Json | null
+        }
+        Insert: {
+          avg_score_by_tier?: Json
+          brand_name: string
+          consistently_missing?: string[]
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          full_report: Json
+          id?: string
+          job_id?: string | null
+          organization_id?: string | null
+          pdf_vision?: Json | null
+          recurring_misuses?: Json
+          visual_regression?: Json | null
+        }
+        Update: {
+          avg_score_by_tier?: Json
+          brand_name?: string
+          consistently_missing?: string[]
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          full_report?: Json
+          id?: string
+          job_id?: string | null
+          organization_id?: string | null
+          pdf_vision?: Json | null
+          recurring_misuses?: Json
+          visual_regression?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_qa_reports_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "skill_qa_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_asset_analyses: {
         Row: {
           accessibility_findings: Json | null
