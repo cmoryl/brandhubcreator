@@ -5403,6 +5403,7 @@ export type Database = {
       }
       skill_export_history: {
         Row: {
+          anthropic_skill_id: string | null
           approx_tokens: number | null
           brand_name: string
           changelog: string | null
@@ -5416,11 +5417,17 @@ export type Database = {
           locales: string[] | null
           organization_id: string | null
           prev_version: string | null
+          push_error: string | null
+          push_http_status: number | null
+          push_status: string | null
+          pushed_at: string | null
+          pushed_to_claude: boolean
           skill_meta: Json | null
           user_id: string | null
           version: string
         }
         Insert: {
+          anthropic_skill_id?: string | null
           approx_tokens?: number | null
           brand_name: string
           changelog?: string | null
@@ -5434,11 +5441,17 @@ export type Database = {
           locales?: string[] | null
           organization_id?: string | null
           prev_version?: string | null
+          push_error?: string | null
+          push_http_status?: number | null
+          push_status?: string | null
+          pushed_at?: string | null
+          pushed_to_claude?: boolean
           skill_meta?: Json | null
           user_id?: string | null
           version: string
         }
         Update: {
+          anthropic_skill_id?: string | null
           approx_tokens?: number | null
           brand_name?: string
           changelog?: string | null
@@ -5452,6 +5465,11 @@ export type Database = {
           locales?: string[] | null
           organization_id?: string | null
           prev_version?: string | null
+          push_error?: string | null
+          push_http_status?: number | null
+          push_status?: string | null
+          pushed_at?: string | null
+          pushed_to_claude?: boolean
           skill_meta?: Json | null
           user_id?: string | null
           version?: string

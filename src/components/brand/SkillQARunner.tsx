@@ -22,6 +22,7 @@ import { SkillCoverageMap } from './SkillCoverageMap';
 import { SkillTokenOptimizer } from './SkillTokenOptimizer';
 import { SkillQASchedulePanel } from './SkillQASchedulePanel';
 import { SkillDiffViewer } from './SkillDiffViewer';
+import { SkillPushHistoryPanel } from './SkillPushHistoryPanel';
 
 type AnyGuide = BrandGuide | ProductGuide | EventGuide;
 interface Props { guide: AnyGuide; trigger?: React.ReactNode }
@@ -102,6 +103,7 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
             <TabsTrigger value="optimize">Optimize</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="chat" className="gap-1"><MessageSquare className="h-3.5 w-3.5" /> Ask</TabsTrigger>
+            <TabsTrigger value="pushes" className="gap-1"><Send className="h-3.5 w-3.5" /> Pushes</TabsTrigger>
             <TabsTrigger value="history" className="gap-1"><History className="h-3.5 w-3.5" /> History ({history.length})</TabsTrigger>
           </TabsList>
 
@@ -137,6 +139,10 @@ export const SkillQARunner = ({ guide, trigger }: Props) => {
 
           <TabsContent value="chat">
             <SkillChatPanel guide={guide} />
+          </TabsContent>
+
+          <TabsContent value="pushes">
+            <SkillPushHistoryPanel guide={guide} />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-3">
