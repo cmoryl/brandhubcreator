@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { downloadGuideAsClaudeSkill } from '@/lib/exportClaudeSkill';
+import { ClaudeSkillValidationError } from '@/lib/exportClaudeSkill';
 import { useDownloadTracking } from '@/hooks/useDownloadTracking';
 import type { BrandGuide, ProductGuide } from '@/types/brand';
 import type { EventGuide } from '@/types/event';
