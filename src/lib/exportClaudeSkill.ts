@@ -21,8 +21,179 @@
 import JSZip from 'jszip';
 import { BrandGuide, ProductGuide } from '@/types/brand';
 import { EventGuide } from '@/types/event';
+import { supabase } from '@/integrations/supabase/client';
 
 type AnyGuide = BrandGuide | ProductGuide | EventGuide;
+
+interface IntelligenceBundle {
+  brandIntelligence?: any | null;
+  entityContext?: any | null;
+  oracleIntelligence?: any | null;
+  oracleKnowledge?: any[] | null;
+  competitiveReports?: any[] | null;
+  researchBriefings?: any[] | null;
+}
+
+async function fetchIntelligenceBundle(guide: AnyGuide): Promise<IntelligenceBundle> {
+  const kind = (guide as any).type || 'brand';
+  const entityType = kind === 'product' ? 'product' : kind === 'event' ? 'event' : 'brand';
+  const entityId = guide.id;
+  const orgId = (guide as any).organizationId || (guide as any).organization_id || null;
+  const tableName = kind === 'product' ? 'products' : kind === 'event' ? 'events' : 'brands';
+
+  const out: IntelligenceBundle = {};
+  const tasks: Promise<any>[] = [];
+
+  tasks.push(
+    supabase.from('brand_intelligence').select('*')
+      .eq('entity_type', entityType).eq('entity_id', entityId).maybeSingle()
+      .then(({ data }) => { out.brandIntelligence = data; })
+      .catch(() => {})
+  );
+
+  tasks.push(
+    supabase.rpc('get_entity_text_context', { p_table: tableName, p_id: entityId })
+      .then(({ data }) => { out.entityContext = data; })
+      .catch(() => {})
+  );
+
+  tasks.push(
+    supabase.from('competitive_analysis_reports').select('*')
+      .eq('entity_id', entityId).order('created_at', { ascending: false }).limit(5)
+      .then(({ data }) => { out.competitiveReports = data || []; })
+      .catch(() => {})
+  );
+
+  tasks.push(
+    supabase.from('research_briefings').select('*')
+      .eq('entity_id', entityId).order('created_at', { ascending: false }).limit(5)
+      .then(({ data }) => { out.researchBriefings = data || []; })
+      .catch(() => {})
+  );
+
+  if (orgId) {
+    tasks.push(
+      supabase.from('oracle_intelligence').select('*')
+        .eq('organization_id', orgId).maybeSingle()
+        .then(({ data }) => { out.oracleIntelligence = data; })
+        .catch(() => {})
+    );
+    tasks.push(
+      supabase.from('oracle_knowledge_base').select('*')
+        .eq('organization_id', orgId).eq('is_active', true)
+        .order('created_at', { ascending: false }).limit(200)
+        .then(({ data }) => { out.oracleKnowledge = data || []; })
+        .catch(() => {})
+    );
+  }
+
+  await Promise.all(tasks);
+  return out;
+}
+
+function buildBrandIntelligenceMd(bi: any | null | undefined, ctx: any | null | undefined): string {
+  const lines = ['# Brand Brain (Intelligence)', ''];
+  if (!bi && !ctx) {
+    lines.push('_No intelligence has been synthesized for this entity yet._');
+    return lines.join('\n');
+  }
+  if (bi?.brand_summary) lines.push('## Summary', bi.brand_summary, '');
+  if (bi?.market_position) lines.push('## Market Position', bi.market_position, '');
+  if (bi?.target_audience) lines.push('## Target Audience', '```json', JSON.stringify(bi.target_audience, null, 2), '```', '');
+  if (Array.isArray(bi?.competitive_advantages) && bi.competitive_advantages.length) {
+    lines.push('## Competitive Advantages');
+    bi.competitive_advantages.forEach((c: any) => lines.push(`- ${typeof c === 'string' ? c : c?.title || c?.text || JSON.stringify(c)}`));
+    lines.push('');
+  }
+  if (bi?.brand_voice_profile) lines.push('## Voice Profile', '```json', JSON.stringify(bi.brand_voice_profile, null, 2), '```', '');
+  if (Array.isArray(bi?.growth_recommendations) && bi.growth_recommendations.length) {
+    lines.push('## Growth Recommendations');
+    bi.growth_recommendations.forEach((r: any) => lines.push(`- ${typeof r === 'string' ? r : r?.title || r?.text || JSON.stringify(r)}`));
+    lines.push('');
+  }
+  if (bi?.cultural_insights && Object.keys(bi.cultural_insights).length) {
+    lines.push('## Cultural Insights', '```json', JSON.stringify(bi.cultural_insights, null, 2), '```', '');
+  }
+  if (Array.isArray(bi?.globallink_recommendations) && bi.globallink_recommendations.length) {
+    lines.push('## Localization Recommendations');
+    bi.globallink_recommendations.forEach((r: any) => lines.push(`- ${typeof r === 'string' ? r : JSON.stringify(r)}`));
+    lines.push('');
+  }
+  if (bi?.regional_adaptations && Object.keys(bi.regional_adaptations).length) {
+    lines.push('## Regional Adaptations', '```json', JSON.stringify(bi.regional_adaptations, null, 2), '```', '');
+  }
+  if (bi?.bias_awareness_profile && Object.keys(bi.bias_awareness_profile).length) {
+    lines.push('## Bias Awareness', '```json', JSON.stringify(bi.bias_awareness_profile, null, 2), '```', '');
+  }
+  if (bi?.competitive_landscape) {
+    lines.push('## Competitive Landscape', '```json', JSON.stringify(bi.competitive_landscape, null, 2), '```', '');
+  }
+  if (ctx) {
+    lines.push('## Aggregated Entity Context', '');
+    lines.push('Structured context assembled from this guide for AI consumption:', '');
+    lines.push('```json', JSON.stringify(ctx, null, 2), '```');
+  }
+  return lines.join('\n');
+}
+
+function buildOracleMd(oracle: any | null | undefined, knowledge: any[] | null | undefined): string {
+  const lines = ['# Oracle Intelligence (Organization Brain)', ''];
+  if (!oracle && (!knowledge || !knowledge.length)) {
+    lines.push('_No Oracle synthesis available for this organization._');
+    return lines.join('\n');
+  }
+  if (oracle?.org_summary) lines.push('## Organization Summary', oracle.org_summary, '');
+  if (oracle?.portfolio_analysis) lines.push('## Portfolio Analysis', '```json', JSON.stringify(oracle.portfolio_analysis, null, 2), '```', '');
+  if (oracle?.market_landscape) lines.push('## Market Landscape', '```json', JSON.stringify(oracle.market_landscape, null, 2), '```', '');
+  if (Array.isArray(oracle?.strategic_recommendations) && oracle.strategic_recommendations.length) {
+    lines.push('## Strategic Recommendations');
+    oracle.strategic_recommendations.forEach((r: any) => {
+      lines.push(`- **${r.title || 'Recommendation'}**${r.priority ? ` _(${r.priority})_` : ''}: ${r.description || ''}`);
+    });
+    lines.push('');
+  }
+  if (oracle?.unified_voice_profile) lines.push('## Unified Voice Profile', '```json', JSON.stringify(oracle.unified_voice_profile, null, 2), '```', '');
+  if (oracle?.unified_audience_map) lines.push('## Unified Audience Map', '```json', JSON.stringify(oracle.unified_audience_map, null, 2), '```', '');
+  if (oracle?.competitive_overview) lines.push('## Competitive Overview', '```json', JSON.stringify(oracle.competitive_overview, null, 2), '```', '');
+  if (oracle?.cultural_readiness) lines.push('## Cultural Readiness', '```json', JSON.stringify(oracle.cultural_readiness, null, 2), '```', '');
+  if (oracle?.cross_entity_patterns) lines.push('## Cross-Entity Patterns', '```json', JSON.stringify(oracle.cross_entity_patterns, null, 2), '```', '');
+  if (knowledge && knowledge.length) {
+    lines.push(`## Knowledge Base (${knowledge.length} entries)`, '');
+    knowledge.forEach((k: any) => {
+      lines.push(`### ${k.title || 'Entry'}`);
+      if (k.tags?.length) lines.push(`_Tags: ${k.tags.join(', ')}_`);
+      if (k.content) lines.push('', k.content, '');
+    });
+  }
+  return lines.join('\n');
+}
+
+function buildResearchMd(reports: any[] | null | undefined, briefings: any[] | null | undefined): string {
+  const lines = ['# Research & Competitive Reports', ''];
+  if ((!reports || !reports.length) && (!briefings || !briefings.length)) {
+    lines.push('_No research or competitive reports available._');
+    return lines.join('\n');
+  }
+  if (reports && reports.length) {
+    lines.push('## Competitive Analysis Reports', '');
+    reports.forEach((r: any) => {
+      lines.push(`### ${r.competitor_name || r.title || 'Report'} — ${new Date(r.created_at).toLocaleDateString()}`);
+      if (r.summary) lines.push(r.summary);
+      if (r.report_data) lines.push('', '```json', JSON.stringify(r.report_data, null, 2), '```');
+      lines.push('');
+    });
+  }
+  if (briefings && briefings.length) {
+    lines.push('## Research Briefings', '');
+    briefings.forEach((b: any) => {
+      lines.push(`### ${b.title || b.topic || 'Briefing'} — ${new Date(b.created_at).toLocaleDateString()}`);
+      if (b.summary) lines.push(b.summary);
+      if (b.briefing_data) lines.push('', '```json', JSON.stringify(b.briefing_data, null, 2), '```');
+      lines.push('');
+    });
+  }
+  return lines.join('\n');
+}
 
 const slugify = (s: string) =>
   (s || 'guide')
