@@ -1,0 +1,512 @@
+[
+  {
+    "function": "ad-localizer",
+    "models": [
+      "google/gemini-3-flash-preview",
+      "google/gemini-3.1-flash-image-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "analyze-social-asset",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "batch-generate-assets",
+    "models": [
+      "google/gemini-2.5-flash-image"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "bias-awareness-scan",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "booth-3d-ai-mapper",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "booth-ai-generator",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "booth-analysis",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "booth-color-analysis",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "booth-crowd-simulation",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "booth-palette-analyzer",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "booth-sales-deck",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "booth-score",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "brand-audit-worker",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "brand-intelligence-worker",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "brand-research",
+    "models": [
+      "google/gemini-3-flash-preview",
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "brand-visibility-audit",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "bulk-intelligence",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "color-lab-analysis",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "competitive-analysis-worker",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "dataforce-assistant",
+    "models": [
+      "google/gemini-3-flash-preview",
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "dataforce-compliance",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "dataforce-training",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "discover-competitors-worker",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "discover-videos",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "discover-webinars",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "enrich-demo-content",
+    "models": [
+      "google/gemini-2.5-flash-image",
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "extract-brand-materials",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "extract-branding",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-booth-template",
+    "models": [
+      "google/gemini-2.5-flash-image",
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-brand-assets",
+    "models": [
+      "google/gemini-3-pro-image-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-character-sprite",
+    "models": [
+      "google/gemini-2.5-flash-image",
+      "google/gemini-3-pro-image-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-client-logo",
+    "models": [
+      "google/gemini-2.5-flash-image"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-color-combinations",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-creative-asset",
+    "models": [
+      "google/gemini-2.5-flash-image"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-icon",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-icon-colors",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-icon-set",
+    "models": [
+      "google/gemini-3.1-pro-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-icon-visual",
+    "models": [
+      "google/gemini-3-flash-preview",
+      "google/gemini-3-pro-image-preview",
+      "google/gemini-3.1-pro-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-intelligence-digest",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-pillar-image",
+    "models": [
+      "google/gemini-3.1-flash-image-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-portfolio-relationships",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-shape",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-signage-preview",
+    "models": [
+      "google/gemini-2.5-flash-image"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "generate-sub-services",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "globallink-cultural-adapt",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "help-agent",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "imagery-ai-suggestions",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "imagery-auto-categorize",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "imagery-quality-score",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "imagery-strategy-audit",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "imagery-style-analyzer",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "imagery-visual-search",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "import-brand-report",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "location-research",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "market-analysis",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "oracle-brain",
+    "models": [
+      "google/gemini-3-flash-preview",
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "portfolio-insights-extractor",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "run-brand-prompt",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "run-event-prompt",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "seed-zone-copy",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "shutterstock-ai-suggest",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "shutterstock-learn",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "skill-autofix",
+    "models": [
+      "openai/gpt-5.2"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "skill-chat",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "skill-pdf-vision",
+    "models": [
+      "google/gemini-3.1-pro-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "skill-qa",
+    "models": [
+      "google/gemini-3-flash-preview",
+      "google/gemini-3.1-flash-image-preview",
+      "google/gemini-3.1-flash-lite-preview",
+      "google/gemini-3.1-pro-preview",
+      "openai/gpt-5.2"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "skill-token-optimizer",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "social-metrics-scan",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "stylize-icon",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "suggest-icons",
+    "models": [
+      "google/gemini-3.1-flash-lite-preview"
+    ],
+    "deprecated": []
+  },
+  {
+    "function": "website-analysis",
+    "models": [
+      "google/gemini-3-flash-preview"
+    ],
+    "deprecated": []
+  }
+]
