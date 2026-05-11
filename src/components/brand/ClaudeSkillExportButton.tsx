@@ -154,7 +154,7 @@ export const ClaudeSkillExportButton = ({ guide, variant = 'button' }: Props) =>
     }
   };
 
-
+  const label = busy
     ? progress
       ? `Bundling… ${progress.done}/${progress.total}`
       : 'Exporting…'
