@@ -361,7 +361,7 @@ const AutofixPanel = ({ guide, report }: { guide: AnyGuide; report: SkillQARepor
               <AccordionItem key={path} value={path}>
                 <AccordionTrigger className="text-xs">{path}</AccordionTrigger>
                 <AccordionContent>
-                  <pre className="text-xs whitespace-pre-wrap rounded bg-muted p-2 max-h-64 overflow-y-auto">{content}</pre>
+                  <SkillDiffViewer original={originals[path] || ''} patched={content} path={path} />
                 </AccordionContent>
               </AccordionItem>
             ))}
