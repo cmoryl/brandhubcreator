@@ -18,8 +18,13 @@ async function blobToBase64(blob: Blob): Promise<string> {
   return btoa(s);
 }
 
-export async function pushSkillToAnthropic(guide: AnyGuide, opts: { dryRun?: boolean } = {}): Promise<AnthropicPushResult> {
-  const { blob, folder } = await exportGuideAsClaudeSkill(guide, { embedAssets: false, includeIntelligence: false });
+export async function pushSkillToAnthropic(guide: AnyGuide, opts: { dryRun?: boolean; recordHistory?: boolean } = {}): Promise<AnthropicPushResult> {
+  const { blob, folder } = await exportGuideAsClaudeSkill(guide, {
+    embedAssets: false,
+    includeIntelligence: false,
+    recordHistory: !!opts.recordHistory,
+    exportedTo: ['anthropic'],
+  } as any);
   const zipBase64 = await blobToBase64(blob);
   const { data, error } = await supabase.functions.invoke('skill-anthropic-push', {
     body: { zipBase64, skillName: folder, description: `Skill for ${guide.hero?.name || folder}`, dryRun: !!opts.dryRun },
