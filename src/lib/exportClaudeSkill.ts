@@ -234,6 +234,11 @@ must stay on-brand.
 4. Match the tone described in \`references/voice-and-messaging.md\`.
 5. Logo + asset URLs are in \`references/logos.md\` and \`references/assets.md\`.
 6. Full structured data lives in \`guide.json\` for programmatic lookup.
+7. Strategic context, audience, market, and learned insights live in \`intelligence/\`:
+   - \`brand-brain.md\` — synthesized brand intelligence + aggregated entity context
+   - \`oracle.md\` — organization-wide Oracle intelligence + knowledge base
+   - \`research-and-competitive.md\` — research briefings + competitive reports
+   - \`intelligence.json\` — full structured intelligence payload
 
 ## Hard rules
 - Never invent colors, fonts, or logo variants outside this skill.
