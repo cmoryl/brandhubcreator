@@ -44,46 +44,45 @@ async function fetchIntelligenceBundle(guide: AnyGuide): Promise<IntelligenceBun
   const out: IntelligenceBundle = {};
   const tasks: Promise<any>[] = [];
 
-  tasks.push(
-    supabase.from('brand_intelligence').select('*')
-      .eq('entity_type', entityType).eq('entity_id', entityId).maybeSingle()
-      .then(({ data }) => { out.brandIntelligence = data; })
-      .catch(() => {})
-  );
+  const safe = async <T,>(p: Promise<any> | any, assign: (v: any) => void) => {
+    try { const r = await p; assign(r?.data ?? r); } catch { /* ignore */ }
+  };
 
-  tasks.push(
-    supabase.rpc('get_entity_text_context', { p_table: tableName, p_id: entityId })
-      .then(({ data }) => { out.entityContext = data; })
-      .catch(() => {})
-  );
-
-  tasks.push(
-    supabase.from('competitive_analysis_reports').select('*')
-      .eq('entity_id', entityId).order('created_at', { ascending: false }).limit(5)
-      .then(({ data }) => { out.competitiveReports = data || []; })
-      .catch(() => {})
-  );
-
-  tasks.push(
-    supabase.from('research_briefings').select('*')
-      .eq('entity_id', entityId).order('created_at', { ascending: false }).limit(5)
-      .then(({ data }) => { out.researchBriefings = data || []; })
-      .catch(() => {})
-  );
+  const tasks: Promise<any>[] = [
+    safe(
+      supabase.from('brand_intelligence').select('*')
+        .eq('entity_type', entityType).eq('entity_id', entityId).maybeSingle(),
+      (v) => { out.brandIntelligence = v; },
+    ),
+    safe(
+      supabase.rpc('get_entity_text_context', { p_table: tableName, p_id: entityId }),
+      (v) => { out.entityContext = v; },
+    ),
+    safe(
+      supabase.from('competitive_analysis_reports').select('*')
+        .eq('entity_id', entityId).order('created_at', { ascending: false }).limit(5),
+      (v) => { out.competitiveReports = Array.isArray(v) ? v : []; },
+    ),
+    safe(
+      supabase.from('research_briefings').select('*')
+        .eq('entity_id', entityId).order('created_at', { ascending: false }).limit(5),
+      (v) => { out.researchBriefings = Array.isArray(v) ? v : []; },
+    ),
+  ];
 
   if (orgId) {
     tasks.push(
-      supabase.from('oracle_intelligence').select('*')
-        .eq('organization_id', orgId).maybeSingle()
-        .then(({ data }) => { out.oracleIntelligence = data; })
-        .catch(() => {})
-    );
-    tasks.push(
-      supabase.from('oracle_knowledge_base').select('*')
-        .eq('organization_id', orgId).eq('is_active', true)
-        .order('created_at', { ascending: false }).limit(200)
-        .then(({ data }) => { out.oracleKnowledge = data || []; })
-        .catch(() => {})
+      safe(
+        supabase.from('oracle_intelligence').select('*')
+          .eq('organization_id', orgId).maybeSingle(),
+        (v) => { out.oracleIntelligence = v; },
+      ),
+      safe(
+        supabase.from('oracle_knowledge_base').select('*')
+          .eq('organization_id', orgId).eq('is_active', true)
+          .order('created_at', { ascending: false }).limit(200),
+        (v) => { out.oracleKnowledge = Array.isArray(v) ? v : []; },
+      ),
     );
   }
 
