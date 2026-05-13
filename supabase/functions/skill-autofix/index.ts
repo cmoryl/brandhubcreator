@@ -33,8 +33,9 @@ Deno.serve(async (req) => {
   try {
     const apiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!apiKey) return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    const auth = req.headers.get('Authorization');
-    if (!auth?.startsWith('Bearer ')) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const gate = await requireAiAccess(req, { corsHeaders });
+    if (gate.response) return gate.response;
+    const userId = gate.userId;
 
     const body = await req.json().catch(() => ({}));
     const { skill, misuses, consistentlyMissing } = body as {
