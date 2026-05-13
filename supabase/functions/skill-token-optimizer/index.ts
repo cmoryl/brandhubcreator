@@ -26,10 +26,9 @@ const tok = (s: string) => Math.round((s || '').length / 4);
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
-    const auth = req.headers.get('Authorization');
-    if (!auth?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+    const gate = await requireAiAccess(req, { corsHeaders });
+    if (gate.response) return gate.response;
+    const userId = gate.userId;
     const apiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!apiKey) return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY missing' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
