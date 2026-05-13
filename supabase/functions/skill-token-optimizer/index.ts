@@ -11,22 +11,24 @@
  *    that can be inlined into SKILL.md while the full body is moved to a
  *    `references-deep/` folder.
  */
+import { requireAiAccess } from '../_shared/requireAiAccess.ts';
+import { callLovableAI } from '../_shared/aiGateway.ts';
+import { MODELS } from '../_shared/models.ts';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-const GATEWAY_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
 
 const tok = (s: string) => Math.round((s || '').length / 4);
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
-    const auth = req.headers.get('Authorization');
-    if (!auth?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+    const gate = await requireAiAccess(req, { corsHeaders });
+    if (gate.response) return gate.response;
+    const userId = gate.userId;
     const apiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!apiKey) return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY missing' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
@@ -57,20 +59,24 @@ Deno.serve(async (req) => {
       const body = (files as any)[c.path] as string;
       let condensedSummary = '';
       try {
-        const r = await fetch(GATEWAY_URL, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'google/gemini-3.1-flash-lite-preview',
-            temperature: 0.1,
-            messages: [
-              { role: 'system', content: 'You compress brand reference markdown into a SINGLE 2-3 sentence pointer summary suitable for inlining inside SKILL.md. Preserve the most load-bearing facts (HEX, font names, hard rules). Never invent. Output plain text only.' },
-              { role: 'user', content: body.slice(0, 12000) },
-            ],
-          }),
+        const r = await callLovableAI(apiKey, {
+          model: MODELS.cheapChat,
+          temperature: 0.1,
+          messages: [
+            { role: 'system', content: 'You compress brand reference markdown into a SINGLE 2-3 sentence pointer summary suitable for inlining inside SKILL.md. Preserve the most load-bearing facts (HEX, font names, hard rules). Never invent. Output plain text only.' },
+            { role: 'user', content: body.slice(0, 12000) },
+          ],
+          telemetry: {
+            supabaseUrl: Deno.env.get('SUPABASE_URL'),
+            serviceRoleKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+            functionName: 'skill-token-optimizer',
+            purpose: 'condense_reference',
+            userId,
+            entityType: 'skill_file',
+            entityId: c.path,
+          },
         });
-        const j = await r.json().catch(() => ({}));
-        condensedSummary = String(j?.choices?.[0]?.message?.content || '').trim().slice(0, 600);
+        condensedSummary = String(r.message?.content || '').trim().slice(0, 600);
       } catch { /* ignore */ }
 
       const action: 'condense' | 'demote' | 'split' =

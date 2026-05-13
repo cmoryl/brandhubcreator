@@ -10,6 +10,9 @@
  *    re-emitted as OpenAI-compatible SSE so the existing client parser works.
  *  - otherwise                    -> Lovable AI Gateway (default Gemini).
  */
+import { requireAiAccess } from '../_shared/requireAiAccess.ts';
+import { MODELS } from '../_shared/models.ts';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
@@ -109,13 +112,8 @@ async function streamFromAnthropic(opts: {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
-    const auth = req.headers.get('Authorization');
-    if (!auth?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    const gate = await requireAiAccess(req, { corsHeaders });
+    if (gate.response) return gate.response;
 
     const body = await req.json().catch(() => ({}));
     const { skill, messages, model } = body as {
@@ -160,7 +158,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: model || 'google/gemini-3-flash-preview',
+        model: model || MODELS.fastChat,
         stream: true,
         temperature: 0.3,
         messages: [

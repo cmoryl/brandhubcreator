@@ -9,12 +9,15 @@
  * POST { pdfs: string[], brandName?: string }
  * Returns { tokens: { colors, typography, logos, layout, imagery, doDont } }
  */
+import { requireAiAccess } from '../_shared/requireAiAccess.ts';
+import { callLovableAI, AIGatewayError } from '../_shared/aiGateway.ts';
+import { MODELS } from '../_shared/models.ts';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-const GATEWAY_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
 
 const SCHEMA_INSTRUCTION = `Return STRICT JSON with this shape (no markdown, no prose):
 {
@@ -35,8 +38,9 @@ Deno.serve(async (req) => {
   try {
     const apiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!apiKey) return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    const auth = req.headers.get('Authorization');
-    if (!auth?.startsWith('Bearer ')) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const gate = await requireAiAccess(req, { corsHeaders });
+    if (gate.response) return gate.response;
+    const userId = gate.userId;
 
     const body = await req.json().catch(() => ({}));
     const pdfs: string[] = Array.isArray(body?.pdfs) ? body.pdfs.filter((u: any) => typeof u === 'string').slice(0, 8) : [];
@@ -48,20 +52,28 @@ Deno.serve(async (req) => {
       ...pdfs.map((url) => ({ type: 'file', file: { file_data: url } })),
     ];
 
-    const res = await fetch(GATEWAY_URL, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'google/gemini-3.1-pro-preview',
+    let raw: any;
+    try {
+      const r = await callLovableAI(apiKey, {
+        model: MODELS.visionJudge,
         temperature: 0,
-        response_format: { type: 'json_object' },
+        responseFormatJson: true,
         messages: [{ role: 'user', content }],
-      }),
-    });
-    const raw = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      return new Response(JSON.stringify({ error: 'vision_extract_failed', status: res.status, detail: raw?.error }), { status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        timeoutMs: 180_000,
+        telemetry: {
+          supabaseUrl: Deno.env.get('SUPABASE_URL'),
+          serviceRoleKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+          functionName: 'skill-pdf-vision',
+          purpose: 'pdf_vision_extract',
+          userId,
+        },
+      });
+      raw = r.raw;
+    } catch (e) {
+      const ge = e as AIGatewayError;
+      return new Response(JSON.stringify({ error: 'vision_extract_failed', status: ge.status, detail: ge.message }), { status: ge.status || 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
+
     let tokens: any = {};
     const text = raw?.choices?.[0]?.message?.content;
     try {
