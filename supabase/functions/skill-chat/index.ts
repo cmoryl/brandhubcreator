@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: model || 'google/gemini-3-flash-preview',
+        model: model || MODELS.fastChat,
         stream: true,
         temperature: 0.3,
         messages: [
