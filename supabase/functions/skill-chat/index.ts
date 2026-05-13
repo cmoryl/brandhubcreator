@@ -10,6 +10,9 @@
  *    re-emitted as OpenAI-compatible SSE so the existing client parser works.
  *  - otherwise                    -> Lovable AI Gateway (default Gemini).
  */
+import { requireAiAccess } from '../_shared/requireAiAccess.ts';
+import { MODELS } from '../_shared/models.ts';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
