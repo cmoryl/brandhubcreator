@@ -11,12 +11,15 @@
  *    that can be inlined into SKILL.md while the full body is moved to a
  *    `references-deep/` folder.
  */
+import { requireAiAccess } from '../_shared/requireAiAccess.ts';
+import { callLovableAI } from '../_shared/aiGateway.ts';
+import { MODELS } from '../_shared/models.ts';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-const GATEWAY_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
 
 const tok = (s: string) => Math.round((s || '').length / 4);
 
