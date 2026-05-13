@@ -91,22 +91,31 @@ Deno.serve(async (req) => {
       },
     ];
 
+    const telemetry = {
+      supabaseUrl: Deno.env.get('SUPABASE_URL'),
+      serviceRoleKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+      functionName: 'skill-autofix',
+      purpose: 'autofix_patches',
+      userId,
+    };
+
     async function callModel(model: string, extraMessages: any[] = []) {
-      const r = await fetch(GATEWAY_URL, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      try {
+        const r = await callLovableAI(apiKey, {
           model,
           tools: [tool],
-          tool_choice: { type: 'function', function: { name: 'submit_patches' } },
+          toolChoice: { type: 'function', function: { name: 'submit_patches' } },
           messages: [...messages, ...extraMessages],
-        }),
-      });
-      const j = await r.json().catch(() => ({}));
-      return { ok: r.ok, status: r.status, json: j };
+          telemetry,
+        });
+        return { ok: true, status: r.status, json: r.raw };
+      } catch (e) {
+        const ge = e as AIGatewayError;
+        return { ok: false, status: ge.status || 500, json: ge.raw ?? { error: ge.message } };
+      }
     }
 
-    let { ok, status, json: raw } = await callModel('openai/gpt-5');
+    let { ok, status, json: raw } = await callModel(MODELS.metaJudge);
     if (!ok) {
       return new Response(JSON.stringify({ error: 'autofix_failed', status, detail: raw?.error }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
@@ -116,7 +125,7 @@ Deno.serve(async (req) => {
 
     // Retry once if the model returned the tool call without the required "patches" object.
     if (!parsed?.patches || typeof parsed.patches !== 'object' || Object.keys(parsed.patches).length === 0) {
-      const retry = await callModel('openai/gpt-5', [
+      const retry = await callModel(MODELS.metaJudge, [
         { role: 'assistant', content: null, tool_calls: call ? [call] : [] },
         { role: 'tool', tool_call_id: call?.id || 'missing', name: 'submit_patches', content: 'ERROR: "patches" field was missing or empty. You MUST resubmit submit_patches with patches as an object mapping file paths to the FULL revised markdown for each file you listed in changed_sections.' },
       ]);
