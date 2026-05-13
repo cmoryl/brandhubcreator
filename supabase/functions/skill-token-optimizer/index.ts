@@ -59,20 +59,24 @@ Deno.serve(async (req) => {
       const body = (files as any)[c.path] as string;
       let condensedSummary = '';
       try {
-        const r = await fetch(GATEWAY_URL, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'google/gemini-3.1-flash-lite-preview',
-            temperature: 0.1,
-            messages: [
-              { role: 'system', content: 'You compress brand reference markdown into a SINGLE 2-3 sentence pointer summary suitable for inlining inside SKILL.md. Preserve the most load-bearing facts (HEX, font names, hard rules). Never invent. Output plain text only.' },
-              { role: 'user', content: body.slice(0, 12000) },
-            ],
-          }),
+        const r = await callLovableAI(apiKey, {
+          model: MODELS.cheapChat,
+          temperature: 0.1,
+          messages: [
+            { role: 'system', content: 'You compress brand reference markdown into a SINGLE 2-3 sentence pointer summary suitable for inlining inside SKILL.md. Preserve the most load-bearing facts (HEX, font names, hard rules). Never invent. Output plain text only.' },
+            { role: 'user', content: body.slice(0, 12000) },
+          ],
+          telemetry: {
+            supabaseUrl: Deno.env.get('SUPABASE_URL'),
+            serviceRoleKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+            functionName: 'skill-token-optimizer',
+            purpose: 'condense_reference',
+            userId,
+            entityType: 'skill_file',
+            entityId: c.path,
+          },
         });
-        const j = await r.json().catch(() => ({}));
-        condensedSummary = String(j?.choices?.[0]?.message?.content || '').trim().slice(0, 600);
+        condensedSummary = String(r.message?.content || '').trim().slice(0, 600);
       } catch { /* ignore */ }
 
       const action: 'condense' | 'demote' | 'split' =
