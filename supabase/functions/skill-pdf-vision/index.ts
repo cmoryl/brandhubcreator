@@ -9,12 +9,15 @@
  * POST { pdfs: string[], brandName?: string }
  * Returns { tokens: { colors, typography, logos, layout, imagery, doDont } }
  */
+import { requireAiAccess } from '../_shared/requireAiAccess.ts';
+import { callLovableAI, AIGatewayError } from '../_shared/aiGateway.ts';
+import { MODELS } from '../_shared/models.ts';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-const GATEWAY_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
 
 const SCHEMA_INSTRUCTION = `Return STRICT JSON with this shape (no markdown, no prose):
 {
