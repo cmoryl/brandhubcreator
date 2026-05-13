@@ -508,6 +508,14 @@ Deno.serve(async (req) => {
     const runSections = ((sections?.length ? sections : Object.keys(TESTS)) as SectionId[]).filter((s) => s in TESTS);
     const includeVisual = includeVisualRegression !== false;
 
+    // Set per-request telemetry context — picked up by callGateway()
+    telemetryCtx = {
+      userId: gate.userId,
+      organizationId: context.organization_id || null,
+      entityType: context.entity_type,
+      entityId: context.entity_id,
+    };
+
     const inserted = await dbInsert('skill_qa_jobs', {
       organization_id: context.organization_id || null,
       user_id: context.user_id || null,
