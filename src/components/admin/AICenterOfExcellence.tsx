@@ -24,6 +24,7 @@ import { useAICenterMetrics, type TrendPoint, type EntityComparison, type Qualit
 import { usePortfolioImageryAudits, type ImageryAuditResult } from '@/hooks/useImageryStrategyAudit';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { toast } from 'sonner';
+import { AIActivityPanel } from './AIActivityPanel';
 
 // ─── Mini Sparkline SVG ─────────────────────────────────────
 function Sparkline({ data, color = 'hsl(var(--primary))', height = 28, width = 100 }: {
