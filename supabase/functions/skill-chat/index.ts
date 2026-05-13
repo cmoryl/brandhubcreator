@@ -112,13 +112,8 @@ async function streamFromAnthropic(opts: {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   try {
-    const auth = req.headers.get('Authorization');
-    if (!auth?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    const gate = await requireAiAccess(req, { corsHeaders });
+    if (gate.response) return gate.response;
 
     const body = await req.json().catch(() => ({}));
     const { skill, messages, model } = body as {
