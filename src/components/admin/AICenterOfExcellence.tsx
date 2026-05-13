@@ -978,6 +978,9 @@ export function AICenterOfExcellence() {
           <TabsTrigger value="innovation" className="gap-1 text-xs">
             <Lightbulb className="h-3 w-3" /> Innovation
           </TabsTrigger>
+          <TabsTrigger value="activity" className="gap-1 text-xs">
+            <Activity className="h-3 w-3" /> Activity
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview"><OverviewTab metrics={metrics} trends={trends} alerts={alerts} /></TabsContent>
@@ -993,6 +996,7 @@ export function AICenterOfExcellence() {
         <TabsContent value="innovation">
           <InnovationTab recommendations={recommendations} updateRecommendation={updateRecommendation} addRecommendation={addRecommendation} seedFromOracle={seedFromOracle} />
         </TabsContent>
+        <TabsContent value="activity"><AIActivityPanel /></TabsContent>
       </Tabs>
     </div>
   );
