@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_call_log: {
+        Row: {
+          completion_tokens: number | null
+          created_at: string
+          duration_ms: number | null
+          entity_id: string | null
+          entity_type: string | null
+          error_code: string | null
+          function_name: string
+          id: string
+          model: string
+          organization_id: string | null
+          prompt_tokens: number | null
+          purpose: string | null
+          status_code: number
+          total_tokens: number | null
+          user_id: string | null
+        }
+        Insert: {
+          completion_tokens?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          entity_id?: string | null
+          entity_type?: string | null
+          error_code?: string | null
+          function_name: string
+          id?: string
+          model: string
+          organization_id?: string | null
+          prompt_tokens?: number | null
+          purpose?: string | null
+          status_code: number
+          total_tokens?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          completion_tokens?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          entity_id?: string | null
+          entity_type?: string | null
+          error_code?: string | null
+          function_name?: string
+          id?: string
+          model?: string
+          organization_id?: string | null
+          prompt_tokens?: number | null
+          purpose?: string | null
+          status_code?: number
+          total_tokens?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       assistant_memory: {
         Row: {
           conversation_id: string | null

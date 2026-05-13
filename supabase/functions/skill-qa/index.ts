@@ -22,9 +22,15 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const GATEWAY_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+import { callLovableAI, AIGatewayError } from '../_shared/aiGateway.ts';
+import { requireAiAccess } from '../_shared/requireAiAccess.ts';
+
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const FUNCTION_NAME = 'skill-qa';
+
+// Per-request telemetry context populated in the handler.
+let telemetryCtx: { userId?: string | null; organizationId?: string | null; entityType?: string | null; entityId?: string | null } = {};
 
 type SectionId =
   | 'colors' | 'typography' | 'logos' | 'voice' | 'imagery' | 'antiPatterns';
@@ -89,17 +95,32 @@ async function callGateway(
   messages: GatewayMsg[],
   opts: { tools?: any[]; toolChoice?: any; responseFormatJson?: boolean; temperature?: number } = {},
 ): Promise<{ ok: boolean; status: number; raw: any; message: any }> {
-  const body: any = { model, messages, temperature: opts.temperature ?? 0.2 };
-  if (opts.tools) body.tools = opts.tools;
-  if (opts.toolChoice) body.tool_choice = opts.toolChoice;
-  if (opts.responseFormatJson) body.response_format = { type: 'json_object' };
-  const res = await fetch(GATEWAY_URL, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const raw = await res.json().catch(() => ({}));
-  return { ok: res.ok, status: res.status, raw, message: raw?.choices?.[0]?.message ?? {} };
+  try {
+    const r = await callLovableAI(apiKey, {
+      model,
+      messages: messages as any,
+      tools: opts.tools,
+      toolChoice: opts.toolChoice,
+      responseFormatJson: opts.responseFormatJson,
+      temperature: opts.temperature ?? 0.2,
+      telemetry: {
+        supabaseUrl: SUPABASE_URL,
+        serviceRoleKey: SERVICE_ROLE,
+        functionName: FUNCTION_NAME,
+        purpose: 'skillQA',
+        userId: telemetryCtx.userId ?? null,
+        organizationId: telemetryCtx.organizationId ?? null,
+        entityType: telemetryCtx.entityType ?? null,
+        entityId: telemetryCtx.entityId ?? null,
+      },
+    });
+    return { ok: true, status: r.status, raw: r.raw, message: r.message ?? {} };
+  } catch (e) {
+    if (e instanceof AIGatewayError) {
+      return { ok: false, status: e.status, raw: e.raw, message: {} };
+    }
+    return { ok: false, status: 0, raw: { error: String((e as Error).message || e) }, message: {} };
+  }
 }
 
 // ---------- judge: structured output via tool-call ----------
@@ -456,10 +477,9 @@ Deno.serve(async (req) => {
     if (!Deno.env.get('LOVABLE_API_KEY')) {
       return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-    const auth = req.headers.get('Authorization');
-    if (!auth?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+
+    const gate = await requireAiAccess(req, { corsHeaders });
+    if (gate.response) return gate.response;
 
     if (req.method === 'GET') {
       const url = new URL(req.url);
@@ -487,6 +507,14 @@ Deno.serve(async (req) => {
     const runTiers = ((tiers?.length ? tiers : ['haiku', 'sonnet', 'opus']) as ModelTier[]).filter((t) => t in MODEL_MAP);
     const runSections = ((sections?.length ? sections : Object.keys(TESTS)) as SectionId[]).filter((s) => s in TESTS);
     const includeVisual = includeVisualRegression !== false;
+
+    // Set per-request telemetry context — picked up by callGateway()
+    telemetryCtx = {
+      userId: gate.userId,
+      organizationId: context.organization_id || null,
+      entityType: context.entity_type,
+      entityId: context.entity_id,
+    };
 
     const inserted = await dbInsert('skill_qa_jobs', {
       organization_id: context.organization_id || null,
