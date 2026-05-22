@@ -152,6 +152,7 @@ export const DashboardView = ({
   totalIcons,
   totalLibraries,
   onStartGenerate,
+  brandProfiles = [],
 }: Props) => {
   const volumeData = [4, 8, 12, 9, 14, 22, 18, 26, 24, 31, 28, 38, 42, 36];
   const qaScore = 86;
