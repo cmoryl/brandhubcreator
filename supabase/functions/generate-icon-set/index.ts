@@ -13,61 +13,62 @@ const ICON_TAXONOMY: Record<string, { name: string; description: string; section
     name: "Foundation",
     description: "Navigation, UI states, basic logic",
     sections: [
-      { name: "Navigation", description: "Arrows, menus, wayfinding, breadcrumbs", count: 8 },
-      { name: "UI States", description: "Toggle, checkbox, radio, expand/collapse", count: 6 },
-      { name: "Basic Logic", description: "Plus, minus, close, check, refresh", count: 6 },
+      { name: "Navigation", description: "Arrows, menus, wayfinding, breadcrumbs", count: 12 },
+      { name: "UI States", description: "Toggle, checkbox, radio, expand/collapse", count: 9 },
+      { name: "Basic Logic", description: "Plus, minus, close, check, refresh", count: 9 },
     ]
   },
   Communication: {
     name: "Communication",
     description: "Email, social, feedback, support",
     sections: [
-      { name: "Messaging", description: "Chat bubbles, comments, conversations", count: 6 },
-      { name: "Notifications", description: "Bells, alerts, badges, indicators", count: 5 },
-      { name: "Social", description: "Share, like, follow, connect", count: 5 },
-      { name: "Support", description: "Help, FAQ, contact, feedback", count: 4 },
+      { name: "Messaging", description: "Chat bubbles, comments, conversations", count: 9 },
+      { name: "Notifications", description: "Bells, alerts, badges, indicators", count: 7 },
+      { name: "Social", description: "Share, like, follow, connect", count: 8 },
+      { name: "Support", description: "Help, FAQ, contact, feedback", count: 6 },
     ]
   },
   "SaaS/Data": {
     name: "SaaS/Data",
     description: "Analytics, security, settings, workflows",
     sections: [
-      { name: "Analytics", description: "Charts, graphs, metrics, dashboards", count: 7 },
-      { name: "Security", description: "Locks, shields, keys, verification", count: 5 },
-      { name: "Settings", description: "Gears, sliders, toggles, configuration", count: 5 },
-      { name: "Workflows", description: "Process, automation, integrations", count: 5 },
+      { name: "Analytics", description: "Charts, graphs, metrics, dashboards", count: 9 },
+      { name: "Security", description: "Locks, shields, keys, verification", count: 7 },
+      { name: "Settings", description: "Gears, sliders, toggles, configuration", count: 7 },
+      { name: "Workflows", description: "Process, automation, integrations", count: 7 },
     ]
   },
   "E-Commerce": {
     name: "E-Commerce",
     description: "Payments, shipping, storefront, loyalty",
     sections: [
-      { name: "Shopping", description: "Cart, bag, wishlist, browse", count: 5 },
-      { name: "Payments", description: "Cards, wallet, transactions, invoices", count: 5 },
-      { name: "Shipping", description: "Delivery, tracking, packages, returns", count: 5 },
-      { name: "Loyalty", description: "Rewards, points, membership, gifts", count: 3 },
+      { name: "Shopping", description: "Cart, bag, wishlist, browse", count: 8 },
+      { name: "Payments", description: "Cards, wallet, transactions, invoices", count: 8 },
+      { name: "Shipping", description: "Delivery, tracking, packages, returns", count: 8 },
+      { name: "Loyalty", description: "Rewards, points, membership, gifts", count: 6 },
     ]
   },
   "Marketing Hero": {
     name: "Marketing Hero",
     description: "Growth, trophies, trust signals, abstract concepts",
     sections: [
-      { name: "Growth", description: "Rockets, trends, scales, expansion", count: 5 },
-      { name: "Achievement", description: "Trophies, medals, badges, certificates", count: 4 },
-      { name: "Trust", description: "Handshakes, guarantees, verified, secure", count: 4 },
-      { name: "Abstract", description: "Innovation, ideas, concepts, vision", count: 4 },
+      { name: "Growth", description: "Rockets, trends, scales, expansion", count: 8 },
+      { name: "Achievement", description: "Trophies, medals, badges, certificates", count: 7 },
+      { name: "Trust", description: "Handshakes, guarantees, verified, secure", count: 8 },
+      { name: "Abstract", description: "Innovation, ideas, concepts, vision", count: 7 },
     ]
   },
   "Industry Specific": {
     name: "Industry Specific",
     description: "Custom symbols based on user's niche",
     sections: [
-      { name: "Professional", description: "Industry-relevant professional symbols", count: 5 },
-      { name: "Technical", description: "Specialized technical icons", count: 5 },
-      { name: "Domain", description: "Domain-specific imagery", count: 4 },
+      { name: "Professional", description: "Industry-relevant professional symbols", count: 11 },
+      { name: "Technical", description: "Specialized technical icons", count: 10 },
+      { name: "Domain", description: "Domain-specific imagery", count: 9 },
     ]
   }
 };
+
 
 async function dbFetch(path: string, options: RequestInit = {}) {
   const url = `${SUPABASE_URL}/rest/v1/${path}`;
