@@ -735,6 +735,100 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Per-icon detail + downloads */}
+      <Dialog open={!!selectedIcon} onOpenChange={(o) => !o && setSelectedIcon(null)}>
+        <DialogContent className="max-w-lg">
+          {selectedIcon && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileCode className="h-4 w-4" />
+                  {selectedIcon.icon.name}
+                </DialogTitle>
+                <DialogDescription>
+                  From <span className="font-medium">{selectedIcon.libraryName}</span>
+                  {selectedIcon.icon.category ? ` · ${selectedIcon.icon.category}` : ''}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex items-center justify-center py-6 border rounded-lg bg-background/40">
+                <div className="h-32 w-32 text-foreground">
+                  {renderIconSvg(selectedIcon.icon)}
+                </div>
+              </div>
+
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                <dt className="text-muted-foreground">Fill mode</dt>
+                <dd className="font-medium">{selectedIcon.icon.fillMode || 'auto'}</dd>
+                <dt className="text-muted-foreground">ViewBox</dt>
+                <dd className="font-mono">{selectedIcon.icon.viewBox || '0 0 24 24'}</dd>
+                {selectedIcon.icon.tags && selectedIcon.icon.tags.length > 0 && (
+                  <>
+                    <dt className="text-muted-foreground">Tags</dt>
+                    <dd className="flex flex-wrap gap-1">
+                      {selectedIcon.icon.tags.map((t) => (
+                        <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>
+                      ))}
+                    </dd>
+                  </>
+                )}
+              </dl>
+
+              <DialogFooter className="flex-wrap gap-2 sm:gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(selectedIcon.icon.svgPath || '');
+                      toast.success('SVG copied to clipboard');
+                    } catch {
+                      toast.error('Could not copy');
+                    }
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  Copy SVG
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => { downloadIconSvg(selectedIcon.icon); toast.success('SVG downloaded'); }}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  SVG
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={async () => {
+                    try { await downloadIconPng(selectedIcon.icon, 512); toast.success('PNG downloaded'); }
+                    catch { toast.error('PNG export failed'); }
+                  }}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  PNG 512
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={async () => {
+                    try { await downloadIconBundle(selectedIcon.icon); toast.success('Bundle downloaded'); }
+                    catch { toast.error('Bundle export failed'); }
+                  }}
+                >
+                  <FileDown className="h-3.5 w-3.5" />
+                  All sizes (.zip)
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
