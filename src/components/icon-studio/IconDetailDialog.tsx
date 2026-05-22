@@ -51,6 +51,7 @@ interface Props {
   fallbackRecipe?: IconRecipe | null;
   /** Brand accent color (hex). */
   accent?: string;
+  presentation?: 'auto' | 'outlined' | 'filled' | 'duotone';
   onClose: () => void;
   onRegenerate?: (recipe: IconRecipe) => Promise<void> | void;
   onApprove?: (icon: BrandIconography) => void;
@@ -63,6 +64,7 @@ export const IconDetailDialog = ({
   icon,
   fallbackRecipe,
   accent = '#139DD8',
+  presentation = 'auto',
   onClose,
   onRegenerate,
   onApprove,
@@ -166,7 +168,7 @@ export const IconDetailDialog = ({
                 )}
                 style={{ height: 280 }}
               >
-                <IconSvgRender icon={icon} size={160} color={accent} />
+                <IconSvgRender icon={icon} size={160} color={accent} presentation={presentation} />
               </div>
             </div>
 
@@ -185,7 +187,7 @@ export const IconDetailDialog = ({
                       )}
                       style={{ width: s + 16, height: s + 16 }}
                     >
-                      <IconSvgRender icon={icon} size={s} color={accent} />
+                      <IconSvgRender icon={icon} size={s} color={accent} presentation={presentation} />
                     </div>
                     <span className="text-[10px] tabular-nums text-muted-foreground">
                       {s}px
