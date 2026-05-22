@@ -22,10 +22,10 @@ interface Props {
   accent2?: string;
   size?: 'sm' | 'md' | 'lg';
   count?: number;
+  /** Number of columns in the grid. Defaults to `count` (single row). */
+  columns?: number;
   variant?: IconPreviewVariant;
-  /** Override tile border radius in px (variant defaults applied otherwise). */
   radius?: number;
-  /** Override icon stroke width. */
   strokeWidth?: number;
   className?: string;
 }
