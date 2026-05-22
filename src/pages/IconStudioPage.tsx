@@ -479,7 +479,7 @@ const IconStudioPage = () => {
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
         />
       ) : shellSection === 'brands' ? (
-        <BrandsView organizationName={organizationName} brandProfiles={hierarchyBrands} />
+        <BrandsView organizationName={organizationName} organizationId={organizationId} brandProfiles={hierarchyBrands} />
       ) : shellSection === 'styles' ? (
         <StyleSystemsView onStartGenerate={() => setShellSection('generate')} />
       ) : shellSection === 'sets' ? (
