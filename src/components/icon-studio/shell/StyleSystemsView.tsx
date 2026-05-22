@@ -95,9 +95,13 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
               return (
                 <button
                   key={s.id}
-                  onClick={() => setActiveId(s.id)}
+                  onClick={() => {
+                    setActiveId(s.id);
+                    setDetailAccent(accent);
+                    setDetailId(s.id);
+                  }}
                   className={cn(
-                    'tp-card tp-card-interactive p-4 text-left relative',
+                    'tp-card tp-card-interactive p-4 text-left relative group',
                     isActive && 'ring-2 ring-primary',
                   )}
                 >
@@ -107,6 +111,7 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                       style={{ color: 'hsl(var(--tp-green))' }}
                     />
                   )}
+                  <Maximize2 className="absolute top-3 right-9 h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   <h3 className="text-sm font-semibold">{s.name}</h3>
                   <p className="text-[11px] text-muted-foreground mb-3 min-h-[2rem]">
                     {s.description}
@@ -132,6 +137,9 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                     <Badge variant="outline" className="text-[10px] capitalize">
                       {s.preview.variant}
                     </Badge>
+                  </div>
+                  <div className="mt-2 text-[10px] text-primary/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Click to expand →
                   </div>
                 </button>
               );
