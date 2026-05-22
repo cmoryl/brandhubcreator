@@ -7,7 +7,6 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Palette, Type, Hash, Edit3, Building2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { IconSetPreview } from './IconSetPreview';
 
@@ -28,12 +27,20 @@ interface BrandProfile {
 
 interface Props {
   organizationName: string;
+  /** Real brand profiles from the database */
+  brandProfiles?: Array<{
+    id: string;
+    name: string;
+    slug?: string;
+    type: 'brand' | 'product' | 'event';
+  }>;
 }
 
 const DEFAULT_PROFILES: BrandProfile[] = [
   {
     id: 'tp',
     name: 'TransPerfect',
+    slug: 'transperfect',
     tagline: 'Enterprise · Trusted · Global',
     palette: ['#03002C', '#1A4FCF', '#06ACE7', '#FF4FB3', '#FF8743', '#1FBF7A'],
     typography: { heading: 'Geist Sans', body: 'Geist Sans' },
@@ -46,6 +53,7 @@ const DEFAULT_PROFILES: BrandProfile[] = [
   {
     id: 'gl',
     name: 'GlobalLink',
+    slug: 'globallink',
     tagline: 'Technical · Connected · Workflow',
     palette: ['#0F1B3D', '#1A4FCF', '#06ACE7', '#1FBF7A', '#FF8743'],
     typography: { heading: 'Geist Sans', body: 'Inter' },
@@ -58,6 +66,7 @@ const DEFAULT_PROFILES: BrandProfile[] = [
   {
     id: 'tpai',
     name: 'TransPerfect AI',
+    slug: 'transperfect-ai',
     tagline: 'Forward · Premium · Generative',
     palette: ['#03002C', '#9333EA', '#06ACE7', '#FF4FB3'],
     typography: { heading: 'Geist Sans', body: 'Geist Sans' },
@@ -70,6 +79,7 @@ const DEFAULT_PROFILES: BrandProfile[] = [
   {
     id: 'tp-legal',
     name: 'TransPerfect Legal',
+    slug: 'transperfect-legal',
     tagline: 'Litigation · eDiscovery · Compliance',
     palette: ['#03002C', '#1A4FCF', '#0B7285', '#C9A84C', '#E8E4DD'],
     typography: { heading: 'Geist Sans', body: 'Inter' },
@@ -82,6 +92,7 @@ const DEFAULT_PROFILES: BrandProfile[] = [
   {
     id: 'tp-games',
     name: 'TransPerfect Games',
+    slug: 'transperfect-games',
     tagline: 'Localization · QA · Audio · Player-first',
     palette: ['#0D0D0D', '#9333EA', '#06ACE7', '#FF4FB3', '#FFD23F'],
     typography: { heading: 'Geist Sans', body: 'Inter' },
@@ -94,6 +105,7 @@ const DEFAULT_PROFILES: BrandProfile[] = [
   {
     id: 'tp-media',
     name: 'TransPerfect Media',
+    slug: 'transperfect-media',
     tagline: 'Subtitling · Dubbing · Broadcast · OTT',
     palette: ['#03002C', '#1A4FCF', '#FF4FB3', '#FF8743', '#06ACE7'],
     typography: { heading: 'Geist Sans', body: 'Inter' },
@@ -106,6 +118,7 @@ const DEFAULT_PROFILES: BrandProfile[] = [
   {
     id: 'tp-lifesci',
     name: 'TransPerfect Life Sciences',
+    slug: 'transperfect-life-sciences',
     tagline: 'Regulatory · Clinical · Pharma · GxP',
     palette: ['#03002C', '#1FBF7A', '#06ACE7', '#1A4FCF', '#E8F4EF'],
     typography: { heading: 'Geist Sans', body: 'Inter' },
@@ -118,6 +131,7 @@ const DEFAULT_PROFILES: BrandProfile[] = [
   {
     id: 'tp-travel',
     name: 'TransPerfect Travel',
+    slug: 'transperfect-travel',
     tagline: 'Hospitality · Itinerary · Global guests',
     palette: ['#03002C', '#06ACE7', '#FF8743', '#1FBF7A', '#FFD23F'],
     typography: { heading: 'Geist Sans', body: 'Inter' },
@@ -130,6 +144,7 @@ const DEFAULT_PROFILES: BrandProfile[] = [
   {
     id: 'dataforce',
     name: 'Dataforce',
+    slug: 'dataforce',
     tagline: 'AI training data · Annotation · Models',
     palette: ['#0F1E3D', '#1A4FCF', '#9333EA', '#06ACE7', '#1FBF7A'],
     typography: { heading: 'Geist Sans', body: 'Inter' },
@@ -142,6 +157,7 @@ const DEFAULT_PROFILES: BrandProfile[] = [
   {
     id: 'trial-interactive',
     name: 'Trial Interactive',
+    slug: 'trial-interactive',
     tagline: 'eClinical · eTMF · Study workflows',
     palette: ['#03002C', '#1A4FCF', '#1FBF7A', '#06ACE7', '#E8E4DD'],
     typography: { heading: 'Geist Sans', body: 'Inter' },
@@ -153,13 +169,43 @@ const DEFAULT_PROFILES: BrandProfile[] = [
   },
 ];
 
-export const BrandsView = ({ organizationName }: Props) => {
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+export const BrandsView = ({ organizationName, brandProfiles = [] }: Props) => {
   const [q, setQ] = useState('');
 
   const profiles = useMemo(() => {
+    // Start with real DB brands
+    const realProfiles: BrandProfile[] = brandProfiles
+      .filter((b) => b.slug)
+      .map((b) => ({
+        id: b.id,
+        name: b.name,
+        slug: b.slug!,
+        tagline: b.type === 'product' ? 'Product profile' : b.type === 'event' ? 'Event profile' : 'Brand profile',
+        palette: ['#03002C', '#1A4FCF', '#06ACE7', '#FF4FB3'],
+        typography: { heading: 'Geist Sans', body: 'Inter' },
+        iconRules: { stroke: 1.75, corner: 'round' as const, grid: 24 },
+        setsCount: 0,
+        iconsCount: 0,
+        emojis: ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'],
+        accentToken: '--tp-light-blue',
+        entityType: b.type,
+      }));
+
+    // Merge static defaults, avoiding duplicates by name
+    const seen = new Set(realProfiles.map((p) => p.name.toLowerCase()));
+    const staticProfiles = DEFAULT_PROFILES.filter((p) => !seen.has(p.name.toLowerCase()));
+
     const orgProfile: BrandProfile = {
       id: 'org',
       name: organizationName || 'Your brand',
+      slug: slugify(organizationName || 'your-brand'),
       tagline: 'Active workspace · Default profile',
       palette: ['#03002C', '#1A4FCF', '#06ACE7', '#FF4FB3'],
       typography: { heading: 'Geist Sans', body: 'Inter' },
@@ -169,13 +215,14 @@ export const BrandsView = ({ organizationName }: Props) => {
       emojis: ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'],
       accentToken: '--tp-light-blue',
     };
-    const all = [orgProfile, ...DEFAULT_PROFILES];
+
+    const all = [orgProfile, ...realProfiles, ...staticProfiles];
     if (!q.trim()) return all;
     const term = q.toLowerCase();
     return all.filter(
       (b) => b.name.toLowerCase().includes(term) || b.tagline.toLowerCase().includes(term),
     );
-  }, [organizationName, q]);
+  }, [organizationName, q, brandProfiles]);
 
   return (
     <div className="space-y-6">
@@ -218,10 +265,12 @@ export const BrandsView = ({ organizationName }: Props) => {
       <div className="grid gap-4 md:grid-cols-2">
         {profiles.map((b) => {
           const accent = `hsl(var(${b.accentToken}))`;
+          const to = `/icon-studio/${b.entityType || 'brand'}/${b.slug}`;
           return (
-            <article
+            <Link
               key={b.id}
-              className="tp-card tp-card-interactive p-5"
+              to={to}
+              className="tp-card tp-card-interactive p-5 block transition-colors hover:border-primary/40"
               style={{
                 backgroundImage: `linear-gradient(135deg, hsl(var(${b.accentToken}) / 0.08), transparent 60%)`,
               }}
@@ -239,9 +288,17 @@ export const BrandsView = ({ organizationName }: Props) => {
                     <p className="text-[11px] text-muted-foreground truncate">{b.tagline}</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0">
-                  <Edit3 className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 flex-shrink-0"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <Edit3 className="h-3.5 w-3.5" />
+                  </Button>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                </div>
               </header>
 
               {/* Palette */}
@@ -294,7 +351,7 @@ export const BrandsView = ({ organizationName }: Props) => {
                   </dd>
                 </div>
               </dl>
-            </article>
+            </Link>
           );
         })}
       </div>
