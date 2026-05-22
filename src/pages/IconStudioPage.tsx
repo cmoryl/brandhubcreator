@@ -475,9 +475,12 @@ const CustomSetBuilder = ({
         description: 'Ad-hoc custom set',
         icons: selectedIcons,
         is_active: true,
+        parent_library_id: null,
+        display_order: 0,
+        created_by: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      },
+      } as any,
     ],
     [selectedIcons, setName],
   );
