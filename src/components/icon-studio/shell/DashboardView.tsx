@@ -24,7 +24,7 @@ import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
 import { LibraryIconPreview } from './LibraryIconPreview';
 import type { BrandIconography } from '@/types/brand';
-import { GoldenPathCard } from '@/components/icon-studio/GoldenPathCard';
+
 import { useHiddenItems } from './useHiddenItems';
 import type { SectionStatus } from './studioData';
 
@@ -164,9 +164,6 @@ export const DashboardView = ({
           </div>
         </div>
       </header>
-
-      {/* Golden Path quickstart */}
-      <GoldenPathCard />
 
       {/* Recent icon systems + Export history */}
       <section className="grid gap-4 lg:grid-cols-2">
