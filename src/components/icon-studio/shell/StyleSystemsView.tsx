@@ -4,11 +4,12 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Palette, Wand2, Check } from 'lucide-react';
+import { Palette, Wand2, Check, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { IconSetPreview } from './IconSetPreview';
+import { StyleSystemDetailDialog } from './StyleSystemDetailDialog';
 import { BASE_STYLES, COLOR_MODES, type BaseStyle } from './studioData';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +33,8 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
   const [q, setQ] = useState('');
   const [activeId, setActiveId] = useState<string>(BASE_STYLES[0].id);
   const [colorMode, setColorMode] = useState<string>('mono');
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [detailAccent, setDetailAccent] = useState<string>(`hsl(var(${ACCENTS[0]}))`);
 
   const filtered = useMemo(() => {
     if (!q.trim()) return BASE_STYLES;
@@ -92,9 +95,13 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
               return (
                 <button
                   key={s.id}
-                  onClick={() => setActiveId(s.id)}
+                  onClick={() => {
+                    setActiveId(s.id);
+                    setDetailAccent(accent);
+                    setDetailId(s.id);
+                  }}
                   className={cn(
-                    'tp-card tp-card-interactive p-4 text-left relative',
+                    'tp-card tp-card-interactive p-4 text-left relative group',
                     isActive && 'ring-2 ring-primary',
                   )}
                 >
@@ -104,6 +111,7 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                       style={{ color: 'hsl(var(--tp-green))' }}
                     />
                   )}
+                  <Maximize2 className="absolute top-3 right-9 h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   <h3 className="text-sm font-semibold">{s.name}</h3>
                   <p className="text-[11px] text-muted-foreground mb-3 min-h-[2rem]">
                     {s.description}
@@ -129,6 +137,9 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                     <Badge variant="outline" className="text-[10px] capitalize">
                       {s.preview.variant}
                     </Badge>
+                  </div>
+                  <div className="mt-2 text-[10px] text-primary/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Click to expand →
                   </div>
                 </button>
               );
@@ -191,6 +202,13 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
           </Button>
         </aside>
       </div>
+
+      <StyleSystemDetailDialog
+        style={BASE_STYLES.find((s) => s.id === detailId) ?? null}
+        accent={detailAccent}
+        onClose={() => setDetailId(null)}
+        onApply={onStartGenerate}
+      />
     </div>
   );
 };
