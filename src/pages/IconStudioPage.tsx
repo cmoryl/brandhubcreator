@@ -63,6 +63,7 @@ import { IconStudioCreator } from '@/components/brand/iconography/studio/IconStu
 import { IconStudioExport } from '@/components/brand/iconography/studio/IconStudioExport';
 import type { IconStudioTab } from '@/components/brand/iconography/IconStudio';
 import { IconSetWizard } from '@/components/icon-studio/IconSetWizard';
+import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 
 type ExpertTab =
   | 'library'
@@ -631,10 +632,17 @@ const CustomSetBuilder = ({
               filtered.map((i) => {
                 const isSelected = selected.has(i.key);
                 return (
-                  <button
+                  <div
                     key={i.key}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => toggle(i.key)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggle(i.key);
+                      }
+                    }}
                     className={cn(
                       'group relative flex flex-col items-center gap-1 rounded-md border bg-card p-2 text-xs transition-all',
                       'hover:border-primary/40 hover:shadow-sm',
@@ -643,16 +651,15 @@ const CustomSetBuilder = ({
                     title={`${i.icon.name} · ${i.libraryName}`}
                   >
                     <div className="absolute top-1 right-1">
-                      <Checkbox checked={isSelected} className="pointer-events-none h-3.5 w-3.5" />
+                      <Checkbox checked={isSelected} className="pointer-events-none h-3.5 w-3.5" aria-hidden="true" />
                     </div>
-                    <div
-                      className="h-10 w-10 flex items-center justify-center text-foreground"
-                      dangerouslySetInnerHTML={{ __html: i.icon.svgPath || '' }}
-                    />
+                    <div className="h-10 w-10 flex items-center justify-center text-foreground">
+                      <IconSvgRender icon={i.icon} size={40} />
+                    </div>
                     <span className="truncate w-full text-center text-[10px] text-muted-foreground">
                       {i.icon.name}
                     </span>
-                  </button>
+                  </div>
                 );
               })
             )}
