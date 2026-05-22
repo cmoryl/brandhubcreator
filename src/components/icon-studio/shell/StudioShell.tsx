@@ -11,7 +11,7 @@
  * placeholders for the rest. Right rail surfaces only when relevant.
  */
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   BookOpen,
