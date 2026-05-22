@@ -280,6 +280,9 @@ const IconStudioPage = () => {
           totalIcons={totalIcons}
           totalLibraries={libraries.length}
           onStartGenerate={() => setShellSection('generate')}
+          brandProfiles={hierarchyBrands
+            .filter((b) => b.type === 'brand')
+            .map((b) => ({ id: b.id, name: b.name }))}
         />
       ) : shellSection === 'generate' ? (
         !expertMode ? (
