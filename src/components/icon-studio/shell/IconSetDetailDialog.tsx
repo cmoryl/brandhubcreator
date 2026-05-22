@@ -283,10 +283,29 @@ const LADDER: { label: string; tile: number; icon: number }[] = [
 interface LadderProps {
   icons: Array<{ id: string; name: string; svgPath: string; viewBox?: string; fillMode?: 'stroke' | 'fill' }>;
   accent: string;
+  styleMode?: 'outlined' | 'filled' | 'duotone';
   onIconClick?: (id: string) => void;
 }
 
-const RealIconLadder = ({ icons, accent, onIconClick }: LadderProps) => {
+const RealIconLadder = ({ icons, accent, styleMode = 'outlined', onIconClick }: LadderProps) => {
+  // Resolve render attributes for the active style mode. This is applied to
+  // EVERY icon in the set so that switching the style toggle re-skins the
+  // whole library consistently.
+  const renderProps = (() => {
+    if (styleMode === 'filled') {
+      return { fill: accent, stroke: 'none', strokeWidth: 0, opacity: 1 };
+    }
+    if (styleMode === 'duotone') {
+      return {
+        fill: `color-mix(in oklab, ${accent} 30%, transparent)`,
+        stroke: accent,
+        strokeWidth: 1.5,
+        opacity: 1,
+      };
+    }
+    return { fill: 'none', stroke: accent, strokeWidth: 1.75, opacity: 1 };
+  })();
+
   return (
     <div className="space-y-6">
       {LADDER.map((s) => (
@@ -324,9 +343,9 @@ const RealIconLadder = ({ icons, accent, onIconClick }: LadderProps) => {
                     width={s.icon}
                     height={s.icon}
                     viewBox={icon.viewBox || '0 0 24 24'}
-                    fill={icon.fillMode === 'fill' ? accent : 'none'}
-                    stroke={icon.fillMode === 'fill' ? 'none' : accent}
-                    strokeWidth={1.75}
+                    fill={renderProps.fill}
+                    stroke={renderProps.stroke}
+                    strokeWidth={renderProps.strokeWidth}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
