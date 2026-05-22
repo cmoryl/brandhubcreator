@@ -1,110 +1,91 @@
-## BrandHub — AI Capabilities & Logic Audit
+# Icon Studio → Enterprise Production Platform
 
-Scope: 107 edge functions, ~16 AI-related libs in `src/lib`, 7 hooks, ~17 brand AI components, plus DataForce + intelligence subsystems.
-
----
-
-### 1. AI surface inventory (what we have)
-
-**Skill (Claude) pipeline — most mature, recent build**
-- `skill-qa` (3-tier judges + meta-judge), `skill-qa-scheduled`, `skill-autofix`, `skill-chat`, `skill-pdf-vision`, `skill-token-optimizer`, `skill-anthropic-push`
-- Client: `skillQAClient`, `skillEnhanceClient`, `skillAutoImproveLoop`, `skillRegressionDetector`, `skillCoverageMap`, `skillSurfacePresets`, `exportClaudeSkill`, `ClaudeSkillExportButton`, `SkillReadinessBadge`, `SkillScoreHistoryChart`, `AutoImproveLoopPanel`
-
-**Brand intelligence / research**
-- `brand-intelligence` + `-worker`, `brand-research`, `brand-audit` + `-worker`, `bulk-intelligence`, `generate-intelligence-digest`, `scheduled-intelligence`, `scheduled-research-trigger`, `import-brand-report`, `market-analysis`, `oracle-brain`
-
-**Competitive intel**
-- `competitive-analysis` + `-worker`, `discover-competitors` + `-worker`, `discover-videos`, `discover-webinars`
-
-**DataForce**
-- `dataforce-compliance`, `dataforce-assistant`, `dataforce-validation`, `dataforce-training`
-
-**Creative / generation**
-- Booth: `booth-ai-generator`, `booth-3d-ai-mapper`, `booth-analysis`, `booth-color-analysis`, `booth-palette-analyzer`, `booth-sales-deck`, `booth-score`, `booth-crowd-simulation`, `generate-booth-template`, `generate-signage-preview`
-- Imagery: `generate-creative-asset`, `generate-pillar-image`, `generate-shape`, `generate-character-sprite`, `generate-client-logo`, `imagery-ai-suggestions`, `imagery-auto-categorize`, `imagery-quality-score`, `imagery-strategy-audit`, `imagery-style-analyzer`, `imagery-visual-search`, `shutterstock-*`, `dropbox-imagery`
-- Icons: `generate-icon`, `-set`, `-colors`, `-visual`, `stylize-icon`, `suggest-icons`
-- Color/gradient: `generate-color-combinations`, `generate-gradients`, `color-lab-analysis`
-- Misc: `ad-localizer`, `generate-sub-services`, `seed-zone-copy`, `enrich-demo-content`, `enrich-demos-orchestrator`, `analyze-social-asset`, `social-metrics-fetch/-scan`, `bias-awareness-scan`, `brand-visibility-audit`, `extract-brand-materials`, `extract-asset-content/images`, `parse-pdf`, `parse-presentation`, `scan-website-images`, `website-analysis`, `help-agent`, `portfolio-insights-extractor`, `generate-portfolio-relationships`
-
-**GlobalLink / localization**
-- `globallink-translate`, `-cultural-adapt`, `-connect-workflow`
+This is a large, multi-area expansion. To ship it well without one giant unreviewable change, I'll deliver it in **4 phases**. Each phase is shippable on its own and visible in the preview. You can re-prioritize between phases.
 
 ---
 
-### 2. Findings — by severity
+## Phase 1 — App shell, design system, dashboard, wizard upgrades (Steps 1–3)
 
-#### HIGH — Auth gaps on AI endpoints
-- **36 of ~73 AI-using edge functions do NOT call `auth.getUser()`** despite the project rule "AI-driven edge functions require manual JWT verification + `can_use_ai_features` RPC".
-- Only 19 functions call `can_use_ai_features` — meaning ~50+ AI endpoints have no role/credit gating.
-- High-risk unauthenticated AI endpoints (anyone with the anon key can burn credits):
-  `skill-qa`, `skill-chat`, `skill-autofix`, `skill-token-optimizer`, `skill-pdf-vision`, `brand-intelligence-worker`, `brand-audit-worker`, `competitive-analysis-worker`, `discover-competitors-worker`, `booth-ai-generator`, `booth-3d-ai-mapper`, `booth-analysis`, `generate-icon-set`, `generate-intelligence-digest`, `enrich-demo-content`, `portfolio-insights-extractor`, `imagery-quality-score`, `seed-zone-copy`, `shutterstock-ai-suggest`, plus 17 more.
-- All have `verify_jwt = false` in `config.toml` (per house style) but lack the in-code replacement.
+**Design system**
+- Add Geist Sans (Google Fonts) and TransPerfect palette tokens to `index.css` + `tailwind.config.ts` as semantic tokens: `--tp-navy`, `--tp-digital-blue`, `--tp-teal`, `--tp-pink`, `--tp-orange`, `--tp-green`, `--tp-alabaster`, etc., mapped to `primary`, `accent`, `ring`, status colors. No raw hex in components.
+- Status chip system: Queued / Generating / Needs Review / Approved / Failed / Locked.
 
-#### HIGH — Inconsistent model selection
-Distribution across functions:
-- `google/gemini-3-flash-preview` — 38 calls (default, good)
-- `google/gemini-3.1-flash-lite-preview` — 34 (good for cheap workloads)
-- `gemini-2.5-flash-image` — 7, `gemini-3-pro-image-preview` — 4, `gemini-3.1-flash-image-preview` — 3 (image gen split 3 ways with no policy)
-- `gemini-3.1-pro-preview` — 5 (heavy reasoning — fine)
-- `openai/gpt-5` — 2, `openai/gpt-5.2` — 1, plus a typo `openai/gpt-5.2.` (period — likely a bug producing 4xx)
+**App shell** (`src/pages/IconStudioPage.tsx`)
+- Top bar: logo, brand-profile selector, Guided/Expert toggle, Save to Library.
+- Left sidebar (collapsible) with: Dashboard, Generate, Library, Brands, Style Systems, Icon Sets, QA / Preflight, Export Center, Settings.
+- Main workspace + persistent right-side **Production Summary** panel (totals, status counts, QA score, export readiness).
 
-Issues:
-- Project rule says "default `gemini-2.5-flash-lite`, `gemini-2.5-pro` only for complex" — actual code uses 3.x preview models everywhere. Either rule or code is stale; pick one.
-- One typo'd model id will fail at runtime; needs to be located and fixed.
-- No central model registry — each function hardcodes its model. A `_shared/models.ts` map (purpose → model) would let us change tiers globally.
+**Dashboard**
+- Cards: Recent systems, Active drafts, Approved sets, Needs review, Export history, Brand profiles, Production volume sparkline, QA health gauge.
 
-#### MEDIUM — No shared AI gateway helper
-- 73+ functions each hand-roll the fetch to `ai.gateway.lovable.dev`. No `_shared/aiGateway.ts` with retry, 429/402 handling, timeout, and logging.
-- 63 functions handle 429/402 inline → 10+ AI functions silently swallow rate-limit/credit errors.
-- Recommendation: extract `callLovableAI()`, `streamLovableAI()`, and `generateImage()` helpers; migrate functions incrementally.
+**Wizard Step 1 — Brand + Industry**
+- Brand selector / "Create brand" inline.
+- Company name, audience, icon purpose, multi-select usage contexts (Product UI, Website, Sales deck, …).
+- 15 industry cards (Tech/SaaS … Custom) with icon strip, accent, core/sub-set counts, description, selected state.
 
-#### MEDIUM — Worker pattern duplicated, not abstracted
-Async background-job pattern (orchestrator + worker + jobs table) is reimplemented for: brand-intelligence, brand-audit, competitive-analysis, discover-competitors, plus newer scheduled flows.
-- Each pair has its own polling hook, status enum, and merge logic. A shared `aiJobs` helper + generic `useAiJob(jobType, id)` hook would remove ~1k lines.
+**Wizard Step 2 — Core Icon System**
+- Full generator panel: style (18 base styles), color mode, grid, stroke width slider, corner radius, detail level, optical padding, end cap, join, fill, size targets, light/dark toggle, a11y check.
+- 12 core section cards (Navigation … Help & Support) with status chip, count, skeleton + thumbnails, Regenerate / Approve.
 
-#### MEDIUM — Skill pipeline has no usage telemetry
-- We have `SkillScoreHistoryChart`, `SkillRegressionAlert`, `AutoImproveLoopPanel`, but no record of which surface variants (`-social`, `-deck`, `-rfp`) are actually being exported / pushed to Anthropic / used. `skill-anthropic-push` succeeds silently; no `skill_push_history` write is wired to the export button consistently.
-- `SkillPushHistoryPanel` exists but isn't surfaced everywhere a push can happen.
-
-#### MEDIUM — Prompts scattered
-- Prompts live inline in 70+ edge functions and in `skillIndustryPrompts.ts`, `brandPhotographyStarters.ts`, `templateZoneDefaults.ts`, `layoutTemplateDemoCopy.ts`, plus the `useSavedPrompts` table.
-- No single registry → impossible to A/B test, version, or audit for compliance.
-
-#### LOW — Bot/agent fragmentation
-- `BrandAgentWidget`, `dataforce-assistant`, `help-agent`, `oracle-brain`, `skill-chat`, `AssistantOrb` are five chat surfaces with overlapping config (`bot_config` table), each loaded slightly differently.
-- Could be unified behind one `<AIChat agentType=… entityId=…>` component + one routing edge function.
-
-#### LOW — `skill-qa-scheduled` shows only boot/shutdown in last 24h logs
-- Confirms the scheduler is invoked but there's no visible success/error log. Add structured log lines (run_id, brandId, minScore, durationMs).
-
-#### LOW — Type/runtime safety
-- `AIBoothResult` and similar AI-shaped responses are typed by hand and trusted directly. No `zod` parse on AI outputs in most functions; one malformed JSON crashes the worker.
-
-#### LOW — No cost / latency dashboard
-- We have `useAICenterMetrics` but it tracks counts, not tokens or USD. With 73 AI endpoints this is the next obvious instrument.
+**Wizard Step 3 — Sub-sets**
+- Tabbed pack browser: Department / Feature / Context / Workflow / Compliance / Channel.
+- Tech/SaaS packs (15) + TransPerfect packs (16). Each pack card: name, description, count, recommended badge, preview icons, ETA, tags, select checkbox.
+- "Generate selected packs" CTA.
 
 ---
 
-### 3. Recommended remediation order
+## Phase 2 — Production Review + Preflight QA (Step 4)
 
-1. **Security pass (1–2 days)** — add `auth.getUser()` + `can_use_ai_features` to the 36 unauthenticated AI functions. Decide which (if any) must remain public (e.g. `get-shared-brand`).
-2. **Fix the `openai/gpt-5.2.` typo** — grep + patch.
-3. **Create `_shared/aiGateway.ts`** — wrap fetch, enforce 429/402 toasts, add timeout + structured logging. Migrate 5 highest-traffic functions first.
-4. **Create `_shared/models.ts`** — purpose-keyed registry (`MODELS.fastChat`, `MODELS.deepReason`, `MODELS.imageFast`, `MODELS.imagePremium`). Replace hardcoded ids.
-5. **Add `zod` validation** on AI JSON outputs in worker functions (intelligence, competitive, booth-generator).
-6. **Unify async-job pattern** into `_shared/aiJob.ts` + `useAiJob` hook.
-7. **Telemetry** — add `ai_call_log` table (function, model, latency_ms, prompt_tokens, completion_tokens, status). Wire from the new gateway helper. Surface in admin AI Center.
-8. **Skill push history** — make `SkillPushHistoryPanel` a first-class tab and ensure every export/push writes a row.
-9. **Unify chat surfaces** behind a single `<AIChat>` + routing function (long term).
-10. **Prompt registry** — move static prompts to a versioned `ai_prompts` table; keep saved/user prompts where they are.
+- Top scorecards: Total icons, sections, approved, needs review, failed, brand compliance %, a11y %, SVG health %, export readiness %.
+- Filter/search bar: status, section, style, issue, sort, view-mode toggle (grid / list / compare / contact sheet).
+- Icon cards with: preview, name, section, status chip, brand fit score, QA warning dots, actions (Approve / Reject / Regenerate / Edit prompt / View SVG / Compare / Lock).
+- Preflight checks runner (`src/lib/iconStudio/preflight.ts`): SVG validity, viewBox, stroke consistency, path cleanliness, alignment, optical balance, grid alignment, min-size readability, duplicates, overlaps, color/contrast compliance, light/dark, pixel previews @ 16/24/32/48/64, library-mixing detection, brand compliance, responsible-AI metaphor check.
+- "QA Report" side panel: passed / warnings / critical / suggested fixes / regeneration recs.
 
 ---
 
-### 4. What I'd build next (concrete)
+## Phase 3 — Export Center (Step 5)
 
-If you approve this audit, the highest-leverage single PR is:
-- `supabase/functions/_shared/aiGateway.ts` + `_shared/models.ts` + `_shared/requireAiAccess.ts` (auth + RPC).
-- Migrate the 7 `skill-*` functions to use them (already the most active pipeline).
-- Add `ai_call_log` table + admin "AI Activity" panel.
+- Bulk export card: full ZIP, Save to Library, Share link, Export selected.
+- Format matrix (toggles): SVG, Optimized SVG, PNG, WebP, PDF contact sheet, Figma-ready SVG, React lib, Vue lib, CSS sprite, Icon font, JSON manifest, Design tokens, Favicons, App icon package, Presentation PNGs.
+- PNG size matrix: 16/24/32/48/64/128/256/512.
+- Bundler (`src/lib/iconStudio/exportBundle.ts`) builds the exact tree:
+  ```text
+  icon-system/
+    brand/{colors.json, typography.json, icon-rules.json}
+    svg/{outline,filled,duotone}/
+    png/{24,48,64,128,256,512}/
+    react/   figma/
+    docs/{icon-contact-sheet.pdf, usage-guide.pdf, qa-report.pdf}
+  ```
+- Per-section + per-sub-set export cards.
 
-That single PR closes the HIGH-severity auth gap on the skill pipeline, eliminates the model-id typo class of bugs, and gives us the telemetry needed to make further tier choices data-driven.
+---
+
+## Phase 4 — Library, Brand Profiles, Expert Mode, Supabase persistence
+
+**Supabase migration** (one migration covering all):
+`brands`, `icon_sets`, `icon_sections`, `icons`, `icon_variants`, `generation_recipes`, `qa_reports`, `export_jobs`, `comments`, `collections`, `tags` — all with org scoping + RLS via `is_org_member` / `has_role`. Icons store full metadata (id, slug, section, style, stroke, grid, colors, prompt, seed, version, status, scores, svg, png_urls, timestamps).
+
+**Library UI**: saved sets, brands, recipes, presets, themes, favorites, rejects, version history + compare, duplicate, remix, lock, replace, search, tags, collections, comments, approval, downloads.
+
+**Brand Profiles**: name, logo, description, color triads, typography, icon rules, do/don't, brand guide upload, existing samples, tone, naming convention. Used as input to generation/QA/export.
+
+**Expert mode panel**: prompt + negative prompt editors, JSON recipe, seed lock, variation count, similarity tolerance, QA thresholds, SVG optimizer, token map, naming convention editor, batch rename, regeneration strategy, recipe inspector, raw metadata viewer.
+
+---
+
+## Technical notes
+
+- Stack stays React 18 + Vite + TS + Tailwind + shadcn/ui + lucide. JSZip already installed for bundling. Add `svgo` (client-safe build) for optimized SVG only when needed; otherwise hand-rolled minimizer to avoid bundle bloat.
+- All generation states are **simulated** until wired to the real `generate-icon-set` edge function — visible skeleton slots, animated progress, status messages ("Generating Navigation icons", "Checking SVG paths", etc.).
+- New code lives under `src/components/icon-studio/` and `src/lib/iconStudio/`. Existing files (`industryPresets.ts`, `exportIcon.ts`, `generationClient.ts`, `IconSetWizard.tsx`) get extended, not rewritten.
+- Accessibility: keyboard nav, visible focus rings on `--ring` (tp-digital-blue), ARIA labels on all icon-only buttons, `prefers-reduced-motion` respected, status announced via `aria-live`.
+
+---
+
+## Recommended start
+
+Start with **Phase 1** now (shell + dashboard + Steps 1–3 upgrade + design tokens + Geist). It's the visible foundation everything else hangs on, and you'll see it in the preview immediately. Phases 2/3/4 follow in subsequent turns.
+
+Reply with **"go"** to start Phase 1, or tell me which phase to start with / drop / reorder.

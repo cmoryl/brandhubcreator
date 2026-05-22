@@ -216,46 +216,58 @@ const IconStudioPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/40 backdrop-blur sticky top-0 z-20">
-        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="gap-1.5"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <div className="h-6 w-px bg-border" />
-            <div className="flex items-center gap-2 min-w-0">
-              <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
-              <h1 className="text-xl font-semibold tracking-tight truncate">Icon Studio</h1>
-              <Badge variant="secondary" className="ml-1 flex-shrink-0">
-                {totalIcons} icons · {libraries.length} sets
-              </Badge>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-              <Compass className="h-3.5 w-3.5" />
-              <span>Guided</span>
-              <Switch
-                checked={expertMode}
-                onCheckedChange={setExpertMode}
-                aria-label="Toggle expert mode"
-              />
-              <span>Expert</span>
-            </div>
-          </div>
-        </div>
-
-        {expertMode && (
-          <nav className="mx-auto max-w-7xl px-6">
-            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-2">
+    <StudioShell
+      activeSection={shellSection}
+      onSectionChange={setShellSection}
+      expertMode={expertMode}
+      onExpertModeChange={setExpertMode}
+      brands={shellBrands}
+      activeBrand={activeBrand}
+      onBrandChange={setActiveBrand}
+      onBack={() => navigate(-1)}
+      rightRail={
+        shellSection === 'generate' ? (
+          <ProductionSummary
+            metrics={{
+              totalIcons,
+              sections: libraries.length,
+              approved: totalIcons,
+              needsReview: 0,
+              failed: 0,
+              generating: 0,
+              brandCompliance: 88,
+              a11y: 92,
+              svgHealth: 95,
+              exportReadiness: totalIcons > 0 ? 90 : 0,
+            }}
+            brandName={activeBrand?.name}
+            industryName="Workspace"
+          />
+        ) : undefined
+      }
+    >
+      {!organizationId ? (
+        <Card className="tp-card">
+          <CardContent className="py-12 text-center text-muted-foreground">
+            Select or create an organization to use Icon Studio.
+          </CardContent>
+        </Card>
+      ) : shellSection === 'dashboard' ? (
+        <DashboardView
+          organizationName={organizationName}
+          totalIcons={totalIcons}
+          totalLibraries={libraries.length}
+          onStartGenerate={() => setShellSection('generate')}
+        />
+      ) : shellSection === 'generate' ? (
+        !expertMode ? (
+          <IconSetWizard
+            organizationName={organizationName}
+            onSaveAsLibrary={handleSaveSetAsLibrary}
+          />
+        ) : (
+          <div className="space-y-4">
+            <nav className="flex items-center gap-1 overflow-x-auto pb-2">
               {expertTabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = tab.id === activeTab;
@@ -264,44 +276,18 @@ const IconStudioPage = () => {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap border',
-                      'hover:bg-accent/50',
+                      'flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium border whitespace-nowrap transition-colors',
                       isActive
-                        ? 'bg-primary/10 text-primary border-primary/20 shadow-sm'
-                        : 'text-muted-foreground border-transparent hover:text-foreground',
+                        ? 'bg-secondary text-foreground border-border'
+                        : 'text-muted-foreground border-transparent hover:bg-secondary/60 hover:text-foreground',
                     )}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-3.5 w-3.5" />
                     <span>{tab.label}</span>
-                    {tab.badge !== undefined && tab.badge > 0 && (
-                      <Badge variant="secondary" className="h-5 px-1.5 text-[10px] ml-0.5">
-                        {tab.badge}
-                      </Badge>
-                    )}
                   </button>
                 );
               })}
-            </div>
-          </nav>
-        )}
-      </header>
-
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        {!organizationId ? (
-          <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              Select or create an organization to use Icon Studio.
-            </CardContent>
-          </Card>
-        ) : !expertMode ? (
-          /* ---------- GUIDED WIZARD (default) ---------- */
-          <IconSetWizard
-            organizationName={organizationName}
-            onSaveAsLibrary={handleSaveSetAsLibrary}
-          />
-        ) : (
-          /* ---------- EXPERT TABS (advanced) ---------- */
-          <>
+            </nav>
             {activeTab === 'library' && (
               <IconStudioLibrary
                 organizationId={organizationId}
@@ -316,7 +302,6 @@ const IconStudioPage = () => {
                 onNavigateToTab={handleNavigateToTab}
               />
             )}
-
             {activeTab === 'creator' && (
               <IconStudioCreator
                 organizationId={organizationId}
@@ -325,7 +310,6 @@ const IconStudioPage = () => {
                 onSaveIcons={handleSaveIcons}
               />
             )}
-
             {activeTab === 'generate' && (
               <IconStudioAIGenerator
                 organizationId={organizationId}
@@ -335,75 +319,13 @@ const IconStudioPage = () => {
                 onSaveIcons={handleSaveIcons}
               />
             )}
-
             {activeTab === 'style' && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg w-fit">
-                  {(
-                    [
-                      { id: 'colorize', label: 'Colorize', icon: Palette },
-                      { id: 'hierarchy', label: 'Brand Rules', icon: Layers },
-                      { id: 'app-icons', label: 'App Icons', icon: Smartphone },
-                    ] as const
-                  ).map((s) => {
-                    const Icon = s.icon;
-                    return (
-                      <Button
-                        key={s.id}
-                        variant={styleSubView === s.id ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className="gap-1.5 text-xs h-8"
-                        onClick={() => setStyleSubView(s.id)}
-                      >
-                        <Icon className="h-3.5 w-3.5" />
-                        {s.label}
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                {styleSubView === 'colorize' && (
-                  <IconStudioColorizer
-                    brandColors={brandColors}
-                    libraries={libraries}
-                    onSaveIcons={handleSaveIcons}
-                  />
-                )}
-                {styleSubView === 'hierarchy' && (
-                  <IconBrandHierarchy
-                    organizationId={organizationId}
-                    organizationName={organizationName}
-                    brands={hierarchyBrands}
-                    brandColors={brandColors}
-                    icons={libraries.flatMap((l) => l.icons)}
-                    onExportCSS={(css) => {
-                      navigator.clipboard.writeText(css);
-                    }}
-                  />
-                )}
-                {styleSubView === 'app-icons' && (
-                  <IconStudioAppIcons brandColors={brandColors} />
-                )}
-              </div>
-            )}
-
-            {activeTab === 'custom-set' && (
-              <CustomSetBuilder
-                libraries={libraries}
+              <IconStudioColorizer
                 brandColors={brandColors}
-                organizationName={organizationName}
-                onSaveAsLibrary={(name, icons) =>
-                  createLibrary.mutate({
-                    organization_id: organizationId,
-                    name,
-                    level: 'core',
-                    description: `Custom set built in Icon Studio (${icons.length} icons)`,
-                    icons,
-                  })
-                }
+                libraries={libraries}
+                onSaveIcons={handleSaveIcons}
               />
             )}
-
             {activeTab === 'export' && (
               <IconStudioExport
                 libraries={libraries}
@@ -411,10 +333,116 @@ const IconStudioPage = () => {
                 organizationName={organizationName}
               />
             )}
-          </>
-        )}
-      </main>
-    </div>
+          </div>
+        )
+      ) : shellSection === 'library' ? (
+        <PlaceholderView
+          icon={Library}
+          title="Library"
+          description="Saved icon sets, brands, recipes, style presets, and color themes — searchable, taggable, version-controlled."
+          phaseLabel="Phase 4"
+          features={[
+            'Search across every saved icon and set',
+            'Version history with side-by-side compare',
+            'Tags, collections, favorites, and rejected bin',
+            'Lock approved icons to prevent overwrites',
+            'Replace individual icons in a saved set',
+            'Team comments and approval workflow',
+          ]}
+          primaryAction={{ label: 'Open generator', onClick: () => setShellSection('generate') }}
+        />
+      ) : shellSection === 'brands' ? (
+        <PlaceholderView
+          icon={Building2}
+          title="Brand Profiles"
+          description="Brand identity, color rules, typography, icon style rules, and do/don't guidance that drive every generation, QA pass, and export."
+          phaseLabel="Phase 4"
+          features={[
+            'Logo + primary/secondary/accent color palettes',
+            'Typography and tone attributes',
+            'Icon style rules (stroke, grid, caps, joins)',
+            'Brand guide upload + sample icons',
+            'Export naming convention per brand',
+            'Influences generation, QA, and export defaults',
+          ]}
+        />
+      ) : shellSection === 'styles' ? (
+        <PlaceholderView
+          icon={Palette}
+          title="Style Systems"
+          description="Reusable style recipes — base style, stroke widths, fill modes, color modes — saved as systems you can apply to any set."
+          phaseLabel="Phase 4"
+          features={[
+            '18 base styles (Outline → Compliance)',
+            'Stroke width, corner radius, optical padding presets',
+            'Color mode: mono, duotone, brand, semantic',
+            'Light + dark mode compatibility',
+            'Save as recipe and apply to any new set',
+          ]}
+        />
+      ) : shellSection === 'sets' ? (
+        <PlaceholderView
+          icon={FolderOpen}
+          title="Icon Sets"
+          description="Every set you've generated — core systems, sub-set packs, custom collections. Duplicate, remix, regenerate, or lock."
+          phaseLabel="Phase 4"
+          features={[
+            'Core company sets + industry sub-set packs',
+            'Duplicate and remix to spin variations',
+            'Regenerate selected icons in place',
+            'Compare sets across versions',
+            'Promote draft to approved',
+          ]}
+        />
+      ) : shellSection === 'qa' ? (
+        <PlaceholderView
+          icon={ShieldCheck}
+          title="QA / Preflight"
+          description="Production-grade QA dashboard with brand compliance, accessibility, SVG health, and export readiness scoring across the whole set."
+          phaseLabel="Phase 2"
+          features={[
+            'SVG validity, viewBox, stroke consistency checks',
+            'Grid alignment, optical balance, min-size readability',
+            'Duplicate shape and overlap detection',
+            'Color + contrast compliance, light/dark previews',
+            'Pixel preview at 16/24/32/48/64 px',
+            'Responsible-AI metaphor check for sensitive industries',
+            'Per-icon Approve / Reject / Regenerate / Lock',
+          ]}
+          primaryAction={{ label: 'Run preflight on current set', onClick: () => setShellSection('generate') }}
+        />
+      ) : shellSection === 'export' ? (
+        <PlaceholderView
+          icon={Package}
+          title="Export Center"
+          description="Production-ready bundles: SVG, optimized SVG, PNG/WebP at every size, PDF contact sheet, React/Vue components, icon font, design tokens, favicons, app-icon package."
+          phaseLabel="Phase 3"
+          features={[
+            'Bulk ZIP with brand/, svg/, png/, react/, figma/, docs/ tree',
+            'Per-section and per-sub-set export cards',
+            'PDF contact sheet + QA report + usage guide',
+            'React / Vue component libraries',
+            'CSS sprite + icon font + design token file',
+            'Favicons + iOS/Android/PWA/macOS/Windows app icons',
+          ]}
+          primaryAction={{ label: 'Generate a set first', onClick: () => setShellSection('generate') }}
+        />
+      ) : (
+        <PlaceholderView
+          icon={Settings}
+          title="Settings"
+          description="Studio defaults, naming conventions, QA thresholds, integrations, and team access."
+          phaseLabel="Phase 4"
+          features={[
+            'Default style, grid, and color mode',
+            'Naming convention editor',
+            'QA threshold tuning',
+            'Team roles and access',
+            'Integrations (Figma, Slack, Storybook)',
+          ]}
+        />
+      )}
+    </StudioShell>
   );
 };
 
