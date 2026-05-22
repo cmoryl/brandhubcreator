@@ -48,10 +48,35 @@ const sampleEmojisFor = (name: string): string[] => {
   return ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
 };
 
-export const LibraryView = ({ libraries, onOpenSet, onCreate, autoOpenLibraryId, onAutoOpenConsumed }: Props) => {
+export const LibraryView = ({ libraries, organizationId, onOpenSet, onCreate, onRemix, autoOpenLibraryId, onAutoOpenConsumed }: Props) => {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
   const [openLib, setOpenLib] = useState<IconLibrary | null>(null);
+  const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
+
+  const handleDuplicate = (lib: IconLibrary) => {
+    if (!organizationId) { toast.error('No organization selected'); return; }
+    createLibrary.mutate({
+      organization_id: organizationId,
+      name: `${lib.name} (copy)`,
+      level: lib.level,
+      description: lib.description || undefined,
+      icons: lib.icons,
+      parent_library_id: lib.parent_library_id,
+      is_active: lib.is_active,
+      display_order: (lib.display_order ?? 0) + 1,
+    });
+  };
+  const handleLockToggle = (lib: IconLibrary) => {
+    updateLibrary.mutate(
+      { id: lib.id, updates: { is_active: !lib.is_active } },
+      { onSuccess: () => toast.success(lib.is_active ? `${lib.name} locked` : `${lib.name} unlocked`) },
+    );
+  };
+  const handleDelete = (lib: IconLibrary) => {
+    if (typeof window !== 'undefined' && !window.confirm(`Delete icon set "${lib.name}"? This cannot be undone.`)) return;
+    deleteLibrary.mutate(lib.id);
+  };
 
   // Auto-open from deep link
   useEffect(() => {
