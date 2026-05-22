@@ -3,7 +3,7 @@
  * expanded icon examples across multiple categories, sizes, and color modes.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Wand2, Sparkles, Grid3x3, Ruler, Layers, Sun, Moon } from 'lucide-react';
 import {
   Dialog,
@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { IconSetPreview } from './IconSetPreview';
 import type { BaseStyle } from './studioData';
+import { cn } from '@/lib/utils';
 
 interface Props {
   style: BaseStyle | null;
@@ -45,10 +46,18 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
   const a2 = style?.preview.accent2 ? `hsl(var(--${style.preview.accent2}))` : undefined;
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
 
+  // Initialize theme from current app theme each time dialog opens
+  useEffect(() => {
+    if (open && typeof document !== 'undefined') {
+      setPreviewTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
-        <div className={previewTheme === 'dark' ? 'dark' : ''}>
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0 bg-transparent border-0 shadow-none">
+        <div className={cn('bg-background text-foreground rounded-lg overflow-hidden border border-border', previewTheme === 'dark' && 'dark')}>
+
           {style && (
             <>
               {/* Hero header with showcase preview */}
