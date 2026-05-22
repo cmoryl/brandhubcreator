@@ -300,6 +300,56 @@ const BrandIconHubPage = () => {
 
           {/* === COLLECTIONS === */}
           <TabsContent value="collections" className="space-y-6">
+            {/* Brand icon search */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  Search icons in {brand.name}'s system
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Searches across every collection linked to this brand ({totalLinkedIcons} icons).
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={iconQuery}
+                    onChange={(e) => setIconQuery(e.target.value)}
+                    placeholder="Search by icon name or category…"
+                    className="pl-9"
+                  />
+                </div>
+                {iconQuery.trim() && (
+                  searchResults.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">
+                      No icons match “{iconQuery}” in this brand's linked collections.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                      {searchResults.map(({ icon, libraryId, libraryName }) => (
+                        <button
+                          key={`${libraryId}-${icon.id}`}
+                          type="button"
+                          onClick={() => navigate(`/icon-studio?section=library&library=${libraryId}`)}
+                          title={`${icon.name} · ${libraryName}`}
+                          className="group flex flex-col items-center gap-1 p-2 rounded-md border border-border/60 bg-card hover:border-primary/50 hover:shadow-sm transition-all text-foreground"
+                        >
+                          <div className="h-8 w-8 text-foreground/80 group-hover:text-primary">
+                            {renderIconSvg(icon)}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                            {icon.name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                )}
+              </CardContent>
+            </Card>
+
             {/* Linked */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
