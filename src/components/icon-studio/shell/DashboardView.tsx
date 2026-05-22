@@ -186,6 +186,9 @@ export const DashboardView = ({
         </div>
       </header>
 
+      {/* Golden Path quickstart */}
+      <GoldenPathCard />
+
       {/* Metric tiles */}
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <MetricCard label="Total icons" value={totalIcons} delta="+12%" icon={Sparkles} accentToken="var(--tp-light-blue)" />
