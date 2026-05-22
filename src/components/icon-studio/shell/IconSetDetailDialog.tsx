@@ -59,10 +59,17 @@ export const IconSetDetailDialog = ({
 }: Props) => {
   const open = !!library;
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
+  const [remixOpen, setRemixOpen] = useState(false);
   const theme =
     (typeof document !== 'undefined' &&
       document.querySelector('.icon-studio-tp')?.getAttribute('data-theme')) ||
     'light';
+
+  const baseRecipe: IconRecipe | null = useMemo(() => {
+    if (!library) return null;
+    const seed = library.icons.find((i) => readRecipe(i));
+    return seed ? readRecipe(seed) : null;
+  }, [library]);
 
   const handleExport = async () => {
     if (!library) return;
