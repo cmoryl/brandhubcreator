@@ -5,6 +5,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Search, Plus, Lock, MoreHorizontal, Library as LibraryIcon, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,12 +18,14 @@ import {
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { StatusChip } from './StatusChip';
-import type { IconLibrary } from '@/hooks/useIconLibraries';
+import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 
 interface Props {
   libraries: IconLibrary[];
+  organizationId?: string;
   onOpenSet?: (lib: IconLibrary) => void;
   onCreate?: () => void;
+  onRemix?: (lib: IconLibrary) => void;
   /** When set, scroll-to-and-highlight this library card and auto-open it once. */
   autoOpenLibraryId?: string | null;
   onAutoOpenConsumed?: () => void;
