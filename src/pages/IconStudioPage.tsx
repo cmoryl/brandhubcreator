@@ -474,7 +474,9 @@ const IconStudioPage = () => {
       ) : shellSection === 'library' ? (
         <LibraryView
           libraries={libraries}
+          organizationId={organizationId}
           onCreate={() => setShellSection('generate')}
+          onRemix={() => setShellSection('generate')}
           autoOpenLibraryId={deepLinkLibraryId}
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
         />
