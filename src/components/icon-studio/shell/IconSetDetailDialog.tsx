@@ -60,16 +60,29 @@ export const IconSetDetailDialog = ({
   const open = !!library;
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
   const [remixOpen, setRemixOpen] = useState(false);
-  const theme =
-    (typeof document !== 'undefined' &&
-      document.querySelector('.icon-studio-tp')?.getAttribute('data-theme')) ||
-    'light';
+  const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
+  // Style override applied to the WHOLE set in the preview (does not mutate stored icons)
+  const [styleOverride, setStyleOverride] = useState<'auto' | 'outlined' | 'filled' | 'duotone'>('auto');
 
   const baseRecipe: IconRecipe | null = useMemo(() => {
     if (!library) return null;
     const seed = library.icons.find((i) => readRecipe(i));
     return seed ? readRecipe(seed) : null;
   }, [library]);
+
+  // Detect the dominant style from the set itself, so "auto" reflects what
+  // was actually generated (outlined sets stay outlined, filled stay filled).
+  const detectedStyle: 'outlined' | 'filled' | 'duotone' = useMemo(() => {
+    if (!library) return 'outlined';
+    const name = (library.name || '').toLowerCase();
+    if (name.includes('duotone')) return 'duotone';
+    if (name.includes('filled')) return 'filled';
+    if (name.includes('outlin') || name.includes('line')) return 'outlined';
+    const fillCount = library.icons.filter((i) => i.fillMode === 'fill').length;
+    return fillCount > library.icons.length / 2 ? 'filled' : 'outlined';
+  }, [library]);
+
+  const effectiveStyle = styleOverride === 'auto' ? detectedStyle : styleOverride;
 
   const handleExport = async () => {
     if (!library) return;
