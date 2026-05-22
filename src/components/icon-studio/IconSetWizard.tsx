@@ -1060,15 +1060,40 @@ const SectionCard = ({
   section,
   onRegenerate,
   tone,
+  style = 'outlined',
 }: {
   title: string;
   subtitle: string;
   section?: SectionState;
   onRegenerate: () => void;
   tone: 'core' | 'sub';
+  style?: 'outlined' | 'filled' | 'duotone';
 }) => {
   const status = section?.status ?? 'idle';
   const previewIcons = getPreviewIcons(title);
+
+  // Style-aware render props applied to every preview Lucide icon so the user
+  // sees the chosen style (Outlined / Filled / Duotone) reflected instantly
+  // in the section cards, before any generation runs.
+  const previewProps =
+    style === 'filled'
+      ? { fill: 'currentColor', strokeWidth: 0 as const, className: 'h-3.5 w-3.5 text-foreground/80' }
+      : style === 'duotone'
+        ? {
+            fill: 'currentColor',
+            fillOpacity: 0.25,
+            strokeWidth: 1.5 as const,
+            className: 'h-3.5 w-3.5 text-primary',
+          }
+        : { fill: 'none', strokeWidth: 1.75 as const, className: 'h-3.5 w-3.5 text-foreground/70' };
+
+  const tileBg =
+    style === 'filled'
+      ? 'bg-muted/40 border-transparent'
+      : style === 'duotone'
+        ? 'border-dashed border-primary/30 bg-primary/5'
+        : 'border-dashed border-muted-foreground/25';
+
   return (
     <Card>
       <CardContent className="p-3 space-y-2">
@@ -1092,12 +1117,13 @@ const SectionCard = ({
               <div
                 key={i}
                 className={cn(
-                  'h-7 w-7 mx-auto rounded-md border border-dashed border-muted-foreground/25 flex items-center justify-center',
+                  'h-7 w-7 mx-auto rounded-md border flex items-center justify-center transition-colors',
+                  tileBg,
                   status === 'generating' && 'animate-pulse bg-muted/40',
                 )}
-                title={`${title} icon preview`}
+                title={`${title} icon preview (${style})`}
               >
-                <Icon className="h-3.5 w-3.5 text-muted-foreground/60" strokeWidth={1.75} />
+                <Icon {...previewProps} />
               </div>
             ))}
         </div>
