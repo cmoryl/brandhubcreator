@@ -154,16 +154,16 @@ export const INDUSTRY_PRESETS: IndustryPreset[] = [
     sampleEmojis: ['🛒', '📦', '🚚', '⭐', '🎁', '🏷️'],
     coreSet: SHARED_CORE,
     subSets: [
-      { id: 'ec-dept-merch', name: 'Merchandising', description: 'Catalog, inventory, tags', grouping: 'department', category: 'E-Commerce', sectionIndex: 0, count: 5, emoji: '🏷️' },
-      { id: 'ec-dept-ops', name: 'Operations', description: 'Warehouse, fulfillment, returns', grouping: 'department', category: 'E-Commerce', sectionIndex: 2, count: 5, emoji: '📦' },
-      { id: 'ec-dept-mkt', name: 'Marketing', description: 'Promo, email, campaigns', grouping: 'department', category: 'Marketing Hero', sectionIndex: 0, count: 5, emoji: '📣' },
+      { id: 'ec-dept-merch', name: 'Merchandising', description: 'Catalog, inventory, tags', grouping: 'department', category: 'E-Commerce', sectionIndex: 0, count: 30, emoji: '🏷️' },
+      { id: 'ec-dept-ops', name: 'Operations', description: 'Warehouse, fulfillment, returns', grouping: 'department', category: 'E-Commerce', sectionIndex: 2, count: 30, emoji: '📦' },
+      { id: 'ec-dept-mkt', name: 'Marketing', description: 'Promo, email, campaigns', grouping: 'department', category: 'Marketing Hero', sectionIndex: 0, count: 30, emoji: '📣' },
 
-      { id: 'ec-feat-cart', name: 'Cart & Checkout', description: 'Cart, wishlist, pay', grouping: 'feature', category: 'E-Commerce', sectionIndex: 0, count: 5, emoji: '🛒' },
-      { id: 'ec-feat-shipping', name: 'Shipping & Returns', description: 'Track, deliver, return', grouping: 'feature', category: 'E-Commerce', sectionIndex: 2, count: 5, emoji: '🚚' },
-      { id: 'ec-feat-loyalty', name: 'Loyalty', description: 'Rewards, membership, gifts', grouping: 'feature', category: 'E-Commerce', sectionIndex: 3, count: 3, emoji: '⭐' },
+      { id: 'ec-feat-cart', name: 'Cart & Checkout', description: 'Cart, wishlist, pay', grouping: 'feature', category: 'E-Commerce', sectionIndex: 0, count: 30, emoji: '🛒' },
+      { id: 'ec-feat-shipping', name: 'Shipping & Returns', description: 'Track, deliver, return', grouping: 'feature', category: 'E-Commerce', sectionIndex: 2, count: 30, emoji: '🚚' },
+      { id: 'ec-feat-loyalty', name: 'Loyalty', description: 'Rewards, membership, gifts', grouping: 'feature', category: 'E-Commerce', sectionIndex: 3, count: 30, emoji: '⭐' },
 
-      { id: 'ec-ctx-reviews', name: 'Reviews & Social', description: 'Stars, share, like', grouping: 'context', category: 'Communication', sectionIndex: 2, count: 5, emoji: '⭐' },
-      { id: 'ec-ctx-support', name: 'Support', description: 'Help, returns, FAQ', grouping: 'context', category: 'Communication', sectionIndex: 3, count: 4, emoji: '💬' },
+      { id: 'ec-ctx-reviews', name: 'Reviews & Social', description: 'Stars, share, like', grouping: 'context', category: 'Communication', sectionIndex: 2, count: 30, emoji: '⭐' },
+      { id: 'ec-ctx-support', name: 'Support', description: 'Help, returns, FAQ', grouping: 'context', category: 'Communication', sectionIndex: 3, count: 30, emoji: '💬' },
     ],
   },
 ];
