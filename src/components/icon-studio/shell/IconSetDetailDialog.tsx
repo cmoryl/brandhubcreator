@@ -257,7 +257,7 @@ const RealIconLadder = ({ icons, accent, onIconClick }: LadderProps) => {
                 <span className="text-[10px] text-muted-foreground truncate max-w-[88px]">
                   {icon.name}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </section>
