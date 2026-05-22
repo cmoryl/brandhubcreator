@@ -707,14 +707,16 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
               ) : (
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 py-2">
                   {previewLib.icons.map((ic) => (
-                    <div
+                    <button
                       key={ic.id}
-                      className="aspect-square rounded-md border border-border/50 bg-background/40 flex flex-col items-center justify-center text-foreground p-2 gap-1"
+                      type="button"
+                      onClick={() => openIconDetail(ic, previewLib.name)}
+                      className="aspect-square rounded-md border border-border/50 bg-background/40 flex flex-col items-center justify-center text-foreground p-2 gap-1 hover:border-primary/60 hover:bg-background transition-colors"
                       title={ic.name}
                     >
                       <IconSvgRender icon={ic} size={28} />
                       <span className="text-[9px] text-muted-foreground truncate w-full text-center">{ic.name}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
