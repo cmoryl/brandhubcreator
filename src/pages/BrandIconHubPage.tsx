@@ -21,7 +21,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   ArrowLeft, Building2, Library, Palette, Package, ShieldCheck,
   Wand2, Plus, Link as LinkIcon, Unlink, ExternalLink, Settings,
+  Search, ArrowRight,
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import DOMPurify from 'dompurify';
+import type { BrandIconography } from '@/types/brand';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
