@@ -99,6 +99,7 @@ const ImageryHub = lazyWithRetry(() => import("./pages/ImageryHub"));
 const LogoDownloadActivity = lazyWithRetry(() => import("./pages/LogoDownloadActivity"));
 const BrandAgentPage = lazyWithRetry(() => import("./pages/BrandAgentPage"));
 const IconStudioPage = lazyWithRetry(() => import("./pages/IconStudioPage"));
+const BrandIconHubPage = lazyWithRetry(() => import("./pages/BrandIconHubPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
