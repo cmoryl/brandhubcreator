@@ -290,7 +290,15 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
               Color, typography, and icon rules that drive every generation, QA pass, and export.
             </p>
           </div>
-          <Button size="sm" className="gap-1.5">
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={() => {
+              // Brand creation lives in the org admin; nudge user there.
+              toast.info('Create a new brand from the organization dashboard.');
+              navigate('/admin');
+            }}
+          >
             <Plus className="h-4 w-4" />
             New brand
           </Button>
