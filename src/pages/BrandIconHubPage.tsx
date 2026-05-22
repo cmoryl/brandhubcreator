@@ -1,0 +1,467 @@
+/**
+ * BrandIconHubPage — Per-brand icon hub.
+ *
+ * Route: /icon-studio/brand/:slug
+ *
+ * Acts as the dedicated icon page for a single brand:
+ *  - Linked icon collections (with link/unlink controls)
+ *  - Quick actions (generate set scoped to brand, open style systems, export)
+ *  - Brand-scoped settings placeholders for advanced integrations
+ */
+
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  ArrowLeft, Building2, Library, Palette, Package, ShieldCheck,
+  Wand2, Plus, Link as LinkIcon, Unlink, ExternalLink, Settings,
+} from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { useIconLibraries } from '@/hooks/useIconLibraries';
+import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
+import { useSEO } from '@/hooks/useSEO';
+import { IconSetPreview } from '@/components/icon-studio/shell/IconSetPreview';
+import '@/components/icon-studio/shell/tpTokens.css';
+import { toast } from 'sonner';
+
+const SAMPLE_FOR = (name: string): string[] => {
+  const n = name.toLowerCase();
+  if (n.includes('global')) return ['🔗', '🌍', '⚙️', '📡', '🧩', '🔁'];
+  if (n.includes('health')) return ['🩺', '💊', '🏥', '❤️', '📋', '🧬'];
+  if (n.includes('travel')) return ['✈️', '🏨', '🎫', '⭐', '🗺️', '🧳'];
+  if (n.includes('finance') || n.includes('bank')) return ['💳', '🏦', '📈', '💰', '🔐', '🧾'];
+  if (n.includes('ai')) return ['✨', '🧠', '🤖', '⚡', '🪄', '🧪'];
+  return ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
+};
+
+const BrandIconHubPage = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
+  const { organization } = useOrganization();
+  const organizationId = organization?.id ?? '';
+
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/auth');
+  }, [user, authLoading, navigate]);
+
+  // Resolve brand by slug within active org
+  const { data: brand, isLoading: brandLoading } = useQuery({
+    queryKey: ['brand-by-slug', slug, organizationId],
+    queryFn: async () => {
+      if (!slug || !organizationId) return null;
+      const { data } = await supabase
+        .from('brands')
+        .select('id, name, slug, guide_data')
+        .eq('organization_id', organizationId)
+        .eq('slug', slug)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!slug && !!organizationId,
+  });
+
+  useSEO({
+    title: brand?.name ? `${brand.name} · Icon Hub — BrandHub` : 'Brand Icon Hub',
+    description: 'Dedicated icon hub for this brand — linked collections, generation, style systems, and export.',
+  });
+
+  const { libraries, isLoading: librariesLoading } = useIconLibraries(organizationId);
+  const {
+    links,
+    linkLibraryToBrand,
+    unlinkLibraryFromBrand,
+    getLinkedLibraryIds,
+  } = useIconLibraryBrandLinks(organizationId);
+
+  const linkedIds = useMemo(
+    () => (brand?.id ? new Set(getLinkedLibraryIds(brand.id)) : new Set<string>()),
+    [brand?.id, links],
+  );
+
+  const linkedLibraries = useMemo(
+    () => libraries.filter((l) => linkedIds.has(l.id)),
+    [libraries, linkedIds],
+  );
+
+  const availableLibraries = useMemo(
+    () => libraries.filter((l) => !linkedIds.has(l.id)),
+    [libraries, linkedIds],
+  );
+
+  const totalLinkedIcons = useMemo(
+    () => linkedLibraries.reduce((sum, l) => sum + l.icons.length, 0),
+    [linkedLibraries],
+  );
+
+  const brandColors = useMemo(() => {
+    const palette: any[] = (brand as any)?.guide_data?.colors?.primary || [];
+    return Array.isArray(palette) ? palette.slice(0, 6) : [];
+  }, [brand]);
+
+  if (authLoading || !user || brandLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!brand) {
+    return (
+      <div className="icon-studio-tp min-h-screen" style={{ background: 'hsl(var(--tp-surface-0))' }}>
+        <div className="max-w-2xl mx-auto py-20 px-6 text-center space-y-4">
+          <h1 className="text-2xl font-semibold">Brand not found</h1>
+          <p className="text-muted-foreground">
+            We couldn't find a brand with the slug “{slug}” in this workspace.
+          </p>
+          <Button onClick={() => navigate('/icon-studio')} variant="outline" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Icon Studio
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="icon-studio-tp min-h-screen"
+      style={{ background: 'hsl(var(--tp-surface-0))' }}
+      data-theme="light"
+    >
+      {/* Top bar */}
+      <header
+        className="sticky top-0 z-30 border-b backdrop-blur-xl"
+        style={{
+          background: 'hsl(var(--tp-surface-1) / 0.92)',
+          borderColor: 'hsl(var(--border))',
+        }}
+      >
+        <div className="flex h-14 items-center justify-between gap-4 px-5">
+          <div className="flex items-center gap-3 min-w-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/icon-studio')}
+              className="gap-1.5 h-8 px-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Icon Studio</span>
+            </Button>
+            <div className="h-5 w-px bg-border" />
+            <div className="flex items-center gap-2 min-w-0">
+              <div
+                className="flex h-7 w-7 items-center justify-center rounded-md"
+                style={{ background: 'linear-gradient(135deg, hsl(var(--tp-digital-blue)), hsl(var(--tp-light-blue)))' }}
+              >
+                <Building2 className="h-4 w-4 text-white" />
+              </div>
+              <div className="leading-tight min-w-0">
+                <div className="text-sm font-semibold truncate">{brand.name}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Brand Icon Hub
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-1.5 h-8" asChild>
+              <Link to={`/brand/${brand.slug}`}>
+                <ExternalLink className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Brand profile</span>
+              </Link>
+            </Button>
+            <Button size="sm" className="gap-1.5 h-8" onClick={() => navigate('/icon-studio')}>
+              <Wand2 className="h-3.5 w-3.5" />
+              Generate
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-[1400px] mx-auto px-6 py-6 space-y-6">
+        {/* Hero */}
+        <section className="tp-card relative overflow-hidden p-7">
+          <div
+            className="absolute inset-0 opacity-50"
+            style={{
+              background:
+                'radial-gradient(60% 60% at 15% 0%, hsl(var(--tp-digital-blue) / 0.25), transparent 70%), radial-gradient(50% 80% at 100% 100%, hsl(var(--tp-pink) / 0.15), transparent 70%)',
+            }}
+            aria-hidden
+          />
+          <div className="relative flex flex-wrap items-end justify-between gap-6">
+            <div className="space-y-2 min-w-0">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                <Building2 className="h-3.5 w-3.5" />
+                <span>{organization?.name || 'Workspace'}</span>
+              </div>
+              <h1 className="text-3xl font-semibold tracking-tight">{brand.name} — Icon Hub</h1>
+              <p className="text-sm text-muted-foreground max-w-xl">
+                The dedicated icon command center for this brand. Manage which icon collections
+                it inherits, generate new sets scoped to its identity, and configure advanced
+                integrations.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {brandColors.map((c: any, i: number) => (
+                <div
+                  key={i}
+                  title={c.name || c.hex}
+                  className="h-7 w-7 rounded-md border border-border"
+                  style={{ background: c.hex }}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Metric tiles */}
+        <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <MetricTile label="Linked collections" value={linkedLibraries.length} icon={Library} accent="--tp-light-blue" />
+          <MetricTile label="Total icons" value={totalLinkedIcons} icon={Package} accent="--tp-digital-blue" />
+          <MetricTile label="Brand colors" value={brandColors.length} icon={Palette} accent="--tp-pink" />
+          <MetricTile label="QA score" value="—" icon={ShieldCheck} accent="--tp-green" />
+        </section>
+
+        <Tabs defaultValue="collections" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="collections" className="gap-1.5">
+              <Library className="h-3.5 w-3.5" />
+              Collections
+            </TabsTrigger>
+            <TabsTrigger value="style" className="gap-1.5">
+              <Palette className="h-3.5 w-3.5" />
+              Style & Rules
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="gap-1.5">
+              <Settings className="h-3.5 w-3.5" />
+              Integrations
+            </TabsTrigger>
+          </TabsList>
+
+          {/* === COLLECTIONS === */}
+          <TabsContent value="collections" className="space-y-6">
+            {/* Linked */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle className="text-base">Linked collections</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    These collections render on this brand's pages by default.
+                  </p>
+                </div>
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate('/icon-studio')}>
+                  <Plus className="h-3.5 w-3.5" />
+                  New collection
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {librariesLoading ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">Loading…</p>
+                ) : linkedLibraries.length === 0 ? (
+                  <div className="text-center py-10 text-sm text-muted-foreground">
+                    No collections linked yet. Link one below or create a new set.
+                  </div>
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {linkedLibraries.map((lib) => (
+                      <article
+                        key={lib.id}
+                        className="tp-card tp-card-interactive p-4"
+                        style={{ backgroundImage: 'linear-gradient(135deg, hsl(var(--tp-digital-blue) / 0.07), transparent 60%)' }}
+                      >
+                        <div className="flex items-start justify-between mb-3 gap-2">
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-semibold truncate">{lib.name}</h3>
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              {lib.description || `${lib.level} collection`}
+                            </p>
+                          </div>
+                          <Badge variant="secondary" className="text-[10px] flex-shrink-0">
+                            {lib.icons.length}
+                          </Badge>
+                        </div>
+                        <IconSetPreview
+                          emojis={SAMPLE_FOR(lib.name)}
+                          accent="hsl(var(--tp-digital-blue))"
+                          size="sm"
+                          count={6}
+                          variant="glass"
+                        />
+                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-end">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
+                            onClick={() =>
+                              unlinkLibraryFromBrand.mutate({ libraryId: lib.id, brandId: brand.id })
+                            }
+                          >
+                            <Unlink className="h-3 w-3" />
+                            Unlink
+                          </Button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Available to link */}
+            {availableLibraries.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Available collections</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Other collections in this workspace you can link to {brand.name}.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ul className="divide-y divide-border/60">
+                    {availableLibraries.map((lib) => (
+                      <li key={lib.id} className="flex items-center justify-between py-2.5">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-9 w-9 rounded-md border bg-secondary/40 flex items-center justify-center text-muted-foreground">
+                            <Library className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium truncate">{lib.name}</div>
+                            <div className="text-[11px] text-muted-foreground">
+                              {lib.icons.length} icons · {lib.level}
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5 h-8"
+                          onClick={() =>
+                            linkLibraryToBrand.mutate({ libraryId: lib.id, brandId: brand.id })
+                          }
+                        >
+                          <LinkIcon className="h-3.5 w-3.5" />
+                          Link
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* === STYLE & RULES === */}
+          <TabsContent value="style" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Brand DNA & overrides</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Define the global stroke, fill, and color rules that every icon in this brand
+                  inherits. Use the Style Systems area to choose a base, then customize here.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={() => navigate('/icon-studio')}>
+                  <Palette className="h-4 w-4" />
+                  Open Style Systems
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Brand-scoped overrides (stroke width, corner radius, color slot maps) coming
+                  next — they'll live here and cascade to every linked collection automatically.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* === INTEGRATIONS === */}
+          <TabsContent value="integrations" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Advanced integrations</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Brand-scoped settings for how this hub's icons surface across the platform.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ul className="divide-y divide-border/60">
+                  <IntegrationRow
+                    title="Auto-inherit from parent brand"
+                    description="New collections added at the org level are automatically linked here."
+                    defaultEnabled
+                  />
+                  <IntegrationRow
+                    title="Sync to brand portal"
+                    description="Expose the linked icon set on this brand's public portal page."
+                    defaultEnabled={false}
+                  />
+                  <IntegrationRow
+                    title="Lock for export"
+                    description="Prevent further edits — icons can only be downloaded, not modified."
+                    defaultEnabled={false}
+                  />
+                  <IntegrationRow
+                    title="Webhook on generation"
+                    description="Notify an external endpoint when a new set is approved for this brand."
+                    defaultEnabled={false}
+                  />
+                </ul>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+};
+
+/* ----- helpers ----- */
+
+const MetricTile = ({
+  label, value, icon: Icon, accent,
+}: { label: string; value: string | number; icon: any; accent: string }) => (
+  <div className="tp-card p-4">
+    <div className="flex items-start justify-between">
+      <div
+        className="flex h-9 w-9 items-center justify-center rounded-lg"
+        style={{ background: `hsl(var(${accent}) / 0.12)`, color: `hsl(var(${accent}))` }}
+      >
+        <Icon className="h-4 w-4" />
+      </div>
+    </div>
+    <div className="mt-3 text-xl font-semibold tabular-nums tracking-tight">{value}</div>
+    <div className="mt-0.5 text-[11px] text-muted-foreground">{label}</div>
+  </div>
+);
+
+const IntegrationRow = ({
+  title, description, defaultEnabled,
+}: { title: string; description: string; defaultEnabled: boolean }) => {
+  const [on, setOn] = useState(defaultEnabled);
+  return (
+    <li className="flex items-start justify-between gap-4 py-3">
+      <div className="min-w-0">
+        <div className="text-sm font-medium">{title}</div>
+        <div className="text-xs text-muted-foreground">{description}</div>
+      </div>
+      <Switch
+        checked={on}
+        onCheckedChange={(v) => {
+          setOn(v);
+          toast.success(`${title} ${v ? 'enabled' : 'disabled'}`);
+        }}
+      />
+    </li>
+  );
+};
+
+export default BrandIconHubPage;
