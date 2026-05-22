@@ -11,7 +11,7 @@
  * placeholders for the rest. Right rail surfaces only when relevant.
  */
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   BookOpen,
@@ -23,12 +23,14 @@ import {
   FolderOpen,
   LayoutDashboard,
   Library,
+  Moon,
   Package,
   Palette,
   Save,
   Settings,
   ShieldCheck,
   Sparkles,
+  Sun,
   Wand2,
   type LucideIcon,
 } from 'lucide-react';
@@ -112,9 +114,17 @@ export const StudioShell = ({
   children,
 }: Props) => {
   const [navCollapsed, setNavCollapsed] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    return (localStorage.getItem('icon-studio-theme') as 'dark' | 'light') ?? 'dark';
+  });
+  useEffect(() => {
+    localStorage.setItem('icon-studio-theme', theme);
+  }, [theme]);
 
   return (
     <div
+      data-theme={theme}
       className="icon-studio-tp min-h-screen"
       style={{ background: 'hsl(var(--tp-surface-0))' }}
     >
@@ -233,6 +243,21 @@ export const StudioShell = ({
                 Expert
               </span>
             </div>
+
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 w-8 p-0"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
 
             <Button
               size="sm"
