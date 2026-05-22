@@ -66,7 +66,7 @@ export const SettingsView = () => {
               conventions across exports.
             </p>
           </div>
-          <Button size="sm" className="gap-1.5" onClick={() => toast.success('Settings saved')}>
+          <Button size="sm" className="gap-1.5" onClick={handleSave}>
             <Save className="h-4 w-4" />
             Save changes
           </Button>
