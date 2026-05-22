@@ -35,6 +35,14 @@ interface BrandProfile {
   entityType?: 'brand' | 'product' | 'event';
 }
 
+interface RecentLibrary {
+  id: string;
+  name: string;
+  level?: 'core' | 'product_line' | 'brand';
+  iconCount: number;
+  isActive?: boolean;
+}
+
 interface Props {
   organizationName: string;
   /** Total icons across saved libraries */
@@ -44,6 +52,10 @@ interface Props {
   onStartGenerate: () => void;
   /** Navigate to another shell section (library, sets, export, brands, qa, styles). */
   onNavigate?: (section: 'library' | 'sets' | 'export' | 'brands' | 'qa' | 'styles' | 'generate') => void;
+  /** Open a specific library's detail dialog. */
+  onOpenLibrary?: (libraryId: string) => void;
+  /** Recent saved libraries (most recently created/updated first). */
+  recentLibraries?: RecentLibrary[];
   /** Real brand profiles loaded from the org. */
   brandProfiles?: BrandProfile[];
 }
@@ -85,11 +97,21 @@ export const DashboardView = ({
   organizationName,
   onStartGenerate,
   onNavigate,
+  onOpenLibrary,
+  recentLibraries = [],
   brandProfiles = [],
 }: Props) => {
   const { hidden: hiddenBrands, hide: hideBrand, clear: clearHiddenBrands, isHidden: isBrandHidden } =
     useHiddenItems('brand-profiles');
   const visibleBrandProfiles = brandProfiles.filter((b) => !isBrandHidden(b.id));
+
+  const levelAccent = (lvl?: string) =>
+    lvl === 'product_line' ? 'hsl(var(--tp-orange))'
+    : lvl === 'brand' ? 'hsl(var(--tp-pink))'
+    : 'hsl(var(--tp-digital-blue))';
+  const levelLabel = (lvl?: string) =>
+    lvl === 'product_line' ? 'Product line' : lvl === 'brand' ? 'Brand' : 'Core';
+  const sampleEmojis = ['⚙️','📊','🔐','🔌','⚡','🧩'];
 
   return (
     <div className="space-y-8">
@@ -143,11 +165,23 @@ export const DashboardView = ({
             </Button>
           </header>
           <ul className="space-y-1">
-            <ActivityRow title="GlobalLink platform icons" meta="Tech / SaaS · 84 icons" status="approved" emojis={['🔗','⚙️','🌍','📡','🧩']} accent="hsl(var(--tp-digital-blue))" onClick={() => onNavigate?.('sets')} />
-            <ActivityRow title="Life Sciences regulatory pack" meta="Life Sciences · 32 icons" status="review" emojis={['🧪','🧬','🔬','💉','📋']} accent="hsl(var(--tp-green))" onClick={() => onNavigate?.('qa')} />
-            <ActivityRow title="Travel loyalty refresh" meta="Travel · 48 icons" status="generating" emojis={['✈️','🏨','🎫','⭐','🗺️']} accent="hsl(var(--tp-light-blue))" onClick={() => onNavigate?.('generate')} />
-            <ActivityRow title="TransPerfect AI Solutions" meta="Brand · 22 icons" status="approved" emojis={['✨','🧠','🤖','⚡','🪄']} accent="hsl(var(--tp-pink))" onClick={() => onNavigate?.('sets')} />
-            <ActivityRow title="Healthcare patient flow" meta="Healthcare · 18 icons" status="queued" emojis={['🩺','💊','📋','🏥','❤️']} accent="hsl(var(--tp-teal))" onClick={() => onNavigate?.('generate')} />
+            {recentLibraries.length === 0 ? (
+              <li className="px-3 py-6 text-center text-xs text-muted-foreground">
+                No icon systems yet. Generate one to see it here.
+              </li>
+            ) : (
+              recentLibraries.slice(0, 5).map((lib) => (
+                <ActivityRow
+                  key={lib.id}
+                  title={lib.name}
+                  meta={`${levelLabel(lib.level)} · ${lib.iconCount} icons`}
+                  status={lib.isActive ? 'approved' : 'idle'}
+                  emojis={sampleEmojis}
+                  accent={levelAccent(lib.level)}
+                  onClick={() => onOpenLibrary?.(lib.id)}
+                />
+              ))
+            )}
           </ul>
         </div>
 
