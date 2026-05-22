@@ -575,9 +575,15 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                           size="sm"
                           variant="outline"
                           className="gap-1.5 h-8"
-                          onClick={() =>
-                            linkLibraryToEntity.mutate({ libraryId: lib.id, entityId: brand.id, entityType })
-                          }
+                          onClick={() => {
+                            // If it was an inherited collection the user previously hid, just unhide it.
+                            if (isHidden(lib.id) && (implicitLinkedIds.has(lib.id) || explicitLinkedIds.has(lib.id))) {
+                              unhideLink(lib.id);
+                              toast.success(`${lib.name} restored`);
+                            } else {
+                              linkLibraryToEntity.mutate({ libraryId: lib.id, entityId: brand.id, entityType });
+                            }
+                          }}
                         >
                           <LinkIcon className="h-3.5 w-3.5" />
                           Link
