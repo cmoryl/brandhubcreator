@@ -1,11 +1,11 @@
 /**
- * IconStudioPage - Standalone, full-page Icon Studio.
+ * IconStudioPage — Full-page Icon Studio.
  *
- * Reuses the existing IconStudio sub-components in a roomier layout so users
- * can browse, generate, style, and bulk-export icon sets without a modal.
+ * Default view: a friendly 5-step wizard (IconSetWizard) that walks users
+ * through Industry → Core → Sub-sets → Preflight → Export.
  *
- * Adds a "Custom Set" tab to cherry-pick icons across libraries and export
- * only those, with filters by library, category, and search.
+ * "Expert mode" toggle reveals the original power-user tabs (Library, Browse,
+ * AI Generate, Style, Custom Set, Bulk Export) for advanced workflows.
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import {
   Library,
   Wand2,
@@ -28,6 +29,7 @@ import {
   ArrowLeft,
   Layers,
   Search,
+  Compass,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,8 +46,9 @@ import { IconStudioAppIcons } from '@/components/brand/iconography/studio/IconSt
 import { IconStudioCreator } from '@/components/brand/iconography/studio/IconStudioCreator';
 import { IconStudioExport } from '@/components/brand/iconography/studio/IconStudioExport';
 import type { IconStudioTab } from '@/components/brand/iconography/IconStudio';
+import { IconSetWizard } from '@/components/icon-studio/IconSetWizard';
 
-type PageTab =
+type ExpertTab =
   | 'library'
   | 'creator'
   | 'generate'
@@ -63,14 +66,15 @@ const IconStudioPage = () => {
   useSEO({
     title: 'Icon Studio — BrandHub',
     description:
-      'Browse 50K+ icons, generate AI icon sets, manage brand libraries, and bulk export custom icon packs.',
+      'Step-by-step industry icon set creation. Build a company core, add specialized sub-sets, and export as SVG + transparent PNG bundles.',
   });
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
   }, [user, authLoading, navigate]);
 
-  const [activeTab, setActiveTab] = useState<PageTab>('library');
+  const [expertMode, setExpertMode] = useState(false);
+  const [activeTab, setActiveTab] = useState<ExpertTab>('library');
   const [styleSubView, setStyleSubView] = useState<
     'colorize' | 'hierarchy' | 'app-icons'
   >('colorize');
@@ -91,7 +95,6 @@ const IconStudioPage = () => {
     [libraries],
   );
 
-  // Brand colors aggregated from the org's brands (best-effort)
   const { data: brandColors = [] } = useQuery({
     queryKey: ['icon-studio-brand-colors', organizationId],
     queryFn: async () => {
@@ -164,6 +167,20 @@ const IconStudioPage = () => {
     [libraries, coreLibraries, updateLibrary, createLibrary, organizationId],
   );
 
+  const handleSaveSetAsLibrary = useCallback(
+    (name: string, icons: BrandIconography[]) => {
+      if (!organizationId) return;
+      createLibrary.mutate({
+        organization_id: organizationId,
+        name,
+        level: 'core',
+        description: `Created in Icon Studio wizard (${icons.length} icons)`,
+        icons,
+      });
+    },
+    [organizationId, createLibrary],
+  );
+
   const handleNavigateToTab = useCallback((tab: IconStudioTab) => {
     if (tab === 'colorizer') {
       setActiveTab('style');
@@ -177,11 +194,11 @@ const IconStudioPage = () => {
     } else if (tab === 'ai-generator') {
       setActiveTab('generate');
     } else {
-      setActiveTab(tab as PageTab);
+      setActiveTab(tab as ExpertTab);
     }
   }, []);
 
-  const tabs: Array<{ id: PageTab; label: string; icon: any; badge?: number }> = [
+  const expertTabs: Array<{ id: ExpertTab; label: string; icon: any; badge?: number }> = [
     { id: 'library', label: 'Library', icon: Library, badge: totalIcons },
     { id: 'creator', label: 'Browse & Add', icon: Globe },
     { id: 'generate', label: 'AI Generate', icon: Wand2 },
@@ -200,10 +217,9 @@ const IconStudioPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Page header */}
-      <header className="border-b bg-card/40 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+      <header className="border-b bg-card/40 backdrop-blur sticky top-0 z-20">
+        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
             <Button
               variant="ghost"
               size="sm"
@@ -214,52 +230,62 @@ const IconStudioPage = () => {
               Back
             </Button>
             <div className="h-6 w-px bg-border" />
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h1 className="text-xl font-semibold tracking-tight">Icon Studio</h1>
-              <Badge variant="secondary" className="ml-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
+              <h1 className="text-xl font-semibold tracking-tight truncate">Icon Studio</h1>
+              <Badge variant="secondary" className="ml-1 flex-shrink-0">
                 {totalIcons} icons · {libraries.length} sets
               </Badge>
             </div>
           </div>
-          <p className="hidden md:block text-sm text-muted-foreground max-w-md text-right">
-            Build, organize, and export your brand's icon system.
-          </p>
+
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+              <Compass className="h-3.5 w-3.5" />
+              <span>Guided</span>
+              <Switch
+                checked={expertMode}
+                onCheckedChange={setExpertMode}
+                aria-label="Toggle expert mode"
+              />
+              <span>Expert</span>
+            </div>
+          </div>
         </div>
 
-        {/* Tab navigation */}
-        <nav className="mx-auto max-w-7xl px-6">
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-2">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = tab.id === activeTab;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap border',
-                    'hover:bg-accent/50',
-                    isActive
-                      ? 'bg-primary/10 text-primary border-primary/20 shadow-sm'
-                      : 'text-muted-foreground border-transparent hover:text-foreground',
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{tab.label}</span>
-                  {tab.badge !== undefined && tab.badge > 0 && (
-                    <Badge variant="secondary" className="h-5 px-1.5 text-[10px] ml-0.5">
-                      {tab.badge}
-                    </Badge>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </nav>
+        {expertMode && (
+          <nav className="mx-auto max-w-7xl px-6">
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-2">
+              {expertTabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = tab.id === activeTab;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap border',
+                      'hover:bg-accent/50',
+                      isActive
+                        ? 'bg-primary/10 text-primary border-primary/20 shadow-sm'
+                        : 'text-muted-foreground border-transparent hover:text-foreground',
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{tab.label}</span>
+                    {tab.badge !== undefined && tab.badge > 0 && (
+                      <Badge variant="secondary" className="h-5 px-1.5 text-[10px] ml-0.5">
+                        {tab.badge}
+                      </Badge>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+        )}
       </header>
 
-      {/* Content */}
       <main className="mx-auto max-w-7xl px-6 py-8">
         {!organizationId ? (
           <Card>
@@ -267,7 +293,14 @@ const IconStudioPage = () => {
               Select or create an organization to use Icon Studio.
             </CardContent>
           </Card>
+        ) : !expertMode ? (
+          /* ---------- GUIDED WIZARD (default) ---------- */
+          <IconSetWizard
+            organizationName={organizationName}
+            onSaveAsLibrary={handleSaveSetAsLibrary}
+          />
         ) : (
+          /* ---------- EXPERT TABS (advanced) ---------- */
           <>
             {activeTab === 'library' && (
               <IconStudioLibrary
@@ -386,7 +419,7 @@ const IconStudioPage = () => {
 };
 
 /* -------------------------------------------------------------------------- */
-/* Custom Set Builder                                                         */
+/* Custom Set Builder (Expert tab)                                            */
 /* -------------------------------------------------------------------------- */
 
 interface CustomSetBuilderProps {
@@ -464,7 +497,6 @@ const CustomSetBuilder = ({
     [allIcons, selected],
   );
 
-  // Build a synthetic single-library view for the existing exporter
   const customLibrary = useMemo(
     () => [
       {
@@ -499,7 +531,6 @@ const CustomSetBuilder = ({
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Filters */}
           <div className="grid gap-3 md:grid-cols-4">
             <div className="relative md:col-span-2">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -536,7 +567,6 @@ const CustomSetBuilder = ({
             </select>
           </div>
 
-          {/* Actions */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>
@@ -558,7 +588,6 @@ const CustomSetBuilder = ({
             </div>
           </div>
 
-          {/* Icon grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 max-h-[460px] overflow-y-auto p-1 rounded-md border bg-muted/20">
             {filtered.length === 0 ? (
               <div className="col-span-full py-12 text-center text-sm text-muted-foreground">
@@ -595,7 +624,6 @@ const CustomSetBuilder = ({
             )}
           </div>
 
-          {/* Save as library */}
           <div className="flex flex-wrap items-end gap-3 pt-2 border-t">
             <div className="flex-1 min-w-[220px]">
               <label className="text-xs font-medium text-muted-foreground">
@@ -621,7 +649,6 @@ const CustomSetBuilder = ({
         </CardContent>
       </Card>
 
-      {/* Export the selection */}
       {selected.size > 0 && (
         <Card>
           <CardHeader>
