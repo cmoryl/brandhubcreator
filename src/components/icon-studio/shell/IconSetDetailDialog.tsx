@@ -4,8 +4,8 @@
  * brand accent applied.
  */
 
-import { useMemo } from 'react';
-import { Wand2, RefreshCw, GitCompare, Lock, Copy, ArrowUpRight } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Wand2, RefreshCw, GitCompare, Lock, Copy, ArrowUpRight, Download } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
+import { IconDetailDialog } from '@/components/icon-studio/IconDetailDialog';
+import { exportIconSystem } from '@/lib/iconStudio/exportSystem';
+import type { BrandIconography } from '@/types/brand';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
+import { toast } from 'sonner';
 
 interface Props {
   library: IconLibrary | null;
@@ -52,10 +56,26 @@ export const IconSetDetailDialog = ({
   onLockToggle,
 }: Props) => {
   const open = !!library;
+  const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
   const theme =
     (typeof document !== 'undefined' &&
       document.querySelector('.icon-studio-tp')?.getAttribute('data-theme')) ||
     'light';
+
+  const handleExport = async () => {
+    if (!library) return;
+    try {
+      await exportIconSystem({
+        name: library.name,
+        brand: library.name,
+        icons: library.icons.filter((i) => i.svgPath),
+        accent,
+      });
+      toast.success('Icon system exported');
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Export failed');
+    }
+  };
 
   const realIcons = useMemo(() => {
     if (!library) return [];

@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
+import { GoldenPathCard } from '@/components/icon-studio/GoldenPathCard';
 import type { SectionStatus } from './studioData';
 
 interface Props {
@@ -184,6 +185,9 @@ export const DashboardView = ({
           </div>
         </div>
       </header>
+
+      {/* Golden Path quickstart */}
+      <GoldenPathCard />
 
       {/* Metric tiles */}
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
