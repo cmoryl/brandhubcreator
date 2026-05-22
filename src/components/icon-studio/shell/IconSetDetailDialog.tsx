@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
 import { IconDetailDialog } from '@/components/icon-studio/IconDetailDialog';
+import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 import { RemixSystemDialog } from '@/components/icon-studio/RemixSystemDialog';
 import { exportIconSystem } from '@/lib/iconStudio/exportSystem';
 import { readRecipe, type IconRecipe } from '@/lib/iconStudio/recipe';
@@ -248,6 +249,7 @@ export const IconSetDetailDialog = ({
         icon={selectedIcon}
         onClose={() => setSelectedIcon(null)}
         accent={accent}
+        presentation={effectiveStyle}
         fallbackRecipe={baseRecipe}
       />
 
@@ -288,24 +290,6 @@ interface LadderProps {
 }
 
 const RealIconLadder = ({ icons, accent, styleMode = 'outlined', onIconClick }: LadderProps) => {
-  // Resolve render attributes for the active style mode. This is applied to
-  // EVERY icon in the set so that switching the style toggle re-skins the
-  // whole library consistently.
-  const renderProps = (() => {
-    if (styleMode === 'filled') {
-      return { fill: accent, stroke: 'none', strokeWidth: 0, opacity: 1 };
-    }
-    if (styleMode === 'duotone') {
-      return {
-        fill: `color-mix(in oklab, ${accent} 30%, transparent)`,
-        stroke: accent,
-        strokeWidth: 1.5,
-        opacity: 1,
-      };
-    }
-    return { fill: 'none', stroke: accent, strokeWidth: 1.75, opacity: 1 };
-  })();
-
   return (
     <div className="space-y-6">
       {LADDER.map((s) => (
@@ -339,18 +323,13 @@ const RealIconLadder = ({ icons, accent, styleMode = 'outlined', onIconClick }: 
                     border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
                   }}
                 >
-                  <svg
-                    width={s.icon}
-                    height={s.icon}
-                    viewBox={icon.viewBox || '0 0 24 24'}
-                    fill={renderProps.fill}
-                    stroke={renderProps.stroke}
-                    strokeWidth={renderProps.strokeWidth}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d={icon.svgPath} />
-                  </svg>
+                  <IconSvgRender
+                    icon={icon as BrandIconography}
+                    size={s.icon}
+                    color={accent}
+                    presentation={styleMode}
+                    strokeWidth={styleMode === 'duotone' ? 1.5 : 1.75}
+                  />
                 </div>
                 <span className="text-[10px] text-muted-foreground truncate max-w-[88px]">
                   {icon.name}
