@@ -33,23 +33,6 @@ import {
   Sun,
   Wand2,
   type LucideIcon,
-  BookOpen,
-  Building2,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Compass,
-  FolderOpen,
-  LayoutDashboard,
-  Library,
-  Package,
-  Palette,
-  Save,
-  Settings,
-  ShieldCheck,
-  Sparkles,
-  Wand2,
-  type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
