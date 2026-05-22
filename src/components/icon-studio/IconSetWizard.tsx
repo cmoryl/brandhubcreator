@@ -91,6 +91,7 @@ import {
   DEFAULT_PNG_SIZES,
 } from '@/lib/iconStudio/exportIcon';
 import { IconSetPreview } from '@/components/icon-studio/shell/IconSetPreview';
+import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 
 type StepId = 'industry' | 'core' | 'subsets' | 'preflight' | 'export';
 
@@ -1108,9 +1109,10 @@ const SectionCard = ({
           {section?.icons.slice(0, 6).map((icon) => (
             <div
               key={icon.id}
-              className="h-7 w-7 mx-auto text-foreground"
-              dangerouslySetInnerHTML={{ __html: icon.svgPath || '' }}
-            />
+              className="h-7 w-7 mx-auto text-foreground flex items-center justify-center"
+            >
+              <IconSvgRender icon={icon} size={28} />
+            </div>
           ))}
           {(!section || section.icons.length === 0) &&
             previewIcons.slice(0, 6).map((Icon, i) => (
@@ -1168,10 +1170,9 @@ const IconTile = ({
   onRemove: () => void;
 }) => (
   <div className="group relative aspect-square rounded-lg border bg-card p-2 flex flex-col items-center justify-center gap-1">
-    <div
-      className="h-8 w-8 text-foreground"
-      dangerouslySetInnerHTML={{ __html: icon.svgPath || '' }}
-    />
+    <div className="h-8 w-8 text-foreground flex items-center justify-center">
+      <IconSvgRender icon={icon} size={32} />
+    </div>
     <div className="text-[9px] text-muted-foreground truncate w-full text-center">
       {icon.name}
     </div>
@@ -1225,10 +1226,9 @@ const IconQuickActions = ({
 
   return (
     <div className="flex items-center gap-1 bg-muted/40 rounded-md p-1">
-      <span
-        className="h-5 w-5 text-foreground"
-        dangerouslySetInnerHTML={{ __html: icon.svgPath || '' }}
-      />
+      <span className="h-5 w-5 text-foreground inline-flex items-center justify-center">
+        <IconSvgRender icon={icon} size={20} />
+      </span>
       <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px]" onClick={() => run('svg')}>
         {pending === 'svg' ? <Loader2 className="h-3 w-3 animate-spin" /> : 'SVG'}
       </Button>
