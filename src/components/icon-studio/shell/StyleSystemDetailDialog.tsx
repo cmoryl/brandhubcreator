@@ -3,7 +3,8 @@
  * expanded icon examples across multiple categories, sizes, and color modes.
  */
 
-import { Wand2, Sparkles, Grid3x3, Ruler, Layers } from 'lucide-react';
+import { useState } from 'react';
+import { Wand2, Sparkles, Grid3x3, Ruler, Layers, Sun, Moon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
