@@ -475,60 +475,73 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                   </div>
                 ) : (
                   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    {linkedLibraries.map((lib) => (
-                      <article
-                        key={lib.id}
-                        className="tp-card tp-card-interactive p-4"
-                        style={{ backgroundImage: 'linear-gradient(135deg, hsl(var(--tp-digital-blue) / 0.07), transparent 60%)' }}
-                      >
-                        <div className="flex items-start justify-between mb-3 gap-2">
-                          <div className="min-w-0">
-                            <h3 className="text-sm font-semibold truncate">{lib.name}</h3>
-                            <p className="text-[11px] text-muted-foreground truncate">
-                              {lib.description || `${lib.level} collection`}
-                            </p>
+                    {linkedLibraries.map((lib) => {
+                      const isExplicit = explicitLinkedIds.has(lib.id);
+                      const openLib = () => navigate(`/icon-studio?section=library&library=${lib.id}`);
+                      const handleUnlink = (e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        if (isExplicit) {
+                          unlinkLibraryFromEntity.mutate({ libraryId: lib.id, entityId: brand.id, entityType });
+                        } else {
+                          hideLink(lib.id);
+                          toast.success(`${lib.name} removed from this hub`, {
+                            action: { label: 'Undo', onClick: () => unhideLink(lib.id) },
+                          });
+                        }
+                      };
+                      return (
+                        <article
+                          key={lib.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={openLib}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLib(); } }}
+                          className="tp-card tp-card-interactive p-4 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-xl"
+                          style={{ backgroundImage: 'linear-gradient(135deg, hsl(var(--tp-digital-blue) / 0.07), transparent 60%)' }}
+                        >
+                          <div className="flex items-start justify-between mb-3 gap-2">
+                            <div className="min-w-0">
+                              <h3 className="text-sm font-semibold truncate">{lib.name}</h3>
+                              <p className="text-[11px] text-muted-foreground truncate">
+                                {lib.description || `${lib.level} collection`}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              {!isExplicit && (
+                                <Badge variant="outline" className="text-[10px] h-5">
+                                  Inherited
+                                </Badge>
+                              )}
+                              <Badge variant="secondary" className="text-[10px]">
+                                {lib.icons.length}
+                              </Badge>
+                            </div>
                           </div>
-                          <Badge variant="secondary" className="text-[10px] flex-shrink-0">
-                            {lib.icons.length}
-                          </Badge>
-                        </div>
-                        <IconSetPreview
-                          emojis={SAMPLE_FOR(lib.name)}
-                          accent="hsl(var(--tp-digital-blue))"
-                          size="sm"
-                          count={6}
-                          variant="glass"
-                        />
-                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between gap-2">
-                          <Button
+                          <IconSetPreview
+                            emojis={SAMPLE_FOR(lib.name)}
+                            accent="hsl(var(--tp-digital-blue))"
                             size="sm"
-                            variant="outline"
-                            className="h-7 gap-1 text-xs"
-                            onClick={() => navigate(`/icon-studio?section=library&library=${lib.id}`)}
-                          >
-                            Open
-                            <ArrowRight className="h-3 w-3" />
-                          </Button>
-                          {explicitLinkedIds.has(lib.id) ? (
+                            count={6}
+                            variant="glass"
+                          />
+                          <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between gap-2">
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              Open <ArrowRight className="h-3 w-3" />
+                            </span>
                             <Button
                               size="sm"
                               variant="ghost"
                               className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
-                              onClick={() =>
-                                unlinkLibraryFromEntity.mutate({ libraryId: lib.id, entityId: brand.id, entityType })
-                              }
+                              onClick={handleUnlink}
+                              title={isExplicit ? 'Remove explicit link' : 'Hide this inherited collection from this hub'}
                             >
                               <Unlink className="h-3 w-3" />
                               Unlink
                             </Button>
-                          ) : (
-                            <Badge variant="outline" className="text-[10px] h-6">
-                              {lib.level === 'core' ? 'Inherited · org-wide' : 'Inherited · name match'}
-                            </Badge>
-                          )}
-                        </div>
-                      </article>
-                    ))}
+                          </div>
+                        </article>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
