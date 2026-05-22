@@ -243,9 +243,9 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5 h-8" asChild>
-              <Link to={`/brand/${brand.slug}`}>
+              <Link to={`/${entityType}/${brand.slug}`}>
                 <ExternalLink className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Brand profile</span>
+                <span className="hidden sm:inline">{entityType === 'brand' ? 'Brand profile' : entityType === 'product' ? 'Product profile' : 'Event profile'}</span>
               </Link>
             </Button>
             <Button size="sm" className="gap-1.5 h-8" onClick={() => navigate('/icon-studio')}>
