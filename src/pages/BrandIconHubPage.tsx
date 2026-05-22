@@ -165,6 +165,11 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
   );
 
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [previewLibId, setPreviewLibId] = useState<string | null>(null);
+  const previewLib = useMemo(
+    () => linkedLibraries.find((l) => l.id === previewLibId) || null,
+    [linkedLibraries, previewLibId],
+  );
   const handleDownloadPdf = async () => {
     if (!brand) return;
     if (linkedLibraries.length === 0) {
