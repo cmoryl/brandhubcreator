@@ -35,6 +35,7 @@ interface BrandProfile {
   slug?: string;
   tone?: string;
   members?: number;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 interface Props {
