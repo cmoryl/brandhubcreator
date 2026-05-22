@@ -3,7 +3,7 @@
  * (set) in the organization. Real data from useIconLibraries.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, Plus, Lock, MoreHorizontal, Library as LibraryIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
