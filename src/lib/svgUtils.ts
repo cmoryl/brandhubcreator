@@ -487,8 +487,12 @@ export const buildSvgString = (icon: { svgPath: string; viewBox?: string; fillMo
   }
 
   if (isFullSvg) {
-    const inner = sanitizeSvg(icon.svgPath);
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="currentColor">${inner}</svg>`;
+    // DOMPurify can drop standalone SVG fragment nodes when sanitized without
+    // an <svg> root. Wrap first, then sanitize the complete SVG so stored
+    // multi-path icons render instead of blank tiles.
+    return sanitizeSvg(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="currentColor">${icon.svgPath}</svg>`
+    );
   }
 
   const fill = icon.fillMode === 'fill' ? 'currentColor' : 'none';
