@@ -22,10 +22,10 @@ interface Props {
   accent2?: string;
   size?: 'sm' | 'md' | 'lg';
   count?: number;
+  /** Number of columns in the grid. Defaults to `count` (single row). */
+  columns?: number;
   variant?: IconPreviewVariant;
-  /** Override tile border radius in px (variant defaults applied otherwise). */
   radius?: number;
-  /** Override icon stroke width. */
   strokeWidth?: number;
   className?: string;
 }
@@ -42,6 +42,7 @@ export const IconSetPreview = ({
   accent2,
   size = 'md',
   count = 6,
+  columns,
   variant = 'tile',
   radius,
   strokeWidth = 1.75,
@@ -50,10 +51,12 @@ export const IconSetPreview = ({
   const icons = iconsFromEmojis(emojis, count).slice(0, count);
   const dims = SIZE_PX[size];
   const a2 = accent2 ?? `color-mix(in oklab, ${accent} 60%, white)`;
+  const cols = columns ?? Math.min(count, 6);
 
   return (
     <div
-      className={cn('grid grid-cols-6', dims.gap, className)}
+      className={cn('grid', dims.gap, className)}
+      style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
       role="img"
       aria-label="Icon set preview"
     >

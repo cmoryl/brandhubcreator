@@ -151,19 +151,17 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
                           12 icons
                         </Badge>
                       </div>
-                      <div className="grid grid-cols-12 gap-2">
-                        <IconSetPreview
-                          emojis={cat.emojis}
-                          accent={accent}
-                          accent2={a2}
-                          size="md"
-                          count={12}
-                          variant={style.preview.variant}
-                          radius={style.preview.radius}
-                          strokeWidth={style.preview.strokeWidth}
-                          className="!grid-cols-12 col-span-12"
-                        />
-                      </div>
+                      <IconSetPreview
+                        emojis={cat.emojis}
+                        accent={accent}
+                        accent2={a2}
+                        size="md"
+                        count={12}
+                        columns={12}
+                        variant={style.preview.variant}
+                        radius={style.preview.radius}
+                        strokeWidth={style.preview.strokeWidth}
+                      />
                     </div>
                   ))}
                 </div>
