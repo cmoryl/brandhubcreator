@@ -21,7 +21,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   ArrowLeft, Building2, Library, Palette, Package, ShieldCheck,
   Wand2, Plus, Link as LinkIcon, Unlink, ExternalLink, Settings,
+  Search, ArrowRight,
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import DOMPurify from 'dompurify';
+import type { BrandIconography } from '@/types/brand';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
@@ -100,6 +104,52 @@ const BrandIconHubPage = () => {
     () => linkedLibraries.reduce((sum, l) => sum + l.icons.length, 0),
     [linkedLibraries],
   );
+
+  // Brand-scoped icon search across linked collections
+  const [iconQuery, setIconQuery] = useState('');
+  const searchResults = useMemo(() => {
+    const q = iconQuery.trim().toLowerCase();
+    if (!q) return [] as Array<{ icon: BrandIconography; libraryId: string; libraryName: string }>;
+    const out: Array<{ icon: BrandIconography; libraryId: string; libraryName: string }> = [];
+    for (const lib of linkedLibraries) {
+      for (const icon of lib.icons) {
+        const name = (icon.name || '').toLowerCase();
+        const cat = (icon.category || '').toLowerCase();
+        if (name.includes(q) || cat.includes(q)) {
+          out.push({ icon, libraryId: lib.id, libraryName: lib.name });
+          if (out.length >= 60) break;
+        }
+      }
+      if (out.length >= 60) break;
+    }
+    return out;
+  }, [iconQuery, linkedLibraries]);
+
+  const renderIconSvg = (icon: BrandIconography) => {
+    const viewBox = icon.viewBox || '0 0 24 24';
+    const isFullSvg = icon.svgPath?.includes('<');
+    if (isFullSvg) {
+      const sanitized = DOMPurify.sanitize(icon.svgPath, {
+        USE_PROFILES: { svg: true, svgFilters: true },
+      });
+      return (
+        <svg viewBox={viewBox} className="w-full h-full" fill="currentColor">
+          <g dangerouslySetInnerHTML={{ __html: sanitized }} />
+        </svg>
+      );
+    }
+    return (
+      <svg
+        viewBox={viewBox}
+        className="w-full h-full"
+        fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
+        stroke={icon.fillMode === 'stroke' ? 'currentColor' : 'none'}
+        strokeWidth={icon.fillMode === 'stroke' ? 2 : undefined}
+      >
+        <path d={icon.svgPath} />
+      </svg>
+    );
+  };
 
   const brandColors = useMemo(() => {
     const palette: any[] = (brand as any)?.guide_data?.colors?.primary || [];
@@ -250,6 +300,56 @@ const BrandIconHubPage = () => {
 
           {/* === COLLECTIONS === */}
           <TabsContent value="collections" className="space-y-6">
+            {/* Brand icon search */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  Search icons in {brand.name}'s system
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Searches across every collection linked to this brand ({totalLinkedIcons} icons).
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={iconQuery}
+                    onChange={(e) => setIconQuery(e.target.value)}
+                    placeholder="Search by icon name or category…"
+                    className="pl-9"
+                  />
+                </div>
+                {iconQuery.trim() && (
+                  searchResults.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">
+                      No icons match “{iconQuery}” in this brand's linked collections.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                      {searchResults.map(({ icon, libraryId, libraryName }) => (
+                        <button
+                          key={`${libraryId}-${icon.id}`}
+                          type="button"
+                          onClick={() => navigate(`/icon-studio?section=library&library=${libraryId}`)}
+                          title={`${icon.name} · ${libraryName}`}
+                          className="group flex flex-col items-center gap-1 p-2 rounded-md border border-border/60 bg-card hover:border-primary/50 hover:shadow-sm transition-all text-foreground"
+                        >
+                          <div className="h-8 w-8 text-foreground/80 group-hover:text-primary">
+                            {renderIconSvg(icon)}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground truncate w-full text-center">
+                            {icon.name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                )}
+              </CardContent>
+            </Card>
+
             {/* Linked */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -297,7 +397,16 @@ const BrandIconHubPage = () => {
                           count={6}
                           variant="glass"
                         />
-                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-end">
+                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 gap-1 text-xs"
+                            onClick={() => navigate(`/icon-studio?section=library&library=${lib.id}`)}
+                          >
+                            Open
+                            <ArrowRight className="h-3 w-3" />
+                          </Button>
                           <Button
                             size="sm"
                             variant="ghost"
