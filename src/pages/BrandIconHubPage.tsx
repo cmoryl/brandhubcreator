@@ -45,7 +45,25 @@ const SAMPLE_FOR = (name: string): string[] => {
   return ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
 };
 
-const BrandIconHubPage = () => {
+type EntityType = 'brand' | 'product' | 'event';
+
+interface BrandIconHubPageProps {
+  entityType?: EntityType;
+}
+
+const TABLE_FOR: Record<EntityType, 'brands' | 'products' | 'events'> = {
+  brand: 'brands',
+  product: 'products',
+  event: 'events',
+};
+
+const LABEL_FOR: Record<EntityType, string> = {
+  brand: 'Brand Icon Hub',
+  product: 'Product Icon Hub',
+  event: 'Event Icon Hub',
+};
+
+const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
@@ -56,13 +74,13 @@ const BrandIconHubPage = () => {
     if (!authLoading && !user) navigate('/auth');
   }, [user, authLoading, navigate]);
 
-  // Resolve brand by slug within active org
+  // Resolve entity (brand/product/event) by slug within active org
   const { data: brand, isLoading: brandLoading } = useQuery({
-    queryKey: ['brand-by-slug', slug, organizationId],
+    queryKey: ['entity-by-slug', entityType, slug, organizationId],
     queryFn: async () => {
       if (!slug || !organizationId) return null;
       const { data } = await supabase
-        .from('brands')
+        .from(TABLE_FOR[entityType])
         .select('id, name, slug, guide_data')
         .eq('organization_id', organizationId)
         .eq('slug', slug)
@@ -71,6 +89,7 @@ const BrandIconHubPage = () => {
     },
     enabled: !!slug && !!organizationId,
   });
+
 
   useSEO({
     title: brand?.name ? `${brand.name} · Icon Hub — BrandHub` : 'Brand Icon Hub',
