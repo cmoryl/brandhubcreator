@@ -24,6 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
+import { IconSetPreview } from './IconSetPreview';
 import type { SectionStatus } from './studioData';
 
 interface Props {
@@ -78,15 +79,22 @@ const ActivityRow = ({
   title,
   meta,
   status,
+  emojis,
+  accent,
 }: {
   title: string;
   meta: string;
   status: SectionStatus;
+  emojis: string[];
+  accent: string;
 }) => (
   <li className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-secondary/40">
-    <div className="min-w-0">
-      <div className="text-sm font-medium truncate">{title}</div>
-      <div className="text-[11px] text-muted-foreground truncate">{meta}</div>
+    <div className="flex items-center gap-3 min-w-0 flex-1">
+      <IconSetPreview emojis={emojis} accent={accent} size="sm" count={4} variant="glass" className="!grid-cols-4 flex-shrink-0" />
+      <div className="min-w-0">
+        <div className="text-sm font-medium truncate">{title}</div>
+        <div className="text-[11px] text-muted-foreground truncate">{meta}</div>
+      </div>
     </div>
     <StatusChip status={status} />
   </li>
@@ -229,11 +237,11 @@ export const DashboardView = ({
             </Button>
           </header>
           <ul className="space-y-1">
-            <ActivityRow title="GlobalLink platform icons" meta="Tech / SaaS · 84 icons" status="approved" />
-            <ActivityRow title="Life Sciences regulatory pack" meta="Life Sciences · 32 icons" status="review" />
-            <ActivityRow title="Travel loyalty refresh" meta="Travel · 48 icons" status="generating" />
-            <ActivityRow title="TransPerfect AI Solutions" meta="Brand · 22 icons" status="approved" />
-            <ActivityRow title="Healthcare patient flow" meta="Healthcare · 18 icons" status="queued" />
+            <ActivityRow title="GlobalLink platform icons" meta="Tech / SaaS · 84 icons" status="approved" emojis={['🔗','⚙️','🌍','📡','🧩']} accent="hsl(var(--tp-digital-blue))" />
+            <ActivityRow title="Life Sciences regulatory pack" meta="Life Sciences · 32 icons" status="review" emojis={['🧪','🧬','🔬','💉','📋']} accent="hsl(var(--tp-green))" />
+            <ActivityRow title="Travel loyalty refresh" meta="Travel · 48 icons" status="generating" emojis={['✈️','🏨','🎫','⭐','🗺️']} accent="hsl(var(--tp-light-blue))" />
+            <ActivityRow title="TransPerfect AI Solutions" meta="Brand · 22 icons" status="approved" emojis={['✨','🧠','🤖','⚡','🪄']} accent="hsl(var(--tp-pink))" />
+            <ActivityRow title="Healthcare patient flow" meta="Healthcare · 18 icons" status="queued" emojis={['🩺','💊','📋','🏥','❤️']} accent="hsl(var(--tp-teal))" />
           </ul>
         </div>
 

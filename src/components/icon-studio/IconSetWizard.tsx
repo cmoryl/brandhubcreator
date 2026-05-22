@@ -61,6 +61,7 @@ import {
   downloadIconSvg,
   DEFAULT_PNG_SIZES,
 } from '@/lib/iconStudio/exportIcon';
+import { IconSetPreview } from '@/components/icon-studio/shell/IconSetPreview';
 
 type StepId = 'industry' | 'core' | 'subsets' | 'preflight' | 'export';
 
@@ -520,16 +521,13 @@ const IndustryStep = ({
             </div>
             <h3 className="text-lg font-semibold">{p.name}</h3>
             <p className="text-xs text-muted-foreground mb-3">{p.tagline}</p>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {p.sampleEmojis.map((e) => (
-                <span
-                  key={e}
-                  className="h-7 w-7 rounded-md bg-background/80 border flex items-center justify-center text-base"
-                >
-                  {e}
-                </span>
-              ))}
-            </div>
+            <IconSetPreview
+              emojis={p.sampleEmojis}
+              accent={`hsl(${p.accent})`}
+              size="md"
+              variant="glass"
+              className="mb-3"
+            />
             <div className="text-xs text-muted-foreground flex items-center gap-3">
               <span>{p.coreSet.length} core sections</span>
               <span>·</span>
@@ -764,7 +762,14 @@ const SubSetsStep = ({
                         {isSelected && <CheckCircle2 className="h-3.5 w-3.5" />}
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">{s.description}</p>
+                    <p className="text-xs text-muted-foreground mb-3">{s.description}</p>
+                    <IconSetPreview
+                      emojis={[s.emoji, ...industry.sampleEmojis]}
+                      accent={`hsl(${industry.accent})`}
+                      size="sm"
+                      count={6}
+                      variant="tile"
+                    />
                     {section && (
                       <div className="mt-3 pt-3 border-t flex items-center justify-between text-[11px]">
                         <SectionStatusPill section={section} />
