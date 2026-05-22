@@ -4,8 +4,8 @@
  * brand accent applied.
  */
 
-import { useMemo } from 'react';
-import { Wand2, RefreshCw, GitCompare, Lock, Copy, ArrowUpRight } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Wand2, RefreshCw, GitCompare, Lock, Copy, ArrowUpRight, Download } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
+import { IconDetailDialog } from '@/components/icon-studio/IconDetailDialog';
+import { exportIconSystem } from '@/lib/iconStudio/exportSystem';
+import type { BrandIconography } from '@/types/brand';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
+import { toast } from 'sonner';
 
 interface Props {
   library: IconLibrary | null;
