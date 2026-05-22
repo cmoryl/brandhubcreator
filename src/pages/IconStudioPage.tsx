@@ -87,6 +87,12 @@ const IconStudioPage = () => {
   const [styleSubView, setStyleSubView] = useState<
     'colorize' | 'hierarchy' | 'app-icons'
   >('colorize');
+  const [shellSection, setShellSection] = useState<ShellSection>('dashboard');
+  const [activeBrand, setActiveBrand] = useState<ShellBrand | undefined>(undefined);
+  const shellBrands: ShellBrand[] = useMemo(
+    () => (organization ? [{ id: organization.id, name: organization.name }] : []),
+    [organization],
+  );
 
   const {
     libraries,
