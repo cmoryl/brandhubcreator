@@ -181,6 +181,9 @@ export const DashboardView = ({
 }: Props) => {
   const volumeData = [4, 8, 12, 9, 14, 22, 18, 26, 24, 31, 28, 38, 42, 36];
   const qaScore = 86;
+  const { hidden: hiddenBrands, hide: hideBrand, clear: clearHiddenBrands, isHidden: isBrandHidden } =
+    useHiddenItems('brand-profiles');
+  const visibleBrandProfiles = brandProfiles.filter((b) => !isBrandHidden(b.id));
 
   return (
     <div className="space-y-8">
