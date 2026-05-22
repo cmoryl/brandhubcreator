@@ -130,11 +130,21 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     return set;
   }, [libraries, entityKey]);
 
+  // Per-entity hide list (suppresses inherited collections from this hub)
+  const { isHidden, hide: hideLink, unhide: unhideLink } = useHiddenItems(
+    `linked-libs:${entityType}:${brand?.id || 'none'}`,
+    organizationId,
+  );
+
   const linkedIds = useMemo(() => {
     const merged = new Set<string>(implicitLinkedIds);
     explicitLinkedIds.forEach((id) => merged.add(id));
+    // Remove any user-hidden ids
+    for (const id of Array.from(merged)) {
+      if (isHidden(id)) merged.delete(id);
+    }
     return merged;
-  }, [implicitLinkedIds, explicitLinkedIds]);
+  }, [implicitLinkedIds, explicitLinkedIds, isHidden]);
 
   const linkedLibraries = useMemo(
     () => libraries.filter((l) => linkedIds.has(l.id)),
