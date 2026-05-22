@@ -47,16 +47,17 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0 icon-studio-tp" data-theme={theme}>
-        {style && (
-          <>
-            {/* Hero header with showcase preview */}
-            <div
-              className="relative overflow-hidden p-8 border-b border-border/60"
-              style={{
-                background: `radial-gradient(80% 100% at 0% 0%, color-mix(in oklab, ${accent} 22%, transparent), transparent 70%), radial-gradient(60% 100% at 100% 100%, color-mix(in oklab, ${a2 ?? accent} 18%, transparent), transparent 70%)`,
-              }}
-            >
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+        <div className={previewTheme === 'dark' ? 'dark' : ''}>
+          {style && (
+            <>
+              {/* Hero header with showcase preview */}
+              <div
+                className="relative overflow-hidden p-8 border-b border-border/60 bg-background text-foreground"
+                style={{
+                  background: `radial-gradient(80% 100% at 0% 0%, color-mix(in oklab, ${accent} 22%, transparent), transparent 70%), radial-gradient(60% 100% at 100% 100%, color-mix(in oklab, ${a2 ?? accent} 18%, transparent), transparent 70%)`,
+                }}
+              >
               <DialogHeader className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                   <Sparkles className="h-3.5 w-3.5" />
