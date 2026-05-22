@@ -354,7 +354,7 @@ export const DashboardView = ({
             return (
               <li key={b.id}>
                 {b.slug ? (
-                  <Link to={`/brand/${b.slug}`} className={className}>
+                  <Link to={`/icon-studio/brand/${b.slug}`} className={className}>
                     {content}
                   </Link>
                 ) : (
