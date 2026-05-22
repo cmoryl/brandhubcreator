@@ -307,6 +307,24 @@ const IconStudioPage = () => {
           totalLibraries={libraries.length}
           onStartGenerate={() => setShellSection('generate')}
           onNavigate={(section) => setShellSection(section)}
+          onOpenLibrary={(id) => {
+            setDeepLinkLibraryId(id);
+            setShellSection('library');
+          }}
+          recentLibraries={[...libraries]
+            .sort((a: any, b: any) => {
+              const ta = new Date(a.updated_at || a.created_at || 0).getTime();
+              const tb = new Date(b.updated_at || b.created_at || 0).getTime();
+              return tb - ta;
+            })
+            .slice(0, 5)
+            .map((l) => ({
+              id: l.id,
+              name: l.name,
+              level: l.level,
+              iconCount: l.icons.length,
+              isActive: l.is_active,
+            }))}
           brandProfiles={hierarchyBrands.map((b) => ({
             id: b.id,
             name: b.name,
@@ -315,6 +333,7 @@ const IconStudioPage = () => {
             tone: b.type === 'brand' ? 'Brand' : b.type === 'product' ? 'Product' : 'Event',
           }))}
         />
+
       ) : shellSection === 'generate' ? (
         !expertMode ? (
           <IconSetWizard
