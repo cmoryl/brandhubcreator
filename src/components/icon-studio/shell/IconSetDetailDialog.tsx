@@ -158,6 +158,46 @@ export const IconSetDetailDialog = ({
                     <Download className="h-3.5 w-3.5" /> Export bundle
                   </Button>
                 </div>
+
+                {/* Preview controls — theme + style override applied to entire set */}
+                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border/40 mt-3">
+                  <div className="flex items-center gap-1 rounded-md border border-border/60 p-0.5">
+                    <Button
+                      size="sm"
+                      variant={previewTheme === 'light' ? 'default' : 'ghost'}
+                      className="h-7 px-2 gap-1"
+                      onClick={() => setPreviewTheme('light')}
+                    >
+                      <Sun className="h-3.5 w-3.5" /> Light
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={previewTheme === 'dark' ? 'default' : 'ghost'}
+                      className="h-7 px-2 gap-1"
+                      onClick={() => setPreviewTheme('dark')}
+                    >
+                      <Moon className="h-3.5 w-3.5" /> Dark
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-1 rounded-md border border-border/60 p-0.5">
+                    {(['auto', 'outlined', 'filled', 'duotone'] as const).map((s) => (
+                      <Button
+                        key={s}
+                        size="sm"
+                        variant={styleOverride === s ? 'default' : 'ghost'}
+                        className="h-7 px-2 capitalize"
+                        onClick={() => setStyleOverride(s)}
+                      >
+                        {s === 'auto' ? `Auto (${detectedStyle})` : s}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <span className="text-[11px] text-muted-foreground ml-auto">
+                    Preview only — does not alter stored icons
+                  </span>
+                </div>
               </DialogHeader>
             </div>
 
