@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { BrandIconography } from '@/types/brand';
 import { buildSvgString, detectFillMode, sanitizeSvg } from '@/lib/svgUtils';
 
@@ -11,6 +11,8 @@ interface IconSvgRenderProps {
   presentation?: IconPresentation;
   strokeWidth?: number;
   className?: string;
+  /** Force-enable debug overlay for this tile. Otherwise reads ?iconDebug=1 / localStorage.iconDebug */
+  debug?: boolean;
 }
 
 const DRAWABLE_SELECTOR = 'path,circle,rect,line,polyline,polygon,ellipse,text';
@@ -36,6 +38,83 @@ const normalizeToSvgMarkup = (icon: BrandIconography) => {
     fillMode: icon.fillMode,
     name: icon.name,
   });
+};
+
+interface DiagnosticReport {
+  ok: boolean;
+  reasons: string[];
+  drawableCount: number;
+  hasViewBox: boolean;
+  detectedMode: string;
+  rawLength: number;
+}
+
+const diagnoseIcon = (icon: BrandIconography, finalMarkup: string): DiagnosticReport => {
+  const reasons: string[] = [];
+  const raw = (icon.svgPath || '').trim();
+  if (!raw) reasons.push('missing svgPath');
+  if (!icon.viewBox) reasons.push('missing viewBox (fallback 0 0 24 24)');
+
+  let drawableCount = 0;
+  let detectedMode = 'unknown';
+
+  if (finalMarkup && typeof DOMParser !== 'undefined') {
+    try {
+      const doc = new DOMParser().parseFromString(finalMarkup, 'image/svg+xml');
+      const svg = doc.querySelector('svg');
+      if (!svg) {
+        reasons.push('no <svg> root after sanitize');
+      } else {
+        const drawables = svg.querySelectorAll(DRAWABLE_SELECTOR);
+        drawableCount = drawables.length;
+        if (drawableCount === 0) reasons.push('zero drawable elements');
+
+        // Check for invisible paint
+        let visibleCount = 0;
+        drawables.forEach((el) => {
+          const fill = el.getAttribute('fill');
+          const stroke = el.getAttribute('stroke');
+          const sw = el.getAttribute('stroke-width');
+          const hasFill = fill && fill !== 'none';
+          const hasStroke = stroke && stroke !== 'none';
+          if (hasFill || (hasStroke && sw && Number(sw) > 0)) visibleCount += 1;
+        });
+        if (drawableCount > 0 && visibleCount === 0) {
+          reasons.push('all paint=none (bad stroke/fill props)');
+        }
+      }
+      detectedMode = icon.fillMode ?? detectFillMode(raw) ?? 'unknown';
+    } catch (err) {
+      reasons.push(`parse error: ${(err as Error).message}`);
+    }
+  } else if (!finalMarkup) {
+    reasons.push('null render result');
+  }
+
+  return {
+    ok: reasons.length === 0,
+    reasons,
+    drawableCount,
+    hasViewBox: Boolean(icon.viewBox),
+    detectedMode,
+    rawLength: raw.length,
+  };
+};
+
+const useDebugFlag = (forced?: boolean) => {
+  const [enabled, setEnabled] = useState(forced ?? false);
+  useEffect(() => {
+    if (forced) {
+      setEnabled(true);
+      return;
+    }
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get('iconDebug') === '1';
+    const fromStorage = window.localStorage?.getItem('iconDebug') === '1';
+    setEnabled(fromUrl || fromStorage);
+  }, [forced]);
+  return enabled;
 };
 
 const prepareSvgMarkup = (
@@ -149,30 +228,80 @@ export const IconSvgRender = ({
   presentation = 'auto',
   strokeWidth = 1.75,
   className,
+  debug,
 }: IconSvgRenderProps) => {
   const safeMarkup = useMemo(
     () => prepareSvgMarkup(icon, size, presentation, strokeWidth),
     [icon, presentation, size, strokeWidth],
   );
 
-  if (!safeMarkup) {
-    return (
-      <span
-        className={className}
-        style={{ width: size, height: size, color }}
-        aria-label={`${icon.name || 'Icon'} unavailable`}
-        role="img"
-      >
-        ?
-      </span>
-    );
-  }
+  const debugEnabled = useDebugFlag(debug);
+  const report = useMemo(
+    () => (debugEnabled ? diagnoseIcon(icon, safeMarkup) : null),
+    [debugEnabled, icon, safeMarkup],
+  );
 
-  return (
+  const tile = !safeMarkup ? (
+    <span
+      className={className}
+      style={{ width: size, height: size, color }}
+      aria-label={`${icon.name || 'Icon'} unavailable`}
+      role="img"
+    >
+      ?
+    </span>
+  ) : (
     <span
       className={className}
       style={{ width: size, height: size, color, display: 'inline-flex', flexShrink: 0 }}
       dangerouslySetInnerHTML={{ __html: safeMarkup }}
     />
+  );
+
+  if (!debugEnabled || !report) return tile;
+
+  const tone = report.ok
+    ? 'rgba(34,197,94,0.9)'
+    : 'rgba(239,68,68,0.95)';
+
+  return (
+    <span
+      style={{
+        position: 'relative',
+        display: 'inline-flex',
+        width: size,
+        height: size,
+        outline: `1px dashed ${tone}`,
+        outlineOffset: 1,
+      }}
+      title={
+        report.ok
+          ? `OK · ${report.drawableCount} drawables · mode=${report.detectedMode}`
+          : `BLANK: ${report.reasons.join('; ')}\nname=${icon.name}\nid=${icon.id}\nrawLen=${report.rawLength} · drawables=${report.drawableCount} · viewBox=${report.hasViewBox} · mode=${report.detectedMode}`
+      }
+    >
+      {tile}
+      {!report.ok && (
+        <span
+          style={{
+            position: 'absolute',
+            top: -6,
+            right: -6,
+            background: tone,
+            color: 'white',
+            fontSize: 9,
+            lineHeight: 1,
+            padding: '2px 4px',
+            borderRadius: 4,
+            fontFamily: 'monospace',
+            fontWeight: 700,
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        >
+          !{report.reasons.length}
+        </span>
+      )}
+    </span>
   );
 };
