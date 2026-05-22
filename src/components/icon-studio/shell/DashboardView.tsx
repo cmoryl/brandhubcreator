@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
@@ -31,6 +32,7 @@ import type { SectionStatus } from './studioData';
 interface BrandProfile {
   id: string;
   name: string;
+  slug?: string;
   tone?: string;
   members?: number;
 }
@@ -309,23 +311,35 @@ export const DashboardView = ({
           {(brandProfiles.length > 0
             ? brandProfiles
             : [{ id: 'placeholder', name: organizationName || 'Your brand', tone: 'Add brands to see them here', members: 0 }]
-          ).map((b) => (
-            <li
-              key={b.id}
-              className="rounded-lg border bg-secondary/30 px-3 py-2.5 transition-colors hover:bg-secondary/60"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium truncate">{b.name}</span>
-                {typeof b.members === 'number' && b.members > 0 && (
-                  <Badge variant="secondary" className="gap-1 text-[10px]">
-                    <Users className="h-3 w-3" />
-                    {b.members}
-                  </Badge>
+          ).map((b) => {
+            const content = (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium truncate">{b.name}</span>
+                  {typeof b.members === 'number' && b.members > 0 && (
+                    <Badge variant="secondary" className="gap-1 text-[10px]">
+                      <Users className="h-3 w-3" />
+                      {b.members}
+                    </Badge>
+                  )}
+                </div>
+                {b.tone && <div className="text-[11px] text-muted-foreground">{b.tone}</div>}
+              </>
+            );
+            const className =
+              'block rounded-lg border bg-secondary/30 px-3 py-2.5 transition-colors hover:bg-secondary/60 hover:border-primary/40';
+            return (
+              <li key={b.id}>
+                {b.slug ? (
+                  <Link to={`/brand/${b.slug}`} className={className}>
+                    {content}
+                  </Link>
+                ) : (
+                  <div className={className}>{content}</div>
                 )}
-              </div>
-              {b.tone && <div className="text-[11px] text-muted-foreground">{b.tone}</div>}
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       </section>
     </div>

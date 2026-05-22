@@ -148,14 +148,14 @@ const IconStudioPage = () => {
     queryFn: async () => {
       if (!organizationId) return [];
       const [b, p, e] = await Promise.all([
-        supabase.from('brands').select('id, name').eq('organization_id', organizationId),
-        supabase.from('products').select('id, name').eq('organization_id', organizationId),
-        supabase.from('events').select('id, name').eq('organization_id', organizationId),
+        supabase.from('brands').select('id, name, slug').eq('organization_id', organizationId),
+        supabase.from('products').select('id, name, slug').eq('organization_id', organizationId),
+        supabase.from('events').select('id, name, slug').eq('organization_id', organizationId),
       ]);
-      const items: Array<{ id: string; name: string; type: 'brand' | 'product' | 'event' }> = [];
-      (b.data || []).forEach((x) => items.push({ id: x.id, name: x.name, type: 'brand' }));
-      (p.data || []).forEach((x) => items.push({ id: x.id, name: x.name, type: 'product' }));
-      (e.data || []).forEach((x) => items.push({ id: x.id, name: x.name, type: 'event' }));
+      const items: Array<{ id: string; name: string; slug?: string; type: 'brand' | 'product' | 'event' }> = [];
+      (b.data || []).forEach((x: any) => items.push({ id: x.id, name: x.name, slug: x.slug, type: 'brand' }));
+      (p.data || []).forEach((x: any) => items.push({ id: x.id, name: x.name, slug: x.slug, type: 'product' }));
+      (e.data || []).forEach((x: any) => items.push({ id: x.id, name: x.name, slug: x.slug, type: 'event' }));
       return items;
     },
     enabled: !!organizationId,
@@ -282,7 +282,7 @@ const IconStudioPage = () => {
           onStartGenerate={() => setShellSection('generate')}
           brandProfiles={hierarchyBrands
             .filter((b) => b.type === 'brand')
-            .map((b) => ({ id: b.id, name: b.name }))}
+            .map((b) => ({ id: b.id, name: b.name, slug: b.slug }))}
         />
       ) : shellSection === 'generate' ? (
         !expertMode ? (
