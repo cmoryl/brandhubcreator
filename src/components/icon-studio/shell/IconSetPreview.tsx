@@ -20,6 +20,8 @@ interface Props {
   accent?: string;
   /** Optional secondary accent (for duotone/risograph/aurora). */
   accent2?: string;
+  /** Optional recipe from the style system card, used to match glyph fill/stroke. */
+  recipe?: { stroke?: boolean; fill?: boolean; duotone?: boolean; mono?: boolean };
   size?: 'sm' | 'md' | 'lg';
   count?: number;
   /** Number of columns in the grid. Defaults to `count` (single row). */
@@ -40,6 +42,7 @@ export const IconSetPreview = ({
   emojis,
   accent = 'hsl(var(--primary))',
   accent2,
+  recipe,
   size = 'md',
   count = 6,
   columns,
@@ -183,6 +186,13 @@ export const IconSetPreview = ({
             break;
         }
 
+        const resolvedIconColor = iconColor ?? (recipe?.mono ? 'hsl(var(--muted-foreground))' : accent);
+        const recipeFill = recipe?.duotone ? a2 : recipe?.fill ? resolvedIconColor : 'none';
+        const recipeFillOpacity = recipe?.duotone ? 0.35 : recipe?.fill ? 0.88 : undefined;
+        const recipeStrokeWidth = recipe?.fill && !recipe?.stroke && !recipe?.duotone
+          ? Math.max(iconStroke * 0.72, 1)
+          : iconStroke;
+
         return (
           <div
             key={i}
@@ -193,10 +203,13 @@ export const IconSetPreview = ({
               style={{
                 width: dims.icon,
                 height: dims.icon,
-                color: iconColor ?? accent,
+                color: resolvedIconColor,
                 ...extraIconStyle,
               }}
-              strokeWidth={iconStroke}
+              fill={recipeFill}
+              fillOpacity={recipeFillOpacity}
+              stroke="currentColor"
+              strokeWidth={recipeStrokeWidth}
             />
           </div>
         );

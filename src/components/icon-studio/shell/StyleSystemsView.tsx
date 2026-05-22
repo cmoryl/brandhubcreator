@@ -120,6 +120,7 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                     emojis={SAMPLE_EMOJIS}
                     accent={accent}
                     accent2={s.preview.accent2 ? `hsl(var(--${s.preview.accent2}))` : undefined}
+                    recipe={s.recipe}
                     size="sm"
                     count={6}
                     variant={s.preview.variant}
