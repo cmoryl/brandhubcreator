@@ -10,15 +10,10 @@
 
 import {
   ArrowUpRight,
-  CheckCircle2,
-  Clock,
   Download,
-  Eye,
   Folder,
-  Package,
   Plus,
   Sparkles,
-  TrendingUp,
   Users,
   X,
 } from 'lucide-react';
@@ -53,54 +48,6 @@ interface Props {
   brandProfiles?: BrandProfile[];
 }
 
-const MetricCard = ({
-  label,
-  value,
-  delta,
-  icon: Icon,
-  accentToken,
-  onClick,
-}: {
-  label: string;
-  value: string | number;
-  delta?: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  accentToken: string;
-  onClick?: () => void;
-}) => {
-  const Comp: any = onClick ? 'button' : 'div';
-  return (
-    <Comp
-      type={onClick ? 'button' : undefined}
-      onClick={onClick}
-      className={`tp-card tp-card-interactive p-5 text-left w-full ${onClick ? 'cursor-pointer hover:border-primary/40' : ''}`}
-    >
-      <div className="flex items-start justify-between">
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-lg"
-          style={{
-            background: `hsl(${accentToken} / 0.12)`,
-            color: `hsl(${accentToken})`,
-          }}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
-        {delta && (
-          <span
-            className="flex items-center gap-1 text-[11px] font-medium"
-            style={{ color: 'hsl(var(--tp-green))' }}
-          >
-            <TrendingUp className="h-3 w-3" />
-            {delta}
-          </span>
-        )}
-      </div>
-      <div className="mt-4 text-2xl font-semibold tabular-nums tracking-tight">{value}</div>
-      <div className="mt-1 text-xs text-muted-foreground">{label}</div>
-    </Comp>
-  );
-};
-
 const ActivityRow = ({
   title,
   meta,
@@ -134,53 +81,12 @@ const ActivityRow = ({
   </li>
 );
 
-/** Render a tiny inline SVG sparkline for the production volume tile. */
-const Sparkline = ({
-  data,
-  accentToken,
-}: {
-  data: number[];
-  accentToken: string;
-}) => {
-  const w = 220;
-  const h = 60;
-  const max = Math.max(...data, 1);
-  const stepX = w / (data.length - 1 || 1);
-  const points = data
-    .map((v, i) => `${(i * stepX).toFixed(1)},${(h - (v / max) * h).toFixed(1)}`)
-    .join(' ');
-  const area = `0,${h} ${points} ${w},${h}`;
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-16 w-full" aria-hidden>
-      <defs>
-        <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={`hsl(${accentToken})`} stopOpacity="0.35" />
-          <stop offset="100%" stopColor={`hsl(${accentToken})`} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon points={area} fill="url(#sparkFill)" />
-      <polyline
-        points={points}
-        fill="none"
-        stroke={`hsl(${accentToken})`}
-        strokeWidth="1.75"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-};
-
 export const DashboardView = ({
   organizationName,
-  totalIcons,
-  totalLibraries,
   onStartGenerate,
   onNavigate,
   brandProfiles = [],
 }: Props) => {
-  const volumeData = [4, 8, 12, 9, 14, 22, 18, 26, 24, 31, 28, 38, 42, 36];
-  const qaScore = 86;
   const { hidden: hiddenBrands, hide: hideBrand, clear: clearHiddenBrands, isHidden: isBrandHidden } =
     useHiddenItems('brand-profiles');
   const visibleBrandProfiles = brandProfiles.filter((b) => !isBrandHidden(b.id));
@@ -227,49 +133,7 @@ export const DashboardView = ({
       {/* Golden Path quickstart */}
       <GoldenPathCard />
 
-      {/* Metric tiles */}
-      <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <MetricCard label="Total icons" value={totalIcons} delta="+12%" icon={Sparkles} accentToken="var(--tp-light-blue)" onClick={() => onNavigate?.('library')} />
-        <MetricCard label="Active drafts" value={Math.max(0, totalLibraries - 1)} icon={Clock} accentToken="var(--tp-orange)" onClick={() => onNavigate?.('sets')} />
-        <MetricCard label="Approved sets" value={totalLibraries} delta="+3" icon={CheckCircle2} accentToken="var(--tp-green)" onClick={() => onNavigate?.('sets')} />
-        <MetricCard label="Needs review" value={2} icon={Eye} accentToken="var(--tp-purple)" onClick={() => onNavigate?.('qa')} />
-      </section>
-
-      {/* Two-up: volume + QA gauge */}
-      <section className="grid gap-4 lg:grid-cols-3">
-        <div className="tp-card p-5 lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                Production volume
-              </div>
-              <div className="mt-1 text-lg font-semibold">Last 14 generations</div>
-            </div>
-            <Badge variant="outline" className="gap-1">
-              <TrendingUp className="h-3 w-3" /> Trending up
-            </Badge>
-          </div>
-          <Sparkline data={volumeData} accentToken="var(--tp-digital-blue)" />
-          <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
-            <span>14 jobs</span>
-            <span>{volumeData.reduce((a, b) => a + b, 0)} icons produced</span>
-          </div>
-        </div>
-
-        <div className="tp-card p-5">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            QA health
-          </div>
-          <div className="mt-3 flex items-center justify-center">
-            <QaGauge value={qaScore} />
-          </div>
-          <div className="mt-2 text-center text-xs text-muted-foreground">
-            Average across last 30 days
-          </div>
-        </div>
-      </section>
-
-      {/* Two-up: recent + export history */}
+      {/* Recent icon systems + Export history */}
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="tp-card p-5">
           <header className="mb-3 flex items-center justify-between">
@@ -402,38 +266,5 @@ export const DashboardView = ({
         </ul>
       </section>
     </div>
-  );
-};
-
-/** Donut-style QA score gauge. */
-const QaGauge = ({ value }: { value: number }) => {
-  const size = 144;
-  const stroke = 14;
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
-  const offset = c - (value / 100) * c;
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`QA score ${value}%`}>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth={stroke} />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill="none"
-        stroke="hsl(var(--tp-green))"
-        strokeWidth={stroke}
-        strokeLinecap="round"
-        strokeDasharray={c}
-        strokeDashoffset={offset}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        style={{ transition: 'stroke-dashoffset 600ms ease' }}
-      />
-      <text x="50%" y="48%" textAnchor="middle" dominantBaseline="central" className="fill-foreground" style={{ fontSize: 28, fontWeight: 600 }}>
-        {value}
-      </text>
-      <text x="50%" y="68%" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 10, letterSpacing: 1 }}>
-        QA SCORE
-      </text>
-    </svg>
   );
 };
