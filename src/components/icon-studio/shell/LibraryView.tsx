@@ -58,7 +58,6 @@ export const LibraryView = ({ libraries, onOpenSet, onCreate, autoOpenLibraryId,
       onAutoOpenConsumed?.();
     }
   }, [autoOpenLibraryId, libraries, onAutoOpenConsumed]);
-  const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
 
   const filtered = useMemo(() => {
     return libraries.filter((l) => {
