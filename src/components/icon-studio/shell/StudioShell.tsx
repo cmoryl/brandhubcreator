@@ -246,6 +246,21 @@ export const StudioShell = ({
 
             <Button
               size="sm"
+              variant="ghost"
+              className="h-8 w-8 p-0"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
+
+            <Button
+              size="sm"
               variant="outline"
               className="gap-1.5 h-8"
               onClick={onSaveToLibrary}
