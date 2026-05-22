@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { IconSetPreview } from './IconSetPreview';
+import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { StatusChip } from './StatusChip';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
 
