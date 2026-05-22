@@ -21,8 +21,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   ArrowLeft, Building2, Library, Palette, Package, ShieldCheck,
   Wand2, Plus, Link as LinkIcon, Unlink, ExternalLink, Settings,
-  Search, ArrowRight, FileDown, Loader2, Eye,
+  Search, ArrowRight, FileDown, Loader2, Eye, Download, Copy, FileCode,
 } from 'lucide-react';
+import { downloadIconSvg, downloadIconPng, downloadIconBundle } from '@/lib/iconStudio/exportIcon';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import DOMPurify from 'dompurify';
