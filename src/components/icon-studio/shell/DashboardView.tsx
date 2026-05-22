@@ -237,11 +237,11 @@ export const DashboardView = ({
             </Button>
           </header>
           <ul className="space-y-1">
-            <ActivityRow title="GlobalLink platform icons" meta="Tech / SaaS · 84 icons" status="approved" />
-            <ActivityRow title="Life Sciences regulatory pack" meta="Life Sciences · 32 icons" status="review" />
-            <ActivityRow title="Travel loyalty refresh" meta="Travel · 48 icons" status="generating" />
-            <ActivityRow title="TransPerfect AI Solutions" meta="Brand · 22 icons" status="approved" />
-            <ActivityRow title="Healthcare patient flow" meta="Healthcare · 18 icons" status="queued" />
+            <ActivityRow title="GlobalLink platform icons" meta="Tech / SaaS · 84 icons" status="approved" emojis={['🔗','⚙️','🌍','📡','🧩']} accent="hsl(var(--tp-digital-blue))" />
+            <ActivityRow title="Life Sciences regulatory pack" meta="Life Sciences · 32 icons" status="review" emojis={['🧪','🧬','🔬','💉','📋']} accent="hsl(var(--tp-green))" />
+            <ActivityRow title="Travel loyalty refresh" meta="Travel · 48 icons" status="generating" emojis={['✈️','🏨','🎫','⭐','🗺️']} accent="hsl(var(--tp-light-blue))" />
+            <ActivityRow title="TransPerfect AI Solutions" meta="Brand · 22 icons" status="approved" emojis={['✨','🧠','🤖','⚡','🪄']} accent="hsl(var(--tp-pink))" />
+            <ActivityRow title="Healthcare patient flow" meta="Healthcare · 18 icons" status="queued" emojis={['🩺','💊','📋','🏥','❤️']} accent="hsl(var(--tp-teal))" />
           </ul>
         </div>
 
