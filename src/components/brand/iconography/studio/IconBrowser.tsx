@@ -298,9 +298,10 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
   }, [selectedSvg, iconColor, strokeWidth]);
 
   return (
-    <div className="flex h-[600px] border rounded-xl overflow-hidden bg-background">
+    <div className="flex h-[calc(100vh-260px)] min-h-[640px] border rounded-xl overflow-hidden bg-background">
       {/* ── Left Sidebar ── */}
-      <div className="w-52 border-r flex flex-col bg-muted/30 shrink-0">
+      <div className="w-60 border-r flex flex-col bg-muted/30 shrink-0">
+
         <div className="p-3 border-b">
           <h3 className="text-sm font-semibold">Browse</h3>
         </div>
