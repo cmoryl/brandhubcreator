@@ -451,9 +451,17 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
           {formats.map((f) => {
             const Icon = f.icon;
             return (
-              <button
+              <div
                 key={f.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => toggleFormat(f.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleFormat(f.id);
+                  }
+                }}
                 className={cn(
                   'flex items-start gap-3 rounded-lg border p-3 text-left transition-colors',
                   f.enabled
@@ -463,8 +471,9 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
               >
                 <Checkbox
                   checked={f.enabled}
-                  className="mt-0.5"
-                  onCheckedChange={() => toggleFormat(f.id)}
+                  className="mt-0.5 pointer-events-none"
+                  aria-hidden="true"
+                  tabIndex={-1}
                 />
                 <Icon className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                 <div className="min-w-0 flex-1">
@@ -476,7 +485,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
                   </div>
                   <div className="text-[11px] text-muted-foreground">{f.description}</div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>

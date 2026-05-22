@@ -42,6 +42,7 @@ import { scoreIcon, scoreColor, type QAReport } from '@/lib/iconStudio/qa';
 import { readRecipe, type IconRecipe } from '@/lib/iconStudio/recipe';
 import { buildSvgString, sanitizeSvg } from '@/lib/svgUtils';
 import { cn } from '@/lib/utils';
+import { IconSvgRender } from './IconSvgRender';
 import { toast } from 'sonner';
 
 interface Props {
@@ -50,6 +51,7 @@ interface Props {
   fallbackRecipe?: IconRecipe | null;
   /** Brand accent color (hex). */
   accent?: string;
+  presentation?: 'auto' | 'outlined' | 'filled' | 'duotone';
   onClose: () => void;
   onRegenerate?: (recipe: IconRecipe) => Promise<void> | void;
   onApprove?: (icon: BrandIconography) => void;
@@ -62,6 +64,7 @@ export const IconDetailDialog = ({
   icon,
   fallbackRecipe,
   accent = '#139DD8',
+  presentation = 'auto',
   onClose,
   onRegenerate,
   onApprove,
@@ -119,7 +122,7 @@ export const IconDetailDialog = ({
 
   return (
     <Dialog open={!!icon} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-6xl max-h-[92vh] overflow-y-auto p-0">
+      <DialogContent className="icon-studio-tp max-w-6xl max-h-[92vh] overflow-y-auto p-0 bg-background text-foreground" data-theme={bg}>
         <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr]">
           {/* LEFT: visual workspace */}
           <div className="border-r border-border/60">
@@ -161,11 +164,11 @@ export const IconDetailDialog = ({
               <div
                 className={cn(
                   'rounded-xl border flex items-center justify-center transition-colors',
-                  bg === 'light' ? 'bg-white border-border' : 'bg-zinc-900 border-zinc-800',
+                  bg === 'light' ? 'bg-background border-border' : 'bg-background border-border',
                 )}
                 style={{ height: 280 }}
               >
-                <IconRender icon={icon} size={160} color={accent} />
+                <IconSvgRender icon={icon} size={160} color={accent} presentation={presentation} />
               </div>
             </div>
 
@@ -180,11 +183,11 @@ export const IconDetailDialog = ({
                     <div
                       className={cn(
                         'flex items-center justify-center rounded-md',
-                        bg === 'light' ? 'bg-white' : 'bg-zinc-900',
+                        'bg-background',
                       )}
                       style={{ width: s + 16, height: s + 16 }}
                     >
-                      <IconRender icon={icon} size={s} color={accent} />
+                      <IconSvgRender icon={icon} size={s} color={accent} presentation={presentation} />
                     </div>
                     <span className="text-[10px] tabular-nums text-muted-foreground">
                       {s}px
@@ -424,54 +427,6 @@ export const IconDetailDialog = ({
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                     */
 /* -------------------------------------------------------------------------- */
-
-const IconRender = ({
-  icon,
-  size,
-  color,
-}: {
-  icon: BrandIconography;
-  size: number;
-  color: string;
-}) => {
-  const raw = (icon.svgPath || '').trim();
-  const isFullSvg = raw.startsWith('<svg');
-  const viewBox = (icon as any).viewBox || '0 0 24 24';
-  const fillMode = (icon as any).fillMode;
-
-  const markup = isFullSvg
-    ? raw
-        .replace(/width="[^"]*"/i, `width="${size}"`)
-        .replace(/height="[^"]*"/i, `height="${size}"`)
-        .replace(/currentColor/g, color)
-    : buildSvgString({
-        svgPath: raw,
-        viewBox,
-        fillMode,
-        name: icon.name,
-      })
-        .replace(/width="[^"]*"/i, `width="${size}"`)
-        .replace(/height="[^"]*"/i, `height="${size}"`)
-        .replace(/currentColor/g, color);
-
-  const safe = sanitizeSvg(markup);
-  if (!safe) {
-    return (
-      <div
-        className="flex items-center justify-center text-[10px] text-muted-foreground"
-        style={{ width: size, height: size }}
-      >
-        ?
-      </div>
-    );
-  }
-  return (
-    <span
-      style={{ width: size, height: size, display: 'inline-flex', color }}
-      dangerouslySetInnerHTML={{ __html: safe }}
-    />
-  );
-};
 
 const ScoreTile = ({ label, value }: { label: string; value: number }) => (
   <div className="rounded-lg border bg-secondary/30 px-3 py-2.5">
