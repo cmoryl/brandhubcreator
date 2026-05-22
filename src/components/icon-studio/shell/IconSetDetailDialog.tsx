@@ -142,7 +142,14 @@ export const IconSetDetailDialog = ({
             {/* Size ladder with real or sample previews */}
             <div className="p-6 space-y-6">
               {realIcons.length > 0 ? (
-                <RealIconLadder icons={realIcons} accent={accent} />
+                <RealIconLadder
+                  icons={realIcons}
+                  accent={accent}
+                  onIconClick={(id) => {
+                    const full = library.icons.find((i) => i.id === id) ?? null;
+                    setSelectedIcon(full);
+                  }}
+                />
               ) : (
                 <div className="space-y-4">
                   <div className="text-xs text-muted-foreground">
@@ -173,6 +180,12 @@ export const IconSetDetailDialog = ({
           </>
         )}
       </DialogContent>
+
+      <IconDetailDialog
+        icon={selectedIcon}
+        onClose={() => setSelectedIcon(null)}
+        accent={accent}
+      />
     </Dialog>
   );
 };
