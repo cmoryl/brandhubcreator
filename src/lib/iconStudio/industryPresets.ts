@@ -61,11 +61,11 @@ export interface IndustryPreset {
 /* -------------------------------------------------------------------------- */
 
 const SHARED_CORE: CoreSetEntry[] = [
-  { category: 'Foundation', sectionIndex: 0, label: 'Navigation', count: 8 },
-  { category: 'Foundation', sectionIndex: 1, label: 'UI States', count: 6 },
-  { category: 'Foundation', sectionIndex: 2, label: 'Basic Logic', count: 6 },
-  { category: 'Communication', sectionIndex: 0, label: 'Messaging', count: 6 },
-  { category: 'Communication', sectionIndex: 1, label: 'Notifications', count: 5 },
+  { category: 'Foundation', sectionIndex: 0, label: 'Navigation', count: 30 },
+  { category: 'Foundation', sectionIndex: 1, label: 'UI States', count: 30 },
+  { category: 'Foundation', sectionIndex: 2, label: 'Basic Logic', count: 30 },
+  { category: 'Communication', sectionIndex: 0, label: 'Messaging', count: 30 },
+  { category: 'Communication', sectionIndex: 1, label: 'Notifications', count: 30 },
 ];
 
 /* -------------------------------------------------------------------------- */
