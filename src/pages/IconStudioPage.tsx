@@ -282,7 +282,7 @@ const IconStudioPage = () => {
           onStartGenerate={() => setShellSection('generate')}
           brandProfiles={hierarchyBrands
             .filter((b) => b.type === 'brand')
-            .map((b) => ({ id: b.id, name: b.name }))}
+            .map((b) => ({ id: b.id, name: b.name, slug: b.slug }))}
         />
       ) : shellSection === 'generate' ? (
         !expertMode ? (
