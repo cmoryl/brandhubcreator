@@ -367,7 +367,13 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
                   <Hash className="h-3 w-3" />
                   <span>Icon style sample</span>
                 </div>
-                <IconSetPreview emojis={b.emojis} accent={accent} size="md" count={6} variant="glass" />
+                <LibraryIconPreview
+                  icons={iconsForProfile({ id: b.id, name: b.name, entityType: b.entityType })}
+                  fallbackEmojis={b.emojis}
+                  accent={accent}
+                  size="md"
+                  count={6}
+                />
               </div>
 
               {/* Meta */}
