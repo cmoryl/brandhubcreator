@@ -47,6 +47,18 @@ const sampleEmojisFor = (name: string): string[] => {
 export const LibraryView = ({ libraries, onOpenSet, onCreate, autoOpenLibraryId, onAutoOpenConsumed }: Props) => {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
+  const [openLib, setOpenLib] = useState<IconLibrary | null>(null);
+
+  // Auto-open from deep link
+  useEffect(() => {
+    if (!autoOpenLibraryId) return;
+    const match = libraries.find((l) => l.id === autoOpenLibraryId);
+    if (match) {
+      setOpenLib(match);
+      onAutoOpenConsumed?.();
+    }
+  }, [autoOpenLibraryId, libraries, onAutoOpenConsumed]);
+  const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
 
   const filtered = useMemo(() => {
     return libraries.filter((l) => {
