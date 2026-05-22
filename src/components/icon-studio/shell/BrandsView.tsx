@@ -31,6 +31,8 @@ interface BrandProfile {
 
 interface Props {
   organizationName: string;
+  /** Active organization id — used to load real icon libraries per brand. */
+  organizationId?: string;
   /** Real brand profiles from the database */
   brandProfiles?: Array<{
     id: string;
