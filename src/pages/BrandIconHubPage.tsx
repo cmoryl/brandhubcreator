@@ -236,7 +236,7 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
               <div className="leading-tight min-w-0">
                 <div className="text-sm font-semibold truncate">{brand.name}</div>
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Brand Icon Hub
+                  {LABEL_FOR[entityType]}
                 </div>
               </div>
             </div>
