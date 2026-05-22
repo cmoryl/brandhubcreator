@@ -38,7 +38,7 @@ import {
 import { StudioShell, type ShellSection, type Brand as ShellBrand } from '@/components/icon-studio/shell/StudioShell';
 import { DashboardView } from '@/components/icon-studio/shell/DashboardView';
 import { ProductionSummary } from '@/components/icon-studio/shell/ProductionSummary';
-import { PlaceholderView } from '@/components/icon-studio/shell/PlaceholderView';
+
 import { LibraryView } from '@/components/icon-studio/shell/LibraryView';
 import { BrandsView } from '@/components/icon-studio/shell/BrandsView';
 import { StyleSystemsView } from '@/components/icon-studio/shell/StyleSystemsView';
