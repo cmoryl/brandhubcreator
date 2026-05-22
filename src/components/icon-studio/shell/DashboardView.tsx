@@ -268,23 +268,23 @@ export const DashboardView = ({
         <div className="tp-card p-5">
           <header className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Recent icon systems</h3>
-            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs">
+            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => onNavigate?.('sets')}>
               View all <ArrowUpRight className="h-3 w-3" />
             </Button>
           </header>
           <ul className="space-y-1">
-            <ActivityRow title="GlobalLink platform icons" meta="Tech / SaaS · 84 icons" status="approved" emojis={['🔗','⚙️','🌍','📡','🧩']} accent="hsl(var(--tp-digital-blue))" />
-            <ActivityRow title="Life Sciences regulatory pack" meta="Life Sciences · 32 icons" status="review" emojis={['🧪','🧬','🔬','💉','📋']} accent="hsl(var(--tp-green))" />
-            <ActivityRow title="Travel loyalty refresh" meta="Travel · 48 icons" status="generating" emojis={['✈️','🏨','🎫','⭐','🗺️']} accent="hsl(var(--tp-light-blue))" />
-            <ActivityRow title="TransPerfect AI Solutions" meta="Brand · 22 icons" status="approved" emojis={['✨','🧠','🤖','⚡','🪄']} accent="hsl(var(--tp-pink))" />
-            <ActivityRow title="Healthcare patient flow" meta="Healthcare · 18 icons" status="queued" emojis={['🩺','💊','📋','🏥','❤️']} accent="hsl(var(--tp-teal))" />
+            <ActivityRow title="GlobalLink platform icons" meta="Tech / SaaS · 84 icons" status="approved" emojis={['🔗','⚙️','🌍','📡','🧩']} accent="hsl(var(--tp-digital-blue))" onClick={() => onNavigate?.('sets')} />
+            <ActivityRow title="Life Sciences regulatory pack" meta="Life Sciences · 32 icons" status="review" emojis={['🧪','🧬','🔬','💉','📋']} accent="hsl(var(--tp-green))" onClick={() => onNavigate?.('qa')} />
+            <ActivityRow title="Travel loyalty refresh" meta="Travel · 48 icons" status="generating" emojis={['✈️','🏨','🎫','⭐','🗺️']} accent="hsl(var(--tp-light-blue))" onClick={() => onNavigate?.('generate')} />
+            <ActivityRow title="TransPerfect AI Solutions" meta="Brand · 22 icons" status="approved" emojis={['✨','🧠','🤖','⚡','🪄']} accent="hsl(var(--tp-pink))" onClick={() => onNavigate?.('sets')} />
+            <ActivityRow title="Healthcare patient flow" meta="Healthcare · 18 icons" status="queued" emojis={['🩺','💊','📋','🏥','❤️']} accent="hsl(var(--tp-teal))" onClick={() => onNavigate?.('generate')} />
           </ul>
         </div>
 
         <div className="tp-card p-5">
           <header className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Export history</h3>
-            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs">
+            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => onNavigate?.('export')}>
               Open center <ArrowUpRight className="h-3 w-3" />
             </Button>
           </header>
@@ -295,18 +295,21 @@ export const DashboardView = ({
               { name: 'travel-loyalty.zip', when: '3d ago', size: '2.1 MB' },
               { name: 'tp-ai-solutions.zip', when: '1w ago', size: '1.2 MB' },
             ].map((row) => (
-              <li
-                key={row.name}
-                className="flex items-center justify-between py-2.5 text-sm"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <Download className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">{row.name}</span>
-                </div>
-                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                  <span>{row.size}</span>
-                  <span>{row.when}</span>
-                </div>
+              <li key={row.name}>
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.('export')}
+                  className="flex w-full items-center justify-between py-2.5 text-sm text-left rounded-md px-2 -mx-2 hover:bg-secondary/60 transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Download className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <span className="truncate">{row.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                    <span>{row.size}</span>
+                    <span>{row.when}</span>
+                  </div>
+                </button>
               </li>
             ))}
           </ul>
