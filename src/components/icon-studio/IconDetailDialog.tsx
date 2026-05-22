@@ -426,54 +426,6 @@ export const IconDetailDialog = ({
 /* Helpers                                                                     */
 /* -------------------------------------------------------------------------- */
 
-const IconRender = ({
-  icon,
-  size,
-  color,
-}: {
-  icon: BrandIconography;
-  size: number;
-  color: string;
-}) => {
-  const raw = (icon.svgPath || '').trim();
-  const isFullSvg = raw.startsWith('<svg');
-  const viewBox = (icon as any).viewBox || '0 0 24 24';
-  const fillMode = (icon as any).fillMode;
-
-  const markup = isFullSvg
-    ? raw
-        .replace(/width="[^"]*"/i, `width="${size}"`)
-        .replace(/height="[^"]*"/i, `height="${size}"`)
-        .replace(/currentColor/g, color)
-    : buildSvgString({
-        svgPath: raw,
-        viewBox,
-        fillMode,
-        name: icon.name,
-      })
-        .replace(/width="[^"]*"/i, `width="${size}"`)
-        .replace(/height="[^"]*"/i, `height="${size}"`)
-        .replace(/currentColor/g, color);
-
-  const safe = sanitizeSvg(markup);
-  if (!safe) {
-    return (
-      <div
-        className="flex items-center justify-center text-[10px] text-muted-foreground"
-        style={{ width: size, height: size }}
-      >
-        ?
-      </div>
-    );
-  }
-  return (
-    <span
-      style={{ width: size, height: size, display: 'inline-flex', color }}
-      dangerouslySetInnerHTML={{ __html: safe }}
-    />
-  );
-};
-
 const ScoreTile = ({ label, value }: { label: string; value: number }) => (
   <div className="rounded-lg border bg-secondary/30 px-3 py-2.5">
     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
