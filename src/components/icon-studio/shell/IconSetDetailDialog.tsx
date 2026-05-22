@@ -56,10 +56,26 @@ export const IconSetDetailDialog = ({
   onLockToggle,
 }: Props) => {
   const open = !!library;
+  const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
   const theme =
     (typeof document !== 'undefined' &&
       document.querySelector('.icon-studio-tp')?.getAttribute('data-theme')) ||
     'light';
+
+  const handleExport = async () => {
+    if (!library) return;
+    try {
+      await exportIconSystem({
+        name: library.name,
+        brand: library.name,
+        icons: library.icons.filter((i) => i.svgPath),
+        accent,
+      });
+      toast.success('Icon system exported');
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Export failed');
+    }
+  };
 
   const realIcons = useMemo(() => {
     if (!library) return [];
