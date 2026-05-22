@@ -283,6 +283,52 @@ export const StudioShell = ({
         </div>
       </header>
 
+      {/* ============ BREADCRUMB ============ */}
+      <div
+        className="border-b px-5 py-2"
+        style={{
+          background: 'hsl(var(--tp-surface-1) / 0.6)',
+          borderColor: 'hsl(var(--border))',
+        }}
+      >
+        <Breadcrumb>
+          <BreadcrumbList className="text-xs">
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link
+                  to="/"
+                  className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Home className="h-3.5 w-3.5" />
+                  <span>Home</span>
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>
+              <ChevronRight className="h-3 w-3" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link
+                  to="/icon-studio"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Icon Studio
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>
+              <ChevronRight className="h-3 w-3" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage className="font-medium text-foreground">
+                {NAV.find((n) => n.id === activeSection)?.label ?? activeSection}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+
       {/* ============ BODY ============ */}
       <div className="flex">
         {/* Sidebar */}
