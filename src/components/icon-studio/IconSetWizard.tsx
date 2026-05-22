@@ -521,16 +521,13 @@ const IndustryStep = ({
             </div>
             <h3 className="text-lg font-semibold">{p.name}</h3>
             <p className="text-xs text-muted-foreground mb-3">{p.tagline}</p>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {p.sampleEmojis.map((e) => (
-                <span
-                  key={e}
-                  className="h-7 w-7 rounded-md bg-background/80 border flex items-center justify-center text-base"
-                >
-                  {e}
-                </span>
-              ))}
-            </div>
+            <IconSetPreview
+              emojis={p.sampleEmojis}
+              accent={`hsl(${p.accent})`}
+              size="md"
+              variant="glass"
+              className="mb-3"
+            />
             <div className="text-xs text-muted-foreground flex items-center gap-3">
               <span>{p.coreSet.length} core sections</span>
               <span>·</span>
