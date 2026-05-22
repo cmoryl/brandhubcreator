@@ -34,6 +34,7 @@ import { useSEO } from '@/hooks/useSEO';
 import { IconSetPreview } from '@/components/icon-studio/shell/IconSetPreview';
 import '@/components/icon-studio/shell/tpTokens.css';
 import { toast } from 'sonner';
+import { buildBrandIconPdf } from '@/lib/iconStudio/brandIconPdf';
 
 const SAMPLE_FOR = (name: string): string[] => {
   const n = name.toLowerCase();
