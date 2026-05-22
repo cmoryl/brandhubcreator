@@ -31,6 +31,7 @@ import type { SectionStatus } from './studioData';
 interface BrandProfile {
   id: string;
   name: string;
+  slug?: string;
   tone?: string;
   members?: number;
 }
