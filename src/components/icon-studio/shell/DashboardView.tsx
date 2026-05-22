@@ -28,6 +28,13 @@ import { IconSetPreview } from './IconSetPreview';
 import { GoldenPathCard } from '@/components/icon-studio/GoldenPathCard';
 import type { SectionStatus } from './studioData';
 
+interface BrandProfile {
+  id: string;
+  name: string;
+  tone?: string;
+  members?: number;
+}
+
 interface Props {
   organizationName: string;
   /** Total icons across saved libraries */
@@ -35,6 +42,8 @@ interface Props {
   /** Total saved libraries */
   totalLibraries: number;
   onStartGenerate: () => void;
+  /** Real brand profiles loaded from the org. */
+  brandProfiles?: BrandProfile[];
 }
 
 const MetricCard = ({
