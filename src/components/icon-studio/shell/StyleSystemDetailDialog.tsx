@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { IconSetPreview } from './IconSetPreview';
 import type { BaseStyle } from './studioData';
+import { cn } from '@/lib/utils';
 
 interface Props {
   style: BaseStyle | null;
