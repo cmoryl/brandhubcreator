@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, Home, Building2, Package, FileText, Shield, HelpCircle, Settings, Star, Users } from 'lucide-react';
+import { ChevronRight, Home, Building2, Package, FileText, Shield, HelpCircle, Settings, Star, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Breadcrumb,
