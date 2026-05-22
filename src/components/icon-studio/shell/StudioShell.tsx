@@ -114,9 +114,17 @@ export const StudioShell = ({
   children,
 }: Props) => {
   const [navCollapsed, setNavCollapsed] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    return (localStorage.getItem('icon-studio-theme') as 'dark' | 'light') ?? 'dark';
+  });
+  useEffect(() => {
+    localStorage.setItem('icon-studio-theme', theme);
+  }, [theme]);
 
   return (
     <div
+      data-theme={theme}
       className="icon-studio-tp min-h-screen"
       style={{ background: 'hsl(var(--tp-surface-0))' }}
     >
