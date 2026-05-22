@@ -128,13 +128,6 @@ const IconStudioPage = () => {
     setSearchParams(next, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
-  const shellBrands: ShellBrand[] = useMemo(() => {
-    const base: ShellBrand[] = organization ? [{ id: organization.id, name: organization.name }] : [];
-    const extras: ShellBrand[] = hierarchyBrands.map((b) => ({ id: b.id, name: b.name }));
-    // de-dupe by id
-    const seen = new Set<string>();
-    return [...base, ...extras].filter((b) => (seen.has(b.id) ? false : (seen.add(b.id), true)));
-  }, [organization, hierarchyBrands]);
 
   const {
     libraries,
