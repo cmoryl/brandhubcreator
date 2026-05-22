@@ -56,38 +56,47 @@ const MetricCard = ({
   delta,
   icon: Icon,
   accentToken,
+  onClick,
 }: {
   label: string;
   value: string | number;
   delta?: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   accentToken: string;
-}) => (
-  <div className="tp-card tp-card-interactive p-5">
-    <div className="flex items-start justify-between">
-      <div
-        className="flex h-10 w-10 items-center justify-center rounded-lg"
-        style={{
-          background: `hsl(${accentToken} / 0.12)`,
-          color: `hsl(${accentToken})`,
-        }}
-      >
-        <Icon className="h-5 w-5" />
-      </div>
-      {delta && (
-        <span
-          className="flex items-center gap-1 text-[11px] font-medium"
-          style={{ color: 'hsl(var(--tp-green))' }}
+  onClick?: () => void;
+}) => {
+  const Comp: any = onClick ? 'button' : 'div';
+  return (
+    <Comp
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
+      className={`tp-card tp-card-interactive p-5 text-left w-full ${onClick ? 'cursor-pointer hover:border-primary/40' : ''}`}
+    >
+      <div className="flex items-start justify-between">
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-lg"
+          style={{
+            background: `hsl(${accentToken} / 0.12)`,
+            color: `hsl(${accentToken})`,
+          }}
         >
-          <TrendingUp className="h-3 w-3" />
-          {delta}
-        </span>
-      )}
-    </div>
-    <div className="mt-4 text-2xl font-semibold tabular-nums tracking-tight">{value}</div>
-    <div className="mt-1 text-xs text-muted-foreground">{label}</div>
-  </div>
-);
+          <Icon className="h-5 w-5" />
+        </div>
+        {delta && (
+          <span
+            className="flex items-center gap-1 text-[11px] font-medium"
+            style={{ color: 'hsl(var(--tp-green))' }}
+          >
+            <TrendingUp className="h-3 w-3" />
+            {delta}
+          </span>
+        )}
+      </div>
+      <div className="mt-4 text-2xl font-semibold tabular-nums tracking-tight">{value}</div>
+      <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+    </Comp>
+  );
+};
 
 const ActivityRow = ({
   title,
