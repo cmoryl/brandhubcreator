@@ -32,6 +32,7 @@ import { useIconLibraries } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { useSEO } from '@/hooks/useSEO';
 import { IconSetPreview } from '@/components/icon-studio/shell/IconSetPreview';
+import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 import '@/components/icon-studio/shell/tpTokens.css';
 import { toast } from 'sonner';
 import { buildBrandIconPdf } from '@/lib/iconStudio/brandIconPdf';
