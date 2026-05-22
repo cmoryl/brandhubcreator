@@ -86,7 +86,8 @@ const ScoreCard = ({
   </div>
 );
 
-export const QAView = ({ libraries, totalIcons, onStartGenerate }: Props) => {
+export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate }: Props) => {
+  const queryClient = useQueryClient();
   const checks = useMemo(() => buildChecks(totalIcons), [totalIcons]);
   const passing = checks.filter((c) => c.status === 'pass').length;
   const warnings = checks.filter((c) => c.status === 'warn').length;
@@ -95,6 +96,13 @@ export const QAView = ({ libraries, totalIcons, onStartGenerate }: Props) => {
   const a11yScore = Math.min(100, 78 + Math.floor(passing * 1.2));
   const svgHealth = Math.min(100, 88 + Math.floor(passing * 0.5));
   const exportReady = totalIcons > 0 ? Math.min(100, 70 + passing * 2) : 0;
+
+  const handleRerun = () => {
+    queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
+    toast.success('Preflight checks re-run', {
+      description: `${passing} passing · ${warnings} warnings · ${failing} failing`,
+    });
+  };
 
   return (
     <div className="space-y-6">
