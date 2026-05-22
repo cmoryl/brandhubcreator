@@ -498,17 +498,23 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                             Open
                             <ArrowRight className="h-3 w-3" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
-                            onClick={() =>
-                              unlinkLibraryFromBrand.mutate({ libraryId: lib.id, brandId: brand.id })
-                            }
-                          >
-                            <Unlink className="h-3 w-3" />
-                            Unlink
-                          </Button>
+                          {explicitLinkedIds.has(lib.id) ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
+                              onClick={() =>
+                                unlinkLibraryFromEntity.mutate({ libraryId: lib.id, entityId: brand.id, entityType })
+                              }
+                            >
+                              <Unlink className="h-3 w-3" />
+                              Unlink
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] h-6">
+                              {lib.level === 'core' ? 'Inherited · org-wide' : 'Inherited · name match'}
+                            </Badge>
+                          )}
                         </div>
                       </article>
                     ))}
@@ -546,7 +552,7 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                           variant="outline"
                           className="gap-1.5 h-8"
                           onClick={() =>
-                            linkLibraryToBrand.mutate({ libraryId: lib.id, brandId: brand.id })
+                            linkLibraryToEntity.mutate({ libraryId: lib.id, entityId: brand.id, entityType })
                           }
                         >
                           <LinkIcon className="h-3.5 w-3.5" />
