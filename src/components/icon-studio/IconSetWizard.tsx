@@ -762,7 +762,14 @@ const SubSetsStep = ({
                         {isSelected && <CheckCircle2 className="h-3.5 w-3.5" />}
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">{s.description}</p>
+                    <p className="text-xs text-muted-foreground mb-3">{s.description}</p>
+                    <IconSetPreview
+                      emojis={[s.emoji, ...industry.sampleEmojis]}
+                      accent={`hsl(${industry.accent})`}
+                      size="sm"
+                      count={6}
+                      variant="tile"
+                    />
                     {section && (
                       <div className="mt-3 pt-3 border-t flex items-center justify-between text-[11px]">
                         <SectionStatusPill section={section} />
