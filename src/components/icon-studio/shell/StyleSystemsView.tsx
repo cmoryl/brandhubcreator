@@ -36,14 +36,16 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
   const [colorMode, setColorMode] = useState<string>('mono');
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detailAccent, setDetailAccent] = useState<string>(`hsl(var(${ACCENTS[0]}))`);
+  const { hidden, hide, clear, isHidden } = useHiddenItems('style-systems');
 
   const filtered = useMemo(() => {
-    if (!q.trim()) return BASE_STYLES;
+    const visible = BASE_STYLES.filter((s) => !isHidden(s.id));
+    if (!q.trim()) return visible;
     const t = q.toLowerCase();
-    return BASE_STYLES.filter(
+    return visible.filter(
       (s) => s.name.toLowerCase().includes(t) || s.description.toLowerCase().includes(t),
     );
-  }, [q]);
+  }, [q, hidden]);
 
   const active = BASE_STYLES.find((s) => s.id === activeId) ?? BASE_STYLES[0];
 
