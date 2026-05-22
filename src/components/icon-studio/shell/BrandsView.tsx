@@ -4,7 +4,8 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Plus, Palette, Type, Hash, Edit3, Building2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, Palette, Type, Hash, Edit3, Building2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { IconSetPreview } from './IconSetPreview';
 interface BrandProfile {
   id: string;
   name: string;
+  slug: string;
   tagline: string;
   palette: string[];
   typography: { heading: string; body: string };
@@ -21,6 +23,7 @@ interface BrandProfile {
   iconsCount: number;
   emojis: string[];
   accentToken: string;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 interface Props {
