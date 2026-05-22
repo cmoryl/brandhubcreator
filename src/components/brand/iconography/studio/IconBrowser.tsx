@@ -60,18 +60,19 @@ const COLOR_PRESETS = [
 const ICONS_PER_PAGE = 120;
 
 export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) => {
-  // State
+  // State — default to Lucide so users land on a populated view, not an empty one.
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [activeLibrary, setActiveLibrary] = useState<string | null>(null);
+  const [activeLibrary, setActiveLibrary] = useState<string | null>('lucide');
   const [selectedIcon, setSelectedIcon] = useState<{ prefix: string; name: string } | null>(null);
   const [selectedSvg, setSelectedSvg] = useState<string>('');
-  const [iconColor, setIconColor] = useState('#ffffff');
+  const [iconColor, setIconColor] = useState(brandColors[0]?.hex || '#0F1E3D');
   const [strokeWidth, setStrokeWidth] = useState([2]);
   const [copied, setCopied] = useState<'svg' | 'xml' | null>(null);
   const [page, setPage] = useState(0);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const searchInputRef = useRef<HTMLInputElement>(null);
+
 
   // Debounce search
   useEffect(() => {
