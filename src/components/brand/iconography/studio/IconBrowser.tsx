@@ -395,16 +395,16 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
 
       {/* ── Main Content ── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Search bar */}
-        <div className="p-4 border-b">
-          <div className="relative max-w-xl mx-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Search bar — generous breathing room */}
+        <div className="px-6 py-4 border-b bg-gradient-to-b from-muted/20 to-transparent">
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               ref={searchInputRef}
-              placeholder="Search icons..."
+              placeholder="Search 200,000+ icons across all libraries…"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="pl-10 pr-16"
+              className="h-11 pl-10 pr-20 text-sm"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] text-muted-foreground border rounded px-1.5 py-0.5 bg-muted">
               ⌘K
@@ -413,46 +413,62 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
         </div>
 
         {/* Header */}
-        <div className="px-4 py-2 flex items-center justify-between border-b bg-muted/20">
+        <div className="px-6 py-3 flex items-center justify-between border-b bg-muted/10">
           <div>
-            <h4 className="text-sm font-medium">
-              {activeLibrary
-                ? libraryList.find(l => l.prefix === activeLibrary)?.name || activeLibrary
-                : debouncedSearch ? 'Search Results' : 'Select a library or search'}
+            <h4 className="text-sm font-semibold">
+              {debouncedSearch
+                ? `Results for "${debouncedSearch}"`
+                : activeLibrary
+                  ? libraryList.find(l => l.prefix === activeLibrary)?.name || activeLibrary
+                  : 'Select a library or search'}
             </h4>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               {iconList.length.toLocaleString()} icons
               {totalPages > 1 && ` · Page ${page + 1} of ${totalPages}`}
+              {selectedIcon && ' · 1 selected'}
             </p>
           </div>
-          {totalPages > 1 && (
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>
-                <ChevronLeft className="h-4 w-4" />
+          <div className="flex items-center gap-2">
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-[11px] text-muted-foreground tabular-nums px-1">
+                  {page + 1} / {totalPages}
+                </span>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            {selectedIcon && (
+              <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setSelectedIcon(null)}>
+                Clear selection
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Icon Grid */}
         <ScrollArea className="flex-1">
-          <div className="p-4">
+          <div className="p-6">
             {isLoading ? (
-              <div className="flex items-center justify-center py-20">
+              <div className="flex items-center justify-center py-24">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : iconList.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <Search className="h-8 w-8 text-muted-foreground/50 mb-3" />
-                <p className="text-sm text-muted-foreground">
-                  {debouncedSearch ? 'No icons found' : 'Select a library or search to browse icons'}
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <Search className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                <p className="text-sm font-medium">
+                  {debouncedSearch ? 'No icons found' : 'Pick a library on the left to start browsing'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                  Or use the search bar above to find icons across all 21 collections.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-1">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] gap-2">
                 {paginatedIcons.map(icon => {
                   const isSelected = selectedIcon?.prefix === icon.prefix && selectedIcon?.name === icon.name;
                   return (
@@ -461,16 +477,16 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
                         <button
                           onClick={() => setSelectedIcon(icon)}
                           className={cn(
-                            'aspect-square flex items-center justify-center rounded-lg border transition-all p-2',
+                            'aspect-square flex items-center justify-center rounded-lg border bg-card transition-all p-3 hover:shadow-sm',
                             isSelected
-                              ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
-                              : 'border-transparent hover:border-border hover:bg-muted/50'
+                              ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
+                              : 'border-border/60 hover:border-primary/40 hover:bg-muted/40'
                           )}
                         >
                           <img
                             src={`https://api.iconify.design/${icon.prefix}/${icon.name}.svg?color=${encodeURIComponent(iconColor)}`}
                             alt={icon.name}
-                            className="w-6 h-6"
+                            className="w-8 h-8"
                             loading="lazy"
                           />
                         </button>
@@ -486,6 +502,7 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
           </div>
         </ScrollArea>
       </div>
+
 
       {/* ── Right Panel: Customize ── */}
       <div className="w-60 border-l flex flex-col bg-muted/20 shrink-0">
