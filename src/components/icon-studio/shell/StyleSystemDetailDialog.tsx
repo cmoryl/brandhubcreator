@@ -273,6 +273,7 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
             </div>
           </>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );
