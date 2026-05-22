@@ -42,6 +42,7 @@ const ROUTE_MAPPINGS: Record<string, BreadcrumbConfig> = {
   '/contact': { label: 'Contact Us', icon: Users },
   '/onboarding': { label: 'Onboarding', icon: Settings },
   '/pending-approval': { label: 'Pending Approval', icon: Users },
+  '/icon-studio': { label: 'Icon Studio', icon: Sparkles },
 };
 
 export const AppBreadcrumbs = React.forwardRef<
