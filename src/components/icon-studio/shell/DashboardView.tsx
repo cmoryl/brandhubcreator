@@ -45,7 +45,7 @@ const MetricCard = ({
   label: string;
   value: string | number;
   delta?: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   accentToken: string;
 }) => (
   <div className="tp-card tp-card-interactive p-5">

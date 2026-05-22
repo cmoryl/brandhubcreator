@@ -16,7 +16,7 @@ interface Props {
   compact?: boolean;
 }
 
-const ICONS: Record<SectionStatus, React.ComponentType<{ className?: string }>> = {
+const ICONS: Record<SectionStatus, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
   idle: Circle,
   queued: Clock,
   generating: Loader2,
