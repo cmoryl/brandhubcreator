@@ -207,6 +207,7 @@ export const IconSetDetailDialog = ({
                 <RealIconLadder
                   icons={realIcons}
                   accent={accent}
+                  styleMode={effectiveStyle}
                   onIconClick={(id) => {
                     const full = library.icons.find((i) => i.id === id) ?? null;
                     setSelectedIcon(full);
