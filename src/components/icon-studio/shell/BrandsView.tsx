@@ -9,6 +9,10 @@ import { Plus, Palette, Type, Hash, Edit3, Building2, ArrowRight } from 'lucide-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { IconSetPreview } from './IconSetPreview';
+import { LibraryIconPreview } from './LibraryIconPreview';
+import { useIconLibraries } from '@/hooks/useIconLibraries';
+import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
+import type { BrandIconography } from '@/types/brand';
 
 interface BrandProfile {
   id: string;
