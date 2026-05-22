@@ -1,27 +1,13 @@
 /**
  * TransPerfect palette tokens — scoped to the Icon Studio shell.
  *
- * Applied by adding `.icon-studio-tp` to the wrapping element. Tokens are HSL
- * values (no `hsl()` wrapper) so they compose with Tailwind utilities.
- *
- * Source palette (hex → HSL):
- *   Deep Navy     #03002C → 243 100% 9%
- *   Dark Blue     #003B71 → 209 100% 22%
- *   Digital Blue  #003FC7 → 221 100% 39%
- *   Light Blue    #139DD8 → 198 84% 46%
- *   Teal          #3BBFB5 → 175 53% 49%
- *   Purple        #7356C0 → 256 44% 55%
- *   Pink          #EC388A → 332 83% 57%
- *   Orange        #FF6600 → 24 100% 50%
- *   Green         #7BCD3A → 92 60% 52%
- *   Blue White    #E0E8F5 → 217 53% 92%
- *   Light Gray    #F2F2F2 → 0 0% 95%
- *   Dark Gray     #666666 → 0 0% 40%
- *   Alabaster     #E7E3DA → 42 19% 88%
+ * Applied by adding `.icon-studio-tp` to the wrapping element. Theme is
+ * switched via `data-theme="dark" | "light"` on the same element. Tokens are
+ * HSL values (no `hsl()` wrapper) so they compose with Tailwind utilities.
  */
 
 .icon-studio-tp {
-  /* Raw palette */
+  /* Raw palette — shared across themes */
   --tp-navy: 243 100% 9%;
   --tp-dark-blue: 209 100% 22%;
   --tp-digital-blue: 221 100% 39%;
@@ -36,7 +22,25 @@
   --tp-dark-gray: 0 0% 40%;
   --tp-alabaster: 42 19% 88%;
 
-  /* Premium dark surface system — override shadcn tokens for the studio only */
+  --radius: 0.875rem;
+
+  /* Status colors (shared) */
+  --tp-status-queued: var(--tp-blue-white);
+  --tp-status-generating: var(--tp-light-blue);
+  --tp-status-review: var(--tp-orange);
+  --tp-status-approved: var(--tp-green);
+  --tp-status-failed: 0 75% 60%;
+  --tp-status-locked: var(--tp-purple);
+
+  font-family: 'Geist', 'Inter', system-ui, sans-serif;
+  color: hsl(var(--foreground));
+  background: hsl(var(--tp-surface-0));
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+/* ===================== DARK THEME (default) ===================== */
+.icon-studio-tp,
+.icon-studio-tp[data-theme="dark"] {
   --background: 243 60% 6%;
   --foreground: 217 53% 92%;
   --card: 243 45% 9%;
@@ -57,39 +61,65 @@
   --border: 243 30% 18%;
   --input: 243 30% 14%;
   --ring: 198 84% 50%;
-  --radius: 0.875rem;
 
   /* Surface elevation ladder */
-  --tp-surface-0: 243 60% 5%;     /* page */
-  --tp-surface-1: 243 50% 8%;     /* sidebar / top bar */
-  --tp-surface-2: 243 45% 10%;    /* card */
-  --tp-surface-3: 243 40% 13%;    /* card hover / popover */
-  --tp-surface-4: 243 35% 16%;    /* inset */
+  --tp-surface-0: 243 60% 5%;
+  --tp-surface-1: 243 50% 8%;
+  --tp-surface-2: 243 45% 10%;
+  --tp-surface-3: 243 40% 13%;
+  --tp-surface-4: 243 35% 16%;
 
-  /* Status colors (chips) */
-  --tp-status-queued: var(--tp-blue-white);
-  --tp-status-generating: var(--tp-light-blue);
-  --tp-status-review: var(--tp-orange);
-  --tp-status-approved: var(--tp-green);
-  --tp-status-failed: 0 75% 60%;
-  --tp-status-locked: var(--tp-purple);
-
-  /* Soft luminous glow used sparingly for hierarchy */
   --tp-glow-primary: 0 0 0 1px hsl(var(--tp-digital-blue) / 0.4),
                      0 8px 32px -8px hsl(var(--tp-digital-blue) / 0.45);
   --tp-glow-accent:  0 0 0 1px hsl(var(--tp-light-blue) / 0.4),
                      0 8px 32px -8px hsl(var(--tp-light-blue) / 0.4);
-
-  color: hsl(var(--foreground));
-  background: hsl(var(--tp-surface-0));
-  font-family: 'Geist', 'Inter', system-ui, sans-serif;
 }
 
-/* Subtle dotted/grid background for canvas areas */
+/* ===================== LIGHT THEME ===================== */
+.icon-studio-tp[data-theme="light"] {
+  --background: 217 40% 98%;
+  --foreground: 243 60% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 243 60% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 243 60% 12%;
+
+  --primary: 221 100% 39%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 217 40% 94%;
+  --secondary-foreground: 243 60% 14%;
+  --muted: 217 30% 94%;
+  --muted-foreground: 243 15% 40%;
+  --accent: 198 84% 46%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 217 25% 86%;
+  --input: 217 25% 92%;
+  --ring: 221 100% 50%;
+
+  /* Surface elevation ladder — light */
+  --tp-surface-0: 217 40% 97%;
+  --tp-surface-1: 0 0% 100%;
+  --tp-surface-2: 0 0% 100%;
+  --tp-surface-3: 217 35% 96%;
+  --tp-surface-4: 217 30% 93%;
+
+  --tp-glow-primary: 0 0 0 1px hsl(var(--tp-digital-blue) / 0.3),
+                     0 8px 24px -10px hsl(var(--tp-digital-blue) / 0.35);
+  --tp-glow-accent:  0 0 0 1px hsl(var(--tp-light-blue) / 0.3),
+                     0 8px 24px -10px hsl(var(--tp-light-blue) / 0.3);
+}
+
+/* Subtle dotted grid background for canvas areas */
 .icon-studio-tp .tp-canvas-grid {
   background-image:
     radial-gradient(hsl(var(--tp-digital-blue) / 0.08) 1px, transparent 1px);
   background-size: 18px 18px;
+}
+.icon-studio-tp[data-theme="light"] .tp-canvas-grid {
+  background-image:
+    radial-gradient(hsl(var(--tp-digital-blue) / 0.12) 1px, transparent 1px);
 }
 
 /* Premium card surface */
@@ -99,6 +129,10 @@
     hsl(var(--tp-surface-1)) 100%);
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
+}
+.icon-studio-tp[data-theme="light"] .tp-card {
+  background: hsl(var(--card));
+  box-shadow: 0 1px 2px hsl(var(--tp-navy) / 0.04), 0 1px 1px hsl(var(--tp-navy) / 0.03);
 }
 
 .icon-studio-tp .tp-card-interactive {
@@ -133,7 +167,7 @@
   white-space: nowrap;
 }
 
-/* Reduced-motion: kill the spin/pulse decorations */
+/* Reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   .icon-studio-tp *,
   .icon-studio-tp *::before,
