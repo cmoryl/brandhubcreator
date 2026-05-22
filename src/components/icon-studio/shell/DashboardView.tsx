@@ -79,15 +79,22 @@ const ActivityRow = ({
   title,
   meta,
   status,
+  emojis,
+  accent,
 }: {
   title: string;
   meta: string;
   status: SectionStatus;
+  emojis: string[];
+  accent: string;
 }) => (
   <li className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-secondary/40">
-    <div className="min-w-0">
-      <div className="text-sm font-medium truncate">{title}</div>
-      <div className="text-[11px] text-muted-foreground truncate">{meta}</div>
+    <div className="flex items-center gap-3 min-w-0 flex-1">
+      <IconSetPreview emojis={emojis} accent={accent} size="sm" count={4} variant="glass" className="!grid-cols-4 flex-shrink-0" />
+      <div className="min-w-0">
+        <div className="text-sm font-medium truncate">{title}</div>
+        <div className="text-[11px] text-muted-foreground truncate">{meta}</div>
+      </div>
     </div>
     <StatusChip status={status} />
   </li>
