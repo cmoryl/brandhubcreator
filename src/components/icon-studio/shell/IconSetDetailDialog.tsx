@@ -5,7 +5,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Wand2, RefreshCw, GitCompare, Lock, Copy, ArrowUpRight, Download } from 'lucide-react';
+import { Wand2, RefreshCw, GitCompare, Lock, Copy, Download, Sun, Moon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -60,16 +60,29 @@ export const IconSetDetailDialog = ({
   const open = !!library;
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
   const [remixOpen, setRemixOpen] = useState(false);
-  const theme =
-    (typeof document !== 'undefined' &&
-      document.querySelector('.icon-studio-tp')?.getAttribute('data-theme')) ||
-    'light';
+  const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
+  // Style override applied to the WHOLE set in the preview (does not mutate stored icons)
+  const [styleOverride, setStyleOverride] = useState<'auto' | 'outlined' | 'filled' | 'duotone'>('auto');
 
   const baseRecipe: IconRecipe | null = useMemo(() => {
     if (!library) return null;
     const seed = library.icons.find((i) => readRecipe(i));
     return seed ? readRecipe(seed) : null;
   }, [library]);
+
+  // Detect the dominant style from the set itself, so "auto" reflects what
+  // was actually generated (outlined sets stay outlined, filled stay filled).
+  const detectedStyle: 'outlined' | 'filled' | 'duotone' = useMemo(() => {
+    if (!library) return 'outlined';
+    const name = (library.name || '').toLowerCase();
+    if (name.includes('duotone')) return 'duotone';
+    if (name.includes('filled')) return 'filled';
+    if (name.includes('outlin') || name.includes('line')) return 'outlined';
+    const fillCount = library.icons.filter((i) => i.fillMode === 'fill').length;
+    return fillCount > library.icons.length / 2 ? 'filled' : 'outlined';
+  }, [library]);
+
+  const effectiveStyle = styleOverride === 'auto' ? detectedStyle : styleOverride;
 
   const handleExport = async () => {
     if (!library) return;
@@ -94,8 +107,8 @@ export const IconSetDetailDialog = ({
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
-        className="max-w-6xl max-h-[92vh] overflow-y-auto p-0 icon-studio-tp"
-        data-theme={theme}
+        className={`max-w-6xl max-h-[92vh] overflow-y-auto p-0 icon-studio-tp ${previewTheme === 'dark' ? 'dark bg-background' : 'bg-background'}`}
+        data-theme={previewTheme}
       >
         {library && (
           <>
@@ -145,6 +158,46 @@ export const IconSetDetailDialog = ({
                     <Download className="h-3.5 w-3.5" /> Export bundle
                   </Button>
                 </div>
+
+                {/* Preview controls — theme + style override applied to entire set */}
+                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border/40 mt-3">
+                  <div className="flex items-center gap-1 rounded-md border border-border/60 p-0.5">
+                    <Button
+                      size="sm"
+                      variant={previewTheme === 'light' ? 'default' : 'ghost'}
+                      className="h-7 px-2 gap-1"
+                      onClick={() => setPreviewTheme('light')}
+                    >
+                      <Sun className="h-3.5 w-3.5" /> Light
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={previewTheme === 'dark' ? 'default' : 'ghost'}
+                      className="h-7 px-2 gap-1"
+                      onClick={() => setPreviewTheme('dark')}
+                    >
+                      <Moon className="h-3.5 w-3.5" /> Dark
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-1 rounded-md border border-border/60 p-0.5">
+                    {(['auto', 'outlined', 'filled', 'duotone'] as const).map((s) => (
+                      <Button
+                        key={s}
+                        size="sm"
+                        variant={styleOverride === s ? 'default' : 'ghost'}
+                        className="h-7 px-2 capitalize"
+                        onClick={() => setStyleOverride(s)}
+                      >
+                        {s === 'auto' ? `Auto (${detectedStyle})` : s}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <span className="text-[11px] text-muted-foreground ml-auto">
+                    Preview only — does not alter stored icons
+                  </span>
+                </div>
               </DialogHeader>
             </div>
 
@@ -154,6 +207,7 @@ export const IconSetDetailDialog = ({
                 <RealIconLadder
                   icons={realIcons}
                   accent={accent}
+                  styleMode={effectiveStyle}
                   onIconClick={(id) => {
                     const full = library.icons.find((i) => i.id === id) ?? null;
                     setSelectedIcon(full);
@@ -229,10 +283,29 @@ const LADDER: { label: string; tile: number; icon: number }[] = [
 interface LadderProps {
   icons: Array<{ id: string; name: string; svgPath: string; viewBox?: string; fillMode?: 'stroke' | 'fill' }>;
   accent: string;
+  styleMode?: 'outlined' | 'filled' | 'duotone';
   onIconClick?: (id: string) => void;
 }
 
-const RealIconLadder = ({ icons, accent, onIconClick }: LadderProps) => {
+const RealIconLadder = ({ icons, accent, styleMode = 'outlined', onIconClick }: LadderProps) => {
+  // Resolve render attributes for the active style mode. This is applied to
+  // EVERY icon in the set so that switching the style toggle re-skins the
+  // whole library consistently.
+  const renderProps = (() => {
+    if (styleMode === 'filled') {
+      return { fill: accent, stroke: 'none', strokeWidth: 0, opacity: 1 };
+    }
+    if (styleMode === 'duotone') {
+      return {
+        fill: `color-mix(in oklab, ${accent} 30%, transparent)`,
+        stroke: accent,
+        strokeWidth: 1.5,
+        opacity: 1,
+      };
+    }
+    return { fill: 'none', stroke: accent, strokeWidth: 1.75, opacity: 1 };
+  })();
+
   return (
     <div className="space-y-6">
       {LADDER.map((s) => (
@@ -270,9 +343,9 @@ const RealIconLadder = ({ icons, accent, onIconClick }: LadderProps) => {
                     width={s.icon}
                     height={s.icon}
                     viewBox={icon.viewBox || '0 0 24 24'}
-                    fill={icon.fillMode === 'fill' ? accent : 'none'}
-                    stroke={icon.fillMode === 'fill' ? 'none' : accent}
-                    strokeWidth={1.75}
+                    fill={renderProps.fill}
+                    stroke={renderProps.stroke}
+                    strokeWidth={renderProps.strokeWidth}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
