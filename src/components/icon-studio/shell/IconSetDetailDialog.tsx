@@ -122,7 +122,7 @@ export const IconSetDetailDialog = ({
                   <Button size="sm" variant="default" className="gap-1.5" onClick={onDuplicate}>
                     <Copy className="h-3.5 w-3.5" /> Duplicate
                   </Button>
-                  <Button size="sm" variant="outline" className="gap-1.5" onClick={onRemix}>
+                  <Button size="sm" variant="outline" className="gap-1.5" onClick={() => { setRemixOpen(true); onRemix?.(); }}>
                     <Wand2 className="h-3.5 w-3.5" /> Remix
                   </Button>
                   <Button size="sm" variant="outline" className="gap-1.5" onClick={onRegenerate}>
