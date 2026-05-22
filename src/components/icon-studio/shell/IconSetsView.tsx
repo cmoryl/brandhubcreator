@@ -60,7 +60,7 @@ export const IconSetsView = ({
 }: Props) => {
   const [q, setQ] = useState('');
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
-  const { createLibrary, updateLibrary } = useIconLibraries(organizationId);
+  const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
 
   const grouped = useMemo(() => {
     const term = q.toLowerCase();
