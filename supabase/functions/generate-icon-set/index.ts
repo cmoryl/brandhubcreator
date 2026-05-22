@@ -13,58 +13,58 @@ const ICON_TAXONOMY: Record<string, { name: string; description: string; section
     name: "Foundation",
     description: "Navigation, UI states, basic logic",
     sections: [
-      { name: "Navigation", description: "Arrows, menus, wayfinding, breadcrumbs", count: 12 },
-      { name: "UI States", description: "Toggle, checkbox, radio, expand/collapse", count: 9 },
-      { name: "Basic Logic", description: "Plus, minus, close, check, refresh", count: 9 },
+      { name: "Navigation", description: "Arrows, menus, wayfinding, breadcrumbs", count: 30 },
+      { name: "UI States", description: "Toggle, checkbox, radio, expand/collapse", count: 30 },
+      { name: "Basic Logic", description: "Plus, minus, close, check, refresh", count: 30 },
     ]
   },
   Communication: {
     name: "Communication",
     description: "Email, social, feedback, support",
     sections: [
-      { name: "Messaging", description: "Chat bubbles, comments, conversations", count: 9 },
-      { name: "Notifications", description: "Bells, alerts, badges, indicators", count: 7 },
-      { name: "Social", description: "Share, like, follow, connect", count: 8 },
-      { name: "Support", description: "Help, FAQ, contact, feedback", count: 6 },
+      { name: "Messaging", description: "Chat bubbles, comments, conversations", count: 30 },
+      { name: "Notifications", description: "Bells, alerts, badges, indicators", count: 30 },
+      { name: "Social", description: "Share, like, follow, connect", count: 30 },
+      { name: "Support", description: "Help, FAQ, contact, feedback", count: 30 },
     ]
   },
   "SaaS/Data": {
     name: "SaaS/Data",
     description: "Analytics, security, settings, workflows",
     sections: [
-      { name: "Analytics", description: "Charts, graphs, metrics, dashboards", count: 9 },
-      { name: "Security", description: "Locks, shields, keys, verification", count: 7 },
-      { name: "Settings", description: "Gears, sliders, toggles, configuration", count: 7 },
-      { name: "Workflows", description: "Process, automation, integrations", count: 7 },
+      { name: "Analytics", description: "Charts, graphs, metrics, dashboards", count: 30 },
+      { name: "Security", description: "Locks, shields, keys, verification", count: 30 },
+      { name: "Settings", description: "Gears, sliders, toggles, configuration", count: 30 },
+      { name: "Workflows", description: "Process, automation, integrations", count: 30 },
     ]
   },
   "E-Commerce": {
     name: "E-Commerce",
     description: "Payments, shipping, storefront, loyalty",
     sections: [
-      { name: "Shopping", description: "Cart, bag, wishlist, browse", count: 8 },
-      { name: "Payments", description: "Cards, wallet, transactions, invoices", count: 8 },
-      { name: "Shipping", description: "Delivery, tracking, packages, returns", count: 8 },
-      { name: "Loyalty", description: "Rewards, points, membership, gifts", count: 6 },
+      { name: "Shopping", description: "Cart, bag, wishlist, browse", count: 30 },
+      { name: "Payments", description: "Cards, wallet, transactions, invoices", count: 30 },
+      { name: "Shipping", description: "Delivery, tracking, packages, returns", count: 30 },
+      { name: "Loyalty", description: "Rewards, points, membership, gifts", count: 30 },
     ]
   },
   "Marketing Hero": {
     name: "Marketing Hero",
     description: "Growth, trophies, trust signals, abstract concepts",
     sections: [
-      { name: "Growth", description: "Rockets, trends, scales, expansion", count: 8 },
-      { name: "Achievement", description: "Trophies, medals, badges, certificates", count: 7 },
-      { name: "Trust", description: "Handshakes, guarantees, verified, secure", count: 8 },
-      { name: "Abstract", description: "Innovation, ideas, concepts, vision", count: 7 },
+      { name: "Growth", description: "Rockets, trends, scales, expansion", count: 30 },
+      { name: "Achievement", description: "Trophies, medals, badges, certificates", count: 30 },
+      { name: "Trust", description: "Handshakes, guarantees, verified, secure", count: 30 },
+      { name: "Abstract", description: "Innovation, ideas, concepts, vision", count: 30 },
     ]
   },
   "Industry Specific": {
     name: "Industry Specific",
     description: "Custom symbols based on user's niche",
     sections: [
-      { name: "Professional", description: "Industry-relevant professional symbols", count: 11 },
-      { name: "Technical", description: "Specialized technical icons", count: 10 },
-      { name: "Domain", description: "Domain-specific imagery", count: 9 },
+      { name: "Professional", description: "Industry-relevant professional symbols", count: 30 },
+      { name: "Technical", description: "Specialized technical icons", count: 30 },
+      { name: "Domain", description: "Domain-specific imagery", count: 30 },
     ]
   }
 };
