@@ -397,7 +397,16 @@ const BrandIconHubPage = () => {
                           count={6}
                           variant="glass"
                         />
-                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-end">
+                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 gap-1 text-xs"
+                            onClick={() => navigate(`/icon-studio?section=library&library=${lib.id}`)}
+                          >
+                            Open
+                            <ArrowRight className="h-3 w-3" />
+                          </Button>
                           <Button
                             size="sm"
                             variant="ghost"
