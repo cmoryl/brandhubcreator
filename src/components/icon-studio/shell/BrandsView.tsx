@@ -182,8 +182,44 @@ function slugify(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
-export const BrandsView = ({ organizationName, brandProfiles = [] }: Props) => {
+export const BrandsView = ({ organizationName, organizationId, brandProfiles = [] }: Props) => {
   const [q, setQ] = useState('');
+  const { libraries } = useIconLibraries(organizationId);
+  const { getLinkedLibraryIdsForEntity } = useIconLibraryBrandLinks(organizationId);
+
+  const normalize = (s: string) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  /**
+   * Resolve up to 6 brand-specific icons for a profile:
+   *   explicit links → name-matched brand libs → core libs as a last resort.
+   */
+  const iconsForProfile = (
+    profile: { id: string; name: string; entityType?: 'brand' | 'product' | 'event' },
+  ): BrandIconography[] => {
+    if (!libraries.length) return [];
+    const key = normalize(profile.name);
+    const explicit = profile.entityType
+      ? new Set(getLinkedLibraryIdsForEntity(profile.id, profile.entityType))
+      : new Set<string>();
+
+    const matched = libraries.filter((l) => {
+      if (explicit.has(l.id)) return true;
+      if (l.level === 'core') return false;
+      const libKey = normalize(l.name);
+      if (!libKey || !key) return false;
+      return libKey === key || libKey.includes(key) || key.includes(libKey);
+    });
+
+    const pool = matched.length ? matched : libraries.filter((l) => l.level === 'core');
+    const collected: BrandIconography[] = [];
+    for (const lib of pool) {
+      for (const ic of lib.icons || []) {
+        if (ic?.svgPath) collected.push(ic);
+        if (collected.length >= 6) return collected;
+      }
+    }
+    return collected;
+  };
 
   const profiles = useMemo(() => {
     // Start with real DB brands
