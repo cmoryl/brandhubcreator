@@ -85,16 +85,16 @@ export const INDUSTRY_PRESETS: IndustryPreset[] = [
     coreSet: SHARED_CORE,
     subSets: [
       // Department
-      { id: 'tech-dept-eng', name: 'Engineering', description: 'Repos, deploys, branches, builds', grouping: 'department', category: 'SaaS/Data', sectionIndex: 3, count: 5, emoji: '👩‍💻' },
-      { id: 'tech-dept-prod', name: 'Product', description: 'Roadmap, sprints, backlog, releases', grouping: 'department', category: 'SaaS/Data', sectionIndex: 2, count: 5, emoji: '🧭' },
-      { id: 'tech-dept-mkt', name: 'Marketing', description: 'Campaigns, growth, attribution', grouping: 'department', category: 'Marketing Hero', sectionIndex: 0, count: 5, emoji: '📈' },
+      { id: 'tech-dept-eng', name: 'Engineering', description: 'Repos, deploys, branches, builds', grouping: 'department', category: 'SaaS/Data', sectionIndex: 3, count: 30, emoji: '👩‍💻' },
+      { id: 'tech-dept-prod', name: 'Product', description: 'Roadmap, sprints, backlog, releases', grouping: 'department', category: 'SaaS/Data', sectionIndex: 2, count: 30, emoji: '🧭' },
+      { id: 'tech-dept-mkt', name: 'Marketing', description: 'Campaigns, growth, attribution', grouping: 'department', category: 'Marketing Hero', sectionIndex: 0, count: 30, emoji: '📈' },
       // Feature
-      { id: 'tech-feat-analytics', name: 'Analytics', description: 'Charts, KPIs, dashboards', grouping: 'feature', category: 'SaaS/Data', sectionIndex: 0, count: 7, emoji: '📊' },
-      { id: 'tech-feat-security', name: 'Security & Auth', description: 'Locks, keys, MFA, audit', grouping: 'feature', category: 'SaaS/Data', sectionIndex: 1, count: 5, emoji: '🛡️' },
-      { id: 'tech-feat-api', name: 'API & Integrations', description: 'Webhooks, plugins, SDK', grouping: 'feature', category: 'SaaS/Data', sectionIndex: 3, count: 5, emoji: '🧩' },
+      { id: 'tech-feat-analytics', name: 'Analytics', description: 'Charts, KPIs, dashboards', grouping: 'feature', category: 'SaaS/Data', sectionIndex: 0, count: 30, emoji: '📊' },
+      { id: 'tech-feat-security', name: 'Security & Auth', description: 'Locks, keys, MFA, audit', grouping: 'feature', category: 'SaaS/Data', sectionIndex: 1, count: 30, emoji: '🛡️' },
+      { id: 'tech-feat-api', name: 'API & Integrations', description: 'Webhooks, plugins, SDK', grouping: 'feature', category: 'SaaS/Data', sectionIndex: 3, count: 30, emoji: '🧩' },
       // Context
-      { id: 'tech-ctx-support', name: 'Support & Docs', description: 'Help, FAQ, contact', grouping: 'context', category: 'Communication', sectionIndex: 3, count: 4, emoji: '💬' },
-      { id: 'tech-ctx-trust', name: 'Trust Signals', description: 'Verified, secured, guaranteed', grouping: 'context', category: 'Marketing Hero', sectionIndex: 2, count: 4, emoji: '✅' },
+      { id: 'tech-ctx-support', name: 'Support & Docs', description: 'Help, FAQ, contact', grouping: 'context', category: 'Communication', sectionIndex: 3, count: 30, emoji: '💬' },
+      { id: 'tech-ctx-trust', name: 'Trust Signals', description: 'Verified, secured, guaranteed', grouping: 'context', category: 'Marketing Hero', sectionIndex: 2, count: 30, emoji: '✅' },
     ],
   },
   {
