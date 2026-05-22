@@ -43,6 +43,7 @@ interface RecentLibrary {
   level?: 'core' | 'product_line' | 'brand';
   iconCount: number;
   isActive?: boolean;
+  icons?: BrandIconography[];
 }
 
 interface Props {
