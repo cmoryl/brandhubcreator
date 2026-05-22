@@ -61,6 +61,7 @@ import {
   downloadIconSvg,
   DEFAULT_PNG_SIZES,
 } from '@/lib/iconStudio/exportIcon';
+import { IconSetPreview } from '@/components/icon-studio/shell/IconSetPreview';
 
 type StepId = 'industry' | 'core' | 'subsets' | 'preflight' | 'export';
 
