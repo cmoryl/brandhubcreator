@@ -171,6 +171,10 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     () => linkedLibraries.find((l) => l.id === previewLibId) || null,
     [linkedLibraries, previewLibId],
   );
+  const [selectedIcon, setSelectedIcon] = useState<{ icon: BrandIconography; libraryName: string } | null>(null);
+  const openIconDetail = (icon: BrandIconography, libraryName: string) => {
+    setSelectedIcon({ icon, libraryName });
+  };
   const handleDownloadPdf = async () => {
     if (!brand) return;
     if (linkedLibraries.length === 0) {
