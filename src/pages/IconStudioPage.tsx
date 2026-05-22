@@ -448,6 +448,8 @@ const IconStudioPage = () => {
         <LibraryView
           libraries={libraries}
           onCreate={() => setShellSection('generate')}
+          autoOpenLibraryId={deepLinkLibraryId}
+          onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
         />
       ) : shellSection === 'brands' ? (
         <BrandsView organizationName={organizationName} brandProfiles={hierarchyBrands} />
