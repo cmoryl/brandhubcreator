@@ -108,16 +108,16 @@ export const INDUSTRY_PRESETS: IndustryPreset[] = [
     sampleEmojis: ['🩺', '💊', '🧬', '📋', '🏥', '🧪'],
     coreSet: SHARED_CORE,
     subSets: [
-      { id: 'hc-dept-clinical', name: 'Clinical', description: 'Vitals, diagnosis, treatment', grouping: 'department', category: 'Industry Specific', sectionIndex: 1, count: 5, emoji: '🩻' },
-      { id: 'hc-dept-admin', name: 'Administration', description: 'Billing, scheduling, records', grouping: 'department', category: 'SaaS/Data', sectionIndex: 2, count: 5, emoji: '🗂️' },
-      { id: 'hc-dept-pharm', name: 'Pharmacy', description: 'Prescriptions, refills, dosage', grouping: 'department', category: 'Industry Specific', sectionIndex: 0, count: 5, emoji: '💊' },
+      { id: 'hc-dept-clinical', name: 'Clinical', description: 'Vitals, diagnosis, treatment', grouping: 'department', category: 'Industry Specific', sectionIndex: 1, count: 30, emoji: '🩻' },
+      { id: 'hc-dept-admin', name: 'Administration', description: 'Billing, scheduling, records', grouping: 'department', category: 'SaaS/Data', sectionIndex: 2, count: 30, emoji: '🗂️' },
+      { id: 'hc-dept-pharm', name: 'Pharmacy', description: 'Prescriptions, refills, dosage', grouping: 'department', category: 'Industry Specific', sectionIndex: 0, count: 30, emoji: '💊' },
 
-      { id: 'hc-feat-telehealth', name: 'Telehealth', description: 'Video visit, chat, schedule', grouping: 'feature', category: 'Communication', sectionIndex: 0, count: 6, emoji: '📹' },
-      { id: 'hc-feat-records', name: 'Records (EHR)', description: 'Files, history, labs', grouping: 'feature', category: 'Industry Specific', sectionIndex: 2, count: 4, emoji: '📋' },
-      { id: 'hc-feat-monitor', name: 'Monitoring', description: 'Heart rate, alerts, devices', grouping: 'feature', category: 'Communication', sectionIndex: 1, count: 5, emoji: '❤️' },
+      { id: 'hc-feat-telehealth', name: 'Telehealth', description: 'Video visit, chat, schedule', grouping: 'feature', category: 'Communication', sectionIndex: 0, count: 30, emoji: '📹' },
+      { id: 'hc-feat-records', name: 'Records (EHR)', description: 'Files, history, labs', grouping: 'feature', category: 'Industry Specific', sectionIndex: 2, count: 30, emoji: '📋' },
+      { id: 'hc-feat-monitor', name: 'Monitoring', description: 'Heart rate, alerts, devices', grouping: 'feature', category: 'Communication', sectionIndex: 1, count: 30, emoji: '❤️' },
 
-      { id: 'hc-ctx-patient', name: 'Patient Experience', description: 'Onboarding, consent, FAQ', grouping: 'context', category: 'Communication', sectionIndex: 3, count: 4, emoji: '🧑‍⚕️' },
-      { id: 'hc-ctx-compliance', name: 'Compliance', description: 'HIPAA, audit, verified', grouping: 'context', category: 'SaaS/Data', sectionIndex: 1, count: 5, emoji: '🛡️' },
+      { id: 'hc-ctx-patient', name: 'Patient Experience', description: 'Onboarding, consent, FAQ', grouping: 'context', category: 'Communication', sectionIndex: 3, count: 30, emoji: '🧑‍⚕️' },
+      { id: 'hc-ctx-compliance', name: 'Compliance', description: 'HIPAA, audit, verified', grouping: 'context', category: 'SaaS/Data', sectionIndex: 1, count: 30, emoji: '🛡️' },
     ],
   },
   {
