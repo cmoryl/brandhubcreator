@@ -189,6 +189,13 @@ const IconStudioPage = () => {
     enabled: !!organizationId,
   });
 
+  const shellBrands: ShellBrand[] = useMemo(() => {
+    const base: ShellBrand[] = organization ? [{ id: organization.id, name: organization.name }] : [];
+    const extras: ShellBrand[] = hierarchyBrands.map((b) => ({ id: b.id, name: b.name }));
+    const seen = new Set<string>();
+    return [...base, ...extras].filter((b) => (seen.has(b.id) ? false : (seen.add(b.id), true)));
+  }, [organization, hierarchyBrands]);
+
   const handleSaveIcons = useCallback(
     (icons: BrandIconography[], libraryId?: string) => {
       if (libraryId) {
