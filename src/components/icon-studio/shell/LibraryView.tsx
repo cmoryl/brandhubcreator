@@ -225,6 +225,13 @@ export const LibraryView = ({ libraries, onOpenSet, onCreate, autoOpenLibraryId,
           })}
         </div>
       )}
+
+      <IconSetDetailDialog
+        library={openLib}
+        accent={openLib ? `hsl(var(${LEVEL_LABEL[openLib.level].token}))` : 'hsl(var(--tp-digital-blue))'}
+        levelLabel={openLib ? LEVEL_LABEL[openLib.level].label : ''}
+        onClose={() => setOpenLib(null)}
+      />
     </div>
   );
 };
