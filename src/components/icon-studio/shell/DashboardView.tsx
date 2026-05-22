@@ -223,10 +223,10 @@ export const DashboardView = ({
 
       {/* Metric tiles */}
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <MetricCard label="Total icons" value={totalIcons} delta="+12%" icon={Sparkles} accentToken="var(--tp-light-blue)" />
-        <MetricCard label="Active drafts" value={Math.max(0, totalLibraries - 1)} icon={Clock} accentToken="var(--tp-orange)" />
-        <MetricCard label="Approved sets" value={totalLibraries} delta="+3" icon={CheckCircle2} accentToken="var(--tp-green)" />
-        <MetricCard label="Needs review" value={2} icon={Eye} accentToken="var(--tp-purple)" />
+        <MetricCard label="Total icons" value={totalIcons} delta="+12%" icon={Sparkles} accentToken="var(--tp-light-blue)" onClick={() => onNavigate?.('library')} />
+        <MetricCard label="Active drafts" value={Math.max(0, totalLibraries - 1)} icon={Clock} accentToken="var(--tp-orange)" onClick={() => onNavigate?.('sets')} />
+        <MetricCard label="Approved sets" value={totalLibraries} delta="+3" icon={CheckCircle2} accentToken="var(--tp-green)" onClick={() => onNavigate?.('sets')} />
+        <MetricCard label="Needs review" value={2} icon={Eye} accentToken="var(--tp-purple)" onClick={() => onNavigate?.('qa')} />
       </section>
 
       {/* Two-up: volume + QA gauge */}
