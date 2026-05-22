@@ -105,33 +105,67 @@ export const ICON_PURPOSES = [
 /* Base styles — 18 presets                                                    */
 /* -------------------------------------------------------------------------- */
 
+export type StylePreviewVariant =
+  | 'tile' | 'glass' | 'outline' | 'neon' | 'duotone' | 'soft' | 'sharp'
+  | 'badge' | 'gradient' | 'sticker' | 'neumorphic' | 'flat' | 'chip'
+  | 'ring' | 'dotted' | 'shadow' | 'mono' | 'hatched' | 'sketch'
+  | 'pixel' | 'embossed' | 'inverse' | 'paper' | 'risograph';
+
 export interface BaseStyle {
   id: string;
   name: string;
   description: string;
   /** stroke / fill defaults used as a recipe hint */
   recipe: { stroke?: boolean; fill?: boolean; duotone?: boolean; mono?: boolean };
+  /** Visual preview hint for IconSetPreview */
+  preview: {
+    variant: StylePreviewVariant;
+    radius?: number;
+    strokeWidth?: number;
+    /** Secondary accent token (without `--`); defaults to the row accent. */
+    accent2?: string;
+  };
 }
 
 export const BASE_STYLES: BaseStyle[] = [
-  { id: 'outline', name: 'Outline', description: 'Single-stroke line system', recipe: { stroke: true } },
-  { id: 'filled', name: 'Filled', description: 'Solid, weighty glyphs', recipe: { fill: true } },
-  { id: 'duotone', name: 'Duotone', description: 'Two-tone depth', recipe: { duotone: true, fill: true } },
-  { id: 'mono-glyph', name: 'Mono glyph', description: 'Monochrome silhouettes', recipe: { mono: true, fill: true } },
-  { id: 'soft-filled', name: 'Soft filled', description: 'Rounded soft-fill', recipe: { fill: true } },
-  { id: 'glass', name: 'Glass icon', description: 'Translucent surface', recipe: { fill: true } },
-  { id: 'neon-line', name: 'Neon line', description: 'Glow-stroke for dark UI', recipe: { stroke: true } },
-  { id: 'enterprise-line', name: 'Enterprise line', description: 'Pixel-tight 2px stroke', recipe: { stroke: true } },
-  { id: 'rounded-ui', name: 'Rounded UI', description: 'Friendly rounded caps', recipe: { stroke: true } },
-  { id: 'sharp-ui', name: 'Sharp UI', description: 'Crisp 90° corners', recipe: { stroke: true } },
-  { id: 'marketing', name: 'Marketing icon', description: 'Bold hero-scale', recipe: { fill: true, duotone: true } },
-  { id: 'presentation', name: 'Presentation', description: 'Slide-ready, oversized', recipe: { fill: true } },
-  { id: 'system-utility', name: 'System utility', description: '16/24px tray icons', recipe: { stroke: true } },
-  { id: 'badge', name: 'Badge', description: 'Achievement & trust marks', recipe: { fill: true } },
-  { id: 'micro', name: 'Micro', description: 'Sub-16px UI accents', recipe: { stroke: true } },
-  { id: 'data', name: 'Data icon', description: 'Chart-anchored marks', recipe: { stroke: true } },
-  { id: 'ai-tech', name: 'AI / tech', description: 'Spark + circuit motifs', recipe: { stroke: true, duotone: true } },
-  { id: 'compliance', name: 'Compliance', description: 'Shield, lock, seal vocabulary', recipe: { fill: true } },
+  // Original 18
+  { id: 'outline', name: 'Outline', description: 'Single-stroke line system', recipe: { stroke: true }, preview: { variant: 'outline', strokeWidth: 1.75, radius: 10 } },
+  { id: 'filled', name: 'Filled', description: 'Solid, weighty glyphs', recipe: { fill: true }, preview: { variant: 'flat', radius: 10 } },
+  { id: 'duotone', name: 'Duotone', description: 'Two-tone depth', recipe: { duotone: true, fill: true }, preview: { variant: 'duotone', radius: 10 } },
+  { id: 'mono-glyph', name: 'Mono glyph', description: 'Monochrome silhouettes', recipe: { mono: true, fill: true }, preview: { variant: 'mono', radius: 10 } },
+  { id: 'soft-filled', name: 'Soft filled', description: 'Rounded soft-fill', recipe: { fill: true }, preview: { variant: 'soft', radius: 16 } },
+  { id: 'glass', name: 'Glass icon', description: 'Translucent surface', recipe: { fill: true }, preview: { variant: 'glass', radius: 12 } },
+  { id: 'neon-line', name: 'Neon line', description: 'Glow-stroke for dark UI', recipe: { stroke: true }, preview: { variant: 'neon', strokeWidth: 1.5, radius: 10 } },
+  { id: 'enterprise-line', name: 'Enterprise line', description: 'Pixel-tight 2px stroke', recipe: { stroke: true }, preview: { variant: 'outline', strokeWidth: 2, radius: 6 } },
+  { id: 'rounded-ui', name: 'Rounded UI', description: 'Friendly rounded caps', recipe: { stroke: true }, preview: { variant: 'tile', strokeWidth: 2, radius: 18 } },
+  { id: 'sharp-ui', name: 'Sharp UI', description: 'Crisp 90° corners', recipe: { stroke: true }, preview: { variant: 'sharp', strokeWidth: 1.75, radius: 0 } },
+  { id: 'marketing', name: 'Marketing icon', description: 'Bold hero-scale', recipe: { fill: true, duotone: true }, preview: { variant: 'gradient', radius: 12 } },
+  { id: 'presentation', name: 'Presentation', description: 'Slide-ready, oversized', recipe: { fill: true }, preview: { variant: 'tile', radius: 14 } },
+  { id: 'system-utility', name: 'System utility', description: '16/24px tray icons', recipe: { stroke: true }, preview: { variant: 'outline', strokeWidth: 1.5, radius: 6 } },
+  { id: 'badge', name: 'Badge', description: 'Achievement & trust marks', recipe: { fill: true }, preview: { variant: 'badge', radius: 999 } },
+  { id: 'micro', name: 'Micro', description: 'Sub-16px UI accents', recipe: { stroke: true }, preview: { variant: 'outline', strokeWidth: 1.25, radius: 4 } },
+  { id: 'data', name: 'Data icon', description: 'Chart-anchored marks', recipe: { stroke: true }, preview: { variant: 'dotted', strokeWidth: 1.75, radius: 8 } },
+  { id: 'ai-tech', name: 'AI / tech', description: 'Spark + circuit motifs', recipe: { stroke: true, duotone: true }, preview: { variant: 'gradient', radius: 10 } },
+  { id: 'compliance', name: 'Compliance', description: 'Shield, lock, seal vocabulary', recipe: { fill: true }, preview: { variant: 'shadow', radius: 10 } },
+
+  // New look & feel variations
+  { id: 'sticker', name: 'Sticker', description: 'White surface, bold colored border', recipe: { stroke: true, fill: true }, preview: { variant: 'sticker', strokeWidth: 2, radius: 14 } },
+  { id: 'neumorphic', name: 'Neumorphic', description: 'Soft inset & outset shadows', recipe: { fill: true }, preview: { variant: 'neumorphic', radius: 14 } },
+  { id: 'chip', name: 'Pill chip', description: 'Pill-shaped contained marks', recipe: { stroke: true }, preview: { variant: 'chip', radius: 999 } },
+  { id: 'ring', name: 'Double ring', description: 'Halo-bordered emblem', recipe: { stroke: true }, preview: { variant: 'ring', strokeWidth: 1.75, radius: 999 } },
+  { id: 'paper', name: 'Paper cut', description: 'Layered paper card with offset', recipe: { fill: true }, preview: { variant: 'paper', radius: 8 } },
+  { id: 'embossed', name: 'Embossed', description: 'Subtle relief, premium feel', recipe: { stroke: true }, preview: { variant: 'embossed', strokeWidth: 1.75, radius: 12 } },
+  { id: 'risograph', name: 'Risograph', description: 'Offset two-color print', recipe: { fill: true, duotone: true }, preview: { variant: 'risograph', radius: 8 } },
+  { id: 'pixel', name: 'Pixel grid', description: '8-bit pixel-art frame', recipe: { stroke: true }, preview: { variant: 'pixel', strokeWidth: 2, radius: 2 } },
+  { id: 'sketch', name: 'Sketch', description: 'Hand-drawn dashed contour', recipe: { stroke: true }, preview: { variant: 'sketch', strokeWidth: 1.5, radius: 10 } },
+  { id: 'inverse', name: 'Inverse chip', description: 'Solid accent, white glyph', recipe: { fill: true }, preview: { variant: 'inverse', radius: 10 } },
+  { id: 'hatched', name: 'Hatched', description: 'Diagonal hatch background', recipe: { stroke: true }, preview: { variant: 'hatched', strokeWidth: 1.75, radius: 8 } },
+  { id: 'aurora', name: 'Aurora gradient', description: 'Multi-stop gradient sheen', recipe: { fill: true, duotone: true }, preview: { variant: 'gradient', radius: 12, accent2: 'tp-pink' } },
+  { id: 'cyber', name: 'Cyberframe', description: 'Neon ring on dark surface', recipe: { stroke: true }, preview: { variant: 'neon', strokeWidth: 1.75, radius: 4 } },
+  { id: 'soft-shadow', name: 'Soft shadow', description: 'Floating glyph with halo', recipe: { fill: true }, preview: { variant: 'shadow', radius: 14 } },
+  { id: 'ghost', name: 'Ghost', description: 'Faded translucent line', recipe: { stroke: true }, preview: { variant: 'outline', strokeWidth: 1, radius: 10 } },
+  { id: 'editorial', name: 'Editorial', description: 'Newspaper-weight thick stroke', recipe: { stroke: true }, preview: { variant: 'outline', strokeWidth: 2.5, radius: 0 } },
+  { id: 'minimal-dot', name: 'Minimal dot', description: 'Tiny dot-anchored glyph', recipe: { stroke: true }, preview: { variant: 'dotted', strokeWidth: 1.5, radius: 999 } },
 ];
 
 export const COLOR_MODES = [

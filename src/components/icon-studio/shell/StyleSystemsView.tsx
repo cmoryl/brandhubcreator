@@ -111,9 +111,12 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                   <IconSetPreview
                     emojis={SAMPLE_EMOJIS}
                     accent={accent}
+                    accent2={s.preview.accent2 ? `hsl(var(--${s.preview.accent2}))` : undefined}
                     size="sm"
                     count={6}
-                    variant={s.recipe.fill ? 'glass' : 'tile'}
+                    variant={s.preview.variant}
+                    radius={s.preview.radius}
+                    strokeWidth={s.preview.strokeWidth}
                   />
                   <div className="mt-3 flex flex-wrap gap-1">
                     {Object.entries(s.recipe)
@@ -123,6 +126,9 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                           {k}
                         </Badge>
                       ))}
+                    <Badge variant="outline" className="text-[10px] capitalize">
+                      {s.preview.variant}
+                    </Badge>
                   </div>
                 </button>
               );
