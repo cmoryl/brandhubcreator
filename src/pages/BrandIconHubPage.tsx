@@ -677,6 +677,55 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <Dialog open={!!previewLib} onOpenChange={(o) => !o && setPreviewLibId(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          {previewLib && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Library className="h-4 w-4" />
+                  {previewLib.name}
+                  <Badge variant="secondary" className="text-[10px] ml-1">{previewLib.icons.length} icons</Badge>
+                </DialogTitle>
+                <DialogDescription>
+                  {previewLib.description || `${previewLib.level} collection linked to ${brand?.name}.`}
+                </DialogDescription>
+              </DialogHeader>
+
+              {previewLib.icons.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  This collection has no icons yet.
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 py-2">
+                  {previewLib.icons.map((ic) => (
+                    <div
+                      key={ic.id}
+                      className="aspect-square rounded-md border border-border/50 bg-background/40 flex flex-col items-center justify-center text-foreground p-2 gap-1"
+                      title={ic.name}
+                    >
+                      <IconSvgRender icon={ic} size={28} />
+                      <span className="text-[9px] text-muted-foreground truncate w-full text-center">{ic.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button variant="outline" onClick={() => setPreviewLibId(null)}>Close</Button>
+                <Button
+                  className="gap-1.5"
+                  onClick={() => navigate(`/icon-studio?section=library&library=${previewLib.id}`)}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Open in Icon Studio
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
