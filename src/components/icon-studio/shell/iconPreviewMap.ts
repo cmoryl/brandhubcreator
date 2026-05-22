@@ -19,7 +19,7 @@ import {
   Server, Settings, Share2, Shield, ShieldCheck, ShoppingBag, ShoppingCart, Sliders,
   Smartphone, Sparkles, Square, Star, Stethoscope, Store, Sun, Tag, Target, Ticket,
   Timer, Trash2, TrendingUp, Truck, Tv, Upload, User, Users, Video, Wallet, Wand2,
-  Wifi, Wrench, Zap, Shapes, Gamepad2,
+  Wifi, Wrench, Zap, Shapes,
   type LucideIcon,
 } from 'lucide-react';
 
