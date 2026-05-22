@@ -38,7 +38,14 @@ import {
 import { StudioShell, type ShellSection, type Brand as ShellBrand } from '@/components/icon-studio/shell/StudioShell';
 import { DashboardView } from '@/components/icon-studio/shell/DashboardView';
 import { ProductionSummary } from '@/components/icon-studio/shell/ProductionSummary';
-import { PlaceholderView } from '@/components/icon-studio/shell/PlaceholderView';
+
+import { LibraryView } from '@/components/icon-studio/shell/LibraryView';
+import { BrandsView } from '@/components/icon-studio/shell/BrandsView';
+import { StyleSystemsView } from '@/components/icon-studio/shell/StyleSystemsView';
+import { IconSetsView } from '@/components/icon-studio/shell/IconSetsView';
+import { QAView } from '@/components/icon-studio/shell/QAView';
+import { ExportCenterView } from '@/components/icon-studio/shell/ExportCenterView';
+import { SettingsView } from '@/components/icon-studio/shell/SettingsView';
 import '@/components/icon-studio/shell/tpTokens.css';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -351,111 +358,33 @@ const IconStudioPage = () => {
           </div>
         )
       ) : shellSection === 'library' ? (
-        <PlaceholderView
-          icon={Library}
-          title="Library"
-          description="Saved icon sets, brands, recipes, style presets, and color themes — searchable, taggable, version-controlled."
-          phaseLabel="Phase 4"
-          features={[
-            'Search across every saved icon and set',
-            'Version history with side-by-side compare',
-            'Tags, collections, favorites, and rejected bin',
-            'Lock approved icons to prevent overwrites',
-            'Replace individual icons in a saved set',
-            'Team comments and approval workflow',
-          ]}
-          primaryAction={{ label: 'Open generator', onClick: () => setShellSection('generate') }}
+        <LibraryView
+          libraries={libraries}
+          onCreate={() => setShellSection('generate')}
         />
       ) : shellSection === 'brands' ? (
-        <PlaceholderView
-          icon={Building2}
-          title="Brand Profiles"
-          description="Brand identity, color rules, typography, icon style rules, and do/don't guidance that drive every generation, QA pass, and export."
-          phaseLabel="Phase 4"
-          features={[
-            'Logo + primary/secondary/accent color palettes',
-            'Typography and tone attributes',
-            'Icon style rules (stroke, grid, caps, joins)',
-            'Brand guide upload + sample icons',
-            'Export naming convention per brand',
-            'Influences generation, QA, and export defaults',
-          ]}
-        />
+        <BrandsView organizationName={organizationName} />
       ) : shellSection === 'styles' ? (
-        <PlaceholderView
-          icon={Palette}
-          title="Style Systems"
-          description="Reusable style recipes — base style, stroke widths, fill modes, color modes — saved as systems you can apply to any set."
-          phaseLabel="Phase 4"
-          features={[
-            '18 base styles (Outline → Compliance)',
-            'Stroke width, corner radius, optical padding presets',
-            'Color mode: mono, duotone, brand, semantic',
-            'Light + dark mode compatibility',
-            'Save as recipe and apply to any new set',
-          ]}
-        />
+        <StyleSystemsView onStartGenerate={() => setShellSection('generate')} />
       ) : shellSection === 'sets' ? (
-        <PlaceholderView
-          icon={FolderOpen}
-          title="Icon Sets"
-          description="Every set you've generated — core systems, sub-set packs, custom collections. Duplicate, remix, regenerate, or lock."
-          phaseLabel="Phase 4"
-          features={[
-            'Core company sets + industry sub-set packs',
-            'Duplicate and remix to spin variations',
-            'Regenerate selected icons in place',
-            'Compare sets across versions',
-            'Promote draft to approved',
-          ]}
+        <IconSetsView
+          libraries={libraries}
+          onCreate={() => setShellSection('generate')}
         />
       ) : shellSection === 'qa' ? (
-        <PlaceholderView
-          icon={ShieldCheck}
-          title="QA / Preflight"
-          description="Production-grade QA dashboard with brand compliance, accessibility, SVG health, and export readiness scoring across the whole set."
-          phaseLabel="Phase 2"
-          features={[
-            'SVG validity, viewBox, stroke consistency checks',
-            'Grid alignment, optical balance, min-size readability',
-            'Duplicate shape and overlap detection',
-            'Color + contrast compliance, light/dark previews',
-            'Pixel preview at 16/24/32/48/64 px',
-            'Responsible-AI metaphor check for sensitive industries',
-            'Per-icon Approve / Reject / Regenerate / Lock',
-          ]}
-          primaryAction={{ label: 'Run preflight on current set', onClick: () => setShellSection('generate') }}
+        <QAView
+          libraries={libraries}
+          totalIcons={totalIcons}
+          onStartGenerate={() => setShellSection('generate')}
         />
       ) : shellSection === 'export' ? (
-        <PlaceholderView
-          icon={Package}
-          title="Export Center"
-          description="Production-ready bundles: SVG, optimized SVG, PNG/WebP at every size, PDF contact sheet, React/Vue components, icon font, design tokens, favicons, app-icon package."
-          phaseLabel="Phase 3"
-          features={[
-            'Bulk ZIP with brand/, svg/, png/, react/, figma/, docs/ tree',
-            'Per-section and per-sub-set export cards',
-            'PDF contact sheet + QA report + usage guide',
-            'React / Vue component libraries',
-            'CSS sprite + icon font + design token file',
-            'Favicons + iOS/Android/PWA/macOS/Windows app icons',
-          ]}
-          primaryAction={{ label: 'Generate a set first', onClick: () => setShellSection('generate') }}
+        <ExportCenterView
+          libraries={libraries}
+          organizationName={organizationName}
+          onOpenLibrary={() => setShellSection('library')}
         />
       ) : (
-        <PlaceholderView
-          icon={Settings}
-          title="Settings"
-          description="Studio defaults, naming conventions, QA thresholds, integrations, and team access."
-          phaseLabel="Phase 4"
-          features={[
-            'Default style, grid, and color mode',
-            'Naming convention editor',
-            'QA threshold tuning',
-            'Team roles and access',
-            'Integrations (Figma, Slack, Storybook)',
-          ]}
-        />
+        <SettingsView />
       )}
     </StudioShell>
   );
