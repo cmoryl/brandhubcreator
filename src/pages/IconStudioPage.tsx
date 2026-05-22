@@ -287,6 +287,7 @@ const IconStudioPage = () => {
             id: b.id,
             name: b.name,
             slug: b.slug,
+            entityType: b.type,
             tone: b.type === 'brand' ? 'Brand' : b.type === 'product' ? 'Product' : 'Event',
           }))}
         />

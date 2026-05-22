@@ -35,6 +35,7 @@ interface BrandProfile {
   slug?: string;
   tone?: string;
   members?: number;
+  entityType?: 'brand' | 'product' | 'event';
 }
 
 interface Props {
@@ -354,7 +355,7 @@ export const DashboardView = ({
             return (
               <li key={b.id}>
                 {b.slug ? (
-                  <Link to={`/icon-studio/brand/${b.slug}`} className={className}>
+                  <Link to={`/icon-studio/${b.entityType || 'brand'}/${b.slug}`} className={className}>
                     {content}
                   </Link>
                 ) : (

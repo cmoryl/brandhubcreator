@@ -45,7 +45,25 @@ const SAMPLE_FOR = (name: string): string[] => {
   return ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
 };
 
-const BrandIconHubPage = () => {
+type EntityType = 'brand' | 'product' | 'event';
+
+interface BrandIconHubPageProps {
+  entityType?: EntityType;
+}
+
+const TABLE_FOR: Record<EntityType, 'brands' | 'products' | 'events'> = {
+  brand: 'brands',
+  product: 'products',
+  event: 'events',
+};
+
+const LABEL_FOR: Record<EntityType, string> = {
+  brand: 'Brand Icon Hub',
+  product: 'Product Icon Hub',
+  event: 'Event Icon Hub',
+};
+
+const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
@@ -56,13 +74,13 @@ const BrandIconHubPage = () => {
     if (!authLoading && !user) navigate('/auth');
   }, [user, authLoading, navigate]);
 
-  // Resolve brand by slug within active org
+  // Resolve entity (brand/product/event) by slug within active org
   const { data: brand, isLoading: brandLoading } = useQuery({
-    queryKey: ['brand-by-slug', slug, organizationId],
+    queryKey: ['entity-by-slug', entityType, slug, organizationId],
     queryFn: async () => {
       if (!slug || !organizationId) return null;
       const { data } = await supabase
-        .from('brands')
+        .from(TABLE_FOR[entityType])
         .select('id, name, slug, guide_data')
         .eq('organization_id', organizationId)
         .eq('slug', slug)
@@ -71,6 +89,7 @@ const BrandIconHubPage = () => {
     },
     enabled: !!slug && !!organizationId,
   });
+
 
   useSEO({
     title: brand?.name ? `${brand.name} · Icon Hub — BrandHub` : 'Brand Icon Hub',
@@ -168,9 +187,9 @@ const BrandIconHubPage = () => {
     return (
       <div className="icon-studio-tp min-h-screen" style={{ background: 'hsl(var(--tp-surface-0))' }}>
         <div className="max-w-2xl mx-auto py-20 px-6 text-center space-y-4">
-          <h1 className="text-2xl font-semibold">Brand not found</h1>
+          <h1 className="text-2xl font-semibold">{entityType.charAt(0).toUpperCase() + entityType.slice(1)} not found</h1>
           <p className="text-muted-foreground">
-            We couldn't find a brand with the slug “{slug}” in this workspace.
+            We couldn't find a {entityType} with the slug “{slug}” in this workspace.
           </p>
           <Button onClick={() => navigate('/icon-studio')} variant="outline" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
@@ -217,16 +236,16 @@ const BrandIconHubPage = () => {
               <div className="leading-tight min-w-0">
                 <div className="text-sm font-semibold truncate">{brand.name}</div>
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Brand Icon Hub
+                  {LABEL_FOR[entityType]}
                 </div>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5 h-8" asChild>
-              <Link to={`/brand/${brand.slug}`}>
+              <Link to={`/${entityType}/${brand.slug}`}>
                 <ExternalLink className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Brand profile</span>
+                <span className="hidden sm:inline">{entityType === 'brand' ? 'Brand profile' : entityType === 'product' ? 'Product profile' : 'Event profile'}</span>
               </Link>
             </Button>
             <Button size="sm" className="gap-1.5 h-8" onClick={() => navigate('/icon-studio')}>
