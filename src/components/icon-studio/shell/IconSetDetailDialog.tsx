@@ -194,6 +194,22 @@ export const IconSetDetailDialog = ({
         icon={selectedIcon}
         onClose={() => setSelectedIcon(null)}
         accent={accent}
+        fallbackRecipe={baseRecipe}
+      />
+
+      <RemixSystemDialog
+        open={remixOpen}
+        systemName={library?.name}
+        baseRecipe={baseRecipe}
+        accent={accent}
+        onClose={() => setRemixOpen(false)}
+        onRemix={(key, recipe) => {
+          toast.success(`Remix queued: ${key}`, {
+            description: recipe
+              ? 'A new variant will be generated from this system.'
+              : 'No recipe attached — variant will use defaults.',
+          });
+        }}
       />
     </Dialog>
   );
