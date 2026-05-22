@@ -662,6 +662,12 @@ ${innerContent}
                 <Sparkles className="h-4 w-4" />
                 Icon Studio
               </Button>
+              <Button asChild size="sm" variant="outline" className="gap-2">
+                <Link to="/icon-studio">
+                  <ExternalLink className="h-4 w-4" />
+                  Open Full Page
+                </Link>
+              </Button>
             </>
           )}
         </div>
