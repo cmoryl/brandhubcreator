@@ -114,27 +114,37 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
                 icon={Ruler}
                 hint="Same recipe rendered at three optical sizes."
               >
-                <div className="grid gap-3 md:grid-cols-3">
-                  {SIZE_LADDER.map((row) => (
-                    <div
-                      key={row.size}
-                      className="rounded-lg border border-border/50 bg-card/40 p-4 space-y-2"
-                    >
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {row.label}
+                <div className="space-y-3">
+                  {SIZE_LADDER.map((row) => {
+                    // Cap columns so lg tiles (56px) never overflow the card.
+                    const cols = row.size === 'lg' ? 8 : row.size === 'md' ? 10 : 12;
+                    return (
+                      <div
+                        key={row.size}
+                        className="rounded-lg border border-border/50 bg-card/40 p-4 space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                            {row.label}
+                          </div>
+                          <Badge variant="outline" className="text-[10px]">
+                            {cols} icons
+                          </Badge>
+                        </div>
+                        <IconSetPreview
+                          emojis={['⚙️', '📊', '🔐', '🛒', '✨', '🛡️', '💬', '🚀', '🔔', '🏠', '📦', '🎯']}
+                          accent={accent}
+                          accent2={a2}
+                          size={row.size}
+                          count={cols}
+                          columns={cols}
+                          variant={style.preview.variant}
+                          radius={style.preview.radius}
+                          strokeWidth={style.preview.strokeWidth}
+                        />
                       </div>
-                      <IconSetPreview
-                        emojis={['⚙️', '📊', '🔐', '🛒', '✨', '🛡️']}
-                        accent={accent}
-                        accent2={a2}
-                        size={row.size}
-                        count={6}
-                        variant={style.preview.variant}
-                        radius={style.preview.radius}
-                        strokeWidth={style.preview.strokeWidth}
-                      />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </Section>
 
