@@ -73,9 +73,9 @@ export const svgToTransparentPng = (svg: string, size: number): Promise<Blob> =>
         'image/png',
       );
     };
-    img.onerror = (err) => {
+    img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(err instanceof Event ? new Error('Failed to load SVG') : (err as Error));
+      reject(new Error('Failed to load SVG into image element'));
     };
     img.src = url;
   });
