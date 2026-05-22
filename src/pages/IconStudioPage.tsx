@@ -30,7 +30,16 @@ import {
   Layers,
   Search,
   Compass,
+  Building2,
+  FolderOpen,
+  ShieldCheck,
+  Settings,
 } from 'lucide-react';
+import { StudioShell, type ShellSection, type Brand as ShellBrand } from '@/components/icon-studio/shell/StudioShell';
+import { DashboardView } from '@/components/icon-studio/shell/DashboardView';
+import { ProductionSummary } from '@/components/icon-studio/shell/ProductionSummary';
+import { PlaceholderView } from '@/components/icon-studio/shell/PlaceholderView';
+import '@/components/icon-studio/shell/tpTokens.css';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -78,6 +87,12 @@ const IconStudioPage = () => {
   const [styleSubView, setStyleSubView] = useState<
     'colorize' | 'hierarchy' | 'app-icons'
   >('colorize');
+  const [shellSection, setShellSection] = useState<ShellSection>('dashboard');
+  const [activeBrand, setActiveBrand] = useState<ShellBrand | undefined>(undefined);
+  const shellBrands: ShellBrand[] = useMemo(
+    () => (organization ? [{ id: organization.id, name: organization.name }] : []),
+    [organization],
+  );
 
   const {
     libraries,
