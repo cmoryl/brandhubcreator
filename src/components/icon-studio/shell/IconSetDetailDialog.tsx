@@ -107,8 +107,8 @@ export const IconSetDetailDialog = ({
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
-        className="max-w-6xl max-h-[92vh] overflow-y-auto p-0 icon-studio-tp"
-        data-theme={theme}
+        className={`max-w-6xl max-h-[92vh] overflow-y-auto p-0 icon-studio-tp ${previewTheme === 'dark' ? 'dark bg-background' : 'bg-background'}`}
+        data-theme={previewTheme}
       >
         {library && (
           <>
