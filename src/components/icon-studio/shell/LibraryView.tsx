@@ -166,7 +166,7 @@ export const LibraryView = ({ libraries, onOpenSet, onCreate, autoOpenLibraryId,
             return (
               <button
                 key={lib.id}
-                onClick={() => onOpenSet?.(lib)}
+                onClick={() => { setOpenLib(lib); onOpenSet?.(lib); }}
                 className="tp-card tp-card-interactive group p-5 text-left transition-all"
                 style={{
                   backgroundImage: `linear-gradient(135deg, hsl(var(${level.token}) / 0.08), transparent 60%)`,
