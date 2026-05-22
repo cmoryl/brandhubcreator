@@ -44,6 +44,8 @@ interface Props {
   /** Total saved libraries */
   totalLibraries: number;
   onStartGenerate: () => void;
+  /** Navigate to another shell section (library, sets, export, brands, qa, styles). */
+  onNavigate?: (section: 'library' | 'sets' | 'export' | 'brands' | 'qa' | 'styles' | 'generate') => void;
   /** Real brand profiles loaded from the org. */
   brandProfiles?: BrandProfile[];
 }
