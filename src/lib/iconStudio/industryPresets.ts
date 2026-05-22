@@ -131,16 +131,16 @@ export const INDUSTRY_PRESETS: IndustryPreset[] = [
     sampleEmojis: ['💳', '🏦', '📈', '💰', '🔐', '🧾'],
     coreSet: SHARED_CORE,
     subSets: [
-      { id: 'fi-dept-retail', name: 'Retail Banking', description: 'Accounts, cards, transfers', grouping: 'department', category: 'E-Commerce', sectionIndex: 1, count: 5, emoji: '💳' },
-      { id: 'fi-dept-invest', name: 'Investments', description: 'Portfolio, stocks, gains', grouping: 'department', category: 'Marketing Hero', sectionIndex: 0, count: 5, emoji: '📈' },
-      { id: 'fi-dept-compliance', name: 'Compliance', description: 'KYC, audit, regulation', grouping: 'department', category: 'SaaS/Data', sectionIndex: 1, count: 5, emoji: '🛡️' },
+      { id: 'fi-dept-retail', name: 'Retail Banking', description: 'Accounts, cards, transfers', grouping: 'department', category: 'E-Commerce', sectionIndex: 1, count: 30, emoji: '💳' },
+      { id: 'fi-dept-invest', name: 'Investments', description: 'Portfolio, stocks, gains', grouping: 'department', category: 'Marketing Hero', sectionIndex: 0, count: 30, emoji: '📈' },
+      { id: 'fi-dept-compliance', name: 'Compliance', description: 'KYC, audit, regulation', grouping: 'department', category: 'SaaS/Data', sectionIndex: 1, count: 30, emoji: '🛡️' },
 
-      { id: 'fi-feat-payments', name: 'Payments', description: 'Cards, wallet, P2P, invoices', grouping: 'feature', category: 'E-Commerce', sectionIndex: 1, count: 5, emoji: '💸' },
-      { id: 'fi-feat-lending', name: 'Lending', description: 'Loans, mortgage, credit', grouping: 'feature', category: 'Industry Specific', sectionIndex: 0, count: 5, emoji: '🏦' },
-      { id: 'fi-feat-fraud', name: 'Fraud & Risk', description: 'Alert, block, verify', grouping: 'feature', category: 'SaaS/Data', sectionIndex: 1, count: 5, emoji: '🚨' },
+      { id: 'fi-feat-payments', name: 'Payments', description: 'Cards, wallet, P2P, invoices', grouping: 'feature', category: 'E-Commerce', sectionIndex: 1, count: 30, emoji: '💸' },
+      { id: 'fi-feat-lending', name: 'Lending', description: 'Loans, mortgage, credit', grouping: 'feature', category: 'Industry Specific', sectionIndex: 0, count: 30, emoji: '🏦' },
+      { id: 'fi-feat-fraud', name: 'Fraud & Risk', description: 'Alert, block, verify', grouping: 'feature', category: 'SaaS/Data', sectionIndex: 1, count: 30, emoji: '🚨' },
 
-      { id: 'fi-ctx-trust', name: 'Trust & Security', description: 'Secured, insured, verified', grouping: 'context', category: 'Marketing Hero', sectionIndex: 2, count: 4, emoji: '🔒' },
-      { id: 'fi-ctx-rewards', name: 'Rewards', description: 'Points, cashback, perks', grouping: 'context', category: 'E-Commerce', sectionIndex: 3, count: 3, emoji: '🎁' },
+      { id: 'fi-ctx-trust', name: 'Trust & Security', description: 'Secured, insured, verified', grouping: 'context', category: 'Marketing Hero', sectionIndex: 2, count: 30, emoji: '🔒' },
+      { id: 'fi-ctx-rewards', name: 'Rewards', description: 'Points, cashback, perks', grouping: 'context', category: 'E-Commerce', sectionIndex: 3, count: 30, emoji: '🎁' },
     ],
   },
   {
