@@ -279,6 +279,21 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                 <span className="hidden sm:inline">{entityType === 'brand' ? 'Brand profile' : entityType === 'product' ? 'Product profile' : 'Event profile'}</span>
               </Link>
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8"
+              onClick={handleDownloadPdf}
+              disabled={exportingPdf || linkedLibraries.length === 0}
+              title="Download a printable PDF of every linked icon"
+            >
+              {exportingPdf ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <FileDown className="h-3.5 w-3.5" />
+              )}
+              <span className="hidden sm:inline">Download PDF</span>
+            </Button>
             <Button size="sm" className="gap-1.5 h-8" onClick={() => navigate('/icon-studio')}>
               <Wand2 className="h-3.5 w-3.5" />
               Generate
