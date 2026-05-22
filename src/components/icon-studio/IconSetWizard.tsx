@@ -676,6 +676,7 @@ const CoreStep = ({
               section && onRegenerate(coreEntryToTask(entry).key)
             }
             tone="core"
+            style={style}
           />
         ))}
       </div>
