@@ -446,7 +446,7 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                         <button
                           key={`${libraryId}-${icon.id}`}
                           type="button"
-                          onClick={() => navigate(`/icon-studio?section=library&library=${libraryId}`)}
+                          onClick={() => openIconDetail(icon, libraryName)}
                           title={`${icon.name} · ${libraryName}`}
                           className="group flex flex-col items-center gap-1 p-2 rounded-md border border-border/60 bg-card hover:border-primary/50 hover:shadow-sm transition-all text-foreground"
                         >
