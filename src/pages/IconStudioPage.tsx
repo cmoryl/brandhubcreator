@@ -497,6 +497,7 @@ const IconStudioPage = () => {
         <QAView
           libraries={libraries}
           totalIcons={totalIcons}
+          organizationId={organizationId}
           onStartGenerate={() => setShellSection('generate')}
         />
       ) : shellSection === 'export' ? (
