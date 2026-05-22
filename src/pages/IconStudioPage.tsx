@@ -369,7 +369,11 @@ const IconStudioPage = () => {
       ) : shellSection === 'sets' ? (
         <IconSetsView
           libraries={libraries}
+          organizationId={organizationId}
           onCreate={() => setShellSection('generate')}
+          onRemix={() => setShellSection('generate')}
+          onRegenerate={() => setShellSection('generate')}
+          onCompare={() => setShellSection('qa')}
         />
       ) : shellSection === 'qa' ? (
         <QAView
