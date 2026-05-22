@@ -1,0 +1,124 @@
+/**
+ * Thin client around the generate-icon-set edge function.
+ * Drives a list of (category, sectionIndex) generation tasks and streams
+ * results back as they finish.
+ */
+
+import { supabase } from '@/integrations/supabase/client';
+import { BrandIconography } from '@/types/brand';
+import { CoreSetEntry, SubSetTemplate } from './industryPresets';
+
+export interface GenerationTask {
+  /** Stable key used in UI state */
+  key: string;
+  label: string;
+  category: string;
+  sectionIndex: number;
+  count?: number;
+}
+
+export interface GenerationResult {
+  task: GenerationTask;
+  icons: BrandIconography[];
+  error?: string;
+}
+
+interface RunOpts {
+  entityName: string;
+  industry?: string;
+  style?: 'outlined' | 'filled' | 'duotone';
+  onTaskStart?: (task: GenerationTask) => void;
+  onTaskDone?: (result: GenerationResult) => void;
+  signal?: AbortSignal;
+}
+
+const POLL_INTERVAL_MS = 2500;
+const POLL_MAX_ATTEMPTS = 60; // ~2.5 min
+
+async function pollJob(jobId: string, signal?: AbortSignal): Promise<BrandIconography[]> {
+  for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
+    if (signal?.aborted) throw new Error('Aborted');
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+    const { data, error } = await supabase.functions.invoke('generate-icon-set', {
+      body: { jobId },
+    });
+    if (error) throw new Error(error.message);
+    if (data?.status === 'completed' && Array.isArray(data?.icons)) {
+      return data.icons as BrandIconography[];
+    }
+    if (data?.status === 'failed') {
+      throw new Error(data?.error || 'Generation failed');
+    }
+  }
+  throw new Error('Generation timed out');
+}
+
+export async function runGenerationTask(
+  task: GenerationTask,
+  opts: RunOpts,
+): Promise<BrandIconography[]> {
+  const { entityName, industry, style = 'outlined' } = opts;
+  const { data, error } = await supabase.functions.invoke('generate-icon-set', {
+    body: {
+      entityName,
+      industry,
+      category: task.category,
+      sectionIndex: task.sectionIndex,
+      style: { fill: style === 'filled', stroke: style !== 'filled' },
+      preset: style,
+      customCount: task.count,
+    },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.jobId) return pollJob(data.jobId, opts.signal);
+  if (Array.isArray(data?.icons)) return data.icons as BrandIconography[];
+  return [];
+}
+
+/**
+ * Run a queue of tasks sequentially (the edge function is heavy — running in
+ * parallel would trip rate-limits). Streams results via `onTaskDone`.
+ */
+export async function runGenerationQueue(
+  tasks: GenerationTask[],
+  opts: RunOpts,
+): Promise<GenerationResult[]> {
+  const results: GenerationResult[] = [];
+  for (const task of tasks) {
+    if (opts.signal?.aborted) break;
+    opts.onTaskStart?.(task);
+    try {
+      const icons = await runGenerationTask(task, opts);
+      const result: GenerationResult = { task, icons };
+      results.push(result);
+      opts.onTaskDone?.(result);
+    } catch (err: any) {
+      const result: GenerationResult = {
+        task,
+        icons: [],
+        error: err?.message ?? 'Generation failed',
+      };
+      results.push(result);
+      opts.onTaskDone?.(result);
+    }
+  }
+  return results;
+}
+
+/** Convert a CoreSetEntry to a GenerationTask. */
+export const coreEntryToTask = (e: CoreSetEntry): GenerationTask => ({
+  key: `core::${e.category}::${e.sectionIndex}`,
+  label: e.label,
+  category: e.category,
+  sectionIndex: e.sectionIndex,
+  count: e.count,
+});
+
+/** Convert a SubSetTemplate to a GenerationTask. */
+export const subSetToTask = (s: SubSetTemplate): GenerationTask => ({
+  key: `sub::${s.id}`,
+  label: s.name,
+  category: s.category,
+  sectionIndex: s.sectionIndex,
+  count: s.count,
+});
