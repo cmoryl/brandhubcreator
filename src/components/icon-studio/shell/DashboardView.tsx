@@ -190,6 +190,7 @@ export const DashboardView = ({
                   meta={`${levelLabel(lib.level)} · ${lib.iconCount} icons`}
                   status={lib.isActive ? 'approved' : 'idle'}
                   emojis={sampleEmojis}
+                  icons={lib.icons}
                   accent={levelAccent(lib.level)}
                   onClick={() => onOpenLibrary?.(lib.id)}
                 />
