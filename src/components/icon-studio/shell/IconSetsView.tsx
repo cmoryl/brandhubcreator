@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from 'react';
 import {
-  Copy, Wand2, Lock, Unlock, RefreshCw, GitCompare, ArrowUpRight,
+  Copy, Wand2, Lock, Unlock, RefreshCw, ArrowUpRight,
   FolderOpen, Plus, Filter, Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -215,7 +215,7 @@ export const IconSetsView = ({
                     { label: 'Duplicate', icon: Copy, onClick: () => handleDuplicate(lib) },
                     { label: 'Remix', icon: Wand2, onClick: () => handleRemix(lib) },
                     { label: 'Regenerate', icon: RefreshCw, onClick: () => handleRegenerate(lib) },
-                    { label: 'Compare', icon: GitCompare, onClick: () => handleCompare(lib) },
+                    
                     {
                       label: lib.is_active ? 'Lock' : 'Unlock',
                       icon: lib.is_active ? Lock : Unlock,

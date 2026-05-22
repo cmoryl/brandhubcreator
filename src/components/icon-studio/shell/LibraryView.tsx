@@ -194,7 +194,7 @@ export const LibraryView = ({ libraries, onOpenSet, onCreate, autoOpenLibraryId,
                       <DropdownMenuItem>Duplicate</DropdownMenuItem>
                       <DropdownMenuItem>Remix</DropdownMenuItem>
                       <DropdownMenuItem>Lock set</DropdownMenuItem>
-                      <DropdownMenuItem>Compare versions</DropdownMenuItem>
+                      
                       <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
