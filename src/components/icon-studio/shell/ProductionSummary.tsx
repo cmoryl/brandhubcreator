@@ -46,7 +46,7 @@ const Row = ({
 }: {
   label: string;
   value: string | number;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   accentToken: string;
 }) => (
   <div className="flex items-center justify-between py-2">
