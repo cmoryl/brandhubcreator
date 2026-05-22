@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { BrandIconography } from '@/types/brand';
-import { buildSvgString, sanitizeSvg } from '@/lib/svgUtils';
+import { buildSvgString, detectFillMode, sanitizeSvg } from '@/lib/svgUtils';
 
 type IconPresentation = 'auto' | 'outlined' | 'filled' | 'duotone';
 
@@ -73,6 +73,7 @@ const prepareSvgMarkup = (
 
   const drawables = Array.from(svg.querySelectorAll(DRAWABLE_SELECTOR));
   const forcedMode = presentation !== 'auto';
+  const detectedMode = icon.fillMode ?? (detectFillMode(base) === 'stroke' ? 'stroke' : 'fill');
 
   drawables.forEach((el) => {
     const tag = el.tagName.toLowerCase();
@@ -100,7 +101,7 @@ const prepareSvgMarkup = (
       if (hasFillPaint) el.setAttribute('fill', 'currentColor');
       if (hasStrokePaint) el.setAttribute('stroke', 'currentColor');
       if (!fill && !stroke && !hasPaintStyle(style, 'fill') && !hasPaintStyle(style, 'stroke')) {
-        if (icon.fillMode === 'stroke') {
+        if (detectedMode === 'stroke') {
           el.setAttribute('fill', 'none');
           el.setAttribute('stroke', 'currentColor');
           el.setAttribute('stroke-width', String(strokeWidth));
@@ -115,12 +116,18 @@ const prepareSvgMarkup = (
     }
 
     const nextStyle = el.getAttribute('style');
-    if (nextStyle && !forcedMode) {
+    if (nextStyle) {
       el.setAttribute(
         'style',
-        nextStyle
-          .replace(/fill\s*:\s*(?!none|url\(|currentColor)([^;}]+)/gi, 'fill: currentColor')
-          .replace(/stroke\s*:\s*(?!none|url\(|currentColor)([^;}]+)/gi, 'stroke: currentColor'),
+        forcedMode
+          ? upsertStyle(
+              upsertStyle(nextStyle, 'fill', presentation === 'outlined' || isLine ? 'none' : 'currentColor'),
+              'stroke',
+              presentation === 'filled' && !isLine ? 'none' : 'currentColor',
+            )
+          : nextStyle
+              .replace(/fill\s*:\s*(?!none|url\(|currentColor)([^;}]+)/gi, 'fill: currentColor')
+              .replace(/stroke\s*:\s*(?!none|url\(|currentColor)([^;}]+)/gi, 'stroke: currentColor'),
       );
     }
   });
