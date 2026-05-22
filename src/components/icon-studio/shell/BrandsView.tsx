@@ -4,8 +4,9 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Palette, Type, Hash, Edit3, Building2, ArrowRight } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { IconSetPreview } from './IconSetPreview';
@@ -184,6 +185,7 @@ function slugify(name: string): string {
 
 export const BrandsView = ({ organizationName, organizationId, brandProfiles = [] }: Props) => {
   const [q, setQ] = useState('');
+  const navigate = useNavigate();
   const { libraries } = useIconLibraries(organizationId);
   const { getLinkedLibraryIdsForEntity } = useIconLibraryBrandLinks(organizationId);
 
@@ -288,7 +290,15 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
               Color, typography, and icon rules that drive every generation, QA pass, and export.
             </p>
           </div>
-          <Button size="sm" className="gap-1.5">
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={() => {
+              // Brand creation lives in the org admin; nudge user there.
+              toast.info('Create a new brand from the organization dashboard.');
+              navigate('/admin');
+            }}
+          >
             <Plus className="h-4 w-4" />
             New brand
           </Button>
@@ -335,7 +345,12 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 flex-shrink-0"
-                    onClick={(e) => e.preventDefault()}
+                    aria-label={`Edit ${b.name}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate(to);
+                    }}
                   >
                     <Edit3 className="h-3.5 w-3.5" />
                   </Button>

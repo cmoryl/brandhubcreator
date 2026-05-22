@@ -3,7 +3,7 @@
  * Local state for now; persistence wires later.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Settings as SettingsIcon, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,15 +16,32 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { BASE_STYLES, COLOR_MODES } from './studioData';
 
+const SETTINGS_KEY = 'icon-studio-settings';
+const loadSettings = () => {
+  if (typeof window === 'undefined') return null;
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); } catch { return null; }
+};
+
 export const SettingsView = () => {
-  const [defaultStyle, setDefaultStyle] = useState('outline');
-  const [defaultGrid, setDefaultGrid] = useState('24');
-  const [defaultColor, setDefaultColor] = useState('mono');
-  const [naming, setNaming] = useState('kebab-{section}-{name}');
-  const [qaThreshold, setQaThreshold] = useState([80]);
-  const [autoLock, setAutoLock] = useState(true);
-  const [autoOptimize, setAutoOptimize] = useState(true);
-  const [includeDarkMode, setIncludeDarkMode] = useState(true);
+  const initial = loadSettings();
+  const [defaultStyle, setDefaultStyle] = useState<string>(initial?.defaultStyle ?? 'outline');
+  const [defaultGrid, setDefaultGrid] = useState<string>(initial?.defaultGrid ?? '24');
+  const [defaultColor, setDefaultColor] = useState<string>(initial?.defaultColor ?? 'mono');
+  const [naming, setNaming] = useState<string>(initial?.naming ?? 'kebab-{section}-{name}');
+  const [qaThreshold, setQaThreshold] = useState<number[]>(initial?.qaThreshold ?? [80]);
+  const [autoLock, setAutoLock] = useState<boolean>(initial?.autoLock ?? true);
+  const [autoOptimize, setAutoOptimize] = useState<boolean>(initial?.autoOptimize ?? true);
+  const [includeDarkMode, setIncludeDarkMode] = useState<boolean>(initial?.includeDarkMode ?? true);
+
+  const handleSave = () => {
+    const payload = { defaultStyle, defaultGrid, defaultColor, naming, qaThreshold, autoLock, autoOptimize, includeDarkMode };
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload));
+      toast.success('Settings saved');
+    } catch {
+      toast.error('Could not save settings');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -49,7 +66,7 @@ export const SettingsView = () => {
               conventions across exports.
             </p>
           </div>
-          <Button size="sm" className="gap-1.5" onClick={() => toast.success('Settings saved')}>
+          <Button size="sm" className="gap-1.5" onClick={handleSave}>
             <Save className="h-4 w-4" />
             Save changes
           </Button>

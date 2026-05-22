@@ -128,10 +128,6 @@ const IconStudioPage = () => {
     setSearchParams(next, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
-  const shellBrands: ShellBrand[] = useMemo(
-    () => (organization ? [{ id: organization.id, name: organization.name }] : []),
-    [organization],
-  );
 
   const {
     libraries,
@@ -192,6 +188,13 @@ const IconStudioPage = () => {
     },
     enabled: !!organizationId,
   });
+
+  const shellBrands: ShellBrand[] = useMemo(() => {
+    const base: ShellBrand[] = organization ? [{ id: organization.id, name: organization.name }] : [];
+    const extras: ShellBrand[] = hierarchyBrands.map((b) => ({ id: b.id, name: b.name }));
+    const seen = new Set<string>();
+    return [...base, ...extras].filter((b) => (seen.has(b.id) ? false : (seen.add(b.id), true)));
+  }, [organization, hierarchyBrands]);
 
   const handleSaveIcons = useCallback(
     (icons: BrandIconography[], libraryId?: string) => {
@@ -474,7 +477,9 @@ const IconStudioPage = () => {
       ) : shellSection === 'library' ? (
         <LibraryView
           libraries={libraries}
+          organizationId={organizationId}
           onCreate={() => setShellSection('generate')}
+          onRemix={() => setShellSection('generate')}
           autoOpenLibraryId={deepLinkLibraryId}
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
         />
@@ -495,6 +500,7 @@ const IconStudioPage = () => {
         <QAView
           libraries={libraries}
           totalIcons={totalIcons}
+          organizationId={organizationId}
           onStartGenerate={() => setShellSection('generate')}
         />
       ) : shellSection === 'export' ? (

@@ -5,6 +5,8 @@
  */
 
 import { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   ShieldCheck, Check, AlertTriangle, Eye, RefreshCw,
   CheckCircle2, XCircle, Grid3x3, Wand2,
@@ -18,6 +20,7 @@ import type { IconLibrary } from '@/hooks/useIconLibraries';
 interface Props {
   libraries: IconLibrary[];
   totalIcons: number;
+  organizationId?: string;
   onStartGenerate?: () => void;
 }
 
@@ -83,7 +86,8 @@ const ScoreCard = ({
   </div>
 );
 
-export const QAView = ({ libraries, totalIcons, onStartGenerate }: Props) => {
+export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate }: Props) => {
+  const queryClient = useQueryClient();
   const checks = useMemo(() => buildChecks(totalIcons), [totalIcons]);
   const passing = checks.filter((c) => c.status === 'pass').length;
   const warnings = checks.filter((c) => c.status === 'warn').length;
@@ -92,6 +96,13 @@ export const QAView = ({ libraries, totalIcons, onStartGenerate }: Props) => {
   const a11yScore = Math.min(100, 78 + Math.floor(passing * 1.2));
   const svgHealth = Math.min(100, 88 + Math.floor(passing * 0.5));
   const exportReady = totalIcons > 0 ? Math.min(100, 70 + passing * 2) : 0;
+
+  const handleRerun = () => {
+    queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
+    toast.success('Preflight checks re-run', {
+      description: `${passing} passing · ${warnings} warnings · ${failing} failing`,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -117,7 +128,7 @@ export const QAView = ({ libraries, totalIcons, onStartGenerate }: Props) => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5">
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={handleRerun}>
               <RefreshCw className="h-3.5 w-3.5" /> Re-run checks
             </Button>
             <Button size="sm" className="gap-1.5" onClick={onStartGenerate}>
