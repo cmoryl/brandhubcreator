@@ -202,6 +202,13 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
           </Button>
         </aside>
       </div>
+
+      <StyleSystemDetailDialog
+        style={BASE_STYLES.find((s) => s.id === detailId) ?? null}
+        accent={detailAccent}
+        onClose={() => setDetailId(null)}
+        onApply={onStartGenerate}
+      />
     </div>
   );
 };
