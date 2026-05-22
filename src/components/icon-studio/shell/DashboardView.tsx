@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
+import { GoldenPathCard } from '@/components/icon-studio/GoldenPathCard';
 import type { SectionStatus } from './studioData';
 
 interface Props {
