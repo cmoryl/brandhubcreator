@@ -104,22 +104,30 @@ const ActivityRow = ({
   status,
   emojis,
   accent,
+  onClick,
 }: {
   title: string;
   meta: string;
   status: SectionStatus;
   emojis: string[];
   accent: string;
+  onClick?: () => void;
 }) => (
-  <li className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-secondary/40">
-    <div className="flex items-center gap-3 min-w-0 flex-1">
-      <IconSetPreview emojis={emojis} accent={accent} size="sm" count={4} variant="glass" className="!grid-cols-4 flex-shrink-0" />
-      <div className="min-w-0">
-        <div className="text-sm font-medium truncate">{title}</div>
-        <div className="text-[11px] text-muted-foreground truncate">{meta}</div>
+  <li>
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary/40"
+    >
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <IconSetPreview emojis={emojis} accent={accent} size="sm" count={4} variant="glass" className="!grid-cols-4 flex-shrink-0" />
+        <div className="min-w-0">
+          <div className="text-sm font-medium truncate">{title}</div>
+          <div className="text-[11px] text-muted-foreground truncate">{meta}</div>
+        </div>
       </div>
-    </div>
-    <StatusChip status={status} />
+      <StatusChip status={status} />
+    </button>
   </li>
 );
 
