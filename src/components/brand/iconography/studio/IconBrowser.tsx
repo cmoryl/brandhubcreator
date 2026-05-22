@@ -687,7 +687,9 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
             </div>
           </div>
         </ScrollArea>
-      </div>
+        </div>
+      )}
     </div>
+
   );
 };
