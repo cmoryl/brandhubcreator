@@ -4,11 +4,12 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Palette, Wand2, Check } from 'lucide-react';
+import { Palette, Wand2, Check, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { IconSetPreview } from './IconSetPreview';
+import { StyleSystemDetailDialog } from './StyleSystemDetailDialog';
 import { BASE_STYLES, COLOR_MODES, type BaseStyle } from './studioData';
 import { cn } from '@/lib/utils';
 
