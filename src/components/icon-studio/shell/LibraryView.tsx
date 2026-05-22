@@ -219,11 +219,12 @@ export const LibraryView = ({ libraries, organizationId, onOpenSet, onCreate, on
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                      <DropdownMenuItem>Remix</DropdownMenuItem>
-                      <DropdownMenuItem>Lock set</DropdownMenuItem>
-                      
-                      <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDuplicate(lib)}>Duplicate</DropdownMenuItem>
+                      {onRemix && <DropdownMenuItem onClick={() => onRemix(lib)}>Remix</DropdownMenuItem>}
+                      <DropdownMenuItem onClick={() => handleLockToggle(lib)}>
+                        {lib.is_active ? 'Lock set' : 'Unlock set'}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(lib)}>Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
