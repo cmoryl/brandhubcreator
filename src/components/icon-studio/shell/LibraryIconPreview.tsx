@@ -54,17 +54,17 @@ export const LibraryIconPreview = ({
 
   return (
     <div
-      className={cn('grid', gap, className)}
-      style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}
+      className={cn('flex', gap, className)}
       role="img"
       aria-label="Brand icon preview"
     >
       {real.map((ic, i) => (
         <div
           key={ic.id ?? i}
-          className="flex items-center justify-center rounded-md border transition-transform hover:scale-105 text-foreground"
+          className="flex items-center justify-center rounded-md border transition-transform hover:scale-105 text-foreground flex-shrink-0"
           style={{
             height: tile,
+            width: tile,
             background: `color-mix(in oklab, ${accent} 12%, transparent)`,
             borderColor: `color-mix(in oklab, ${accent} 28%, transparent)`,
           }}
@@ -82,9 +82,10 @@ export const LibraryIconPreview = ({
       {Array.from({ length: Math.max(0, count - real.length) }).map((_, i) => (
         <div
           key={`pad-${i}`}
-          className="rounded-md border border-dashed"
+          className="rounded-md border border-dashed flex-shrink-0"
           style={{
             height: tile,
+            width: tile,
             borderColor: `color-mix(in oklab, ${accent} 18%, transparent)`,
           }}
         />
