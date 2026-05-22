@@ -21,7 +21,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   ArrowLeft, Building2, Library, Palette, Package, ShieldCheck,
   Wand2, Plus, Link as LinkIcon, Unlink, ExternalLink, Settings,
-  Search, ArrowRight,
+  Search, ArrowRight, FileDown, Loader2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import DOMPurify from 'dompurify';
@@ -34,6 +34,7 @@ import { useSEO } from '@/hooks/useSEO';
 import { IconSetPreview } from '@/components/icon-studio/shell/IconSetPreview';
 import '@/components/icon-studio/shell/tpTokens.css';
 import { toast } from 'sonner';
+import { buildBrandIconPdf } from '@/lib/iconStudio/brandIconPdf';
 
 const SAMPLE_FOR = (name: string): string[] => {
   const n = name.toLowerCase();
@@ -123,6 +124,36 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     () => linkedLibraries.reduce((sum, l) => sum + l.icons.length, 0),
     [linkedLibraries],
   );
+
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const handleDownloadPdf = async () => {
+    if (!brand) return;
+    if (linkedLibraries.length === 0) {
+      toast.info('Link at least one collection before exporting a PDF.');
+      return;
+    }
+    setExportingPdf(true);
+    const toastId = toast.loading(`Building ${brand.name} icon PDF…`);
+    try {
+      await buildBrandIconPdf({
+        entityName: brand.name,
+        entityKind: entityType === 'product' ? 'Product' : entityType === 'event' ? 'Event' : 'Brand',
+        libraries: linkedLibraries.map((l) => ({
+          id: l.id,
+          name: l.name,
+          description: l.description || undefined,
+          level: l.level,
+          icons: l.icons,
+        })),
+      });
+      toast.success('PDF downloaded', { id: toastId });
+    } catch (err) {
+      console.error('Icon PDF export failed', err);
+      toast.error('Failed to build PDF', { id: toastId });
+    } finally {
+      setExportingPdf(false);
+    }
+  };
 
   // Brand-scoped icon search across linked collections
   const [iconQuery, setIconQuery] = useState('');
@@ -247,6 +278,21 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                 <ExternalLink className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{entityType === 'brand' ? 'Brand profile' : entityType === 'product' ? 'Product profile' : 'Event profile'}</span>
               </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8"
+              onClick={handleDownloadPdf}
+              disabled={exportingPdf || linkedLibraries.length === 0}
+              title="Download a printable PDF of every linked icon"
+            >
+              {exportingPdf ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <FileDown className="h-3.5 w-3.5" />
+              )}
+              <span className="hidden sm:inline">Download PDF</span>
             </Button>
             <Button size="sm" className="gap-1.5 h-8" onClick={() => navigate('/icon-studio')}>
               <Wand2 className="h-3.5 w-3.5" />
