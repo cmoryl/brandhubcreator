@@ -453,7 +453,23 @@ const App = () => (
                       path="icon-studio/brand/:slug"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
-                          <BrandIconHubPage />
+                          <BrandIconHubPage entityType="brand" />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="icon-studio/product/:slug"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BrandIconHubPage entityType="product" />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="icon-studio/event/:slug"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BrandIconHubPage entityType="event" />
                         </Suspense>
                       }
                     />
