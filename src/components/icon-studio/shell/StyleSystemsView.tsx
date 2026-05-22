@@ -33,6 +33,8 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
   const [q, setQ] = useState('');
   const [activeId, setActiveId] = useState<string>(BASE_STYLES[0].id);
   const [colorMode, setColorMode] = useState<string>('mono');
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [detailAccent, setDetailAccent] = useState<string>(`hsl(var(${ACCENTS[0]}))`);
 
   const filtered = useMemo(() => {
     if (!q.trim()) return BASE_STYLES;
