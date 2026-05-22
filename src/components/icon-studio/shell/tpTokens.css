@@ -1,0 +1,145 @@
+/**
+ * TransPerfect palette tokens — scoped to the Icon Studio shell.
+ *
+ * Applied by adding `.icon-studio-tp` to the wrapping element. Tokens are HSL
+ * values (no `hsl()` wrapper) so they compose with Tailwind utilities.
+ *
+ * Source palette (hex → HSL):
+ *   Deep Navy     #03002C → 243 100% 9%
+ *   Dark Blue     #003B71 → 209 100% 22%
+ *   Digital Blue  #003FC7 → 221 100% 39%
+ *   Light Blue    #139DD8 → 198 84% 46%
+ *   Teal          #3BBFB5 → 175 53% 49%
+ *   Purple        #7356C0 → 256 44% 55%
+ *   Pink          #EC388A → 332 83% 57%
+ *   Orange        #FF6600 → 24 100% 50%
+ *   Green         #7BCD3A → 92 60% 52%
+ *   Blue White    #E0E8F5 → 217 53% 92%
+ *   Light Gray    #F2F2F2 → 0 0% 95%
+ *   Dark Gray     #666666 → 0 0% 40%
+ *   Alabaster     #E7E3DA → 42 19% 88%
+ */
+
+.icon-studio-tp {
+  /* Raw palette */
+  --tp-navy: 243 100% 9%;
+  --tp-dark-blue: 209 100% 22%;
+  --tp-digital-blue: 221 100% 39%;
+  --tp-light-blue: 198 84% 46%;
+  --tp-teal: 175 53% 49%;
+  --tp-purple: 256 44% 55%;
+  --tp-pink: 332 83% 57%;
+  --tp-orange: 24 100% 50%;
+  --tp-green: 92 60% 52%;
+  --tp-blue-white: 217 53% 92%;
+  --tp-light-gray: 0 0% 95%;
+  --tp-dark-gray: 0 0% 40%;
+  --tp-alabaster: 42 19% 88%;
+
+  /* Premium dark surface system — override shadcn tokens for the studio only */
+  --background: 243 60% 6%;
+  --foreground: 217 53% 92%;
+  --card: 243 45% 9%;
+  --card-foreground: 217 53% 92%;
+  --popover: 243 50% 10%;
+  --popover-foreground: 217 53% 92%;
+
+  --primary: 221 100% 50%;
+  --primary-foreground: 217 53% 96%;
+  --secondary: 243 40% 14%;
+  --secondary-foreground: 217 53% 92%;
+  --muted: 243 30% 14%;
+  --muted-foreground: 217 20% 70%;
+  --accent: 198 84% 46%;
+  --accent-foreground: 243 100% 9%;
+  --destructive: 0 75% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 243 30% 18%;
+  --input: 243 30% 14%;
+  --ring: 198 84% 50%;
+  --radius: 0.875rem;
+
+  /* Surface elevation ladder */
+  --tp-surface-0: 243 60% 5%;     /* page */
+  --tp-surface-1: 243 50% 8%;     /* sidebar / top bar */
+  --tp-surface-2: 243 45% 10%;    /* card */
+  --tp-surface-3: 243 40% 13%;    /* card hover / popover */
+  --tp-surface-4: 243 35% 16%;    /* inset */
+
+  /* Status colors (chips) */
+  --tp-status-queued: var(--tp-blue-white);
+  --tp-status-generating: var(--tp-light-blue);
+  --tp-status-review: var(--tp-orange);
+  --tp-status-approved: var(--tp-green);
+  --tp-status-failed: 0 75% 60%;
+  --tp-status-locked: var(--tp-purple);
+
+  /* Soft luminous glow used sparingly for hierarchy */
+  --tp-glow-primary: 0 0 0 1px hsl(var(--tp-digital-blue) / 0.4),
+                     0 8px 32px -8px hsl(var(--tp-digital-blue) / 0.45);
+  --tp-glow-accent:  0 0 0 1px hsl(var(--tp-light-blue) / 0.4),
+                     0 8px 32px -8px hsl(var(--tp-light-blue) / 0.4);
+
+  color: hsl(var(--foreground));
+  background: hsl(var(--tp-surface-0));
+  font-family: 'Geist', 'Inter', system-ui, sans-serif;
+}
+
+/* Subtle dotted/grid background for canvas areas */
+.icon-studio-tp .tp-canvas-grid {
+  background-image:
+    radial-gradient(hsl(var(--tp-digital-blue) / 0.08) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Premium card surface */
+.icon-studio-tp .tp-card {
+  background: linear-gradient(180deg,
+    hsl(var(--tp-surface-2)) 0%,
+    hsl(var(--tp-surface-1)) 100%);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.icon-studio-tp .tp-card-interactive {
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+.icon-studio-tp .tp-card-interactive:hover {
+  border-color: hsl(var(--tp-light-blue) / 0.5);
+  box-shadow: var(--tp-glow-accent);
+}
+
+/* Soft section divider */
+.icon-studio-tp .tp-divider {
+  background: linear-gradient(90deg,
+    transparent,
+    hsl(var(--border)) 30%,
+    hsl(var(--border)) 70%,
+    transparent);
+  height: 1px;
+}
+
+/* Status chip primitive */
+.icon-studio-tp .tp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+/* Reduced-motion: kill the spin/pulse decorations */
+@media (prefers-reduced-motion: reduce) {
+  .icon-studio-tp *,
+  .icon-studio-tp *::before,
+  .icon-studio-tp *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
