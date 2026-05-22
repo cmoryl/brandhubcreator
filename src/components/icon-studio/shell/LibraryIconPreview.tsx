@@ -62,16 +62,20 @@ export const LibraryIconPreview = ({
       {real.map((ic, i) => (
         <div
           key={ic.id ?? i}
-          className="flex items-center justify-center rounded-md border transition-transform hover:scale-105"
+          className="flex items-center justify-center rounded-md border transition-transform hover:scale-105 text-foreground"
           style={{
             height: tile,
-            background: `color-mix(in oklab, ${accent} 10%, transparent)`,
-            borderColor: `color-mix(in oklab, ${accent} 24%, transparent)`,
-            color: accent,
+            background: `color-mix(in oklab, ${accent} 12%, transparent)`,
+            borderColor: `color-mix(in oklab, ${accent} 28%, transparent)`,
           }}
           title={ic.name}
         >
-          <IconSvgRender icon={ic} size={glyph} color={accent} />
+          <IconSvgRender
+            icon={ic}
+            size={glyph}
+            presentation="outlined"
+            strokeWidth={1.75}
+          />
         </div>
       ))}
       {/* Pad with empty tiles to keep a stable grid */}
