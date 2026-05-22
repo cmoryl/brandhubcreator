@@ -18,7 +18,9 @@ import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
 import { IconDetailDialog } from '@/components/icon-studio/IconDetailDialog';
+import { RemixSystemDialog } from '@/components/icon-studio/RemixSystemDialog';
 import { exportIconSystem } from '@/lib/iconStudio/exportSystem';
+import { readRecipe, type IconRecipe } from '@/lib/iconStudio/recipe';
 import type { BrandIconography } from '@/types/brand';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { toast } from 'sonner';
@@ -57,10 +59,17 @@ export const IconSetDetailDialog = ({
 }: Props) => {
   const open = !!library;
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
+  const [remixOpen, setRemixOpen] = useState(false);
   const theme =
     (typeof document !== 'undefined' &&
       document.querySelector('.icon-studio-tp')?.getAttribute('data-theme')) ||
     'light';
+
+  const baseRecipe: IconRecipe | null = useMemo(() => {
+    if (!library) return null;
+    const seed = library.icons.find((i) => readRecipe(i));
+    return seed ? readRecipe(seed) : null;
+  }, [library]);
 
   const handleExport = async () => {
     if (!library) return;
@@ -113,7 +122,7 @@ export const IconSetDetailDialog = ({
                   <Button size="sm" variant="default" className="gap-1.5" onClick={onDuplicate}>
                     <Copy className="h-3.5 w-3.5" /> Duplicate
                   </Button>
-                  <Button size="sm" variant="outline" className="gap-1.5" onClick={onRemix}>
+                  <Button size="sm" variant="outline" className="gap-1.5" onClick={() => { setRemixOpen(true); onRemix?.(); }}>
                     <Wand2 className="h-3.5 w-3.5" /> Remix
                   </Button>
                   <Button size="sm" variant="outline" className="gap-1.5" onClick={onRegenerate}>
@@ -126,6 +135,15 @@ export const IconSetDetailDialog = ({
                     <Lock className="h-3.5 w-3.5" />
                     {library.is_active ? 'Lock' : 'Unlock'}
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={handleExport}
+                    disabled={realIcons.length === 0}
+                  >
+                    <Download className="h-3.5 w-3.5" /> Export bundle
+                  </Button>
                 </div>
               </DialogHeader>
             </div>
@@ -133,7 +151,14 @@ export const IconSetDetailDialog = ({
             {/* Size ladder with real or sample previews */}
             <div className="p-6 space-y-6">
               {realIcons.length > 0 ? (
-                <RealIconLadder icons={realIcons} accent={accent} />
+                <RealIconLadder
+                  icons={realIcons}
+                  accent={accent}
+                  onIconClick={(id) => {
+                    const full = library.icons.find((i) => i.id === id) ?? null;
+                    setSelectedIcon(full);
+                  }}
+                />
               ) : (
                 <div className="space-y-4">
                   <div className="text-xs text-muted-foreground">
@@ -164,6 +189,28 @@ export const IconSetDetailDialog = ({
           </>
         )}
       </DialogContent>
+
+      <IconDetailDialog
+        icon={selectedIcon}
+        onClose={() => setSelectedIcon(null)}
+        accent={accent}
+        fallbackRecipe={baseRecipe}
+      />
+
+      <RemixSystemDialog
+        open={remixOpen}
+        systemName={library?.name}
+        baseRecipe={baseRecipe}
+        accent={accent}
+        onClose={() => setRemixOpen(false)}
+        onRemix={(key, recipe) => {
+          toast.success(`Remix queued: ${key}`, {
+            description: recipe
+              ? 'A new variant will be generated from this system.'
+              : 'No recipe attached — variant will use defaults.',
+          });
+        }}
+      />
     </Dialog>
   );
 };
@@ -182,9 +229,10 @@ const LADDER: { label: string; tile: number; icon: number }[] = [
 interface LadderProps {
   icons: Array<{ id: string; name: string; svgPath: string; viewBox?: string; fillMode?: 'stroke' | 'fill' }>;
   accent: string;
+  onIconClick?: (id: string) => void;
 }
 
-const RealIconLadder = ({ icons, accent }: LadderProps) => {
+const RealIconLadder = ({ icons, accent, onIconClick }: LadderProps) => {
   return (
     <div className="space-y-6">
       {LADDER.map((s) => (
@@ -202,9 +250,11 @@ const RealIconLadder = ({ icons, accent }: LadderProps) => {
             }}
           >
             {icons.map((icon) => (
-              <div
+              <button
+                type="button"
                 key={`${s.label}-${icon.id}`}
-                className="flex flex-col items-center gap-1.5 group"
+                onClick={() => onIconClick?.(icon.id)}
+                className="flex flex-col items-center gap-1.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
                 title={icon.name}
               >
                 <div
@@ -232,7 +282,7 @@ const RealIconLadder = ({ icons, accent }: LadderProps) => {
                 <span className="text-[10px] text-muted-foreground truncate max-w-[88px]">
                   {icon.name}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </section>
