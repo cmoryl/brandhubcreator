@@ -1,23 +1,30 @@
 /**
  * IconSetsView — every set the org has generated, grouped by level.
- * Provides duplicate / remix / regenerate / lock affordances.
+ * Provides duplicate / remix / regenerate / lock affordances + a
+ * detail dialog that opens the full set at large size.
  */
 
 import { useMemo, useState } from 'react';
 import {
-  Copy, Wand2, Lock, RefreshCw, GitCompare, ArrowUpRight,
+  Copy, Wand2, Lock, Unlock, RefreshCw, GitCompare, ArrowUpRight,
   FolderOpen, Plus, Filter,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 import { IconSetPreview } from './IconSetPreview';
 import { StatusChip } from './StatusChip';
-import type { IconLibrary } from '@/hooks/useIconLibraries';
+import { IconSetDetailDialog } from './IconSetDetailDialog';
+import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 
 interface Props {
   libraries: IconLibrary[];
+  organizationId?: string;
   onCreate?: () => void;
+  onRegenerate?: (lib: IconLibrary) => void;
+  onRemix?: (lib: IconLibrary) => void;
+  onCompare?: (lib: IconLibrary) => void;
 }
 
 const SAMPLE_FOR = (name: string): string[] => {
@@ -41,8 +48,19 @@ const LEVEL_META = {
   brand: { label: 'Brand variants', token: '--tp-pink', helper: 'Sub-brand overrides' },
 } as const;
 
-export const IconSetsView = ({ libraries, onCreate }: Props) => {
+type LevelKey = keyof typeof LEVEL_META;
+
+export const IconSetsView = ({
+  libraries,
+  organizationId,
+  onCreate,
+  onRegenerate,
+  onRemix,
+  onCompare,
+}: Props) => {
   const [q, setQ] = useState('');
+  const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
+  const { createLibrary, updateLibrary } = useIconLibraries(organizationId);
 
   const grouped = useMemo(() => {
     const term = q.toLowerCase();
@@ -56,6 +74,52 @@ export const IconSetsView = ({ libraries, onCreate }: Props) => {
       brand: libraries.filter((l) => l.level === 'brand').filter(inQuery),
     };
   }, [libraries, q]);
+
+  const handleDuplicate = (lib: IconLibrary) => {
+    if (!organizationId) {
+      toast.error('No organization selected');
+      return;
+    }
+    createLibrary.mutate({
+      organization_id: organizationId,
+      name: `${lib.name} (copy)`,
+      level: lib.level,
+      description: lib.description || undefined,
+      icons: lib.icons,
+      parent_library_id: lib.parent_library_id,
+      is_active: lib.is_active,
+      display_order: (lib.display_order ?? 0) + 1,
+    });
+  };
+
+  const handleLockToggle = (lib: IconLibrary) => {
+    updateLibrary.mutate(
+      { id: lib.id, updates: { is_active: !lib.is_active } },
+      {
+        onSuccess: () =>
+          toast.success(lib.is_active ? `${lib.name} locked` : `${lib.name} unlocked`),
+      },
+    );
+  };
+
+  const handleRemix = (lib: IconLibrary) => {
+    if (onRemix) return onRemix(lib);
+    toast.info(`Remix "${lib.name}" — open the generator with this set as a seed.`);
+  };
+
+  const handleRegenerate = (lib: IconLibrary) => {
+    if (onRegenerate) return onRegenerate(lib);
+    toast.info(`Regenerating "${lib.name}" — queued.`);
+  };
+
+  const handleCompare = (lib: IconLibrary) => {
+    if (onCompare) return onCompare(lib);
+    toast.info(`Compare versions of "${lib.name}" coming up.`);
+  };
+
+  const levelLabelFor = (lib: IconLibrary) => LEVEL_META[lib.level as LevelKey]?.label ?? lib.level;
+  const accentFor = (lib: IconLibrary) =>
+    `hsl(var(${LEVEL_META[lib.level as LevelKey]?.token ?? '--tp-digital-blue'}))`;
 
   return (
     <div className="space-y-6">
@@ -76,8 +140,9 @@ export const IconSetsView = ({ libraries, onCreate }: Props) => {
             </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight">Icon Sets</h1>
             <p className="text-sm text-muted-foreground max-w-2xl">
-              Every set you've generated — core, product line, and brand variants. Duplicate,
-              remix, regenerate, lock, or compare versions.
+              Every set you've generated — core, product line, and brand variants. Click any card
+              to view the full set, or use the inline actions to duplicate, remix, regenerate,
+              lock, or compare.
             </p>
           </div>
           <Button size="sm" className="gap-1.5" onClick={onCreate}>
@@ -102,7 +167,7 @@ export const IconSetsView = ({ libraries, onCreate }: Props) => {
         </Badge>
       </div>
 
-      {(Object.keys(LEVEL_META) as Array<keyof typeof LEVEL_META>).map((level) => {
+      {(Object.keys(LEVEL_META) as LevelKey[]).map((level) => {
         const meta = LEVEL_META[level];
         const items = grouped[level];
         return (
@@ -132,10 +197,38 @@ export const IconSetsView = ({ libraries, onCreate }: Props) => {
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {items.map((lib) => {
                   const accent = `hsl(var(${meta.token}))`;
+                  const stop = (e: React.MouseEvent) => {
+                    e.stopPropagation();
+                  };
+                  const actions: Array<{
+                    label: string;
+                    icon: typeof Copy;
+                    onClick: () => void;
+                  }> = [
+                    { label: 'Duplicate', icon: Copy, onClick: () => handleDuplicate(lib) },
+                    { label: 'Remix', icon: Wand2, onClick: () => handleRemix(lib) },
+                    { label: 'Regenerate', icon: RefreshCw, onClick: () => handleRegenerate(lib) },
+                    { label: 'Compare', icon: GitCompare, onClick: () => handleCompare(lib) },
+                    {
+                      label: lib.is_active ? 'Lock' : 'Unlock',
+                      icon: lib.is_active ? Lock : Unlock,
+                      onClick: () => handleLockToggle(lib),
+                    },
+                  ];
+
                   return (
                     <article
                       key={lib.id}
-                      className="tp-card tp-card-interactive p-4"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setActiveLib(lib)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setActiveLib(lib);
+                        }
+                      }}
+                      className="tp-card tp-card-interactive p-4 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       style={{
                         backgroundImage: `linear-gradient(135deg, hsl(var(${meta.token}) / 0.07), transparent 60%)`,
                       }}
@@ -156,30 +249,43 @@ export const IconSetsView = ({ libraries, onCreate }: Props) => {
                         count={6}
                         variant="glass"
                       />
-                      <footer className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
+                      <footer
+                        className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between"
+                        onClick={stop}
+                      >
                         <span className="text-[11px] text-muted-foreground tabular-nums">
                           {lib.icons.length} icons
                         </span>
                         <div className="flex items-center gap-0.5">
-                          {[
-                            { label: 'Duplicate', icon: Copy },
-                            { label: 'Remix', icon: Wand2 },
-                            { label: 'Regenerate', icon: RefreshCw },
-                            { label: 'Compare', icon: GitCompare },
-                            { label: 'Lock', icon: Lock },
-                          ].map((a) => (
+                          {actions.map((a) => (
                             <Button
                               key={a.label}
+                              type="button"
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7"
                               title={a.label}
                               aria-label={a.label}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                a.onClick();
+                              }}
                             >
                               <a.icon className="h-3.5 w-3.5" />
                             </Button>
                           ))}
-                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Open">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            title="Open set"
+                            aria-label="Open set"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveLib(lib);
+                            }}
+                          >
                             <ArrowUpRight className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -192,6 +298,18 @@ export const IconSetsView = ({ libraries, onCreate }: Props) => {
           </section>
         );
       })}
+
+      <IconSetDetailDialog
+        library={activeLib}
+        accent={activeLib ? accentFor(activeLib) : 'hsl(var(--primary))'}
+        levelLabel={activeLib ? levelLabelFor(activeLib) : ''}
+        onClose={() => setActiveLib(null)}
+        onDuplicate={() => activeLib && handleDuplicate(activeLib)}
+        onRemix={() => activeLib && handleRemix(activeLib)}
+        onRegenerate={() => activeLib && handleRegenerate(activeLib)}
+        onCompare={() => activeLib && handleCompare(activeLib)}
+        onLockToggle={() => activeLib && handleLockToggle(activeLib)}
+      />
     </div>
   );
 };
