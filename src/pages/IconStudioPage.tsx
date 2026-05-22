@@ -426,7 +426,7 @@ const IconStudioPage = () => {
           onCreate={() => setShellSection('generate')}
         />
       ) : shellSection === 'brands' ? (
-        <BrandsView organizationName={organizationName} />
+        <BrandsView organizationName={organizationName} brandProfiles={hierarchyBrands} />
       ) : shellSection === 'styles' ? (
         <StyleSystemsView onStartGenerate={() => setShellSection('generate')} />
       ) : shellSection === 'sets' ? (
