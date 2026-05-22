@@ -43,11 +43,7 @@ const SIZE_LADDER: { label: string; size: 'sm' | 'md' | 'lg' }[] = [
 export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Props) => {
   const open = !!style;
   const a2 = style?.preview.accent2 ? `hsl(var(--${style.preview.accent2}))` : undefined;
-  // Inherit current studio theme so tokens resolve inside the portaled Dialog.
-  const theme =
-    (typeof document !== 'undefined' &&
-      document.querySelector('.icon-studio-tp')?.getAttribute('data-theme')) ||
-    'light';
+  const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
