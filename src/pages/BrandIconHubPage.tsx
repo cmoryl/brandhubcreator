@@ -484,7 +484,7 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                     {linkedLibraries.map((lib) => {
                       const isExplicit = explicitLinkedIds.has(lib.id);
-                      const openLib = () => navigate(`/icon-studio?section=library&library=${lib.id}`);
+                      const openLib = () => setPreviewLibId(lib.id);
                       const handleUnlink = (e: React.MouseEvent) => {
                         e.stopPropagation();
                         if (isExplicit) {
