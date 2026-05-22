@@ -21,8 +21,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   ArrowLeft, Building2, Library, Palette, Package, ShieldCheck,
   Wand2, Plus, Link as LinkIcon, Unlink, ExternalLink, Settings,
-  Search, ArrowRight, FileDown, Loader2, Eye,
+  Search, ArrowRight, FileDown, Loader2, Eye, Download, Copy, FileCode,
 } from 'lucide-react';
+import { downloadIconSvg, downloadIconPng, downloadIconBundle } from '@/lib/iconStudio/exportIcon';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import DOMPurify from 'dompurify';
@@ -170,6 +171,10 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     () => linkedLibraries.find((l) => l.id === previewLibId) || null,
     [linkedLibraries, previewLibId],
   );
+  const [selectedIcon, setSelectedIcon] = useState<{ icon: BrandIconography; libraryName: string } | null>(null);
+  const openIconDetail = (icon: BrandIconography, libraryName: string) => {
+    setSelectedIcon({ icon, libraryName });
+  };
   const handleDownloadPdf = async () => {
     if (!brand) return;
     if (linkedLibraries.length === 0) {
@@ -441,7 +446,7 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                         <button
                           key={`${libraryId}-${icon.id}`}
                           type="button"
-                          onClick={() => navigate(`/icon-studio?section=library&library=${libraryId}`)}
+                          onClick={() => openIconDetail(icon, libraryName)}
                           title={`${icon.name} · ${libraryName}`}
                           className="group flex flex-col items-center gap-1 p-2 rounded-md border border-border/60 bg-card hover:border-primary/50 hover:shadow-sm transition-all text-foreground"
                         >
@@ -527,13 +532,15 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                           {lib.icons.length > 0 ? (
                             <div className="grid grid-cols-6 gap-1.5">
                               {lib.icons.slice(0, 6).map((ic) => (
-                                <div
+                                <button
                                   key={ic.id}
-                                  className="aspect-square rounded-md border border-border/50 bg-background/40 flex items-center justify-center text-foreground"
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); openIconDetail(ic, lib.name); }}
+                                  className="aspect-square rounded-md border border-border/50 bg-background/40 flex items-center justify-center text-foreground hover:border-primary/60 hover:bg-background transition-colors"
                                   title={ic.name}
                                 >
                                   <IconSvgRender icon={ic} size={20} />
-                                </div>
+                                </button>
                               ))}
                             </div>
                           ) : (
@@ -700,14 +707,16 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
               ) : (
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 py-2">
                   {previewLib.icons.map((ic) => (
-                    <div
+                    <button
                       key={ic.id}
-                      className="aspect-square rounded-md border border-border/50 bg-background/40 flex flex-col items-center justify-center text-foreground p-2 gap-1"
+                      type="button"
+                      onClick={() => openIconDetail(ic, previewLib.name)}
+                      className="aspect-square rounded-md border border-border/50 bg-background/40 flex flex-col items-center justify-center text-foreground p-2 gap-1 hover:border-primary/60 hover:bg-background transition-colors"
                       title={ic.name}
                     >
                       <IconSvgRender icon={ic} size={28} />
                       <span className="text-[9px] text-muted-foreground truncate w-full text-center">{ic.name}</span>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -720,6 +729,100 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   Open in Icon Studio
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Per-icon detail + downloads */}
+      <Dialog open={!!selectedIcon} onOpenChange={(o) => !o && setSelectedIcon(null)}>
+        <DialogContent className="max-w-lg">
+          {selectedIcon && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileCode className="h-4 w-4" />
+                  {selectedIcon.icon.name}
+                </DialogTitle>
+                <DialogDescription>
+                  From <span className="font-medium">{selectedIcon.libraryName}</span>
+                  {selectedIcon.icon.category ? ` · ${selectedIcon.icon.category}` : ''}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex items-center justify-center py-6 border rounded-lg bg-background/40">
+                <div className="h-32 w-32 text-foreground">
+                  {renderIconSvg(selectedIcon.icon)}
+                </div>
+              </div>
+
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                <dt className="text-muted-foreground">Fill mode</dt>
+                <dd className="font-medium">{selectedIcon.icon.fillMode || 'auto'}</dd>
+                <dt className="text-muted-foreground">ViewBox</dt>
+                <dd className="font-mono">{selectedIcon.icon.viewBox || '0 0 24 24'}</dd>
+                {(selectedIcon.icon as any).tags && (selectedIcon.icon as any).tags.length > 0 && (
+                  <>
+                    <dt className="text-muted-foreground">Tags</dt>
+                    <dd className="flex flex-wrap gap-1">
+                      {((selectedIcon.icon as any).tags as string[]).map((t) => (
+                        <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>
+                      ))}
+                    </dd>
+                  </>
+                )}
+              </dl>
+
+              <DialogFooter className="flex-wrap gap-2 sm:gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(selectedIcon.icon.svgPath || '');
+                      toast.success('SVG copied to clipboard');
+                    } catch {
+                      toast.error('Could not copy');
+                    }
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  Copy SVG
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => { downloadIconSvg(selectedIcon.icon); toast.success('SVG downloaded'); }}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  SVG
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={async () => {
+                    try { await downloadIconPng(selectedIcon.icon, 512); toast.success('PNG downloaded'); }
+                    catch { toast.error('PNG export failed'); }
+                  }}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  PNG 512
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={async () => {
+                    try { await downloadIconBundle(selectedIcon.icon); toast.success('Bundle downloaded'); }
+                    catch { toast.error('Bundle export failed'); }
+                  }}
+                >
+                  <FileDown className="h-3.5 w-3.5" />
+                  All sizes (.zip)
                 </Button>
               </DialogFooter>
             </>
