@@ -128,7 +128,7 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5">
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={handleRerun}>
               <RefreshCw className="h-3.5 w-3.5" /> Re-run checks
             </Button>
             <Button size="sm" className="gap-1.5" onClick={onStartGenerate}>
