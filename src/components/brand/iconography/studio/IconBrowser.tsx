@@ -504,35 +504,41 @@ export const IconBrowser = ({ brandColors = [], onAddIcon }: IconBrowserProps) =
       </div>
 
 
-      {/* ── Right Panel: Customize ── */}
-      <div className="w-60 border-l flex flex-col bg-muted/20 shrink-0">
-        <ScrollArea className="flex-1">
-          <div className="p-4 space-y-6">
-            {/* Selected Icon Preview */}
-            {selectedIcon && styledSvg ? (
+      {/* ── Right Panel: Customize (only when an icon is selected) ── */}
+      {selectedIcon && (
+        <div className="w-80 border-l flex flex-col bg-muted/20 shrink-0">
+          <div className="px-4 py-3 border-b flex items-center justify-between bg-background/50">
+            <h4 className="text-sm font-semibold">Customize</h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => setSelectedIcon(null)}
+            >
+              Close
+            </Button>
+          </div>
+          <ScrollArea className="flex-1">
+            <div className="p-5 space-y-6">
+              {/* Selected Icon Preview */}
               <div className="flex flex-col items-center gap-2">
                 <div
-                  className="w-20 h-20 rounded-xl border bg-card flex items-center justify-center p-3"
+                  className="w-24 h-24 rounded-xl border bg-card flex items-center justify-center p-4"
                   dangerouslySetInnerHTML={{ __html: styledSvg }}
                 />
-                <p className="text-xs font-medium text-center">{selectedIcon.name}</p>
+                <p className="text-xs font-medium text-center truncate max-w-full">
+                  {selectedIcon.name}
+                </p>
                 <Badge variant="outline" className="text-[10px]">{selectedIcon.prefix}</Badge>
 
                 {onAddIcon && (
-                  <Button size="sm" className="w-full mt-1 gap-1.5" onClick={handleAddToLibrary}>
+                  <Button size="sm" className="w-full mt-2 gap-1.5" onClick={handleAddToLibrary}>
                     <Plus className="h-3.5 w-3.5" />
                     Add to Library
                   </Button>
                 )}
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="w-14 h-14 rounded-xl border-2 border-dashed border-muted-foreground/20 flex items-center justify-center mb-3">
-                  <Search className="h-5 w-5 text-muted-foreground/40" />
-                </div>
-                <p className="text-xs text-muted-foreground">Select an icon to customize</p>
-              </div>
-            )}
+
 
             <Separator />
 
