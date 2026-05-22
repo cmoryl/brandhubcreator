@@ -450,6 +450,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="icon-studio/brand/:slug"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BrandIconHubPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="*"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
