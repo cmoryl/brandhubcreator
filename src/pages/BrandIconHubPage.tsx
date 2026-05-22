@@ -21,9 +21,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   ArrowLeft, Building2, Library, Palette, Package, ShieldCheck,
   Wand2, Plus, Link as LinkIcon, Unlink, ExternalLink, Settings,
-  Search, ArrowRight, FileDown, Loader2,
+  Search, ArrowRight, FileDown, Loader2, Eye,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import DOMPurify from 'dompurify';
 import type { BrandIconography } from '@/types/brand';
 import { useAuth } from '@/contexts/AuthContext';
@@ -164,6 +165,11 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
   );
 
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [previewLibId, setPreviewLibId] = useState<string | null>(null);
+  const previewLib = useMemo(
+    () => linkedLibraries.find((l) => l.id === previewLibId) || null,
+    [linkedLibraries, previewLibId],
+  );
   const handleDownloadPdf = async () => {
     if (!brand) return;
     if (linkedLibraries.length === 0) {
@@ -478,7 +484,7 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                     {linkedLibraries.map((lib) => {
                       const isExplicit = explicitLinkedIds.has(lib.id);
-                      const openLib = () => navigate(`/icon-studio?section=library&library=${lib.id}`);
+                      const openLib = () => setPreviewLibId(lib.id);
                       const handleUnlink = (e: React.MouseEvent) => {
                         e.stopPropagation();
                         if (isExplicit) {
@@ -671,6 +677,55 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <Dialog open={!!previewLib} onOpenChange={(o) => !o && setPreviewLibId(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          {previewLib && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Library className="h-4 w-4" />
+                  {previewLib.name}
+                  <Badge variant="secondary" className="text-[10px] ml-1">{previewLib.icons.length} icons</Badge>
+                </DialogTitle>
+                <DialogDescription>
+                  {previewLib.description || `${previewLib.level} collection linked to ${brand?.name}.`}
+                </DialogDescription>
+              </DialogHeader>
+
+              {previewLib.icons.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  This collection has no icons yet.
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 py-2">
+                  {previewLib.icons.map((ic) => (
+                    <div
+                      key={ic.id}
+                      className="aspect-square rounded-md border border-border/50 bg-background/40 flex flex-col items-center justify-center text-foreground p-2 gap-1"
+                      title={ic.name}
+                    >
+                      <IconSvgRender icon={ic} size={28} />
+                      <span className="text-[9px] text-muted-foreground truncate w-full text-center">{ic.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button variant="outline" onClick={() => setPreviewLibId(null)}>Close</Button>
+                <Button
+                  className="gap-1.5"
+                  onClick={() => navigate(`/icon-studio?section=library&library=${previewLib.id}`)}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Open in Icon Studio
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
