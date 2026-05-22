@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, Home, Building2, Package, FileText, Shield, HelpCircle, Settings, Star, Users } from 'lucide-react';
+import { ChevronRight, Home, Building2, Package, FileText, Shield, HelpCircle, Settings, Star, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Breadcrumb,
@@ -42,6 +42,7 @@ const ROUTE_MAPPINGS: Record<string, BreadcrumbConfig> = {
   '/contact': { label: 'Contact Us', icon: Users },
   '/onboarding': { label: 'Onboarding', icon: Settings },
   '/pending-approval': { label: 'Pending Approval', icon: Users },
+  '/icon-studio': { label: 'Icon Studio', icon: Sparkles },
 };
 
 export const AppBreadcrumbs = React.forwardRef<
