@@ -28,6 +28,13 @@ import { IconSetPreview } from './IconSetPreview';
 import { GoldenPathCard } from '@/components/icon-studio/GoldenPathCard';
 import type { SectionStatus } from './studioData';
 
+interface BrandProfile {
+  id: string;
+  name: string;
+  tone?: string;
+  members?: number;
+}
+
 interface Props {
   organizationName: string;
   /** Total icons across saved libraries */
@@ -35,6 +42,8 @@ interface Props {
   /** Total saved libraries */
   totalLibraries: number;
   onStartGenerate: () => void;
+  /** Real brand profiles loaded from the org. */
+  brandProfiles?: BrandProfile[];
 }
 
 const MetricCard = ({
@@ -143,6 +152,7 @@ export const DashboardView = ({
   totalIcons,
   totalLibraries,
   onStartGenerate,
+  brandProfiles = [],
 }: Props) => {
   const volumeData = [4, 8, 12, 9, 14, 22, 18, 26, 24, 31, 28, 38, 42, 36];
   const qaScore = 86;
@@ -296,23 +306,24 @@ export const DashboardView = ({
           </Button>
         </header>
         <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { name: organizationName || 'Your brand', tone: 'Enterprise · Confident', members: 8 },
-            { name: 'GlobalLink', tone: 'Technical · Trusted', members: 6 },
-            { name: 'TransPerfect AI', tone: 'Forward · Premium', members: 5 },
-          ].map((b) => (
+          {(brandProfiles.length > 0
+            ? brandProfiles
+            : [{ id: 'placeholder', name: organizationName || 'Your brand', tone: 'Add brands to see them here', members: 0 }]
+          ).map((b) => (
             <li
-              key={b.name}
+              key={b.id}
               className="rounded-lg border bg-secondary/30 px-3 py-2.5 transition-colors hover:bg-secondary/60"
             >
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium truncate">{b.name}</span>
-                <Badge variant="secondary" className="gap-1 text-[10px]">
-                  <Users className="h-3 w-3" />
-                  {b.members}
-                </Badge>
+                {typeof b.members === 'number' && b.members > 0 && (
+                  <Badge variant="secondary" className="gap-1 text-[10px]">
+                    <Users className="h-3 w-3" />
+                    {b.members}
+                  </Badge>
+                )}
               </div>
-              <div className="text-[11px] text-muted-foreground">{b.tone}</div>
+              {b.tone && <div className="text-[11px] text-muted-foreground">{b.tone}</div>}
             </li>
           ))}
         </ul>
