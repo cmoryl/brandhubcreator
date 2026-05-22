@@ -76,7 +76,7 @@ const EMOJI_TO_LUCIDE: Record<string, LucideIcon> = {
   '👤': User, '👥': Users, '🚪': LogOut, '🏠': Home, '📍': MapPin,
 
   // workflow / process
-  '🌿': Route, '▶️': Play, '🎉': Sparkles, '🎬': Film,
+  '🌿': Route, '▶️': Play, '🎉': Sparkles,
 
   // language services (TransPerfect)
   '🗣️': Languages, '🌎': Globe, '🌏': Globe,
