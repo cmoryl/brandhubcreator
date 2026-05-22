@@ -763,11 +763,11 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                 <dd className="font-medium">{selectedIcon.icon.fillMode || 'auto'}</dd>
                 <dt className="text-muted-foreground">ViewBox</dt>
                 <dd className="font-mono">{selectedIcon.icon.viewBox || '0 0 24 24'}</dd>
-                {selectedIcon.icon.tags && selectedIcon.icon.tags.length > 0 && (
+                {(selectedIcon.icon as any).tags && (selectedIcon.icon as any).tags.length > 0 && (
                   <>
                     <dt className="text-muted-foreground">Tags</dt>
                     <dd className="flex flex-wrap gap-1">
-                      {selectedIcon.icon.tags.map((t) => (
+                      {((selectedIcon.icon as any).tags as string[]).map((t) => (
                         <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>
                       ))}
                     </dd>
