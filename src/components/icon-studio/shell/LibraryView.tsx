@@ -22,6 +22,9 @@ interface Props {
   libraries: IconLibrary[];
   onOpenSet?: (lib: IconLibrary) => void;
   onCreate?: () => void;
+  /** When set, scroll-to-and-highlight this library card and auto-open it once. */
+  autoOpenLibraryId?: string | null;
+  onAutoOpenConsumed?: () => void;
 }
 
 const LEVEL_LABEL: Record<IconLibrary['level'], { label: string; token: string }> = {
@@ -41,7 +44,7 @@ const sampleEmojisFor = (name: string): string[] => {
   return ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
 };
 
-export const LibraryView = ({ libraries, onOpenSet, onCreate }: Props) => {
+export const LibraryView = ({ libraries, onOpenSet, onCreate, autoOpenLibraryId, onAutoOpenConsumed }: Props) => {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
 
