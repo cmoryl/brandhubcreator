@@ -125,6 +125,36 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     [linkedLibraries],
   );
 
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const handleDownloadPdf = async () => {
+    if (!brand) return;
+    if (linkedLibraries.length === 0) {
+      toast.info('Link at least one collection before exporting a PDF.');
+      return;
+    }
+    setExportingPdf(true);
+    const toastId = toast.loading(`Building ${brand.name} icon PDF…`);
+    try {
+      await buildBrandIconPdf({
+        entityName: brand.name,
+        entityKind: entityType === 'product' ? 'Product' : entityType === 'event' ? 'Event' : 'Brand',
+        libraries: linkedLibraries.map((l) => ({
+          id: l.id,
+          name: l.name,
+          description: l.description || undefined,
+          level: l.level,
+          icons: l.icons,
+        })),
+      });
+      toast.success('PDF downloaded', { id: toastId });
+    } catch (err) {
+      console.error('Icon PDF export failed', err);
+      toast.error('Failed to build PDF', { id: toastId });
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   // Brand-scoped icon search across linked collections
   const [iconQuery, setIconQuery] = useState('');
   const searchResults = useMemo(() => {
