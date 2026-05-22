@@ -30,6 +30,35 @@ import {
   Building2,
   PackageCheck,
   Wand2,
+  // preview icons for placeholder section cards
+  Home,
+  Search,
+  Menu,
+  ArrowLeft,
+  ArrowRight,
+  Settings,
+  User,
+  Check,
+  AlertTriangle,
+  Info,
+  Eye,
+  EyeOff,
+  Plus as PlusIcon,
+  Minus,
+  Filter,
+  SortAsc,
+  ToggleLeft,
+  Mail,
+  MessageSquare,
+  Send,
+  Phone,
+  Paperclip,
+  AtSign,
+  Bell,
+  BellRing,
+  AlertCircle,
+  CheckCircle,
+  type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -1002,6 +1031,28 @@ const ExportStep = ({
 /* Shared bits                                                                 */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Preview icon map — used to fill the placeholder slots on the core/sub-set
+ * cards so the user can actually see what kind of icons each section will
+ * contain *before* generation runs. Maps the section's display label (case-
+ * insensitive, fuzzy) to a hand-picked list of Lucide icons.
+ */
+const PREVIEW_ICONS: Record<string, LucideIcon[]> = {
+  navigation: [Home, Search, Menu, ArrowLeft, ArrowRight, Settings],
+  'ui states': [Check, AlertTriangle, Info, Eye, EyeOff, Loader2],
+  'basic logic': [PlusIcon, Minus, Filter, SortAsc, ToggleLeft, X],
+  messaging: [Mail, MessageSquare, Send, Phone, Paperclip, AtSign],
+  notifications: [Bell, BellRing, AlertCircle, CheckCircle, Info, AlertTriangle],
+};
+
+const getPreviewIcons = (label: string): LucideIcon[] => {
+  const key = label.trim().toLowerCase();
+  if (PREVIEW_ICONS[key]) return PREVIEW_ICONS[key];
+  // fuzzy match — e.g. "Records (EHR)" -> records
+  const hit = Object.keys(PREVIEW_ICONS).find((k) => key.includes(k) || k.includes(key.split(' ')[0]));
+  return hit ? PREVIEW_ICONS[hit] : [Sparkles, Sparkles, Sparkles, Sparkles, Sparkles, Sparkles];
+};
+
 const SectionCard = ({
   title,
   subtitle,
@@ -1016,6 +1067,7 @@ const SectionCard = ({
   tone: 'core' | 'sub';
 }) => {
   const status = section?.status ?? 'idle';
+  const previewIcons = getPreviewIcons(title);
   return (
     <Card>
       <CardContent className="p-3 space-y-2">
@@ -1035,14 +1087,17 @@ const SectionCard = ({
             />
           ))}
           {(!section || section.icons.length === 0) &&
-            Array.from({ length: 6 }).map((_, i) => (
+            previewIcons.slice(0, 6).map((Icon, i) => (
               <div
                 key={i}
                 className={cn(
-                  'h-7 w-7 mx-auto rounded-md border border-dashed border-muted-foreground/20',
+                  'h-7 w-7 mx-auto rounded-md border border-dashed border-muted-foreground/25 flex items-center justify-center',
                   status === 'generating' && 'animate-pulse bg-muted/40',
                 )}
-              />
+                title={`${title} icon preview`}
+              >
+                <Icon className="h-3.5 w-3.5 text-muted-foreground/60" strokeWidth={1.75} />
+              </div>
             ))}
         </div>
         {status === 'error' && (
