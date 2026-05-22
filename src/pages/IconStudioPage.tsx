@@ -90,37 +90,44 @@ const IconStudioPage = () => {
     if (!authLoading && !user) navigate('/auth');
   }, [user, authLoading, navigate]);
 
+  // Honor deep-links like /icon-studio?section=library&library=<id>
+  const [searchParams, setSearchParams] = useSearchParams();
+  const validSections: ShellSection[] = ['dashboard','library','brands','styles','sets','qa','export','generate'];
+  const urlSection = searchParams.get('section') as ShellSection | null;
+  const urlLibrary = searchParams.get('library');
+  const initialSection: ShellSection =
+    urlSection && validSections.includes(urlSection)
+      ? urlSection
+      : urlLibrary
+      ? 'library'
+      : 'dashboard';
+
   const [expertMode, setExpertMode] = useState(false);
   const [activeTab, setActiveTab] = useState<ExpertTab>('library');
   const [styleSubView, setStyleSubView] = useState<
     'colorize' | 'hierarchy' | 'app-icons'
   >('colorize');
-  const [shellSection, setShellSection] = useState<ShellSection>('dashboard');
+  const [shellSection, setShellSection] = useState<ShellSection>(initialSection);
   const [activeBrand, setActiveBrand] = useState<ShellBrand | undefined>(undefined);
-  const [deepLinkLibraryId, setDeepLinkLibraryId] = useState<string | null>(null);
+  const [deepLinkLibraryId, setDeepLinkLibraryId] = useState<string | null>(urlLibrary);
 
-  // Honor deep-links like /icon-studio?section=library&library=<id>
-  const [searchParams, setSearchParams] = useSearchParams();
+  // Clean URL once consumed so subsequent in-app nav isn't sticky.
+  // Also react to URL changes when the page is already mounted.
   useEffect(() => {
-    const section = searchParams.get('section') as ShellSection | null;
-    const library = searchParams.get('library');
-    const validSections: ShellSection[] = ['dashboard','library','brands','styles','sets','qa','export','generate'];
-    if (section && validSections.includes(section)) {
-      setShellSection(section);
+    const s = searchParams.get('section') as ShellSection | null;
+    const lib = searchParams.get('library');
+    if (!s && !lib) return;
+    if (s && validSections.includes(s)) setShellSection(s);
+    if (lib) {
+      setDeepLinkLibraryId(lib);
+      if (!s) setShellSection('library');
     }
-    if (library) {
-      setDeepLinkLibraryId(library);
-      if (!section) setShellSection('library');
-    }
-    if (section || library) {
-      // Clean URL once consumed so subsequent in-app nav isn't sticky
-      const next = new URLSearchParams(searchParams);
-      next.delete('section');
-      next.delete('library');
-      setSearchParams(next, { replace: true });
-    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('section');
+    next.delete('library');
+    setSearchParams(next, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
   const shellBrands: ShellBrand[] = useMemo(
     () => (organization ? [{ id: organization.id, name: organization.name }] : []),
     [organization],
