@@ -20,6 +20,7 @@ import {
   Sparkles,
   TrendingUp,
   Users,
+  X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
 import { GoldenPathCard } from '@/components/icon-studio/GoldenPathCard';
+import { useHiddenItems } from './useHiddenItems';
 import type { SectionStatus } from './studioData';
 
 interface BrandProfile {
@@ -179,6 +181,9 @@ export const DashboardView = ({
 }: Props) => {
   const volumeData = [4, 8, 12, 9, 14, 22, 18, 26, 24, 31, 28, 38, 42, 36];
   const qaScore = 86;
+  const { hidden: hiddenBrands, hide: hideBrand, clear: clearHiddenBrands, isHidden: isBrandHidden } =
+    useHiddenItems('brand-profiles');
+  const visibleBrandProfiles = brandProfiles.filter((b) => !isBrandHidden(b.id));
 
   return (
     <div className="space-y-8">
@@ -326,26 +331,56 @@ export const DashboardView = ({
               Profiles influence generation, QA, and export defaults.
             </p>
           </div>
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onNavigate?.('brands')}>
-            <Plus className="h-3.5 w-3.5" />
-            New brand
-          </Button>
+          <div className="flex items-center gap-2">
+            {hiddenBrands.size > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-[11px]"
+                onClick={clearHiddenBrands}
+              >
+                Restore {hiddenBrands.size} hidden
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onNavigate?.('brands')}>
+              <Plus className="h-3.5 w-3.5" />
+              New brand
+            </Button>
+          </div>
         </header>
         <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {(brandProfiles.length > 0
-            ? brandProfiles
-            : [{ id: 'placeholder', name: organizationName || 'Your brand', tone: 'Add brands to see them here', members: 0 }]
+          {(visibleBrandProfiles.length > 0
+            ? visibleBrandProfiles
+            : [{ id: 'placeholder', name: organizationName || 'Your brand', tone: 'Add brands to see them here', members: 0 } as typeof visibleBrandProfiles[number]]
           ).map((b) => {
+            const isPlaceholder = b.id === 'placeholder';
             const content = (
               <>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium truncate">{b.name}</span>
-                  {typeof b.members === 'number' && b.members > 0 && (
-                    <Badge variant="secondary" className="gap-1 text-[10px]">
-                      <Users className="h-3 w-3" />
-                      {b.members}
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {typeof b.members === 'number' && b.members > 0 && (
+                      <Badge variant="secondary" className="gap-1 text-[10px]">
+                        <Users className="h-3 w-3" />
+                        {b.members}
+                      </Badge>
+                    )}
+                    {!isPlaceholder && (
+                      <button
+                        type="button"
+                        aria-label={`Hide ${b.name} from dashboard`}
+                        title="Hide from dashboard"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          hideBrand(b.id);
+                        }}
+                        className="inline-flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-60 hover:opacity-100"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {b.tone && <div className="text-[11px] text-muted-foreground">{b.tone}</div>}
               </>

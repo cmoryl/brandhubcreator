@@ -4,13 +4,14 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Palette, Wand2, Check, Maximize2 } from 'lucide-react';
+import { Palette, Wand2, Check, Maximize2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { IconSetPreview } from './IconSetPreview';
 import { StyleSystemDetailDialog } from './StyleSystemDetailDialog';
 import { BASE_STYLES, COLOR_MODES, type BaseStyle } from './studioData';
+import { useHiddenItems } from './useHiddenItems';
 import { cn } from '@/lib/utils';
 
 const ACCENTS = [
@@ -35,14 +36,16 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
   const [colorMode, setColorMode] = useState<string>('mono');
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detailAccent, setDetailAccent] = useState<string>(`hsl(var(${ACCENTS[0]}))`);
+  const { hidden, hide, clear, isHidden } = useHiddenItems('style-systems');
 
   const filtered = useMemo(() => {
-    if (!q.trim()) return BASE_STYLES;
+    const visible = BASE_STYLES.filter((s) => !isHidden(s.id));
+    if (!q.trim()) return visible;
     const t = q.toLowerCase();
-    return BASE_STYLES.filter(
+    return visible.filter(
       (s) => s.name.toLowerCase().includes(t) || s.description.toLowerCase().includes(t),
     );
-  }, [q]);
+  }, [q, hidden]);
 
   const active = BASE_STYLES.find((s) => s.id === activeId) ?? BASE_STYLES[0];
 
@@ -87,6 +90,11 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
               className="h-9 max-w-xs"
             />
             <Badge variant="outline">{filtered.length} styles</Badge>
+            {hidden.size > 0 && (
+              <Button variant="ghost" size="sm" className="h-7 text-[11px]" onClick={clear}>
+                Restore {hidden.size} hidden
+              </Button>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {filtered.map((s, i) => {
@@ -112,6 +120,27 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                     />
                   )}
                   <Maximize2 className="absolute top-3 right-9 h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Hide ${s.name}`}
+                    title="Hide from gallery"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      hide(s.id);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        hide(s.id);
+                      }
+                    }}
+                    className="absolute top-2 left-2 inline-flex h-6 w-6 items-center justify-center rounded-md border border-border/60 bg-background/70 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive hover:border-destructive/50 cursor-pointer"
+                  >
+                    <X className="h-3 w-3" />
+                  </span>
                   <h3 className="text-sm font-semibold">{s.name}</h3>
                   <p className="text-[11px] text-muted-foreground mb-3 min-h-[2rem]">
                     {s.description}

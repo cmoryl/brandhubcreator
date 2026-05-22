@@ -7,7 +7,7 @@
 import { useMemo, useState } from 'react';
 import {
   Copy, Wand2, Lock, Unlock, RefreshCw, GitCompare, ArrowUpRight,
-  FolderOpen, Plus, Filter,
+  FolderOpen, Plus, Filter, Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,7 +60,7 @@ export const IconSetsView = ({
 }: Props) => {
   const [q, setQ] = useState('');
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
-  const { createLibrary, updateLibrary } = useIconLibraries(organizationId);
+  const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
 
   const grouped = useMemo(() => {
     const term = q.toLowerCase();
@@ -115,6 +115,13 @@ export const IconSetsView = ({
   const handleCompare = (lib: IconLibrary) => {
     if (onCompare) return onCompare(lib);
     toast.info(`Compare versions of "${lib.name}" coming up.`);
+  };
+
+  const handleDelete = (lib: IconLibrary) => {
+    if (typeof window !== 'undefined' && !window.confirm(`Delete icon set "${lib.name}"? This cannot be undone.`)) {
+      return;
+    }
+    deleteLibrary.mutate(lib.id);
   };
 
   const levelLabelFor = (lib: IconLibrary) => LEVEL_META[lib.level as LevelKey]?.label ?? lib.level;
@@ -214,6 +221,7 @@ export const IconSetsView = ({
                       icon: lib.is_active ? Lock : Unlock,
                       onClick: () => handleLockToggle(lib),
                     },
+                    { label: 'Delete', icon: Trash2, onClick: () => handleDelete(lib) },
                   ];
 
                   return (
