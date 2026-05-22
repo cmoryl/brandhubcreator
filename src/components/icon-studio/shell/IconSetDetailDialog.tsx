@@ -204,9 +204,10 @@ const LADDER: { label: string; tile: number; icon: number }[] = [
 interface LadderProps {
   icons: Array<{ id: string; name: string; svgPath: string; viewBox?: string; fillMode?: 'stroke' | 'fill' }>;
   accent: string;
+  onIconClick?: (id: string) => void;
 }
 
-const RealIconLadder = ({ icons, accent }: LadderProps) => {
+const RealIconLadder = ({ icons, accent, onIconClick }: LadderProps) => {
   return (
     <div className="space-y-6">
       {LADDER.map((s) => (
@@ -224,9 +225,11 @@ const RealIconLadder = ({ icons, accent }: LadderProps) => {
             }}
           >
             {icons.map((icon) => (
-              <div
+              <button
+                type="button"
                 key={`${s.label}-${icon.id}`}
-                className="flex flex-col items-center gap-1.5 group"
+                onClick={() => onIconClick?.(icon.id)}
+                className="flex flex-col items-center gap-1.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
                 title={icon.name}
               >
                 <div
