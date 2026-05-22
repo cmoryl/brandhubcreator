@@ -532,13 +532,15 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                           {lib.icons.length > 0 ? (
                             <div className="grid grid-cols-6 gap-1.5">
                               {lib.icons.slice(0, 6).map((ic) => (
-                                <div
+                                <button
                                   key={ic.id}
-                                  className="aspect-square rounded-md border border-border/50 bg-background/40 flex items-center justify-center text-foreground"
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); openIconDetail(ic, lib.name); }}
+                                  className="aspect-square rounded-md border border-border/50 bg-background/40 flex items-center justify-center text-foreground hover:border-primary/60 hover:bg-background transition-colors"
                                   title={ic.name}
                                 >
                                   <IconSvgRender icon={ic} size={20} />
-                                </div>
+                                </button>
                               ))}
                             </div>
                           ) : (
