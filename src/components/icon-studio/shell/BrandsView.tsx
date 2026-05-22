@@ -345,7 +345,12 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 flex-shrink-0"
-                    onClick={(e) => e.preventDefault()}
+                    aria-label={`Edit ${b.name}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate(to);
+                    }}
                   >
                     <Edit3 className="h-3.5 w-3.5" />
                   </Button>
