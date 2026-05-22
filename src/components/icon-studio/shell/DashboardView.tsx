@@ -22,6 +22,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
+import { LibraryIconPreview } from './LibraryIconPreview';
+import type { BrandIconography } from '@/types/brand';
 import { GoldenPathCard } from '@/components/icon-studio/GoldenPathCard';
 import { useHiddenItems } from './useHiddenItems';
 import type { SectionStatus } from './studioData';
@@ -41,6 +43,7 @@ interface RecentLibrary {
   level?: 'core' | 'product_line' | 'brand';
   iconCount: number;
   isActive?: boolean;
+  icons?: BrandIconography[];
 }
 
 interface Props {
@@ -65,6 +68,7 @@ const ActivityRow = ({
   meta,
   status,
   emojis,
+  icons,
   accent,
   onClick,
 }: {
@@ -72,6 +76,7 @@ const ActivityRow = ({
   meta: string;
   status: SectionStatus;
   emojis: string[];
+  icons?: BrandIconography[];
   accent: string;
   onClick?: () => void;
 }) => (
@@ -82,7 +87,15 @@ const ActivityRow = ({
       className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary/40"
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <IconSetPreview emojis={emojis} accent={accent} size="sm" count={4} variant="glass" className="!grid-cols-4 flex-shrink-0" />
+        <LibraryIconPreview
+          icons={icons}
+          fallbackEmojis={emojis}
+          accent={accent}
+          count={4}
+          size="sm"
+          tilePx={28}
+          className="flex-shrink-0"
+        />
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{title}</div>
           <div className="text-[11px] text-muted-foreground truncate">{meta}</div>
@@ -177,6 +190,7 @@ export const DashboardView = ({
                   meta={`${levelLabel(lib.level)} · ${lib.iconCount} icons`}
                   status={lib.isActive ? 'approved' : 'idle'}
                   emojis={sampleEmojis}
+                  icons={lib.icons}
                   accent={levelAccent(lib.level)}
                   onClick={() => onOpenLibrary?.(lib.id)}
                 />

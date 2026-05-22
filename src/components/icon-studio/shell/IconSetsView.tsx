@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { IconSetPreview } from './IconSetPreview';
+import { LibraryIconPreview } from './LibraryIconPreview';
 import { StatusChip } from './StatusChip';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
@@ -250,12 +250,12 @@ export const IconSetsView = ({
                         </div>
                         <StatusChip status={lib.is_active ? 'approved' : 'idle'} />
                       </div>
-                      <IconSetPreview
-                        emojis={SAMPLE_FOR(lib.name)}
+                      <LibraryIconPreview
+                        icons={lib.icons}
+                        fallbackEmojis={SAMPLE_FOR(lib.name)}
                         accent={accent}
                         size="sm"
                         count={6}
-                        variant="glass"
                       />
                       <footer
                         className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between"

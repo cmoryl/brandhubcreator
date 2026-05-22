@@ -331,6 +331,7 @@ const IconStudioPage = () => {
               level: l.level,
               iconCount: l.icons.length,
               isActive: l.is_active,
+              icons: l.icons,
             }))}
           brandProfiles={hierarchyBrands.map((b) => ({
             id: b.id,
