@@ -165,9 +165,6 @@ export const DashboardView = ({
         </div>
       </header>
 
-      {/* Golden Path quickstart */}
-      <GoldenPathCard />
-
       {/* Recent icon systems + Export history */}
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="tp-card p-5">
