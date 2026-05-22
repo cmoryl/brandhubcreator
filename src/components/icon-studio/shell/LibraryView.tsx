@@ -204,12 +204,12 @@ export const LibraryView = ({ libraries, onOpenSet, onCreate, autoOpenLibraryId,
                   {lib.description || 'No description'}
                 </p>
                 <div className="mt-4">
-                  <IconSetPreview
-                    emojis={sampleEmojisFor(lib.name)}
+                  <LibraryIconPreview
+                    icons={lib.icons}
+                    fallbackEmojis={sampleEmojisFor(lib.name)}
                     accent={accent}
                     size="sm"
                     count={6}
-                    variant="glass"
                   />
                 </div>
                 <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-3">
