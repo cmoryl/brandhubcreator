@@ -1,18 +1,25 @@
 /**
  * ExportCenterView — bundles, formats, and size matrix for production
- * exports. Wires to existing bulk export flows when a target set is picked.
+ * exports. Bakes the active Style System recipe (variant, radius, stroke,
+ * accent, accent2) into every exported SVG/PNG so downloads carry the same
+ * look & feel users see in Style System cards.
  */
 
 import { useMemo, useState } from 'react';
 import {
   Package, Download, Image as ImageIcon, FileText, Code2, Layers,
-  Smartphone, Palette, Library as LibraryIcon, Sparkles,
+  Smartphone, Palette, Library as LibraryIcon, Sparkles, Wand2, Loader2,
 } from 'lucide-react';
+import JSZip from 'jszip';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
+import { BASE_STYLES, type BaseStyle } from './studioData';
+import { IconSetPreview } from './IconSetPreview';
+import { buildStyledSvg, svgToPng, slugify, resolveCssColor } from './styleSvgExporter';
 
 interface Props {
   libraries: IconLibrary[];
@@ -21,7 +28,7 @@ interface Props {
 }
 
 interface FormatRow {
-  id: string;
+  id: 'svg' | 'svg-opt' | 'png' | 'json';
   label: string;
   description: string;
   icon: typeof Package;
@@ -30,30 +37,56 @@ interface FormatRow {
 }
 
 const DEFAULT_FORMATS: FormatRow[] = [
-  { id: 'svg', label: 'SVG', description: 'Raw, source SVG files', icon: ImageIcon, enabled: true, ext: '.svg' },
-  { id: 'svg-opt', label: 'Optimized SVG', description: 'SVGO-cleaned, minified', icon: ImageIcon, enabled: true, ext: '.svg' },
-  { id: 'png', label: 'PNG (transparent)', description: 'All sizes, transparent background', icon: ImageIcon, enabled: true, ext: '.png' },
-  { id: 'webp', label: 'WebP', description: 'Smaller, transparent web format', icon: ImageIcon, enabled: false, ext: '.webp' },
-  { id: 'pdf', label: 'PDF contact sheet', description: 'Searchable preview of the system', icon: FileText, enabled: true, ext: '.pdf' },
-  { id: 'figma', label: 'Figma-ready SVG', description: 'Frame-named, plugin-import ready', icon: ImageIcon, enabled: false, ext: '.svg' },
-  { id: 'react', label: 'React component lib', description: 'TSX icons + index export', icon: Code2, enabled: false, ext: '.tsx' },
-  { id: 'vue', label: 'Vue component lib', description: 'SFCs with named exports', icon: Code2, enabled: false, ext: '.vue' },
-  { id: 'sprite', label: 'CSS sprite', description: 'Single sprite + class map', icon: Layers, enabled: false, ext: '.css' },
-  { id: 'iconfont', label: 'Icon font', description: 'WOFF2 + CSS class names', icon: FileText, enabled: false, ext: '.woff2' },
-  { id: 'json', label: 'JSON manifest', description: 'Index, hashes, metadata', icon: FileText, enabled: true, ext: '.json' },
-  { id: 'tokens', label: 'Design tokens', description: 'CSS / JSON / Tailwind', icon: Palette, enabled: false, ext: '.json' },
-  { id: 'favicons', label: 'Favicons', description: 'ICO + 16/32/180/512 PNG', icon: Smartphone, enabled: false, ext: '.zip' },
-  { id: 'apps', label: 'App icon package', description: 'iOS/Android/PWA/macOS/Windows', icon: Smartphone, enabled: false, ext: '.zip' },
+  { id: 'svg', label: 'Styled SVG', description: 'Self-contained SVG with baked-in look & feel', icon: ImageIcon, enabled: true, ext: '.svg' },
+  { id: 'svg-opt', label: 'Raw glyph SVG', description: 'Source path only — no wrapper styling', icon: ImageIcon, enabled: false, ext: '.svg' },
+  { id: 'png', label: 'PNG (styled)', description: 'Rasterized styled icons at every selected size', icon: ImageIcon, enabled: true, ext: '.png' },
+  { id: 'json', label: 'JSON manifest', description: 'Style recipe, icon index, hashes, metadata', icon: FileText, enabled: true, ext: '.json' },
+];
+
+const COMING_SOON: FormatRow[] = [
+  { id: 'svg' as any, label: 'Figma frame export', description: 'Plugin-ready frame names', icon: ImageIcon, enabled: false, ext: '.svg' },
+  { id: 'svg' as any, label: 'React component lib', description: 'TSX icons + index export', icon: Code2, enabled: false, ext: '.tsx' },
+  { id: 'svg' as any, label: 'Icon font', description: 'WOFF2 + CSS class names', icon: FileText, enabled: false, ext: '.woff2' },
+  { id: 'svg' as any, label: 'CSS sprite', description: 'Single sprite + class map', icon: Layers, enabled: false, ext: '.css' },
+  { id: 'svg' as any, label: 'Favicons', description: 'ICO + 16/32/180/512 PNG', icon: Smartphone, enabled: false, ext: '.zip' },
+  { id: 'svg' as any, label: 'PDF contact sheet', description: 'Searchable preview', icon: FileText, enabled: false, ext: '.pdf' },
 ];
 
 const PNG_SIZES = [16, 24, 32, 48, 64, 128, 256, 512];
 
+const ACCENT_TOKENS = [
+  { label: 'Digital Blue', token: '--tp-digital-blue' },
+  { label: 'Pink', token: '--tp-pink' },
+  { label: 'Orange', token: '--tp-orange' },
+  { label: 'Teal', token: '--tp-teal' },
+  { label: 'Green', token: '--tp-green' },
+  { label: 'Purple', token: '--tp-purple' },
+];
+
+const PREVIEW_EMOJIS = ['⚙️', '📊', '🔐', '🛒', '✨', '🛡️'];
+
+// Fallback path data (lucide-style 24x24) used when a library icon is missing
+// its `svgPath` — keeps the export pipeline deterministic.
+const FALLBACK_PATH = 'M12 2 L22 7 L22 17 L12 22 L2 17 L2 7 Z';
+
 export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }: Props) => {
+  const { toast } = useToast();
   const [formats, setFormats] = useState(DEFAULT_FORMATS);
   const [sizes, setSizes] = useState<Set<number>>(new Set([24, 48, 128, 512]));
   const [selectedSetId, setSelectedSetId] = useState<string | 'all'>('all');
+  const [styleId, setStyleId] = useState<string>(BASE_STYLES[0].id);
+  const [accentToken, setAccentToken] = useState<string>(ACCENT_TOKENS[0].token);
+  const [exporting, setExporting] = useState(false);
 
   const enabledCount = formats.filter((f) => f.enabled).length;
+  const activeStyle: BaseStyle = useMemo(
+    () => BASE_STYLES.find((s) => s.id === styleId) ?? BASE_STYLES[0],
+    [styleId],
+  );
+  const accentCss = `hsl(var(${accentToken}))`;
+  const accent2Css = activeStyle.preview.accent2
+    ? `hsl(var(--${activeStyle.preview.accent2}))`
+    : undefined;
 
   const targetIcons = useMemo(() => {
     if (selectedSetId === 'all') return libraries.reduce((s, l) => s + l.icons.length, 0);
@@ -63,14 +96,13 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
   const fileEstimate = useMemo(() => {
     const pngVariants = sizes.size;
     const perIcon =
-      formats.filter((f) => f.enabled && f.id === 'svg').length +
-      formats.filter((f) => f.enabled && f.id === 'svg-opt').length +
-      (formats.find((f) => f.id === 'png')?.enabled ? pngVariants : 0) +
-      (formats.find((f) => f.id === 'webp')?.enabled ? pngVariants : 0);
-    return targetIcons * Math.max(1, perIcon);
+      formats.filter((f) => f.enabled && (f.id === 'svg' || f.id === 'svg-opt')).length +
+      (formats.find((f) => f.id === 'png')?.enabled ? pngVariants : 0);
+    const manifest = formats.find((f) => f.id === 'json')?.enabled ? 1 : 0;
+    return targetIcons * Math.max(0, perIcon) + manifest;
   }, [targetIcons, sizes.size, formats]);
 
-  const toggleFormat = (id: string) =>
+  const toggleFormat = (id: FormatRow['id']) =>
     setFormats((p) => p.map((f) => (f.id === id ? { ...f, enabled: !f.enabled } : f)));
 
   const toggleSize = (s: number) =>
@@ -80,6 +112,138 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
       else n.add(s);
       return n;
     });
+
+  const handleExport = async () => {
+    const scopedLibs =
+      selectedSetId === 'all' ? libraries : libraries.filter((l) => l.id === selectedSetId);
+    const allIcons = scopedLibs.flatMap((lib) =>
+      lib.icons.map((ic) => ({ lib, icon: ic })),
+    );
+
+    if (allIcons.length === 0) {
+      toast({ title: 'No icons in scope', description: 'Generate a set first.', variant: 'destructive' });
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const zip = new JSZip();
+      const orgSlug = slugify(organizationName || 'org');
+      const styleSlug = slugify(activeStyle.id);
+      const root = zip.folder(`icon-system-${orgSlug}-${styleSlug}`)!;
+      const resolvedAccent = resolveCssColor(accentCss);
+      const resolvedAccent2 = accent2Css ? resolveCssColor(accent2Css) : undefined;
+
+      // Manifest
+      const manifest = {
+        organization: organizationName,
+        generatedAt: new Date().toISOString(),
+        style: {
+          id: activeStyle.id,
+          name: activeStyle.name,
+          variant: activeStyle.preview.variant,
+          radius: activeStyle.preview.radius,
+          strokeWidth: activeStyle.preview.strokeWidth,
+          recipe: activeStyle.recipe,
+        },
+        accent: { token: accentToken, resolved: resolvedAccent },
+        accent2: resolvedAccent2 ? { token: activeStyle.preview.accent2, resolved: resolvedAccent2 } : undefined,
+        pngSizes: Array.from(sizes).sort((a, b) => a - b),
+        formats: formats.filter((f) => f.enabled).map((f) => f.id),
+        libraries: scopedLibs.map((l) => ({ id: l.id, name: l.name, count: l.icons.length })),
+        totals: { icons: allIcons.length },
+      };
+
+      if (formats.find((f) => f.id === 'json')?.enabled) {
+        root.file('manifest.json', JSON.stringify(manifest, null, 2));
+      }
+
+      const wantStyled = formats.find((f) => f.id === 'svg')?.enabled;
+      const wantRaw = formats.find((f) => f.id === 'svg-opt')?.enabled;
+      const wantPng = formats.find((f) => f.id === 'png')?.enabled;
+      const pngList = Array.from(sizes).sort((a, b) => a - b);
+
+      // Per-icon emission
+      for (const { lib, icon } of allIcons) {
+        const libSlug = slugify(lib.name);
+        const iconSlug = slugify(icon.name);
+        const path = icon.svgPath || FALLBACK_PATH;
+        const viewBox = icon.viewBox || '0 0 24 24';
+
+        if (wantStyled) {
+          const svg = buildStyledSvg({
+            svgPath: path,
+            viewBox,
+            style: activeStyle,
+            accent: resolvedAccent,
+            accent2: resolvedAccent2,
+            size: 64,
+            standalone: true,
+          });
+          root.file(`svg/${libSlug}/${iconSlug}.svg`, svg);
+        }
+
+        if (wantRaw) {
+          const raw = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`;
+          root.file(`svg-raw/${libSlug}/${iconSlug}.svg`, raw);
+        }
+
+        if (wantPng) {
+          for (const px of pngList) {
+            const styledForPx = buildStyledSvg({
+              svgPath: path,
+              viewBox,
+              style: activeStyle,
+              accent: resolvedAccent,
+              accent2: resolvedAccent2,
+              size: px,
+              standalone: false,
+            });
+            try {
+              const blob = await svgToPng(styledForPx, px);
+              root.file(`png/${px}/${libSlug}/${iconSlug}.png`, blob);
+            } catch {
+              // Skip individual PNG failures rather than abort the whole bundle.
+            }
+          }
+        }
+      }
+
+      // Contact sheet HTML — quick visual proof
+      root.file(
+        'README.html',
+        `<!doctype html><meta charset="utf-8"><title>${organizationName} · ${activeStyle.name}</title>
+<style>body{font-family:system-ui;background:#0f1422;color:#e7eaf3;padding:32px}h1{font-size:20px}.grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-top:16px}.cell{background:#181f33;border-radius:8px;padding:8px;text-align:center;font-size:10px}img{width:48px;height:48px;display:block;margin:0 auto 4px}</style>
+<h1>${organizationName} — ${activeStyle.name} (${activeStyle.preview.variant})</h1>
+<p style="opacity:.7">Accent: ${resolvedAccent}${resolvedAccent2 ? ` · 2nd: ${resolvedAccent2}` : ''} · ${allIcons.length} icons</p>
+<p style="opacity:.6">Open <code>svg/</code> for styled SVGs, <code>png/</code> for rasterized variants, <code>manifest.json</code> for metadata.</p>`,
+      );
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `icon-system-${orgSlug}-${styleSlug}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Bundle exported',
+        description: `${allIcons.length} icons in “${activeStyle.name}” style.`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: 'Export failed',
+        description: e instanceof Error ? e.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -96,20 +260,138 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
           <div>
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               <Package className="h-3.5 w-3.5" />
-              <span>Production exports</span>
+              <span>Production exports · style-locked</span>
             </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight">Export Center</h1>
             <p className="text-sm text-muted-foreground max-w-2xl">
-              Configure bundle formats, PNG sizes, and per-set scope — then ship a
-              production-ready ZIP with brand metadata, components, and docs.
+              Pick a style system + brand accent, then export a production ZIP where every
+              SVG and PNG carries the exact look &amp; feel from the Style Systems gallery.
             </p>
           </div>
-          <Button size="lg" className="gap-2" disabled={enabledCount === 0 || targetIcons === 0}>
-            <Download className="h-4 w-4" />
-            Export bundle
+          <Button
+            size="lg"
+            className="gap-2"
+            disabled={enabledCount === 0 || targetIcons === 0 || exporting}
+            onClick={handleExport}
+          >
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {exporting ? 'Building bundle…' : 'Export bundle'}
           </Button>
         </div>
       </header>
+
+      {/* Style + accent picker — drives the look & feel of EVERY exported asset */}
+      <section className="tp-card p-5">
+        <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Wand2 className="h-4 w-4 text-muted-foreground" />
+              Style system + accent
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              The exporter bakes this recipe into every SVG/PNG in the bundle.
+            </p>
+          </div>
+          <Badge variant="outline" className="text-[10px] capitalize">
+            {activeStyle.preview.variant}
+          </Badge>
+        </header>
+
+        <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+          <div className="space-y-3">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Style ({BASE_STYLES.length})
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 max-h-72 overflow-y-auto pr-1">
+              {BASE_STYLES.map((s) => {
+                const active = s.id === styleId;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => setStyleId(s.id)}
+                    className={cn(
+                      'rounded-lg border p-2 text-left transition-colors group',
+                      active
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:bg-secondary/40',
+                    )}
+                  >
+                    <div className="text-[11px] font-semibold truncate">{s.name}</div>
+                    <div className="mt-1.5">
+                      <IconSetPreview
+                        emojis={PREVIEW_EMOJIS}
+                        accent={accentCss}
+                        accent2={accent2Css}
+                        size="sm"
+                        count={4}
+                        columns={4}
+                        variant={s.preview.variant}
+                        radius={s.preview.radius}
+                        strokeWidth={s.preview.strokeWidth}
+                      />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground pt-2">
+              Brand accent
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {ACCENT_TOKENS.map((c) => {
+                const active = c.token === accentToken;
+                return (
+                  <button
+                    key={c.token}
+                    onClick={() => setAccentToken(c.token)}
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors',
+                      active ? 'border-primary bg-primary/5' : 'border-border hover:bg-secondary/40',
+                    )}
+                  >
+                    <span
+                      className="h-3 w-3 rounded-sm"
+                      style={{ background: `hsl(var(${c.token}))` }}
+                    />
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Live preview — exactly what export will look like */}
+          <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-3">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Export preview
+            </div>
+            <div className="text-sm font-semibold">{activeStyle.name}</div>
+            <p className="text-[11px] text-muted-foreground">{activeStyle.description}</p>
+            <IconSetPreview
+              emojis={PREVIEW_EMOJIS}
+              accent={accentCss}
+              accent2={accent2Css}
+              size="lg"
+              count={6}
+              columns={6}
+              variant={activeStyle.preview.variant}
+              radius={activeStyle.preview.radius}
+              strokeWidth={activeStyle.preview.strokeWidth}
+            />
+            <div className="flex flex-wrap gap-1 pt-1">
+              <Badge variant="outline" className="text-[10px]">
+                Radius {activeStyle.preview.radius ?? 10}px
+              </Badge>
+              {activeStyle.preview.strokeWidth && (
+                <Badge variant="outline" className="text-[10px]">
+                  Stroke {activeStyle.preview.strokeWidth}px
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Summary tiles */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -160,7 +442,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
           <div>
             <h3 className="text-sm font-semibold">Formats</h3>
             <p className="text-[11px] text-muted-foreground">
-              Toggle the formats included in the bundle.
+              Active formats are emitted with the chosen style baked in.
             </p>
           </div>
           <Badge variant="outline">{enabledCount} of {formats.length}</Badge>
@@ -198,15 +480,35 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
             );
           })}
         </div>
+
+        <div className="mt-4 pt-3 border-t border-border/40">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+            Coming soon
+          </div>
+          <div className="grid gap-2 md:grid-cols-3">
+            {COMING_SOON.map((f, i) => {
+              const Icon = f.icon;
+              return (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 rounded-md border border-dashed border-border bg-secondary/10 px-3 py-2 text-[11px] text-muted-foreground"
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span className="truncate">{f.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </section>
 
       {/* PNG sizes */}
       <section className="tp-card p-5">
         <header className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-sm font-semibold">PNG / WebP sizes</h3>
+            <h3 className="text-sm font-semibold">PNG sizes</h3>
             <p className="text-[11px] text-muted-foreground">
-              Pick the raster sizes to render per icon.
+              Raster sizes rendered per icon — each carries the styled wrapper.
             </p>
           </div>
           <Badge variant="outline">{sizes.size} sizes</Badge>
@@ -237,25 +539,20 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
         <header className="mb-3">
           <h3 className="text-sm font-semibold">Bundle tree preview</h3>
           <p className="text-[11px] text-muted-foreground">
-            Files generated under <span className="font-mono">icon-system-{(organizationName || 'org').toLowerCase().replace(/\s+/g, '-')}.zip</span>
+            Files generated under{' '}
+            <span className="font-mono">
+              icon-system-{slugify(organizationName || 'org')}-{slugify(activeStyle.id)}.zip
+            </span>
           </p>
         </header>
         <pre className="text-[11px] leading-relaxed bg-secondary/30 rounded-md p-3 overflow-x-auto font-mono text-muted-foreground">
 {`icon-system/
-├── brand/
-│   ├── tokens.json
-│   └── manifest.json
-├── svg/
-│   ├── core/...
-│   └── packs/...
-├── png/
-${Array.from(sizes).sort((a, b) => a - b).map((s) => `│   ├── ${s}/`).join('\n')}
-├── react/
-│   └── index.tsx
-├── figma/
-│   └── icons.svg
-└── docs/
-    └── contact-sheet.pdf`}
+├── manifest.json          // style recipe + accent + scope metadata
+├── README.html            // human-readable contact sheet
+├── svg/                   // styled SVGs (look & feel baked in)
+│   └── <set>/<icon>.svg
+${formats.find((f) => f.id === 'svg-opt')?.enabled ? '├── svg-raw/               // glyph-only source paths\n' : ''}└── png/                   // styled PNGs per size
+${Array.from(sizes).sort((a, b) => a - b).map((s) => `    ├── ${s}/<set>/<icon>.png`).join('\n')}`}
         </pre>
       </section>
     </div>
