@@ -5,6 +5,8 @@
  */
 
 import { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   ShieldCheck, Check, AlertTriangle, Eye, RefreshCw,
   CheckCircle2, XCircle, Grid3x3, Wand2,
@@ -18,6 +20,7 @@ import type { IconLibrary } from '@/hooks/useIconLibraries';
 interface Props {
   libraries: IconLibrary[];
   totalIcons: number;
+  organizationId?: string;
   onStartGenerate?: () => void;
 }
 
