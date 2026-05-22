@@ -441,6 +441,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="icon-studio"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <IconStudioPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="*"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
