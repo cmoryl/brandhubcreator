@@ -451,9 +451,17 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
           {formats.map((f) => {
             const Icon = f.icon;
             return (
-              <button
+              <div
                 key={f.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => toggleFormat(f.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleFormat(f.id);
+                  }
+                }}
                 className={cn(
                   'flex items-start gap-3 rounded-lg border p-3 text-left transition-colors',
                   f.enabled
@@ -476,7 +484,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
                   </div>
                   <div className="text-[11px] text-muted-foreground">{f.description}</div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
