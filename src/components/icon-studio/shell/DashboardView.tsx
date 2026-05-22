@@ -325,7 +325,7 @@ export const DashboardView = ({
               Profiles influence generation, QA, and export defaults.
             </p>
           </div>
-          <Button variant="outline" size="sm" className="gap-1.5">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onNavigate?.('brands')}>
             <Plus className="h-3.5 w-3.5" />
             New brand
           </Button>
