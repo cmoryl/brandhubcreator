@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { IconSetPreview } from './IconSetPreview';
+import { LibraryIconPreview } from './LibraryIconPreview';
 import { StatusChip } from './StatusChip';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
