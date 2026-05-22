@@ -185,6 +185,7 @@ function slugify(name: string): string {
 
 export const BrandsView = ({ organizationName, organizationId, brandProfiles = [] }: Props) => {
   const [q, setQ] = useState('');
+  const navigate = useNavigate();
   const { libraries } = useIconLibraries(organizationId);
   const { getLinkedLibraryIdsForEntity } = useIconLibraryBrandLinks(organizationId);
 
