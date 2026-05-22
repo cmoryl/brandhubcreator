@@ -117,6 +117,13 @@ export const IconSetsView = ({
     toast.info(`Compare versions of "${lib.name}" coming up.`);
   };
 
+  const handleDelete = (lib: IconLibrary) => {
+    if (typeof window !== 'undefined' && !window.confirm(`Delete icon set "${lib.name}"? This cannot be undone.`)) {
+      return;
+    }
+    deleteLibrary.mutate(lib.id);
+  };
+
   const levelLabelFor = (lib: IconLibrary) => LEVEL_META[lib.level as LevelKey]?.label ?? lib.level;
   const accentFor = (lib: IconLibrary) =>
     `hsl(var(${LEVEL_META[lib.level as LevelKey]?.token ?? '--tp-digital-blue'}))`;
