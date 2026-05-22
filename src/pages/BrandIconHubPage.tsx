@@ -21,7 +21,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   ArrowLeft, Building2, Library, Palette, Package, ShieldCheck,
   Wand2, Plus, Link as LinkIcon, Unlink, ExternalLink, Settings,
-  Search, ArrowRight,
+  Search, ArrowRight, FileDown, Loader2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import DOMPurify from 'dompurify';
