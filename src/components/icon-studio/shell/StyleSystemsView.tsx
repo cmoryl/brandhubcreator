@@ -90,6 +90,11 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
               className="h-9 max-w-xs"
             />
             <Badge variant="outline">{filtered.length} styles</Badge>
+            {hidden.size > 0 && (
+              <Button variant="ghost" size="sm" className="h-7 text-[11px]" onClick={clear}>
+                Restore {hidden.size} hidden
+              </Button>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {filtered.map((s, i) => {
