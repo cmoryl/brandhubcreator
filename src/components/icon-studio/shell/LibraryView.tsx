@@ -3,7 +3,7 @@
  * (set) in the organization. Real data from useIconLibraries.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, Plus, Lock, MoreHorizontal, Library as LibraryIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { IconSetPreview } from './IconSetPreview';
+import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { StatusChip } from './StatusChip';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
 
@@ -22,6 +23,9 @@ interface Props {
   libraries: IconLibrary[];
   onOpenSet?: (lib: IconLibrary) => void;
   onCreate?: () => void;
+  /** When set, scroll-to-and-highlight this library card and auto-open it once. */
+  autoOpenLibraryId?: string | null;
+  onAutoOpenConsumed?: () => void;
 }
 
 const LEVEL_LABEL: Record<IconLibrary['level'], { label: string; token: string }> = {
@@ -41,9 +45,20 @@ const sampleEmojisFor = (name: string): string[] => {
   return ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
 };
 
-export const LibraryView = ({ libraries, onOpenSet, onCreate }: Props) => {
+export const LibraryView = ({ libraries, onOpenSet, onCreate, autoOpenLibraryId, onAutoOpenConsumed }: Props) => {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
+  const [openLib, setOpenLib] = useState<IconLibrary | null>(null);
+
+  // Auto-open from deep link
+  useEffect(() => {
+    if (!autoOpenLibraryId) return;
+    const match = libraries.find((l) => l.id === autoOpenLibraryId);
+    if (match) {
+      setOpenLib(match);
+      onAutoOpenConsumed?.();
+    }
+  }, [autoOpenLibraryId, libraries, onAutoOpenConsumed]);
 
   const filtered = useMemo(() => {
     return libraries.filter((l) => {
@@ -152,7 +167,7 @@ export const LibraryView = ({ libraries, onOpenSet, onCreate }: Props) => {
             return (
               <button
                 key={lib.id}
-                onClick={() => onOpenSet?.(lib)}
+                onClick={() => { setOpenLib(lib); onOpenSet?.(lib); }}
                 className="tp-card tp-card-interactive group p-5 text-left transition-all"
                 style={{
                   backgroundImage: `linear-gradient(135deg, hsl(var(${level.token}) / 0.08), transparent 60%)`,
@@ -211,6 +226,13 @@ export const LibraryView = ({ libraries, onOpenSet, onCreate }: Props) => {
           })}
         </div>
       )}
+
+      <IconSetDetailDialog
+        library={openLib}
+        accent={openLib ? `hsl(var(${LEVEL_LABEL[openLib.level].token}))` : 'hsl(var(--tp-digital-blue))'}
+        levelLabel={openLib ? LEVEL_LABEL[openLib.level].label : ''}
+        onClose={() => setOpenLib(null)}
+      />
     </div>
   );
 };
