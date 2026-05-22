@@ -102,13 +102,39 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     links,
     linkLibraryToBrand,
     unlinkLibraryFromBrand,
-    getLinkedLibraryIds,
+    linkLibraryToEntity,
+    unlinkLibraryFromEntity,
+    getLinkedLibraryIdsForEntity,
   } = useIconLibraryBrandLinks(organizationId);
 
-  const linkedIds = useMemo(
-    () => (brand?.id ? new Set(getLinkedLibraryIds(brand.id)) : new Set<string>()),
-    [brand?.id, links],
+  // Explicit links from the join table (entity-type aware: brand/product/event)
+  const explicitLinkedIds = useMemo(
+    () => (brand?.id ? new Set(getLinkedLibraryIdsForEntity(brand.id, entityType)) : new Set<string>()),
+    [brand?.id, entityType, links],
   );
+
+  // Implicit inheritance: every entity inherits "core" org-wide collections,
+  // plus any brand/product_line collection whose name matches the entity name.
+  const normalize = (s: string) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const entityKey = normalize(brand?.name || '');
+  const implicitLinkedIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const lib of libraries) {
+      if (lib.level === 'core') { set.add(lib.id); continue; }
+      const libKey = normalize(lib.name);
+      if (!libKey || !entityKey) continue;
+      if (libKey === entityKey || libKey.includes(entityKey) || entityKey.includes(libKey)) {
+        set.add(lib.id);
+      }
+    }
+    return set;
+  }, [libraries, entityKey]);
+
+  const linkedIds = useMemo(() => {
+    const merged = new Set<string>(implicitLinkedIds);
+    explicitLinkedIds.forEach((id) => merged.add(id));
+    return merged;
+  }, [implicitLinkedIds, explicitLinkedIds]);
 
   const linkedLibraries = useMemo(
     () => libraries.filter((l) => linkedIds.has(l.id)),
@@ -472,17 +498,23 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                             Open
                             <ArrowRight className="h-3 w-3" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
-                            onClick={() =>
-                              unlinkLibraryFromBrand.mutate({ libraryId: lib.id, brandId: brand.id })
-                            }
-                          >
-                            <Unlink className="h-3 w-3" />
-                            Unlink
-                          </Button>
+                          {explicitLinkedIds.has(lib.id) ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
+                              onClick={() =>
+                                unlinkLibraryFromEntity.mutate({ libraryId: lib.id, entityId: brand.id, entityType })
+                              }
+                            >
+                              <Unlink className="h-3 w-3" />
+                              Unlink
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] h-6">
+                              {lib.level === 'core' ? 'Inherited · org-wide' : 'Inherited · name match'}
+                            </Badge>
+                          )}
                         </div>
                       </article>
                     ))}
@@ -520,7 +552,7 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                           variant="outline"
                           className="gap-1.5 h-8"
                           onClick={() =>
-                            linkLibraryToBrand.mutate({ libraryId: lib.id, brandId: brand.id })
+                            linkLibraryToEntity.mutate({ libraryId: lib.id, entityId: brand.id, entityType })
                           }
                         >
                           <LinkIcon className="h-3.5 w-3.5" />
