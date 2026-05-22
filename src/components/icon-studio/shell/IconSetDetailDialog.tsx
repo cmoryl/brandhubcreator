@@ -146,10 +146,6 @@ export const IconSetDetailDialog = ({
                     <Lock className="h-3.5 w-3.5" />
                     {library.is_active ? 'Lock' : 'Unlock'}
                   </Button>
-                  <Button size="sm" variant="outline" className="gap-1.5" onClick={onLockToggle}>
-                    <Lock className="h-3.5 w-3.5" />
-                    {library.is_active ? 'Lock' : 'Unlock'}
-                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
