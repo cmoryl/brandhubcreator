@@ -280,6 +280,7 @@ const IconStudioPage = () => {
           totalIcons={totalIcons}
           totalLibraries={libraries.length}
           onStartGenerate={() => setShellSection('generate')}
+          onNavigate={(section) => setShellSection(section)}
           brandProfiles={hierarchyBrands
             .filter((b) => b.type === 'brand')
             .map((b) => ({ id: b.id, name: b.name, slug: b.slug }))}

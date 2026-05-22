@@ -44,6 +44,8 @@ interface Props {
   /** Total saved libraries */
   totalLibraries: number;
   onStartGenerate: () => void;
+  /** Navigate to another shell section (library, sets, export, brands, qa, styles). */
+  onNavigate?: (section: 'library' | 'sets' | 'export' | 'brands' | 'qa' | 'styles' | 'generate') => void;
   /** Real brand profiles loaded from the org. */
   brandProfiles?: BrandProfile[];
 }
@@ -54,38 +56,47 @@ const MetricCard = ({
   delta,
   icon: Icon,
   accentToken,
+  onClick,
 }: {
   label: string;
   value: string | number;
   delta?: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   accentToken: string;
-}) => (
-  <div className="tp-card tp-card-interactive p-5">
-    <div className="flex items-start justify-between">
-      <div
-        className="flex h-10 w-10 items-center justify-center rounded-lg"
-        style={{
-          background: `hsl(${accentToken} / 0.12)`,
-          color: `hsl(${accentToken})`,
-        }}
-      >
-        <Icon className="h-5 w-5" />
-      </div>
-      {delta && (
-        <span
-          className="flex items-center gap-1 text-[11px] font-medium"
-          style={{ color: 'hsl(var(--tp-green))' }}
+  onClick?: () => void;
+}) => {
+  const Comp: any = onClick ? 'button' : 'div';
+  return (
+    <Comp
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
+      className={`tp-card tp-card-interactive p-5 text-left w-full ${onClick ? 'cursor-pointer hover:border-primary/40' : ''}`}
+    >
+      <div className="flex items-start justify-between">
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-lg"
+          style={{
+            background: `hsl(${accentToken} / 0.12)`,
+            color: `hsl(${accentToken})`,
+          }}
         >
-          <TrendingUp className="h-3 w-3" />
-          {delta}
-        </span>
-      )}
-    </div>
-    <div className="mt-4 text-2xl font-semibold tabular-nums tracking-tight">{value}</div>
-    <div className="mt-1 text-xs text-muted-foreground">{label}</div>
-  </div>
-);
+          <Icon className="h-5 w-5" />
+        </div>
+        {delta && (
+          <span
+            className="flex items-center gap-1 text-[11px] font-medium"
+            style={{ color: 'hsl(var(--tp-green))' }}
+          >
+            <TrendingUp className="h-3 w-3" />
+            {delta}
+          </span>
+        )}
+      </div>
+      <div className="mt-4 text-2xl font-semibold tabular-nums tracking-tight">{value}</div>
+      <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+    </Comp>
+  );
+};
 
 const ActivityRow = ({
   title,
@@ -93,22 +104,30 @@ const ActivityRow = ({
   status,
   emojis,
   accent,
+  onClick,
 }: {
   title: string;
   meta: string;
   status: SectionStatus;
   emojis: string[];
   accent: string;
+  onClick?: () => void;
 }) => (
-  <li className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-secondary/40">
-    <div className="flex items-center gap-3 min-w-0 flex-1">
-      <IconSetPreview emojis={emojis} accent={accent} size="sm" count={4} variant="glass" className="!grid-cols-4 flex-shrink-0" />
-      <div className="min-w-0">
-        <div className="text-sm font-medium truncate">{title}</div>
-        <div className="text-[11px] text-muted-foreground truncate">{meta}</div>
+  <li>
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary/40"
+    >
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <IconSetPreview emojis={emojis} accent={accent} size="sm" count={4} variant="glass" className="!grid-cols-4 flex-shrink-0" />
+        <div className="min-w-0">
+          <div className="text-sm font-medium truncate">{title}</div>
+          <div className="text-[11px] text-muted-foreground truncate">{meta}</div>
+        </div>
       </div>
-    </div>
-    <StatusChip status={status} />
+      <StatusChip status={status} />
+    </button>
   </li>
 );
 
@@ -154,6 +173,7 @@ export const DashboardView = ({
   totalIcons,
   totalLibraries,
   onStartGenerate,
+  onNavigate,
   brandProfiles = [],
 }: Props) => {
   const volumeData = [4, 8, 12, 9, 14, 22, 18, 26, 24, 31, 28, 38, 42, 36];
@@ -186,7 +206,7 @@ export const DashboardView = ({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5">
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onNavigate?.('library')}>
               <Folder className="h-4 w-4" />
               Open library
             </Button>
@@ -203,10 +223,10 @@ export const DashboardView = ({
 
       {/* Metric tiles */}
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <MetricCard label="Total icons" value={totalIcons} delta="+12%" icon={Sparkles} accentToken="var(--tp-light-blue)" />
-        <MetricCard label="Active drafts" value={Math.max(0, totalLibraries - 1)} icon={Clock} accentToken="var(--tp-orange)" />
-        <MetricCard label="Approved sets" value={totalLibraries} delta="+3" icon={CheckCircle2} accentToken="var(--tp-green)" />
-        <MetricCard label="Needs review" value={2} icon={Eye} accentToken="var(--tp-purple)" />
+        <MetricCard label="Total icons" value={totalIcons} delta="+12%" icon={Sparkles} accentToken="var(--tp-light-blue)" onClick={() => onNavigate?.('library')} />
+        <MetricCard label="Active drafts" value={Math.max(0, totalLibraries - 1)} icon={Clock} accentToken="var(--tp-orange)" onClick={() => onNavigate?.('sets')} />
+        <MetricCard label="Approved sets" value={totalLibraries} delta="+3" icon={CheckCircle2} accentToken="var(--tp-green)" onClick={() => onNavigate?.('sets')} />
+        <MetricCard label="Needs review" value={2} icon={Eye} accentToken="var(--tp-purple)" onClick={() => onNavigate?.('qa')} />
       </section>
 
       {/* Two-up: volume + QA gauge */}
@@ -248,23 +268,23 @@ export const DashboardView = ({
         <div className="tp-card p-5">
           <header className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Recent icon systems</h3>
-            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs">
+            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => onNavigate?.('sets')}>
               View all <ArrowUpRight className="h-3 w-3" />
             </Button>
           </header>
           <ul className="space-y-1">
-            <ActivityRow title="GlobalLink platform icons" meta="Tech / SaaS · 84 icons" status="approved" emojis={['🔗','⚙️','🌍','📡','🧩']} accent="hsl(var(--tp-digital-blue))" />
-            <ActivityRow title="Life Sciences regulatory pack" meta="Life Sciences · 32 icons" status="review" emojis={['🧪','🧬','🔬','💉','📋']} accent="hsl(var(--tp-green))" />
-            <ActivityRow title="Travel loyalty refresh" meta="Travel · 48 icons" status="generating" emojis={['✈️','🏨','🎫','⭐','🗺️']} accent="hsl(var(--tp-light-blue))" />
-            <ActivityRow title="TransPerfect AI Solutions" meta="Brand · 22 icons" status="approved" emojis={['✨','🧠','🤖','⚡','🪄']} accent="hsl(var(--tp-pink))" />
-            <ActivityRow title="Healthcare patient flow" meta="Healthcare · 18 icons" status="queued" emojis={['🩺','💊','📋','🏥','❤️']} accent="hsl(var(--tp-teal))" />
+            <ActivityRow title="GlobalLink platform icons" meta="Tech / SaaS · 84 icons" status="approved" emojis={['🔗','⚙️','🌍','📡','🧩']} accent="hsl(var(--tp-digital-blue))" onClick={() => onNavigate?.('sets')} />
+            <ActivityRow title="Life Sciences regulatory pack" meta="Life Sciences · 32 icons" status="review" emojis={['🧪','🧬','🔬','💉','📋']} accent="hsl(var(--tp-green))" onClick={() => onNavigate?.('qa')} />
+            <ActivityRow title="Travel loyalty refresh" meta="Travel · 48 icons" status="generating" emojis={['✈️','🏨','🎫','⭐','🗺️']} accent="hsl(var(--tp-light-blue))" onClick={() => onNavigate?.('generate')} />
+            <ActivityRow title="TransPerfect AI Solutions" meta="Brand · 22 icons" status="approved" emojis={['✨','🧠','🤖','⚡','🪄']} accent="hsl(var(--tp-pink))" onClick={() => onNavigate?.('sets')} />
+            <ActivityRow title="Healthcare patient flow" meta="Healthcare · 18 icons" status="queued" emojis={['🩺','💊','📋','🏥','❤️']} accent="hsl(var(--tp-teal))" onClick={() => onNavigate?.('generate')} />
           </ul>
         </div>
 
         <div className="tp-card p-5">
           <header className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Export history</h3>
-            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs">
+            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => onNavigate?.('export')}>
               Open center <ArrowUpRight className="h-3 w-3" />
             </Button>
           </header>
@@ -275,18 +295,21 @@ export const DashboardView = ({
               { name: 'travel-loyalty.zip', when: '3d ago', size: '2.1 MB' },
               { name: 'tp-ai-solutions.zip', when: '1w ago', size: '1.2 MB' },
             ].map((row) => (
-              <li
-                key={row.name}
-                className="flex items-center justify-between py-2.5 text-sm"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <Download className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">{row.name}</span>
-                </div>
-                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                  <span>{row.size}</span>
-                  <span>{row.when}</span>
-                </div>
+              <li key={row.name}>
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.('export')}
+                  className="flex w-full items-center justify-between py-2.5 text-sm text-left rounded-md px-2 -mx-2 hover:bg-secondary/60 transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Download className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <span className="truncate">{row.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                    <span>{row.size}</span>
+                    <span>{row.when}</span>
+                  </div>
+                </button>
               </li>
             ))}
           </ul>
@@ -302,7 +325,7 @@ export const DashboardView = ({
               Profiles influence generation, QA, and export defaults.
             </p>
           </div>
-          <Button variant="outline" size="sm" className="gap-1.5">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onNavigate?.('brands')}>
             <Plus className="h-3.5 w-3.5" />
             New brand
           </Button>
