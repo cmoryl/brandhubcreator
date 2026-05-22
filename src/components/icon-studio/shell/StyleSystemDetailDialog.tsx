@@ -55,7 +55,7 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0 bg-transparent border-0 shadow-none">
+      <DialogContent className="icon-studio-tp max-w-5xl max-h-[90vh] overflow-y-auto p-0 bg-transparent border-0 shadow-none" data-theme={previewTheme}>
         <div className={cn('bg-background text-foreground rounded-lg overflow-hidden border border-border', previewTheme === 'dark' && 'dark')}>
 
           {style && (
