@@ -120,6 +120,27 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                     />
                   )}
                   <Maximize2 className="absolute top-3 right-9 h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Hide ${s.name}`}
+                    title="Hide from gallery"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      hide(s.id);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        hide(s.id);
+                      }
+                    }}
+                    className="absolute top-2 left-2 inline-flex h-6 w-6 items-center justify-center rounded-md border border-border/60 bg-background/70 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive hover:border-destructive/50 cursor-pointer"
+                  >
+                    <X className="h-3 w-3" />
+                  </span>
                   <h3 className="text-sm font-semibold">{s.name}</h3>
                   <p className="text-[11px] text-muted-foreground mb-3 min-h-[2rem]">
                     {s.description}
