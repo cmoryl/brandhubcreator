@@ -247,6 +247,7 @@ const IconStudioPage = () => {
       activeBrand={activeBrand}
       onBrandChange={setActiveBrand}
       onBack={() => navigate(-1)}
+      onSaveToLibrary={() => setShellSection('library')}
       rightRail={
         shellSection === 'generate' ? (
           <ProductionSummary
@@ -346,10 +347,63 @@ const IconStudioPage = () => {
               />
             )}
             {activeTab === 'style' && (
-              <IconStudioColorizer
-                brandColors={brandColors}
+              <div className="space-y-4">
+                <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg w-fit">
+                  <Button
+                    variant={styleSubView === 'colorize' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="gap-1.5 text-xs h-8"
+                    onClick={() => setStyleSubView('colorize')}
+                  >
+                    <Palette className="h-3.5 w-3.5" />
+                    Colorize
+                  </Button>
+                  <Button
+                    variant={styleSubView === 'hierarchy' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="gap-1.5 text-xs h-8"
+                    onClick={() => setStyleSubView('hierarchy')}
+                  >
+                    Brand Rules
+                  </Button>
+                  <Button
+                    variant={styleSubView === 'app-icons' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="gap-1.5 text-xs h-8"
+                    onClick={() => setStyleSubView('app-icons')}
+                  >
+                    <Smartphone className="h-3.5 w-3.5" />
+                    App Icons
+                  </Button>
+                </div>
+                {styleSubView === 'colorize' && (
+                  <IconStudioColorizer
+                    brandColors={brandColors}
+                    libraries={libraries}
+                    onSaveIcons={handleSaveIcons}
+                  />
+                )}
+                {styleSubView === 'hierarchy' && (
+                  <IconBrandHierarchy
+                    organizationId={organizationId}
+                    organizationName={organizationName}
+                    brands={hierarchyBrands}
+                    brandColors={brandColors}
+                    icons={libraries.flatMap((l) => l.icons)}
+                    onExportCSS={(css) => navigator.clipboard.writeText(css)}
+                  />
+                )}
+                {styleSubView === 'app-icons' && (
+                  <IconStudioAppIcons brandColors={brandColors} />
+                )}
+              </div>
+            )}
+            {activeTab === 'custom-set' && (
+              <CustomSetBuilder
                 libraries={libraries}
-                onSaveIcons={handleSaveIcons}
+                brandColors={brandColors}
+                organizationName={organizationName}
+                onSaveAsLibrary={handleSaveSetAsLibrary}
               />
             )}
             {activeTab === 'export' && (
