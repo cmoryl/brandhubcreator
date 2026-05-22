@@ -471,8 +471,8 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
               >
                 <Checkbox
                   checked={f.enabled}
-                  className="mt-0.5"
-                  onCheckedChange={() => toggleFormat(f.id)}
+                  className="mt-0.5 pointer-events-none"
+                  aria-hidden="true"
                 />
                 <Icon className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                 <div className="min-w-0 flex-1">
