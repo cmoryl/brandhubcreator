@@ -32,6 +32,7 @@ import { useIconLibraries } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
 import { useSEO } from '@/hooks/useSEO';
 import { IconSetPreview } from '@/components/icon-studio/shell/IconSetPreview';
+import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 import '@/components/icon-studio/shell/tpTokens.css';
 import { toast } from 'sonner';
 import { buildBrandIconPdf } from '@/lib/iconStudio/brandIconPdf';
@@ -517,13 +518,27 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                               </Badge>
                             </div>
                           </div>
-                          <IconSetPreview
-                            emojis={SAMPLE_FOR(lib.name)}
-                            accent="hsl(var(--tp-digital-blue))"
-                            size="sm"
-                            count={6}
-                            variant="glass"
-                          />
+                          {lib.icons.length > 0 ? (
+                            <div className="grid grid-cols-6 gap-1.5">
+                              {lib.icons.slice(0, 6).map((ic) => (
+                                <div
+                                  key={ic.id}
+                                  className="aspect-square rounded-md border border-border/50 bg-background/40 flex items-center justify-center text-foreground"
+                                  title={ic.name}
+                                >
+                                  <IconSvgRender icon={ic} size={20} />
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <IconSetPreview
+                              emojis={SAMPLE_FOR(lib.name)}
+                              accent="hsl(var(--tp-digital-blue))"
+                              size="sm"
+                              count={6}
+                              variant="glass"
+                            />
+                          )}
                           <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between gap-2">
                             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                               Open <ArrowRight className="h-3 w-3" />
