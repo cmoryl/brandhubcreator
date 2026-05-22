@@ -3,7 +3,8 @@
  * expanded icon examples across multiple categories, sizes, and color modes.
  */
 
-import { Wand2, Sparkles, Grid3x3, Ruler, Layers } from 'lucide-react';
+import { useState } from 'react';
+import { Wand2, Sparkles, Grid3x3, Ruler, Layers, Sun, Moon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -42,28 +43,58 @@ const SIZE_LADDER: { label: string; size: 'sm' | 'md' | 'lg' }[] = [
 export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Props) => {
   const open = !!style;
   const a2 = style?.preview.accent2 ? `hsl(var(--${style.preview.accent2}))` : undefined;
-  // Inherit current studio theme so tokens resolve inside the portaled Dialog.
-  const theme =
-    (typeof document !== 'undefined' &&
-      document.querySelector('.icon-studio-tp')?.getAttribute('data-theme')) ||
-    'light';
+  const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0 icon-studio-tp" data-theme={theme}>
-        {style && (
-          <>
-            {/* Hero header with showcase preview */}
-            <div
-              className="relative overflow-hidden p-8 border-b border-border/60"
-              style={{
-                background: `radial-gradient(80% 100% at 0% 0%, color-mix(in oklab, ${accent} 22%, transparent), transparent 70%), radial-gradient(60% 100% at 100% 100%, color-mix(in oklab, ${a2 ?? accent} 18%, transparent), transparent 70%)`,
-              }}
-            >
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+        <div className={previewTheme === 'dark' ? 'dark' : ''}>
+          {style && (
+            <>
+              {/* Hero header with showcase preview */}
+              <div
+                className="relative overflow-hidden p-8 border-b border-border/60 bg-background text-foreground"
+                style={{
+                  background: `radial-gradient(80% 100% at 0% 0%, color-mix(in oklab, ${accent} 22%, transparent), transparent 70%), radial-gradient(60% 100% at 100% 100%, color-mix(in oklab, ${a2 ?? accent} 18%, transparent), transparent 70%)`,
+                }}
+              >
               <DialogHeader className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>Style system · {style.preview.variant}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Style system · {style.preview.variant}</span>
+                  </div>
+                  {/* Dark / Light toggle */}
+                  <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-background/60 backdrop-blur-sm p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewTheme('light')}
+                      className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                        previewTheme === 'light'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      title="Light preview"
+                      aria-label="Switch to light preview"
+                    >
+                      <Sun className="h-3 w-3" />
+                      Light
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewTheme('dark')}
+                      className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                        previewTheme === 'dark'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      title="Dark preview"
+                      aria-label="Switch to dark preview"
+                    >
+                      <Moon className="h-3 w-3" />
+                      Dark
+                    </button>
+                  </div>
                 </div>
                 <DialogTitle className="text-3xl font-semibold tracking-tight">
                   {style.name}
@@ -242,6 +273,7 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
             </div>
           </>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );
