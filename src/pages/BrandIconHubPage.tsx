@@ -187,9 +187,9 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     return (
       <div className="icon-studio-tp min-h-screen" style={{ background: 'hsl(var(--tp-surface-0))' }}>
         <div className="max-w-2xl mx-auto py-20 px-6 text-center space-y-4">
-          <h1 className="text-2xl font-semibold">Brand not found</h1>
+          <h1 className="text-2xl font-semibold">{entityType.charAt(0).toUpperCase() + entityType.slice(1)} not found</h1>
           <p className="text-muted-foreground">
-            We couldn't find a brand with the slug “{slug}” in this workspace.
+            We couldn't find a {entityType} with the slug “{slug}” in this workspace.
           </p>
           <Button onClick={() => navigate('/icon-studio')} variant="outline" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
