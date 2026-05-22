@@ -59,9 +59,42 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
                 }}
               >
               <DialogHeader className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>Style system · {style.preview.variant}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Style system · {style.preview.variant}</span>
+                  </div>
+                  {/* Dark / Light toggle */}
+                  <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-background/60 backdrop-blur-sm p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewTheme('light')}
+                      className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                        previewTheme === 'light'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      title="Light preview"
+                      aria-label="Switch to light preview"
+                    >
+                      <Sun className="h-3 w-3" />
+                      Light
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewTheme('dark')}
+                      className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                        previewTheme === 'dark'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      title="Dark preview"
+                      aria-label="Switch to dark preview"
+                    >
+                      <Moon className="h-3 w-3" />
+                      Dark
+                    </button>
+                  </div>
                 </div>
                 <DialogTitle className="text-3xl font-semibold tracking-tight">
                   {style.name}
