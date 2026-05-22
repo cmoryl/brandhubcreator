@@ -247,6 +247,7 @@ const IconStudioPage = () => {
       activeBrand={activeBrand}
       onBrandChange={setActiveBrand}
       onBack={() => navigate(-1)}
+      onSaveToLibrary={() => setShellSection('library')}
       rightRail={
         shellSection === 'generate' ? (
           <ProductionSummary
