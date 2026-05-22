@@ -97,6 +97,30 @@ const IconStudioPage = () => {
   >('colorize');
   const [shellSection, setShellSection] = useState<ShellSection>('dashboard');
   const [activeBrand, setActiveBrand] = useState<ShellBrand | undefined>(undefined);
+  const [deepLinkLibraryId, setDeepLinkLibraryId] = useState<string | null>(null);
+
+  // Honor deep-links like /icon-studio?section=library&library=<id>
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const section = searchParams.get('section') as ShellSection | null;
+    const library = searchParams.get('library');
+    const validSections: ShellSection[] = ['dashboard','library','brands','styles','sets','qa','export','generate'];
+    if (section && validSections.includes(section)) {
+      setShellSection(section);
+    }
+    if (library) {
+      setDeepLinkLibraryId(library);
+      if (!section) setShellSection('library');
+    }
+    if (section || library) {
+      // Clean URL once consumed so subsequent in-app nav isn't sticky
+      const next = new URLSearchParams(searchParams);
+      next.delete('section');
+      next.delete('library');
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const shellBrands: ShellBrand[] = useMemo(
     () => (organization ? [{ id: organization.id, name: organization.name }] : []),
     [organization],
