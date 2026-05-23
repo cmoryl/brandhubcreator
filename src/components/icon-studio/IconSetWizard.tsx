@@ -230,7 +230,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
         setBusy(false);
       }
     },
-    [industry, companyName, style, upsertSection],
+    [industry, companyName, style, entityId, entityType, upsertSection],
   );
 
   const generateCore = useCallback(async () => {
