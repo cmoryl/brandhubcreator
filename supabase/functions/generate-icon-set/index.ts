@@ -504,3 +504,86 @@ function sanitizeAndValidate(
 
   return { ok: true, svg };
 }
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Brand DNA loader — pulls archetype, services, values, tone, mission, etc.  */
+/* directly from the entity's guide_data so the AI can design brand-specific  */
+/* icons instead of generic taxonomy fill.                                    */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+interface BrandDNA {
+  archetype?: string;
+  mission?: string;
+  tagline?: string;
+  toneOfVoice?: string[];
+  values?: string[];
+  services?: string[];
+  primaryColor?: string;
+  industry?: string;
+}
+
+async function loadBrandDNA(entityId?: string, entityType?: string): Promise<BrandDNA | null> {
+  if (!entityId || !entityType) return null;
+  const table = entityType === "brand" ? "brands" : entityType === "product" ? "products" : entityType === "event" ? "events" : null;
+  if (!table) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_entity_text_context`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ p_table: table, p_id: entityId }),
+    });
+    if (!res.ok) return null;
+    const ctx = await res.json();
+    if (!ctx) return null;
+    const toArr = (v: unknown): string[] => {
+      if (!v) return [];
+      if (Array.isArray(v)) return v.map((x) => (typeof x === "string" ? x : String(x ?? ""))).filter(Boolean);
+      return [];
+    };
+    const primaryColorObj = Array.isArray(ctx.colors)
+      ? (ctx.colors.find((c: any) => (c?.role || "").toLowerCase() === "primary") ?? ctx.colors[0])
+      : null;
+    return {
+      archetype: ctx.archetype || undefined,
+      mission: ctx.mission || undefined,
+      tagline: ctx.primary_tagline || ctx.hero_tagline || undefined,
+      toneOfVoice: toArr(ctx.tone_of_voice).slice(0, 4),
+      values: toArr(ctx.values).slice(0, 5),
+      services: toArr(ctx.services).slice(0, 6),
+      primaryColor: primaryColorObj?.hex || undefined,
+      industry: ctx.industry || undefined,
+    };
+  } catch (err) {
+    console.warn("[generate-icon-set-worker] Brand DNA fetch failed:", err);
+    return null;
+  }
+}
+
+function buildBrandContextBlock(args: { entityName: string; industry?: string; brandDNA: BrandDNA | null }): string {
+  const { entityName, industry, brandDNA } = args;
+  const lines: string[] = ["## Brand DNA (design FOR this brand, not generic)"];
+  lines.push(`- Brand: "${entityName}"`);
+  const effIndustry = brandDNA?.industry || industry;
+  if (effIndustry) lines.push(`- Industry: ${effIndustry}`);
+  if (brandDNA?.archetype) lines.push(`- Archetype: ${brandDNA.archetype} → metaphor vocabulary should reflect this archetype's symbols`);
+  if (brandDNA?.mission) lines.push(`- Mission: ${truncate(brandDNA.mission, 220)}`);
+  if (brandDNA?.tagline) lines.push(`- Tagline: "${truncate(brandDNA.tagline, 140)}"`);
+  if (brandDNA?.toneOfVoice?.length) lines.push(`- Voice: ${brandDNA.toneOfVoice.join(", ")} — translate these adjectives into line quality, corner style, and gesture`);
+  if (brandDNA?.values?.length) lines.push(`- Values: ${brandDNA.values.join(", ")}`);
+  if (brandDNA?.services?.length) lines.push(`- Services / offerings: ${brandDNA.services.join("; ")}`);
+  if (brandDNA?.primaryColor) lines.push(`- Primary color (for context only — DO NOT bake into SVG): ${brandDNA.primaryColor}`);
+  if (lines.length === 1) {
+    // No DNA loaded — fall back to minimal context
+    lines.push(`- (No deep brand context available — design crisp, neutral icons that still feel premium.)`);
+  }
+  return lines.join("\n");
+}
+
+function truncate(s: string, n: number): string {
+  if (!s) return "";
+  return s.length > n ? s.slice(0, n - 1) + "…" : s;
+}
