@@ -281,8 +281,9 @@ These icons must be indistinguishable in quality from a hand-crafted Lucide rele
 
 ## Context
 - Section: ${currentSection.name} — ${currentSection.description}
-- Brand: "${entityName}"${industry ? ` | Industry: ${industry}` : ""}
 - Category: ${taxonomyCategory.name} — ${taxonomyCategory.description}
+
+${brandContextBlock}
 
 ## Mandatory Style (identical on EVERY icon)
 - Preset: "${preset}"
@@ -295,7 +296,9 @@ ${isFilled
 ## Design Direction
 - Reference: Lucide "${currentSection.name.toLowerCase()}", Tabler outline, Feather, Phosphor regular. Then EXCEED them.
 - Each icon must read clearly at 16px and remain a distinct silhouette at 12px.
-${industry ? `- Infuse ${industry} visual language with domain-specific metaphors, not generic stock.\n` : ""}- These should feel like premium icons designed specifically for "${entityName}".
+- Translate the brand DNA above into metaphor choices — e.g. if the brand archetype is "Sage", lean on tomes/lenses/compass motifs; if "Outlaw", lean on bolts/sparks/asymmetry. NEVER generic stock.
+- For Industry-Specific sections, draw 60%+ of metaphors from the brand's actual services/products listed above.
+- These should feel like premium icons designed specifically for "${entityName}", not interchangeable with another brand's set.
 
 ## Pre-Submission Checklist (verify EACH icon)
 ✓ Only <path> elements, max 2, prefer 1
@@ -303,6 +306,7 @@ ${industry ? `- Infuse ${industry} visual language with domain-specific metaphor
 ✓ No transforms, no inline colors, no ids/classes/styles
 ✓ Uniform visual weight across the batch
 ✓ Recognizable as a silhouette at 12×12
+✓ Reflects the brand DNA, not a generic icon-set
 ✓ Would be accepted into a Lucide pull request`;
 
     console.log(`[generate-icon-set-worker] Generating ${iconCount} icons via gemini-2.5-pro for ${category}/${currentSection.name}`);
