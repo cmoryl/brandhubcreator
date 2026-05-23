@@ -116,11 +116,14 @@ interface SectionState {
 
 interface Props {
   organizationName: string;
+  /** Optional entity context — when provided, generated icons are designed against the brand's archetype, services, values, and tone-of-voice. */
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
   /** Called when the user saves the resulting set(s) into a library. */
   onSaveAsLibrary?: (name: string, icons: BrandIconography[]) => void;
 }
 
-export const IconSetWizard = ({ organizationName, onSaveAsLibrary }: Props) => {
+export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAsLibrary }: Props) => {
   const [step, setStep] = useState<StepId>('industry');
   const [industry, setIndustry] = useState<IndustryPreset | null>(null);
   const [companyName, setCompanyName] = useState(organizationName || '');
