@@ -217,63 +217,59 @@ async function runWorker(jobId: string) {
     const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
     const currentSection = taxonomyCategory.sections[sectionIndex];
     const iconCount = customCount && customCount > 0 ? customCount : currentSection.count;
-    const strokeWidth = style?.strokeWidth || 2;
-    const cornerStyle = style?.cornerRadius || "rounded";
     const isFilled = style?.fill || preset === "filled";
+    // Minimal-line default: 1.5px stroke (Lucide/Tabler/Feather DNA) unless explicitly overridden.
+    const strokeWidth = style?.strokeWidth ?? (isFilled ? 0 : 1.5);
+    const cornerStyle = style?.cornerRadius || "rounded";
     const linecap = cornerStyle === "sharp" ? "square" : "round";
     const linejoin = cornerStyle === "sharp" ? "miter" : "round";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are the world's foremost SVG icon architect. Your icons ship in Apple, Google, and Airbnb design systems. Every icon you create is a masterpiece of geometric precision.
+    const systemPrompt = `You are the world's foremost SVG icon architect. Your work ships in Lucide, Tabler, Feather, Phosphor, Apple SF Symbols and Google Material Symbols. Every icon is a geometric masterpiece.
 
-## ABSOLUTE RULES — breaking ANY = entire batch rejected
+## NON-NEGOTIABLE RULES — any violation rejects the whole batch
 
 ### Canvas & Grid
-- Canvas: 24×24 viewBox. Safe zone: 2px inset (content within 2,2 → 22,22).
-- Keyline shapes (pick ONE per icon):
-  • Square: 18×18 centered at 12,12 → (3,3)→(21,21)
-  • Circle: ⌀20 centered at 12,12
-  • Portrait: 14w×20h | Landscape: 20w×14h centered
+- viewBox: "0 0 24 24". Safe zone: keep all content inside (2,2)→(22,22).
+- Optical center at 12,12. Pick ONE keyline per icon:
+  • Square 18×18 at (3,3)→(21,21)
+  • Circle Ø20 centered
+  • Portrait 14w×20h | Landscape 20w×14h
+- Snap to a 1px grid. Allowed coordinate fractions: .0 and .5 ONLY. NEVER 7.33, 15.8, 4.27.
 
-### Coordinate Mastery
-- ALL coordinates MUST be whole integers or exactly .5 (6, 12.5). NEVER 7.33 or 15.8.
-- Horizontal/vertical lines: integer-only coordinates.
+### SVG Purity (HARD)
+- ONLY <path> elements inside <svg>. NO <circle>, <rect>, <line>, <polygon>, <polyline>, <ellipse>, <g>, <use>, <defs>, <mask>, <clipPath>, <style>, <filter>.
+- Max 2 paths, strongly prefer 1.
+- Use arcs (A/a) for circular curves. Never approximate circles with cubic Bézier chains.
+- NO transform=, NO id=, NO class=, NO style=, NO data-*, NO inline fill/stroke colors (those come from the wrapper).
 
-### SVG Purity
-- ONLY <path> elements. NEVER <circle>, <rect>, <line>, <polygon>, <ellipse>, <g>, <use>, <defs>.
-- Convert ALL shapes to optimized path data. Circles → arcs (A command).
-- Maximum 2 <path> elements per icon. Strongly prefer 1 unified path.
-- Every path MUST close with Z.
-- No transforms, IDs, classes, style attributes, data-* attributes.
+### Stroke Style
+${isFilled
+  ? `- This batch is FILLED: solid shapes, no stroke. Each path: fill="currentColor".`
+  : `- This batch is OUTLINED: stroke-only, no fills. Lines feel like a ${strokeWidth}px pen by Lucide/Tabler/Feather.
+- The host wrapper applies: fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="${linecap}" stroke-linejoin="${linejoin}".
+- DO NOT bake fills, gradients, or duotone shading. Pure outlines only.
+- Stroke terminals and joins are UNIFORM across the entire batch.`}
 
-### Path Excellence
-- Remove ALL redundant points. Merge collinear segments.
-- Use arcs (A/a) for curves — never approximate circles with cubic Bézier chains.
-- Consistent winding: clockwise outer, counter-clockwise inner.
-- Minimum segment length: 1px.
+## MASTER CRAFT
 
-## MASTER-LEVEL CRAFT
+### Visual Weight
+- All icons must look the SAME WEIGHT when squinted at 16px. Simpler shapes get a bit more mass, complex shapes thin out.
+- Pass the 12px silhouette test: still recognizable, still distinct.
 
-### Visual Weight (Critical)
-- Every icon must have IDENTICAL perceived visual weight at 16px rendering.
-- Simple icons get slightly more mass; complex icons use thinner strokes.
-- All icons should resolve to the same gray value when squinted.
-
-### Iconic Distinctiveness
-- Each icon must pass the "12px silhouette test" — recognizable filled black at 12×12.
-- No two icons confusable as silhouettes.
-- Use negative space, meaningful cutouts, subtle asymmetry.
-- Capture ESSENCE, not literal objects. A "security" icon shouldn't just be a lock.
-- Names: specific + evocative ("Beacon Alert" not "Bell 1", "Cipher Key" not "Lock 2").
+### Distinctiveness
+- No two icons in a batch should be confusable in silhouette.
+- Capture ESSENCE, not literal objects.
+- Names: specific + evocative ("Beacon Alert" not "Bell 1").
 
 ### Geometric Perfection
-- Consistent corner treatment (ALL sharp OR ALL rounded, never mixed).
-- Uniform stroke terminals (ALL round OR ALL square, never mixed).
-- Balanced positive/negative space. Clear figure-ground separation.
-- Optical alignment over mathematical alignment where they differ.
-- These icons should be indistinguishable from Apple SF Symbols in quality.`;
+- Consistent corners across the batch (ALL sharp OR ALL rounded — never mixed).
+- Consistent terminals across the batch.
+- Optical alignment beats mathematical alignment.
+
+These icons must be indistinguishable in quality from a hand-crafted Lucide release.`;
 
     const userPrompt = `Design exactly ${iconCount} MASTER-QUALITY icons for the "${currentSection.name}" section.
 
@@ -281,31 +277,27 @@ async function runWorker(jobId: string) {
 - Section: ${currentSection.name} — ${currentSection.description}
 - Brand: "${entityName}"${industry ? ` | Industry: ${industry}` : ""}
 - Category: ${taxonomyCategory.name} — ${taxonomyCategory.description}
-- These icons ship in a Fortune-500 brand design system and must be FLAWLESS
 
 ## Mandatory Style (identical on EVERY icon)
 - Preset: "${preset}"
-- stroke-width: ${strokeWidth}
-- stroke-linecap: "${linecap}" | stroke-linejoin: "${linejoin}"
-- stroke: "${isFilled ? "none" : "currentColor"}" | fill: "${isFilled ? "currentColor" : "none"}"
-${cornerStyle === "sharp" ? "- SHARP corners — 0° and 90° joins, square terminals, zero rounding" : "- ROUNDED corners — smooth joins, round terminals, gentle curves"}
+- ${isFilled ? "FILLED" : `OUTLINED, stroke-width ${strokeWidth}`}, ${cornerStyle} corners
+- stroke-linecap "${linecap}" / stroke-linejoin "${linejoin}"
+${isFilled
+  ? `- Each path: fill="currentColor" stroke="none"`
+  : `- Each path: fill="none" stroke="currentColor" (wrapper enforces this — do NOT add color attributes yourself)`}
 
 ## Design Direction
-- Study Apple SF Symbols, Google Material Symbols, Phosphor, and Lucide "${currentSection.name.toLowerCase()}" icons. Then EXCEED that quality.
-- Each icon: conceptually distinct, immediately distinguishable at 12px as filled silhouettes.
-- Names: specific + evocative ("Beacon Alert" not "Notification 1", "Cipher Key" not "Security").
-${industry ? `- Infuse ${industry} visual language: domain-specific metaphors, not generic.` : ""}
-- These should feel like premium icons designed specifically for "${entityName}".
+- Reference: Lucide "${currentSection.name.toLowerCase()}", Tabler outline, Feather, Phosphor regular. Then EXCEED them.
+- Each icon must read clearly at 16px and remain a distinct silhouette at 12px.
+${industry ? `- Infuse ${industry} visual language with domain-specific metaphors, not generic stock.\n` : ""}- These should feel like premium icons designed specifically for "${entityName}".
 
-## Pre-Submission Checklist (verify EACH icon before submitting)
-✓ Recognizable as filled silhouette at 12×12px
-✓ ALL coordinates on whole integers or .5 — ZERO arbitrary decimals
-✓ Uniform visual weight across all siblings
-✓ Clean closed paths ending with Z
-✓ ≤2 <path> elements (prefer 1)
-✓ No primitives — paths only
-✓ No redundant points, micro-segments, or transform attributes
-✓ Would be accepted into Apple SF Symbols`;
+## Pre-Submission Checklist (verify EACH icon)
+✓ Only <path> elements, max 2, prefer 1
+✓ ALL coordinates are integers or .5 — ZERO arbitrary decimals
+✓ No transforms, no inline colors, no ids/classes/styles
+✓ Uniform visual weight across the batch
+✓ Recognizable as a silhouette at 12×12
+✓ Would be accepted into a Lucide pull request`;
 
     console.log(`[generate-icon-set-worker] Generating ${iconCount} icons via gemini-2.5-pro for ${category}/${currentSection.name}`);
 
@@ -390,22 +382,27 @@ ${industry ? `- Infuse ${industry} visual language: domain-specific metaphors, n
       }
     }
 
-    // Post-process SVGs
-    const formattedIcons = icons.map((icon, idx) => {
-      let svg = icon.svg || "";
-      if (!svg.includes("xmlns=")) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
-      if (!svg.includes("viewBox=")) svg = svg.replace("<svg", '<svg viewBox="0 0 24 24"');
-      return {
-        id: crypto.randomUUID(),
-        name: icon.name || `${currentSection.name} Icon ${idx + 1}`,
-        svgPath: svg,
-        category: `${category} / ${currentSection.name}`,
-        viewBox: "0 0 24 24",
-        fillMode: isFilled ? "fill" : "stroke",
-      };
-    });
+    // Sanitize + validate each SVG against the rule set. Reject icons we can't fix.
+    const cleaned = icons
+      .map((icon, idx) => {
+        const result = sanitizeAndValidate(icon.svg || "", { isFilled, strokeWidth, linecap, linejoin });
+        if (!result.ok) {
+          console.warn(`[generate-icon-set-worker] Rejected icon "${icon.name}": ${result.reason}`);
+          return null;
+        }
+        return {
+          id: crypto.randomUUID(),
+          name: icon.name || `${currentSection.name} Icon ${idx + 1}`,
+          svgPath: result.svg,
+          category: `${category} / ${currentSection.name}`,
+          viewBox: "0 0 24 24",
+          fillMode: isFilled ? "fill" : "stroke",
+        };
+      })
+      .filter(Boolean) as Array<Record<string, unknown>>;
 
-    console.log(`[generate-icon-set-worker] Completed: ${formattedIcons.length} icons for ${category}/${currentSection.name}`);
+    const formattedIcons = cleaned;
+    console.log(`[generate-icon-set-worker] Completed: ${formattedIcons.length}/${icons.length} icons passed validation for ${category}/${currentSection.name}`);
 
     // Save result
     await dbFetch(`brand_intelligence_jobs?id=eq.${jobId}`, {
@@ -441,4 +438,59 @@ ${industry ? `- Infuse ${industry} visual language: domain-specific metaphors, n
       }),
     });
   }
+}
+
+/**
+ * Strict sanitizer + validator for generated SVG icons.
+ * - Strips forbidden elements/attributes (transform, id, class, style, inline colors, gradients, defs…).
+ * - Forces the wrapper attributes to the requested stroke/fill mode (so the AI can't smuggle in baked colors).
+ * - Rejects icons that use disallowed primitives, have wild decimal coords, or are missing paths.
+ */
+function sanitizeAndValidate(
+  raw: string,
+  opts: { isFilled: boolean; strokeWidth: number; linecap: string; linejoin: string },
+): { ok: true; svg: string } | { ok: false; reason: string } {
+  let svg = String(raw || "").trim();
+  if (!svg.startsWith("<svg")) return { ok: false, reason: "missing <svg> root" };
+
+  // Disallowed primitives & wrappers — if the model used them, reject (instead of silently breaking layout).
+  if (/<(circle|rect|line|polygon|polyline|ellipse|g|use|defs|mask|clipPath|style|filter|linearGradient|radialGradient|image|text|foreignObject)\b/i.test(svg)) {
+    return { ok: false, reason: "contains forbidden SVG primitive" };
+  }
+
+  // Must contain at least one <path d="…">
+  const pathMatches = [...svg.matchAll(/<path\b[^>]*\bd\s*=\s*"([^"]+)"[^>]*\/?>/gi)];
+  if (pathMatches.length === 0) return { ok: false, reason: "no <path d=…> found" };
+  if (pathMatches.length > 3) return { ok: false, reason: `${pathMatches.length} paths (max 3)` };
+
+  // Reject wild decimal coordinates (more than 2 decimal places, or non-.5 fractions are a soft warning only).
+  for (const m of pathMatches) {
+    const d = m[1];
+    const badDecimals = d.match(/\d+\.\d{3,}/g);
+    if (badDecimals && badDecimals.length > 0) {
+      return { ok: false, reason: `path has ${badDecimals.length} high-precision decimals (snap to .0/.5)` };
+    }
+  }
+
+  // Strip forbidden attributes from every element.
+  svg = svg.replace(/\s(id|class|style|data-[\w-]+|transform)\s*=\s*"[^"]*"/gi, "");
+
+  // Strip baked colors from inner elements (we re-apply wrapper-level coloring).
+  svg = svg.replace(/<(path|svg)\b([^>]*)>/gi, (_, tag, attrs) => {
+    const cleaned = attrs
+      .replace(/\s(fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|stroke-miterlimit|opacity|fill-opacity|stroke-opacity)\s*=\s*"[^"]*"/gi, "");
+    return `<${tag}${cleaned}>`;
+  });
+
+  // Force a clean, predictable <svg ...> opening tag with our enforced attributes.
+  const wrapperAttrs = opts.isFilled
+    ? `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="none"`
+    : `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+
+  svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
+
+  // Final sanity: must still parse as a closed <svg>…</svg>.
+  if (!/<\/svg>\s*$/i.test(svg)) return { ok: false, reason: "unterminated <svg>" };
+
+  return { ok: true, svg };
 }
