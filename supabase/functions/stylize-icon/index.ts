@@ -109,7 +109,8 @@ serve(async (req) => {
     }
 
     // Build style parameters
-    const strokeWidth = options.strokeWidth ?? 2;
+    // Lucide-grade default: 1.5px stroke matches generate-icon / generate-icon-set.
+    const strokeWidth = options.strokeWidth ?? 1.5;
     const cornerRadius = options.cornerRadius ?? 4;
     const fillMode = options.fillMode ?? 'auto';
     const simplifyThreshold = options.simplifyThreshold ?? 0.5;
