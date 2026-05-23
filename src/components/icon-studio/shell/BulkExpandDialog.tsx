@@ -45,10 +45,16 @@ interface Row {
   error?: string;
 }
 
-/** Two diversified category passes per library. */
+/** Diversified category passes per library for maximum variety. */
 const PASSES: Array<{ category: string; sectionIndex: number }> = [
   { category: 'Brand Signature', sectionIndex: 0 },
   { category: 'Industry Specific', sectionIndex: 0 },
+  { category: 'Workflow & Actions', sectionIndex: 1 },
+  { category: 'Objects & Tools', sectionIndex: 2 },
+  { category: 'Data & Insights', sectionIndex: 3 },
+  { category: 'People & Roles', sectionIndex: 4 },
+  { category: 'Communication', sectionIndex: 5 },
+  { category: 'Status & Feedback', sectionIndex: 6 },
 ];
 
 export const BulkExpandDialog = ({

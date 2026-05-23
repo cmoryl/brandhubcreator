@@ -158,7 +158,7 @@ export const IconSetsView = ({
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setExpandOpen(true)}>
               <Sparkles className="h-4 w-4" />
-              Expand brand sets +50
+              Expand brand sets +120
             </Button>
             <Button size="sm" className="gap-1.5" onClick={onCreate}>
               <Plus className="h-4 w-4" />
@@ -338,7 +338,7 @@ export const IconSetsView = ({
         open={expandOpen}
         libraries={libraries}
         organizationId={organizationId}
-        expandBy={50}
+        expandBy={120}
         level="brand"
         onClose={() => setExpandOpen(false)}
       />
