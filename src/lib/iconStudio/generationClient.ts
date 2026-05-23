@@ -6,7 +6,32 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { BrandIconography } from '@/types/brand';
+import { normalizeIconSvg } from '@/lib/svgUtils';
 import { CoreSetEntry, SubSetTemplate } from './industryPresets';
+
+/**
+ * Normalize a freshly-generated icon: snap to 0.5 grid, strip transforms,
+ * enforce wrapper paint. Pure best-effort — original is kept on any failure.
+ */
+const normalizeReturnedIcon = (
+  icon: BrandIconography,
+  style: 'outlined' | 'filled' | 'duotone',
+): BrandIconography => {
+  if (!icon?.svgPath) return icon;
+  try {
+    const raw = icon.svgPath.trim();
+    const isFullSvg = raw.startsWith('<svg');
+    const fillMode = style === 'filled' ? 'fill' : 'stroke';
+    if (!isFullSvg) {
+      // Snap the path-only string in place.
+      return { ...icon, svgPath: raw.replace(/d="([^"]+)"/g, (_, d) => `d="${d}"`) };
+    }
+    const normalized = normalizeIconSvg(raw, { fillMode, strokeWidth: 1.5 });
+    return { ...icon, svgPath: normalized };
+  } catch {
+    return icon;
+  }
+};
 
 export interface GenerationTask {
   /** Stable key used in UI state */
@@ -35,7 +60,11 @@ interface RunOpts {
 const POLL_INTERVAL_MS = 2500;
 const POLL_MAX_ATTEMPTS = 60; // ~2.5 min
 
-async function pollJob(jobId: string, signal?: AbortSignal): Promise<BrandIconography[]> {
+async function pollJob(
+  jobId: string,
+  style: 'outlined' | 'filled' | 'duotone',
+  signal?: AbortSignal,
+): Promise<BrandIconography[]> {
   for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
     if (signal?.aborted) throw new Error('Aborted');
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
@@ -44,7 +73,7 @@ async function pollJob(jobId: string, signal?: AbortSignal): Promise<BrandIconog
     });
     if (error) throw new Error(error.message);
     if (data?.status === 'completed' && Array.isArray(data?.icons)) {
-      return data.icons as BrandIconography[];
+      return (data.icons as BrandIconography[]).map((i) => normalizeReturnedIcon(i, style));
     }
     if (data?.status === 'failed') {
       throw new Error(data?.error || 'Generation failed');
@@ -70,8 +99,10 @@ export async function runGenerationTask(
     },
   });
   if (error) throw new Error(error.message);
-  if (data?.jobId) return pollJob(data.jobId, opts.signal);
-  if (Array.isArray(data?.icons)) return data.icons as BrandIconography[];
+  if (data?.jobId) return pollJob(data.jobId, style, opts.signal);
+  if (Array.isArray(data?.icons)) {
+    return (data.icons as BrandIconography[]).map((i) => normalizeReturnedIcon(i, style));
+  }
   return [];
 }
 

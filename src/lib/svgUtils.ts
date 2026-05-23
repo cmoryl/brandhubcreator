@@ -536,3 +536,76 @@ export const applyColorVariant = (svg: string, variant: IconColorVariant): strin
   if (variant === 'original') return svg;
   return recolorSvg(svg, variant === 'black' ? '#000000' : '#FFFFFF');
 };
+
+// ── Grid Normalization (Lucide-grade snapping) ─────────────────────────────
+
+/**
+ * Snap every numeric coordinate inside `d="..."` to the nearest 0.5 unit on a
+ * 24-unit grid. Keeps commands intact, collapses leading-zero noise. Pure-string
+ * implementation so it works on path fragments AND full SVGs.
+ */
+export const snapPathToGrid = (d: string, step = 0.5): string => {
+  if (!d) return d;
+  return d.replace(/-?\d+(\.\d+)?/g, (raw) => {
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return raw;
+    const snapped = Math.round(n / step) * step;
+    // Trim .0 for compactness, keep .5
+    const out = snapped % 1 === 0 ? String(snapped) : snapped.toFixed(1);
+    return out;
+  });
+};
+
+/**
+ * Normalize a raw SVG to Lucide-grade hygiene:
+ *  - bakes/removes `transform` attributes
+ *  - drops `id`, `class`, `style`, `data-*` from inner elements
+ *  - snaps every `<path d>` to the 0.5-unit grid
+ *  - enforces `viewBox="0 0 24 24"` when none is present
+ *  - normalizes wrapper fill/stroke based on the supplied mode
+ */
+export const normalizeIconSvg = (
+  svg: string,
+  opts: { fillMode?: 'fill' | 'stroke'; strokeWidth?: number } = {},
+): string => {
+  if (!svg?.trim()) return svg;
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svg, 'image/svg+xml');
+  const svgEl = doc.querySelector('svg');
+  if (!svgEl) return svg;
+
+  // Wrapper hygiene
+  if (!svgEl.getAttribute('xmlns')) svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  if (!svgEl.getAttribute('viewBox')) svgEl.setAttribute('viewBox', '0 0 24 24');
+  svgEl.removeAttribute('width');
+  svgEl.removeAttribute('height');
+
+  // Strip per-element noise that breaks grid alignment / theming
+  const strip = ['transform', 'id', 'class', 'style'];
+  svgEl.querySelectorAll('*').forEach((el) => {
+    strip.forEach((a) => el.removeAttribute(a));
+    Array.from(el.attributes)
+      .filter((a) => a.name.startsWith('data-'))
+      .forEach((a) => el.removeAttribute(a.name));
+  });
+
+  // Snap path coordinates
+  svgEl.querySelectorAll('path').forEach((p) => {
+    const d = p.getAttribute('d');
+    if (d) p.setAttribute('d', snapPathToGrid(d));
+  });
+
+  // Wrapper paint
+  if (opts.fillMode === 'stroke') {
+    svgEl.setAttribute('fill', 'none');
+    svgEl.setAttribute('stroke', 'currentColor');
+    svgEl.setAttribute('stroke-width', String(opts.strokeWidth ?? 1.5));
+    svgEl.setAttribute('stroke-linecap', 'round');
+    svgEl.setAttribute('stroke-linejoin', 'round');
+  } else if (opts.fillMode === 'fill') {
+    svgEl.setAttribute('fill', 'currentColor');
+    svgEl.setAttribute('stroke', 'none');
+  }
+
+  return new XMLSerializer().serializeToString(svgEl);
+};
