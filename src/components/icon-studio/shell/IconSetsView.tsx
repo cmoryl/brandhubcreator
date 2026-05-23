@@ -7,7 +7,7 @@
 import { useMemo, useState } from 'react';
 import {
   Copy, Wand2, Lock, Unlock, RefreshCw, ArrowUpRight,
-  FolderOpen, Plus, Filter, Trash2,
+  FolderOpen, Plus, Filter, Trash2, Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
