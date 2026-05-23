@@ -215,7 +215,7 @@ async function runWorker(jobId: string) {
     const params = jobs?.[0]?.result;
     if (!params) throw new Error("No job params found");
 
-    const { category, sectionIndex, style, preset, customCount, industry, entityName } = params;
+    const { category, sectionIndex, style, preset, customCount, industry, entityName, entityId, entityType } = params;
     const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
     const currentSection = taxonomyCategory.sections[sectionIndex];
     const iconCount = customCount && customCount > 0 ? customCount : currentSection.count;
@@ -225,6 +225,10 @@ async function runWorker(jobId: string) {
     const cornerStyle = style?.cornerRadius || "rounded";
     const linecap = cornerStyle === "sharp" ? "square" : "round";
     const linejoin = cornerStyle === "sharp" ? "miter" : "round";
+
+    // ── Brand DNA: pull rich context so icons feel tailored to the brand ──
+    const brandDNA = await loadBrandDNA(entityId, entityType);
+    const brandContextBlock = buildBrandContextBlock({ entityName, industry, brandDNA });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
