@@ -330,7 +330,10 @@ ${isFilled
 ✓ Uniform visual weight across the batch
 ✓ Recognizable as a silhouette at 12×12
 ✓ Reflects the brand DNA, not a generic icon-set
-✓ Would be accepted into a Lucide pull request`;
+✓ NOT the first/obvious metaphor — passed the "ban the cliché" test
+✓ Distinct silhouette from every other icon in this batch (no recycled base shapes)
+✓ Zero decorative sparkles/stars/dots that don't carry meaning
+✓ Would make an art director screenshot it`;
 
     console.log(`[generate-icon-set-worker] Generating ${iconCount} icons via gemini-2.5-pro for ${category}/${currentSection.name}`);
 
