@@ -17,6 +17,8 @@ import { Progress } from '@/components/ui/progress';
 import { StatusChip } from './StatusChip';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { runPreflight, type PreflightSummary } from '@/lib/iconStudio/qa';
+import { AbTestPanel } from './AbTestPanel';
+
 
 interface Props {
   libraries: IconLibrary[];
@@ -253,9 +255,12 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
           </ul>
         )}
       </section>
+
+      <AbTestPanel libraries={libraries} organizationId={organizationId} />
     </div>
   );
 };
+
 
 const Counter = ({
   label,
