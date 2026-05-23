@@ -319,6 +319,12 @@ export const IconSetsView = ({
         onCompare={() => activeLib && handleCompare(activeLib)}
         onLockToggle={() => activeLib && handleLockToggle(activeLib)}
       />
+
+      <BulkRegenerateDialog
+        library={regenLib}
+        organizationId={organizationId}
+        onClose={() => setRegenLib(null)}
+      />
     </div>
   );
 };
