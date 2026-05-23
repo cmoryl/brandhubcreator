@@ -184,9 +184,23 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     setExportingPdf(true);
     const toastId = toast.loading(`Building ${brand.name} icon PDF…`);
     try {
+      const guide: any = (brand as any).guide_data || {};
+      const colors: Array<{ hex: string; role?: string }> = Array.isArray(guide?.colors) ? guide.colors : [];
+      const primary = colors.find((c) => c?.role === 'primary')?.hex || colors[0]?.hex;
+      const logos: Array<{ url: string; variant?: string }> = Array.isArray(guide?.logos) ? guide.logos : [];
+      const logo =
+        logos.find((l) => l?.variant === 'primary')?.url ||
+        logos.find((l) => l?.variant === 'icon')?.url ||
+        logos[0]?.url;
+      const tagline: string | undefined = guide?.hero?.tagline || undefined;
+
       await buildBrandIconPdf({
         entityName: brand.name,
         entityKind: entityType === 'product' ? 'Product' : entityType === 'event' ? 'Event' : 'Brand',
+        accentColor: primary,
+        palette: colors.map((c) => c?.hex).filter(Boolean),
+        logoUrl: logo,
+        tagline,
         libraries: linkedLibraries.map((l) => ({
           id: l.id,
           name: l.name,
