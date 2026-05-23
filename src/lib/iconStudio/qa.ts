@@ -19,6 +19,8 @@ import type { BrandIconography } from '@/types/brand';
 import type { IconRecipe } from './recipe';
 import { readRecipe } from './recipe';
 import { buildSvgString } from '@/lib/svgUtils';
+import { apcaContrast } from '@/lib/apcaContrast';
+
 
 export type QASeverity = 'pass' | 'warn' | 'fail';
 
