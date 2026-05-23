@@ -338,7 +338,7 @@ export const IconSetsView = ({
         open={expandOpen}
         libraries={libraries}
         organizationId={organizationId}
-        expandBy={50}
+        expandBy={120}
         level="brand"
         onClose={() => setExpandOpen(false)}
       />
