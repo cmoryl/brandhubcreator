@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { StatusChip } from './StatusChip';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
+import { BulkRegenerateDialog } from './BulkRegenerateDialog';
 import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 
 interface Props {
@@ -60,6 +61,7 @@ export const IconSetsView = ({
 }: Props) => {
   const [q, setQ] = useState('');
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
+  const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
   const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
 
   const grouped = useMemo(() => {
@@ -108,8 +110,7 @@ export const IconSetsView = ({
   };
 
   const handleRegenerate = (lib: IconLibrary) => {
-    if (onRegenerate) return onRegenerate(lib);
-    toast.info(`Regenerating "${lib.name}" — queued.`);
+    setRegenLib(lib);
   };
 
   const handleCompare = (lib: IconLibrary) => {
@@ -317,6 +318,12 @@ export const IconSetsView = ({
         onRegenerate={() => activeLib && handleRegenerate(activeLib)}
         onCompare={() => activeLib && handleCompare(activeLib)}
         onLockToggle={() => activeLib && handleLockToggle(activeLib)}
+      />
+
+      <BulkRegenerateDialog
+        library={regenLib}
+        organizationId={organizationId}
+        onClose={() => setRegenLib(null)}
       />
     </div>
   );
