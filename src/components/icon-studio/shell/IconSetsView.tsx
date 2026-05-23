@@ -63,6 +63,7 @@ export const IconSetsView = ({
   const [q, setQ] = useState('');
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
   const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
+  const [expandOpen, setExpandOpen] = useState(false);
   const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
 
   const grouped = useMemo(() => {
