@@ -271,6 +271,8 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
       try {
         const icons = await runGenerationTask(section.task, {
           entityName: companyName || industry?.name || 'Brand',
+          entityId,
+          entityType,
           industry: industry?.name,
           style,
         });
@@ -282,7 +284,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
         });
       }
     },
-    [sections, companyName, industry, style, upsertSection],
+    [sections, companyName, industry, style, entityId, entityType, upsertSection],
   );
 
   const removeIcon = useCallback((sectionKey: string, iconId: string) => {
