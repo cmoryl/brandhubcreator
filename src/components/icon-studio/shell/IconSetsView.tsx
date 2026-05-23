@@ -110,8 +110,7 @@ export const IconSetsView = ({
   };
 
   const handleRegenerate = (lib: IconLibrary) => {
-    if (onRegenerate) return onRegenerate(lib);
-    toast.info(`Regenerating "${lib.name}" — queued.`);
+    setRegenLib(lib);
   };
 
   const handleCompare = (lib: IconLibrary) => {
