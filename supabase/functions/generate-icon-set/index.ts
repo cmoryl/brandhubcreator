@@ -439,3 +439,58 @@ ${industry ? `- Infuse ${industry} visual language with domain-specific metaphor
     });
   }
 }
+
+/**
+ * Strict sanitizer + validator for generated SVG icons.
+ * - Strips forbidden elements/attributes (transform, id, class, style, inline colors, gradients, defs…).
+ * - Forces the wrapper attributes to the requested stroke/fill mode (so the AI can't smuggle in baked colors).
+ * - Rejects icons that use disallowed primitives, have wild decimal coords, or are missing paths.
+ */
+function sanitizeAndValidate(
+  raw: string,
+  opts: { isFilled: boolean; strokeWidth: number; linecap: string; linejoin: string },
+): { ok: true; svg: string } | { ok: false; reason: string } {
+  let svg = String(raw || "").trim();
+  if (!svg.startsWith("<svg")) return { ok: false, reason: "missing <svg> root" };
+
+  // Disallowed primitives & wrappers — if the model used them, reject (instead of silently breaking layout).
+  if (/<(circle|rect|line|polygon|polyline|ellipse|g|use|defs|mask|clipPath|style|filter|linearGradient|radialGradient|image|text|foreignObject)\b/i.test(svg)) {
+    return { ok: false, reason: "contains forbidden SVG primitive" };
+  }
+
+  // Must contain at least one <path d="…">
+  const pathMatches = [...svg.matchAll(/<path\b[^>]*\bd\s*=\s*"([^"]+)"[^>]*\/?>/gi)];
+  if (pathMatches.length === 0) return { ok: false, reason: "no <path d=…> found" };
+  if (pathMatches.length > 3) return { ok: false, reason: `${pathMatches.length} paths (max 3)` };
+
+  // Reject wild decimal coordinates (more than 2 decimal places, or non-.5 fractions are a soft warning only).
+  for (const m of pathMatches) {
+    const d = m[1];
+    const badDecimals = d.match(/\d+\.\d{3,}/g);
+    if (badDecimals && badDecimals.length > 0) {
+      return { ok: false, reason: `path has ${badDecimals.length} high-precision decimals (snap to .0/.5)` };
+    }
+  }
+
+  // Strip forbidden attributes from every element.
+  svg = svg.replace(/\s(id|class|style|data-[\w-]+|transform)\s*=\s*"[^"]*"/gi, "");
+
+  // Strip baked colors from inner elements (we re-apply wrapper-level coloring).
+  svg = svg.replace(/<(path|svg)\b([^>]*)>/gi, (_, tag, attrs) => {
+    const cleaned = attrs
+      .replace(/\s(fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|stroke-miterlimit|opacity|fill-opacity|stroke-opacity)\s*=\s*"[^"]*"/gi, "");
+    return `<${tag}${cleaned}>`;
+  });
+
+  // Force a clean, predictable <svg ...> opening tag with our enforced attributes.
+  const wrapperAttrs = opts.isFilled
+    ? `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="none"`
+    : `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+
+  svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
+
+  // Final sanity: must still parse as a closed <svg>…</svg>.
+  if (!/<\/svg>\s*$/i.test(svg)) return { ok: false, reason: "unterminated <svg>" };
+
+  return { ok: true, svg };
+}
