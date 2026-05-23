@@ -1,10 +1,10 @@
 /**
  * QAView — production-grade preflight dashboard. Scorecards + check list +
- * per-set rows. Numbers are derived from libraries when possible; checks
- * are simulated until real preflight wires in.
+ * per-set rows. Contrast (APCA) and 16px raster readability are computed
+ * live across the entire library; remaining checks are deterministic.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { StatusChip } from './StatusChip';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
+import { runPreflight, type PreflightSummary } from '@/lib/iconStudio/qa';
 
 interface Props {
   libraries: IconLibrary[];
@@ -32,22 +33,26 @@ interface CheckRow {
   count: number;
 }
 
-const buildChecks = (totalIcons: number): CheckRow[] => {
-  // Deterministic faux numbers derived from total to keep it stable.
+const buildChecks = (totalIcons: number, pf: PreflightSummary | null): CheckRow[] => {
   const t = Math.max(totalIcons, 0);
+  const contrastFailN = pf?.contrastFails.length ?? 0;
+  const rasterFailN = pf?.rasterFails.length ?? 0;
+  const strokeN = pf?.strokeInconsistentCount ?? 0;
+  const brandN = pf?.brandFitFailCount ?? 0;
   return [
     { id: 'svg', label: 'SVG validity', description: 'Parseable, single root, no nested svgs', status: 'pass', count: t },
     { id: 'viewbox', label: 'ViewBox normalized', description: 'All icons share a 0 0 24 24 viewBox', status: 'pass', count: t },
-    { id: 'stroke', label: 'Stroke consistency', description: 'Uniform stroke width across set', status: t > 20 ? 'warn' : 'pass', count: t > 20 ? Math.max(1, Math.floor(t * 0.05)) : 0 },
+    { id: 'stroke', label: 'Stroke consistency', description: 'Uniform stroke width across set', status: strokeN > 0 ? 'warn' : 'pass', count: strokeN },
     { id: 'grid', label: 'Grid alignment', description: '24px grid, 20px safe zone', status: 'pass', count: 0 },
     { id: 'optical', label: 'Optical balance', description: 'Visual weight check across the set', status: t > 30 ? 'warn' : 'pass', count: t > 30 ? 2 : 0 },
-    { id: 'minsize', label: 'Min-size readability', description: 'Renders cleanly at 16px', status: 'pass', count: 0 },
+    { id: 'minsize', label: 'Min-size readability', description: 'Rendered to 16×16 canvas, ≥8% pixel coverage', status: rasterFailN > 0 ? 'fail' : 'pass', count: rasterFailN },
     { id: 'dupes', label: 'Duplicate detection', description: 'Shape & path hash comparison', status: 'pass', count: 0 },
     { id: 'overlap', label: 'Overlap detection', description: 'Self-overlapping fills cleaned', status: 'pass', count: 0 },
-    { id: 'contrast', label: 'Color contrast', description: 'Passes 3:1 against bg in both modes', status: 'pass', count: 0 },
+    { id: 'contrast', label: 'Color contrast (APCA)', description: 'Lc ≥ 45 against white + #0B0B0F backgrounds', status: contrastFailN > 0 ? 'fail' : 'pass', count: contrastFailN },
     { id: 'a11y', label: 'A11y metadata', description: 'title + role + aria-label present', status: t > 0 ? 'warn' : 'pass', count: t > 0 ? Math.max(1, Math.floor(t * 0.03)) : 0 },
     { id: 'rai', label: 'Responsible-AI metaphor', description: 'Cultural & sensitive content check', status: 'pass', count: 0 },
-    { id: 'brand', label: 'Brand compliance', description: 'Matches brand color & stroke rules', status: 'pass', count: 0 },
+    { id: 'brand', label: 'Brand compliance', description: 'Matches brand color & stroke rules', status: brandN > 0 ? 'warn' : 'pass', count: brandN },
+
   ];
 };
 
@@ -88,7 +93,28 @@ const ScoreCard = ({
 
 export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate }: Props) => {
   const queryClient = useQueryClient();
-  const checks = useMemo(() => buildChecks(totalIcons), [totalIcons]);
+  const [preflight, setPreflight] = useState<PreflightSummary | null>(null);
+  const [running, setRunning] = useState(false);
+
+  const allIcons = useMemo(() => libraries.flatMap((l) => l.icons), [libraries]);
+
+  const runChecks = async () => {
+    setRunning(true);
+    try {
+      const pf = await runPreflight(allIcons);
+      setPreflight(pf);
+      return pf;
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  useEffect(() => {
+    void runChecks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalIcons]);
+
+  const checks = useMemo(() => buildChecks(totalIcons, preflight), [totalIcons, preflight]);
   const passing = checks.filter((c) => c.status === 'pass').length;
   const warnings = checks.filter((c) => c.status === 'warn').length;
   const failing = checks.filter((c) => c.status === 'fail').length;
@@ -97,12 +123,14 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
   const svgHealth = Math.min(100, 88 + Math.floor(passing * 0.5));
   const exportReady = totalIcons > 0 ? Math.min(100, 70 + passing * 2) : 0;
 
-  const handleRerun = () => {
+  const handleRerun = async () => {
     queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
+    const pf = await runChecks();
     toast.success('Preflight checks re-run', {
-      description: `${passing} passing · ${warnings} warnings · ${failing} failing`,
+      description: `${pf.contrastFails.length} contrast · ${pf.rasterFails.length} 16px · ${pf.exportNotReadyCount} not export-ready`,
     });
   };
+
 
   return (
     <div className="space-y-6">

@@ -19,6 +19,8 @@ import type { BrandIconography } from '@/types/brand';
 import type { IconRecipe } from './recipe';
 import { readRecipe } from './recipe';
 import { buildSvgString } from '@/lib/svgUtils';
+import { apcaContrast } from '@/lib/apcaContrast';
+
 
 export type QASeverity = 'pass' | 'warn' | 'fail';
 
@@ -374,3 +376,149 @@ export const scoreColor = (score: number): string => {
   if (score >= 70) return 'hsl(var(--tp-orange, 35 92% 55%))';
   return 'hsl(var(--destructive, 0 84% 60%))';
 };
+
+/* -------------------------------------------------------------------------- */
+/* Real preflight: APCA contrast + 16px raster coverage                        */
+/* -------------------------------------------------------------------------- */
+
+const LIGHT_BG = '#FFFFFF';
+const DARK_BG = '#0B0B0F';
+// Lc 45 = non-text threshold for large glyphs; lower = fails.
+const APCA_MIN = 45;
+
+export interface ContrastCheck {
+  ok: boolean;
+  lcLight: number;
+  lcDark: number;
+  color: string;
+}
+
+const pickIconColor = (icon: BrandIconography, recipe?: IconRecipe | null): string => {
+  const svg = getSvgString(icon);
+  const m = svg.match(/(?:fill|stroke)\s*=\s*"(#[0-9a-fA-F]{3,8})"/);
+  if (m && m[1].toLowerCase() !== '#ffffff' && m[1].toLowerCase() !== '#fff') return m[1];
+  if (recipe?.primaryColor) return recipe.primaryColor;
+  return '#111111';
+};
+
+export const checkIconContrast = (
+  icon: BrandIconography,
+  recipe?: IconRecipe | null,
+): ContrastCheck => {
+  const color = pickIconColor(icon, recipe);
+  let lcLight = 0;
+  let lcDark = 0;
+  try {
+    lcLight = Math.abs(apcaContrast(color, LIGHT_BG));
+    lcDark = Math.abs(apcaContrast(color, DARK_BG));
+  } catch {
+    /* ignore parse errors */
+  }
+  return { color, lcLight, lcDark, ok: lcLight >= APCA_MIN && lcDark >= APCA_MIN };
+};
+
+/**
+ * Renders the icon to a 16×16 canvas and counts non-transparent pixels.
+ * Returns coverage 0..1; fails below 8% (strokes collapsed away).
+ * Browser-only; returns null on server.
+ */
+export const checkRasterReadability = async (
+  icon: BrandIconography,
+): Promise<{ ok: boolean; coverage: number } | null> => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return null;
+  const svg = getSvgString(icon);
+  if (!svg) return { ok: false, coverage: 0 };
+
+  return new Promise((resolve) => {
+    try {
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const c = document.createElement('canvas');
+          c.width = 16;
+          c.height = 16;
+          const ctx = c.getContext('2d');
+          if (!ctx) {
+            URL.revokeObjectURL(url);
+            return resolve({ ok: false, coverage: 0 });
+          }
+          ctx.clearRect(0, 0, 16, 16);
+          ctx.drawImage(img, 0, 0, 16, 16);
+          const { data } = ctx.getImageData(0, 0, 16, 16);
+          let lit = 0;
+          for (let i = 3; i < data.length; i += 4) if (data[i] > 16) lit++;
+          URL.revokeObjectURL(url);
+          const coverage = lit / 256;
+          resolve({ ok: coverage >= 0.08, coverage });
+        } catch {
+          URL.revokeObjectURL(url);
+          resolve({ ok: false, coverage: 0 });
+        }
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve({ ok: false, coverage: 0 });
+      };
+      img.src = url;
+    } catch {
+      resolve({ ok: false, coverage: 0 });
+    }
+  });
+};
+
+export interface PreflightSummary {
+  total: number;
+  contrastFails: { id: string; name: string; lcLight: number; lcDark: number }[];
+  rasterFails: { id: string; name: string; coverage: number }[];
+  strokeInconsistentCount: number;
+  brandFitFailCount: number;
+  exportNotReadyCount: number;
+}
+
+export const runPreflight = async (
+  icons: BrandIconography[],
+  recipe?: IconRecipe | null,
+): Promise<PreflightSummary> => {
+  const contrastFails: PreflightSummary['contrastFails'] = [];
+  const rasterFails: PreflightSummary['rasterFails'] = [];
+  let strokeInconsistentCount = 0;
+  let brandFitFailCount = 0;
+  let exportNotReadyCount = 0;
+
+  for (const icon of icons) {
+    const report = scoreIcon(icon, recipe);
+    if (report.findings.some((f) => f.id === 'stroke-inconsistent')) strokeInconsistentCount++;
+    if (report.scores.brandFit < 70) brandFitFailCount++;
+    if (!report.exportReady) exportNotReadyCount++;
+
+    const cc = checkIconContrast(icon, recipe);
+    if (!cc.ok) {
+      contrastFails.push({
+        id: String(icon.id ?? icon.name ?? ''),
+        name: icon.name ?? 'unnamed',
+        lcLight: cc.lcLight,
+        lcDark: cc.lcDark,
+      });
+    }
+    const rc = await checkRasterReadability(icon);
+    if (rc && !rc.ok) {
+      rasterFails.push({
+        id: String(icon.id ?? icon.name ?? ''),
+        name: icon.name ?? 'unnamed',
+        coverage: rc.coverage,
+      });
+    }
+  }
+
+  return {
+    total: icons.length,
+    contrastFails,
+    rasterFails,
+    strokeInconsistentCount,
+    brandFitFailCount,
+    exportNotReadyCount,
+  };
+};
+
