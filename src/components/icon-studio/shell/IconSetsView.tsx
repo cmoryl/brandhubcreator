@@ -7,7 +7,7 @@
 import { useMemo, useState } from 'react';
 import {
   Copy, Wand2, Lock, Unlock, RefreshCw, ArrowUpRight,
-  FolderOpen, Plus, Filter, Trash2,
+  FolderOpen, Plus, Filter, Trash2, Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ import { LibraryIconPreview } from './LibraryIconPreview';
 import { StatusChip } from './StatusChip';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { BulkRegenerateDialog } from './BulkRegenerateDialog';
+import { BulkExpandDialog } from './BulkExpandDialog';
 import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 
 interface Props {
@@ -62,6 +63,7 @@ export const IconSetsView = ({
   const [q, setQ] = useState('');
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
   const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
+  const [expandOpen, setExpandOpen] = useState(false);
   const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
 
   const grouped = useMemo(() => {
@@ -153,10 +155,16 @@ export const IconSetsView = ({
               lock, or compare.
             </p>
           </div>
-          <Button size="sm" className="gap-1.5" onClick={onCreate}>
-            <Plus className="h-4 w-4" />
-            New set
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setExpandOpen(true)}>
+              <Sparkles className="h-4 w-4" />
+              Expand brand sets +50
+            </Button>
+            <Button size="sm" className="gap-1.5" onClick={onCreate}>
+              <Plus className="h-4 w-4" />
+              New set
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -324,6 +332,15 @@ export const IconSetsView = ({
         library={regenLib}
         organizationId={organizationId}
         onClose={() => setRegenLib(null)}
+      />
+
+      <BulkExpandDialog
+        open={expandOpen}
+        libraries={libraries}
+        organizationId={organizationId}
+        expandBy={50}
+        level="brand"
+        onClose={() => setExpandOpen(false)}
       />
     </div>
   );
