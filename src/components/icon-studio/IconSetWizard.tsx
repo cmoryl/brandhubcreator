@@ -116,11 +116,14 @@ interface SectionState {
 
 interface Props {
   organizationName: string;
+  /** Optional entity context — when provided, generated icons are designed against the brand's archetype, services, values, and tone-of-voice. */
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
   /** Called when the user saves the resulting set(s) into a library. */
   onSaveAsLibrary?: (name: string, icons: BrandIconography[]) => void;
 }
 
-export const IconSetWizard = ({ organizationName, onSaveAsLibrary }: Props) => {
+export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAsLibrary }: Props) => {
   const [step, setStep] = useState<StepId>('industry');
   const [industry, setIndustry] = useState<IndustryPreset | null>(null);
   const [companyName, setCompanyName] = useState(organizationName || '');
@@ -208,6 +211,8 @@ export const IconSetWizard = ({ organizationName, onSaveAsLibrary }: Props) => {
           tasks.map((t) => t.task),
           {
             entityName: companyName || industry.name,
+            entityId,
+            entityType,
             industry: industry.name,
             style,
             onTaskStart: (task) =>
@@ -225,7 +230,7 @@ export const IconSetWizard = ({ organizationName, onSaveAsLibrary }: Props) => {
         setBusy(false);
       }
     },
-    [industry, companyName, style, upsertSection],
+    [industry, companyName, style, entityId, entityType, upsertSection],
   );
 
   const generateCore = useCallback(async () => {
@@ -266,6 +271,8 @@ export const IconSetWizard = ({ organizationName, onSaveAsLibrary }: Props) => {
       try {
         const icons = await runGenerationTask(section.task, {
           entityName: companyName || industry?.name || 'Brand',
+          entityId,
+          entityType,
           industry: industry?.name,
           style,
         });
@@ -277,7 +284,7 @@ export const IconSetWizard = ({ organizationName, onSaveAsLibrary }: Props) => {
         });
       }
     },
-    [sections, companyName, industry, style, upsertSection],
+    [sections, companyName, industry, style, entityId, entityType, upsertSection],
   );
 
   const removeIcon = useCallback((sectionKey: string, iconId: string) => {

@@ -50,6 +50,8 @@ export interface GenerationResult {
 
 interface RunOpts {
   entityName: string;
+  entityId?: string;
+  entityType?: 'brand' | 'product' | 'event';
   industry?: string;
   style?: 'outlined' | 'filled' | 'duotone';
   onTaskStart?: (task: GenerationTask) => void;
@@ -86,10 +88,12 @@ export async function runGenerationTask(
   task: GenerationTask,
   opts: RunOpts,
 ): Promise<BrandIconography[]> {
-  const { entityName, industry, style = 'outlined' } = opts;
+  const { entityName, entityId, entityType, industry, style = 'outlined' } = opts;
   const { data, error } = await supabase.functions.invoke('generate-icon-set', {
     body: {
       entityName,
+      entityId,
+      entityType,
       industry,
       category: task.category,
       sectionIndex: task.sectionIndex,

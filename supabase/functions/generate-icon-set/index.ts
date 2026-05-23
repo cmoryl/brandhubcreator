@@ -147,6 +147,8 @@ serve(async (req) => {
     // Create mode: start generation job
     const {
       entityName,
+      entityId,
+      entityType,
       industry,
       category = "Foundation",
       sectionIndex = 0,
@@ -172,11 +174,11 @@ serve(async (req) => {
     const jobData = await dbFetch("brand_intelligence_jobs", {
       method: "POST",
       body: JSON.stringify({
-        entity_id: crypto.randomUUID(),
+        entity_id: entityId || crypto.randomUUID(),
         entity_type: "icon_generation",
         user_id: user.id,
         status: "pending",
-        result: { category, sectionIndex, style, preset, customCount, industry, entityName },
+        result: { category, sectionIndex, style, preset, customCount, industry, entityName, entityId, entityType },
       }),
     });
 
@@ -213,7 +215,7 @@ async function runWorker(jobId: string) {
     const params = jobs?.[0]?.result;
     if (!params) throw new Error("No job params found");
 
-    const { category, sectionIndex, style, preset, customCount, industry, entityName } = params;
+    const { category, sectionIndex, style, preset, customCount, industry, entityName, entityId, entityType } = params;
     const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
     const currentSection = taxonomyCategory.sections[sectionIndex];
     const iconCount = customCount && customCount > 0 ? customCount : currentSection.count;
@@ -223,6 +225,10 @@ async function runWorker(jobId: string) {
     const cornerStyle = style?.cornerRadius || "rounded";
     const linecap = cornerStyle === "sharp" ? "square" : "round";
     const linejoin = cornerStyle === "sharp" ? "miter" : "round";
+
+    // ── Brand DNA: pull rich context so icons feel tailored to the brand ──
+    const brandDNA = await loadBrandDNA(entityId, entityType);
+    const brandContextBlock = buildBrandContextBlock({ entityName, industry, brandDNA });
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
@@ -275,8 +281,9 @@ These icons must be indistinguishable in quality from a hand-crafted Lucide rele
 
 ## Context
 - Section: ${currentSection.name} — ${currentSection.description}
-- Brand: "${entityName}"${industry ? ` | Industry: ${industry}` : ""}
 - Category: ${taxonomyCategory.name} — ${taxonomyCategory.description}
+
+${brandContextBlock}
 
 ## Mandatory Style (identical on EVERY icon)
 - Preset: "${preset}"
@@ -289,7 +296,9 @@ ${isFilled
 ## Design Direction
 - Reference: Lucide "${currentSection.name.toLowerCase()}", Tabler outline, Feather, Phosphor regular. Then EXCEED them.
 - Each icon must read clearly at 16px and remain a distinct silhouette at 12px.
-${industry ? `- Infuse ${industry} visual language with domain-specific metaphors, not generic stock.\n` : ""}- These should feel like premium icons designed specifically for "${entityName}".
+- Translate the brand DNA above into metaphor choices — e.g. if the brand archetype is "Sage", lean on tomes/lenses/compass motifs; if "Outlaw", lean on bolts/sparks/asymmetry. NEVER generic stock.
+- For Industry-Specific sections, draw 60%+ of metaphors from the brand's actual services/products listed above.
+- These should feel like premium icons designed specifically for "${entityName}", not interchangeable with another brand's set.
 
 ## Pre-Submission Checklist (verify EACH icon)
 ✓ Only <path> elements, max 2, prefer 1
@@ -297,6 +306,7 @@ ${industry ? `- Infuse ${industry} visual language with domain-specific metaphor
 ✓ No transforms, no inline colors, no ids/classes/styles
 ✓ Uniform visual weight across the batch
 ✓ Recognizable as a silhouette at 12×12
+✓ Reflects the brand DNA, not a generic icon-set
 ✓ Would be accepted into a Lucide pull request`;
 
     console.log(`[generate-icon-set-worker] Generating ${iconCount} icons via gemini-2.5-pro for ${category}/${currentSection.name}`);
@@ -493,4 +503,87 @@ function sanitizeAndValidate(
   if (!/<\/svg>\s*$/i.test(svg)) return { ok: false, reason: "unterminated <svg>" };
 
   return { ok: true, svg };
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Brand DNA loader — pulls archetype, services, values, tone, mission, etc.  */
+/* directly from the entity's guide_data so the AI can design brand-specific  */
+/* icons instead of generic taxonomy fill.                                    */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+interface BrandDNA {
+  archetype?: string;
+  mission?: string;
+  tagline?: string;
+  toneOfVoice?: string[];
+  values?: string[];
+  services?: string[];
+  primaryColor?: string;
+  industry?: string;
+}
+
+async function loadBrandDNA(entityId?: string, entityType?: string): Promise<BrandDNA | null> {
+  if (!entityId || !entityType) return null;
+  const table = entityType === "brand" ? "brands" : entityType === "product" ? "products" : entityType === "event" ? "events" : null;
+  if (!table) return null;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_entity_text_context`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ p_table: table, p_id: entityId }),
+    });
+    if (!res.ok) return null;
+    const ctx = await res.json();
+    if (!ctx) return null;
+    const toArr = (v: unknown): string[] => {
+      if (!v) return [];
+      if (Array.isArray(v)) return v.map((x) => (typeof x === "string" ? x : String(x ?? ""))).filter(Boolean);
+      return [];
+    };
+    const primaryColorObj = Array.isArray(ctx.colors)
+      ? (ctx.colors.find((c: any) => (c?.role || "").toLowerCase() === "primary") ?? ctx.colors[0])
+      : null;
+    return {
+      archetype: ctx.archetype || undefined,
+      mission: ctx.mission || undefined,
+      tagline: ctx.primary_tagline || ctx.hero_tagline || undefined,
+      toneOfVoice: toArr(ctx.tone_of_voice).slice(0, 4),
+      values: toArr(ctx.values).slice(0, 5),
+      services: toArr(ctx.services).slice(0, 6),
+      primaryColor: primaryColorObj?.hex || undefined,
+      industry: ctx.industry || undefined,
+    };
+  } catch (err) {
+    console.warn("[generate-icon-set-worker] Brand DNA fetch failed:", err);
+    return null;
+  }
+}
+
+function buildBrandContextBlock(args: { entityName: string; industry?: string; brandDNA: BrandDNA | null }): string {
+  const { entityName, industry, brandDNA } = args;
+  const lines: string[] = ["## Brand DNA (design FOR this brand, not generic)"];
+  lines.push(`- Brand: "${entityName}"`);
+  const effIndustry = brandDNA?.industry || industry;
+  if (effIndustry) lines.push(`- Industry: ${effIndustry}`);
+  if (brandDNA?.archetype) lines.push(`- Archetype: ${brandDNA.archetype} → metaphor vocabulary should reflect this archetype's symbols`);
+  if (brandDNA?.mission) lines.push(`- Mission: ${truncate(brandDNA.mission, 220)}`);
+  if (brandDNA?.tagline) lines.push(`- Tagline: "${truncate(brandDNA.tagline, 140)}"`);
+  if (brandDNA?.toneOfVoice?.length) lines.push(`- Voice: ${brandDNA.toneOfVoice.join(", ")} — translate these adjectives into line quality, corner style, and gesture`);
+  if (brandDNA?.values?.length) lines.push(`- Values: ${brandDNA.values.join(", ")}`);
+  if (brandDNA?.services?.length) lines.push(`- Services / offerings: ${brandDNA.services.join("; ")}`);
+  if (brandDNA?.primaryColor) lines.push(`- Primary color (for context only — DO NOT bake into SVG): ${brandDNA.primaryColor}`);
+  if (lines.length === 1) {
+    // No DNA loaded — fall back to minimal context
+    lines.push(`- (No deep brand context available — design crisp, neutral icons that still feel premium.)`);
+  }
+  return lines.join("\n");
+}
+
+function truncate(s: string, n: number): string {
+  if (!s) return "";
+  return s.length > n ? s.slice(0, n - 1) + "…" : s;
 }

@@ -349,6 +349,8 @@ const IconStudioPage = () => {
         !expertMode ? (
           <IconSetWizard
             organizationName={organizationName}
+            entityId={activeBrand?.id}
+            entityType="brand"
             onSaveAsLibrary={handleSaveSetAsLibrary}
           />
         ) : (
