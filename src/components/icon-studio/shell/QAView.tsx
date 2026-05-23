@@ -93,7 +93,28 @@ const ScoreCard = ({
 
 export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate }: Props) => {
   const queryClient = useQueryClient();
-  const checks = useMemo(() => buildChecks(totalIcons), [totalIcons]);
+  const [preflight, setPreflight] = useState<PreflightSummary | null>(null);
+  const [running, setRunning] = useState(false);
+
+  const allIcons = useMemo(() => libraries.flatMap((l) => l.icons), [libraries]);
+
+  const runChecks = async () => {
+    setRunning(true);
+    try {
+      const pf = await runPreflight(allIcons);
+      setPreflight(pf);
+      return pf;
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  useEffect(() => {
+    void runChecks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalIcons]);
+
+  const checks = useMemo(() => buildChecks(totalIcons, preflight), [totalIcons, preflight]);
   const passing = checks.filter((c) => c.status === 'pass').length;
   const warnings = checks.filter((c) => c.status === 'warn').length;
   const failing = checks.filter((c) => c.status === 'fail').length;
@@ -102,12 +123,14 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
   const svgHealth = Math.min(100, 88 + Math.floor(passing * 0.5));
   const exportReady = totalIcons > 0 ? Math.min(100, 70 + passing * 2) : 0;
 
-  const handleRerun = () => {
+  const handleRerun = async () => {
     queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
+    const pf = await runChecks();
     toast.success('Preflight checks re-run', {
-      description: `${passing} passing · ${warnings} warnings · ${failing} failing`,
+      description: `${pf.contrastFails.length} contrast · ${pf.rasterFails.length} 16px · ${pf.exportNotReadyCount} not export-ready`,
     });
   };
+
 
   return (
     <div className="space-y-6">
