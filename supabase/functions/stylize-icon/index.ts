@@ -241,9 +241,21 @@ Analyze the image and create a semantic, iconic SVG representation. Output ONLY 
 
     // Also strip fill/stroke from child elements for stroke-only mode
     if (fillMode === 'stroke') {
-      svg = svg.replace(/<(path|circle|rect|line|polyline|polygon|ellipse)([^>]*)\bfill="(?!none)[^"]*"/gi, 
+      svg = svg.replace(/<(path|circle|rect|line|polyline|polygon|ellipse)([^>]*)\bfill="(?!none)[^"]*"/gi,
         '<$1$2fill="none"');
     }
+
+    // Reject vectorizations that still contain primitives — those render at the
+    // wrong stroke weight relative to <path> siblings and break the design system.
+    if (/<(g|use|defs|mask|clipPath|style|filter|linearGradient|radialGradient|image|text|foreignObject)\b/i.test(svg)) {
+      console.error("[stylize-icon] Forbidden element survived vectorization");
+      return new Response(
+        JSON.stringify({ error: "Vectorization produced unsupported elements. Try a simpler/clearer source image." }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // Strip transform/id/class/style/data-* on any element — they'd break grid alignment.
+    svg = svg.replace(/\s(id|class|style|data-[\w-]+|transform)\s*=\s*"[^"]*"/gi, "");
 
     // Clean up whitespace
     svg = svg.replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim();
