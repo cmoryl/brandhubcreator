@@ -211,6 +211,8 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
           tasks.map((t) => t.task),
           {
             entityName: companyName || industry.name,
+            entityId,
+            entityType,
             industry: industry.name,
             style,
             onTaskStart: (task) =>
