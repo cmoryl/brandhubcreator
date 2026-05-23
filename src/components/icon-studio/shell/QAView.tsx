@@ -255,9 +255,12 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
           </ul>
         )}
       </section>
+
+      <AbTestPanel libraries={libraries} organizationId={organizationId} />
     </div>
   );
 };
+
 
 const Counter = ({
   label,
