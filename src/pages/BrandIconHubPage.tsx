@@ -93,6 +93,9 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
       return data;
     },
     enabled: !!slug && !!organizationId,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
 
