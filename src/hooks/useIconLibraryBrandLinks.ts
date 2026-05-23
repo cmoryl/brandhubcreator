@@ -39,6 +39,9 @@ export const useIconLibraryBrandLinks = (organizationId: string | undefined) => 
       return (data || []) as unknown as IconLibraryEntityLink[];
     },
     enabled: !!organizationId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Generic link mutation
