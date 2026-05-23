@@ -165,6 +165,19 @@ const TestRow = ({
             <Badge variant="outline" className="text-[10px]">
               slot: {test.slot_key}
             </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 px-2 text-[10px]"
+              title="Copy <AbTestedIcon> snippet to wire this test into a surface"
+              onClick={() => {
+                const snippet = `<AbTestedIcon\n  slotKey="${test.slot_key}"\n  fallbackIcon={icon}\n  size={24}\n  onClick={() => { /* handle click */ }}\n/>`;
+                navigator.clipboard.writeText(snippet);
+                toast.success('Snippet copied to clipboard');
+              }}
+            >
+              Copy snippet
+            </Button>
           </div>
           <div className="text-[11px] text-muted-foreground">
             {totalImpressions.toLocaleString()} impressions ·{' '}
