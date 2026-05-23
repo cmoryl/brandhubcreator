@@ -11,72 +11,73 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ICON_TAXONOMY: Record<string, { name: string; description: string; sections: { name: string; description: string; count: number }[] }> = {
   Foundation: {
     name: "Foundation",
-    description: "Navigation, UI states, basic logic",
+    description: "Navigation, UI states, basic logic — the foundation must still feel authored, not stock",
     sections: [
-      { name: "Navigation", description: "Arrows, menus, wayfinding, breadcrumbs", count: 30 },
-      { name: "UI States", description: "Toggle, checkbox, radio, expand/collapse", count: 30 },
-      { name: "Basic Logic", description: "Plus, minus, close, check, refresh", count: 30 },
+      { name: "Navigation", description: "Wayfinding & directional intent. Go beyond plain arrows — explore compass rose fragments, asymmetric chevrons, path/route silhouettes, breadcrumb dot-trails, parallax indicators, doorway/portal cues. Each glyph implies MOTION, not just direction.", count: 30 },
+      { name: "UI States", description: "Stateful affordances (toggle, checkbox, radio, expand/collapse, drag, focus, loading). Express the STATE TRANSITION itself (mid-flip toggle, half-checked, accordion mid-open) — never the static default that every UI kit ships.", count: 30 },
+      { name: "Basic Logic", description: "Atomic operators (plus, minus, close, check, refresh, undo, redo, sync, divider). Treat them like a typeface — geometric harmony across the set, with at least one unexpected reinterpretation per glyph (e.g. refresh as a Möbius loop, check as a single confident stroke, close as crossed paths not an X).", count: 30 },
     ]
   },
   Communication: {
     name: "Communication",
-    description: "Email, social, feedback, support",
+    description: "Email, social, feedback, support — replace bubbles & bells with fresher signals of human contact",
     sections: [
-      { name: "Messaging", description: "Chat bubbles, comments, conversations", count: 30 },
-      { name: "Notifications", description: "Bells, alerts, badges, indicators", count: 30 },
-      { name: "Social", description: "Share, like, follow, connect", count: 30 },
-      { name: "Support", description: "Help, FAQ, contact, feedback", count: 30 },
+      { name: "Messaging", description: "Chat, comments, conversations, threads, replies, mentions, drafts, voice notes. BAN the default round speech bubble — explore tails as arrows, overlapping shapes implying dialogue, waveforms, transcript lines, half-bubbles, paper-folded notes.", count: 30 },
+      { name: "Notifications", description: "Alerts, badges, indicators, mute, snooze, do-not-disturb, priority. BAN the literal bell shape — try resonance rings, pulse waves, exclamation in negative space, flag at half-mast, sleeping crescent for mute, a finger-on-lips silhouette.", count: 30 },
+      { name: "Social", description: "Share, like, follow, connect, network, mention, invite, RSVP. BAN the heart and the thumbs-up — invent: orbit/satellite for follow, bridge between two nodes for connect, ripple-outward for share, anchor for save, blooming shape for like.", count: 30 },
+      { name: "Support", description: "Help, FAQ, contact, feedback, tickets, knowledge base, chat with human, escalate. Go past the question mark in a circle — life-ring, lighthouse, open palm, compass-with-question, two-figures-at-desk silhouette, ticket-stub.", count: 30 },
     ]
   },
   "SaaS/Data": {
     name: "SaaS/Data",
-    description: "Analytics, security, settings, workflows",
+    description: "Analytics, security, settings, workflows — the most cliché category in the industry; we refuse the defaults",
     sections: [
-      { name: "Analytics", description: "Charts, graphs, metrics, dashboards", count: 30 },
-      { name: "Security", description: "Locks, shields, keys, verification", count: 30 },
-      { name: "Settings", description: "Gears, sliders, toggles, configuration", count: 30 },
-      { name: "Workflows", description: "Process, automation, integrations", count: 30 },
+      { name: "Analytics", description: "Charts, metrics, dashboards, KPIs, segments, cohorts, funnels, heatmaps, anomalies, forecasts. BAN the bar-chart-three-bars and the upward-line-with-arrow — explore: scatter constellations, sparkline fragments, candlestick rhythm, isobar maps, distribution bell-curves drawn as silhouettes.", count: 30 },
+      { name: "Security", description: "Auth, access, encryption, audit, threat, MFA, key rotation, vault, biometric, zero-trust. BAN the closed padlock and the plain shield — try: vault-door cross-section, key teeth as waveform, fingerprint as topographic lines, eye-of-protection, woven knot for encryption.", count: 30 },
+      { name: "Settings", description: "Config, preferences, sliders, toggles, themes, customization, API keys, environment. BAN the six-tooth gear — explore: slider stack, dial cluster, control-room knob, faceted polygon, dip-switches, equalizer columns, modular grid being rearranged.", count: 30 },
+      { name: "Workflows", description: "Pipeline, automation, triggers, jobs, queues, retries, integration, webhook, cron. Show MOVEMENT and CAUSALITY: tipping dominoes, relay-baton handoff, gears-of-different-sizes meshing, branching river, conveyor segment, falling-then-rising arc.", count: 30 },
     ]
   },
   "E-Commerce": {
     name: "E-Commerce",
-    description: "Payments, shipping, storefront, loyalty",
+    description: "Payments, shipping, storefront, loyalty — must feel like a boutique brand's set, not Stripe's defaults",
     sections: [
-      { name: "Shopping", description: "Cart, bag, wishlist, browse", count: 30 },
-      { name: "Payments", description: "Cards, wallet, transactions, invoices", count: 30 },
-      { name: "Shipping", description: "Delivery, tracking, packages, returns", count: 30 },
-      { name: "Loyalty", description: "Rewards, points, membership, gifts", count: 30 },
+      { name: "Shopping", description: "Cart, bag, wishlist, browse, compare, filter, recommendation. BAN the wire shopping cart — explore: market basket, paper bag with handles, tote silhouette, hanger, mannequin, browse-as-a-finger-flipping-tags, wishlist-as-bookmark-ribbon.", count: 30 },
+      { name: "Payments", description: "Cards, wallet, transactions, invoices, refunds, splits, currency, escrow. BAN the credit-card-with-stripe — explore: folded bill, coin edge-on, receipt curl, two-arrows-crossing for transfer, hand-to-hand exchange, ledger column.", count: 30 },
+      { name: "Shipping", description: "Delivery, tracking, packages, returns, customs, last-mile, in-transit. BAN the literal cardboard box with tape — explore: parcel-on-doormat, route-with-pin, scanner crossing a barcode, conveyor belt edge, customs-stamp, drone silhouette, mailbox flag.", count: 30 },
+      { name: "Loyalty", description: "Rewards, points, membership, gifts, tiers, perks, referrals, streaks. BAN the gift-with-bow — explore: laurel fragment, stamped passport page, punch-card, climbing tier-steps, badge-pinned-to-fabric, ticket stub, key-to-the-club.", count: 30 },
     ]
   },
   "Marketing Hero": {
     name: "Marketing Hero",
-    description: "Growth, trophies, trust signals, abstract concepts",
+    description: "Growth, trophies, trust signals, abstract concepts — the most cliché set on the internet; we make it iconic instead",
     sections: [
-      { name: "Growth", description: "Rockets, trends, scales, expansion", count: 30 },
-      { name: "Achievement", description: "Trophies, medals, badges, certificates", count: 30 },
-      { name: "Trust", description: "Handshakes, guarantees, verified, secure", count: 30 },
-      { name: "Abstract", description: "Innovation, ideas, concepts, vision", count: 30 },
+      { name: "Growth", description: "Expansion, scale, traction, momentum, breakthroughs. BAN the rocket-with-flames and the upward arrow — explore: sprout pushing through ground, ladder-fragment, balloon-rising, terraced steps, branching tree-fractal, sundial-growing-shadow, breaking-through-ceiling silhouette.", count: 30 },
+      { name: "Achievement", description: "Wins, recognition, mastery, milestones. BAN the cup-trophy and five-point star — explore: laurel-half-wreath, ribbon-rosette, summit-flag, podium-edge, engraved-plaque, medal-on-ribbon (side profile), confetti-arc, signature-flourish.", count: 30 },
+      { name: "Trust", description: "Credibility, guarantees, verified, secure, certified, transparent. BAN the handshake and the checkmark-shield — explore: notarized-seal, fingerprint-with-checkmark-in-negative-space, anchor-and-rope, two-overlapping-rings, open-vault, lighthouse, balance-scale-in-equilibrium.", count: 30 },
+      { name: "Abstract", description: "Innovation, ideas, vision, possibility, breakthrough, clarity. BAN the lightbulb-with-rays and the brain-with-gear — explore: prism splitting a line, sunrise-over-horizon, blooming geometric form, lens focusing rays, key-fitting-into-keyhole-of-light, doorway-of-light, north-star fragment.", count: 30 },
     ]
   },
   "Industry Specific": {
     name: "Industry Specific",
-    description: "Custom symbols based on user's niche",
+    description: "Custom symbols based on the brand's niche — must look like a domain insider drew them, not an outsider",
     sections: [
-      { name: "Professional", description: "Industry-relevant professional symbols", count: 30 },
-      { name: "Technical", description: "Specialized technical icons", count: 30 },
-      { name: "Domain", description: "Domain-specific imagery", count: 30 },
+      { name: "Professional", description: "Symbols of the actual roles, rituals, and artifacts of THIS industry's daily practice. Tools-in-use, not tools-on-a-shelf. Hands-on-instrument silhouettes welcomed. Avoid the briefcase, the chart, and the abstract human head.", count: 30 },
+      { name: "Technical", description: "Specialized apparatus, schematics, materials, processes, units of measure unique to this domain. Cross-sections, exploded views, and instrument-panel fragments encouraged. Avoid generic 'tech' tropes (chip, code-brackets, terminal).", count: 30 },
+      { name: "Domain", description: "Cultural shorthand of the field — the visual jargon insiders recognize at a glance: equipment quirks, signage conventions, ritual objects, taxonomies. The icons a competitor in this space would never think to commission.", count: 30 },
     ]
   },
   "Brand Signature": {
     name: "Brand Signature",
-    description: "Bespoke icons derived from THIS brand's DNA — services, archetype, mission, values",
+    description: "Bespoke icons derived from THIS brand's DNA — services, archetype, mission, values. These should be un-portable to any other brand.",
     sections: [
-      { name: "Services & Offerings", description: "One distinct icon per service/offering the brand actually delivers — concrete metaphors, not generic stand-ins", count: 40 },
-      { name: "Archetype & Values", description: "Symbols that embody the brand's archetype and core values translated into visual metaphor", count: 40 },
-      { name: "Mission Moments", description: "Icons depicting the brand's mission in action — the verbs and outcomes from the mission statement and tagline", count: 40 },
+      { name: "Services & Offerings", description: "One distinct icon per service/offering the brand actually delivers. Each must depict the SERVICE-IN-MOTION (the verb), not the deliverable as a static object. Concrete metaphors drawn from how customers actually experience the service.", count: 40 },
+      { name: "Archetype & Values", description: "Symbols embodying the brand's archetype and core values translated into visual metaphor. Pull from the archetype's classical iconography (Sage→lens/scroll/owl, Outlaw→bolt/skull/shattered-frame, Magician→prism/wand/spiral) then twist with a brand-specific detail.", count: 40 },
+      { name: "Mission Moments", description: "Icons depicting the brand's mission in action — the verbs and outcomes from the mission statement and tagline. Each glyph should answer 'what does success look like the moment it happens?' — a result frozen mid-arrival.", count: 40 },
     ]
   }
 };
+
 
 
 async function dbFetch(path: string, options: RequestInit = {}) {
