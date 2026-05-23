@@ -66,6 +66,15 @@ const ICON_TAXONOMY: Record<string, { name: string; description: string; section
       { name: "Technical", description: "Specialized technical icons", count: 30 },
       { name: "Domain", description: "Domain-specific imagery", count: 30 },
     ]
+  },
+  "Brand Signature": {
+    name: "Brand Signature",
+    description: "Bespoke icons derived from THIS brand's DNA — services, archetype, mission, values",
+    sections: [
+      { name: "Services & Offerings", description: "One distinct icon per service/offering the brand actually delivers — concrete metaphors, not generic stand-ins", count: 10 },
+      { name: "Archetype & Values", description: "Symbols that embody the brand's archetype and core values translated into visual metaphor", count: 10 },
+      { name: "Mission Moments", description: "Icons depicting the brand's mission in action — the verbs and outcomes from the mission statement and tagline", count: 10 },
+    ]
   }
 };
 
