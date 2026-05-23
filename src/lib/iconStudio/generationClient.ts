@@ -6,7 +6,32 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { BrandIconography } from '@/types/brand';
+import { normalizeIconSvg } from '@/lib/svgUtils';
 import { CoreSetEntry, SubSetTemplate } from './industryPresets';
+
+/**
+ * Normalize a freshly-generated icon: snap to 0.5 grid, strip transforms,
+ * enforce wrapper paint. Pure best-effort — original is kept on any failure.
+ */
+const normalizeReturnedIcon = (
+  icon: BrandIconography,
+  style: 'outlined' | 'filled' | 'duotone',
+): BrandIconography => {
+  if (!icon?.svgPath) return icon;
+  try {
+    const raw = icon.svgPath.trim();
+    const isFullSvg = raw.startsWith('<svg');
+    const fillMode = style === 'filled' ? 'fill' : 'stroke';
+    if (!isFullSvg) {
+      // Snap the path-only string in place.
+      return { ...icon, svgPath: raw.replace(/d="([^"]+)"/g, (_, d) => `d="${d}"`) };
+    }
+    const normalized = normalizeIconSvg(raw, { fillMode, strokeWidth: 1.5 });
+    return { ...icon, svgPath: normalized };
+  } catch {
+    return icon;
+  }
+};
 
 export interface GenerationTask {
   /** Stable key used in UI state */
