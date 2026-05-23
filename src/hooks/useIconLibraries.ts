@@ -67,6 +67,12 @@ export const useIconLibraries = (organizationId: string | undefined) => {
       })) as IconLibrary[];
     },
     enabled: !!organizationId,
+    // The icons column is a large JSONB (hundreds of SVG paths per library).
+    // Cache aggressively so navigating across the Icon Studio doesn't refetch MBs each time.
+    // Mutations invalidate ['icon-libraries', organizationId] explicitly.
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const createLibrary = useMutation({
