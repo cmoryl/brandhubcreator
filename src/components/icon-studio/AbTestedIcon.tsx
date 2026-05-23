@@ -8,7 +8,7 @@
  */
 
 import { useMemo } from 'react';
-import IconSvgRender from './IconSvgRender';
+import { IconSvgRender } from './IconSvgRender';
 import type { BrandIconography } from '@/types/brand';
 import {
   useActiveIconAbTestForSlot,
