@@ -3496,6 +3496,131 @@ export type Database = {
           },
         ]
       }
+      icon_ab_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: number
+          session_id: string | null
+          test_id: string
+          user_id: string | null
+          variant_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: number
+          session_id?: string | null
+          test_id: string
+          user_id?: string | null
+          variant_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: number
+          session_id?: string | null
+          test_id?: string
+          user_id?: string | null
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "icon_ab_events_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "icon_ab_tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "icon_ab_events_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "icon_ab_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      icon_ab_tests: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          library_id: string | null
+          name: string
+          organization_id: string
+          slot_key: string
+          status: string
+          updated_at: string
+          winner_variant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          library_id?: string | null
+          name: string
+          organization_id: string
+          slot_key: string
+          status?: string
+          updated_at?: string
+          winner_variant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          library_id?: string | null
+          name?: string
+          organization_id?: string
+          slot_key?: string
+          status?: string
+          updated_at?: string
+          winner_variant_id?: string | null
+        }
+        Relationships: []
+      }
+      icon_ab_variants: {
+        Row: {
+          created_at: string
+          icon_id: string
+          id: string
+          label: string | null
+          svg_path: string | null
+          test_id: string
+          view_box: string | null
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          icon_id: string
+          id?: string
+          label?: string | null
+          svg_path?: string | null
+          test_id: string
+          view_box?: string | null
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          icon_id?: string
+          id?: string
+          label?: string | null
+          svg_path?: string | null
+          test_id?: string
+          view_box?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "icon_ab_variants_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "icon_ab_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       icon_library_brand_links: {
         Row: {
           allow_overrides: boolean
@@ -6638,6 +6763,16 @@ export type Database = {
           snapshot_date: string
           triggered_by: string
           website_score: number
+        }[]
+      }
+      get_icon_ab_results: {
+        Args: { p_test_id: string }
+        Returns: {
+          clicks: number
+          ctr: number
+          impressions: number
+          label: string
+          variant_id: string
         }[]
       }
       get_intelligence_cadence: { Args: never; Returns: string }
