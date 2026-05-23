@@ -147,6 +147,8 @@ serve(async (req) => {
     // Create mode: start generation job
     const {
       entityName,
+      entityId,
+      entityType,
       industry,
       category = "Foundation",
       sectionIndex = 0,
@@ -172,11 +174,11 @@ serve(async (req) => {
     const jobData = await dbFetch("brand_intelligence_jobs", {
       method: "POST",
       body: JSON.stringify({
-        entity_id: crypto.randomUUID(),
+        entity_id: entityId || crypto.randomUUID(),
         entity_type: "icon_generation",
         user_id: user.id,
         status: "pending",
-        result: { category, sectionIndex, style, preset, customCount, industry, entityName },
+        result: { category, sectionIndex, style, preset, customCount, industry, entityName, entityId, entityType },
       }),
     });
 
