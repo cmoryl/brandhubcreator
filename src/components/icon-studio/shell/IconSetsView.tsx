@@ -333,6 +333,15 @@ export const IconSetsView = ({
         organizationId={organizationId}
         onClose={() => setRegenLib(null)}
       />
+
+      <BulkExpandDialog
+        open={expandOpen}
+        libraries={libraries}
+        organizationId={organizationId}
+        expandBy={50}
+        level="brand"
+        onClose={() => setExpandOpen(false)}
+      />
     </div>
   );
 };
