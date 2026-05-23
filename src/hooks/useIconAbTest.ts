@@ -122,3 +122,37 @@ export const useIconAbResults = (testId: string | null | undefined) =>
       return (data ?? []) as IconAbResult[];
     },
   });
+
+/**
+ * Resolve the active A/B test for a given slot key (optionally scoped to
+ * organization + library). Returns `{ testId, winnerVariantId, status }` or
+ * null when no test exists for that slot.
+ */
+export const useActiveIconAbTestForSlot = (
+  slotKey: string | null | undefined,
+  opts?: { organizationId?: string | null; libraryId?: string | null },
+) =>
+  useQuery({
+    queryKey: ['icon-ab-active', slotKey, opts?.organizationId, opts?.libraryId],
+    enabled: !!slotKey,
+    queryFn: async () => {
+      let q = supabase
+        .from('icon_ab_tests')
+        .select('id, winner_variant_id, status, library_id, organization_id')
+        .eq('slot_key', slotKey!)
+        .in('status', ['running', 'completed'])
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (opts?.organizationId) q = q.eq('organization_id', opts.organizationId);
+      if (opts?.libraryId) q = q.eq('library_id', opts.libraryId);
+      const { data, error } = await q.maybeSingle();
+      if (error) throw error;
+      return data
+        ? {
+            testId: data.id as string,
+            winnerVariantId: (data.winner_variant_id as string | null) ?? null,
+            status: data.status as 'running' | 'completed',
+          }
+        : null;
+    },
+  });
