@@ -382,22 +382,27 @@ ${industry ? `- Infuse ${industry} visual language with domain-specific metaphor
       }
     }
 
-    // Post-process SVGs
-    const formattedIcons = icons.map((icon, idx) => {
-      let svg = icon.svg || "";
-      if (!svg.includes("xmlns=")) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
-      if (!svg.includes("viewBox=")) svg = svg.replace("<svg", '<svg viewBox="0 0 24 24"');
-      return {
-        id: crypto.randomUUID(),
-        name: icon.name || `${currentSection.name} Icon ${idx + 1}`,
-        svgPath: svg,
-        category: `${category} / ${currentSection.name}`,
-        viewBox: "0 0 24 24",
-        fillMode: isFilled ? "fill" : "stroke",
-      };
-    });
+    // Sanitize + validate each SVG against the rule set. Reject icons we can't fix.
+    const cleaned = icons
+      .map((icon, idx) => {
+        const result = sanitizeAndValidate(icon.svg || "", { isFilled, strokeWidth, linecap, linejoin });
+        if (!result.ok) {
+          console.warn(`[generate-icon-set-worker] Rejected icon "${icon.name}": ${result.reason}`);
+          return null;
+        }
+        return {
+          id: crypto.randomUUID(),
+          name: icon.name || `${currentSection.name} Icon ${idx + 1}`,
+          svgPath: result.svg,
+          category: `${category} / ${currentSection.name}`,
+          viewBox: "0 0 24 24",
+          fillMode: isFilled ? "fill" : "stroke",
+        };
+      })
+      .filter(Boolean) as Array<Record<string, unknown>>;
 
-    console.log(`[generate-icon-set-worker] Completed: ${formattedIcons.length} icons for ${category}/${currentSection.name}`);
+    const formattedIcons = cleaned;
+    console.log(`[generate-icon-set-worker] Completed: ${formattedIcons.length}/${icons.length} icons passed validation for ${category}/${currentSection.name}`);
 
     // Save result
     await dbFetch(`brand_intelligence_jobs?id=eq.${jobId}`, {
