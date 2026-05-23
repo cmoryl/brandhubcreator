@@ -119,6 +119,14 @@ export const scoreIcon = (icon: BrandIconography, recipe?: IconRecipe | null): Q
         severity: 'warn',
         message: `Non-square viewBox (${vb[2]}×${vb[3]}). Icons should be square.`,
       });
+    } else if (vb[2] !== 24 || vb[0] !== 0 || vb[1] !== 0) {
+      svgHealth -= 5;
+      findings.push({
+        id: 'viewbox-nonstandard',
+        category: 'svgHealth',
+        severity: 'warn',
+        message: `Non-standard viewBox "${vb.join(' ')}". Lucide/Tabler standard is "0 0 24 24".`,
+      });
     }
 
     // Raster embedded?
@@ -132,7 +140,33 @@ export const scoreIcon = (icon: BrandIconography, recipe?: IconRecipe | null): Q
       });
     }
 
-    // Excessive path count
+    // Forbidden primitives — modern pipeline outputs paths only.
+    const forbidden = ['circle', 'rect', 'line', 'polygon', 'polyline', 'ellipse', 'g', 'use', 'defs', 'mask', 'clipPath', 'filter', 'text', 'style'];
+    const foundForbidden = forbidden.filter((tag) =>
+      new RegExp(`<${tag}\\b`, 'i').test(svg),
+    );
+    if (foundForbidden.length > 0) {
+      svgHealth -= 25;
+      findings.push({
+        id: 'non-path-primitives',
+        category: 'svgHealth',
+        severity: 'warn',
+        message: `Contains non-path primitives: <${foundForbidden.join('>, <')}>. Paths-only is preferred for clean scaling.`,
+      });
+    }
+
+    // Transform attributes break grid alignment.
+    if (/\btransform\s*=/i.test(svg)) {
+      svgHealth -= 10;
+      findings.push({
+        id: 'has-transform',
+        category: 'svgHealth',
+        severity: 'warn',
+        message: 'Uses transform="…". Bake transforms into coordinates for grid alignment.',
+      });
+    }
+
+    // Path count — Lucide-grade aims for 1–3.
     const pathCount = countOccurrences(svg, /<path\b/gi);
     if (pathCount > 8) {
       svgHealth -= 15;
@@ -140,8 +174,46 @@ export const scoreIcon = (icon: BrandIconography, recipe?: IconRecipe | null): Q
         id: 'path-count-high',
         category: 'svgHealth',
         severity: 'warn',
-        message: `High path count (${pathCount}). Aim for ≤8 for clean rendering.`,
+        message: `High path count (${pathCount}). Aim for ≤3 for Lucide-grade clarity.`,
       });
+    } else if (pathCount > 3) {
+      svgHealth -= 5;
+      findings.push({
+        id: 'path-count-above-target',
+        category: 'svgHealth',
+        severity: 'warn',
+        message: `${pathCount} paths. Target ≤3 — merge collinear segments where possible.`,
+      });
+    }
+
+    // Coordinate precision: .0 / .5 grid only.
+    const pathData = Array.from(svg.matchAll(/<path\b[^>]*\bd\s*=\s*"([^"]+)"/gi))
+      .map((m) => m[1])
+      .join(' ');
+    if (pathData) {
+      const highPrecision = pathData.match(/\d+\.\d{2,}/g);
+      if (highPrecision && highPrecision.length > 0) {
+        const sample = highPrecision.slice(0, 3).join(', ');
+        const allNums = pathData.match(/\d+(\.\d+)?/g) || [];
+        const ratio = highPrecision.length / Math.max(1, allNums.length);
+        if (ratio > 0.25) {
+          svgHealth -= 12;
+          findings.push({
+            id: 'precision-high',
+            category: 'svgHealth',
+            severity: 'warn',
+            message: `Many high-precision coordinates (e.g. ${sample}). Snap to .0/.5 grid.`,
+          });
+        } else {
+          svgHealth -= 4;
+          findings.push({
+            id: 'precision-stray',
+            category: 'svgHealth',
+            severity: 'warn',
+            message: `${highPrecision.length} off-grid coordinate${highPrecision.length === 1 ? '' : 's'} (e.g. ${sample}).`,
+          });
+        }
+      }
     }
 
     // File size proxy (string length is a fair stand-in pre-gzip)
@@ -169,6 +241,28 @@ export const scoreIcon = (icon: BrandIconography, recipe?: IconRecipe | null): Q
           category: 'svgHealth',
           severity: 'warn',
           message: `Inconsistent stroke widths: ${widths.join(', ')}.`,
+        });
+      }
+
+      // Linecap/linejoin consistency for stroked icons.
+      const caps = Array.from(svg.matchAll(/stroke-linecap\s*=\s*"([^"]+)"/g)).map((m) => m[1]);
+      const joins = Array.from(svg.matchAll(/stroke-linejoin\s*=\s*"([^"]+)"/g)).map((m) => m[1]);
+      if (caps.length > 1 && new Set(caps).size > 1) {
+        svgHealth -= 6;
+        findings.push({
+          id: 'linecap-inconsistent',
+          category: 'svgHealth',
+          severity: 'warn',
+          message: `Mixed stroke-linecap values: ${Array.from(new Set(caps)).join(', ')}.`,
+        });
+      }
+      if (joins.length > 1 && new Set(joins).size > 1) {
+        svgHealth -= 6;
+        findings.push({
+          id: 'linejoin-inconsistent',
+          category: 'svgHealth',
+          severity: 'warn',
+          message: `Mixed stroke-linejoin values: ${Array.from(new Set(joins)).join(', ')}.`,
         });
       }
     }
