@@ -60,7 +60,11 @@ interface RunOpts {
 const POLL_INTERVAL_MS = 2500;
 const POLL_MAX_ATTEMPTS = 60; // ~2.5 min
 
-async function pollJob(jobId: string, signal?: AbortSignal): Promise<BrandIconography[]> {
+async function pollJob(
+  jobId: string,
+  style: 'outlined' | 'filled' | 'duotone',
+  signal?: AbortSignal,
+): Promise<BrandIconography[]> {
   for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
     if (signal?.aborted) throw new Error('Aborted');
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
@@ -69,7 +73,7 @@ async function pollJob(jobId: string, signal?: AbortSignal): Promise<BrandIconog
     });
     if (error) throw new Error(error.message);
     if (data?.status === 'completed' && Array.isArray(data?.icons)) {
-      return data.icons as BrandIconography[];
+      return (data.icons as BrandIconography[]).map((i) => normalizeReturnedIcon(i, style));
     }
     if (data?.status === 'failed') {
       throw new Error(data?.error || 'Generation failed');
@@ -95,8 +99,10 @@ export async function runGenerationTask(
     },
   });
   if (error) throw new Error(error.message);
-  if (data?.jobId) return pollJob(data.jobId, opts.signal);
-  if (Array.isArray(data?.icons)) return data.icons as BrandIconography[];
+  if (data?.jobId) return pollJob(data.jobId, style, opts.signal);
+  if (Array.isArray(data?.icons)) {
+    return (data.icons as BrandIconography[]).map((i) => normalizeReturnedIcon(i, style));
+  }
   return [];
 }
 
