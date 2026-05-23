@@ -223,19 +223,39 @@ Output ONLY the complete SVG element. No explanation, no markdown.`;
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
+    let content = data.choices?.[0]?.message?.content || "";
+    let validated = extractAndSanitize(content, { isFilled, strokeWidth, linecap, linejoin });
 
-    // Extract SVG from the response
-    const svgMatch = content.match(/<svg[\s\S]*?<\/svg>/i);
-    if (!svgMatch) {
-      console.error("No SVG found in response:", content);
+    // One-shot retry if the first SVG didn't pass our strict validator.
+    if (!validated.ok) {
+      console.warn(`[generate-icon] First attempt rejected (${validated.reason}). Retrying once.`);
+      const retry = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: SVG_ARCHITECT_PROMPT + styleDirective },
+            { role: "user", content: userPrompt + `\n\nPrevious attempt was rejected: ${validated.reason}. Re-output a clean, minimal, valid SVG using ONLY <path> elements with whole-pixel or .5 coordinates.` },
+          ],
+        }),
+      });
+      if (retry.ok) {
+        const retryData = await retry.json();
+        content = retryData.choices?.[0]?.message?.content || "";
+        validated = extractAndSanitize(content, { isFilled, strokeWidth, linecap, linejoin });
+      }
+    }
+
+    if (!validated.ok) {
+      console.error("[generate-icon] Validation failed after retry:", validated.reason, content);
       return new Response(
-        JSON.stringify({ error: "Failed to generate valid SVG. Please try a different description." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: `Generated SVG didn't meet quality bar (${validated.reason}). Try rephrasing or simplifying the prompt.` }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const svg = svgMatch[0];
+    const svg = validated.svg;
 
     // Generate kebab-case ID from prompt
     const iconId = prompt
@@ -245,7 +265,7 @@ Output ONLY the complete SVG element. No explanation, no markdown.`;
       .slice(0, 40);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         svg,
         metadata: {
           icon_id: iconId,
@@ -264,3 +284,48 @@ Output ONLY the complete SVG element. No explanation, no markdown.`;
     );
   }
 });
+
+/**
+ * Pulls the first <svg>…</svg> out of model output and runs the same strict
+ * sanitizer used by generate-icon-set: no primitives, no transforms, no baked
+ * colors, no wild decimal coordinates. Wrapper attributes are normalized.
+ */
+function extractAndSanitize(
+  content: string,
+  opts: { isFilled: boolean; strokeWidth: number; linecap: string; linejoin: string },
+): { ok: true; svg: string } | { ok: false; reason: string } {
+  const match = String(content || "").match(/<svg[\s\S]*?<\/svg>/i);
+  if (!match) return { ok: false, reason: "no <svg> in model output" };
+
+  let svg = match[0].trim();
+
+  if (/<(circle|rect|line|polygon|polyline|ellipse|g|use|defs|mask|clipPath|style|filter|linearGradient|radialGradient|image|text|foreignObject)\b/i.test(svg)) {
+    return { ok: false, reason: "contains forbidden SVG primitive" };
+  }
+
+  const pathMatches = [...svg.matchAll(/<path\b[^>]*\bd\s*=\s*"([^"]+)"[^>]*\/?>/gi)];
+  if (pathMatches.length === 0) return { ok: false, reason: "no <path d=…> found" };
+  if (pathMatches.length > 3) return { ok: false, reason: `${pathMatches.length} paths (max 3)` };
+
+  for (const m of pathMatches) {
+    if ((m[1].match(/\d+\.\d{3,}/g) || []).length > 0) {
+      return { ok: false, reason: "path has high-precision decimals (snap to .0/.5)" };
+    }
+  }
+
+  // Strip forbidden attributes everywhere.
+  svg = svg.replace(/\s(id|class|style|data-[\w-]+|transform)\s*=\s*"[^"]*"/gi, "");
+  // Strip baked colors/opacities from <path> and the outer <svg> (we re-apply them).
+  svg = svg.replace(/<(path|svg)\b([^>]*)>/gi, (_, tag, attrs) =>
+    `<${tag}${attrs.replace(/\s(fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|stroke-miterlimit|opacity|fill-opacity|stroke-opacity)\s*=\s*"[^"]*"/gi, "")}>`
+  );
+
+  const wrapperAttrs = opts.isFilled
+    ? `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="none"`
+    : `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+
+  svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
+
+  if (!/<\/svg>\s*$/i.test(svg)) return { ok: false, reason: "unterminated <svg>" };
+  return { ok: true, svg };
+}
