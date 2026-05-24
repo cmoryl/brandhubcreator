@@ -15,6 +15,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { StatusChip } from './StatusChip';
@@ -23,6 +33,8 @@ import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 interface Props {
   libraries: IconLibrary[];
   organizationId?: string;
+  /** When false, hides destructive / mutating affordances (Duplicate, Lock, Delete, New set). */
+  canEdit?: boolean;
   onOpenSet?: (lib: IconLibrary) => void;
   onCreate?: () => void;
   onRemix?: (lib: IconLibrary) => void;
