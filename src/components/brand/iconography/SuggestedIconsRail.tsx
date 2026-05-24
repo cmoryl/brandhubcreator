@@ -22,6 +22,7 @@ import { getSuggestedIcons, type SuggestedIcon } from '@/lib/iconLibrary/suggest
 import { materializeAsBrandIconography, materializeDataUrl } from '@/lib/iconLibrary/loader';
 import { restyleBundledIcon, applyBrandDnaToSvg, type BrandRestyleDNA } from '@/lib/iconLibrary/restyle';
 import { kitsForSection, resolveKit } from '@/lib/iconLibrary/kits';
+import { useIconUsageLogger } from '@/lib/iconLibrary/usageTracking';
 import type { BrandIconography } from '@/types/brand';
 
 interface SuggestedIconsRailProps {
@@ -34,6 +35,9 @@ interface SuggestedIconsRailProps {
   limit?: number;
   /** Phase 4: optional brand DNA — when present, previews are auto-restyled. */
   brandDna?: BrandRestyleDNA;
+  /** Phase 6: org + brand context for usage tracking. */
+  organizationId?: string | null;
+  brandId?: string | null;
 }
 
 export const SuggestedIconsRail = ({
@@ -44,7 +48,10 @@ export const SuggestedIconsRail = ({
   onAddBatch,
   limit = 24,
   brandDna,
+  organizationId,
+  brandId,
 }: SuggestedIconsRailProps) => {
+  const logUsage = useIconUsageLogger();
   const [items, setItems] = useState<SuggestedIcon[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -102,6 +109,16 @@ export const SuggestedIconsRail = ({
         } catch { /* fall back to original */ }
       }
       onAdd(brandIcon as BrandIconography);
+      logUsage({
+        organizationId,
+        brandId,
+        industry,
+        sectionId,
+        pack: s.pack,
+        iconName: s.name,
+        action: 'added',
+        source: aiActive ? 'ai-search' : 'suggested',
+      });
       toast.success(`Added ${brandIcon.name}${brandDna && restyleOn ? ' (brand DNA applied)' : ''}`);
     } catch {
       toast.error('Could not add icon');
@@ -128,6 +145,21 @@ export const SuggestedIconsRail = ({
         onAddBatch(fresh);
       } else {
         fresh.forEach((ic) => onAdd(ic));
+      }
+      // Log each icon in the kit individually so trending stats remain per-icon.
+      for (const ic of fresh) {
+        const [pack, ...rest] = ic.id.split('/');
+        const iconName = rest.join('/');
+        logUsage({
+          organizationId,
+          brandId,
+          industry,
+          sectionId,
+          pack,
+          iconName,
+          action: 'kit_added',
+          source: kit.id,
+        });
       }
       toast.success(`Added ${fresh.length} icons from ${kit.name}${dna ? ' · brand DNA applied' : ''}`);
     } catch {

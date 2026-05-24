@@ -15,6 +15,7 @@ import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './icon
 import { IconLibraryPicker } from './iconography/IconLibraryPicker';
 import { IconPreviewDialog } from './iconography/IconPreviewDialog';
 import { SuggestedIconsRail } from './iconography/SuggestedIconsRail';
+import { TrendingIconsRail } from './iconography/TrendingIconsRail';
 import type { IconStudioTab } from './iconography';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
@@ -732,6 +733,8 @@ ${innerContent}
         <SuggestedIconsRail
           sectionId="iconography"
           industry={industry}
+          organizationId={organizationId}
+          brandId={brandId}
           existingIcons={iconography}
           brandDna={{
             strokeWidth: 1.75,
@@ -753,6 +756,29 @@ ${innerContent}
             const fresh = icons.filter((ic) => !existing.has(ic.id));
             if (fresh.length === 0) return;
             onIconographyChange([...iconography, ...fresh]);
+          }}
+        />
+      )}
+
+      {canEdit && (
+        <TrendingIconsRail
+          sectionId="iconography"
+          industry={industry}
+          organizationId={organizationId}
+          existingIcons={iconography}
+          brandDna={{
+            strokeWidth: 1.75,
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+            primaryColor: defaultIconColor && defaultIconColor !== 'currentColor'
+              ? defaultIconColor
+              : brandColors[0]?.hex,
+            fillMode: 'preserve',
+          }}
+          onAdd={(icon) => {
+            if (!onIconographyChange) return;
+            if (iconography.some((i) => i.id === icon.id)) return;
+            onIconographyChange([...iconography, icon]);
           }}
         />
       )}
