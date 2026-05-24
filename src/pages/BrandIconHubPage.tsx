@@ -39,6 +39,7 @@ import '@/components/icon-studio/shell/tpTokens.css';
 import { toast } from 'sonner';
 import { buildBrandIconPdf } from '@/lib/iconStudio/brandIconPdf';
 import { PdfPreviewDialog } from '@/components/icon-studio/PdfPreviewDialog';
+import { PdfBrandingPopover, defaultPdfBranding, type PdfBrandingState } from '@/components/icon-studio/PdfBrandingPopover';
 import { useHiddenItems } from '@/components/icon-studio/shell/useHiddenItems';
 
 const SAMPLE_FOR = (name: string): string[] => {
