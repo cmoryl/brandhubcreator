@@ -165,6 +165,7 @@ serve(async (req) => {
       style = { strokeWidth: 2, cornerRadius: "rounded", fill: false },
       preset = "outlined",
       detailLevel = "medium",
+      gridSize: gridSizeRaw,
       customCount,
     } = body;
 
@@ -172,6 +173,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Entity name is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    const gridSize: 24 | 48 = gridSizeRaw === 48 ? 48 : 24;
 
     const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
     if (sectionIndex >= taxonomyCategory.sections.length) {
@@ -189,7 +192,7 @@ serve(async (req) => {
         entity_type: "icon_generation",
         user_id: user.id,
         status: "pending",
-        result: { category, sectionIndex, style, preset, detailLevel, customCount, industry, entityName, entityId, entityType },
+        result: { category, sectionIndex, style, preset, detailLevel, gridSize, customCount, industry, entityName, entityId, entityType },
       }),
     });
 
