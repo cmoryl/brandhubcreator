@@ -19,6 +19,8 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 
+import { TransPerfectColorTypographyPanel } from './identity/TransPerfectColorTypographyPanel';
+
 interface ColorPaletteSectionProps {
   colors: BrandColor[];
   onColorsChange?: (colors: BrandColor[]) => void;
@@ -27,6 +29,7 @@ interface ColorPaletteSectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   brandName?: string;
+  brandSlug?: string;
 }
 
 export const ColorPaletteSection = ({ 
