@@ -17,6 +17,7 @@ import { DashboardView } from '@/components/icon-studio/shell/DashboardView';
 import { ProductionSummary } from '@/components/icon-studio/shell/ProductionSummary';
 
 import { LibraryView } from '@/components/icon-studio/shell/LibraryView';
+import { ImportedIconsView } from '@/components/icon-studio/shell/ImportedIconsView';
 import { BrandsView } from '@/components/icon-studio/shell/BrandsView';
 import { StyleSystemsView } from '@/components/icon-studio/shell/StyleSystemsView';
 import { IconSetsView } from '@/components/icon-studio/shell/IconSetsView';
