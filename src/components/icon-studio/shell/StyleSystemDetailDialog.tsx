@@ -160,17 +160,7 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply, onApp
 
               {/* Hero showcase row at LG size */}
               <div className="rounded-xl bg-background/40 backdrop-blur-sm border border-border/40 p-5">
-                <IconSetPreview
-                  emojis={['✨', '🛡️', '📊', '🛒', '💬', '🚀']}
-                  accent={accent}
-                  accent2={a2}
-                  recipe={style.recipe}
-                  size="lg"
-                  count={6}
-                  variant={style.preview.variant}
-                  radius={style.preview.radius}
-                  strokeWidth={style.preview.strokeWidth}
-                />
+                <BundledIconLadder style={style} accent={accent} pack={packId || undefined} count={6} tile={48} />
               </div>
 
               <div className="flex flex-wrap gap-2 mt-5">
@@ -189,10 +179,53 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply, onApp
                     Stroke {style.preview.strokeWidth}px
                   </Badge>
                 )}
+                {source && (
+                  <Badge variant="outline" className="text-[10px]">
+                    Source: {source.label}
+                  </Badge>
+                )}
               </div>
             </div>
 
             <div className="p-8 space-y-8">
+              {/* Pack + category pickers drive every preview below. */}
+              <Section
+                title="Source"
+                icon={LibraryIcon}
+                hint="Pick a bundled pack and category — every preview restyles in real time."
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={packId} onValueChange={setPackId}>
+                    <SelectTrigger className="h-9 w-[220px] text-[12px]">
+                      <SelectValue placeholder="Pick a pack" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[50vh]">
+                      {packs.map((p) => (
+                        <SelectItem key={p.id} value={p.id} className="text-[12px]">
+                          <span className="flex items-center justify-between gap-3 w-full">
+                            <span>{p.name}</span>
+                            <span className="text-[10px] text-muted-foreground tabular-nums">{p.count.toLocaleString()}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="h-9 w-[180px] text-[12px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[50vh]">
+                      {categories.map((c) => (
+                        <SelectItem key={c} value={c} className="text-[12px] capitalize">
+                          {c === 'all' ? 'All categories' : c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </Section>
+
               {/* Size ladder */}
               <Section
                 title="Size ladder"
@@ -200,69 +233,26 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply, onApp
                 hint="Same recipe rendered at three optical sizes."
               >
                 <div className="space-y-3">
-                  {SIZE_LADDER.map((row) => {
-                    // Cap columns so lg tiles (56px) never overflow the card.
-                    const cols = row.size === 'lg' ? 8 : row.size === 'md' ? 10 : 12;
-                    return (
-                      <div
-                        key={row.size}
-                        className="rounded-lg border border-border/50 bg-card/40 p-4 space-y-2"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                            {row.label}
-                          </div>
-                          <Badge variant="outline" className="text-[10px]">
-                            {cols} icons
-                          </Badge>
-                        </div>
-                        <IconSetPreview
-                          emojis={['⚙️', '📊', '🔐', '🛒', '✨', '🛡️', '💬', '🚀', '🔔', '🏠', '📦', '🎯']}
-                          accent={accent}
-                          accent2={a2}
-                          recipe={style.recipe}
-                          size={row.size}
-                          count={cols}
-                          columns={cols}
-                          variant={style.preview.variant}
-                          radius={style.preview.radius}
-                          strokeWidth={style.preview.strokeWidth}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </Section>
-
-              {/* Categories — 6 themed icon rows */}
-              <Section
-                title="Category showcase"
-                icon={Grid3x3}
-                hint="12 icons per category — see how the style scales across vocab."
-              >
-                <div className="space-y-4">
-                  {CATEGORIES.map((cat) => (
+                  {SIZE_LADDER.map((row) => (
                     <div
-                      key={cat.title}
-                      className="rounded-lg border border-border/50 bg-card/40 p-4"
+                      key={row.label}
+                      className="rounded-lg border border-border/50 bg-card/40 p-4 space-y-2"
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold">{cat.title}</h4>
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {row.label}
+                        </div>
                         <Badge variant="outline" className="text-[10px]">
-                          12 icons
+                          {row.count} icons
                         </Badge>
                       </div>
-                      <IconSetPreview
-                        emojis={cat.emojis}
+                      <BundledIconLadder
+                        style={style}
                         accent={accent}
-                        accent2={a2}
-                        recipe={style.recipe}
-                        size="md"
-                        count={12}
-                        columns={12}
-                        variant={style.preview.variant}
-                        radius={style.preview.radius}
-                        strokeWidth={style.preview.strokeWidth}
+                        pack={packId || undefined}
+                        slugs={ladderSlugs}
+                        count={row.count}
+                        tile={row.tile}
                       />
                     </div>
                   ))}
@@ -289,21 +279,18 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply, onApp
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                         {c.label}
                       </div>
-                      <IconSetPreview
-                        emojis={['⚙️', '📊', '🔐', '🛒', '✨', '🛡️']}
+                      <BundledIconLadder
+                        style={style}
                         accent={`hsl(var(${c.token}))`}
-                        accent2={a2}
-                        recipe={style.recipe}
-                        size="sm"
+                        pack={packId || undefined}
                         count={6}
-                        variant={style.preview.variant}
-                        radius={style.preview.radius}
-                        strokeWidth={style.preview.strokeWidth}
+                        tile={28}
                       />
                     </div>
                   ))}
                 </div>
               </Section>
+
 
               {/* Footer actions */}
               <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border/60">
