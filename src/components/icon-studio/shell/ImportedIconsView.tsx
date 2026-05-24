@@ -314,8 +314,7 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
                             key={e.n}
                             pack={selectedPack}
                             name={e.n}
-                            onCopy={() => copyMarkup(selectedPack, e.n)}
-                            onDownload={() => downloadIcon(selectedPack, e.n)}
+                            onOpen={() => openDetail(selectedPack, e.n, e.c)}
                           />
                         ))}
                       </div>
