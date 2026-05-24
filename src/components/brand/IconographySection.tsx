@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from '@/components/ui/label';
 import { SectionHeader } from './SectionHeader';
 import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './iconography';
+import { LinkedIconStudioLibraries } from './iconography/LinkedIconStudioLibraries';
 import { IconLibraryPicker } from './iconography/IconLibraryPicker';
 import { IconPreviewDialog } from './iconography/IconPreviewDialog';
 import { SuggestedIconsRail } from './iconography/SuggestedIconsRail';
@@ -58,6 +59,7 @@ interface IconographySectionProps {
   productLineId?: string;
   entityType?: 'brand' | 'product' | 'event';
   entityName?: string;
+  entitySlug?: string;
   industry?: string;
 }
 
@@ -92,6 +94,7 @@ export const IconographySection = ({
   productLineId,
   entityType = 'brand',
   entityName = '',
+  entitySlug,
   industry,
 }: IconographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -727,6 +730,18 @@ ${innerContent}
             <span className="font-medium">{inheritedSummary.totalInherited + iconography.length}</span> total available
           </div>
         </div>
+      )}
+
+      {/* Brand-specific icon collections curated in Icon Studio */}
+      {organizationId && brandId && (
+        <LinkedIconStudioLibraries
+          organizationId={organizationId}
+          entityId={brandId}
+          entityType={entityType}
+          entitySlug={entitySlug}
+          entityName={entityName}
+          iconColor={iconColor}
+        />
       )}
 
       {canEdit && (
