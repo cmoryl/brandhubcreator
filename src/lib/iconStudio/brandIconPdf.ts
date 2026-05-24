@@ -649,18 +649,47 @@ export async function buildBrandIconPdf({
     }
   } catch { /* ignore */ }
 
-  /* ──────── Footers (final pass — accurate page counts) ──────── */
+  /* ──────── Header + footer (final pass — accurate page counts) ──────── */
   const pageCount = doc.getNumberOfPages();
+  const headerH = 26;
   for (let p = 1; p <= pageCount; p++) {
     doc.setPage(p);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    if (p > 1) {
-      doc.text(`${entityName} · ${entityKind} icon system`, margin, pageH - 18);
+    if (p === 1) continue; // skip cover
+
+    // Running header
+    if (showHeader) {
+      doc.setFillColor(headerBgRgb[0], headerBgRgb[1], headerBgRgb[2]);
+      doc.rect(0, 0, pageW, headerH, 'F');
+      doc.setTextColor(headerFgRgb[0], headerFgRgb[1], headerFgRgb[2]);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      let textX = margin;
+      if (logoData && showLogoInHeader) {
+        const targetH = headerH - 10;
+        const ratio = targetH / logoData.h;
+        const w = logoData.w * ratio;
+        const h = logoData.h * ratio;
+        try {
+          doc.addImage(logoData.dataUrl, logoData.mime, margin, (headerH - h) / 2, w, h, undefined, 'FAST');
+          textX = margin + w + 8;
+        } catch { /* ignore unsupported logo formats */ }
+      }
+      doc.text(headerLeft, textX, headerH / 2 + 3, { maxWidth: pageW - textX - margin - 80 });
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.text(entityKind.toUpperCase(), pageW - margin, headerH / 2 + 3, { align: 'right' });
+    }
+
+    // Running footer
+    if (showFooter) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(footerFgRgb[0], footerFgRgb[1], footerFgRgb[2]);
+      doc.text(footerLeft, margin, pageH - 18, { maxWidth: pageW - margin * 2 - 60 });
       doc.text(`${p} / ${pageCount}`, pageW - margin, pageH - 18, { align: 'right' });
     }
   }
+
 
   const filename = `${sanitizeFileName(entityName)}-icon-system.pdf`;
   const blob = doc.output('blob');
