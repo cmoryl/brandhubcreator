@@ -367,6 +367,38 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         }
       }
 
+      const wantPdf = formats.find((f) => f.id === 'pdf')?.enabled;
+      if (wantPdf && collected.length > 0) {
+        try {
+          const styledFor = (ic: EmitIcon) =>
+            buildStyledSvg({
+              svgPath: ic.svgPath,
+              viewBox: ic.viewBox,
+              style: activeStyle,
+              accent: resolvedAccent,
+              accent2: resolvedAccent2,
+              size: 64,
+              standalone: true,
+            });
+          const pdfBlob = await buildPdfContactSheet(
+            collected,
+            styledFor,
+            (svg, px) => svgToPng(svg, px),
+            {
+              organization: organizationName,
+              styleName: activeStyle.name,
+              variant: activeStyle.preview.variant,
+              accent: resolvedAccent,
+            },
+          );
+          root.file('contact-sheet.pdf', pdfBlob);
+        } catch (e) {
+          logger.debug('[ExportCenter] pdf emit failed', e);
+        }
+      }
+
+
+
 
 
       // Contact sheet HTML — quick visual proof
