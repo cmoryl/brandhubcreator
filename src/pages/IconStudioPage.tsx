@@ -264,6 +264,7 @@ const IconStudioPage = () => {
           entityId={activeBrand?.id}
           entityType="brand"
           onSaveAsLibrary={canEdit ? handleSaveSetAsLibrary : undefined as any}
+          registerSaveHandle={registerWizardSave}
         />
       ) : shellSection === 'library' ? (
         <LibraryView
