@@ -4,8 +4,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Plus, Lock, MoreHorizontal, Library as LibraryIcon, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
+import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,20 +14,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { StatusChip } from './StatusChip';
-import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
+import { type IconLibrary } from '@/hooks/useIconLibraries';
+import { useIconLibraryRowActions } from './useIconLibraryRowActions';
 
 interface Props {
   libraries: IconLibrary[];
