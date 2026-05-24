@@ -16,6 +16,7 @@ import { SignatureTemplateDialog } from './signatures/SignatureTemplateDialog';
 import { renderPreview } from './signatures/signatureRenderer';
 import { BANNER_SIZE_PRESETS, DEFAULT_CONFIDENTIALITY } from './signatures/signatureConstants';
 import { safeUUID } from '@/lib/safeUUID';
+import { TransPerfectSignaturePanel } from './identity/TransPerfectSignaturePanel';
 
 interface SignaturesSectionProps {
   signatures: BrandSignature[];
@@ -24,6 +25,7 @@ interface SignaturesSectionProps {
   onEmailBannersChange?: (banners: BrandEmailBanner[]) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  brandSlug?: string;
 }
 
 const LEGACY_SIGNATURE_REPLACEMENTS: Record<string, string> = {
