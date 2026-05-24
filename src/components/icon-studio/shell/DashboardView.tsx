@@ -165,6 +165,12 @@ export const DashboardView = ({
                 <Folder className="h-3 w-3" />
                 {totalLibraries.toLocaleString()} libraries
               </Badge>
+              {importedIconCount > 0 && (
+                <Badge variant="outline" className="gap-1 text-[11px]" style={{ borderColor: 'hsl(var(--tp-teal) / 0.5)', color: 'hsl(var(--tp-teal))' }}>
+                  <ImageIcon className="h-3 w-3" />
+                  {importedIconCount.toLocaleString()} imported
+                </Badge>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
