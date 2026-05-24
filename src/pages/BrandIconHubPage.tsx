@@ -186,14 +186,26 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
   const openIconDetail = (icon: BrandIconography, libraryName: string) => {
     setSelectedIcon({ icon, libraryName });
   };
+  const [pdfProgress, setPdfProgress] = useState<PdfPreviewProgress | null>(null);
+  const pdfAbortRef = useRef<AbortController | null>(null);
+
+  const handleCancelPdf = () => {
+    pdfAbortRef.current?.abort();
+  };
+
   const handleDownloadPdf = async () => {
     if (!brand) return;
     if (linkedLibraries.length === 0) {
       toast.info('Link at least one collection before exporting a PDF.');
       return;
     }
+    // Abort any in-flight build before starting a new one.
+    pdfAbortRef.current?.abort();
+    const controller = new AbortController();
+    pdfAbortRef.current = controller;
+
     setExportingPdf(true);
-    // Open the preview dialog immediately in a loading state so the user gets feedback.
+    setPdfProgress({ percent: 0, message: 'Preparing document…' });
     setPdfPreview({ open: true, url: null, filename: '', title: `${brand.name} · Icon system` });
     const toastId = toast.loading(`Building ${brand.name} icon PDF preview…`);
     try {
@@ -221,6 +233,15 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
         tagline,
         autoDownload: false,
         branding: effectiveBranding,
+        signal: controller.signal,
+        onProgress: (p: PdfBuildProgress) => {
+          setPdfProgress({
+            percent: p.percent,
+            message: p.message,
+            current: p.current,
+            total: p.total,
+          });
+        },
         libraries: linkedLibraries.map((l) => ({
           id: l.id,
           name: l.name,
@@ -230,12 +251,19 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
         })),
       });
       setPdfPreview({ open: true, url, filename, title: `${brand.name} · Icon system` });
+      setPdfProgress(null);
       toast.success('Preview ready — review then download.', { id: toastId });
     } catch (err) {
-      console.error('Icon PDF export failed', err);
-      toast.error('Failed to build PDF', { id: toastId });
+      if (err instanceof PdfBuildAbortedError || controller.signal.aborted) {
+        toast.message('PDF build cancelled.', { id: toastId });
+      } else {
+        console.error('Icon PDF export failed', err);
+        toast.error('Failed to build PDF', { id: toastId });
+      }
       setPdfPreview({ open: false, url: null, filename: '', title: '' });
+      setPdfProgress(null);
     } finally {
+      if (pdfAbortRef.current === controller) pdfAbortRef.current = null;
       setExportingPdf(false);
     }
   };
