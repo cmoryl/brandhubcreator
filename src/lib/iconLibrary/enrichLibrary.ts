@@ -64,6 +64,13 @@ export interface EnrichOptions {
   maxAdded?: number;
   /** Optional explicit industry override (skips inference). */
   industry?: string | null;
+  /**
+   * Extra categories to always include alongside the industry-derived ones.
+   * Used for the "Build brand repository" action which guarantees coverage of
+   * generic UI / business / communication / files areas no matter the
+   * industry, so every brand library doubles as a working app icon set.
+   */
+  extraCategories?: IconCategory[];
 }
 
 export interface EnrichResult {
