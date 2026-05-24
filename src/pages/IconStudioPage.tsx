@@ -344,6 +344,7 @@ const IconStudioPage = () => {
           libraries={libraries}
           organizationName={organizationName}
           onOpenLibrary={() => setShellSection('library')}
+          importedIcons={importedEntries}
         />
       ) : (
         <SettingsView />
