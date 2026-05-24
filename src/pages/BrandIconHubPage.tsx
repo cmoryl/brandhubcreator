@@ -819,11 +819,16 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
       {/* In-app PDF preview before download */}
       <PdfPreviewDialog
         open={pdfPreview.open}
-        onOpenChange={(o) => setPdfPreview((p) => ({ ...p, open: o }))}
+        onOpenChange={(o) => {
+          if (!o && exportingPdf) pdfAbortRef.current?.abort();
+          setPdfPreview((p) => ({ ...p, open: o }));
+        }}
         url={pdfPreview.url}
         filename={pdfPreview.filename}
         title={pdfPreview.title}
         loading={exportingPdf}
+        progress={pdfProgress}
+        onCancel={exportingPdf ? handleCancelPdf : undefined}
       />
 
 
