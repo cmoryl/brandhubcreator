@@ -268,6 +268,9 @@ export const QAView = ({ libraries, totalIcons, organizationId, organizationName
         )}
       </section>
 
+      {/* SVG Optimizer */}
+      <SvgOptimizerPanel libraries={libraries} organizationName={organizationName || 'icons'} />
+
       <AbTestPanel libraries={libraries} organizationId={organizationId} />
     </div>
   );
