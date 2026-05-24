@@ -22,6 +22,7 @@ import { type IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryRowActions } from './useIconLibraryRowActions';
 import { useImportedIcons } from '@/hooks/useImportedIcons';
 import { ImportedIconPreview } from './ImportedIconPreview';
+import { isBundledLibraryId, bundledLibraryPackId } from '@/hooks/useBundledIconLibraries';
 
 interface Props {
   libraries: IconLibrary[];
@@ -36,6 +37,8 @@ interface Props {
   onAutoOpenConsumed?: () => void;
   /** Navigate to the Imported Icons tab. */
   onViewImported?: () => void;
+  /** Navigate to the Imported Icons tab with a specific pack pre-selected. */
+  onOpenBundledPack?: (packId: string) => void;
 }
 
 const LEVEL_LABEL: Record<IconLibrary['level'], { label: string; token: string }> = {
