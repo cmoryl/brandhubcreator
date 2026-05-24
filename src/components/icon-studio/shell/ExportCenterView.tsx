@@ -319,6 +319,56 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         }
       }
 
+      // Phase 8 — Figma, icon font, favicons
+      const wantFigma = formats.find((f) => f.id === 'figma')?.enabled;
+      const wantFont = formats.find((f) => f.id === 'font')?.enabled;
+      const wantFavicon = formats.find((f) => f.id === 'favicon')?.enabled;
+
+      if (wantFigma && collected.length > 0) {
+        const styledFor = (ic: EmitIcon) =>
+          buildStyledSvg({
+            svgPath: ic.svgPath,
+            viewBox: ic.viewBox,
+            style: activeStyle,
+            accent: resolvedAccent,
+            accent2: resolvedAccent2,
+            size: 24,
+            standalone: true,
+          });
+        for (const f of buildFigmaPackage(collected, styledFor)) {
+          root.file(f.path, f.content);
+        }
+      }
+
+      if (wantFont && collected.length > 0) {
+        const fontFamily = `${slugify(organizationName || 'brand')}-icons`;
+        for (const f of buildSvgIconFont(collected, fontFamily)) {
+          root.file(f.path, f.content);
+        }
+      }
+
+      if (wantFavicon && collected.length > 0) {
+        const mark = collected[0];
+        const markSvg = buildStyledSvg({
+          svgPath: mark.svgPath,
+          viewBox: mark.viewBox,
+          style: activeStyle,
+          accent: resolvedAccent,
+          accent2: resolvedAccent2,
+          size: 512,
+          standalone: true,
+        });
+        try {
+          const faviconFiles = await buildFavicons(markSvg, (svg, px) => svgToPng(svg, px));
+          for (const f of faviconFiles) {
+            root.file(f.path, f.content);
+          }
+        } catch (e) {
+          logger.debug('[ExportCenter] favicon emit failed', e);
+        }
+      }
+
+
 
       // Contact sheet HTML — quick visual proof
       root.file(
