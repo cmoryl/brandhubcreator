@@ -18,6 +18,9 @@ verify_jwt = false
 [functions.generate-icon-set]
 verify_jwt = false
 
+[functions.icon-semantic-search]
+verify_jwt = false
+
 [functions.competitive-analysis]
 verify_jwt = false
 
