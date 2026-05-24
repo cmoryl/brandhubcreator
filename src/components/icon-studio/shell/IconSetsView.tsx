@@ -316,7 +316,7 @@ export const IconSetsView = ({
                             aria-label="Open set"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setActiveLib(lib);
+                              openLib();
                             }}
                           >
                             <ArrowUpRight className="h-3.5 w-3.5" />
