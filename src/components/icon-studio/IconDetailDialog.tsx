@@ -73,6 +73,8 @@ export const IconDetailDialog = ({
   onRegenerate,
   onApprove,
   onReject,
+  extraActions,
+  hideReviewActions = false,
 }: Props) => {
   const [bg, setBg] = useState<'light' | 'dark'>('light');
   const [copied, setCopied] = useState(false);
