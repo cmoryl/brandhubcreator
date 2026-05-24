@@ -129,33 +129,6 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
     overscan: 4,
   });
 
-  const copyMarkup = useCallback(async (pack: string, name: string) => {
-    try {
-      const svg = await materializeSvg(pack, name);
-      await navigator.clipboard.writeText(svg);
-      toast.success('SVG markup copied');
-    } catch {
-      toast.error('Copy failed');
-    }
-  }, []);
-
-  const downloadIcon = useCallback(async (pack: string, name: string) => {
-    try {
-      const svg = await materializeSvg(pack, name);
-      const blob = new Blob([svg], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${pack}-${name}.svg`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch {
-      toast.error('Download failed');
-    }
-  }, []);
-
   // Open the same workspace dialog used for generated icons.
   // Materializes the SVG on demand and converts it into a BrandIconography
   // object the dialog/exporters already understand.
