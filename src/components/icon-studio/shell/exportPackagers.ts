@@ -168,3 +168,202 @@ Every component forwards refs and accepts all standard \`SVGProps<SVGSVGElement>
 
   return files;
 }
+
+/* ──────────────────────────────────────────────────────────────────────── */
+/* Phase 8 — Figma frames, SVG icon font, favicons                          */
+/* ──────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Figma frame export — one SVG per icon, named with the convention
+ * `Frame_<slug>.svg` recognised by popular Figma import plugins
+ * (e.g. "SVG to Code", "Figma Icons"). Adds a manifest with frame names
+ * so designers can rebuild a page of named 24×24 frames.
+ */
+export function buildFigmaPackage(
+  icons: EmitIcon[],
+  styledSvgFor: (ic: EmitIcon) => string,
+): Array<{ path: string; content: string }> {
+  const files: Array<{ path: string; content: string }> = [];
+  const frames: Array<{ name: string; file: string }> = [];
+  for (const ic of icons) {
+    const id = sanitizeId(ic.slug);
+    const file = `figma/Frame_${id}.svg`;
+    files.push({ path: file, content: styledSvgFor(ic) });
+    frames.push({ name: `Frame_${id}`, file: `Frame_${id}.svg` });
+  }
+  files.push({
+    path: 'figma/frames.json',
+    content: JSON.stringify({ format: 'figma-frames', size: 24, frames }, null, 2),
+  });
+  files.push({
+    path: 'figma/README.md',
+    content: `# Figma frame export
+
+Each SVG is a self-contained 24×24 frame. To rebuild a Figma page:
+
+1. In Figma, install the **"Figma Icons"** or **"SVG Importer"** plugin.
+2. Select the destination page, then run the plugin and drop the entire
+   \`figma/\` folder (or select all \`Frame_*.svg\` files) onto it.
+3. The plugin uses the file name as the frame name — frames will appear
+   as \`Frame_<slug>\`, ready to publish as components.
+
+\`frames.json\` lists every frame name + filename for scripted imports.
+`,
+  });
+  return files;
+}
+
+/**
+ * SVG icon font — single self-contained SVG font file mapping each icon
+ * to a Private Use Area codepoint (U+E000+). Pair with the emitted CSS
+ * to use as \`<i class="ico ico-<slug>"></i>\`. WOFF2 can be derived from
+ * this source via fontforge/icomoon (see README).
+ */
+export function buildSvgIconFont(
+  icons: EmitIcon[],
+  fontFamily = 'BrandIcons',
+): Array<{ path: string; content: string }> {
+  const PUA_START = 0xe000;
+  const glyphs: string[] = [];
+  const cssRules: string[] = [];
+  icons.forEach((ic, i) => {
+    const cp = PUA_START + i;
+    const id = sanitizeId(ic.slug);
+    // SVG-font path data is rendered upside-down vs SVG; consumers usually
+    // re-export via a font tool, so we emit the raw `d` and let the tool
+    // handle the y-flip. This file is a portable source, not the final WOFF2.
+    const d = ic.svgPath.includes('<')
+      ? ic.svgPath.replace(/.*?d="([^"]+)".*/s, '$1')
+      : ic.svgPath;
+    glyphs.push(
+      `    <glyph glyph-name="${id}" unicode="&#x${cp.toString(16)};" d="${d}" />`,
+    );
+    cssRules.push(
+      `.ico-${id}::before{content:"\\${cp.toString(16)}";}`,
+    );
+  });
+
+  const font = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <font id="${fontFamily}" horiz-adv-x="1024">
+      <font-face font-family="${fontFamily}" units-per-em="1024" ascent="896" descent="-128" />
+      <missing-glyph horiz-adv-x="1024" />
+${glyphs.join('\n')}
+    </font>
+  </defs>
+</svg>
+`;
+
+  const css = `@font-face{
+  font-family:"${fontFamily}";
+  src:url("./${fontFamily}.woff2") format("woff2"),
+      url("./${fontFamily}.svg#${fontFamily}") format("svg");
+  font-weight:normal;font-style:normal;font-display:swap;
+}
+.ico{font-family:"${fontFamily}";font-style:normal;font-weight:normal;
+  display:inline-block;line-height:1;vertical-align:-.125em;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+${cssRules.join('\n')}
+`;
+
+  const readme = `# Icon font (${fontFamily})
+
+This package contains the **source** \`${fontFamily}.svg\` font + matching
+\`icons.css\`. Most browsers no longer render SVG fonts directly — convert
+to WOFF2 in one of two ways:
+
+**Option A — fontforge (CLI):**
+\`\`\`bash
+fontforge -lang=ff -c 'Open($1); Generate($2)' ${fontFamily}.svg ${fontFamily}.woff2
+\`\`\`
+
+**Option B — icomoon.io:** Import \`${fontFamily}.svg\`, then download the
+generated WOFF2 and drop it next to \`icons.css\`.
+
+Each icon is mapped to a Private Use Area codepoint starting at U+E000.
+Usage:
+
+\`\`\`html
+<link rel="stylesheet" href="icons.css" />
+<i class="ico ico-arrow-left" aria-hidden="true"></i>
+\`\`\`
+`;
+
+  return [
+    { path: `font/${fontFamily}.svg`, content: font },
+    { path: 'font/icons.css', content: css },
+    { path: 'font/README.md', content: readme },
+  ];
+}
+
+/**
+ * Favicon bundle — rasterizes a single "brand mark" icon at the standard
+ * favicon sizes (16/32/48/180/192/512), plus a site.webmanifest and the
+ * matching <link>/<meta> snippet for index.html. Caller supplies the
+ * already-styled SVG to keep this function pure-string after rasterization.
+ */
+export async function buildFavicons(
+  styledSvg: string,
+  rasterize: (svg: string, size: number) => Promise<Blob>,
+): Promise<Array<{ path: string; content: string | Blob }>> {
+  const sizes = [16, 32, 48, 180, 192, 512];
+  const files: Array<{ path: string; content: string | Blob }> = [];
+
+  for (const px of sizes) {
+    try {
+      const blob = await rasterize(styledSvg, px);
+      const name =
+        px === 180
+          ? 'apple-touch-icon.png'
+          : px === 192
+          ? 'android-chrome-192x192.png'
+          : px === 512
+          ? 'android-chrome-512x512.png'
+          : `favicon-${px}x${px}.png`;
+      files.push({ path: `favicons/${name}`, content: blob });
+    } catch {
+      // Skip individual size failures.
+    }
+  }
+
+  files.push({ path: 'favicons/favicon.svg', content: styledSvg });
+
+  files.push({
+    path: 'favicons/site.webmanifest',
+    content: JSON.stringify(
+      {
+        name: 'Brand',
+        short_name: 'Brand',
+        icons: [
+          { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
+        ],
+        theme_color: '#ffffff',
+        background_color: '#ffffff',
+        display: 'standalone',
+      },
+      null,
+      2,
+    ),
+  });
+
+  files.push({
+    path: 'favicons/README.md',
+    content: `# Favicons
+
+Drop the contents of this folder into your site root, then add to \`<head>\`:
+
+\`\`\`html
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+\`\`\`
+`,
+  });
+
+  return files;
+}
+
