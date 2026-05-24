@@ -573,6 +573,8 @@ export async function buildBrandIconPdf({
   reportIconProgress(`Rasterised ${iconsProcessed}/${totalIcons} icons`);
 
   /* ──────── Alphabetical index appendix ──────── */
+  checkAborted();
+  onProgress?.({ stage: 'index', percent: 0.93, current: iconsProcessed, total: totalIcons, message: 'Building alphabetical index…' });
   if (iconIndex.length > 0) {
     doc.addPage();
     const indexStart = doc.getNumberOfPages();
