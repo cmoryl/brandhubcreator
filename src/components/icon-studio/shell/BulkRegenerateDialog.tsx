@@ -10,7 +10,7 @@
  * the edge function is heavy.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Loader2, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import {
   Dialog,
@@ -62,15 +62,17 @@ export const BulkRegenerateDialog = ({ library, organizationId, onClose }: Props
     }));
   }, [library]);
 
-  const [rows, setRows] = useState<SectionRow[]>(initialRows);
+  const [rows, setRows] = useState<SectionRow[]>([]);
   const [busy, setBusy] = useState(false);
   const [finished, setFinished] = useState(false);
 
   // Reset rows whenever the library changes (dialog reopened).
-  useMemo(() => {
-    setRows(initialRows);
-    setFinished(false);
-  }, [initialRows]);
+  useEffect(() => {
+    if (library) {
+      setRows(initialRows);
+      setFinished(false);
+    }
+  }, [library, initialRows]);
 
   const completed = rows.filter((r) => r.status === 'done' || r.status === 'error').length;
   const total = rows.length;
