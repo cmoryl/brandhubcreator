@@ -144,6 +144,11 @@ export const IconSetDetailDialog = ({
                   <Button size="sm" variant="outline" className="gap-1.5" onClick={onRegenerate}>
                     <RefreshCw className="h-3.5 w-3.5" /> Regenerate
                   </Button>
+                  {onEnrich && (
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={onEnrich}>
+                      <Sparkles className="h-3.5 w-3.5" /> Add industry icons
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" className="gap-1.5" onClick={onLockToggle}>
                     <Lock className="h-3.5 w-3.5" />
                     {library.is_active ? 'Lock' : 'Unlock'}
