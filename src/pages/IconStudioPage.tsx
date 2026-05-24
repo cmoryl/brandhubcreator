@@ -164,14 +164,14 @@ const IconStudioPage = () => {
             metrics={{
               totalIcons,
               sections: libraries.length,
-              approved: totalIcons,
-              needsReview: 0,
+              approved: libraries.reduce((s, l) => s + (l.is_active ? l.icons.length : 0), 0),
+              needsReview: libraries.reduce((s, l) => s + (l.is_active ? 0 : l.icons.length), 0),
               failed: 0,
               generating: 0,
-              brandCompliance: 88,
-              a11y: 92,
-              svgHealth: 95,
-              exportReadiness: totalIcons > 0 ? 90 : 0,
+              brandCompliance: 0,
+              a11y: 0,
+              svgHealth: 0,
+              exportReadiness: 0,
             }}
             brandName={activeBrand?.name}
             industryName="Workspace"

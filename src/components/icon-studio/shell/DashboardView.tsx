@@ -10,7 +10,6 @@
 
 import {
   ArrowUpRight,
-  Download,
   Folder,
   Plus,
   Sparkles,
@@ -165,8 +164,8 @@ export const DashboardView = ({
         </div>
       </header>
 
-      {/* Recent icon systems + Export history */}
-      <section className="grid gap-4 lg:grid-cols-2">
+      {/* Recent icon systems */}
+      <section>
         <div className="tp-card p-5">
           <header className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Recent icon systems</h3>
@@ -180,7 +179,7 @@ export const DashboardView = ({
                 No icon systems yet. Generate one to see it here.
               </li>
             ) : (
-              recentLibraries.slice(0, 5).map((lib) => (
+              recentLibraries.slice(0, 8).map((lib) => (
                 <ActivityRow
                   key={lib.id}
                   title={lib.name}
@@ -193,40 +192,6 @@ export const DashboardView = ({
                 />
               ))
             )}
-          </ul>
-        </div>
-
-        <div className="tp-card p-5">
-          <header className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Export history</h3>
-            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => onNavigate?.('export')}>
-              Open center <ArrowUpRight className="h-3 w-3" />
-            </Button>
-          </header>
-          <ul className="divide-y divide-border/60">
-            {[
-              { name: 'globallink-icon-system.zip', when: '2h ago', size: '3.4 MB' },
-              { name: 'life-sciences-pack.zip', when: 'yesterday', size: '1.8 MB' },
-              { name: 'travel-loyalty.zip', when: '3d ago', size: '2.1 MB' },
-              { name: 'tp-ai-solutions.zip', when: '1w ago', size: '1.2 MB' },
-            ].map((row) => (
-              <li key={row.name}>
-                <button
-                  type="button"
-                  onClick={() => onNavigate?.('export')}
-                  className="flex w-full items-center justify-between py-2.5 text-sm text-left rounded-md px-2 -mx-2 hover:bg-secondary/60 transition-colors"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Download className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <span className="truncate">{row.name}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                    <span>{row.size}</span>
-                    <span>{row.when}</span>
-                  </div>
-                </button>
-              </li>
-            ))}
           </ul>
         </div>
       </section>

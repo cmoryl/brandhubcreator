@@ -9,7 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   ShieldCheck, Check, AlertTriangle, Eye, RefreshCw,
-  CheckCircle2, XCircle, Grid3x3, Wand2,
+  CheckCircle2, XCircle, Grid3x3, Wand2, MinusCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,30 +31,29 @@ interface CheckRow {
   id: string;
   label: string;
   description: string;
-  status: 'pass' | 'warn' | 'fail';
+  status: 'pass' | 'warn' | 'fail' | 'na';
   count: number;
 }
 
 const buildChecks = (totalIcons: number, pf: PreflightSummary | null): CheckRow[] => {
-  const t = Math.max(totalIcons, 0);
   const contrastFailN = pf?.contrastFails.length ?? 0;
   const rasterFailN = pf?.rasterFails.length ?? 0;
   const strokeN = pf?.strokeInconsistentCount ?? 0;
   const brandN = pf?.brandFitFailCount ?? 0;
   return [
-    { id: 'svg', label: 'SVG validity', description: 'Parseable, single root, no nested svgs', status: 'pass', count: t },
-    { id: 'viewbox', label: 'ViewBox normalized', description: 'All icons share a 0 0 24 24 viewBox', status: 'pass', count: t },
     { id: 'stroke', label: 'Stroke consistency', description: 'Uniform stroke width across set', status: strokeN > 0 ? 'warn' : 'pass', count: strokeN },
-    { id: 'grid', label: 'Grid alignment', description: '24px grid, 20px safe zone', status: 'pass', count: 0 },
-    { id: 'optical', label: 'Optical balance', description: 'Visual weight check across the set', status: t > 30 ? 'warn' : 'pass', count: t > 30 ? 2 : 0 },
     { id: 'minsize', label: 'Min-size readability', description: 'Rendered to 16×16 canvas, ≥8% pixel coverage', status: rasterFailN > 0 ? 'fail' : 'pass', count: rasterFailN },
-    { id: 'dupes', label: 'Duplicate detection', description: 'Shape & path hash comparison', status: 'pass', count: 0 },
-    { id: 'overlap', label: 'Overlap detection', description: 'Self-overlapping fills cleaned', status: 'pass', count: 0 },
     { id: 'contrast', label: 'Color contrast (APCA)', description: 'Lc ≥ 45 against white + #0B0B0F backgrounds', status: contrastFailN > 0 ? 'fail' : 'pass', count: contrastFailN },
-    { id: 'a11y', label: 'A11y metadata', description: 'title + role + aria-label present', status: t > 0 ? 'warn' : 'pass', count: t > 0 ? Math.max(1, Math.floor(t * 0.03)) : 0 },
-    { id: 'rai', label: 'Responsible-AI metaphor', description: 'Cultural & sensitive content check', status: 'pass', count: 0 },
     { id: 'brand', label: 'Brand compliance', description: 'Matches brand color & stroke rules', status: brandN > 0 ? 'warn' : 'pass', count: brandN },
-
+    // Not yet implemented — surfaced honestly instead of fake-passing
+    { id: 'svg', label: 'SVG validity', description: 'Parseable, single root, no nested svgs', status: 'na', count: 0 },
+    { id: 'viewbox', label: 'ViewBox normalized', description: 'All icons share a 0 0 24 24 viewBox', status: 'na', count: 0 },
+    { id: 'grid', label: 'Grid alignment', description: '24px grid, 20px safe zone', status: 'na', count: 0 },
+    { id: 'optical', label: 'Optical balance', description: 'Visual weight check across the set', status: 'na', count: 0 },
+    { id: 'dupes', label: 'Duplicate detection', description: 'Shape & path hash comparison', status: 'na', count: 0 },
+    { id: 'overlap', label: 'Overlap detection', description: 'Self-overlapping fills cleaned', status: 'na', count: 0 },
+    { id: 'a11y', label: 'A11y metadata', description: 'title + role + aria-label present', status: 'na', count: 0 },
+    { id: 'rai', label: 'Responsible-AI metaphor', description: 'Cultural & sensitive content check', status: 'na', count: 0 },
   ];
 };
 
@@ -63,6 +62,8 @@ const StatusIcon = ({ status }: { status: CheckRow['status'] }) => {
     return <CheckCircle2 className="h-3.5 w-3.5" style={{ color: 'hsl(var(--tp-green))' }} />;
   if (status === 'warn')
     return <AlertTriangle className="h-3.5 w-3.5" style={{ color: 'hsl(var(--tp-orange))' }} />;
+  if (status === 'na')
+    return <MinusCircle className="h-3.5 w-3.5 text-muted-foreground" />;
   return <XCircle className="h-3.5 w-3.5" style={{ color: 'hsl(var(--destructive))' }} />;
 };
 
@@ -117,13 +118,16 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
   }, [totalIcons]);
 
   const checks = useMemo(() => buildChecks(totalIcons, preflight), [totalIcons, preflight]);
-  const passing = checks.filter((c) => c.status === 'pass').length;
-  const warnings = checks.filter((c) => c.status === 'warn').length;
-  const failing = checks.filter((c) => c.status === 'fail').length;
-  const brandScore = Math.min(100, 80 + Math.floor(passing));
-  const a11yScore = Math.min(100, 78 + Math.floor(passing * 1.2));
-  const svgHealth = Math.min(100, 88 + Math.floor(passing * 0.5));
-  const exportReady = totalIcons > 0 ? Math.min(100, 70 + passing * 2) : 0;
+  const liveChecks = checks.filter((c) => c.status !== 'na');
+  const passing = liveChecks.filter((c) => c.status === 'pass').length;
+  const warnings = liveChecks.filter((c) => c.status === 'warn').length;
+  const failing = liveChecks.filter((c) => c.status === 'fail').length;
+  const liveTotal = Math.max(liveChecks.length, 1);
+  const pct = (n: number) => Math.round((n / liveTotal) * 100);
+  const brandScore = totalIcons === 0 ? 0 : pct(liveChecks.filter((c) => ['brand', 'stroke'].includes(c.id) && c.status === 'pass').length || 0) || (warnings + failing === 0 ? 100 : pct(passing));
+  const a11yScore = totalIcons === 0 ? 0 : (preflight ? Math.max(0, 100 - Math.round(((preflight.contrastFails.length) / Math.max(totalIcons, 1)) * 100)) : 0);
+  const svgHealth = totalIcons === 0 ? 0 : (preflight ? Math.max(0, 100 - Math.round(((preflight.rasterFails.length) / Math.max(totalIcons, 1)) * 100)) : 0);
+  const exportReady = totalIcons === 0 ? 0 : (preflight ? Math.max(0, 100 - Math.round((preflight.exportNotReadyCount / Math.max(totalIcons, 1)) * 100)) : 0);
 
   const handleRerun = async () => {
     queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
@@ -244,7 +248,7 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
                   </div>
                 </div>
                 <Badge variant="outline" className="text-[10px] tabular-nums">
-                  {Math.min(100, 80 + (l.icons.length % 18))}%
+                  {l.icons.length} icons
                 </Badge>
                 <StatusChip status={l.icons.length > 0 ? 'approved' : 'idle'} />
                 <Button variant="ghost" size="icon" className="h-7 w-7" title="Run preflight">

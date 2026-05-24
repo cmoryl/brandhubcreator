@@ -14,7 +14,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
-  BookOpen,
+  
   Building2,
   ChevronDown,
   ChevronLeft,
@@ -391,17 +391,8 @@ export const StudioShell = ({
               })}
             </ul>
 
-            {/* Docs / collapse */}
+            {/* Collapse control */}
             <div className="border-t p-2" style={{ borderColor: 'hsl(var(--border))' }}>
-              {!navCollapsed && (
-                <a
-                  href="#"
-                  className="mb-1 flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
-                >
-                  <BookOpen className="h-4 w-4" />
-                  <span>Docs & guides</span>
-                </a>
-              )}
               <button
                 onClick={() => setNavCollapsed((v) => !v)}
                 className="flex w-full items-center justify-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
