@@ -326,18 +326,23 @@ ${detail === "low"
 - Consistent terminals across the batch.
 - Optical alignment beats mathematical alignment.
 
+## CREATIVE LENS — "${lens.name}"
+${lens.brief}
+Within these rules: ${lens.tactics}
+
 ## CREATIVE AMBITION (non-negotiable)
 You are NOT making a stock icon pack. You are making a curated, gallery-grade collection that an art director would screenshot.
 
-- BAN the obvious solution. For each concept, brainstorm 3 metaphors silently, then pick the one that is LEAST predictable but still instantly readable. Reject the first idea that comes to mind — it's almost always the cliché (cloud=cloud shape, security=padlock, idea=lightbulb, analytics=bar chart, settings=gear, user=head-and-shoulders, time=clock face, message=speech bubble, search=magnifier). Find a fresher symbol that means the same thing.
-- COMPOSE, don't label. Combine 2 micro-elements into one tight glyph that creates a NEW meaning (e.g. compass-needle + sound-wave = "navigate audio"; seed + circuit-node = "growth engine"). One coherent silhouette, never two icons glued together.
-- SURPRISE ANGLE. Prefer unexpected viewpoints: top-down, cross-section, exploded, isometric hint, negative-space cutouts, half-glyphs that imply the whole. A book seen from the spine. A bridge seen end-on. A wave mid-break.
-- NEGATIVE SPACE AS SUBJECT. At least ~25% of the batch should use counter-form, cutouts, or implied shape as the primary storytelling device.
-- ASYMMETRY WITH PURPOSE. Avoid mirror-symmetric defaults unless the concept demands it. Tilt, offset, or weight one side to give the glyph energy.
+- BAN the obvious solution. For each concept, brainstorm 4 metaphors silently, then pick the one that is LEAST predictable but still instantly readable. Reject the first idea that comes to mind — it's almost always the cliché (cloud=cloud shape, security=padlock, idea=lightbulb, analytics=bar chart, settings=gear, user=head-and-shoulders, time=clock face, message=speech bubble, search=magnifier, location=pin-drop, calendar=grid, mail=envelope, home=house-with-roof, profile=circle-with-bust). Find a fresher symbol that means the same thing.
+- COMPOSE, don't label. Combine 2–3 micro-elements into one tight glyph that creates a NEW meaning (e.g. compass-needle + sound-wave = "navigate audio"; seed + circuit-node = "growth engine"; folded-page + arrow-eye = "document review"). One coherent silhouette, never two icons glued together.
+- SURPRISE ANGLE. Prefer unexpected viewpoints: top-down, cross-section, exploded, isometric hint, negative-space cutouts, half-glyphs that imply the whole. A book seen from the spine. A bridge seen end-on. A wave mid-break. A camera from inside the lens. A clock as a horizon line.
+- NEGATIVE SPACE AS SUBJECT. At least ~30% of the batch should use counter-form, cutouts, or implied shape as the primary storytelling device. The hole IS the icon.
+- ASYMMETRY WITH PURPOSE. Avoid mirror-symmetric defaults unless the concept demands it. Tilt, offset, or weight one side to give the glyph energy and direction.
 - METAPHOR LADDER. For every icon ask: literal → functional → poetic. Ship the poetic one IF it still reads in 0.3s. Otherwise ship functional. NEVER ship literal.
-- ZERO RECYCLED SHAPES across the batch. If two icons share a base form (e.g. both built on a circle-with-line), redesign one. Silhouette diversity is the headline metric.
+- ZERO RECYCLED SHAPES across the batch. If two icons share a base form (e.g. both built on a circle-with-line, or both rectangles-with-corner-fold), redesign one. Silhouette diversity is the headline metric — picture all icons greyed-out at 16px: every one must be instantly distinguishable.
 - KILL DECORATION. Sparkles, stars, dots, motion-lines, and corner accents are forbidden unless they ARE the concept. Every stroke must carry meaning.
 - BRAND-NATIVE METAPHORS. Mine the brand DNA (archetype, services, mission verbs) for symbols competitors would never think to use. The collection should feel un-portable to any other brand.
+- GESTURE & ENERGY. Static icons are boring. Every glyph should imply a verb — flowing, pulling, opening, breaking, branching, folding, meeting, departing. Capture motion in still form.
 
 These icons must be indistinguishable in quality from a hand-crafted Lucide release — and more interesting than one.`;
 
