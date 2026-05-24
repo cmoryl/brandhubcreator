@@ -1,4066 +1,1131 @@
-[
-  {
-    "id": "light-blue/12",
-    "slug": "12",
-    "name": "Icon #12",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/12.svg"
-  },
-  {
-    "id": "light-blue/13",
-    "slug": "13",
-    "name": "Icon #13",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/13.svg"
-  },
-  {
-    "id": "light-blue/6",
-    "slug": "6",
-    "name": "Icon #6",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/6.svg"
-  },
-  {
-    "id": "light-blue/7",
-    "slug": "7",
-    "name": "Icon #7",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/7.svg"
-  },
-  {
-    "id": "light-blue/asset-1091",
-    "slug": "asset-1091",
-    "name": "Icon #1091",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1091.svg"
-  },
-  {
-    "id": "light-blue/asset-1092",
-    "slug": "asset-1092",
-    "name": "Icon #1092",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1092.svg"
-  },
-  {
-    "id": "light-blue/asset-1093",
-    "slug": "asset-1093",
-    "name": "Icon #1093",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1093.svg"
-  },
-  {
-    "id": "light-blue/asset-1094",
-    "slug": "asset-1094",
-    "name": "Icon #1094",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1094.svg"
-  },
-  {
-    "id": "light-blue/asset-1095",
-    "slug": "asset-1095",
-    "name": "Icon #1095",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1095.svg"
-  },
-  {
-    "id": "light-blue/asset-1096",
-    "slug": "asset-1096",
-    "name": "Icon #1096",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1096.svg"
-  },
-  {
-    "id": "light-blue/asset-1097",
-    "slug": "asset-1097",
-    "name": "Icon #1097",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1097.svg"
-  },
-  {
-    "id": "light-blue/asset-1098",
-    "slug": "asset-1098",
-    "name": "Icon #1098",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1098.svg"
-  },
-  {
-    "id": "light-blue/asset-1099",
-    "slug": "asset-1099",
-    "name": "Icon #1099",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1099.svg"
-  },
-  {
-    "id": "light-blue/asset-1100",
-    "slug": "asset-1100",
-    "name": "Icon #1100",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1100.svg"
-  },
-  {
-    "id": "light-blue/asset-1101",
-    "slug": "asset-1101",
-    "name": "Icon #1101",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1101.svg"
-  },
-  {
-    "id": "light-blue/asset-1102",
-    "slug": "asset-1102",
-    "name": "Icon #1102",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1102.svg"
-  },
-  {
-    "id": "light-blue/asset-1103",
-    "slug": "asset-1103",
-    "name": "Icon #1103",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1103.svg"
-  },
-  {
-    "id": "light-blue/asset-1104",
-    "slug": "asset-1104",
-    "name": "Icon #1104",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1104.svg"
-  },
-  {
-    "id": "light-blue/asset-1105",
-    "slug": "asset-1105",
-    "name": "Icon #1105",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1105.svg"
-  },
-  {
-    "id": "light-blue/asset-1106",
-    "slug": "asset-1106",
-    "name": "Icon #1106",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1106.svg"
-  },
-  {
-    "id": "light-blue/asset-1107",
-    "slug": "asset-1107",
-    "name": "Icon #1107",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1107.svg"
-  },
-  {
-    "id": "light-blue/asset-1108",
-    "slug": "asset-1108",
-    "name": "Icon #1108",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1108.svg"
-  },
-  {
-    "id": "light-blue/asset-1109",
-    "slug": "asset-1109",
-    "name": "Icon #1109",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1109.svg"
-  },
-  {
-    "id": "light-blue/asset-1112",
-    "slug": "asset-1112",
-    "name": "Icon #1112",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1112.svg"
-  },
-  {
-    "id": "light-blue/asset-1113",
-    "slug": "asset-1113",
-    "name": "Icon #1113",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1113.svg"
-  },
-  {
-    "id": "light-blue/asset-1114",
-    "slug": "asset-1114",
-    "name": "Icon #1114",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1114.svg"
-  },
-  {
-    "id": "light-blue/asset-1115",
-    "slug": "asset-1115",
-    "name": "Icon #1115",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1115.svg"
-  },
-  {
-    "id": "light-blue/asset-1116",
-    "slug": "asset-1116",
-    "name": "Icon #1116",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1116.svg"
-  },
-  {
-    "id": "light-blue/asset-1117",
-    "slug": "asset-1117",
-    "name": "Icon #1117",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1117.svg"
-  },
-  {
-    "id": "light-blue/asset-1118",
-    "slug": "asset-1118",
-    "name": "Icon #1118",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1118.svg"
-  },
-  {
-    "id": "light-blue/asset-1119",
-    "slug": "asset-1119",
-    "name": "Icon #1119",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1119.svg"
-  },
-  {
-    "id": "light-blue/asset-1120",
-    "slug": "asset-1120",
-    "name": "Icon #1120",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1120.svg"
-  },
-  {
-    "id": "light-blue/asset-1121",
-    "slug": "asset-1121",
-    "name": "Icon #1121",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1121.svg"
-  },
-  {
-    "id": "light-blue/asset-1122",
-    "slug": "asset-1122",
-    "name": "Icon #1122",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1122.svg"
-  },
-  {
-    "id": "light-blue/asset-1123",
-    "slug": "asset-1123",
-    "name": "Icon #1123",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1123.svg"
-  },
-  {
-    "id": "light-blue/asset-1124",
-    "slug": "asset-1124",
-    "name": "Icon #1124",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1124.svg"
-  },
-  {
-    "id": "light-blue/asset-1125",
-    "slug": "asset-1125",
-    "name": "Icon #1125",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1125.svg"
-  },
-  {
-    "id": "light-blue/asset-1126",
-    "slug": "asset-1126",
-    "name": "Icon #1126",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1126.svg"
-  },
-  {
-    "id": "light-blue/asset-1127",
-    "slug": "asset-1127",
-    "name": "Icon #1127",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1127.svg"
-  },
-  {
-    "id": "light-blue/asset-1128",
-    "slug": "asset-1128",
-    "name": "Icon #1128",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1128.svg"
-  },
-  {
-    "id": "light-blue/asset-1129",
-    "slug": "asset-1129",
-    "name": "Icon #1129",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1129.svg"
-  },
-  {
-    "id": "light-blue/asset-1130",
-    "slug": "asset-1130",
-    "name": "Icon #1130",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1130.svg"
-  },
-  {
-    "id": "light-blue/asset-1131",
-    "slug": "asset-1131",
-    "name": "Icon #1131",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1131.svg"
-  },
-  {
-    "id": "light-blue/asset-1132",
-    "slug": "asset-1132",
-    "name": "Icon #1132",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1132.svg"
-  },
-  {
-    "id": "light-blue/asset-1133",
-    "slug": "asset-1133",
-    "name": "Icon #1133",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1133.svg"
-  },
-  {
-    "id": "light-blue/asset-1134",
-    "slug": "asset-1134",
-    "name": "Icon #1134",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1134.svg"
-  },
-  {
-    "id": "light-blue/asset-1135",
-    "slug": "asset-1135",
-    "name": "Icon #1135",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1135.svg"
-  },
-  {
-    "id": "light-blue/asset-1136",
-    "slug": "asset-1136",
-    "name": "Icon #1136",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1136.svg"
-  },
-  {
-    "id": "light-blue/asset-1137",
-    "slug": "asset-1137",
-    "name": "Icon #1137",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1137.svg"
-  },
-  {
-    "id": "light-blue/asset-1138",
-    "slug": "asset-1138",
-    "name": "Icon #1138",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1138.svg"
-  },
-  {
-    "id": "light-blue/asset-1139",
-    "slug": "asset-1139",
-    "name": "Icon #1139",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1139.svg"
-  },
-  {
-    "id": "light-blue/asset-1140",
-    "slug": "asset-1140",
-    "name": "Icon #1140",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1140.svg"
-  },
-  {
-    "id": "light-blue/asset-1141",
-    "slug": "asset-1141",
-    "name": "Icon #1141",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1141.svg"
-  },
-  {
-    "id": "light-blue/asset-1142",
-    "slug": "asset-1142",
-    "name": "Icon #1142",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1142.svg"
-  },
-  {
-    "id": "light-blue/asset-1143",
-    "slug": "asset-1143",
-    "name": "Icon #1143",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1143.svg"
-  },
-  {
-    "id": "light-blue/asset-1144",
-    "slug": "asset-1144",
-    "name": "Icon #1144",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1144.svg"
-  },
-  {
-    "id": "light-blue/asset-1145",
-    "slug": "asset-1145",
-    "name": "Icon #1145",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1145.svg"
-  },
-  {
-    "id": "light-blue/asset-1146",
-    "slug": "asset-1146",
-    "name": "Icon #1146",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1146.svg"
-  },
-  {
-    "id": "light-blue/asset-1147",
-    "slug": "asset-1147",
-    "name": "Icon #1147",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1147.svg"
-  },
-  {
-    "id": "light-blue/asset-1148",
-    "slug": "asset-1148",
-    "name": "Icon #1148",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1148.svg"
-  },
-  {
-    "id": "light-blue/asset-1149",
-    "slug": "asset-1149",
-    "name": "Icon #1149",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1149.svg"
-  },
-  {
-    "id": "light-blue/asset-1150",
-    "slug": "asset-1150",
-    "name": "Icon #1150",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1150.svg"
-  },
-  {
-    "id": "light-blue/asset-1151",
-    "slug": "asset-1151",
-    "name": "Icon #1151",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1151.svg"
-  },
-  {
-    "id": "light-blue/asset-1152",
-    "slug": "asset-1152",
-    "name": "Icon #1152",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1152.svg"
-  },
-  {
-    "id": "light-blue/asset-1153",
-    "slug": "asset-1153",
-    "name": "Icon #1153",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1153.svg"
-  },
-  {
-    "id": "light-blue/asset-1154",
-    "slug": "asset-1154",
-    "name": "Icon #1154",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1154.svg"
-  },
-  {
-    "id": "light-blue/asset-1155",
-    "slug": "asset-1155",
-    "name": "Icon #1155",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1155.svg"
-  },
-  {
-    "id": "light-blue/asset-1156",
-    "slug": "asset-1156",
-    "name": "Icon #1156",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1156.svg"
-  },
-  {
-    "id": "light-blue/asset-1158",
-    "slug": "asset-1158",
-    "name": "Icon #1158",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1158.svg"
-  },
-  {
-    "id": "light-blue/asset-1159",
-    "slug": "asset-1159",
-    "name": "Icon #1159",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1159.svg"
-  },
-  {
-    "id": "light-blue/asset-1160",
-    "slug": "asset-1160",
-    "name": "Icon #1160",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1160.svg"
-  },
-  {
-    "id": "light-blue/asset-1161",
-    "slug": "asset-1161",
-    "name": "Icon #1161",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1161.svg"
-  },
-  {
-    "id": "light-blue/asset-1162",
-    "slug": "asset-1162",
-    "name": "Icon #1162",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1162.svg"
-  },
-  {
-    "id": "light-blue/asset-1163",
-    "slug": "asset-1163",
-    "name": "Icon #1163",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1163.svg"
-  },
-  {
-    "id": "light-blue/asset-1164",
-    "slug": "asset-1164",
-    "name": "Icon #1164",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1164.svg"
-  },
-  {
-    "id": "light-blue/asset-1165",
-    "slug": "asset-1165",
-    "name": "Icon #1165",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1165.svg"
-  },
-  {
-    "id": "light-blue/asset-1166",
-    "slug": "asset-1166",
-    "name": "Icon #1166",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1166.svg"
-  },
-  {
-    "id": "light-blue/asset-1177",
-    "slug": "asset-1177",
-    "name": "Icon #1177",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1177.svg"
-  },
-  {
-    "id": "light-blue/asset-1178",
-    "slug": "asset-1178",
-    "name": "Icon #1178",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1178.svg"
-  },
-  {
-    "id": "light-blue/asset-1179",
-    "slug": "asset-1179",
-    "name": "Icon #1179",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1179.svg"
-  },
-  {
-    "id": "light-blue/asset-1180",
-    "slug": "asset-1180",
-    "name": "Icon #1180",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1180.svg"
-  },
-  {
-    "id": "light-blue/asset-1181",
-    "slug": "asset-1181",
-    "name": "Icon #1181",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1181.svg"
-  },
-  {
-    "id": "light-blue/asset-1182",
-    "slug": "asset-1182",
-    "name": "Icon #1182",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1182.svg"
-  },
-  {
-    "id": "light-blue/asset-1183",
-    "slug": "asset-1183",
-    "name": "Icon #1183",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1183.svg"
-  },
-  {
-    "id": "light-blue/asset-1184",
-    "slug": "asset-1184",
-    "name": "Icon #1184",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1184.svg"
-  },
-  {
-    "id": "light-blue/asset-1185",
-    "slug": "asset-1185",
-    "name": "Icon #1185",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1185.svg"
-  },
-  {
-    "id": "light-blue/asset-1186",
-    "slug": "asset-1186",
-    "name": "Icon #1186",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1186.svg"
-  },
-  {
-    "id": "light-blue/asset-1187",
-    "slug": "asset-1187",
-    "name": "Icon #1187",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1187.svg"
-  },
-  {
-    "id": "light-blue/asset-1192",
-    "slug": "asset-1192",
-    "name": "Icon #1192",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1192.svg"
-  },
-  {
-    "id": "light-blue/asset-1193",
-    "slug": "asset-1193",
-    "name": "Icon #1193",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1193.svg"
-  },
-  {
-    "id": "light-blue/asset-1194",
-    "slug": "asset-1194",
-    "name": "Icon #1194",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1194.svg"
-  },
-  {
-    "id": "light-blue/asset-1195",
-    "slug": "asset-1195",
-    "name": "Icon #1195",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1195.svg"
-  },
-  {
-    "id": "light-blue/asset-1196",
-    "slug": "asset-1196",
-    "name": "Icon #1196",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1196.svg"
-  },
-  {
-    "id": "light-blue/asset-1197",
-    "slug": "asset-1197",
-    "name": "Icon #1197",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1197.svg"
-  },
-  {
-    "id": "light-blue/asset-1198",
-    "slug": "asset-1198",
-    "name": "Icon #1198",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1198.svg"
-  },
-  {
-    "id": "light-blue/asset-1199",
-    "slug": "asset-1199",
-    "name": "Icon #1199",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1199.svg"
-  },
-  {
-    "id": "light-blue/asset-1200",
-    "slug": "asset-1200",
-    "name": "Icon #1200",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1200.svg"
-  },
-  {
-    "id": "light-blue/asset-1201",
-    "slug": "asset-1201",
-    "name": "Icon #1201",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1201.svg"
-  },
-  {
-    "id": "light-blue/asset-1202",
-    "slug": "asset-1202",
-    "name": "Icon #1202",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1202.svg"
-  },
-  {
-    "id": "light-blue/asset-1203",
-    "slug": "asset-1203",
-    "name": "Icon #1203",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1203.svg"
-  },
-  {
-    "id": "light-blue/asset-1204",
-    "slug": "asset-1204",
-    "name": "Icon #1204",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1204.svg"
-  },
-  {
-    "id": "light-blue/asset-1205",
-    "slug": "asset-1205",
-    "name": "Icon #1205",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1205.svg"
-  },
-  {
-    "id": "light-blue/asset-1206",
-    "slug": "asset-1206",
-    "name": "Icon #1206",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1206.svg"
-  },
-  {
-    "id": "light-blue/asset-1207",
-    "slug": "asset-1207",
-    "name": "Icon #1207",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1207.svg"
-  },
-  {
-    "id": "light-blue/asset-1208",
-    "slug": "asset-1208",
-    "name": "Icon #1208",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1208.svg"
-  },
-  {
-    "id": "light-blue/asset-1209",
-    "slug": "asset-1209",
-    "name": "Icon #1209",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1209.svg"
-  },
-  {
-    "id": "light-blue/asset-1210",
-    "slug": "asset-1210",
-    "name": "Icon #1210",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1210.svg"
-  },
-  {
-    "id": "light-blue/asset-1211",
-    "slug": "asset-1211",
-    "name": "Icon #1211",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1211.svg"
-  },
-  {
-    "id": "light-blue/asset-1212",
-    "slug": "asset-1212",
-    "name": "Icon #1212",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1212.svg"
-  },
-  {
-    "id": "light-blue/asset-1213",
-    "slug": "asset-1213",
-    "name": "Icon #1213",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1213.svg"
-  },
-  {
-    "id": "light-blue/asset-1214",
-    "slug": "asset-1214",
-    "name": "Icon #1214",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1214.svg"
-  },
-  {
-    "id": "light-blue/asset-1215",
-    "slug": "asset-1215",
-    "name": "Icon #1215",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1215.svg"
-  },
-  {
-    "id": "light-blue/asset-1216",
-    "slug": "asset-1216",
-    "name": "Icon #1216",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1216.svg"
-  },
-  {
-    "id": "light-blue/asset-1217",
-    "slug": "asset-1217",
-    "name": "Icon #1217",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1217.svg"
-  },
-  {
-    "id": "light-blue/asset-1218",
-    "slug": "asset-1218",
-    "name": "Icon #1218",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1218.svg"
-  },
-  {
-    "id": "light-blue/asset-1219",
-    "slug": "asset-1219",
-    "name": "Icon #1219",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1219.svg"
-  },
-  {
-    "id": "light-blue/asset-1220",
-    "slug": "asset-1220",
-    "name": "Icon #1220",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1220.svg"
-  },
-  {
-    "id": "light-blue/asset-1221",
-    "slug": "asset-1221",
-    "name": "Icon #1221",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1221.svg"
-  },
-  {
-    "id": "light-blue/asset-1222",
-    "slug": "asset-1222",
-    "name": "Icon #1222",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1222.svg"
-  },
-  {
-    "id": "light-blue/asset-1223",
-    "slug": "asset-1223",
-    "name": "Icon #1223",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1223.svg"
-  },
-  {
-    "id": "light-blue/asset-1224",
-    "slug": "asset-1224",
-    "name": "Icon #1224",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1224.svg"
-  },
-  {
-    "id": "light-blue/asset-1225",
-    "slug": "asset-1225",
-    "name": "Icon #1225",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1225.svg"
-  },
-  {
-    "id": "light-blue/asset-1226",
-    "slug": "asset-1226",
-    "name": "Icon #1226",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1226.svg"
-  },
-  {
-    "id": "light-blue/asset-1227",
-    "slug": "asset-1227",
-    "name": "Icon #1227",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1227.svg"
-  },
-  {
-    "id": "light-blue/asset-1228",
-    "slug": "asset-1228",
-    "name": "Icon #1228",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1228.svg"
-  },
-  {
-    "id": "light-blue/asset-1229",
-    "slug": "asset-1229",
-    "name": "Icon #1229",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1229.svg"
-  },
-  {
-    "id": "light-blue/asset-1230",
-    "slug": "asset-1230",
-    "name": "Icon #1230",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1230.svg"
-  },
-  {
-    "id": "light-blue/asset-1231",
-    "slug": "asset-1231",
-    "name": "Icon #1231",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1231.svg"
-  },
-  {
-    "id": "light-blue/asset-1232",
-    "slug": "asset-1232",
-    "name": "Icon #1232",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1232.svg"
-  },
-  {
-    "id": "light-blue/asset-1233",
-    "slug": "asset-1233",
-    "name": "Icon #1233",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1233.svg"
-  },
-  {
-    "id": "light-blue/asset-1234",
-    "slug": "asset-1234",
-    "name": "Icon #1234",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1234.svg"
-  },
-  {
-    "id": "light-blue/asset-1235",
-    "slug": "asset-1235",
-    "name": "Icon #1235",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1235.svg"
-  },
-  {
-    "id": "light-blue/asset-1236",
-    "slug": "asset-1236",
-    "name": "Icon #1236",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1236.svg"
-  },
-  {
-    "id": "light-blue/asset-1237",
-    "slug": "asset-1237",
-    "name": "Icon #1237",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1237.svg"
-  },
-  {
-    "id": "light-blue/asset-1238",
-    "slug": "asset-1238",
-    "name": "Icon #1238",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1238.svg"
-  },
-  {
-    "id": "light-blue/asset-1239",
-    "slug": "asset-1239",
-    "name": "Icon #1239",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1239.svg"
-  },
-  {
-    "id": "light-blue/asset-1240",
-    "slug": "asset-1240",
-    "name": "Icon #1240",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1240.svg"
-  },
-  {
-    "id": "light-blue/asset-1241",
-    "slug": "asset-1241",
-    "name": "Icon #1241",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1241.svg"
-  },
-  {
-    "id": "light-blue/asset-1242",
-    "slug": "asset-1242",
-    "name": "Icon #1242",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1242.svg"
-  },
-  {
-    "id": "light-blue/asset-1243",
-    "slug": "asset-1243",
-    "name": "Icon #1243",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1243.svg"
-  },
-  {
-    "id": "light-blue/asset-1244",
-    "slug": "asset-1244",
-    "name": "Icon #1244",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1244.svg"
-  },
-  {
-    "id": "light-blue/asset-1245",
-    "slug": "asset-1245",
-    "name": "Icon #1245",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1245.svg"
-  },
-  {
-    "id": "light-blue/asset-1246",
-    "slug": "asset-1246",
-    "name": "Icon #1246",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1246.svg"
-  },
-  {
-    "id": "light-blue/asset-1247",
-    "slug": "asset-1247",
-    "name": "Icon #1247",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1247.svg"
-  },
-  {
-    "id": "light-blue/asset-1248",
-    "slug": "asset-1248",
-    "name": "Icon #1248",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1248.svg"
-  },
-  {
-    "id": "light-blue/asset-1249",
-    "slug": "asset-1249",
-    "name": "Icon #1249",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1249.svg"
-  },
-  {
-    "id": "light-blue/asset-1250",
-    "slug": "asset-1250",
-    "name": "Icon #1250",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1250.svg"
-  },
-  {
-    "id": "light-blue/asset-1251",
-    "slug": "asset-1251",
-    "name": "Icon #1251",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1251.svg"
-  },
-  {
-    "id": "light-blue/asset-1252",
-    "slug": "asset-1252",
-    "name": "Icon #1252",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1252.svg"
-  },
-  {
-    "id": "light-blue/asset-1253",
-    "slug": "asset-1253",
-    "name": "Icon #1253",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1253.svg"
-  },
-  {
-    "id": "light-blue/asset-1254",
-    "slug": "asset-1254",
-    "name": "Icon #1254",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1254.svg"
-  },
-  {
-    "id": "light-blue/asset-1255",
-    "slug": "asset-1255",
-    "name": "Icon #1255",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1255.svg"
-  },
-  {
-    "id": "light-blue/asset-1256",
-    "slug": "asset-1256",
-    "name": "Icon #1256",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1256.svg"
-  },
-  {
-    "id": "light-blue/asset-1257",
-    "slug": "asset-1257",
-    "name": "Icon #1257",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1257.svg"
-  },
-  {
-    "id": "light-blue/asset-1258",
-    "slug": "asset-1258",
-    "name": "Icon #1258",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1258.svg"
-  },
-  {
-    "id": "light-blue/asset-1259",
-    "slug": "asset-1259",
-    "name": "Icon #1259",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1259.svg"
-  },
-  {
-    "id": "light-blue/asset-1260",
-    "slug": "asset-1260",
-    "name": "Icon #1260",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1260.svg"
-  },
-  {
-    "id": "light-blue/asset-1261",
-    "slug": "asset-1261",
-    "name": "Icon #1261",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1261.svg"
-  },
-  {
-    "id": "light-blue/asset-1262",
-    "slug": "asset-1262",
-    "name": "Icon #1262",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1262.svg"
-  },
-  {
-    "id": "light-blue/asset-1263",
-    "slug": "asset-1263",
-    "name": "Icon #1263",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1263.svg"
-  },
-  {
-    "id": "light-blue/asset-1264",
-    "slug": "asset-1264",
-    "name": "Icon #1264",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1264.svg"
-  },
-  {
-    "id": "light-blue/asset-1265",
-    "slug": "asset-1265",
-    "name": "Icon #1265",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1265.svg"
-  },
-  {
-    "id": "light-blue/asset-1266",
-    "slug": "asset-1266",
-    "name": "Icon #1266",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1266.svg"
-  },
-  {
-    "id": "light-blue/asset-1267",
-    "slug": "asset-1267",
-    "name": "Icon #1267",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1267.svg"
-  },
-  {
-    "id": "light-blue/asset-1268",
-    "slug": "asset-1268",
-    "name": "Icon #1268",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1268.svg"
-  },
-  {
-    "id": "light-blue/asset-1269",
-    "slug": "asset-1269",
-    "name": "Icon #1269",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1269.svg"
-  },
-  {
-    "id": "light-blue/asset-1270",
-    "slug": "asset-1270",
-    "name": "Icon #1270",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1270.svg"
-  },
-  {
-    "id": "light-blue/asset-1271",
-    "slug": "asset-1271",
-    "name": "Icon #1271",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1271.svg"
-  },
-  {
-    "id": "light-blue/asset-1272",
-    "slug": "asset-1272",
-    "name": "Icon #1272",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1272.svg"
-  },
-  {
-    "id": "light-blue/asset-1273",
-    "slug": "asset-1273",
-    "name": "Icon #1273",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1273.svg"
-  },
-  {
-    "id": "light-blue/asset-1274",
-    "slug": "asset-1274",
-    "name": "Icon #1274",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1274.svg"
-  },
-  {
-    "id": "light-blue/asset-1275",
-    "slug": "asset-1275",
-    "name": "Icon #1275",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1275.svg"
-  },
-  {
-    "id": "light-blue/asset-1276",
-    "slug": "asset-1276",
-    "name": "Icon #1276",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1276.svg"
-  },
-  {
-    "id": "light-blue/asset-1277",
-    "slug": "asset-1277",
-    "name": "Icon #1277",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1277.svg"
-  },
-  {
-    "id": "light-blue/asset-1278",
-    "slug": "asset-1278",
-    "name": "Icon #1278",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1278.svg"
-  },
-  {
-    "id": "light-blue/asset-1279",
-    "slug": "asset-1279",
-    "name": "Icon #1279",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1279.svg"
-  },
-  {
-    "id": "light-blue/asset-1280",
-    "slug": "asset-1280",
-    "name": "Icon #1280",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1280.svg"
-  },
-  {
-    "id": "light-blue/asset-1281",
-    "slug": "asset-1281",
-    "name": "Icon #1281",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1281.svg"
-  },
-  {
-    "id": "light-blue/asset-1282",
-    "slug": "asset-1282",
-    "name": "Icon #1282",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1282.svg"
-  },
-  {
-    "id": "light-blue/asset-1283",
-    "slug": "asset-1283",
-    "name": "Icon #1283",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1283.svg"
-  },
-  {
-    "id": "light-blue/asset-1284",
-    "slug": "asset-1284",
-    "name": "Icon #1284",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1284.svg"
-  },
-  {
-    "id": "light-blue/asset-1285",
-    "slug": "asset-1285",
-    "name": "Icon #1285",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1285.svg"
-  },
-  {
-    "id": "light-blue/asset-1286",
-    "slug": "asset-1286",
-    "name": "Icon #1286",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1286.svg"
-  },
-  {
-    "id": "light-blue/asset-1287",
-    "slug": "asset-1287",
-    "name": "Icon #1287",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1287.svg"
-  },
-  {
-    "id": "light-blue/asset-1288",
-    "slug": "asset-1288",
-    "name": "Icon #1288",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1288.svg"
-  },
-  {
-    "id": "light-blue/asset-1289",
-    "slug": "asset-1289",
-    "name": "Icon #1289",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1289.svg"
-  },
-  {
-    "id": "light-blue/asset-1290",
-    "slug": "asset-1290",
-    "name": "Icon #1290",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1290.svg"
-  },
-  {
-    "id": "light-blue/asset-1291",
-    "slug": "asset-1291",
-    "name": "Icon #1291",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1291.svg"
-  },
-  {
-    "id": "light-blue/asset-1292",
-    "slug": "asset-1292",
-    "name": "Icon #1292",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1292.svg"
-  },
-  {
-    "id": "light-blue/asset-1293",
-    "slug": "asset-1293",
-    "name": "Icon #1293",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1293.svg"
-  },
-  {
-    "id": "light-blue/asset-1294",
-    "slug": "asset-1294",
-    "name": "Icon #1294",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1294.svg"
-  },
-  {
-    "id": "light-blue/asset-1295",
-    "slug": "asset-1295",
-    "name": "Icon #1295",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1295.svg"
-  },
-  {
-    "id": "light-blue/asset-1296",
-    "slug": "asset-1296",
-    "name": "Icon #1296",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1296.svg"
-  },
-  {
-    "id": "light-blue/asset-1297",
-    "slug": "asset-1297",
-    "name": "Icon #1297",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1297.svg"
-  },
-  {
-    "id": "light-blue/asset-1298",
-    "slug": "asset-1298",
-    "name": "Icon #1298",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1298.svg"
-  },
-  {
-    "id": "light-blue/asset-1299",
-    "slug": "asset-1299",
-    "name": "Icon #1299",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1299.svg"
-  },
-  {
-    "id": "light-blue/asset-1300",
-    "slug": "asset-1300",
-    "name": "Icon #1300",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1300.svg"
-  },
-  {
-    "id": "light-blue/asset-1301",
-    "slug": "asset-1301",
-    "name": "Icon #1301",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1301.svg"
-  },
-  {
-    "id": "light-blue/asset-1302",
-    "slug": "asset-1302",
-    "name": "Icon #1302",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1302.svg"
-  },
-  {
-    "id": "light-blue/asset-1303",
-    "slug": "asset-1303",
-    "name": "Icon #1303",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1303.svg"
-  },
-  {
-    "id": "light-blue/asset-1304",
-    "slug": "asset-1304",
-    "name": "Icon #1304",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1304.svg"
-  },
-  {
-    "id": "light-blue/asset-1305",
-    "slug": "asset-1305",
-    "name": "Icon #1305",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1305.svg"
-  },
-  {
-    "id": "light-blue/asset-1306",
-    "slug": "asset-1306",
-    "name": "Icon #1306",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1306.svg"
-  },
-  {
-    "id": "light-blue/asset-1307",
-    "slug": "asset-1307",
-    "name": "Icon #1307",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1307.svg"
-  },
-  {
-    "id": "light-blue/asset-1308",
-    "slug": "asset-1308",
-    "name": "Icon #1308",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1308.svg"
-  },
-  {
-    "id": "light-blue/asset-1309",
-    "slug": "asset-1309",
-    "name": "Icon #1309",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1309.svg"
-  },
-  {
-    "id": "light-blue/asset-1310",
-    "slug": "asset-1310",
-    "name": "Icon #1310",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1310.svg"
-  },
-  {
-    "id": "light-blue/asset-1311",
-    "slug": "asset-1311",
-    "name": "Icon #1311",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1311.svg"
-  },
-  {
-    "id": "light-blue/asset-1312",
-    "slug": "asset-1312",
-    "name": "Icon #1312",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1312.svg"
-  },
-  {
-    "id": "light-blue/asset-1313",
-    "slug": "asset-1313",
-    "name": "Icon #1313",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1313.svg"
-  },
-  {
-    "id": "light-blue/asset-1314",
-    "slug": "asset-1314",
-    "name": "Icon #1314",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1314.svg"
-  },
-  {
-    "id": "light-blue/asset-1315",
-    "slug": "asset-1315",
-    "name": "Icon #1315",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1315.svg"
-  },
-  {
-    "id": "light-blue/asset-1316",
-    "slug": "asset-1316",
-    "name": "Icon #1316",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1316.svg"
-  },
-  {
-    "id": "light-blue/asset-1317",
-    "slug": "asset-1317",
-    "name": "Icon #1317",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1317.svg"
-  },
-  {
-    "id": "light-blue/asset-1318",
-    "slug": "asset-1318",
-    "name": "Icon #1318",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1318.svg"
-  },
-  {
-    "id": "light-blue/asset-1319",
-    "slug": "asset-1319",
-    "name": "Icon #1319",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1319.svg"
-  },
-  {
-    "id": "light-blue/asset-1320",
-    "slug": "asset-1320",
-    "name": "Icon #1320",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1320.svg"
-  },
-  {
-    "id": "light-blue/asset-1321",
-    "slug": "asset-1321",
-    "name": "Icon #1321",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1321.svg"
-  },
-  {
-    "id": "light-blue/asset-1322",
-    "slug": "asset-1322",
-    "name": "Icon #1322",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1322.svg"
-  },
-  {
-    "id": "light-blue/asset-1323",
-    "slug": "asset-1323",
-    "name": "Icon #1323",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1323.svg"
-  },
-  {
-    "id": "light-blue/asset-1324",
-    "slug": "asset-1324",
-    "name": "Icon #1324",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1324.svg"
-  },
-  {
-    "id": "light-blue/asset-1325",
-    "slug": "asset-1325",
-    "name": "Icon #1325",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1325.svg"
-  },
-  {
-    "id": "light-blue/asset-1326",
-    "slug": "asset-1326",
-    "name": "Icon #1326",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1326.svg"
-  },
-  {
-    "id": "light-blue/asset-1327",
-    "slug": "asset-1327",
-    "name": "Icon #1327",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1327.svg"
-  },
-  {
-    "id": "light-blue/asset-1328",
-    "slug": "asset-1328",
-    "name": "Icon #1328",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1328.svg"
-  },
-  {
-    "id": "light-blue/asset-1329",
-    "slug": "asset-1329",
-    "name": "Icon #1329",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1329.svg"
-  },
-  {
-    "id": "light-blue/asset-1330",
-    "slug": "asset-1330",
-    "name": "Icon #1330",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1330.svg"
-  },
-  {
-    "id": "light-blue/asset-1331",
-    "slug": "asset-1331",
-    "name": "Icon #1331",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1331.svg"
-  },
-  {
-    "id": "light-blue/asset-1332",
-    "slug": "asset-1332",
-    "name": "Icon #1332",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1332.svg"
-  },
-  {
-    "id": "light-blue/asset-1333",
-    "slug": "asset-1333",
-    "name": "Icon #1333",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1333.svg"
-  },
-  {
-    "id": "light-blue/asset-1334",
-    "slug": "asset-1334",
-    "name": "Icon #1334",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1334.svg"
-  },
-  {
-    "id": "light-blue/asset-1335",
-    "slug": "asset-1335",
-    "name": "Icon #1335",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1335.svg"
-  },
-  {
-    "id": "light-blue/asset-1336",
-    "slug": "asset-1336",
-    "name": "Icon #1336",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1336.svg"
-  },
-  {
-    "id": "light-blue/asset-1337",
-    "slug": "asset-1337",
-    "name": "Icon #1337",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1337.svg"
-  },
-  {
-    "id": "light-blue/asset-1338",
-    "slug": "asset-1338",
-    "name": "Icon #1338",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1338.svg"
-  },
-  {
-    "id": "light-blue/asset-1339",
-    "slug": "asset-1339",
-    "name": "Icon #1339",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1339.svg"
-  },
-  {
-    "id": "light-blue/asset-1340",
-    "slug": "asset-1340",
-    "name": "Icon #1340",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1340.svg"
-  },
-  {
-    "id": "light-blue/asset-1341",
-    "slug": "asset-1341",
-    "name": "Icon #1341",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1341.svg"
-  },
-  {
-    "id": "light-blue/asset-1342",
-    "slug": "asset-1342",
-    "name": "Icon #1342",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1342.svg"
-  },
-  {
-    "id": "light-blue/asset-1343",
-    "slug": "asset-1343",
-    "name": "Icon #1343",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1343.svg"
-  },
-  {
-    "id": "light-blue/asset-1344",
-    "slug": "asset-1344",
-    "name": "Icon #1344",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1344.svg"
-  },
-  {
-    "id": "light-blue/asset-1345",
-    "slug": "asset-1345",
-    "name": "Icon #1345",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1345.svg"
-  },
-  {
-    "id": "light-blue/asset-1346",
-    "slug": "asset-1346",
-    "name": "Icon #1346",
-    "variant": "light-blue",
-    "category": "uncategorized",
-    "path": "/icon-library/light-blue/asset-1346.svg"
-  },
-  {
-    "id": "light-blue/band-aid",
-    "slug": "band-aid",
-    "name": "Band Aid",
-    "variant": "light-blue",
-    "category": "medical",
-    "path": "/icon-library/light-blue/band-aid.svg"
-  },
-  {
-    "id": "light-blue/dna-test",
-    "slug": "dna-test",
-    "name": "Dna Test",
-    "variant": "light-blue",
-    "category": "medical",
-    "path": "/icon-library/light-blue/dna-test.svg"
-  },
-  {
-    "id": "light-blue/emergency-call-app",
-    "slug": "emergency-call-app",
-    "name": "Emergency Call App",
-    "variant": "light-blue",
-    "category": "medical",
-    "path": "/icon-library/light-blue/emergency-call-app.svg"
-  },
-  {
-    "id": "light-blue/first-aid-kit",
-    "slug": "first-aid-kit",
-    "name": "First Aid Kit",
-    "variant": "light-blue",
-    "category": "medical",
-    "path": "/icon-library/light-blue/first-aid-kit.svg"
-  },
-  {
-    "id": "light-blue/health-insurance",
-    "slug": "health-insurance",
-    "name": "Health Insurance",
-    "variant": "light-blue",
-    "category": "medical",
-    "path": "/icon-library/light-blue/health-insurance.svg"
-  },
-  {
-    "id": "light-blue/hospital",
-    "slug": "hospital",
-    "name": "Hospital",
-    "variant": "light-blue",
-    "category": "medical",
-    "path": "/icon-library/light-blue/hospital.svg"
-  },
-  {
-    "id": "light-blue/medical-check-home-doctor",
-    "slug": "medical-check-home-doctor",
-    "name": "Medical Check Home Doctor",
-    "variant": "light-blue",
-    "category": "medical",
-    "path": "/icon-library/light-blue/medical-check-home-doctor.svg"
-  },
-  {
-    "id": "light-blue/medical-prescription",
-    "slug": "medical-prescription",
-    "name": "Medical Prescription",
-    "variant": "light-blue",
-    "category": "medical",
-    "path": "/icon-library/light-blue/medical-prescription.svg"
-  },
-  {
-    "id": "light-blue/online-medical-consultation-diagnosis",
-    "slug": "online-medical-consultation-diagnosis",
-    "name": "Online Medical Consultation Diagnosis",
-    "variant": "light-blue",
-    "category": "medical",
-    "path": "/icon-library/light-blue/online-medical-consultation-diagnosis.svg"
-  },
-  {
-    "id": "light-blue/syringe",
-    "slug": "syringe",
-    "name": "Syringe",
-    "variant": "light-blue",
-    "category": "medical",
-    "path": "/icon-library/light-blue/syringe.svg"
-  },
-  {
-    "id": "white/12",
-    "slug": "12",
-    "name": "Icon #12",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/12.svg"
-  },
-  {
-    "id": "white/13",
-    "slug": "13",
-    "name": "Icon #13",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/13.svg"
-  },
-  {
-    "id": "white/6",
-    "slug": "6",
-    "name": "Icon #6",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/6.svg"
-  },
-  {
-    "id": "white/7",
-    "slug": "7",
-    "name": "Icon #7",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/7.svg"
-  },
-  {
-    "id": "white/asset-1347",
-    "slug": "asset-1347",
-    "name": "Icon #1347",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1347.svg"
-  },
-  {
-    "id": "white/asset-1348",
-    "slug": "asset-1348",
-    "name": "Icon #1348",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1348.svg"
-  },
-  {
-    "id": "white/asset-1349",
-    "slug": "asset-1349",
-    "name": "Icon #1349",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1349.svg"
-  },
-  {
-    "id": "white/asset-1350",
-    "slug": "asset-1350",
-    "name": "Icon #1350",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1350.svg"
-  },
-  {
-    "id": "white/asset-1351",
-    "slug": "asset-1351",
-    "name": "Icon #1351",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1351.svg"
-  },
-  {
-    "id": "white/asset-1352",
-    "slug": "asset-1352",
-    "name": "Icon #1352",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1352.svg"
-  },
-  {
-    "id": "white/asset-1353",
-    "slug": "asset-1353",
-    "name": "Icon #1353",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1353.svg"
-  },
-  {
-    "id": "white/asset-1354",
-    "slug": "asset-1354",
-    "name": "Icon #1354",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1354.svg"
-  },
-  {
-    "id": "white/asset-1355",
-    "slug": "asset-1355",
-    "name": "Icon #1355",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1355.svg"
-  },
-  {
-    "id": "white/asset-1356",
-    "slug": "asset-1356",
-    "name": "Icon #1356",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1356.svg"
-  },
-  {
-    "id": "white/asset-1357",
-    "slug": "asset-1357",
-    "name": "Icon #1357",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1357.svg"
-  },
-  {
-    "id": "white/asset-1358",
-    "slug": "asset-1358",
-    "name": "Icon #1358",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1358.svg"
-  },
-  {
-    "id": "white/asset-1359",
-    "slug": "asset-1359",
-    "name": "Icon #1359",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1359.svg"
-  },
-  {
-    "id": "white/asset-1360",
-    "slug": "asset-1360",
-    "name": "Icon #1360",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1360.svg"
-  },
-  {
-    "id": "white/asset-1361",
-    "slug": "asset-1361",
-    "name": "Icon #1361",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1361.svg"
-  },
-  {
-    "id": "white/asset-1362",
-    "slug": "asset-1362",
-    "name": "Icon #1362",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1362.svg"
-  },
-  {
-    "id": "white/asset-1363",
-    "slug": "asset-1363",
-    "name": "Icon #1363",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1363.svg"
-  },
-  {
-    "id": "white/asset-1364",
-    "slug": "asset-1364",
-    "name": "Icon #1364",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1364.svg"
-  },
-  {
-    "id": "white/asset-1365",
-    "slug": "asset-1365",
-    "name": "Icon #1365",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1365.svg"
-  },
-  {
-    "id": "white/asset-1366",
-    "slug": "asset-1366",
-    "name": "Icon #1366",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1366.svg"
-  },
-  {
-    "id": "white/asset-1367",
-    "slug": "asset-1367",
-    "name": "Icon #1367",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1367.svg"
-  },
-  {
-    "id": "white/asset-1368",
-    "slug": "asset-1368",
-    "name": "Icon #1368",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1368.svg"
-  },
-  {
-    "id": "white/asset-1369",
-    "slug": "asset-1369",
-    "name": "Icon #1369",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1369.svg"
-  },
-  {
-    "id": "white/asset-1370",
-    "slug": "asset-1370",
-    "name": "Icon #1370",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1370.svg"
-  },
-  {
-    "id": "white/asset-1371",
-    "slug": "asset-1371",
-    "name": "Icon #1371",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1371.svg"
-  },
-  {
-    "id": "white/asset-1372",
-    "slug": "asset-1372",
-    "name": "Icon #1372",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1372.svg"
-  },
-  {
-    "id": "white/asset-1373",
-    "slug": "asset-1373",
-    "name": "Icon #1373",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1373.svg"
-  },
-  {
-    "id": "white/asset-1374",
-    "slug": "asset-1374",
-    "name": "Icon #1374",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1374.svg"
-  },
-  {
-    "id": "white/asset-1375",
-    "slug": "asset-1375",
-    "name": "Icon #1375",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1375.svg"
-  },
-  {
-    "id": "white/asset-1376",
-    "slug": "asset-1376",
-    "name": "Icon #1376",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1376.svg"
-  },
-  {
-    "id": "white/asset-1377",
-    "slug": "asset-1377",
-    "name": "Icon #1377",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1377.svg"
-  },
-  {
-    "id": "white/asset-1378",
-    "slug": "asset-1378",
-    "name": "Icon #1378",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1378.svg"
-  },
-  {
-    "id": "white/asset-1379",
-    "slug": "asset-1379",
-    "name": "Icon #1379",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1379.svg"
-  },
-  {
-    "id": "white/asset-1380",
-    "slug": "asset-1380",
-    "name": "Icon #1380",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1380.svg"
-  },
-  {
-    "id": "white/asset-1381",
-    "slug": "asset-1381",
-    "name": "Icon #1381",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1381.svg"
-  },
-  {
-    "id": "white/asset-1382",
-    "slug": "asset-1382",
-    "name": "Icon #1382",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1382.svg"
-  },
-  {
-    "id": "white/asset-1383",
-    "slug": "asset-1383",
-    "name": "Icon #1383",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1383.svg"
-  },
-  {
-    "id": "white/asset-1384",
-    "slug": "asset-1384",
-    "name": "Icon #1384",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1384.svg"
-  },
-  {
-    "id": "white/asset-1385",
-    "slug": "asset-1385",
-    "name": "Icon #1385",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1385.svg"
-  },
-  {
-    "id": "white/asset-1386",
-    "slug": "asset-1386",
-    "name": "Icon #1386",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1386.svg"
-  },
-  {
-    "id": "white/asset-1387",
-    "slug": "asset-1387",
-    "name": "Icon #1387",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1387.svg"
-  },
-  {
-    "id": "white/asset-1388",
-    "slug": "asset-1388",
-    "name": "Icon #1388",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1388.svg"
-  },
-  {
-    "id": "white/asset-1389",
-    "slug": "asset-1389",
-    "name": "Icon #1389",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1389.svg"
-  },
-  {
-    "id": "white/asset-1390",
-    "slug": "asset-1390",
-    "name": "Icon #1390",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1390.svg"
-  },
-  {
-    "id": "white/asset-1391",
-    "slug": "asset-1391",
-    "name": "Icon #1391",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1391.svg"
-  },
-  {
-    "id": "white/asset-1392",
-    "slug": "asset-1392",
-    "name": "Icon #1392",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1392.svg"
-  },
-  {
-    "id": "white/asset-1393",
-    "slug": "asset-1393",
-    "name": "Icon #1393",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1393.svg"
-  },
-  {
-    "id": "white/asset-1394",
-    "slug": "asset-1394",
-    "name": "Icon #1394",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1394.svg"
-  },
-  {
-    "id": "white/asset-1395",
-    "slug": "asset-1395",
-    "name": "Icon #1395",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1395.svg"
-  },
-  {
-    "id": "white/asset-1396",
-    "slug": "asset-1396",
-    "name": "Icon #1396",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1396.svg"
-  },
-  {
-    "id": "white/asset-1397",
-    "slug": "asset-1397",
-    "name": "Icon #1397",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1397.svg"
-  },
-  {
-    "id": "white/asset-1398",
-    "slug": "asset-1398",
-    "name": "Icon #1398",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1398.svg"
-  },
-  {
-    "id": "white/asset-1399",
-    "slug": "asset-1399",
-    "name": "Icon #1399",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1399.svg"
-  },
-  {
-    "id": "white/asset-1400",
-    "slug": "asset-1400",
-    "name": "Icon #1400",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1400.svg"
-  },
-  {
-    "id": "white/asset-1401",
-    "slug": "asset-1401",
-    "name": "Icon #1401",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1401.svg"
-  },
-  {
-    "id": "white/asset-1402",
-    "slug": "asset-1402",
-    "name": "Icon #1402",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1402.svg"
-  },
-  {
-    "id": "white/asset-1403",
-    "slug": "asset-1403",
-    "name": "Icon #1403",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1403.svg"
-  },
-  {
-    "id": "white/asset-1404",
-    "slug": "asset-1404",
-    "name": "Icon #1404",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1404.svg"
-  },
-  {
-    "id": "white/asset-1405",
-    "slug": "asset-1405",
-    "name": "Icon #1405",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1405.svg"
-  },
-  {
-    "id": "white/asset-1406",
-    "slug": "asset-1406",
-    "name": "Icon #1406",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1406.svg"
-  },
-  {
-    "id": "white/asset-1407",
-    "slug": "asset-1407",
-    "name": "Icon #1407",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1407.svg"
-  },
-  {
-    "id": "white/asset-1408",
-    "slug": "asset-1408",
-    "name": "Icon #1408",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1408.svg"
-  },
-  {
-    "id": "white/asset-1409",
-    "slug": "asset-1409",
-    "name": "Icon #1409",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1409.svg"
-  },
-  {
-    "id": "white/asset-1410",
-    "slug": "asset-1410",
-    "name": "Icon #1410",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1410.svg"
-  },
-  {
-    "id": "white/asset-1411",
-    "slug": "asset-1411",
-    "name": "Icon #1411",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1411.svg"
-  },
-  {
-    "id": "white/asset-1412",
-    "slug": "asset-1412",
-    "name": "Icon #1412",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1412.svg"
-  },
-  {
-    "id": "white/asset-1413",
-    "slug": "asset-1413",
-    "name": "Icon #1413",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1413.svg"
-  },
-  {
-    "id": "white/asset-1414",
-    "slug": "asset-1414",
-    "name": "Icon #1414",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1414.svg"
-  },
-  {
-    "id": "white/asset-1415",
-    "slug": "asset-1415",
-    "name": "Icon #1415",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1415.svg"
-  },
-  {
-    "id": "white/asset-1416",
-    "slug": "asset-1416",
-    "name": "Icon #1416",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1416.svg"
-  },
-  {
-    "id": "white/asset-1417",
-    "slug": "asset-1417",
-    "name": "Icon #1417",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1417.svg"
-  },
-  {
-    "id": "white/asset-1418",
-    "slug": "asset-1418",
-    "name": "Icon #1418",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1418.svg"
-  },
-  {
-    "id": "white/asset-1419",
-    "slug": "asset-1419",
-    "name": "Icon #1419",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1419.svg"
-  },
-  {
-    "id": "white/asset-1420",
-    "slug": "asset-1420",
-    "name": "Icon #1420",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1420.svg"
-  },
-  {
-    "id": "white/asset-1421",
-    "slug": "asset-1421",
-    "name": "Icon #1421",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1421.svg"
-  },
-  {
-    "id": "white/asset-1422",
-    "slug": "asset-1422",
-    "name": "Icon #1422",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1422.svg"
-  },
-  {
-    "id": "white/asset-1433",
-    "slug": "asset-1433",
-    "name": "Icon #1433",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1433.svg"
-  },
-  {
-    "id": "white/asset-1434",
-    "slug": "asset-1434",
-    "name": "Icon #1434",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1434.svg"
-  },
-  {
-    "id": "white/asset-1435",
-    "slug": "asset-1435",
-    "name": "Icon #1435",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1435.svg"
-  },
-  {
-    "id": "white/asset-1436",
-    "slug": "asset-1436",
-    "name": "Icon #1436",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1436.svg"
-  },
-  {
-    "id": "white/asset-1437",
-    "slug": "asset-1437",
-    "name": "Icon #1437",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1437.svg"
-  },
-  {
-    "id": "white/asset-1438",
-    "slug": "asset-1438",
-    "name": "Icon #1438",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1438.svg"
-  },
-  {
-    "id": "white/asset-1439",
-    "slug": "asset-1439",
-    "name": "Icon #1439",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1439.svg"
-  },
-  {
-    "id": "white/asset-1440",
-    "slug": "asset-1440",
-    "name": "Icon #1440",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1440.svg"
-  },
-  {
-    "id": "white/asset-1441",
-    "slug": "asset-1441",
-    "name": "Icon #1441",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1441.svg"
-  },
-  {
-    "id": "white/asset-1442",
-    "slug": "asset-1442",
-    "name": "Icon #1442",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1442.svg"
-  },
-  {
-    "id": "white/asset-1443",
-    "slug": "asset-1443",
-    "name": "Icon #1443",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1443.svg"
-  },
-  {
-    "id": "white/asset-1448",
-    "slug": "asset-1448",
-    "name": "Icon #1448",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1448.svg"
-  },
-  {
-    "id": "white/asset-1449",
-    "slug": "asset-1449",
-    "name": "Icon #1449",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1449.svg"
-  },
-  {
-    "id": "white/asset-1450",
-    "slug": "asset-1450",
-    "name": "Icon #1450",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1450.svg"
-  },
-  {
-    "id": "white/asset-1451",
-    "slug": "asset-1451",
-    "name": "Icon #1451",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1451.svg"
-  },
-  {
-    "id": "white/asset-1452",
-    "slug": "asset-1452",
-    "name": "Icon #1452",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1452.svg"
-  },
-  {
-    "id": "white/asset-1453",
-    "slug": "asset-1453",
-    "name": "Icon #1453",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1453.svg"
-  },
-  {
-    "id": "white/asset-1454",
-    "slug": "asset-1454",
-    "name": "Icon #1454",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1454.svg"
-  },
-  {
-    "id": "white/asset-1455",
-    "slug": "asset-1455",
-    "name": "Icon #1455",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1455.svg"
-  },
-  {
-    "id": "white/asset-1456",
-    "slug": "asset-1456",
-    "name": "Icon #1456",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1456.svg"
-  },
-  {
-    "id": "white/asset-1457",
-    "slug": "asset-1457",
-    "name": "Icon #1457",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1457.svg"
-  },
-  {
-    "id": "white/asset-1458",
-    "slug": "asset-1458",
-    "name": "Icon #1458",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1458.svg"
-  },
-  {
-    "id": "white/asset-1459",
-    "slug": "asset-1459",
-    "name": "Icon #1459",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1459.svg"
-  },
-  {
-    "id": "white/asset-1460",
-    "slug": "asset-1460",
-    "name": "Icon #1460",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1460.svg"
-  },
-  {
-    "id": "white/asset-1461",
-    "slug": "asset-1461",
-    "name": "Icon #1461",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1461.svg"
-  },
-  {
-    "id": "white/asset-1462",
-    "slug": "asset-1462",
-    "name": "Icon #1462",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1462.svg"
-  },
-  {
-    "id": "white/asset-1463",
-    "slug": "asset-1463",
-    "name": "Icon #1463",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1463.svg"
-  },
-  {
-    "id": "white/asset-1464",
-    "slug": "asset-1464",
-    "name": "Icon #1464",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1464.svg"
-  },
-  {
-    "id": "white/asset-1465",
-    "slug": "asset-1465",
-    "name": "Icon #1465",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1465.svg"
-  },
-  {
-    "id": "white/asset-1466",
-    "slug": "asset-1466",
-    "name": "Icon #1466",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1466.svg"
-  },
-  {
-    "id": "white/asset-1467",
-    "slug": "asset-1467",
-    "name": "Icon #1467",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1467.svg"
-  },
-  {
-    "id": "white/asset-1468",
-    "slug": "asset-1468",
-    "name": "Icon #1468",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1468.svg"
-  },
-  {
-    "id": "white/asset-1469",
-    "slug": "asset-1469",
-    "name": "Icon #1469",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1469.svg"
-  },
-  {
-    "id": "white/asset-1470",
-    "slug": "asset-1470",
-    "name": "Icon #1470",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1470.svg"
-  },
-  {
-    "id": "white/asset-1471",
-    "slug": "asset-1471",
-    "name": "Icon #1471",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1471.svg"
-  },
-  {
-    "id": "white/asset-1472",
-    "slug": "asset-1472",
-    "name": "Icon #1472",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1472.svg"
-  },
-  {
-    "id": "white/asset-1473",
-    "slug": "asset-1473",
-    "name": "Icon #1473",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1473.svg"
-  },
-  {
-    "id": "white/asset-1474",
-    "slug": "asset-1474",
-    "name": "Icon #1474",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1474.svg"
-  },
-  {
-    "id": "white/asset-1475",
-    "slug": "asset-1475",
-    "name": "Icon #1475",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1475.svg"
-  },
-  {
-    "id": "white/asset-1476",
-    "slug": "asset-1476",
-    "name": "Icon #1476",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1476.svg"
-  },
-  {
-    "id": "white/asset-1477",
-    "slug": "asset-1477",
-    "name": "Icon #1477",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1477.svg"
-  },
-  {
-    "id": "white/asset-1478",
-    "slug": "asset-1478",
-    "name": "Icon #1478",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1478.svg"
-  },
-  {
-    "id": "white/asset-1479",
-    "slug": "asset-1479",
-    "name": "Icon #1479",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1479.svg"
-  },
-  {
-    "id": "white/asset-1480",
-    "slug": "asset-1480",
-    "name": "Icon #1480",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1480.svg"
-  },
-  {
-    "id": "white/asset-1481",
-    "slug": "asset-1481",
-    "name": "Icon #1481",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1481.svg"
-  },
-  {
-    "id": "white/asset-1482",
-    "slug": "asset-1482",
-    "name": "Icon #1482",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1482.svg"
-  },
-  {
-    "id": "white/asset-1483",
-    "slug": "asset-1483",
-    "name": "Icon #1483",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1483.svg"
-  },
-  {
-    "id": "white/asset-1484",
-    "slug": "asset-1484",
-    "name": "Icon #1484",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1484.svg"
-  },
-  {
-    "id": "white/asset-1485",
-    "slug": "asset-1485",
-    "name": "Icon #1485",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1485.svg"
-  },
-  {
-    "id": "white/asset-1486",
-    "slug": "asset-1486",
-    "name": "Icon #1486",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1486.svg"
-  },
-  {
-    "id": "white/asset-1487",
-    "slug": "asset-1487",
-    "name": "Icon #1487",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1487.svg"
-  },
-  {
-    "id": "white/asset-1488",
-    "slug": "asset-1488",
-    "name": "Icon #1488",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1488.svg"
-  },
-  {
-    "id": "white/asset-1489",
-    "slug": "asset-1489",
-    "name": "Icon #1489",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1489.svg"
-  },
-  {
-    "id": "white/asset-1490",
-    "slug": "asset-1490",
-    "name": "Icon #1490",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1490.svg"
-  },
-  {
-    "id": "white/asset-1491",
-    "slug": "asset-1491",
-    "name": "Icon #1491",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1491.svg"
-  },
-  {
-    "id": "white/asset-1492",
-    "slug": "asset-1492",
-    "name": "Icon #1492",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1492.svg"
-  },
-  {
-    "id": "white/asset-1493",
-    "slug": "asset-1493",
-    "name": "Icon #1493",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1493.svg"
-  },
-  {
-    "id": "white/asset-1494",
-    "slug": "asset-1494",
-    "name": "Icon #1494",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1494.svg"
-  },
-  {
-    "id": "white/asset-1495",
-    "slug": "asset-1495",
-    "name": "Icon #1495",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1495.svg"
-  },
-  {
-    "id": "white/asset-1496",
-    "slug": "asset-1496",
-    "name": "Icon #1496",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1496.svg"
-  },
-  {
-    "id": "white/asset-1497",
-    "slug": "asset-1497",
-    "name": "Icon #1497",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1497.svg"
-  },
-  {
-    "id": "white/asset-1498",
-    "slug": "asset-1498",
-    "name": "Icon #1498",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1498.svg"
-  },
-  {
-    "id": "white/asset-1499",
-    "slug": "asset-1499",
-    "name": "Icon #1499",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1499.svg"
-  },
-  {
-    "id": "white/asset-1500",
-    "slug": "asset-1500",
-    "name": "Icon #1500",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1500.svg"
-  },
-  {
-    "id": "white/asset-1501",
-    "slug": "asset-1501",
-    "name": "Icon #1501",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1501.svg"
-  },
-  {
-    "id": "white/asset-1502",
-    "slug": "asset-1502",
-    "name": "Icon #1502",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1502.svg"
-  },
-  {
-    "id": "white/asset-1503",
-    "slug": "asset-1503",
-    "name": "Icon #1503",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1503.svg"
-  },
-  {
-    "id": "white/asset-1504",
-    "slug": "asset-1504",
-    "name": "Icon #1504",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1504.svg"
-  },
-  {
-    "id": "white/asset-1505",
-    "slug": "asset-1505",
-    "name": "Icon #1505",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1505.svg"
-  },
-  {
-    "id": "white/asset-1506",
-    "slug": "asset-1506",
-    "name": "Icon #1506",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1506.svg"
-  },
-  {
-    "id": "white/asset-1507",
-    "slug": "asset-1507",
-    "name": "Icon #1507",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1507.svg"
-  },
-  {
-    "id": "white/asset-1508",
-    "slug": "asset-1508",
-    "name": "Icon #1508",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1508.svg"
-  },
-  {
-    "id": "white/asset-1509",
-    "slug": "asset-1509",
-    "name": "Icon #1509",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1509.svg"
-  },
-  {
-    "id": "white/asset-1510",
-    "slug": "asset-1510",
-    "name": "Icon #1510",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1510.svg"
-  },
-  {
-    "id": "white/asset-1511",
-    "slug": "asset-1511",
-    "name": "Icon #1511",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1511.svg"
-  },
-  {
-    "id": "white/asset-1512",
-    "slug": "asset-1512",
-    "name": "Icon #1512",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1512.svg"
-  },
-  {
-    "id": "white/asset-1513",
-    "slug": "asset-1513",
-    "name": "Icon #1513",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1513.svg"
-  },
-  {
-    "id": "white/asset-1514",
-    "slug": "asset-1514",
-    "name": "Icon #1514",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1514.svg"
-  },
-  {
-    "id": "white/asset-1515",
-    "slug": "asset-1515",
-    "name": "Icon #1515",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1515.svg"
-  },
-  {
-    "id": "white/asset-1516",
-    "slug": "asset-1516",
-    "name": "Icon #1516",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1516.svg"
-  },
-  {
-    "id": "white/asset-1517",
-    "slug": "asset-1517",
-    "name": "Icon #1517",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1517.svg"
-  },
-  {
-    "id": "white/asset-1518",
-    "slug": "asset-1518",
-    "name": "Icon #1518",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1518.svg"
-  },
-  {
-    "id": "white/asset-1519",
-    "slug": "asset-1519",
-    "name": "Icon #1519",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1519.svg"
-  },
-  {
-    "id": "white/asset-1520",
-    "slug": "asset-1520",
-    "name": "Icon #1520",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1520.svg"
-  },
-  {
-    "id": "white/asset-1521",
-    "slug": "asset-1521",
-    "name": "Icon #1521",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1521.svg"
-  },
-  {
-    "id": "white/asset-1522",
-    "slug": "asset-1522",
-    "name": "Icon #1522",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1522.svg"
-  },
-  {
-    "id": "white/asset-1523",
-    "slug": "asset-1523",
-    "name": "Icon #1523",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1523.svg"
-  },
-  {
-    "id": "white/asset-1524",
-    "slug": "asset-1524",
-    "name": "Icon #1524",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1524.svg"
-  },
-  {
-    "id": "white/asset-1525",
-    "slug": "asset-1525",
-    "name": "Icon #1525",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1525.svg"
-  },
-  {
-    "id": "white/asset-1526",
-    "slug": "asset-1526",
-    "name": "Icon #1526",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1526.svg"
-  },
-  {
-    "id": "white/asset-1527",
-    "slug": "asset-1527",
-    "name": "Icon #1527",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1527.svg"
-  },
-  {
-    "id": "white/asset-1528",
-    "slug": "asset-1528",
-    "name": "Icon #1528",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1528.svg"
-  },
-  {
-    "id": "white/asset-1529",
-    "slug": "asset-1529",
-    "name": "Icon #1529",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1529.svg"
-  },
-  {
-    "id": "white/asset-1530",
-    "slug": "asset-1530",
-    "name": "Icon #1530",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1530.svg"
-  },
-  {
-    "id": "white/asset-1531",
-    "slug": "asset-1531",
-    "name": "Icon #1531",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1531.svg"
-  },
-  {
-    "id": "white/asset-1532",
-    "slug": "asset-1532",
-    "name": "Icon #1532",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1532.svg"
-  },
-  {
-    "id": "white/asset-1533",
-    "slug": "asset-1533",
-    "name": "Icon #1533",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1533.svg"
-  },
-  {
-    "id": "white/asset-1534",
-    "slug": "asset-1534",
-    "name": "Icon #1534",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1534.svg"
-  },
-  {
-    "id": "white/asset-1535",
-    "slug": "asset-1535",
-    "name": "Icon #1535",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1535.svg"
-  },
-  {
-    "id": "white/asset-1536",
-    "slug": "asset-1536",
-    "name": "Icon #1536",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1536.svg"
-  },
-  {
-    "id": "white/asset-1537",
-    "slug": "asset-1537",
-    "name": "Icon #1537",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1537.svg"
-  },
-  {
-    "id": "white/asset-1538",
-    "slug": "asset-1538",
-    "name": "Icon #1538",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1538.svg"
-  },
-  {
-    "id": "white/asset-1539",
-    "slug": "asset-1539",
-    "name": "Icon #1539",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1539.svg"
-  },
-  {
-    "id": "white/asset-1540",
-    "slug": "asset-1540",
-    "name": "Icon #1540",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1540.svg"
-  },
-  {
-    "id": "white/asset-1541",
-    "slug": "asset-1541",
-    "name": "Icon #1541",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1541.svg"
-  },
-  {
-    "id": "white/asset-1542",
-    "slug": "asset-1542",
-    "name": "Icon #1542",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1542.svg"
-  },
-  {
-    "id": "white/asset-1543",
-    "slug": "asset-1543",
-    "name": "Icon #1543",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1543.svg"
-  },
-  {
-    "id": "white/asset-1544",
-    "slug": "asset-1544",
-    "name": "Icon #1544",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1544.svg"
-  },
-  {
-    "id": "white/asset-1545",
-    "slug": "asset-1545",
-    "name": "Icon #1545",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1545.svg"
-  },
-  {
-    "id": "white/asset-1546",
-    "slug": "asset-1546",
-    "name": "Icon #1546",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1546.svg"
-  },
-  {
-    "id": "white/asset-1547",
-    "slug": "asset-1547",
-    "name": "Icon #1547",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1547.svg"
-  },
-  {
-    "id": "white/asset-1548",
-    "slug": "asset-1548",
-    "name": "Icon #1548",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1548.svg"
-  },
-  {
-    "id": "white/asset-1549",
-    "slug": "asset-1549",
-    "name": "Icon #1549",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1549.svg"
-  },
-  {
-    "id": "white/asset-1550",
-    "slug": "asset-1550",
-    "name": "Icon #1550",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1550.svg"
-  },
-  {
-    "id": "white/asset-1551",
-    "slug": "asset-1551",
-    "name": "Icon #1551",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1551.svg"
-  },
-  {
-    "id": "white/asset-1552",
-    "slug": "asset-1552",
-    "name": "Icon #1552",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1552.svg"
-  },
-  {
-    "id": "white/asset-1553",
-    "slug": "asset-1553",
-    "name": "Icon #1553",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1553.svg"
-  },
-  {
-    "id": "white/asset-1554",
-    "slug": "asset-1554",
-    "name": "Icon #1554",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1554.svg"
-  },
-  {
-    "id": "white/asset-1555",
-    "slug": "asset-1555",
-    "name": "Icon #1555",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1555.svg"
-  },
-  {
-    "id": "white/asset-1556",
-    "slug": "asset-1556",
-    "name": "Icon #1556",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1556.svg"
-  },
-  {
-    "id": "white/asset-1557",
-    "slug": "asset-1557",
-    "name": "Icon #1557",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1557.svg"
-  },
-  {
-    "id": "white/asset-1558",
-    "slug": "asset-1558",
-    "name": "Icon #1558",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1558.svg"
-  },
-  {
-    "id": "white/asset-1559",
-    "slug": "asset-1559",
-    "name": "Icon #1559",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1559.svg"
-  },
-  {
-    "id": "white/asset-1560",
-    "slug": "asset-1560",
-    "name": "Icon #1560",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1560.svg"
-  },
-  {
-    "id": "white/asset-1561",
-    "slug": "asset-1561",
-    "name": "Icon #1561",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1561.svg"
-  },
-  {
-    "id": "white/asset-1562",
-    "slug": "asset-1562",
-    "name": "Icon #1562",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1562.svg"
-  },
-  {
-    "id": "white/asset-1563",
-    "slug": "asset-1563",
-    "name": "Icon #1563",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1563.svg"
-  },
-  {
-    "id": "white/asset-1564",
-    "slug": "asset-1564",
-    "name": "Icon #1564",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1564.svg"
-  },
-  {
-    "id": "white/asset-1565",
-    "slug": "asset-1565",
-    "name": "Icon #1565",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1565.svg"
-  },
-  {
-    "id": "white/asset-1566",
-    "slug": "asset-1566",
-    "name": "Icon #1566",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1566.svg"
-  },
-  {
-    "id": "white/asset-1567",
-    "slug": "asset-1567",
-    "name": "Icon #1567",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1567.svg"
-  },
-  {
-    "id": "white/asset-1568",
-    "slug": "asset-1568",
-    "name": "Icon #1568",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1568.svg"
-  },
-  {
-    "id": "white/asset-1569",
-    "slug": "asset-1569",
-    "name": "Icon #1569",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1569.svg"
-  },
-  {
-    "id": "white/asset-1570",
-    "slug": "asset-1570",
-    "name": "Icon #1570",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1570.svg"
-  },
-  {
-    "id": "white/asset-1571",
-    "slug": "asset-1571",
-    "name": "Icon #1571",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1571.svg"
-  },
-  {
-    "id": "white/asset-1572",
-    "slug": "asset-1572",
-    "name": "Icon #1572",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1572.svg"
-  },
-  {
-    "id": "white/asset-1573",
-    "slug": "asset-1573",
-    "name": "Icon #1573",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1573.svg"
-  },
-  {
-    "id": "white/asset-1574",
-    "slug": "asset-1574",
-    "name": "Icon #1574",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1574.svg"
-  },
-  {
-    "id": "white/asset-1575",
-    "slug": "asset-1575",
-    "name": "Icon #1575",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1575.svg"
-  },
-  {
-    "id": "white/asset-1576",
-    "slug": "asset-1576",
-    "name": "Icon #1576",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1576.svg"
-  },
-  {
-    "id": "white/asset-1577",
-    "slug": "asset-1577",
-    "name": "Icon #1577",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1577.svg"
-  },
-  {
-    "id": "white/asset-1578",
-    "slug": "asset-1578",
-    "name": "Icon #1578",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1578.svg"
-  },
-  {
-    "id": "white/asset-1579",
-    "slug": "asset-1579",
-    "name": "Icon #1579",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1579.svg"
-  },
-  {
-    "id": "white/asset-1580",
-    "slug": "asset-1580",
-    "name": "Icon #1580",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1580.svg"
-  },
-  {
-    "id": "white/asset-1581",
-    "slug": "asset-1581",
-    "name": "Icon #1581",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1581.svg"
-  },
-  {
-    "id": "white/asset-1582",
-    "slug": "asset-1582",
-    "name": "Icon #1582",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1582.svg"
-  },
-  {
-    "id": "white/asset-1583",
-    "slug": "asset-1583",
-    "name": "Icon #1583",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1583.svg"
-  },
-  {
-    "id": "white/asset-1584",
-    "slug": "asset-1584",
-    "name": "Icon #1584",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1584.svg"
-  },
-  {
-    "id": "white/asset-1585",
-    "slug": "asset-1585",
-    "name": "Icon #1585",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1585.svg"
-  },
-  {
-    "id": "white/asset-1586",
-    "slug": "asset-1586",
-    "name": "Icon #1586",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1586.svg"
-  },
-  {
-    "id": "white/asset-1587",
-    "slug": "asset-1587",
-    "name": "Icon #1587",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1587.svg"
-  },
-  {
-    "id": "white/asset-1588",
-    "slug": "asset-1588",
-    "name": "Icon #1588",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1588.svg"
-  },
-  {
-    "id": "white/asset-1589",
-    "slug": "asset-1589",
-    "name": "Icon #1589",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1589.svg"
-  },
-  {
-    "id": "white/asset-1590",
-    "slug": "asset-1590",
-    "name": "Icon #1590",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1590.svg"
-  },
-  {
-    "id": "white/asset-1591",
-    "slug": "asset-1591",
-    "name": "Icon #1591",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1591.svg"
-  },
-  {
-    "id": "white/asset-1592",
-    "slug": "asset-1592",
-    "name": "Icon #1592",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1592.svg"
-  },
-  {
-    "id": "white/asset-1593",
-    "slug": "asset-1593",
-    "name": "Icon #1593",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1593.svg"
-  },
-  {
-    "id": "white/asset-1594",
-    "slug": "asset-1594",
-    "name": "Icon #1594",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1594.svg"
-  },
-  {
-    "id": "white/asset-1595",
-    "slug": "asset-1595",
-    "name": "Icon #1595",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1595.svg"
-  },
-  {
-    "id": "white/asset-1596",
-    "slug": "asset-1596",
-    "name": "Icon #1596",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1596.svg"
-  },
-  {
-    "id": "white/asset-1597",
-    "slug": "asset-1597",
-    "name": "Icon #1597",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1597.svg"
-  },
-  {
-    "id": "white/asset-1598",
-    "slug": "asset-1598",
-    "name": "Icon #1598",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1598.svg"
-  },
-  {
-    "id": "white/asset-1599",
-    "slug": "asset-1599",
-    "name": "Icon #1599",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1599.svg"
-  },
-  {
-    "id": "white/asset-1600",
-    "slug": "asset-1600",
-    "name": "Icon #1600",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1600.svg"
-  },
-  {
-    "id": "white/asset-1601",
-    "slug": "asset-1601",
-    "name": "Icon #1601",
-    "variant": "white",
-    "category": "uncategorized",
-    "path": "/icon-library/white/asset-1601.svg"
-  },
-  {
-    "id": "white/band-aid",
-    "slug": "band-aid",
-    "name": "Band Aid",
-    "variant": "white",
-    "category": "medical",
-    "path": "/icon-library/white/band-aid.svg"
-  },
-  {
-    "id": "white/dna-test",
-    "slug": "dna-test",
-    "name": "Dna Test",
-    "variant": "white",
-    "category": "medical",
-    "path": "/icon-library/white/dna-test.svg"
-  },
-  {
-    "id": "white/emergency-call-app",
-    "slug": "emergency-call-app",
-    "name": "Emergency Call App",
-    "variant": "white",
-    "category": "medical",
-    "path": "/icon-library/white/emergency-call-app.svg"
-  },
-  {
-    "id": "white/first-aid-kit",
-    "slug": "first-aid-kit",
-    "name": "First Aid Kit",
-    "variant": "white",
-    "category": "medical",
-    "path": "/icon-library/white/first-aid-kit.svg"
-  },
-  {
-    "id": "white/health-insurance",
-    "slug": "health-insurance",
-    "name": "Health Insurance",
-    "variant": "white",
-    "category": "medical",
-    "path": "/icon-library/white/health-insurance.svg"
-  },
-  {
-    "id": "white/hospital",
-    "slug": "hospital",
-    "name": "Hospital",
-    "variant": "white",
-    "category": "medical",
-    "path": "/icon-library/white/hospital.svg"
-  },
-  {
-    "id": "white/medical-check-home-doctor",
-    "slug": "medical-check-home-doctor",
-    "name": "Medical Check Home Doctor",
-    "variant": "white",
-    "category": "medical",
-    "path": "/icon-library/white/medical-check-home-doctor.svg"
-  },
-  {
-    "id": "white/medical-prescription",
-    "slug": "medical-prescription",
-    "name": "Medical Prescription",
-    "variant": "white",
-    "category": "medical",
-    "path": "/icon-library/white/medical-prescription.svg"
-  },
-  {
-    "id": "white/online-medical-consultation-diagnosis",
-    "slug": "online-medical-consultation-diagnosis",
-    "name": "Online Medical Consultation Diagnosis",
-    "variant": "white",
-    "category": "medical",
-    "path": "/icon-library/white/online-medical-consultation-diagnosis.svg"
-  },
-  {
-    "id": "white/syringe",
-    "slug": "syringe",
-    "name": "Syringe",
-    "variant": "white",
-    "category": "medical",
-    "path": "/icon-library/white/syringe.svg"
-  }
-]
+{
+  "packs": [
+    {
+      "id": "ph",
+      "name": "Phosphor",
+      "license": "MIT",
+      "author": "Phosphor Icons",
+      "url": "https://phosphoricons.com",
+      "priority": 1,
+      "multicolor": false,
+      "count": 9161,
+      "categories": {
+        "misc": 2841,
+        "education": 156,
+        "transport": 126,
+        "travel": 456,
+        "tech": 1513,
+        "arrows": 174,
+        "brands": 252,
+        "health": 246,
+        "ecommerce": 144,
+        "weather": 240,
+        "science": 30,
+        "wellness": 48,
+        "sports": 96,
+        "finance": 234,
+        "social": 378,
+        "food": 132,
+        "nature": 132,
+        "emoji": 114,
+        "business": 84,
+        "communication": 336,
+        "devtools": 48,
+        "media": 234,
+        "shapes": 373,
+        "security": 192,
+        "ui": 132,
+        "gaming": 54,
+        "files": 354,
+        "flags": 30,
+        "crypto": 12
+      },
+      "defaultViewBox": "0 0 256 256"
+    },
+    {
+      "id": "lucide",
+      "name": "Lucide",
+      "license": "ISC",
+      "author": "Lucide Contributors",
+      "url": "https://lucide.dev",
+      "priority": 1,
+      "multicolor": false,
+      "count": 1771,
+      "categories": {
+        "tech": 314,
+        "misc": 499,
+        "media": 53,
+        "social": 91,
+        "wellness": 12,
+        "arrows": 75,
+        "health": 47,
+        "communication": 58,
+        "weather": 42,
+        "brands": 16,
+        "finance": 65,
+        "science": 10,
+        "ui": 69,
+        "ecommerce": 34,
+        "sports": 6,
+        "shapes": 50,
+        "nature": 23,
+        "food": 22,
+        "transport": 17,
+        "security": 54,
+        "education": 41,
+        "business": 8,
+        "travel": 49,
+        "devtools": 20,
+        "gaming": 16,
+        "emoji": 10,
+        "files": 66,
+        "crypto": 2,
+        "flags": 2
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "tabler",
+      "name": "Tabler Icons",
+      "license": "MIT",
+      "author": "Paweł Kuna",
+      "url": "https://tabler-icons.io",
+      "priority": 1,
+      "multicolor": false,
+      "count": 6194,
+      "categories": {
+        "misc": 1925,
+        "education": 63,
+        "social": 335,
+        "shapes": 366,
+        "tech": 997,
+        "ui": 218,
+        "finance": 253,
+        "arrows": 236,
+        "media": 120,
+        "health": 157,
+        "wellness": 45,
+        "transport": 49,
+        "ecommerce": 167,
+        "communication": 132,
+        "weather": 155,
+        "brands": 44,
+        "travel": 254,
+        "food": 66,
+        "science": 53,
+        "security": 128,
+        "sports": 37,
+        "nature": 72,
+        "business": 57,
+        "devtools": 54,
+        "files": 133,
+        "crypto": 2,
+        "gaming": 37,
+        "emoji": 22,
+        "flags": 17
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "heroicons",
+      "name": "Heroicons",
+      "license": "MIT",
+      "author": "Tailwind Labs",
+      "url": "https://heroicons.com",
+      "priority": 1,
+      "multicolor": false,
+      "count": 1288,
+      "categories": {
+        "misc": 246,
+        "tech": 362,
+        "social": 88,
+        "finance": 92,
+        "wellness": 16,
+        "science": 4,
+        "education": 16,
+        "business": 60,
+        "ecommerce": 32,
+        "food": 4,
+        "media": 56,
+        "ui": 36,
+        "shapes": 52,
+        "security": 24,
+        "weather": 28,
+        "health": 20,
+        "travel": 20,
+        "communication": 72,
+        "emoji": 4,
+        "flags": 4,
+        "files": 20,
+        "nature": 4,
+        "arrows": 8,
+        "crypto": 4,
+        "gaming": 4,
+        "transport": 4,
+        "brands": 8
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "ri",
+      "name": "Remix Icon",
+      "license": "Apache 2.0",
+      "author": "Remix Design",
+      "url": "https://remixicon.com",
+      "priority": 1,
+      "multicolor": false,
+      "count": 3229,
+      "categories": {
+        "misc": 530,
+        "shapes": 511,
+        "finance": 106,
+        "tech": 390,
+        "media": 129,
+        "ui": 144,
+        "weather": 84,
+        "arrows": 139,
+        "communication": 140,
+        "brands": 86,
+        "security": 69,
+        "ecommerce": 55,
+        "science": 9,
+        "files": 157,
+        "health": 89,
+        "sports": 14,
+        "travel": 112,
+        "transport": 26,
+        "social": 193,
+        "food": 30,
+        "education": 54,
+        "business": 35,
+        "crypto": 5,
+        "devtools": 38,
+        "nature": 21,
+        "gaming": 26,
+        "emoji": 5,
+        "flags": 3,
+        "wellness": 29
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "iconoir",
+      "name": "Iconoir",
+      "license": "MIT",
+      "author": "Luca Burgio",
+      "url": "https://iconoir.com",
+      "priority": 1,
+      "multicolor": false,
+      "count": 1682,
+      "categories": {
+        "misc": 394,
+        "business": 17,
+        "brands": 76,
+        "nature": 7,
+        "tech": 308,
+        "travel": 55,
+        "media": 49,
+        "wellness": 18,
+        "arrows": 99,
+        "communication": 78,
+        "social": 95,
+        "ecommerce": 84,
+        "weather": 66,
+        "health": 36,
+        "science": 9,
+        "files": 19,
+        "ui": 48,
+        "finance": 34,
+        "education": 19,
+        "transport": 20,
+        "food": 10,
+        "sports": 12,
+        "emoji": 5,
+        "devtools": 13,
+        "shapes": 32,
+        "security": 64,
+        "flags": 4,
+        "gaming": 10,
+        "crypto": 1
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "material-symbols",
+      "name": "Material Symbols",
+      "license": "Apache 2.0",
+      "author": "Google",
+      "url": "https://fonts.google.com/icons",
+      "priority": 1,
+      "multicolor": false,
+      "count": 16245,
+      "categories": {
+        "misc": 2991,
+        "shapes": 2123,
+        "tech": 3997,
+        "arrows": 615,
+        "ui": 643,
+        "communication": 727,
+        "finance": 257,
+        "security": 235,
+        "food": 142,
+        "media": 551,
+        "weather": 380,
+        "travel": 559,
+        "social": 676,
+        "nature": 213,
+        "transport": 165,
+        "files": 260,
+        "wellness": 272,
+        "health": 473,
+        "business": 250,
+        "ecommerce": 271,
+        "education": 180,
+        "sports": 14,
+        "devtools": 35,
+        "gaming": 130,
+        "emoji": 10,
+        "science": 18,
+        "flags": 13,
+        "brands": 41,
+        "crypto": 4
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "carbon",
+      "name": "Carbon Icons",
+      "license": "Apache 2.0",
+      "author": "IBM",
+      "url": "https://carbondesignsystem.com/guidelines/icons",
+      "priority": 1,
+      "multicolor": false,
+      "count": 2670,
+      "categories": {
+        "tech": 320,
+        "misc": 989,
+        "finance": 88,
+        "weather": 166,
+        "crypto": 23,
+        "social": 53,
+        "business": 84,
+        "nature": 93,
+        "travel": 96,
+        "arrows": 108,
+        "brands": 14,
+        "wellness": 14,
+        "devtools": 56,
+        "files": 46,
+        "ui": 96,
+        "ecommerce": 64,
+        "transport": 21,
+        "security": 42,
+        "health": 65,
+        "education": 30,
+        "food": 18,
+        "shapes": 45,
+        "communication": 64,
+        "media": 51,
+        "science": 5,
+        "emoji": 4,
+        "flags": 2,
+        "gaming": 9,
+        "sports": 4
+      },
+      "defaultViewBox": "0 0 32 32"
+    },
+    {
+      "id": "game-icons",
+      "name": "Game Icons",
+      "license": "CC-BY 3.0",
+      "author": "game-icons.net",
+      "url": "https://game-icons.net",
+      "priority": 2,
+      "multicolor": false,
+      "count": 4134,
+      "categories": {
+        "tech": 417,
+        "education": 29,
+        "misc": 2132,
+        "shapes": 144,
+        "gaming": 50,
+        "security": 88,
+        "communication": 30,
+        "transport": 56,
+        "travel": 141,
+        "social": 111,
+        "health": 177,
+        "sports": 51,
+        "media": 33,
+        "crypto": 7,
+        "science": 18,
+        "food": 128,
+        "nature": 112,
+        "brands": 6,
+        "business": 32,
+        "wellness": 67,
+        "weather": 107,
+        "arrows": 43,
+        "files": 12,
+        "ui": 31,
+        "ecommerce": 36,
+        "finance": 21,
+        "emoji": 36,
+        "flags": 14,
+        "devtools": 5
+      },
+      "defaultViewBox": "0 0 512 512"
+    },
+    {
+      "id": "simple-icons",
+      "name": "Simple Icons",
+      "license": "CC0 1.0",
+      "author": "Simple Icons",
+      "url": "https://simpleicons.org",
+      "priority": 1,
+      "multicolor": false,
+      "count": 3706,
+      "categories": {
+        "misc": 2281,
+        "ui": 45,
+        "shapes": 70,
+        "security": 34,
+        "nature": 48,
+        "science": 8,
+        "files": 25,
+        "business": 42,
+        "tech": 346,
+        "travel": 46,
+        "weather": 70,
+        "finance": 40,
+        "food": 35,
+        "brands": 203,
+        "health": 39,
+        "communication": 27,
+        "media": 42,
+        "wellness": 26,
+        "arrows": 58,
+        "social": 48,
+        "ecommerce": 28,
+        "transport": 35,
+        "education": 32,
+        "devtools": 35,
+        "gaming": 29,
+        "emoji": 8,
+        "sports": 2,
+        "crypto": 3,
+        "flags": 1
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "fa6-solid",
+      "name": "Font Awesome Solid",
+      "license": "CC-BY 4.0",
+      "author": "Font Awesome",
+      "url": "https://fontawesome.com",
+      "priority": 1,
+      "multicolor": false,
+      "count": 1407,
+      "categories": {
+        "misc": 450,
+        "education": 25,
+        "travel": 64,
+        "arrows": 53,
+        "shapes": 49,
+        "tech": 221,
+        "security": 24,
+        "brands": 6,
+        "finance": 34,
+        "health": 71,
+        "science": 4,
+        "media": 25,
+        "business": 36,
+        "ecommerce": 20,
+        "sports": 9,
+        "food": 19,
+        "social": 49,
+        "transport": 31,
+        "communication": 32,
+        "weather": 42,
+        "devtools": 12,
+        "nature": 24,
+        "gaming": 16,
+        "emoji": 19,
+        "files": 30,
+        "crypto": 4,
+        "ui": 21,
+        "flags": 4,
+        "wellness": 13
+      },
+      "defaultViewBox": "0 0 512 512"
+    },
+    {
+      "id": "fa6-regular",
+      "name": "Font Awesome Regular",
+      "license": "CC-BY 4.0",
+      "author": "Font Awesome",
+      "url": "https://fontawesome.com",
+      "priority": 2,
+      "multicolor": false,
+      "count": 164,
+      "categories": {
+        "education": 1,
+        "travel": 10,
+        "social": 17,
+        "devtools": 1,
+        "tech": 19,
+        "finance": 2,
+        "ecommerce": 1,
+        "gaming": 4,
+        "nature": 1,
+        "shapes": 5,
+        "arrows": 12,
+        "media": 8,
+        "security": 1,
+        "misc": 39,
+        "communication": 2,
+        "health": 7,
+        "emoji": 13,
+        "files": 11,
+        "flags": 1,
+        "ui": 2,
+        "weather": 5,
+        "wellness": 2
+      },
+      "defaultViewBox": "0 0 512 512"
+    },
+    {
+      "id": "fa6-brands",
+      "name": "Font Awesome Brands",
+      "license": "CC-BY 4.0",
+      "author": "Font Awesome",
+      "url": "https://fontawesome.com",
+      "priority": 2,
+      "multicolor": false,
+      "count": 495,
+      "categories": {
+        "arrows": 10,
+        "misc": 300,
+        "crypto": 2,
+        "brands": 48,
+        "ui": 3,
+        "tech": 45,
+        "ecommerce": 14,
+        "transport": 3,
+        "health": 5,
+        "travel": 5,
+        "weather": 9,
+        "social": 6,
+        "food": 5,
+        "nature": 5,
+        "devtools": 9,
+        "education": 7,
+        "files": 1,
+        "shapes": 3,
+        "business": 1,
+        "security": 2,
+        "communication": 4,
+        "finance": 4,
+        "wellness": 3,
+        "flags": 1
+      },
+      "defaultViewBox": "0 0 448 512"
+    },
+    {
+      "id": "ion",
+      "name": "Ionicons",
+      "license": "MIT",
+      "author": "Ionic",
+      "url": "https://ionic.io/ionicons",
+      "priority": 1,
+      "multicolor": false,
+      "count": 2361,
+      "categories": {
+        "misc": 481,
+        "shapes": 234,
+        "tech": 492,
+        "travel": 88,
+        "media": 95,
+        "ui": 77,
+        "sports": 32,
+        "business": 43,
+        "weather": 96,
+        "communication": 107,
+        "wellness": 26,
+        "ecommerce": 76,
+        "health": 64,
+        "finance": 36,
+        "social": 121,
+        "science": 14,
+        "food": 36,
+        "transport": 12,
+        "education": 25,
+        "devtools": 31,
+        "security": 32,
+        "gaming": 16,
+        "files": 27,
+        "arrows": 57,
+        "nature": 39,
+        "flags": 3,
+        "brands": 1
+      },
+      "defaultViewBox": "0 0 512 512"
+    },
+    {
+      "id": "fluent",
+      "name": "Fluent UI",
+      "license": "MIT",
+      "author": "Microsoft",
+      "url": "https://github.com/microsoft/fluentui-system-icons",
+      "priority": 1,
+      "multicolor": false,
+      "count": 19837,
+      "categories": {
+        "misc": 2229,
+        "tech": 8055,
+        "shapes": 343,
+        "social": 1142,
+        "travel": 449,
+        "media": 341,
+        "ui": 554,
+        "arrows": 526,
+        "wellness": 586,
+        "nature": 387,
+        "files": 129,
+        "ecommerce": 403,
+        "security": 213,
+        "communication": 1249,
+        "business": 937,
+        "finance": 258,
+        "sports": 16,
+        "science": 97,
+        "health": 541,
+        "education": 268,
+        "food": 168,
+        "devtools": 68,
+        "transport": 108,
+        "weather": 651,
+        "gaming": 22,
+        "emoji": 13,
+        "flags": 21,
+        "crypto": 7,
+        "brands": 56
+      },
+      "defaultViewBox": "0 0 20 20"
+    },
+    {
+      "id": "mingcute",
+      "name": "Mingcute",
+      "license": "Apache 2.0",
+      "author": "Mingcute",
+      "url": "https://www.mingcute.com",
+      "priority": 1,
+      "multicolor": false,
+      "count": 3324,
+      "categories": {
+        "misc": 591,
+        "shapes": 679,
+        "tech": 378,
+        "brands": 76,
+        "travel": 94,
+        "media": 76,
+        "ui": 128,
+        "ecommerce": 84,
+        "arrows": 138,
+        "sports": 22,
+        "security": 66,
+        "files": 96,
+        "finance": 124,
+        "social": 120,
+        "transport": 50,
+        "health": 82,
+        "nature": 50,
+        "education": 52,
+        "food": 44,
+        "business": 40,
+        "devtools": 32,
+        "communication": 90,
+        "gaming": 10,
+        "weather": 132,
+        "wellness": 38,
+        "emoji": 8,
+        "flags": 4,
+        "science": 18,
+        "crypto": 2
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "solar",
+      "name": "Solar",
+      "license": "CC-BY 4.0",
+      "author": "480 Design",
+      "url": "https://solar-icons.com",
+      "priority": 1,
+      "multicolor": false,
+      "count": 7404,
+      "categories": {
+        "misc": 813,
+        "shapes": 736,
+        "health": 1241,
+        "files": 160,
+        "tech": 1185,
+        "wellness": 95,
+        "media": 280,
+        "arrows": 150,
+        "science": 20,
+        "ecommerce": 120,
+        "social": 636,
+        "sports": 50,
+        "finance": 90,
+        "ui": 345,
+        "education": 115,
+        "food": 65,
+        "devtools": 25,
+        "travel": 255,
+        "communication": 384,
+        "nature": 70,
+        "security": 150,
+        "weather": 200,
+        "business": 70,
+        "transport": 75,
+        "brands": 18,
+        "flags": 6,
+        "gaming": 35,
+        "emoji": 12,
+        "crypto": 3
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "hugeicons",
+      "name": "Hugeicons",
+      "license": "CC-BY 4.0",
+      "author": "Hugeicons",
+      "url": "https://hugeicons.com",
+      "priority": 1,
+      "multicolor": false,
+      "count": 5089,
+      "categories": {
+        "misc": 1523,
+        "shapes": 123,
+        "tech": 793,
+        "security": 121,
+        "education": 77,
+        "finance": 193,
+        "wellness": 51,
+        "communication": 240,
+        "food": 62,
+        "ui": 123,
+        "brands": 126,
+        "health": 116,
+        "social": 252,
+        "science": 22,
+        "weather": 119,
+        "nature": 84,
+        "travel": 138,
+        "media": 116,
+        "arrows": 294,
+        "sports": 32,
+        "business": 87,
+        "ecommerce": 144,
+        "files": 118,
+        "transport": 50,
+        "emoji": 24,
+        "devtools": 28,
+        "gaming": 24,
+        "flags": 7,
+        "crypto": 2
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "radix-icons",
+      "name": "Radix Icons",
+      "license": "MIT",
+      "author": "WorkOS",
+      "url": "https://www.radix-ui.com/icons",
+      "priority": 2,
+      "multicolor": false,
+      "count": 342,
+      "categories": {
+        "misc": 130,
+        "shapes": 16,
+        "communication": 10,
+        "arrows": 32,
+        "social": 12,
+        "tech": 45,
+        "ui": 16,
+        "finance": 2,
+        "ecommerce": 12,
+        "media": 8,
+        "travel": 10,
+        "security": 6,
+        "transport": 1,
+        "wellness": 6,
+        "devtools": 1,
+        "business": 2,
+        "brands": 9,
+        "files": 6,
+        "health": 6,
+        "food": 2,
+        "weather": 4,
+        "education": 5,
+        "crypto": 1
+      },
+      "defaultViewBox": "0 0 15 15"
+    },
+    {
+      "id": "akar-icons",
+      "name": "Akar Icons",
+      "license": "MIT",
+      "author": "Arturo Wibawa",
+      "url": "https://akaricons.com",
+      "priority": 2,
+      "multicolor": false,
+      "count": 458,
+      "categories": {
+        "tech": 66,
+        "misc": 133,
+        "arrows": 35,
+        "communication": 12,
+        "wellness": 4,
+        "finance": 4,
+        "ecommerce": 14,
+        "social": 20,
+        "transport": 2,
+        "brands": 33,
+        "security": 7,
+        "health": 9,
+        "travel": 13,
+        "education": 5,
+        "business": 4,
+        "food": 6,
+        "media": 18,
+        "gaming": 9,
+        "shapes": 19,
+        "ui": 21,
+        "weather": 10,
+        "files": 6,
+        "emoji": 1,
+        "flags": 1,
+        "nature": 4,
+        "devtools": 1,
+        "science": 1
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "devicon",
+      "name": "Devicon",
+      "license": "MIT",
+      "author": "Devicon Team",
+      "url": "https://devicon.dev",
+      "priority": 2,
+      "multicolor": true,
+      "count": 1042,
+      "categories": {
+        "tech": 421,
+        "misc": 442,
+        "brands": 33,
+        "business": 4,
+        "wellness": 11,
+        "science": 6,
+        "arrows": 7,
+        "sports": 2,
+        "finance": 4,
+        "food": 9,
+        "travel": 3,
+        "weather": 20,
+        "ui": 4,
+        "emoji": 4,
+        "nature": 13,
+        "ecommerce": 7,
+        "devtools": 15,
+        "files": 2,
+        "shapes": 4,
+        "health": 4,
+        "communication": 2,
+        "education": 6,
+        "media": 3,
+        "gaming": 1,
+        "security": 2,
+        "social": 8,
+        "crypto": 1,
+        "transport": 4
+      },
+      "defaultViewBox": "0 0 128 128"
+    },
+    {
+      "id": "flag",
+      "name": "Country Flags",
+      "license": "MIT",
+      "author": "twitter/twemoji",
+      "url": "https://github.com/lipis/flag-icons",
+      "priority": 2,
+      "multicolor": true,
+      "count": 542,
+      "categories": {
+        "misc": 530,
+        "tech": 6,
+        "media": 2,
+        "brands": 4
+      },
+      "defaultViewBox": "0 0 512 512"
+    },
+    {
+      "id": "twemoji",
+      "name": "Twemoji",
+      "license": "CC-BY 4.0 + MIT",
+      "author": "Twitter",
+      "url": "https://twemoji.twitter.com",
+      "priority": 2,
+      "multicolor": true,
+      "count": 4169,
+      "categories": {
+        "sports": 51,
+        "ui": 37,
+        "education": 34,
+        "misc": 1343,
+        "health": 280,
+        "tech": 1023,
+        "transport": 19,
+        "travel": 98,
+        "social": 177,
+        "communication": 36,
+        "finance": 21,
+        "science": 4,
+        "food": 81,
+        "arrows": 111,
+        "ecommerce": 18,
+        "weather": 62,
+        "nature": 41,
+        "shapes": 16,
+        "flags": 343,
+        "emoji": 65,
+        "business": 50,
+        "devtools": 2,
+        "media": 50,
+        "gaming": 5,
+        "security": 44,
+        "files": 7,
+        "wellness": 150,
+        "brands": 1
+      },
+      "defaultViewBox": "0 0 36 36"
+    },
+    {
+      "id": "openmoji",
+      "name": "OpenMoji",
+      "license": "CC-BY-SA 4.0",
+      "author": "OpenMoji Contributors",
+      "url": "https://openmoji.org",
+      "priority": 2,
+      "multicolor": true,
+      "count": 4509,
+      "categories": {
+        "sports": 51,
+        "ui": 48,
+        "education": 34,
+        "misc": 1492,
+        "health": 310,
+        "transport": 25,
+        "tech": 1069,
+        "travel": 102,
+        "flags": 262,
+        "social": 186,
+        "communication": 40,
+        "brands": 12,
+        "arrows": 132,
+        "finance": 22,
+        "science": 5,
+        "security": 49,
+        "devtools": 5,
+        "food": 97,
+        "ecommerce": 27,
+        "weather": 71,
+        "shapes": 37,
+        "nature": 85,
+        "gaming": 15,
+        "emoji": 65,
+        "business": 50,
+        "media": 52,
+        "files": 11,
+        "wellness": 155
+      },
+      "defaultViewBox": "0 0 72 72"
+    },
+    {
+      "id": "cryptocurrency",
+      "name": "Cryptocurrency Icons",
+      "license": "CC0 1.0",
+      "author": "Christopher Downer",
+      "url": "https://github.com/atomiclabs/cryptocurrency-icons",
+      "priority": 2,
+      "multicolor": false,
+      "count": 483,
+      "categories": {
+        "crypto": 9,
+        "misc": 406,
+        "tech": 16,
+        "finance": 3,
+        "science": 1,
+        "security": 2,
+        "communication": 1,
+        "social": 2,
+        "files": 2,
+        "nature": 2,
+        "shapes": 1,
+        "transport": 2,
+        "gaming": 1,
+        "arrows": 1,
+        "weather": 3,
+        "health": 1,
+        "media": 1,
+        "wellness": 2,
+        "emoji": 1,
+        "brands": 26
+      },
+      "defaultViewBox": "0 0 32 32"
+    },
+    {
+      "id": "meteocons",
+      "name": "Meteocons",
+      "license": "MIT",
+      "author": "Bas Milius",
+      "url": "https://bas.dev/work/meteocons",
+      "priority": 2,
+      "multicolor": true,
+      "count": 450,
+      "categories": {
+        "tech": 34,
+        "misc": 164,
+        "health": 6,
+        "weather": 230,
+        "travel": 2,
+        "social": 6,
+        "flags": 2,
+        "emoji": 2,
+        "nature": 4
+      },
+      "defaultViewBox": "0 0 512 512"
+    },
+    {
+      "id": "pixelarticons",
+      "name": "Pixelart Icons",
+      "license": "MIT",
+      "author": "Gerrit Halfmann",
+      "url": "https://pixelarticons.com",
+      "priority": 3,
+      "multicolor": false,
+      "count": 1105,
+      "categories": {
+        "misc": 252,
+        "tech": 385,
+        "devtools": 9,
+        "ui": 46,
+        "communication": 56,
+        "media": 34,
+        "social": 60,
+        "wellness": 10,
+        "arrows": 37,
+        "business": 18,
+        "weather": 17,
+        "files": 19,
+        "food": 14,
+        "sports": 4,
+        "finance": 25,
+        "ecommerce": 14,
+        "brands": 5,
+        "security": 7,
+        "health": 12,
+        "education": 8,
+        "travel": 34,
+        "gaming": 5,
+        "shapes": 11,
+        "nature": 7,
+        "flags": 2,
+        "emoji": 6,
+        "transport": 6,
+        "science": 2
+      },
+      "defaultViewBox": "0 0 24 24"
+    },
+    {
+      "id": "bytesize",
+      "name": "Bytesize",
+      "license": "MIT",
+      "author": "Daniel Bruce",
+      "url": "https://github.com/danklammer/bytesize-icons",
+      "priority": 3,
+      "multicolor": false,
+      "count": 102,
+      "categories": {
+        "misc": 27,
+        "ui": 4,
+        "tech": 17,
+        "ecommerce": 3,
+        "social": 6,
+        "education": 1,
+        "media": 5,
+        "travel": 6,
+        "security": 3,
+        "files": 7,
+        "health": 2,
+        "flags": 1,
+        "communication": 7,
+        "brands": 5,
+        "weather": 3,
+        "nature": 1,
+        "arrows": 1,
+        "business": 3
+      },
+      "defaultViewBox": "0 0 32 32"
+    },
+    {
+      "id": "mdi",
+      "name": "Material Design Icons",
+      "license": "Apache 2.0",
+      "author": "MDI Community",
+      "url": "https://pictogrammers.com/library/mdi",
+      "priority": 1,
+      "multicolor": false,
+      "count": 7638,
+      "categories": {
+        "devtools": 31,
+        "education": 135,
+        "tech": 1124,
+        "misc": 1692,
+        "arrows": 230,
+        "finance": 273,
+        "travel": 341,
+        "health": 224,
+        "social": 356,
+        "communication": 355,
+        "brands": 128,
+        "ecommerce": 214,
+        "media": 301,
+        "ui": 339,
+        "shapes": 603,
+        "transport": 86,
+        "nature": 92,
+        "science": 56,
+        "files": 231,
+        "security": 218,
+        "food": 109,
+        "wellness": 60,
+        "sports": 32,
+        "emoji": 38,
+        "business": 100,
+        "gaming": 64,
+        "weather": 191,
+        "flags": 8,
+        "crypto": 7
+      },
+      "defaultViewBox": "0 0 24 24"
+    }
+  ],
+  "generatedAt": "2026-05-24T16:38:43.895Z",
+  "totalIcons": 111001
+}

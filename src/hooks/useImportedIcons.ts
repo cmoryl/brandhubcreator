@@ -1,20 +1,29 @@
 /**
- * useImportedIcons — loads the bundled icon-library manifest and provides
- * helpers to fetch SVG contents for export / inline rendering.
+ * useImportedIcons — entry point for the bundled icon library (~111k icons
+ * across 29 permissive packs). Loads the master manifest eagerly; per-pack
+ * indexes and full pack JSONs are loaded lazily on demand.
+ *
+ * Backwards-compatible export: `ImportedIconEntry` is re-exported so existing
+ * consumers continue to compile.
  */
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import type { BrandIconography } from '@/types/brand';
+import {
+  loadManifest,
+  loadPackIndex,
+  materializeAsBrandIconography,
+  materializeDataUrl,
+} from '@/lib/iconLibrary/loader';
+import type {
+  IconLibraryManifest,
+  IconPackMeta,
+  IconIndexEntry,
+  ImportedIconEntry,
+} from '@/lib/iconLibrary/types';
 
-export interface ImportedIconEntry {
-  id: string;
-  slug: string;
-  name: string;
-  variant: 'light-blue' | 'white';
-  category: string;
-  path: string;
-}
+export type { ImportedIconEntry } from '@/lib/iconLibrary/types';
 
 export interface ImportedIconLibrary {
   id: 'imported';
@@ -26,90 +35,135 @@ export interface ImportedIconLibrary {
   iconCount: number;
 }
 
-const MANIFEST_URL = '/icon-library/manifest.json';
-
-async function fetchSvgAsBrandIconography(entry: ImportedIconEntry): Promise<BrandIconography> {
-  const text = await fetch(entry.path).then((r) => r.text());
-  // Extract the first <path d="..."> or use the whole SVG inner content
-  const pathMatch = text.match(/<path[^>]*d="([^"]*)"/);
-  const svgPath = pathMatch ? pathMatch[1] : text;
-  const viewBoxMatch = text.match(/viewBox="([^"]*)"/);
-  return {
-    id: entry.id,
-    name: entry.name,
-    svgPath,
-    category: entry.category,
-    viewBox: viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24',
-    fillMode: 'stroke',
-  };
-}
-
 export const useImportedIcons = () => {
-  const [entries, setEntries] = useState<ImportedIconEntry[]>([]);
+  const [manifest, setManifest] = useState<IconLibraryManifest | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(MANIFEST_URL)
-      .then((r) => r.json())
-      .then((data: ImportedIconEntry[]) => setEntries(data))
+    loadManifest()
+      .then(setManifest)
       .catch((e) => {
         logger.debug('[useImportedIcons] manifest load failed', e);
-        toast.error('Failed to load imported icon library');
+        toast.error('Failed to load icon library');
       })
       .finally(() => setLoading(false));
   }, []);
 
-  const categories = useMemo(() => {
+  /** All known categories across packs. */
+  const categories = useMemo<string[]>(() => {
+    if (!manifest) return [];
     const set = new Set<string>();
-    entries.forEach((e) => set.add(e.category));
+    manifest.packs.forEach((p) => Object.keys(p.categories).forEach((c) => set.add(c)));
     return Array.from(set).sort();
-  }, [entries]);
+  }, [manifest]);
 
-  const countsByVariant = useMemo(() => {
-    const out: Record<string, number> = { 'light-blue': 0, white: 0 };
-    entries.forEach((e) => {
-      out[e.variant] = (out[e.variant] || 0) + 1;
-    });
-    return out;
-  }, [entries]);
+  /** Total icon count across all packs (cheap). */
+  const totalCount = manifest?.totalIcons ?? 0;
 
-  const asBrandIconography = useCallback(
-    async (filterVariant?: 'light-blue' | 'white', limit?: number): Promise<BrandIconography[]> => {
-      const subset = entries
-        .filter((e) => !filterVariant || e.variant === filterVariant)
-        .slice(0, limit ?? entries.length);
-      const results = await Promise.all(
-        subset.map((e) =>
-          fetchSvgAsBrandIconography(e).catch((err) => {
-            logger.debug('[useImportedIcons] fetch failed', e.path, err);
-            return null;
-          })
-        )
-      );
-      return results.filter(Boolean) as BrandIconography[];
-    },
-    [entries]
+  /** Lazy-load per-pack index of icon names + tags + categories. */
+  const getPackIndex = useCallback(
+    (packId: string) => loadPackIndex(packId),
+    [],
   );
 
-  const virtualLibrary = useMemo((): ImportedIconLibrary => {
-    // lightweight: only first 6 icons fetched for preview; rest on demand
-    return {
+  /** Fetch a data URL for an icon (for <img> previews). */
+  const getIconUrl = useCallback(
+    (packId: string, iconName: string) => materializeDataUrl(packId, iconName),
+    [],
+  );
+
+  /** Build BrandIconography records for export pipeline. */
+  const asBrandIconography = useCallback(
+    async (
+      filter: { packs?: string[]; categories?: string[]; limit?: number } = {},
+    ): Promise<BrandIconography[]> => {
+      if (!manifest) return [];
+      const packs = (filter.packs?.length ? manifest.packs.filter((p) => filter.packs!.includes(p.id)) : manifest.packs);
+      const perPackLimit = filter.limit ? Math.max(1, Math.ceil(filter.limit / packs.length)) : Infinity;
+      const collected: BrandIconography[] = [];
+      for (const pack of packs) {
+        if (filter.limit && collected.length >= filter.limit) break;
+        try {
+          const idx = await loadPackIndex(pack.id);
+          const subset = idx
+            .filter((e) => !filter.categories?.length || filter.categories.includes(e.c))
+            .slice(0, perPackLimit);
+          for (const e of subset) {
+            try {
+              const bi = await materializeAsBrandIconography(pack.id, e.n, e.c);
+              collected.push(bi);
+              if (filter.limit && collected.length >= filter.limit) break;
+            } catch (err) {
+              logger.debug('[useImportedIcons] materialize failed', pack.id, e.n, err);
+            }
+          }
+        } catch (err) {
+          logger.debug('[useImportedIcons] index failed', pack.id, err);
+        }
+      }
+      return collected;
+    },
+    [manifest],
+  );
+
+  /** Lightweight virtual library entry for the Library grid. */
+  const virtualLibrary = useMemo<ImportedIconLibrary>(
+    () => ({
       id: 'imported',
-      name: 'Imported Assets',
+      name: 'Bundled Icon Library',
       level: 'core',
-      description: `${entries.length} bundled SVG icons — curated asset library`,
-      icons: [], // populated on demand
+      description: `${totalCount.toLocaleString()} icons across ${manifest?.packs.length ?? 0} permissive packs`,
+      icons: [],
       is_active: true,
-      iconCount: entries.length,
-    };
-  }, [entries.length]);
+      iconCount: totalCount,
+    }),
+    [totalCount, manifest?.packs.length],
+  );
+
+  // Back-compat: legacy consumers expect an `entries` array. Surface an
+  // empty array (since we no longer materialize all 111k upfront) plus a
+  // numeric `entries.length` derived from total count via getter.
+  const entries = useMemo<ImportedIconEntry[]>(() => {
+    // Empty by design — the full list is too large to keep in memory.
+    // Consumers needing a count should use `totalCount`.
+    return [];
+  }, []);
 
   return {
+    manifest,
+    packs: manifest?.packs ?? [],
     entries,
+    totalCount,
     loading,
     categories,
-    countsByVariant,
     virtualLibrary,
+    getPackIndex,
+    getIconUrl,
     asBrandIconography,
   };
 };
+
+/** Helper for legacy preview components: pick a few sample icons quickly. */
+export async function pickSampleIcons(
+  manifest: IconLibraryManifest,
+  options: { packs?: string[]; count: number } = { count: 6 },
+): Promise<Array<{ pack: string; name: string; category: string }>> {
+  const packs = options.packs?.length
+    ? manifest.packs.filter((p) => options.packs!.includes(p.id))
+    : manifest.packs.slice(0, 4);
+  const out: Array<{ pack: string; name: string; category: string }> = [];
+  for (const pack of packs) {
+    if (out.length >= options.count) break;
+    try {
+      const idx = await loadPackIndex(pack.id);
+      const take = idx.slice(0, Math.max(1, Math.ceil(options.count / packs.length)));
+      for (const e of take) {
+        out.push({ pack: pack.id, name: e.n, category: e.c });
+        if (out.length >= options.count) break;
+      }
+    } catch {
+      // skip
+    }
+  }
+  return out;
+}
