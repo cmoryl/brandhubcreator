@@ -108,6 +108,35 @@ export const SuggestedIconsRail = ({
     }
   };
 
+  // Phase 5 — populate a curated kit in one click.
+  const availableKits = useMemo(() => kitsForSection(sectionId), [sectionId]);
+  const [kitLoadingId, setKitLoadingId] = useState<string | null>(null);
+
+  const handlePopulateKit = async (kitId: string) => {
+    const kit = availableKits.find((k) => k.id === kitId);
+    if (!kit) return;
+    setKitLoadingId(kitId);
+    try {
+      const dna = brandDna && restyleOn ? brandDna : undefined;
+      const resolved = await resolveKit(kit, dna);
+      const fresh = resolved.filter((ic) => !existingIds.has(ic.id));
+      if (fresh.length === 0) {
+        toast.info(`All ${kit.name} icons are already added`);
+        return;
+      }
+      if (onAddBatch) {
+        onAddBatch(fresh);
+      } else {
+        fresh.forEach((ic) => onAdd(ic));
+      }
+      toast.success(`Added ${fresh.length} icons from ${kit.name}${dna ? ' · brand DNA applied' : ''}`);
+    } catch {
+      toast.error('Could not populate kit');
+    } finally {
+      setKitLoadingId(null);
+    }
+  };
+
   if (!loading && items.length === 0) return null;
 
   return (
