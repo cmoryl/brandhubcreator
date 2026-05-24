@@ -4,9 +4,11 @@
  * Click an icon to add it to the brand's iconography list.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Sparkles, Plus, RefreshCw, Wand2 } from 'lucide-react';
+import { Sparkles, Plus, RefreshCw, Wand2, Search, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useSemanticIconSearch, type SemanticIconHit } from '@/lib/iconLibrary/semanticSearch';
 import { toast } from 'sonner';
 import { getSuggestedIcons, type SuggestedIcon } from '@/lib/iconLibrary/suggestions';
 import { materializeAsBrandIconography, materializeDataUrl } from '@/lib/iconLibrary/loader';
