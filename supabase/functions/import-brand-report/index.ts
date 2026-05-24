@@ -101,8 +101,8 @@ serve(async (req) => {
       });
     }
 
-    // Truncate very long documents to avoid token limits
-    const maxChars = 30000;
+    // Truncate very long documents to stay within AI token budgets.
+    const maxChars = 60000;
     const truncatedContent = textContent.length > maxChars
       ? textContent.substring(0, maxChars) + "\n\n[Content truncated due to length...]"
       : textContent;
