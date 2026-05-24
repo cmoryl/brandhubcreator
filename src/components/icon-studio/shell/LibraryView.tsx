@@ -83,6 +83,8 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
     if (!undersized.length) return;
     undersized.forEach((l) => autoStockedRef.current.add(l.id));
     (async () => {
+      let totalAdded = 0;
+      let stocked = 0;
       for (const lib of undersized) {
         try {
           const result = await enrichLibrary(lib, {
@@ -92,10 +94,16 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
           });
           if (result.added > 0) {
             await updateLibrary.mutateAsync({ id: lib.id, updates: { icons: result.icons } });
+            totalAdded += result.added;
+            stocked += 1;
           }
         } catch (e) {
           logger.debug('[auto-stock] failed', lib.name, e);
         }
+      }
+      if (totalAdded > 0) {
+        const { toast } = await import('sonner');
+        toast.success(`Auto-stocked ${stocked} brand ${stocked === 1 ? 'library' : 'libraries'} with ${totalAdded} industry icons`);
       }
     })();
   }, [libraries, canEdit, organizationId, updateLibrary]);
