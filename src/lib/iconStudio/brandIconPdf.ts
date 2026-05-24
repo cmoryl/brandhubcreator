@@ -557,12 +557,20 @@ export async function buildBrandIconPdf({
             category,
             page: doc.getNumberOfPages(),
           });
+          iconsProcessed++;
+          if ((iconsProcessed & 3) === 0) {
+            checkAborted();
+            reportIconProgress(`Rasterising ${lib.name} — ${iconsProcessed}/${totalIcons}`);
+            // Yield to the event loop so the UI can repaint + handle cancel clicks.
+            await new Promise<void>((r) => setTimeout(r, 0));
+          }
         }
 
         gy += rowH;
       }
     }
   }
+  reportIconProgress(`Rasterised ${iconsProcessed}/${totalIcons} icons`);
 
   /* ──────── Alphabetical index appendix ──────── */
   if (iconIndex.length > 0) {
