@@ -99,7 +99,7 @@ const IconStudioPage = () => {
     urlSection && validSections.includes(urlSection)
       ? urlSection
       : urlLibrary
-      ? 'library'
+      ? 'sets'
       : 'dashboard';
 
   const [expertMode, setExpertMode] = useState(false);
@@ -120,7 +120,7 @@ const IconStudioPage = () => {
     if (s && validSections.includes(s)) setShellSection(s);
     if (lib) {
       setDeepLinkLibraryId(lib);
-      if (!s) setShellSection('library');
+      if (!s) setShellSection('sets');
     }
     const next = new URLSearchParams(searchParams);
     next.delete('section');
@@ -496,6 +496,8 @@ const IconStudioPage = () => {
           onCreate={() => setShellSection('generate')}
           onRemix={() => setShellSection('generate')}
           onCompare={() => setShellSection('qa')}
+          autoOpenLibraryId={deepLinkLibraryId}
+          onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
         />
       ) : shellSection === 'qa' ? (
         <QAView

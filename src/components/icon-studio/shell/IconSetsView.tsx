@@ -4,7 +4,7 @@
  * detail dialog that opens the full set at large size.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Copy, Wand2, Lock, Unlock, RefreshCw, ArrowUpRight,
   FolderOpen, Plus, Filter, Trash2, Sparkles,
@@ -27,6 +27,8 @@ interface Props {
   onRegenerate?: (lib: IconLibrary) => void;
   onRemix?: (lib: IconLibrary) => void;
   onCompare?: (lib: IconLibrary) => void;
+  autoOpenLibraryId?: string | null;
+  onAutoOpenConsumed?: () => void;
 }
 
 const SAMPLE_FOR = (name: string): string[] => {
@@ -59,12 +61,24 @@ export const IconSetsView = ({
   onRegenerate,
   onRemix,
   onCompare,
+  autoOpenLibraryId,
+  onAutoOpenConsumed,
 }: Props) => {
   const [q, setQ] = useState('');
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
   const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
   const [expandOpen, setExpandOpen] = useState(false);
   const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
+
+  // Auto-open from deep link (e.g. /icon-studio?section=sets&library=<id>)
+  useEffect(() => {
+    if (!autoOpenLibraryId) return;
+    const match = libraries.find((l) => l.id === autoOpenLibraryId);
+    if (match) {
+      setActiveLib(match);
+      onAutoOpenConsumed?.();
+    }
+  }, [autoOpenLibraryId, libraries, onAutoOpenConsumed]);
 
   const grouped = useMemo(() => {
     const term = q.toLowerCase();

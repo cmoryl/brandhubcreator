@@ -743,7 +743,7 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                 <Button variant="outline" onClick={() => setPreviewLibId(null)}>Close</Button>
                 <Button
                   className="gap-1.5"
-                  onClick={() => navigate(`/icon-studio?section=library&library=${previewLib.id}`)}
+                  onClick={() => navigate(`/icon-studio?section=sets&library=${previewLib.id}`)}
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   Open in Icon Studio
