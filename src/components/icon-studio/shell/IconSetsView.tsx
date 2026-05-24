@@ -205,6 +205,15 @@ export const IconSetsView = ({
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {items.map((lib) => {
                   const accent = `hsl(var(${meta.token}))`;
+                  const bundled = isBundledLibraryId(lib.id);
+                  const openLib = () => {
+                    if (bundled) {
+                      const pid = bundledLibraryPackId(lib.id);
+                      if (pid && onOpenBundledPack) onOpenBundledPack(pid);
+                      return;
+                    }
+                    setActiveLib(lib);
+                  };
                   const stop = (e: React.MouseEvent) => {
                     e.stopPropagation();
                   };
@@ -212,7 +221,7 @@ export const IconSetsView = ({
                     label: string;
                     icon: typeof Copy;
                     onClick: () => void;
-                  }> = canEdit
+                  }> = canEdit && !bundled
                     ? [
                         { label: 'Duplicate', icon: Copy, onClick: () => handleDuplicate(lib) },
                         { label: 'Remix', icon: Wand2, onClick: () => handleRemix(lib) },
@@ -231,11 +240,11 @@ export const IconSetsView = ({
                       key={lib.id}
                       role="button"
                       tabIndex={0}
-                      onClick={() => setActiveLib(lib)}
+                      onClick={openLib}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          setActiveLib(lib);
+                          openLib();
                         }
                       }}
                       className="tp-card tp-card-interactive p-4 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -245,7 +254,21 @@ export const IconSetsView = ({
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="min-w-0">
-                          <h3 className="text-sm font-semibold truncate">{lib.name}</h3>
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="text-sm font-semibold truncate">{lib.name}</h3>
+                            {bundled && (
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] uppercase tracking-wider shrink-0"
+                                style={{
+                                  borderColor: 'hsl(var(--tp-teal) / 0.4)',
+                                  color: 'hsl(var(--tp-teal))',
+                                }}
+                              >
+                                Bundled
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-[11px] text-muted-foreground truncate">
                             {lib.description || 'No description'}
                           </p>
