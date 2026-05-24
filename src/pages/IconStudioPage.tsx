@@ -375,6 +375,7 @@ const IconStudioPage = () => {
           libraries={libraries}
           totalIcons={totalIcons}
           organizationId={organizationId}
+          organizationName={organizationName}
           onStartGenerate={() => setShellSection('generate')}
         />
       ) : shellSection === 'export' ? (

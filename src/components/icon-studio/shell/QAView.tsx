@@ -17,12 +17,14 @@ import { StatusChip } from './StatusChip';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { runPreflight, type PreflightSummary } from '@/lib/iconStudio/qa';
 import { AbTestPanel } from './AbTestPanel';
+import { SvgOptimizerPanel } from './SvgOptimizerPanel';
 
 
 interface Props {
   libraries: IconLibrary[];
   totalIcons: number;
   organizationId?: string;
+  organizationName?: string;
   onStartGenerate?: () => void;
 }
 
@@ -92,7 +94,7 @@ const ScoreCard = ({
   </div>
 );
 
-export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate }: Props) => {
+export const QAView = ({ libraries, totalIcons, organizationId, organizationName, onStartGenerate }: Props) => {
   const queryClient = useQueryClient();
   const [preflight, setPreflight] = useState<PreflightSummary | null>(null);
   const [running, setRunning] = useState(false);
@@ -265,6 +267,9 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
           </ul>
         )}
       </section>
+
+      {/* SVG Optimizer */}
+      <SvgOptimizerPanel libraries={libraries} organizationName={organizationName || 'icons'} />
 
       <AbTestPanel libraries={libraries} organizationId={organizationId} />
     </div>
