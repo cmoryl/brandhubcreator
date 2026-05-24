@@ -288,6 +288,18 @@ export const IconSetDetailDialog = ({
                     <div className="tp-card p-8 text-center text-sm text-muted-foreground">
                       No icons match your search.
                     </div>
+                  ) : activeCategory === 'all' && !query.trim() && categories.length > 1 ? (
+                    <CategorizedIconGrid
+                      icons={visibleIcons}
+                      accent={accent}
+                      styleMode={effectiveStyle}
+                      sizePx={previewSize}
+                      onIconClick={(id) => {
+                        const full = library.icons.find((i) => i.id === id) ?? null;
+                        setSelectedIcon(full);
+                      }}
+                      onJumpToCategory={(c) => setActiveCategory(c)}
+                    />
                   ) : (
                     <FilteredIconGrid
                       icons={visibleIcons}
