@@ -37,7 +37,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Settings,
-  User,
   Check,
   AlertTriangle,
   Info,
