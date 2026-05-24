@@ -254,6 +254,51 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         }
       }
 
+      // Per-icon emission — imported icons
+      for (const ic of importedSvgData) {
+        const iconSlug = ic.slug;
+        const path = ic.svgPath || FALLBACK_PATH;
+        const viewBox = ic.viewBox || '0 0 24 24';
+
+        if (wantStyled) {
+          const svg = buildStyledSvg({
+            svgPath: path,
+            viewBox,
+            style: activeStyle,
+            accent: resolvedAccent,
+            accent2: resolvedAccent2,
+            size: 64,
+            standalone: true,
+          });
+          root.file(`svg/imported/${iconSlug}.svg`, svg);
+        }
+
+        if (wantRaw) {
+          const raw = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`;
+          root.file(`svg-raw/imported/${iconSlug}.svg`, raw);
+        }
+
+        if (wantPng) {
+          for (const px of pngList) {
+            const styledForPx = buildStyledSvg({
+              svgPath: path,
+              viewBox,
+              style: activeStyle,
+              accent: resolvedAccent,
+              accent2: resolvedAccent2,
+              size: px,
+              standalone: false,
+            });
+            try {
+              const blob = await svgToPng(styledForPx, px);
+              root.file(`png/${px}/imported/${iconSlug}.png`, blob);
+            } catch {
+              // Skip individual PNG failures.
+            }
+          }
+        }
+      }
+
       // Contact sheet HTML — quick visual proof
       root.file(
         'README.html',
