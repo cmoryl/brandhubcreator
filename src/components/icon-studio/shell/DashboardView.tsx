@@ -117,6 +117,7 @@ export const DashboardView = ({
   onOpenLibrary,
   recentLibraries = [],
   brandProfiles = [],
+  importedIconCount = 0,
 }: Props) => {
   const { hidden: hiddenBrands, hide: hideBrand, clear: clearHiddenBrands, isHidden: isBrandHidden } =
     useHiddenItems('brand-profiles');
