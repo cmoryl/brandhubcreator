@@ -47,7 +47,10 @@ export const SuggestedIconsRail = ({
   onAddBatch,
   limit = 24,
   brandDna,
+  organizationId,
+  brandId,
 }: SuggestedIconsRailProps) => {
+  const logUsage = useIconUsageLogger();
   const [items, setItems] = useState<SuggestedIcon[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
