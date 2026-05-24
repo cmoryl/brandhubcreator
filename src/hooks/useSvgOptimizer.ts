@@ -7,14 +7,14 @@
  */
 
 import { useState, useCallback, useRef, useMemo } from 'react';
-import { optimize, type Config as SvgoConfig } from 'svgo';
+import { optimize } from 'svgo';
 import { logger } from '@/lib/logger';
 
 export interface OptimizationPreset {
   id: 'safe' | 'default' | 'aggressive' | 'custom';
   label: string;
   description: string;
-  config: SvgoConfig;
+  config: Record<string, unknown>;
 }
 
 export interface IconOptimizationResult {
@@ -77,37 +77,34 @@ const PRESETS: OptimizationPreset[] = [
         { name: 'preset-default', params: { overrides: {
           removeViewBox: false,
         }}},
-        { name: 'removeDimensions', active: true },
-        { name: 'removeRasterImages', active: true },
-        { name: 'removeScriptElement', active: true },
-        { name: 'removeStyleElement', active: true },
-        { name: 'removeOffCanvasPaths', active: true },
+        { name: 'removeDimensions' },
+        { name: 'removeRasterImages' },
+        { name: 'removeScriptElement' },
+        { name: 'removeStyleElement' },
+        { name: 'removeOffCanvasPaths' },
       ],
     },
   },
 ];
 
-const NEW_SVGO_PRESETS: OptimizationPreset[] = PRESETS;
-
-export { NEW_SVGO_PRESETS as SVGO_PRESETS };
+export { PRESETS as SVGO_PRESETS };
 
 function svgByteLength(svg: string): number {
   return new Blob([svg]).size;
 }
 
-function runSvgo(svg: string, config: SvgoConfig): { svg: string; warnings: string[] } {
+function runSvgo(svg: string, config: Record<string, unknown>): { svg: string; warnings: string[] } {
   const warnings: string[] = [];
   const result = optimize(svg, {
     ...config,
     multipass: true,
-  });
+  } as any);
 
-  if (result.modernError) {
-    throw result.modernError;
+  if ('error' in result && result.error) {
+    throw new Error(String(result.error));
   }
 
-  // Check for common issues post-optimization
-  const data = result.data || svg;
+  const data = (result as any).data || svg;
   if (!data.includes('xmlns') && !data.includes('<svg')) {
     warnings.push('Lost SVG namespace — may not render standalone');
   }
@@ -126,7 +123,7 @@ export function useSvgOptimizer() {
   const presets = useMemo(() => PRESETS, []);
 
   const optimizeIcon = useCallback(
-    (id: string, name: string, svg: string, config: SvgoConfig): IconOptimizationResult => {
+    (id: string, name: string, svg: string, config: Record<string, unknown>): IconOptimizationResult => {
       if (abortRef.current) {
         return {
           id,
@@ -184,7 +181,7 @@ export function useSvgOptimizer() {
     async (
       items: { id: string; name: string; svg: string }[],
       presetId: 'safe' | 'default' | 'aggressive' | 'custom',
-      customConfig?: SvgoConfig
+      customConfig?: Record<string, unknown>
     ): Promise<OptimizationRun> => {
       setIsOptimizing(true);
       abortRef.current = false;
