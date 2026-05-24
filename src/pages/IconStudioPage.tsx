@@ -110,6 +110,19 @@ const IconStudioPage = () => {
   } = useIconLibraries(organizationId);
 
   const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
+  const { bundledLibraries } = useBundledIconLibraries(organizationId);
+  const [initialBundledPack, setInitialBundledPack] = useState<string | null>(null);
+
+  // Merge generated + bundled — bundled appear in Core sections of LibraryView/IconSetsView.
+  const allLibraries = useMemo(
+    () => [...libraries, ...bundledLibraries],
+    [libraries, bundledLibraries],
+  );
+
+  const openBundledPack = useCallback((packId: string) => {
+    setInitialBundledPack(packId);
+    setShellSection('imported');
+  }, []);
 
   const totalIcons = useMemo(
     () => libraries.reduce((sum, l) => sum + l.icons.length, 0),
