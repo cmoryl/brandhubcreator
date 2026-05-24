@@ -108,6 +108,8 @@ const IconStudioPage = () => {
     updateLibrary,
   } = useIconLibraries(organizationId);
 
+  const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
+
   const totalIcons = useMemo(
     () => libraries.reduce((sum, l) => sum + l.icons.length, 0),
     [libraries],
