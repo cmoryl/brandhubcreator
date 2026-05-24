@@ -230,21 +230,23 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                   >
                     {level.label}
                   </Badge>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon" className="h-7 w-7">
-                        <MoreHorizontal className="h-3.5 w-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onClick={() => handleDuplicate(lib)}>Duplicate</DropdownMenuItem>
-                      {onRemix && <DropdownMenuItem onClick={() => onRemix(lib)}>Remix</DropdownMenuItem>}
-                      <DropdownMenuItem onClick={() => handleLockToggle(lib)}>
-                        {lib.is_active ? 'Lock set' : 'Unlock set'}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(lib)}>Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {canEdit && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onClick={() => handleDuplicate(lib)}>Duplicate</DropdownMenuItem>
+                        {onRemix && <DropdownMenuItem onClick={() => onRemix(lib)}>Remix</DropdownMenuItem>}
+                        <DropdownMenuItem onClick={() => handleLockToggle(lib)}>
+                          {lib.is_active ? 'Lock set' : 'Unlock set'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onClick={() => setPendingDelete(lib)}>Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
                 <h3 className="text-base font-semibold leading-tight">{lib.name}</h3>
                 <p className="text-xs text-muted-foreground mt-1 line-clamp-2 min-h-[2.25rem]">
