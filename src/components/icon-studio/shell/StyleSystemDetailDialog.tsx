@@ -1,10 +1,11 @@
 /**
- * StyleSystemDetailDialog — large preview of a single style system with
- * expanded icon examples across multiple categories, sizes, and color modes.
+ * StyleSystemDetailDialog — large preview of a single style system. Pack +
+ * category pickers drive a real `BundledIconLadder` so users can preview
+ * the recipe against any bundled pack before applying.
  */
 
-import { useEffect, useState } from 'react';
-import { Wand2, Sparkles, Grid3x3, Ruler, Layers, Sun, Moon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Wand2, Sparkles, Grid3x3, Ruler, Layers, Sun, Moon, Library as LibraryIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,18 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { IconSetPreview } from './IconSetPreview';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { BundledIconLadder } from './BundledIconLadder';
+import { getStyleSource, BASE_SAMPLE_SLUGS } from './styleRecipeToDna';
+import { useImportedIcons } from '@/hooks/useImportedIcons';
+import { loadPackIndex } from '@/lib/iconLibrary/loader';
+import type { IconIndexEntry } from '@/lib/iconLibrary/types';
 import type { BaseStyle } from './studioData';
 import { cn } from '@/lib/utils';
 
@@ -23,28 +35,60 @@ interface Props {
   accent: string;
   onClose: () => void;
   onApply?: () => void;
+  /** Open the bulk "apply to bundled pack" workflow. */
+  onApplyToBundled?: (style: BaseStyle) => void;
 }
 
-// Themed sample categories — much richer than the 6-emoji card preview.
-const CATEGORIES: { title: string; emojis: string[] }[] = [
-  { title: 'System & UI', emojis: ['⚙️', '🔍', '🔔', '📂', '🏠', '👤', '🚪', '🧭', '📍', '🔄', '⬆️', '⬇️'] },
-  { title: 'Data & Analytics', emojis: ['📊', '📈', '📉', '🎯', '🧮', '📋', '🗂️', '🔬', '📝', '⏱️', '🧪', '📐'] },
-  { title: 'Commerce & Finance', emojis: ['🛒', '🛍️', '💳', '💰', '🏷️', '📦', '🚚', '🎁', '⭐', '🧾', '🏦', '💸'] },
-  { title: 'Security & Compliance', emojis: ['🛡️', '🔐', '🔑', '✅', '🚨', '📜', '🪪', '🛂', '🪙', '⚖️', '🏛️', '📑'] },
-  { title: 'Communication', emojis: ['💬', '📧', '📞', '🎙️', '📣', '🔔', '🔕', '📺', '📷', '🎬', '🤝', '🗣️'] },
-  { title: 'AI & Tech', emojis: ['✨', '🪄', '🧠', '🤖', '⚡', '🔌', '🧩', '🛠️', '🚀', '💡', '📡', '🔗'] },
+const SIZE_LADDER: { label: string; tile: number; count: number }[] = [
+  { label: '16 / 20 px', tile: 18, count: 12 },
+  { label: '24 / 32 px', tile: 28, count: 10 },
+  { label: '48 / 64 px', tile: 48, count: 8 },
 ];
 
-const SIZE_LADDER: { label: string; size: 'sm' | 'md' | 'lg' }[] = [
-  { label: '16 / 20 px', size: 'sm' },
-  { label: '24 / 32 px', size: 'md' },
-  { label: '48 / 64 px', size: 'lg' },
-];
-
-export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Props) => {
+export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply, onApplyToBundled }: Props) => {
   const open = !!style;
   const a2 = style?.preview.accent2 ? `hsl(var(--${style.preview.accent2}))` : undefined;
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
+  const { packs } = useImportedIcons();
+  const source = useMemo(() => (style ? getStyleSource(style) : null), [style]);
+  const preferredPack = source?.packs[0];
+  const [packId, setPackId] = useState<string>('');
+  const [category, setCategory] = useState<string>('all');
+  const [index, setIndex] = useState<IconIndexEntry[]>([]);
+
+  // Default to the style's preferred pack each time it opens.
+  useEffect(() => {
+    if (!open) return;
+    const initial =
+      preferredPack && packs.some((p) => p.id === preferredPack)
+        ? preferredPack
+        : packs[0]?.id ?? '';
+    setPackId(initial);
+    setCategory('all');
+  }, [open, preferredPack, packs]);
+
+  useEffect(() => {
+    if (!packId) return;
+    let cancelled = false;
+    loadPackIndex(packId).then((d) => { if (!cancelled) setIndex(d); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [packId]);
+
+  const currentPack = useMemo(() => packs.find((p) => p.id === packId), [packs, packId]);
+  const categories = useMemo(() => {
+    if (!currentPack) return ['all'];
+    return ['all', ...Object.keys(currentPack.categories).sort()];
+  }, [currentPack]);
+
+  // Slugs used by the size ladder: when a category is picked, sample real
+  // names from that category; otherwise use the canonical 8 universal slugs.
+  const ladderSlugs = useMemo(() => {
+    if (category === 'all' || !index.length) return BASE_SAMPLE_SLUGS.slice(0, 12);
+    return index
+      .filter((e) => e.c === category)
+      .slice(0, 12)
+      .map((e) => e.n);
+  }, [index, category]);
 
   // Initialize theme from current app theme each time dialog opens
   useEffect(() => {
