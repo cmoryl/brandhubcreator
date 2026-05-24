@@ -4,10 +4,17 @@
  * are loaded lazily; SVGs are materialized on demand via data URLs.
  */
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { Search, ImageIcon, ExternalLink } from 'lucide-react';
+import { Search, ImageIcon, ExternalLink, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -59,6 +66,54 @@ const CATEGORY_LABELS: Record<string, string> = {
   misc: 'Misc',
 };
 
+/**
+ * Variants are inferred from icon-name suffixes that virtually every major
+ * icon pack uses (Phosphor: -bold/-duotone/-fill/-thin/-light; Material
+ * Symbols / Fluent: -outlined/-rounded/-sharp/-filled; Tabler: -filled;
+ * Heroicons / Solar: -solid/-outline/-bold/-linear/-broken/-twotone, etc.).
+ * Filtering by these is the closest stable proxy to a true variant axis
+ * across packs that don't expose one explicitly.
+ */
+const VARIANT_TOKENS = [
+  'outline', 'outlined',
+  'filled', 'fill', 'solid',
+  'duotone', 'two-tone', 'twotone',
+  'bold', 'thin', 'light', 'regular',
+  'rounded', 'sharp',
+  'linear', 'broken', 'mono', 'color',
+] as const;
+
+const VARIANT_LABELS: Record<string, string> = {
+  outline: 'Outline',
+  outlined: 'Outlined',
+  filled: 'Filled',
+  fill: 'Fill',
+  solid: 'Solid',
+  duotone: 'Duotone',
+  'two-tone': 'Two-tone',
+  twotone: 'Two-tone',
+  bold: 'Bold',
+  thin: 'Thin',
+  light: 'Light',
+  regular: 'Regular',
+  rounded: 'Rounded',
+  sharp: 'Sharp',
+  linear: 'Linear',
+  broken: 'Broken',
+  mono: 'Mono',
+  color: 'Color',
+};
+
+/** Find variant tokens present anywhere in an icon name (delimited by - or _). */
+const variantsOf = (name: string): string[] => {
+  const tokens = name.toLowerCase().split(/[-_]/);
+  const found: string[] = [];
+  for (const v of VARIANT_TOKENS) {
+    if (tokens.includes(v)) found.push(v);
+  }
+  return found;
+};
+
 interface ImportedIconsViewProps {
   /** When set, opens this pack on mount (used when navigating from a bundled library card). */
   initialPackId?: string;
@@ -73,6 +128,7 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
   const [indexLoading, setIndexLoading] = useState(false);
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<string>('all');
+  const [variant, setVariant] = useState<string>('all');
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
 
   // Honor initialPackId once it (and the packs list) become available.
@@ -80,6 +136,7 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
     if (initialPackId && packs.some((p) => p.id === initialPackId)) {
       setSelectedPack(initialPackId);
       setCategory('all');
+      setVariant('all');
       setQ('');
       onInitialPackConsumed?.();
     }
@@ -106,15 +163,40 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
     return ['all', ...Object.keys(currentPack.categories).sort()];
   }, [currentPack]);
 
+  // Variants present in this pack — derived once per pack load, with counts.
+  const variantCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const e of packIndex) {
+      for (const v of variantsOf(e.n)) {
+        counts.set(v, (counts.get(v) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [packIndex]);
+
+  const availableVariants = useMemo(() => {
+    // Order by VARIANT_TOKENS canonical order, keep only those present.
+    return VARIANT_TOKENS.filter((v) => variantCounts.has(v));
+  }, [variantCounts]);
+
+  // Reset variant when switching to a pack that doesn't expose the current one.
+  useEffect(() => {
+    if (variant !== 'all' && !variantCounts.has(variant)) setVariant('all');
+  }, [variant, variantCounts]);
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     return packIndex.filter((e) => {
       if (category !== 'all' && e.c !== category) return false;
+      if (variant !== 'all' && !variantsOf(e.n).includes(variant)) return false;
       if (!term) return true;
       if (e.n.includes(term)) return true;
       return e.t.some((t) => t.includes(term));
     });
-  }, [packIndex, q, category]);
+  }, [packIndex, q, category, variant]);
+
+  const activeFilterCount =
+    (category !== 'all' ? 1 : 0) + (variant !== 'all' ? 1 : 0) + (q.trim() ? 1 : 0);
 
   // Virtualized grid: compute row count from columns
   const parentRef = useRef<HTMLDivElement>(null);
@@ -215,32 +297,102 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
         {/* Main */}
         <div className="space-y-4 min-w-0">
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[240px] max-w-md">
-              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder={`Search ${currentPack?.name ?? ''}…`}
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                className="pl-9 h-9"
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {categories.slice(0, 12).map((c) => (
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative flex-1 min-w-[240px] max-w-md">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder={`Search ${currentPack?.name ?? ''}…`}
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  className="pl-9 h-9"
+                />
+              </div>
+
+              {/* Category — full list via Select so every pack category is reachable. */}
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="h-9 w-[180px] text-[12px]">
+                  <SelectValue placeholder="All categories" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[60vh]">
+                  {categories.map((c) => (
+                    <SelectItem key={c} value={c} className="text-[12px]">
+                      <span className="flex items-center justify-between gap-3 w-full">
+                        <span>{CATEGORY_LABELS[c] ?? c}</span>
+                        {currentPack && c !== 'all' && (
+                          <span className="text-[10px] text-muted-foreground tabular-nums">
+                            {currentPack.categories[c]?.toLocaleString() ?? 0}
+                          </span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Variant — only shown when the pack actually exposes variant suffixes. */}
+              {availableVariants.length > 0 && (
+                <Select value={variant} onValueChange={setVariant}>
+                  <SelectTrigger className="h-9 w-[150px] text-[12px]">
+                    <SelectValue placeholder="All variants" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-[12px]">All variants</SelectItem>
+                    {availableVariants.map((v) => (
+                      <SelectItem key={v} value={v} className="text-[12px]">
+                        <span className="flex items-center justify-between gap-3 w-full">
+                          <span>{VARIANT_LABELS[v] ?? v}</span>
+                          <span className="text-[10px] text-muted-foreground tabular-nums">
+                            {variantCounts.get(v)?.toLocaleString() ?? 0}
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {activeFilterCount > 0 && (
                 <Button
-                  key={c}
                   size="sm"
-                  variant={category === c ? 'default' : 'outline'}
-                  className="h-7 text-[11px]"
-                  onClick={() => setCategory(c)}
+                  variant="ghost"
+                  className="h-9 gap-1.5 text-[11px] text-muted-foreground"
+                  onClick={() => { setCategory('all'); setVariant('all'); setQ(''); }}
                 >
-                  {CATEGORY_LABELS[c] ?? c}
-                  {currentPack && c !== 'all' && (
-                    <span className="ml-1 opacity-60">{currentPack.categories[c]}</span>
-                  )}
+                  <X className="h-3.5 w-3.5" /> Clear filters
                 </Button>
-              ))}
+              )}
             </div>
+
+            {/* Quick variant chips: parity with the previous category-chip strip,
+                but for the axis users most often want to switch between. */}
+            {availableVariants.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">
+                  Variant
+                </span>
+                <Button
+                  size="sm"
+                  variant={variant === 'all' ? 'default' : 'outline'}
+                  className="h-7 text-[11px]"
+                  onClick={() => setVariant('all')}
+                >
+                  All
+                </Button>
+                {availableVariants.map((v) => (
+                  <Button
+                    key={v}
+                    size="sm"
+                    variant={variant === v ? 'default' : 'outline'}
+                    className="h-7 text-[11px]"
+                    onClick={() => setVariant(v)}
+                  >
+                    {VARIANT_LABELS[v] ?? v}
+                    <span className="ml-1 opacity-60">{variantCounts.get(v)}</span>
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
 
           {currentPack && (
