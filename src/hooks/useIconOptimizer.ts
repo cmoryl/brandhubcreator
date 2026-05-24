@@ -520,6 +520,7 @@ export function useIconOptimizer(options: OptimizationOptions = {}) {
       grade,
       status,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- extractCoordinates is a stable function declaration
   }, [
     calculateInkDensity, 
     calculateVisualCenter, 
@@ -663,6 +664,7 @@ export function useIconOptimizer(options: OptimizationOptions = {}) {
         anchorPointCount,
       },
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- extractCoordinates is a stable function declaration
   }, [
     opts.maxFileSizeBytes,
     opts.maxComplexityScore,
