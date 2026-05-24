@@ -23,6 +23,24 @@ export interface IconLibraryEntityLink {
 // Keep backward compat alias
 export type IconLibraryBrandLink = IconLibraryEntityLink;
 
+// Table not yet present in generated Supabase types — narrow escape hatch.
+type UntypedTable = {
+  select: (cols: string) => {
+    eq: (col: string, val: unknown) => Promise<{ data: unknown; error: { message: string } | null }>;
+  };
+  insert: (payload: Record<string, unknown>) => Promise<{ error: { code?: string; message: string } | null }>;
+  update: (payload: Record<string, unknown>) => {
+    eq: (col: string, val: unknown) => Promise<{ error: { message: string } | null }>;
+  };
+  delete: () => {
+    eq: (col: string, val: unknown) => {
+      eq: (col: string, val: unknown) => Promise<{ error: { message: string } | null }>;
+    };
+  };
+};
+const linksTable = (): UntypedTable =>
+  (supabase as unknown as { from: (t: string) => UntypedTable }).from('icon_library_brand_links');
+
 export const useIconLibraryBrandLinks = (organizationId: string | undefined) => {
   const queryClient = useQueryClient();
   const queryKey = ['icon-library-brand-links', organizationId];
@@ -31,12 +49,9 @@ export const useIconLibraryBrandLinks = (organizationId: string | undefined) => 
     queryKey,
     queryFn: async () => {
       if (!organizationId) return [];
-      const { data, error } = await supabase
-        .from('icon_library_brand_links' as any)
-        .select('*')
-        .eq('organization_id', organizationId);
+      const { data, error } = await linksTable().select('*').eq('organization_id', organizationId);
       if (error) throw error;
-      return (data || []) as unknown as IconLibraryEntityLink[];
+      return (data || []) as IconLibraryEntityLink[];
     },
     enabled: !!organizationId,
     staleTime: 5 * 60 * 1000,
@@ -47,7 +62,7 @@ export const useIconLibraryBrandLinks = (organizationId: string | undefined) => 
   // Generic link mutation
   const linkLibraryToEntity = useMutation({
     mutationFn: async ({ libraryId, entityId, entityType }: { libraryId: string; entityId: string; entityType: 'brand' | 'product' | 'event' }) => {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         library_id: libraryId,
         organization_id: organizationId,
       };
@@ -55,17 +70,16 @@ export const useIconLibraryBrandLinks = (organizationId: string | undefined) => 
       else if (entityType === 'product') payload.product_id = entityId;
       else if (entityType === 'event') payload.event_id = entityId;
 
-      const { error } = await supabase
-        .from('icon_library_brand_links' as any)
-        .insert(payload as any);
+      const { error } = await linksTable().insert(payload);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       toast.success('Icon collection linked');
     },
-    onError: (err: any) => {
-      if (err?.code === '23505') {
+    onError: (err: unknown) => {
+      const code = (err as { code?: string } | null)?.code;
+      if (code === '23505') {
         toast.info('This collection is already linked');
       } else {
         toast.error('Failed to link collection');
@@ -77,11 +91,7 @@ export const useIconLibraryBrandLinks = (organizationId: string | undefined) => 
   const unlinkLibraryFromEntity = useMutation({
     mutationFn: async ({ libraryId, entityId, entityType }: { libraryId: string; entityId: string; entityType: 'brand' | 'product' | 'event' }) => {
       const col = entityType === 'brand' ? 'brand_id' : entityType === 'product' ? 'product_id' : 'event_id';
-      const { error } = await supabase
-        .from('icon_library_brand_links' as any)
-        .delete()
-        .eq('library_id', libraryId)
-        .eq(col, entityId);
+      const { error } = await linksTable().delete().eq('library_id', libraryId).eq(col, entityId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -108,10 +118,7 @@ export const useIconLibraryBrandLinks = (organizationId: string | undefined) => 
 
   const toggleOverrides = useMutation({
     mutationFn: async ({ linkId, allowOverrides }: { linkId: string; allowOverrides: boolean }) => {
-      const { error } = await supabase
-        .from('icon_library_brand_links' as any)
-        .update({ allow_overrides: allowOverrides } as any)
-        .eq('id', linkId);
+      const { error } = await linksTable().update({ allow_overrides: allowOverrides }).eq('id', linkId);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),

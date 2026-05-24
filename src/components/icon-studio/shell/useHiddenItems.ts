@@ -19,14 +19,17 @@ export function useHiddenItems(scope: string, orgId: string = '') {
     }
   }, [scope, orgId]);
 
-  const persist = (next: Set<string>) => {
-    try {
-      localStorage.setItem(KEY(scope, orgId), JSON.stringify(Array.from(next)));
-    } catch {
-      /* noop */
-    }
-    setHidden(new Set(next));
-  };
+  const persist = useCallback(
+    (next: Set<string>) => {
+      try {
+        localStorage.setItem(KEY(scope, orgId), JSON.stringify(Array.from(next)));
+      } catch {
+        /* noop */
+      }
+      setHidden(new Set(next));
+    },
+    [scope, orgId],
+  );
 
   const hide = useCallback(
     (id: string) => {
@@ -34,7 +37,7 @@ export function useHiddenItems(scope: string, orgId: string = '') {
       next.add(id);
       persist(next);
     },
-    [hidden, scope, orgId],
+    [hidden, persist],
   );
 
   const unhide = useCallback(
@@ -43,10 +46,10 @@ export function useHiddenItems(scope: string, orgId: string = '') {
       next.delete(id);
       persist(next);
     },
-    [hidden, scope, orgId],
+    [hidden, persist],
   );
 
-  const clear = useCallback(() => persist(new Set()), [scope, orgId]);
+  const clear = useCallback(() => persist(new Set()), [persist]);
 
   return { hidden, hide, unhide, clear, isHidden: (id: string) => hidden.has(id) };
 }
