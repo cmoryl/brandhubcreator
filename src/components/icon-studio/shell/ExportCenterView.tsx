@@ -218,6 +218,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         const iconSlug = slugify(icon.name);
         const path = icon.svgPath || FALLBACK_PATH;
         const viewBox = icon.viewBox || '0 0 24 24';
+        collected.push({ slug: `${libSlug}-${iconSlug}`, name: icon.name, svgPath: path, viewBox });
 
         if (wantStyled) {
           const svg = buildStyledSvg({
