@@ -50,6 +50,7 @@ interface ValuesSectionProps {
   organizationId?: string;
   brandId?: string;
   brandName?: string;
+  brandSlug?: string;
   canEdit?: boolean;
   onSyncComplete?: () => void;
 }
