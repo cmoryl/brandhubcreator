@@ -195,7 +195,8 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         pngSizes: Array.from(sizes).sort((a, b) => a - b),
         formats: formats.filter((f) => f.enabled).map((f) => f.id),
         libraries: scopedLibs.map((l) => ({ id: l.id, name: l.name, count: l.icons.length })),
-        totals: { icons: allIcons.length },
+        imported: importedSvgData.length > 0 ? { count: importedSvgData.length, source: 'bundled' } : undefined,
+        totals: { icons: totalCount },
       };
 
       if (formats.find((f) => f.id === 'json')?.enabled) {
