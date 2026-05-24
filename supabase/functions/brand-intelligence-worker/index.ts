@@ -466,6 +466,7 @@ ${visibilityContext}
 ${socialMetricsContext}
 ${complianceContext}
 ${imageryAuditContext}
+${iconStudioContext}
 ${externalDocContent ? `\nEXTERNAL LINKED DOCUMENTS (fetched from Dropbox/GlobalLink/external sources):\n${externalDocContent}` : ''}
 ${priorAnalysisContext}
 ${physicalAccessibilityContext}
