@@ -367,3 +367,87 @@ Drop the contents of this folder into your site root, then add to \`<head>\`:
   return files;
 }
 
+/**
+ * PDF contact sheet — paginated grid of every icon with its name slug
+ * underneath, plus a cover page with the style recipe. Uses jsPDF and
+ * accepts a rasterizer (the caller supplies styled-SVG → PNG dataURL).
+ */
+export async function buildPdfContactSheet(
+  icons: EmitIcon[],
+  styledSvgFor: (ic: EmitIcon) => string,
+  rasterize: (svg: string, size: number) => Promise<Blob>,
+  meta: {
+    organization: string;
+    styleName: string;
+    variant: string;
+    accent: string;
+  },
+): Promise<Blob> {
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.text(meta.organization, 48, 80);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(110);
+  doc.text(
+    `Icon contact sheet · ${meta.styleName} (${meta.variant}) · accent ${meta.accent}`,
+    48,
+    104,
+  );
+  doc.text(`${icons.length} icons · generated ${new Date().toLocaleDateString()}`, 48, 122);
+  doc.setTextColor(0);
+
+  const cols = 8;
+  const margin = 48;
+  const cellW = (pageW - margin * 2) / cols;
+  const cellH = cellW + 18;
+  const iconPx = Math.floor(cellW - 16);
+  const rowsPerPage = Math.floor((pageH - 200) / cellH);
+  const startY = 160;
+
+  const blobToDataUrl = (b: Blob): Promise<string> =>
+    new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(String(r.result));
+      r.onerror = rej;
+      r.readAsDataURL(b);
+    });
+
+  let i = 0;
+  let firstPage = true;
+  while (i < icons.length) {
+    if (!firstPage) doc.addPage();
+    else firstPage = false;
+    for (let r = 0; r < rowsPerPage && i < icons.length; r++) {
+      for (let c = 0; c < cols && i < icons.length; c++) {
+        const ic = icons[i++];
+        const x = margin + c * cellW;
+        const y = startY + r * cellH;
+        try {
+          const blob = await rasterize(styledSvgFor(ic), iconPx);
+          const dataUrl = await blobToDataUrl(blob);
+          doc.addImage(dataUrl, 'PNG', x + 8, y, iconPx, iconPx);
+        } catch {
+          doc.setDrawColor(220);
+          doc.rect(x + 8, y, iconPx, iconPx);
+        }
+        doc.setFontSize(6);
+        doc.setTextColor(110);
+        const label = sanitizeId(ic.slug).slice(0, Math.floor(cellW / 3));
+        doc.text(label, x + cellW / 2, y + iconPx + 10, { align: 'center' });
+      }
+    }
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`${meta.organization} · ${meta.styleName}`, margin, pageH - 24);
+  }
+
+  return doc.output('blob');
+}
+
+
