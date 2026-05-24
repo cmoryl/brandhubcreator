@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { Wand2, Sparkles, Grid3x3, Ruler, Layers, Sun, Moon, Library as LibraryIcon } from 'lucide-react';
+import { Wand2, Sparkles, Ruler, Layers, Sun, Moon, Library as LibraryIcon, PackageOpen } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
