@@ -95,7 +95,7 @@ export async function runGenerationTask(
   task: GenerationTask,
   opts: RunOpts,
 ): Promise<BrandIconography[]> {
-  const { entityName, entityId, entityType, industry, style = 'outlined', detailLevel = 'medium' } = opts;
+  const { entityName, entityId, entityType, industry, style = 'outlined', detailLevel = 'medium', gridSize = 24 } = opts;
   const { data, error } = await supabase.functions.invoke('generate-icon-set', {
     body: {
       entityName,
@@ -107,6 +107,7 @@ export async function runGenerationTask(
       style: { fill: style === 'filled', stroke: style !== 'filled' },
       preset: style,
       detailLevel,
+      gridSize,
       customCount: task.count,
     },
   });
