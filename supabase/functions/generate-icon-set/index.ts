@@ -272,12 +272,12 @@ async function runWorker(jobId: string) {
 ## NON-NEGOTIABLE RULES — any violation rejects the whole batch
 
 ### Canvas & Grid
-- viewBox: "0 0 24 24". Safe zone: keep all content inside (2,2)→(22,22).
-- Optical center at 12,12. Pick ONE keyline per icon:
-  • Square 18×18 at (3,3)→(21,21)
-  • Circle Ø20 centered
-  • Portrait 14w×20h | Landscape 20w×14h
-- Snap to a 1px grid. Allowed coordinate fractions: .0 and .5 ONLY. NEVER 7.33, 15.8, 4.27.
+- viewBox: "0 0 ${gridSize} ${gridSize}". Safe zone: keep all content inside (${safeMin},${safeMin})→(${safeMax},${safeMax}).
+- Optical center at ${opticalCenter},${opticalCenter}. Pick ONE keyline per icon:
+  • Square ${gridSize - 6}×${gridSize - 6} at (3,3)→(${gridSize - 3},${gridSize - 3})
+  • Circle Ø${gridSize - 4} centered
+  • Portrait ${Math.round(gridSize * 0.58)}w×${gridSize - 4}h | Landscape ${gridSize - 4}w×${Math.round(gridSize * 0.58)}h
+- Snap to a 1px grid. Allowed coordinate fractions: .0 and .5 ONLY. NEVER 7.33, 15.8, 4.27.${isLargeGrid ? `\n- This is a HIGH-DENSITY 48×48 canvas — exploit it. Add inner architecture, micro-detail, secondary forms, and storytelling layers that simply don't fit in a 24px frame. Reference: Material Symbols 48dp, Phosphor Bold, Iconoir 48.` : ""}
 
 ### SVG Purity (HARD)
 - ONLY <path> elements inside <svg>. NO <circle>, <rect>, <line>, <polygon>, <polyline>, <ellipse>, <g>, <use>, <defs>, <mask>, <clipPath>, <style>, <filter>.
