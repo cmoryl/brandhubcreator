@@ -130,10 +130,11 @@ export const GoldenPathCard = ({ onSaveAsLibrary }: Props) => {
       setCurrentLabel('');
       onSaveAsLibrary?.('TransPerfect · Tech / SaaS (Golden Path)', collected);
       toast.success(`Generated ${collected.length} icons`);
-    } catch (e: any) {
-      setError(e?.message ?? 'Generation failed');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Generation failed';
+      setError(msg);
       setPhase('error');
-      toast.error(e?.message ?? 'Generation failed');
+      toast.error(msg);
     }
   }, [tasks, baseRecipe, onSaveAsLibrary]);
 
@@ -155,8 +156,8 @@ export const GoldenPathCard = ({ onSaveAsLibrary }: Props) => {
       });
       toast.success('Icon system exported');
       setPhase('ready');
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Export failed');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Export failed');
       setPhase('ready');
     }
   }, [icons, baseRecipe]);
@@ -285,9 +286,9 @@ export const GoldenPathCard = ({ onSaveAsLibrary }: Props) => {
                 <svg
                   width={22}
                   height={22}
-                  viewBox={(icon as any).viewBox || '0 0 24 24'}
-                  fill={(icon as any).fillMode === 'fill' ? TRANSPERFECT_BLUE : 'none'}
-                  stroke={(icon as any).fillMode === 'fill' ? 'none' : TRANSPERFECT_BLUE}
+                  viewBox={icon.viewBox || '0 0 24 24'}
+                  fill={icon.fillMode === 'fill' ? TRANSPERFECT_BLUE : 'none'}
+                  stroke={icon.fillMode === 'fill' ? 'none' : TRANSPERFECT_BLUE}
                   strokeWidth={1.75}
                   strokeLinecap="round"
                   strokeLinejoin="round"

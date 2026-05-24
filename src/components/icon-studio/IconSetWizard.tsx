@@ -94,7 +94,7 @@ import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 
 type StepId = 'industry' | 'core' | 'subsets' | 'preflight' | 'export';
 
-const STEPS: Array<{ id: StepId; label: string; icon: any; helper: string }> = [
+const STEPS: Array<{ id: StepId; label: string; icon: LucideIcon; helper: string }> = [
   { id: 'industry', label: 'Industry', icon: Building2, helper: 'Pick your space' },
   { id: 'core', label: 'Core set', icon: ShieldCheck, helper: 'Company essentials' },
   { id: 'subsets', label: 'Sub-sets', icon: Layers, helper: 'Specialized packs' },
@@ -278,10 +278,10 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
           style,
         });
         upsertSection(key, { status: 'complete', icons });
-      } catch (err: any) {
+      } catch (err) {
         upsertSection(key, {
           status: 'error',
-          error: err?.message ?? 'Failed',
+          error: err instanceof Error ? err.message : 'Failed',
         });
       }
     },
