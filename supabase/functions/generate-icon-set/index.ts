@@ -416,6 +416,7 @@ ${isFilled
         model: "google/gemini-3.1-pro-preview",
         temperature: 1.05,
         top_p: 0.95,
+        reasoning: { effort: "high" },
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -433,10 +434,11 @@ ${isFilled
                   items: {
                     type: "object",
                     properties: {
-                      name: { type: "string", description: "Specific, evocative icon name" },
+                      name: { type: "string", description: "Specific, evocative 1–3 word icon name (e.g. 'Beacon Alert', 'Spiral Index')" },
+                      concept: { type: "string", description: "One-line metaphor commitment (e.g. 'two hands meeting mid-fold → trust handshake'). Required — proves you brainstormed before drawing." },
                       svg: { type: "string", description: "Complete SVG element string" },
                     },
-                    required: ["name", "svg"],
+                    required: ["name", "concept", "svg"],
                     additionalProperties: false,
                   },
                 },
