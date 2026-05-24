@@ -73,8 +73,23 @@ export const LinkedIconStudioLibraries = ({
   const linkedLibraries = useMemo(() => {
     if (!entityId || !organizationId) return [];
     const ids = new Set(getLinkedLibraryIdsForEntity(entityId, entityType));
-    return libraries.filter(lib => ids.has(lib.id) && lib.is_active);
-  }, [libraries, entityId, entityType, organizationId, getLinkedLibraryIdsForEntity]);
+
+    // Auto-match brand-level libraries whose name matches the entity name
+    // (case-insensitive, trimmed). This lets Icon Studio collections created
+    // for a brand surface automatically without requiring an explicit link.
+    const normalizedName = (entityName || '').trim().toLowerCase();
+    const matched = libraries.filter(lib => {
+      if (!lib.is_active) return false;
+      if (ids.has(lib.id)) return true;
+      if (lib.level !== 'brand' || !normalizedName) return false;
+      const libName = lib.name.trim().toLowerCase();
+      // Match exact, "<brand> essentials", or libs that contain brand name
+      return libName === normalizedName
+        || libName.startsWith(`${normalizedName} `)
+        || libName === `${normalizedName} essentials`;
+    });
+    return matched;
+  }, [libraries, entityId, entityType, organizationId, getLinkedLibraryIdsForEntity, entityName]);
 
   if (!organizationId || !entityId) return null;
   if (isLoading || linksLoading) return null;
