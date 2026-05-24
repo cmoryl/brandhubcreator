@@ -310,6 +310,8 @@ const IconStudioPage = () => {
           autoOpenLibraryId={deepLinkLibraryId}
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
         />
+      ) : shellSection === 'imported' ? (
+        <ImportedIconsView />
       ) : shellSection === 'brands' ? (
         <BrandsView organizationName={organizationName} organizationId={organizationId} brandProfiles={hierarchyBrands} />
       ) : shellSection === 'styles' ? (
