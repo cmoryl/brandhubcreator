@@ -131,18 +131,16 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
 
     let importedSvgData: { name: string; slug: string; svgPath: string; viewBox: string }[] = [];
     if (includeImported && importedIcons.length > 0) {
+      const { materializeAsBrandIconography } = await import('@/lib/iconLibrary/loader');
       const fetched = await Promise.all(
         importedIcons.map(async (entry) => {
           try {
-            const text = await fetch(entry.path).then((r) => r.text());
-            const pathMatch = text.match(/<path[^>]*d="([^"]*)"/);
-            const svgPath = pathMatch ? pathMatch[1] : text;
-            const viewBoxMatch = text.match(/viewBox="([^"]*)"/);
+            const bi = await materializeAsBrandIconography(entry.pack, entry.name, entry.category);
             return {
-              name: entry.name,
-              slug: slugify(entry.name),
-              svgPath,
-              viewBox: viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24',
+              name: entry.label,
+              slug: slugify(entry.label),
+              svgPath: bi.svgPath,
+              viewBox: bi.viewBox,
             };
           } catch {
             return null;

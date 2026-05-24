@@ -1,90 +1,138 @@
 /**
- * ImportedIconsView — browse, search, filter, and download icons from the
- * project's bundled SVG library (public/icon-library). Auto-categorized by
- * filename keywords with a Light Blue / White color-variant toggle.
+ * ImportedIconsView — browse, search, filter, and preview icons from the
+ * bundled library (~111k icons across 29 permissive packs). Per-pack indexes
+ * are loaded lazily; SVGs are materialized on demand via data URLs.
  */
-import { useEffect, useMemo, useState } from 'react';
-import { Search, Download, Copy, Sparkles, ImageIcon } from 'lucide-react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { Search, ImageIcon, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useImportedIcons } from '@/hooks/useImportedIcons';
+import { materializeDataUrl, materializeSvg } from '@/lib/iconLibrary/loader';
+import type { IconIndexEntry } from '@/lib/iconLibrary/types';
 
-interface IconEntry {
-  id: string;
-  slug: string;
-  name: string;
-  variant: 'light-blue' | 'white';
-  category: string;
-  path: string;
-}
+interface ResolvedRow {
+  pack: string;
+  packName: string;
+  license: string;
+  multicolor: boolean;
+} 
 
 const CATEGORY_LABELS: Record<string, string> = {
-  all: 'All',
-  medical: 'Medical',
-  general: 'General',
-  uncategorized: 'Uncategorized',
+  all: 'All categories',
+  ui: 'UI',
+  arrows: 'Arrows',
+  brands: 'Brands',
+  social: 'Social',
+  communication: 'Communication',
+  health: 'Health',
+  wellness: 'Wellness',
+  food: 'Food',
+  travel: 'Travel',
+  finance: 'Finance',
+  business: 'Business',
+  ecommerce: 'E-commerce',
+  education: 'Education',
+  science: 'Science',
+  nature: 'Nature',
+  weather: 'Weather',
+  transport: 'Transport',
+  tech: 'Tech',
+  devtools: 'Dev tools',
+  media: 'Media',
+  security: 'Security',
+  gaming: 'Gaming',
+  sports: 'Sports',
+  files: 'Files',
+  shapes: 'Shapes',
+  emoji: 'Emoji',
+  flags: 'Flags',
+  crypto: 'Crypto',
+  misc: 'Misc',
 };
 
 export const ImportedIconsView = () => {
-  const [icons, setIcons] = useState<IconEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { packs, totalCount, loading } = useImportedIcons();
+  const [selectedPack, setSelectedPack] = useState<string>(packs[0]?.id ?? 'ph');
+  const [packIndex, setPackIndex] = useState<IconIndexEntry[]>([]);
+  const [indexLoading, setIndexLoading] = useState(false);
   const [q, setQ] = useState('');
-  const [variant, setVariant] = useState<'light-blue' | 'white'>('light-blue');
   const [category, setCategory] = useState<string>('all');
 
   useEffect(() => {
-    fetch('/icon-library/manifest.json')
-      .then((r) => r.json())
-      .then((data: IconEntry[]) => setIcons(data))
-      .catch(() => toast.error('Failed to load icon library'))
-      .finally(() => setLoading(false));
-  }, []);
+    if (!selectedPack && packs.length) setSelectedPack(packs[0].id);
+  }, [packs, selectedPack]);
+
+  useEffect(() => {
+    if (!selectedPack) return;
+    setIndexLoading(true);
+    import('@/lib/iconLibrary/loader')
+      .then((m) => m.loadPackIndex(selectedPack))
+      .then(setPackIndex)
+      .catch(() => toast.error('Failed to load pack'))
+      .finally(() => setIndexLoading(false));
+  }, [selectedPack]);
+
+  const currentPack = useMemo(() => packs.find((p) => p.id === selectedPack), [packs, selectedPack]);
 
   const categories = useMemo(() => {
-    const set = new Set<string>();
-    icons.forEach((i) => set.add(i.category));
-    return ['all', ...Array.from(set).sort()];
-  }, [icons]);
-
-  const counts = useMemo(() => {
-    const out: Record<string, number> = { all: 0 };
-    icons.forEach((i) => {
-      if (i.variant !== variant) return;
-      out.all = (out.all || 0) + 1;
-      out[i.category] = (out[i.category] || 0) + 1;
-    });
-    return out;
-  }, [icons, variant]);
+    if (!currentPack) return ['all'];
+    return ['all', ...Object.keys(currentPack.categories).sort()];
+  }, [currentPack]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    return icons.filter((i) => {
-      if (i.variant !== variant) return false;
-      if (category !== 'all' && i.category !== category) return false;
+    return packIndex.filter((e) => {
+      if (category !== 'all' && e.c !== category) return false;
       if (!term) return true;
-      return i.name.toLowerCase().includes(term) || i.slug.includes(term);
+      if (e.n.includes(term)) return true;
+      return e.t.some((t) => t.includes(term));
     });
-  }, [icons, q, category, variant]);
+  }, [packIndex, q, category]);
 
-  const downloadIcon = async (icon: IconEntry) => {
-    const a = document.createElement('a');
-    a.href = icon.path;
-    a.download = `${icon.slug}.svg`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
+  // Virtualized grid: compute row count from columns
+  const parentRef = useRef<HTMLDivElement>(null);
+  const COLS = 8;
+  const ROW_HEIGHT = 92;
+  const rowCount = Math.ceil(filtered.length / COLS);
 
-  const copyMarkup = async (icon: IconEntry) => {
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 4,
+  });
+
+  const copyMarkup = useCallback(async (pack: string, name: string) => {
     try {
-      const txt = await fetch(icon.path).then((r) => r.text());
-      await navigator.clipboard.writeText(txt);
+      const svg = await materializeSvg(pack, name);
+      await navigator.clipboard.writeText(svg);
       toast.success('SVG markup copied');
     } catch {
       toast.error('Copy failed');
     }
-  };
+  }, []);
+
+  const downloadIcon = useCallback(async (pack: string, name: string) => {
+    try {
+      const svg = await materializeSvg(pack, name);
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${pack}-${name}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Download failed');
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -102,131 +150,170 @@ export const ImportedIconsView = () => {
           <div>
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               <ImageIcon className="h-3.5 w-3.5" />
-              <span>Imported asset library</span>
+              <span>Bundled icon library</span>
             </div>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight">Imported Icons</h1>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight">Icon Library</h1>
             <p className="text-sm text-muted-foreground">
-              Curated SVG library bundled with the project — searchable, downloadable,
-              copy-as-markup ready.
+              {totalCount.toLocaleString()} icons across {packs.length} world-class
+              permissive packs. Searchable, downloadable, ready to style.
             </p>
           </div>
-          <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
-            {icons.length} assets
-          </Badge>
+          <div className="flex flex-col items-end gap-2">
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
+              {totalCount.toLocaleString()} icons
+            </Badge>
+            <Link to="/icon-studio/attributions" className="text-[11px] text-muted-foreground hover:underline inline-flex items-center gap-1">
+              <ExternalLink className="h-3 w-3" /> Licenses & attributions
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by name…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="pl-9 h-9"
-          />
-        </div>
-
-        {/* Variant toggle */}
-        <div className="flex items-center gap-1.5 rounded-md border p-1" style={{ borderColor: 'hsl(var(--border))' }}>
-          {(['light-blue','white'] as const).map((v) => (
-            <Button
-              key={v}
-              size="sm"
-              variant={variant === v ? 'default' : 'ghost'}
-              className="h-7"
-              onClick={() => setVariant(v)}
+      <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+        {/* Pack rail */}
+        <aside className="space-y-1 max-h-[78vh] overflow-y-auto pr-2">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 px-2">Packs</div>
+          {packs.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => {
+                setSelectedPack(p.id);
+                setCategory('all');
+                setQ('');
+              }}
+              className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/50 transition ${
+                selectedPack === p.id ? 'bg-muted font-medium' : ''
+              }`}
             >
-              {v === 'light-blue' ? 'Light Blue' : 'White'}
-            </Button>
+              <span className="truncate">{p.name}</span>
+              <span className="text-[10px] text-muted-foreground tabular-nums">{p.count.toLocaleString()}</span>
+            </button>
           ))}
-        </div>
+        </aside>
 
-        {/* Category filter */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          {categories.map((c) => (
-            <Button
-              key={c}
-              size="sm"
-              variant={category === c ? 'default' : 'outline'}
-              className="h-8"
-              onClick={() => setCategory(c)}
-            >
-              {CATEGORY_LABELS[c] ?? c} {counts[c] ? `${counts[c]}` : ''}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Grid */}
-      {loading ? (
-        <div className="tp-card flex flex-col items-center justify-center py-16 text-muted-foreground">
-          Loading…
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="tp-card flex flex-col items-center justify-center py-16 text-center">
-          <div
-            className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl"
-            style={{ background: 'hsl(var(--tp-light-blue) / 0.12)', color: 'hsl(var(--tp-light-blue))' }}
-          >
-            <Sparkles className="h-6 w-6" />
+        {/* Main */}
+        <div className="space-y-4 min-w-0">
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[240px] max-w-md">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder={`Search ${currentPack?.name ?? ''}…`}
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {categories.slice(0, 12).map((c) => (
+                <Button
+                  key={c}
+                  size="sm"
+                  variant={category === c ? 'default' : 'outline'}
+                  className="h-7 text-[11px]"
+                  onClick={() => setCategory(c)}
+                >
+                  {CATEGORY_LABELS[c] ?? c}
+                  {currentPack && c !== 'all' && (
+                    <span className="ml-1 opacity-60">{currentPack.categories[c]}</span>
+                  )}
+                </Button>
+              ))}
+            </div>
           </div>
-          <h3 className="text-base font-semibold">No icons match</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Try a different search, category, or color variant.
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-          {filtered.map((icon) => (
-            <div
-              key={icon.id}
-              className="tp-card group relative flex flex-col items-center gap-2 p-3 transition-all hover:shadow-md"
-            >
-              <div
-                className="flex aspect-square w-full items-center justify-center rounded-md"
-                style={{
-                  background:
-                    variant === 'white'
-                      ? 'hsl(var(--tp-digital-blue) / 0.85)'
-                      : 'hsl(var(--tp-surface-2))',
-                }}
-              >
-                <img
-                  src={icon.path}
-                  alt={icon.name}
-                  loading="lazy"
-                  className="h-10 w-10 object-contain"
-                />
-              </div>
-              <div className="w-full truncate text-center text-[10px] text-muted-foreground" title={icon.name}>
-                {icon.name}
-              </div>
-              <div className="absolute inset-x-2 bottom-2 flex justify-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="h-6 w-6"
-                  onClick={() => copyMarkup(icon)}
-                  title="Copy SVG markup"
-                >
-                  <Copy className="h-3 w-3" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="h-6 w-6"
-                  onClick={() => downloadIcon(icon)}
-                  title="Download SVG"
-                >
-                  <Download className="h-3 w-3" />
-                </Button>
+
+          {currentPack && (
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+              <Badge variant="outline" className="text-[10px]">{currentPack.license}</Badge>
+              <span>by {currentPack.author}</span>
+              <span>·</span>
+              <span>{filtered.length.toLocaleString()} matching</span>
+            </div>
+          )}
+
+          {/* Grid */}
+          {loading || indexLoading ? (
+            <div className="tp-card flex flex-col items-center justify-center py-16 text-muted-foreground">
+              Loading…
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="tp-card py-16 text-center text-sm text-muted-foreground">
+              No icons match your search.
+            </div>
+          ) : (
+            <div ref={parentRef} className="tp-card overflow-y-auto" style={{ height: '70vh' }}>
+              <div style={{ height: rowVirtualizer.getTotalSize(), position: 'relative', width: '100%' }}>
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const startIdx = virtualRow.index * COLS;
+                  const rowIcons = filtered.slice(startIdx, startIdx + COLS);
+                  return (
+                    <div
+                      key={virtualRow.key}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: ROW_HEIGHT,
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                      className="grid gap-2 p-2"
+                      // eslint-disable-next-line react/forbid-dom-props
+                    >
+                      <div className="grid grid-cols-8 gap-2 px-2">
+                        {rowIcons.map((e) => (
+                          <IconCell
+                            key={e.n}
+                            pack={selectedPack}
+                            name={e.n}
+                            onCopy={() => copyMarkup(selectedPack, e.n)}
+                            onDownload={() => downloadIcon(selectedPack, e.n)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          ))}
+          )}
         </div>
+      </div>
+    </div>
+  );
+};
+
+interface CellProps {
+  pack: string;
+  name: string;
+  onCopy: () => void;
+  onDownload: () => void;
+}
+
+const IconCell = ({ pack, name, onCopy, onDownload }: CellProps) => {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    materializeDataUrl(pack, name).then((u) => {
+      if (active) setUrl(u);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [pack, name]);
+
+  return (
+    <div
+      className="group relative flex aspect-square items-center justify-center rounded-md border bg-muted/30 hover:bg-muted transition cursor-default"
+      title={name}
+      onClick={onCopy}
+    >
+      {url ? (
+        <img src={url} alt={name} loading="lazy" className="h-7 w-7 object-contain" style={{ color: 'hsl(var(--foreground))' }} />
+      ) : (
+        <div className="h-6 w-6 rounded bg-current opacity-10" />
       )}
+      <div className="absolute inset-x-0 -bottom-5 truncate text-center text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100">
+        {name}
+      </div>
     </div>
   );
 };

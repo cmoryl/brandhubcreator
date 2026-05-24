@@ -1,13 +1,15 @@
 /**
- * ImportedIconPreview — renders imported SVG icons using <img> since they
- * live as static files rather than inline svgPath data.
+ * ImportedIconPreview — renders sample icons from the bundled library by
+ * materializing data URLs on demand from pack JSONs.
  */
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import type { ImportedIconEntry } from '@/hooks/useImportedIcons';
+import { materializeDataUrl } from '@/lib/iconLibrary/loader';
+import type { ImportedIconEntry } from '@/lib/iconLibrary/types';
 
 interface Props {
   icons: ImportedIconEntry[];
-  variant: 'light-blue' | 'white';
+  variant?: 'light-blue' | 'white';
   accent: string;
   count?: number;
   tilePx?: number;
@@ -16,15 +18,34 @@ interface Props {
 
 export const ImportedIconPreview = ({
   icons,
-  variant,
+  variant = 'light-blue',
   accent,
   count = 6,
   tilePx = 32,
   className,
 }: Props) => {
-  const visible = icons
-    .filter((i) => i.variant === variant)
-    .slice(0, count);
+  const visible = icons.slice(0, count);
+  const [urls, setUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(
+      visible.map((ic) =>
+        materializeDataUrl(ic.pack, ic.name).then((url) => [ic.id, url] as const).catch(() => null),
+      ),
+    ).then((pairs) => {
+      if (cancelled) return;
+      const next: Record<string, string> = {};
+      pairs.forEach((p) => {
+        if (p) next[p[0]] = p[1];
+      });
+      setUrls(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible.map((i) => i.id).join('|')]);
 
   const bgStyle =
     variant === 'white'
@@ -42,18 +63,23 @@ export const ImportedIconPreview = ({
             width: tilePx,
             ...bgStyle,
             borderColor: `color-mix(in oklab, ${accent} 28%, transparent)`,
+            color: variant === 'white' ? 'white' : accent,
           }}
-          title={ic.name}
+          title={ic.label}
         >
-          <img
-            src={ic.path}
-            alt={ic.name}
-            loading="lazy"
-            className="h-4 w-4 object-contain"
-            style={{
-              filter: variant === 'white' ? 'brightness(0) invert(1)' : undefined,
-            }}
-          />
+          {urls[ic.id] ? (
+            <img
+              src={urls[ic.id]}
+              alt={ic.label}
+              loading="lazy"
+              className="h-4 w-4 object-contain"
+              style={{
+                filter: variant === 'white' ? 'brightness(0) invert(1)' : undefined,
+              }}
+            />
+          ) : (
+            <div className="h-4 w-4 rounded bg-current opacity-10" />
+          )}
         </div>
       ))}
       {Array.from({ length: Math.max(0, count - visible.length) }).map((_, i) => (
