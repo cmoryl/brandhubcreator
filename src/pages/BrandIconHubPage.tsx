@@ -39,6 +39,7 @@ import '@/components/icon-studio/shell/tpTokens.css';
 import { toast } from 'sonner';
 import { buildBrandIconPdf } from '@/lib/iconStudio/brandIconPdf';
 import { PdfPreviewDialog } from '@/components/icon-studio/PdfPreviewDialog';
+import { PdfBrandingPopover, defaultPdfBranding, type PdfBrandingState } from '@/components/icon-studio/PdfBrandingPopover';
 import { useHiddenItems } from '@/components/icon-studio/shell/useHiddenItems';
 
 const SAMPLE_FOR = (name: string): string[] => {
@@ -174,6 +175,8 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
   const [pdfPreview, setPdfPreview] = useState<{ open: boolean; url: string | null; filename: string; title: string }>(
     { open: false, url: null, filename: '', title: '' },
   );
+  // null = use computed defaults from current brand/accent
+  const [pdfBranding, setPdfBranding] = useState<PdfBrandingState | null>(null);
   const previewLib = useMemo(
     () => linkedLibraries.find((l) => l.id === previewLibId) || null,
     [linkedLibraries, previewLibId],
@@ -204,14 +207,20 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
         logos[0]?.url;
       const tagline: string | undefined = guide?.hero?.tagline || undefined;
 
+      const entityKindLabel: 'Brand' | 'Product' | 'Event' =
+        entityType === 'product' ? 'Product' : entityType === 'event' ? 'Event' : 'Brand';
+      const effectiveBranding =
+        pdfBranding ?? defaultPdfBranding(brand.name, entityKindLabel, primary || '#0f172a');
+
       const { url, filename } = await buildBrandIconPdf({
         entityName: brand.name,
-        entityKind: entityType === 'product' ? 'Product' : entityType === 'event' ? 'Event' : 'Brand',
+        entityKind: entityKindLabel,
         accentColor: primary,
         palette: colors.map((c) => c?.hex).filter(Boolean),
         logoUrl: logo,
         tagline,
         autoDownload: false,
+        branding: effectiveBranding,
         libraries: linkedLibraries.map((l) => ({
           id: l.id,
           name: l.name,
@@ -356,6 +365,21 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                 <span className="hidden sm:inline">{entityType === 'brand' ? 'Brand profile' : entityType === 'product' ? 'Product profile' : 'Event profile'}</span>
               </Link>
             </Button>
+            {(() => {
+              const guide: any = (brand as any).guide_data || {};
+              const colors: Array<{ hex: string; role?: string }> = Array.isArray(guide?.colors) ? guide.colors : [];
+              const primary = colors.find((c) => c?.role === 'primary')?.hex || colors[0]?.hex || '#0f172a';
+              const kind: 'Brand' | 'Product' | 'Event' =
+                entityType === 'product' ? 'Product' : entityType === 'event' ? 'Event' : 'Brand';
+              const current = pdfBranding ?? defaultPdfBranding(brand.name, kind, primary);
+              return (
+                <PdfBrandingPopover
+                  value={current}
+                  onChange={setPdfBranding}
+                  onReset={() => setPdfBranding(null)}
+                />
+              );
+            })()}
             <Button
               variant="outline"
               size="sm"
