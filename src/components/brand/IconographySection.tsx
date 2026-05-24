@@ -18,6 +18,7 @@ import { IconPreviewDialog } from './iconography/IconPreviewDialog';
 import { SuggestedIconsRail } from './iconography/SuggestedIconsRail';
 import { TrendingIconsRail } from './iconography/TrendingIconsRail';
 import type { IconStudioTab } from './iconography';
+import { TransPerfectIconographyPanel } from './identity/TransPerfectIconographyPanel';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
