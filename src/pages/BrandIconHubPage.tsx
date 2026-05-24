@@ -207,14 +207,20 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
         logos[0]?.url;
       const tagline: string | undefined = guide?.hero?.tagline || undefined;
 
+      const entityKindLabel: 'Brand' | 'Product' | 'Event' =
+        entityType === 'product' ? 'Product' : entityType === 'event' ? 'Event' : 'Brand';
+      const effectiveBranding =
+        pdfBranding ?? defaultPdfBranding(brand.name, entityKindLabel, primary || '#0f172a');
+
       const { url, filename } = await buildBrandIconPdf({
         entityName: brand.name,
-        entityKind: entityType === 'product' ? 'Product' : entityType === 'event' ? 'Event' : 'Brand',
+        entityKind: entityKindLabel,
         accentColor: primary,
         palette: colors.map((c) => c?.hex).filter(Boolean),
         logoUrl: logo,
         tagline,
         autoDownload: false,
+        branding: effectiveBranding,
         libraries: linkedLibraries.map((l) => ({
           id: l.id,
           name: l.name,
