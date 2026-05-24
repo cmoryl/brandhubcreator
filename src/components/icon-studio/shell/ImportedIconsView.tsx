@@ -4,10 +4,17 @@
  * are loaded lazily; SVGs are materialized on demand via data URLs.
  */
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { Search, ImageIcon, ExternalLink } from 'lucide-react';
+import { Search, ImageIcon, ExternalLink, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useVirtualizer } from '@tanstack/react-virtual';
