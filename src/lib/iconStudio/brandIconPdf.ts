@@ -246,7 +246,7 @@ export async function buildBrandIconPdf({
   // Optional logo (top-right)
   let logoData: Awaited<ReturnType<typeof fetchImageToDataUrl>> = null;
   if (logoUrl) logoData = await fetchImageToDataUrl(logoUrl);
-  if (logoData) {
+  if (logoData && showLogoOnCover) {
     const maxW = 90;
     const maxH = 60;
     const ratio = Math.min(maxW / logoData.w, maxH / logoData.h);
