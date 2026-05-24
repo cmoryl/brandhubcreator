@@ -165,7 +165,7 @@ export const SvgOptimizerPanel = ({ libraries, organizationName }: Props) => {
       })),
     };
     const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
-    saveAs(blob, 'optimization-manifest.json');
+    downloadBlob(blob, 'optimization-manifest.json');
   }, [latestRun, selectedPreset]);
 
   if (allIcons.length === 0) {
