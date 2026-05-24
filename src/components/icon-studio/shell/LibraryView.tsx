@@ -208,7 +208,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                         <DropdownMenuItem onClick={() => handleLockToggle(lib)}>
                           {lib.is_active ? 'Lock set' : 'Unlock set'}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={() => setPendingDelete(lib)}>Delete</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onClick={() => requestDelete(lib)}>Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
