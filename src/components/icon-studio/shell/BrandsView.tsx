@@ -9,7 +9,7 @@ import { Plus, Palette, Type, Hash, Edit3, Building2, ArrowRight } from 'lucide-
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { IconSetPreview } from './IconSetPreview';
+
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
@@ -64,12 +64,13 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
   const normalize = (s: string) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
   /**
-   * Resolve up to 6 brand-specific icons for a profile:
+   * Resolve brand-specific libraries for a profile:
    *   explicit links → name-matched brand libs → core libs as a last resort.
+   * Returns the pool so callers can derive both icons and counts.
    */
-  const iconsForProfile = (
+  const poolForProfile = (
     profile: { id: string; name: string; entityType?: 'brand' | 'product' | 'event' },
-  ): BrandIconography[] => {
+  ) => {
     if (!libraries.length) return [];
     const key = normalize(profile.name);
     const explicit = profile.entityType
@@ -84,7 +85,13 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
       return libKey === key || libKey.includes(key) || key.includes(libKey);
     });
 
-    const pool = matched.length ? matched : libraries.filter((l) => l.level === 'core');
+    return matched.length ? matched : libraries.filter((l) => l.level === 'core');
+  };
+
+  const iconsForProfile = (
+    profile: { id: string; name: string; entityType?: 'brand' | 'product' | 'event' },
+  ): BrandIconography[] => {
+    const pool = poolForProfile(profile);
     const collected: BrandIconography[] = [];
     for (const lib of pool) {
       for (const ic of lib.icons || []) {
@@ -93,6 +100,16 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
       }
     }
     return collected;
+  };
+
+  const countsForProfile = (
+    profile: { id: string; name: string; entityType?: 'brand' | 'product' | 'event' },
+  ) => {
+    const pool = poolForProfile(profile);
+    return {
+      setsCount: pool.length,
+      iconsCount: pool.reduce((s, l) => s + (l.icons?.length ?? 0), 0),
+    };
   };
 
   const profiles = useMemo(() => {
@@ -186,6 +203,11 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
         {profiles.map((b) => {
           const accent = `hsl(var(${b.accentToken}))`;
           const to = `/icon-studio/${b.entityType || 'brand'}/${b.slug}`;
+          const { setsCount, iconsCount } = countsForProfile({
+            id: b.id,
+            name: b.name,
+            entityType: b.entityType,
+          });
           return (
             <Link
               key={b.id}
@@ -278,7 +300,7 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
                 <div>
                   <dt className="text-muted-foreground">Library</dt>
                   <dd className="font-medium tabular-nums">
-                    {b.setsCount} sets · {b.iconsCount}
+                    {setsCount} sets · {iconsCount}
                   </dd>
                 </div>
               </dl>
