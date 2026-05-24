@@ -60,10 +60,11 @@ const sampleEmojisFor = (name: string): string[] => {
   return ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
 };
 
-export const LibraryView = ({ libraries, organizationId, onOpenSet, onCreate, onRemix, autoOpenLibraryId, onAutoOpenConsumed }: Props) => {
+export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenSet, onCreate, onRemix, autoOpenLibraryId, onAutoOpenConsumed }: Props) => {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
   const [openLib, setOpenLib] = useState<IconLibrary | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<IconLibrary | null>(null);
   const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
 
   const handleDuplicate = (lib: IconLibrary) => {
@@ -85,9 +86,10 @@ export const LibraryView = ({ libraries, organizationId, onOpenSet, onCreate, on
       { onSuccess: () => toast.success(lib.is_active ? `${lib.name} locked` : `${lib.name} unlocked`) },
     );
   };
-  const handleDelete = (lib: IconLibrary) => {
-    if (typeof window !== 'undefined' && !window.confirm(`Delete icon set "${lib.name}"? This cannot be undone.`)) return;
-    deleteLibrary.mutate(lib.id);
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    deleteLibrary.mutate(pendingDelete.id);
+    setPendingDelete(null);
   };
 
   // Auto-open from deep link
