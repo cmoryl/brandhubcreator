@@ -3,9 +3,12 @@
  * (set) in the organization. Real data from useIconLibraries.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles, Wand2 } from 'lucide-react';
 import { useEnrichAllLibraries } from '@/hooks/useEnrichAllLibraries';
+import { enrichLibrary } from '@/lib/iconLibrary/enrichLibrary';
+import { useIconLibraries } from '@/hooks/useIconLibraries';
+import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
