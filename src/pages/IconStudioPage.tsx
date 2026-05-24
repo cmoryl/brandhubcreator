@@ -239,6 +239,8 @@ const IconStudioPage = () => {
             }}
             brandName={activeBrand?.name}
             industryName="Workspace"
+            onSave={canEdit && wizardCanSave ? () => wizardSaveRef.current?.() : undefined}
+            onExport={() => setShellSection('export')}
           />
         ) : undefined
       }
