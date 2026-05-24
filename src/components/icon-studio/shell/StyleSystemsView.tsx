@@ -101,15 +101,26 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
               const isActive = s.id === activeId;
               const accent = `hsl(var(${ACCENTS[i % ACCENTS.length]}))`;
               return (
-                <button
+                <div
                   key={s.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isActive}
                   onClick={() => {
                     setActiveId(s.id);
                     setDetailAccent(accent);
                     setDetailId(s.id);
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setActiveId(s.id);
+                      setDetailAccent(accent);
+                      setDetailId(s.id);
+                    }
+                  }}
                   className={cn(
-                    'tp-card tp-card-interactive p-4 text-left relative group',
+                    'tp-card tp-card-interactive p-4 text-left relative group cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary',
                     isActive && 'ring-2 ring-primary',
                   )}
                 >
@@ -120,27 +131,18 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                     />
                   )}
                   <Maximize2 className="absolute top-3 right-9 h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <span
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
                     aria-label={`Hide ${s.name}`}
                     title="Hide from gallery"
                     onClick={(e) => {
                       e.stopPropagation();
-                      e.preventDefault();
                       hide(s.id);
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        hide(s.id);
-                      }
-                    }}
-                    className="absolute top-2 left-2 inline-flex h-6 w-6 items-center justify-center rounded-md border border-border/60 bg-background/70 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive hover:border-destructive/50 cursor-pointer"
+                    className="absolute top-2 left-2 inline-flex h-6 w-6 items-center justify-center rounded-md border border-border/60 bg-background/70 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive hover:border-destructive/50"
                   >
                     <X className="h-3 w-3" />
-                  </span>
+                  </button>
                   <h3 className="text-sm font-semibold">{s.name}</h3>
                   <p className="text-[11px] text-muted-foreground mb-3 min-h-[2rem]">
                     {s.description}
@@ -171,7 +173,7 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
                   <div className="mt-2 text-[10px] text-primary/80 opacity-0 group-hover:opacity-100 transition-opacity">
                     Click to expand →
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
