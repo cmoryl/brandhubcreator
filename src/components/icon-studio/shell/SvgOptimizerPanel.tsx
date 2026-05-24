@@ -94,7 +94,7 @@ export const SvgOptimizerPanel = ({ libraries, organizationName }: Props) => {
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
-    }));
+    });
   }, []);
 
   const handleRun = useCallback(async () => {
