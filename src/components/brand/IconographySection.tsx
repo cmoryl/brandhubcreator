@@ -537,8 +537,11 @@ ${innerContent}
     return acc;
   }, {} as Record<string, BrandIconography[]>);
 
+  const isTransPerfect = entitySlug?.toLowerCase() === 'transperfect';
+
   return (
     <section className="space-y-6">
+      {isTransPerfect && <TransPerfectIconographyPanel />}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <SectionHeader
