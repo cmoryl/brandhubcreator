@@ -256,6 +256,25 @@ async function processOracleSynthesis(apiKey: string, jobId: string, organizatio
 
     await updateJob(jobId, { progress: 40 });
 
+    // Build Icon Studio org-level rollup
+    const totalIconAssets = (iconLibs || []).reduce((s: number, l: any) =>
+      s + (Array.isArray(l.icons) ? l.icons.length : 0), 0);
+    const libsByLevel: Record<string, number> = { core: 0, product_line: 0, brand: 0 };
+    for (const l of (iconLibs || [])) libsByLevel[l.level] = (libsByLevel[l.level] || 0) + 1;
+    const brandsWithIcons = new Set((iconUsage || []).map((u: any) => u.brand_id).filter(Boolean)).size;
+    const packTally: Record<string, number> = {};
+    const actionTally: Record<string, number> = { added: 0, exported: 0, kit_added: 0, removed: 0 };
+    for (const u of (iconUsage || [])) {
+      if (u.pack) packTally[u.pack] = (packTally[u.pack] || 0) + 1;
+      if (u.action) actionTally[u.action] = (actionTally[u.action] || 0) + 1;
+    }
+    const topPacks = Object.entries(packTally).sort((a, b) => b[1] - a[1]).slice(0, 5)
+      .map(([k, v]) => `${k}(${v})`).join(', ');
+    const iconStudioBlock = (iconLibs || []).length === 0 && (iconUsage || []).length === 0
+      ? ''
+      : `\nICON STUDIO PORTFOLIO:\nLibraries: ${(iconLibs || []).length} (${libsByLevel.core} core, ${libsByLevel.product_line} product-line, ${libsByLevel.brand} brand-specific) totaling ${totalIconAssets} icons\nBrands actively using icons: ${brandsWithIcons} of ${(brands || []).length}\nTop icon packs across org: ${topPacks || 'none tracked'}\nActivity (last 300 events): ${actionTally.added} added, ${actionTally.kit_added} kit-added, ${actionTally.exported} exported, ${actionTally.removed} removed\nAssess iconography consistency across brands/products/events and surface gaps in visual_coherence + recommendations.`;
+
+
     const prompt = `You are the Master Oracle Brain. Synthesize ALL entity intelligence into unified org-level strategic insights. You also have access to Deep Intelligence governance modules.
 
 DEEP INTELLIGENCE GOVERNANCE:
