@@ -80,6 +80,9 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
 
   return (
     <section className="space-y-4 sm:space-y-6">
+      {brandSlug?.toLowerCase() === 'transperfect' && (
+        <TransPerfectColorTypographyPanel variant="typography" />
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <SectionHeader
