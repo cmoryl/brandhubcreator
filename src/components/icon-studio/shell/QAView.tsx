@@ -18,6 +18,7 @@ import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { runPreflight, type PreflightSummary } from '@/lib/iconStudio/qa';
 import { AbTestPanel } from './AbTestPanel';
 import { SvgOptimizerPanel } from './SvgOptimizerPanel';
+import { SimilaritySearchPanel } from './SimilaritySearchPanel';
 
 
 interface Props {
@@ -270,6 +271,9 @@ export const QAView = ({ libraries, totalIcons, organizationId, organizationName
 
       {/* SVG Optimizer */}
       <SvgOptimizerPanel libraries={libraries} organizationName={organizationName || 'icons'} />
+
+      {/* Perceptual similarity & dedupe */}
+      <SimilaritySearchPanel libraries={libraries} />
 
       <AbTestPanel libraries={libraries} organizationId={organizationId} />
     </div>
