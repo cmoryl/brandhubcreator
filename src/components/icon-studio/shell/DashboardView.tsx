@@ -218,6 +218,37 @@ export const DashboardView = ({
         </div>
       </section>
 
+      {/* Imported Assets quick link */}
+      {importedIconCount > 0 && (
+        <section className="tp-card p-5">
+          <header className="mb-3 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold">Imported assets</h3>
+              <p className="text-xs text-muted-foreground">
+                {importedIconCount.toLocaleString()} bundled SVG icons ready to use.
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => onNavigate?.('imported')}>
+              Browse <ArrowUpRight className="h-3 w-3" />
+            </Button>
+          </header>
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-lg"
+              style={{ background: 'hsl(var(--tp-teal) / 0.12)', color: 'hsl(var(--tp-teal))' }}
+            >
+              <ImageIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-sm font-medium">Curated icon library</div>
+              <div className="text-[11px] text-muted-foreground">
+                Light-blue & white variants · searchable · copy-ready
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Brand profiles teaser */}
       <section className="tp-card p-5">
         <header className="mb-3 flex items-center justify-between">
