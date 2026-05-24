@@ -56,6 +56,10 @@ interface Props {
   onRegenerate?: (recipe: IconRecipe) => Promise<void> | void;
   onApprove?: (icon: BrandIconography) => void;
   onReject?: (icon: BrandIconography) => void;
+  /** Optional extra action buttons rendered alongside the default action row. */
+  extraActions?: React.ReactNode;
+  /** When true, hides Approve/Reject/Regenerate (used for read-only sources like imported icons). */
+  hideReviewActions?: boolean;
 }
 
 const SIZE_STRIP = [16, 24, 32, 48, 64];
