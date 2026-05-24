@@ -137,6 +137,9 @@ export const ColorPaletteSection = ({
 
   return (
     <section className="space-y-6 sm:space-y-8">
+      {brandSlug?.toLowerCase() === 'transperfect' && (
+        <TransPerfectColorTypographyPanel variant="color" />
+      )}
       {/* Color Palette */}
       <div className="space-y-4 sm:space-y-6">
         {/* Section header - always full width on its own row */}
