@@ -103,7 +103,9 @@ export const SignaturesSection = ({
   onEmailBannersChange,
   customSubtitle,
   onSubtitleChange,
+  brandSlug,
 }: SignaturesSectionProps) => {
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
