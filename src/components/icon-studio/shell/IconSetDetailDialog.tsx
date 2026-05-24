@@ -288,6 +288,18 @@ export const IconSetDetailDialog = ({
                     <div className="tp-card p-8 text-center text-sm text-muted-foreground">
                       No icons match your search.
                     </div>
+                  ) : activeCategory === 'all' && !query.trim() && categories.length > 1 ? (
+                    <CategorizedIconGrid
+                      icons={visibleIcons}
+                      accent={accent}
+                      styleMode={effectiveStyle}
+                      sizePx={previewSize}
+                      onIconClick={(id) => {
+                        const full = library.icons.find((i) => i.id === id) ?? null;
+                        setSelectedIcon(full);
+                      }}
+                      onJumpToCategory={(c) => setActiveCategory(c)}
+                    />
                   ) : (
                     <FilteredIconGrid
                       icons={visibleIcons}
@@ -445,6 +457,102 @@ const FilteredIconGrid = ({ icons, accent, styleMode = 'outlined', sizePx, onIco
           Showing first {MAX} of {icons.length}. Use search or category filters to narrow.
         </div>
       )}
+    </div>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* Categorized grid — groups icons by category with section headers           */
+/* -------------------------------------------------------------------------- */
+
+interface CategorizedProps extends GridProps {
+  onJumpToCategory?: (cat: string) => void;
+}
+
+const PER_CATEGORY_PREVIEW = 48;
+
+const CategorizedIconGrid = ({
+  icons,
+  accent,
+  styleMode = 'outlined',
+  sizePx,
+  onIconClick,
+  onJumpToCategory,
+}: CategorizedProps) => {
+  const tile = TILE_FOR_SIZE[sizePx];
+  // Group preserving first-seen order, but sort groups by size desc.
+  const groups = (() => {
+    const map = new Map<string, typeof icons>();
+    for (const i of icons) {
+      const c = ((i as BrandIconography).category || 'uncategorized').toLowerCase();
+      if (!map.has(c)) map.set(c, []);
+      map.get(c)!.push(i);
+    }
+    return Array.from(map.entries()).sort((a, b) => b[1].length - a[1].length);
+  })();
+
+  return (
+    <div className="space-y-6">
+      {groups.map(([cat, list]) => {
+        const shown = list.slice(0, PER_CATEGORY_PREVIEW);
+        const overflow = list.length - shown.length;
+        return (
+          <section key={cat} className="space-y-2">
+            <div className="flex items-end justify-between">
+              <h4 className="text-xs font-semibold uppercase tracking-wider capitalize" style={{ color: accent }}>
+                {cat}
+                <span className="ml-2 text-muted-foreground font-normal normal-case tracking-normal tabular-nums">
+                  {list.length}
+                </span>
+              </h4>
+              {overflow > 0 && onJumpToCategory && (
+                <button
+                  type="button"
+                  onClick={() => onJumpToCategory(cat)}
+                  className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  View all {list.length} →
+                </button>
+              )}
+            </div>
+            <div
+              className="tp-card p-4 grid gap-3"
+              style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${tile + 24}px, 1fr))` }}
+            >
+              {shown.map((icon) => (
+                <button
+                  type="button"
+                  key={icon.id}
+                  onClick={() => onIconClick?.(icon.id)}
+                  className="flex flex-col items-center gap-1.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+                  title={icon.name}
+                >
+                  <div
+                    className="flex items-center justify-center rounded-lg transition-transform group-hover:scale-105"
+                    style={{
+                      width: tile,
+                      height: tile,
+                      background: `color-mix(in oklab, ${accent} 10%, transparent)`,
+                      border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
+                    }}
+                  >
+                    <IconSvgRender
+                      icon={icon as BrandIconography}
+                      size={sizePx}
+                      color={accent}
+                      presentation={styleMode}
+                      strokeWidth={styleMode === 'duotone' ? 1.5 : 1.75}
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground truncate max-w-[88px]">
+                    {icon.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 };
