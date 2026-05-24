@@ -17,6 +17,7 @@ import { useQRCodes, QRCode } from '@/hooks/useQRCodes';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { cn } from '@/lib/utils';
+import { TransPerfectQRPanel } from './identity/TransPerfectQRPanel';
 
 interface QRSectionProps {
   qr?: BrandQR; // Legacy single QR (for backward compatibility)
