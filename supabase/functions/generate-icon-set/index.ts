@@ -554,6 +554,7 @@ function sanitizeAndValidate(
   // Strip forbidden attributes from every element.
   svg = svg.replace(/\s(id|class|style|data-[\w-]+|transform)\s*=\s*"[^"]*"/gi, "");
 
+  const vb = opts.gridSize === 48 ? "0 0 48 48" : "0 0 24 24";
   if (opts.isDuotone) {
     // Duotone: preserve fill="currentColor" + fill-opacity (back layer) and stroke (front).
     // Strip baked color hexes / named colors but keep currentColor + fill-opacity.
@@ -565,7 +566,7 @@ function sanitizeAndValidate(
       return `<path${a}/>`;
     });
     // Wrapper for duotone: outline defaults, individual back paths override with fill+opacity
-    const wrapperAttrs = `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+    const wrapperAttrs = `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
     svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
   } else {
     // Strip baked colors from inner elements (we re-apply wrapper-level coloring).
@@ -575,8 +576,8 @@ function sanitizeAndValidate(
       return `<${tag}${cleaned}>`;
     });
     const wrapperAttrs = opts.isFilled
-      ? `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="none"`
-      : `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+      ? `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="24" height="24" fill="currentColor" stroke="none"`
+      : `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
     svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
   }
 
