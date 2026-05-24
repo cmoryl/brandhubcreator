@@ -21,10 +21,20 @@ import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
 import { useSvgOptimizer, SVGO_PRESETS, type IconOptimizationResult } from '@/hooks/useSvgOptimizer';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
 import type { BrandIconography } from '@/types/brand';
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 interface Props {
   libraries: IconLibrary[];
