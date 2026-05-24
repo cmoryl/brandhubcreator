@@ -278,6 +278,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
           entityType,
           industry: industry?.name,
           style,
+          detailLevel,
         });
         upsertSection(key, { status: 'complete', icons });
       } catch (err) {
@@ -287,7 +288,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
         });
       }
     },
-    [sections, companyName, industry, style, entityId, entityType, upsertSection],
+    [sections, companyName, industry, style, detailLevel, entityId, entityType, upsertSection],
   );
 
   const removeIcon = useCallback((sectionKey: string, iconId: string) => {
