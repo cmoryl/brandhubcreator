@@ -54,13 +54,15 @@ interface Props {
   totalLibraries: number;
   onStartGenerate: () => void;
   /** Navigate to another shell section (library, sets, export, brands, qa, styles). */
-  onNavigate?: (section: 'library' | 'sets' | 'export' | 'brands' | 'qa' | 'styles' | 'generate') => void;
+  onNavigate?: (section: 'library' | 'sets' | 'export' | 'brands' | 'qa' | 'styles' | 'generate' | 'imported') => void;
   /** Open a specific library's detail dialog. */
   onOpenLibrary?: (libraryId: string) => void;
   /** Recent saved libraries (most recently created/updated first). */
   recentLibraries?: RecentLibrary[];
   /** Real brand profiles loaded from the org. */
   brandProfiles?: BrandProfile[];
+  /** Number of imported bundled icons. */
+  importedIconCount?: number;
 }
 
 const ActivityRow = ({
