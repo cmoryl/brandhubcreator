@@ -51,6 +51,23 @@ const ImageryHub = () => {
     entityType: selectedEntity?.type || 'brand',
   });
 
+  // Visual DNA — used at page level for the panel AND to honor auto-train.
+  const totalImages = sections.reduce((sum, s) => sum + (s.images?.length ?? 0), 0);
+  const { autoTrain, isRunning: dnaRunning, train: trainDna } = useBrandVisualDna({
+    entityId: selectedEntity?.id,
+    entityType: selectedEntity?.type,
+    organizationId,
+  });
+
+  // Debounced auto-train when the approved image count grows.
+  useEffect(() => {
+    if (!autoTrain || !selectedEntity || dnaRunning || totalImages === 0) return;
+    const handle = window.setTimeout(() => {
+      void trainDna();
+    }, 4000);
+    return () => window.clearTimeout(handle);
+  }, [autoTrain, selectedEntity, totalImages, dnaRunning, trainDna]);
+
   // Auth guard
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
