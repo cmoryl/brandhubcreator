@@ -527,8 +527,7 @@ export async function buildBrandIconPdf({
 
     // Bookmark for index
     try {
-      // @ts-expect-error jsPDF outline API
-      doc.outline.add(null, 'Alphabetical Index', { pageNumber: indexStart });
+      (doc as unknown as { outline: { add: (p: unknown, t: string, o: unknown) => unknown } }).outline.add(null, 'Alphabetical Index', { pageNumber: indexStart });
     } catch { /* ignore */ }
   }
 
