@@ -212,6 +212,8 @@ export const ImagerySection = ({ imagery, onImageryChange, customSubtitle, onSub
           </ToggleGroup>
       </div>
 
+      {brandSlug?.toLowerCase() === 'transperfect' && <TransPerfectPhotographyPanel canEdit={canEdit} />}
+
       {isAdmin && <ImageryGuidelinesPanel canEdit={canEdit} entityId={entityId} entityType={entityType} />}
 
 
