@@ -101,16 +101,30 @@ export const SuggestedIconsRail = ({
             </Badge>
           )}
         </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-7 text-[11px]"
-          onClick={() => setRefreshKey((k) => k + 1)}
-          disabled={loading}
-        >
-          <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-1">
+          {brandDna && (
+            <Button
+              size="sm"
+              variant={restyleOn ? 'default' : 'outline'}
+              className="h-7 text-[11px]"
+              onClick={() => setRestyleOn((v) => !v)}
+              title="Restyle previews to match this brand's DNA"
+            >
+              <Wand2 className="h-3 w-3 mr-1" />
+              Brand DNA
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 text-[11px]"
+            onClick={() => setRefreshKey((k) => k + 1)}
+            disabled={loading}
+          >
+            <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="relative grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2">
@@ -124,6 +138,7 @@ export const SuggestedIconsRail = ({
                 icon={s}
                 added={existingIds.has(`${s.pack}/${s.name}`)}
                 onAdd={() => handleAdd(s)}
+                brandDna={brandDna && restyleOn ? brandDna : undefined}
               />
             ))}
       </div>
@@ -135,19 +150,21 @@ interface CellProps {
   icon: SuggestedIcon;
   added: boolean;
   onAdd: () => void;
+  brandDna?: BrandRestyleDNA;
 }
 
-const SuggestedCell = ({ icon, added, onAdd }: CellProps) => {
+const SuggestedCell = ({ icon, added, onAdd, brandDna }: CellProps) => {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
-    materializeDataUrl(icon.pack, icon.name)
-      .then((u) => alive && setUrl(u))
-      .catch(() => {});
+    const promise = brandDna
+      ? restyleBundledIcon(icon.pack, icon.name, brandDna).then((r) => r.dataUrl)
+      : materializeDataUrl(icon.pack, icon.name);
+    promise.then((u) => alive && setUrl(u)).catch(() => {});
     return () => {
       alive = false;
     };
-  }, [icon.pack, icon.name]);
+  }, [icon.pack, icon.name, brandDna]);
 
   return (
     <button
