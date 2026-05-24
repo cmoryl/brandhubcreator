@@ -4,7 +4,7 @@
  * detail dialog that opens the full set at large size.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Copy, Wand2, Lock, Unlock, RefreshCw, ArrowUpRight,
   FolderOpen, Plus, Filter, Trash2, Sparkles,
