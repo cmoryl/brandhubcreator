@@ -305,7 +305,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         `<!doctype html><meta charset="utf-8"><title>${organizationName} · ${activeStyle.name}</title>
 <style>body{font-family:system-ui;background:#0f1422;color:#e7eaf3;padding:32px}h1{font-size:20px}.grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-top:16px}.cell{background:#181f33;border-radius:8px;padding:8px;text-align:center;font-size:10px}img{width:48px;height:48px;display:block;margin:0 auto 4px}</style>
 <h1>${organizationName} — ${activeStyle.name} (${activeStyle.preview.variant})</h1>
-<p style="opacity:.7">Accent: ${resolvedAccent}${resolvedAccent2 ? ` · 2nd: ${resolvedAccent2}` : ''} · ${allIcons.length} icons</p>
+<p style="opacity:.7">Accent: ${resolvedAccent}${resolvedAccent2 ? ` · 2nd: ${resolvedAccent2}` : ''} · ${totalCount} icons</p>
 <p style="opacity:.6">Open <code>svg/</code> for styled SVGs, <code>png/</code> for rasterized variants, <code>manifest.json</code> for metadata.</p>`,
       );
 
