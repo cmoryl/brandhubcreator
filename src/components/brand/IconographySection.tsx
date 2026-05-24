@@ -59,6 +59,7 @@ interface IconographySectionProps {
   productLineId?: string;
   entityType?: 'brand' | 'product' | 'event';
   entityName?: string;
+  entitySlug?: string;
   industry?: string;
 }
 
