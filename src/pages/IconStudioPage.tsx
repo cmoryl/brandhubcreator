@@ -120,7 +120,7 @@ const IconStudioPage = () => {
     if (s && validSections.includes(s)) setShellSection(s);
     if (lib) {
       setDeepLinkLibraryId(lib);
-      if (!s) setShellSection('library');
+      if (!s) setShellSection('sets');
     }
     const next = new URLSearchParams(searchParams);
     next.delete('section');
