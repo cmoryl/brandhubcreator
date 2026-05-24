@@ -164,6 +164,7 @@ serve(async (req) => {
       sectionIndex = 0,
       style = { strokeWidth: 2, cornerRadius: "rounded", fill: false },
       preset = "outlined",
+      detailLevel = "medium",
       customCount,
     } = body;
 
@@ -188,7 +189,7 @@ serve(async (req) => {
         entity_type: "icon_generation",
         user_id: user.id,
         status: "pending",
-        result: { category, sectionIndex, style, preset, customCount, industry, entityName, entityId, entityType },
+        result: { category, sectionIndex, style, preset, detailLevel, customCount, industry, entityName, entityId, entityType },
       }),
     });
 
