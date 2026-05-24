@@ -239,6 +239,7 @@ const IconStudioPage = () => {
   }
 
   return (
+    <>
     <StudioShell
       activeSection={shellSection}
       onSectionChange={setShellSection}
@@ -246,6 +247,7 @@ const IconStudioPage = () => {
       activeBrand={activeBrand}
       onBrandChange={handleBrandChange}
       onBack={() => navigate(-1)}
+      onOpenCommandPalette={() => setPaletteOpen(true)}
       onSaveToLibrary={
         canEdit && shellSection === 'generate' && wizardCanSave
           ? () => wizardSaveRef.current?.()
