@@ -35,7 +35,8 @@ export type AuditEntityType =
   | 'demo'
   | 'location'
   | 'pdf'
-  | 'image';
+  | 'image'
+  | 'icon_library';
 
 export type AuditOutcome = 'success' | 'failure' | 'partial';
 
