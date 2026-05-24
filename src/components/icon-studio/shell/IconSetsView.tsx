@@ -69,6 +69,7 @@ type LevelKey = keyof typeof LEVEL_META;
 export const IconSetsView = ({
   libraries,
   organizationId,
+  canEdit = true,
   onCreate,
   onRegenerate,
   onRemix,
@@ -80,6 +81,7 @@ export const IconSetsView = ({
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
   const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
   const [expandOpen, setExpandOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<IconLibrary | null>(null);
   const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
 
   // Auto-open from deep link (e.g. /icon-studio?section=sets&library=<id>)
