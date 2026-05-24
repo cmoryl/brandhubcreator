@@ -645,7 +645,7 @@ const EventEditor = () => {
       case 'typography': 
         return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} isAdmin={isGuideAdmin} />;
       case 'imagery': 
-        return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} entityId={event.id} entityType="event" isAdmin={isGuideAdmin} />;
+        return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} entityId={event.id} entityType="event" isAdmin={isGuideAdmin} brandSlug={(event as any).brandSlug || (event as any).parentBrandSlug} />;
       case 'social': 
         return <SocialSection social={event.social} onSocialChange={editHandler((social) => updateEvent({ social }))} entityId={event.id} entityType="event" organizationId={event.organizationId} entityName={event.hero?.name} />;
       case 'socialassets': 
