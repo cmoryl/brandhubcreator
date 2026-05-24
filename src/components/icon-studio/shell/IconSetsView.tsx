@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { StatusChip } from './StatusChip';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
+import { useEnrichAllLibraries } from '@/hooks/useEnrichAllLibraries';
 import { BulkRegenerateDialog } from './BulkRegenerateDialog';
 import { BulkExpandDialog } from './BulkExpandDialog';
 import { type IconLibrary } from '@/hooks/useIconLibraries';
