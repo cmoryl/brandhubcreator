@@ -112,7 +112,8 @@ const IconStudioPage = () => {
   const [deepLinkLibraryId, setDeepLinkLibraryId] = useState<string | null>(urlLibrary);
 
   // Clean URL once consumed so subsequent in-app nav isn't sticky.
-  // Also react to URL changes when the page is already mounted.
+  // IMPORTANT: use window.history.replaceState (not setSearchParams) — RootLayout
+  // remounts on location.key change, which would reset shellSection to 'dashboard'.
   useEffect(() => {
     const s = searchParams.get('section') as ShellSection | null;
     const lib = searchParams.get('library');
@@ -122,10 +123,12 @@ const IconStudioPage = () => {
       setDeepLinkLibraryId(lib);
       if (!s) setShellSection('sets');
     }
-    const next = new URLSearchParams(searchParams);
-    next.delete('section');
-    next.delete('library');
-    setSearchParams(next, { replace: true });
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('section');
+      url.searchParams.delete('library');
+      window.history.replaceState(window.history.state, '', url.pathname + url.search);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
