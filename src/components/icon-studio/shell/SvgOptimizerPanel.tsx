@@ -43,10 +43,8 @@ interface Props {
 
 function extractSvgString(icon: BrandIconography): string {
   if (icon.svgPath) {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">${icon.svgPath}</svg>`;
-  }
-  if (icon.svgUrl) {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><!-- ${icon.svgUrl} --></svg>`;
+    const viewBox = icon.viewBox || '0 0 24 24';
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="24" height="24">${icon.svgPath}</svg>`;
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><!-- no path --></svg>`;
 }
