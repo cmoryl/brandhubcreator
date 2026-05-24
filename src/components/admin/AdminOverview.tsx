@@ -319,7 +319,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-3">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-8 gap-3">
           <DataForceSummaryWidget onTabChange={onTabChange} />
           <GlobalLinkSummaryWidget onTabChange={onTabChange} />
           <BotSummaryWidget onTabChange={onTabChange} />
@@ -327,6 +327,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           <VisibilitySummaryWidget onTabChange={onTabChange} />
           <AICenterSummaryWidget onTabChange={onTabChange} />
           <IconStudioSummaryWidget />
+          <ImageryHubSummaryWidget />
         </div>
       </motion.div>
 
