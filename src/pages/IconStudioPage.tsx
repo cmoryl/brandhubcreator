@@ -55,7 +55,7 @@ const IconStudioPage = () => {
 
   // Honor deep-links like /icon-studio?section=library&library=<id>&brand=<id>
   const [searchParams] = useSearchParams();
-  const validSections: ShellSection[] = ['dashboard','library','brands','styles','sets','qa','export','generate'];
+  const validSections: ShellSection[] = ['dashboard','library','imported','brands','styles','sets','qa','export','generate'];
   const urlSection = searchParams.get('section') as ShellSection | null;
   const urlLibrary = searchParams.get('library');
   const urlBrand = searchParams.get('brand');
