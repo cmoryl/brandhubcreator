@@ -95,8 +95,8 @@ export const IconSetDetailDialog = ({
         accent,
       });
       toast.success('Icon system exported');
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Export failed');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Export failed');
     }
   };
 

@@ -45,7 +45,7 @@ export const StyleSystemsView = ({ onStartGenerate }: Props) => {
     return visible.filter(
       (s) => s.name.toLowerCase().includes(t) || s.description.toLowerCase().includes(t),
     );
-  }, [q, hidden]);
+  }, [q, hidden, isHidden]);
 
   const active = BASE_STYLES.find((s) => s.id === activeId) ?? BASE_STYLES[0];
 

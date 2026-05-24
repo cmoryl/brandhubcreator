@@ -29,7 +29,7 @@ interface Props {
   onRemix?: (mutationKey: string, nextRecipe: IconRecipe | null) => void;
 }
 
-const MUTATION_META: Record<string, { icon: any; description: string }> = {
+const MUTATION_META: Record<string, { icon: LucideIcon; description: string }> = {
   filled: { icon: Square, description: 'Solid, weight-forward icons. Great for navigation and small UI.' },
   duotone: { icon: Layers, description: 'Two-tone treatment using a primary + supporting brand color.' },
   softer: { icon: PenTool, description: 'Rounded corners, thinner strokes. Approachable, friendly tone.' },

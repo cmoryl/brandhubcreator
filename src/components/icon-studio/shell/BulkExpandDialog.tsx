@@ -120,8 +120,8 @@ export const BulkExpandDialog = ({
           });
           added.push(...icons.map((ic) => ({ ...ic, category: ic.category || pass.category })));
           update(i, { added: added.length });
-        } catch (err: any) {
-          lastError = err?.message ?? 'Generation failed';
+        } catch (err) {
+          lastError = err instanceof Error ? err.message : 'Generation failed';
         }
       }
 
@@ -139,8 +139,8 @@ export const BulkExpandDialog = ({
           updates: { icons: merged },
         });
         update(i, { status: 'done', added: safe.length });
-      } catch (err: any) {
-        update(i, { status: 'error', error: err?.message ?? 'Save failed' });
+      } catch (err) {
+        update(i, { status: 'error', error: err instanceof Error ? err.message : 'Save failed' });
       }
     }
 
