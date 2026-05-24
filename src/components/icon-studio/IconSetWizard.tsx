@@ -346,6 +346,14 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
     toast.success('Saved to your library');
   }, [onSaveAsLibrary, industry, allIcons, companyName]);
 
+  // Expose imperative save handle while there's content to save.
+  useEffect(() => {
+    if (!registerSaveHandle) return;
+    const canSave = !!onSaveAsLibrary && !!industry && allIcons.length > 0;
+    registerSaveHandle(canSave ? saveToLibrary : null);
+    return () => registerSaveHandle(null);
+  }, [registerSaveHandle, onSaveAsLibrary, industry, allIcons.length, saveToLibrary]);
+
   /* ------------------------------- Render ------------------------------ */
 
   const canNext = (() => {
