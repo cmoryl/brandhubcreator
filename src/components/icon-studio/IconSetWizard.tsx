@@ -10,7 +10,7 @@
  *  5. Export         — Bulk ZIP (SVG + transparent PNGs) or individual download.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
   CheckCircle2,
