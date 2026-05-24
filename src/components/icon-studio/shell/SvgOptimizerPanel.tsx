@@ -57,7 +57,7 @@ function formatBytes(n: number): string {
 
 export const SvgOptimizerPanel = ({ libraries, organizationName }: Props) => {
   const { toast } = useToast();
-  const { presets, isOptimizing, latestRun, optimizeBatch, abort } = useSvgOptimizer();
+  const { presets, isOptimizing, latestRun, optimizeBatch, abort, clearRun } = useSvgOptimizer();
   const [selectedPreset, setSelectedPreset] = useState<'safe' | 'default' | 'aggressive'>('default');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
