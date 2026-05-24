@@ -121,9 +121,11 @@ interface Props {
   entityType?: 'brand' | 'product' | 'event';
   /** Called when the user saves the resulting set(s) into a library. */
   onSaveAsLibrary?: (name: string, icons: BrandIconography[]) => void;
+  /** Registers an imperative save handle so an external chrome (top bar) can trigger save when ready. */
+  registerSaveHandle?: (handle: (() => void) | null) => void;
 }
 
-export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAsLibrary }: Props) => {
+export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAsLibrary, registerSaveHandle }: Props) => {
   const [step, setStep] = useState<StepId>('industry');
   const [industry, setIndustry] = useState<IndustryPreset | null>(null);
   const [companyName, setCompanyName] = useState(organizationName || '');
