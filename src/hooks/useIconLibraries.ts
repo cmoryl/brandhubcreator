@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BrandIconography } from '@/types/brand';
 import { logActivity } from '@/lib/auditLog';
+import { logger } from '@/lib/logger';
 
 export interface IconLibrary {
   id: string;
