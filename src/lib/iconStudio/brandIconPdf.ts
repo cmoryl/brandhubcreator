@@ -625,5 +625,11 @@ export async function buildBrandIconPdf({
     }
   }
 
-  doc.save(`${sanitizeFileName(entityName)}-icon-system.pdf`);
+  const filename = `${sanitizeFileName(entityName)}-icon-system.pdf`;
+  const blob = doc.output('blob');
+  const url = URL.createObjectURL(blob);
+  if (autoDownload) {
+    doc.save(filename);
+  }
+  return { blob, url, filename };
 }
