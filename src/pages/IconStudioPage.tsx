@@ -99,7 +99,7 @@ const IconStudioPage = () => {
     urlSection && validSections.includes(urlSection)
       ? urlSection
       : urlLibrary
-      ? 'library'
+      ? 'sets'
       : 'dashboard';
 
   const [expertMode, setExpertMode] = useState(false);
