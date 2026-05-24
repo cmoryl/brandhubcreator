@@ -219,9 +219,6 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
                   {c.count} affected
                 </Badge>
               )}
-              <Button variant="ghost" size="icon" className="h-7 w-7" title="View details">
-                <Eye className="h-3.5 w-3.5" />
-              </Button>
             </li>
           ))}
         </ul>
