@@ -130,6 +130,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
   const [companyName, setCompanyName] = useState(organizationName || '');
   const [style, setStyle] = useState<'outlined' | 'filled' | 'duotone'>('outlined');
   const [detailLevel, setDetailLevel] = useState<'low' | 'medium' | 'high'>('medium');
+  const [gridSize, setGridSize] = useState<24 | 48>(24);
   const [selectedSubSetIds, setSelectedSubSetIds] = useState<Set<string>>(new Set());
   const [grouping, setGrouping] = useState<SubSetGrouping>('department');
 
