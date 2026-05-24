@@ -229,7 +229,7 @@ async function runWorker(jobId: string) {
     const params = jobs?.[0]?.result;
     if (!params) throw new Error("No job params found");
 
-    const { category, sectionIndex, style, preset, detailLevel = "medium", customCount, industry, entityName, entityId, entityType } = params;
+    const { category, sectionIndex, style, preset, detailLevel = "medium", gridSize: gridSizeJob, customCount, industry, entityName, entityId, entityType } = params;
     const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
     const currentSection = taxonomyCategory.sections[sectionIndex];
     const iconCount = customCount && customCount > 0 ? customCount : currentSection.count;
@@ -238,18 +238,27 @@ async function runWorker(jobId: string) {
     // Detail tier — drives prompt verbosity AND validator strictness
     const detail: "low" | "medium" | "high" =
       detailLevel === "low" || detailLevel === "high" ? detailLevel : "medium";
-    // Stroke gets slightly thicker on low detail (so simpler glyphs still feel substantial)
-    // and slightly thinner on high detail (so dense linework doesn't choke).
-    const defaultStroke = detail === "low" ? 1.75 : detail === "high" ? 1.25 : 1.5;
+    const gridSize: 24 | 48 = gridSizeJob === 48 ? 48 : 24;
+    const isLargeGrid = gridSize === 48;
+    const safeMin = isLargeGrid ? 4 : 2;
+    const safeMax = gridSize - safeMin;
+    const opticalCenter = gridSize / 2;
+    // Stroke tracks both detail tier AND grid size — 48px grid carries thicker lines proportionally.
+    const baseStroke = detail === "low" ? 1.75 : detail === "high" ? 1.25 : 1.5;
+    const defaultStroke = isLargeGrid ? +(baseStroke * 1.6).toFixed(2) : baseStroke;
     const strokeWidth = style?.strokeWidth ?? (isFilled ? 0 : defaultStroke);
     const cornerStyle = style?.cornerRadius || "rounded";
     const linecap = cornerStyle === "sharp" ? "square" : "round";
     const linejoin = cornerStyle === "sharp" ? "miter" : "round";
 
-    // Max paths allowed per icon, by detail level. Duotone always needs ≥2 (back fill + line).
-    const maxPaths = isDuotone
-      ? (detail === "high" ? 4 : detail === "low" ? 2 : 3)
-      : (detail === "high" ? 4 : detail === "low" ? 1 : 2);
+    // Max paths allowed per icon — 48px grid unlocks denser, illustrative compositions.
+    const maxPaths = isLargeGrid
+      ? (isDuotone
+        ? (detail === "high" ? 8 : detail === "low" ? 3 : 5)
+        : (detail === "high" ? 6 : detail === "low" ? 2 : 4))
+      : (isDuotone
+        ? (detail === "high" ? 4 : detail === "low" ? 2 : 3)
+        : (detail === "high" ? 4 : detail === "low" ? 1 : 2));
 
     // ── Brand DNA: pull rich context so icons feel tailored to the brand ──
     const brandDNA = await loadBrandDNA(entityId, entityType);
