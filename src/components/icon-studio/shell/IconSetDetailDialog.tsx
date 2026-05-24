@@ -110,6 +110,29 @@ export const IconSetDetailDialog = ({
     return library.icons.filter((i) => i.svgPath);
   }, [library]);
 
+  // Category list (sorted by count desc).
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const i of realIcons) {
+      const c = (i.category || 'uncategorized').toLowerCase();
+      counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1]);
+  }, [realIcons]);
+
+  const visibleIcons = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return realIcons.filter((i) => {
+      if (activeCategory !== 'all') {
+        const c = (i.category || 'uncategorized').toLowerCase();
+        if (c !== activeCategory) return false;
+      }
+      if (!q) return true;
+      return i.name.toLowerCase().includes(q);
+    });
+  }, [realIcons, query, activeCategory]);
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
