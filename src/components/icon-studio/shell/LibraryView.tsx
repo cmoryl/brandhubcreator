@@ -187,6 +187,59 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {/* Imported Assets card */}
+          {onViewImported && !importedLoading && importedEntries.length > 0 && (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={onViewImported}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onViewImported();
+                }
+              }}
+              className="tp-card tp-card-interactive group p-5 text-left transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+              style={{
+                backgroundImage: 'linear-gradient(135deg, hsl(var(--tp-teal) / 0.08), transparent 60%)',
+              }}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] uppercase tracking-wider"
+                  style={{
+                    borderColor: 'hsl(var(--tp-teal) / 0.4)',
+                    color: 'hsl(var(--tp-teal))',
+                  }}
+                >
+                  Bundled
+                </Badge>
+              </div>
+              <h3 className="text-base font-semibold leading-tight">Imported Assets</h3>
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2 min-h-[2.25rem]">
+                {importedEntries.length} curated SVG icons bundled with the project — searchable, downloadable, copy-ready.
+              </p>
+              <div className="mt-4">
+                <ImportedIconPreview
+                  icons={importedEntries}
+                  variant="light-blue"
+                  accent="hsl(var(--tp-teal))"
+                  count={6}
+                  tilePx={32}
+                />
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-3">
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className="tabular-nums font-medium text-foreground">
+                    {importedEntries.length}
+                  </span>
+                  <span>icons</span>
+                </div>
+                <StatusChip status="approved" />
+              </div>
+            </div>
+          )}
           {filtered.map((lib) => {
             const level = LEVEL_LABEL[lib.level];
             const accent = `hsl(var(${level.token}))`;
