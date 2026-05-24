@@ -15,6 +15,7 @@ import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './icon
 import { IconLibraryPicker } from './iconography/IconLibraryPicker';
 import { IconPreviewDialog } from './iconography/IconPreviewDialog';
 import { SuggestedIconsRail } from './iconography/SuggestedIconsRail';
+import { TrendingIconsRail } from './iconography/TrendingIconsRail';
 import type { IconStudioTab } from './iconography';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
