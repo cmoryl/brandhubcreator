@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PatternPreviewModal } from './PatternPreviewModal';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { DesignElementsSection } from './DesignElementsSection';
+import { TransPerfectMotionPanel } from './identity/TransPerfectMotionPanel';
 import { useSaveToLibrary } from '@/hooks/useSaveToLibrary';
 import { GeometricPrimitivesStudio } from './primitives/GeometricPrimitivesStudio';
 
