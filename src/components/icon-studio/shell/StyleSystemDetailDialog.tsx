@@ -1,10 +1,11 @@
 /**
- * StyleSystemDetailDialog — large preview of a single style system with
- * expanded icon examples across multiple categories, sizes, and color modes.
+ * StyleSystemDetailDialog — large preview of a single style system. Pack +
+ * category pickers drive a real `BundledIconLadder` so users can preview
+ * the recipe against any bundled pack before applying.
  */
 
-import { useEffect, useState } from 'react';
-import { Wand2, Sparkles, Grid3x3, Ruler, Layers, Sun, Moon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Wand2, Sparkles, Grid3x3, Ruler, Layers, Sun, Moon, Library as LibraryIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,18 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { IconSetPreview } from './IconSetPreview';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { BundledIconLadder } from './BundledIconLadder';
+import { getStyleSource, BASE_SAMPLE_SLUGS } from './styleRecipeToDna';
+import { useImportedIcons } from '@/hooks/useImportedIcons';
+import { loadPackIndex } from '@/lib/iconLibrary/loader';
+import type { IconIndexEntry } from '@/lib/iconLibrary/types';
 import type { BaseStyle } from './studioData';
 import { cn } from '@/lib/utils';
 
@@ -23,28 +35,60 @@ interface Props {
   accent: string;
   onClose: () => void;
   onApply?: () => void;
+  /** Open the bulk "apply to bundled pack" workflow. */
+  onApplyToBundled?: (style: BaseStyle) => void;
 }
 
-// Themed sample categories — much richer than the 6-emoji card preview.
-const CATEGORIES: { title: string; emojis: string[] }[] = [
-  { title: 'System & UI', emojis: ['⚙️', '🔍', '🔔', '📂', '🏠', '👤', '🚪', '🧭', '📍', '🔄', '⬆️', '⬇️'] },
-  { title: 'Data & Analytics', emojis: ['📊', '📈', '📉', '🎯', '🧮', '📋', '🗂️', '🔬', '📝', '⏱️', '🧪', '📐'] },
-  { title: 'Commerce & Finance', emojis: ['🛒', '🛍️', '💳', '💰', '🏷️', '📦', '🚚', '🎁', '⭐', '🧾', '🏦', '💸'] },
-  { title: 'Security & Compliance', emojis: ['🛡️', '🔐', '🔑', '✅', '🚨', '📜', '🪪', '🛂', '🪙', '⚖️', '🏛️', '📑'] },
-  { title: 'Communication', emojis: ['💬', '📧', '📞', '🎙️', '📣', '🔔', '🔕', '📺', '📷', '🎬', '🤝', '🗣️'] },
-  { title: 'AI & Tech', emojis: ['✨', '🪄', '🧠', '🤖', '⚡', '🔌', '🧩', '🛠️', '🚀', '💡', '📡', '🔗'] },
+const SIZE_LADDER: { label: string; tile: number; count: number }[] = [
+  { label: '16 / 20 px', tile: 18, count: 12 },
+  { label: '24 / 32 px', tile: 28, count: 10 },
+  { label: '48 / 64 px', tile: 48, count: 8 },
 ];
 
-const SIZE_LADDER: { label: string; size: 'sm' | 'md' | 'lg' }[] = [
-  { label: '16 / 20 px', size: 'sm' },
-  { label: '24 / 32 px', size: 'md' },
-  { label: '48 / 64 px', size: 'lg' },
-];
-
-export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Props) => {
+export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply, onApplyToBundled }: Props) => {
   const open = !!style;
   const a2 = style?.preview.accent2 ? `hsl(var(--${style.preview.accent2}))` : undefined;
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
+  const { packs } = useImportedIcons();
+  const source = useMemo(() => (style ? getStyleSource(style) : null), [style]);
+  const preferredPack = source?.packs[0];
+  const [packId, setPackId] = useState<string>('');
+  const [category, setCategory] = useState<string>('all');
+  const [index, setIndex] = useState<IconIndexEntry[]>([]);
+
+  // Default to the style's preferred pack each time it opens.
+  useEffect(() => {
+    if (!open) return;
+    const initial =
+      preferredPack && packs.some((p) => p.id === preferredPack)
+        ? preferredPack
+        : packs[0]?.id ?? '';
+    setPackId(initial);
+    setCategory('all');
+  }, [open, preferredPack, packs]);
+
+  useEffect(() => {
+    if (!packId) return;
+    let cancelled = false;
+    loadPackIndex(packId).then((d) => { if (!cancelled) setIndex(d); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [packId]);
+
+  const currentPack = useMemo(() => packs.find((p) => p.id === packId), [packs, packId]);
+  const categories = useMemo(() => {
+    if (!currentPack) return ['all'];
+    return ['all', ...Object.keys(currentPack.categories).sort()];
+  }, [currentPack]);
+
+  // Slugs used by the size ladder: when a category is picked, sample real
+  // names from that category; otherwise use the canonical 8 universal slugs.
+  const ladderSlugs = useMemo(() => {
+    if (category === 'all' || !index.length) return BASE_SAMPLE_SLUGS.slice(0, 12);
+    return index
+      .filter((e) => e.c === category)
+      .slice(0, 12)
+      .map((e) => e.n);
+  }, [index, category]);
 
   // Initialize theme from current app theme each time dialog opens
   useEffect(() => {
@@ -116,17 +160,7 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
 
               {/* Hero showcase row at LG size */}
               <div className="rounded-xl bg-background/40 backdrop-blur-sm border border-border/40 p-5">
-                <IconSetPreview
-                  emojis={['✨', '🛡️', '📊', '🛒', '💬', '🚀']}
-                  accent={accent}
-                  accent2={a2}
-                  recipe={style.recipe}
-                  size="lg"
-                  count={6}
-                  variant={style.preview.variant}
-                  radius={style.preview.radius}
-                  strokeWidth={style.preview.strokeWidth}
-                />
+                <BundledIconLadder style={style} accent={accent} pack={packId || undefined} count={6} tile={48} />
               </div>
 
               <div className="flex flex-wrap gap-2 mt-5">
@@ -145,10 +179,53 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
                     Stroke {style.preview.strokeWidth}px
                   </Badge>
                 )}
+                {source && (
+                  <Badge variant="outline" className="text-[10px]">
+                    Source: {source.label}
+                  </Badge>
+                )}
               </div>
             </div>
 
             <div className="p-8 space-y-8">
+              {/* Pack + category pickers drive every preview below. */}
+              <Section
+                title="Source"
+                icon={LibraryIcon}
+                hint="Pick a bundled pack and category — every preview restyles in real time."
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={packId} onValueChange={setPackId}>
+                    <SelectTrigger className="h-9 w-[220px] text-[12px]">
+                      <SelectValue placeholder="Pick a pack" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[50vh]">
+                      {packs.map((p) => (
+                        <SelectItem key={p.id} value={p.id} className="text-[12px]">
+                          <span className="flex items-center justify-between gap-3 w-full">
+                            <span>{p.name}</span>
+                            <span className="text-[10px] text-muted-foreground tabular-nums">{p.count.toLocaleString()}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="h-9 w-[180px] text-[12px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[50vh]">
+                      {categories.map((c) => (
+                        <SelectItem key={c} value={c} className="text-[12px] capitalize">
+                          {c === 'all' ? 'All categories' : c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </Section>
+
               {/* Size ladder */}
               <Section
                 title="Size ladder"
@@ -156,69 +233,26 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
                 hint="Same recipe rendered at three optical sizes."
               >
                 <div className="space-y-3">
-                  {SIZE_LADDER.map((row) => {
-                    // Cap columns so lg tiles (56px) never overflow the card.
-                    const cols = row.size === 'lg' ? 8 : row.size === 'md' ? 10 : 12;
-                    return (
-                      <div
-                        key={row.size}
-                        className="rounded-lg border border-border/50 bg-card/40 p-4 space-y-2"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                            {row.label}
-                          </div>
-                          <Badge variant="outline" className="text-[10px]">
-                            {cols} icons
-                          </Badge>
-                        </div>
-                        <IconSetPreview
-                          emojis={['⚙️', '📊', '🔐', '🛒', '✨', '🛡️', '💬', '🚀', '🔔', '🏠', '📦', '🎯']}
-                          accent={accent}
-                          accent2={a2}
-                          recipe={style.recipe}
-                          size={row.size}
-                          count={cols}
-                          columns={cols}
-                          variant={style.preview.variant}
-                          radius={style.preview.radius}
-                          strokeWidth={style.preview.strokeWidth}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </Section>
-
-              {/* Categories — 6 themed icon rows */}
-              <Section
-                title="Category showcase"
-                icon={Grid3x3}
-                hint="12 icons per category — see how the style scales across vocab."
-              >
-                <div className="space-y-4">
-                  {CATEGORIES.map((cat) => (
+                  {SIZE_LADDER.map((row) => (
                     <div
-                      key={cat.title}
-                      className="rounded-lg border border-border/50 bg-card/40 p-4"
+                      key={row.label}
+                      className="rounded-lg border border-border/50 bg-card/40 p-4 space-y-2"
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold">{cat.title}</h4>
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {row.label}
+                        </div>
                         <Badge variant="outline" className="text-[10px]">
-                          12 icons
+                          {row.count} icons
                         </Badge>
                       </div>
-                      <IconSetPreview
-                        emojis={cat.emojis}
+                      <BundledIconLadder
+                        style={style}
                         accent={accent}
-                        accent2={a2}
-                        recipe={style.recipe}
-                        size="md"
-                        count={12}
-                        columns={12}
-                        variant={style.preview.variant}
-                        radius={style.preview.radius}
-                        strokeWidth={style.preview.strokeWidth}
+                        pack={packId || undefined}
+                        slugs={ladderSlugs}
+                        count={row.count}
+                        tile={row.tile}
                       />
                     </div>
                   ))}
@@ -245,21 +279,18 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply }: Pro
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                         {c.label}
                       </div>
-                      <IconSetPreview
-                        emojis={['⚙️', '📊', '🔐', '🛒', '✨', '🛡️']}
+                      <BundledIconLadder
+                        style={style}
                         accent={`hsl(var(${c.token}))`}
-                        accent2={a2}
-                        recipe={style.recipe}
-                        size="sm"
+                        pack={packId || undefined}
                         count={6}
-                        variant={style.preview.variant}
-                        radius={style.preview.radius}
-                        strokeWidth={style.preview.strokeWidth}
+                        tile={28}
                       />
                     </div>
                   ))}
                 </div>
               </Section>
+
 
               {/* Footer actions */}
               <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border/60">
