@@ -300,7 +300,7 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
                 <div>
                   <dt className="text-muted-foreground">Library</dt>
                   <dd className="font-medium tabular-nums">
-                    {b.setsCount} sets · {b.iconsCount}
+                    {setsCount} sets · {iconsCount}
                   </dd>
                 </div>
               </dl>
