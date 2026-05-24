@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, Building2, Palette, Package, Calendar, Activity,
@@ -11,7 +12,8 @@ import {
   UserCheck, FileText, Database, HardDrive, Mail, Image,
   Eye, Zap, ArrowRight, Brain, Wrench, RefreshCw, BarChart3,
   Bot, Globe, Languages, Sparkles, ChevronRight, Layers,
-  Scan, ShieldCheck, MessageSquare, Accessibility, Scale
+  Scan, ShieldCheck, MessageSquare, Accessibility, Scale,
+  Shapes, Download
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -317,13 +319,14 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 xl:grid-cols-6 gap-3">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-3">
           <DataForceSummaryWidget onTabChange={onTabChange} />
           <GlobalLinkSummaryWidget onTabChange={onTabChange} />
           <BotSummaryWidget onTabChange={onTabChange} />
           <BiasAwarenessSummaryWidget onTabChange={onTabChange} />
           <VisibilitySummaryWidget onTabChange={onTabChange} />
           <AICenterSummaryWidget onTabChange={onTabChange} />
+          <IconStudioSummaryWidget />
         </div>
       </motion.div>
 
@@ -737,6 +740,74 @@ const AICenterSummaryWidget: React.FC<{ onTabChange: (tab: string) => void }> = 
             <SummaryRow icon={Shield} color="text-blue-500" bg="bg-blue-500/10" label="Compliance" value={Math.round(data.avgCompliance)}
               subColor={scoreColor(data.avgCompliance)}
               onClick={() => onTabChange('ai-center')} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// ─── Icon Studio Summary ────────────────────────────────────
+const IconStudioSummaryWidget: React.FC = () => {
+  const navigate = useNavigate();
+  const [data, setData] = useState<{
+    libraries: number;
+    totalIcons: number;
+    linkedBrands: number;
+    added30d: number;
+    exported30d: number;
+  } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const [libsRes, linksRes, usageRes] = await Promise.all([
+        supabase.from('organization_icon_libraries').select('icons').eq('is_active', true),
+        supabase.from('icon_library_brand_links').select('brand_id'),
+        supabase.from('icon_usage_events').select('action').gte('created_at', since),
+      ]);
+      const libs = libsRes.data || [];
+      const totalIcons = libs.reduce((sum, l: any) => sum + (Array.isArray(l.icons) ? l.icons.length : 0), 0);
+      const brandIds = new Set((linksRes.data || []).map((l: any) => l.brand_id));
+      const usage = usageRes.data || [];
+      setData({
+        libraries: libs.length,
+        totalIcons,
+        linkedBrands: brandIds.size,
+        added30d: usage.filter((u: any) => u.action === 'added' || u.action === 'kit_added').length,
+        exported30d: usage.filter((u: any) => u.action === 'exported').length,
+      });
+    })();
+  }, []);
+
+  const go = () => navigate('/icon-studio');
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="p-3 pb-2 border-b border-border/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shapes className="h-3.5 w-3.5 text-fuchsia-500" />
+            <CardTitle className="text-xs font-semibold">Icon Studio</CardTitle>
+          </div>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground" onClick={go}>
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-2.5">
+        {!data ? (
+          <div className="flex justify-center py-4"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+        ) : (
+          <div className="space-y-1.5">
+            <SummaryRow icon={Layers} color="text-fuchsia-500" bg="bg-fuchsia-500/10" label="Libraries" value={data.libraries}
+              sub={`${data.totalIcons} icons`} subColor="text-muted-foreground"
+              onClick={go} />
+            <div className="grid grid-cols-2 gap-1.5">
+              <SummaryRow icon={Palette} color="text-blue-500" bg="bg-blue-500/10" label="Brands" value={data.linkedBrands} onClick={go} />
+              <SummaryRow icon={Sparkles} color="text-emerald-500" bg="bg-emerald-500/10" label="Added 30d" value={data.added30d} onClick={go} />
+            </div>
+            <SummaryRow icon={Download} color="text-amber-500" bg="bg-amber-500/10" label="Exports 30d" value={data.exported30d} onClick={go} />
           </div>
         )}
       </CardContent>
