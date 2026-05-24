@@ -70,6 +70,7 @@ export const IconSetsView = ({
   onCompare,
   autoOpenLibraryId,
   onAutoOpenConsumed,
+  onOpenBundledPack,
 }: Props) => {
   const [q, setQ] = useState('');
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
