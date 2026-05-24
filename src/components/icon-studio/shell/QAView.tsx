@@ -251,8 +251,15 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
                   {l.icons.length} icons
                 </Badge>
                 <StatusChip status={l.icons.length > 0 ? 'approved' : 'idle'} />
-                <Button variant="ghost" size="icon" className="h-7 w-7" title="Run preflight">
-                  <RefreshCw className="h-3.5 w-3.5" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  title="Re-run preflight"
+                  onClick={handleRerun}
+                  disabled={running}
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${running ? 'animate-spin' : ''}`} />
                 </Button>
               </li>
             ))}
