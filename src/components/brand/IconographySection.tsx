@@ -18,6 +18,7 @@ import { IconPreviewDialog } from './iconography/IconPreviewDialog';
 import { SuggestedIconsRail } from './iconography/SuggestedIconsRail';
 import { TrendingIconsRail } from './iconography/TrendingIconsRail';
 import type { IconStudioTab } from './iconography';
+import { TransPerfectIconographyPanel } from './identity/TransPerfectIconographyPanel';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
@@ -536,8 +537,11 @@ ${innerContent}
     return acc;
   }, {} as Record<string, BrandIconography[]>);
 
+  const isTransPerfect = entitySlug?.toLowerCase() === 'transperfect';
+
   return (
     <section className="space-y-6">
+      {isTransPerfect && <TransPerfectIconographyPanel />}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <SectionHeader
