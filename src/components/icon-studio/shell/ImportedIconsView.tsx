@@ -136,6 +136,7 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
     if (initialPackId && packs.some((p) => p.id === initialPackId)) {
       setSelectedPack(initialPackId);
       setCategory('all');
+      setVariant('all');
       setQ('');
       onInitialPackConsumed?.();
     }
