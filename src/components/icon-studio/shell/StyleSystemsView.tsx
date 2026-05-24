@@ -158,18 +158,8 @@ export const StyleSystemsView = ({ onStartGenerate, onLibraryCreated }: Props) =
                   <p className="text-[11px] text-muted-foreground mb-3 min-h-[2rem]">
                     {s.description}
                   </p>
-                  <IconSetPreview
-                    emojis={SAMPLE_EMOJIS}
-                    accent={accent}
-                    accent2={s.preview.accent2 ? `hsl(var(--${s.preview.accent2}))` : undefined}
-                    recipe={s.recipe}
-                    size="sm"
-                    count={6}
-                    variant={s.preview.variant}
-                    radius={s.preview.radius}
-                    strokeWidth={s.preview.strokeWidth}
-                  />
-                  <div className="mt-3 flex flex-wrap gap-1">
+                  <BundledIconLadder style={s} accent={accent} count={6} tile={28} />
+                  <div className="mt-3 flex flex-wrap items-center gap-1">
                     {Object.entries(s.recipe)
                       .filter(([, v]) => v)
                       .map(([k]) => (
@@ -181,8 +171,13 @@ export const StyleSystemsView = ({ onStartGenerate, onLibraryCreated }: Props) =
                       {s.preview.variant}
                     </Badge>
                   </div>
-                  <div className="mt-2 text-[10px] text-primary/80 opacity-0 group-hover:opacity-100 transition-opacity">
-                    Click to expand →
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-muted-foreground truncate">
+                      Sourced from {getStyleSource(s).label}
+                    </span>
+                    <span className="text-[10px] text-primary/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Click to expand →
+                    </span>
                   </div>
                 </div>
               );
