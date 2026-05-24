@@ -634,6 +634,8 @@ export async function buildBrandIconPdf({
   }
 
   /* ──────── Insert TOC at page 2 (now that we know page numbers) ──────── */
+  checkAborted();
+  onProgress?.({ stage: 'toc', percent: 0.96, current: iconsProcessed, total: totalIcons, message: 'Generating table of contents…' });
   doc.insertPage(2);
   doc.setPage(2);
   doc.setFillColor(accentRgb[0], accentRgb[1], accentRgb[2]);
