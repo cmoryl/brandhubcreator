@@ -47,7 +47,9 @@ export const QRSection = ({
   entityType = 'brand',
   entityId,
   logos = [],
+  brandSlug,
 }: QRSectionProps) => {
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingQR, setEditingQR] = useState<QRCode | undefined>();
