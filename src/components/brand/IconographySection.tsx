@@ -733,6 +733,15 @@ ${innerContent}
           sectionId="iconography"
           industry={industry}
           existingIcons={iconography}
+          brandDna={{
+            strokeWidth: 1.75,
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+            primaryColor: defaultIconColor && defaultIconColor !== 'currentColor'
+              ? defaultIconColor
+              : brandColors[0]?.hex,
+            fillMode: 'preserve',
+          }}
           onAdd={(icon) => {
             if (!onIconographyChange) return;
             if (iconography.some((i) => i.id === icon.id)) return;
@@ -740,6 +749,7 @@ ${innerContent}
           }}
         />
       )}
+
 
       <div className="space-y-6">
         {Object.entries(groupedIcons).map(([category, icons]) => {
