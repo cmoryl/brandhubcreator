@@ -3,9 +3,12 @@
  * (set) in the organization. Real data from useIconLibraries.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles, Wand2 } from 'lucide-react';
 import { useEnrichAllLibraries } from '@/hooks/useEnrichAllLibraries';
+import { enrichLibrary } from '@/lib/iconLibrary/enrichLibrary';
+import { useIconLibraries } from '@/hooks/useIconLibraries';
+import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -68,6 +71,34 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
     useIconLibraryRowActions({ organizationId, canEdit });
   const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
   const { enrichAll, enrichOne, enrichBrandRepositories, progress: enrichProgress } = useEnrichAllLibraries(organizationId);
+  const { updateLibrary } = useIconLibraries(organizationId);
+
+  // Auto-stock any brand library that has < 100 icons, once per session.
+  const autoStockedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!canEdit || !organizationId) return;
+    const undersized = libraries.filter(
+      (l) => l.is_active && l.level === 'brand' && l.icons.length < 100 && !autoStockedRef.current.has(l.id),
+    );
+    if (!undersized.length) return;
+    undersized.forEach((l) => autoStockedRef.current.add(l.id));
+    (async () => {
+      for (const lib of undersized) {
+        try {
+          const result = await enrichLibrary(lib, {
+            perCategory: 150,
+            maxAdded: 1200,
+            extraCategories: ['ui', 'arrows', 'communication', 'business', 'files', 'media', 'security'],
+          });
+          if (result.added > 0) {
+            await updateLibrary.mutateAsync({ id: lib.id, updates: { icons: result.icons } });
+          }
+        } catch (e) {
+          logger.debug('[auto-stock] failed', lib.name, e);
+        }
+      }
+    })();
+  }, [libraries, canEdit, organizationId, updateLibrary]);
 
   // Auto-open from deep link
   useEffect(() => {
