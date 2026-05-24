@@ -245,7 +245,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
         description: `${allIcons.length} icons in “${activeStyle.name}” style.`,
       });
     } catch (e) {
-      console.error(e);
+      logger.error('[ExportCenter] export failed', e);
       toast({
         title: 'Export failed',
         description: e instanceof Error ? e.message : 'Unknown error',
