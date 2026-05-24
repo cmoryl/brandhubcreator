@@ -960,8 +960,11 @@ export const DigitalCollateralSection = ({
 
   const activeItem = activeId ? collateral.find(item => item.id === activeId) : null;
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section className="space-y-6">
+      {isTransPerfect && <TransPerfectCollateralPanel />}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1">
           <SectionHeader
