@@ -72,8 +72,8 @@ export const IconSetsView = ({
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
   const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
   const [expandOpen, setExpandOpen] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<IconLibrary | null>(null);
-  const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
+  const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
+    useIconLibraryRowActions({ organizationId, canEdit });
 
   // Auto-open from deep link (e.g. /icon-studio?section=sets&library=<id>)
   useEffect(() => {
@@ -98,54 +98,19 @@ export const IconSetsView = ({
     };
   }, [libraries, q]);
 
-  const handleDuplicate = (lib: IconLibrary) => {
-    if (!organizationId) {
-      toast.error('No organization selected');
-      return;
-    }
-    createLibrary.mutate({
-      organization_id: organizationId,
-      name: `${lib.name} (copy)`,
-      level: lib.level,
-      description: lib.description || undefined,
-      icons: lib.icons,
-      parent_library_id: lib.parent_library_id,
-      is_active: lib.is_active,
-      display_order: (lib.display_order ?? 0) + 1,
-    });
-  };
-
-  const handleLockToggle = (lib: IconLibrary) => {
-    updateLibrary.mutate(
-      { id: lib.id, updates: { is_active: !lib.is_active } },
-      {
-        onSuccess: () =>
-          toast.success(lib.is_active ? `${lib.name} locked` : `${lib.name} unlocked`),
-      },
-    );
-  };
-
   const handleRemix = (lib: IconLibrary) => {
     if (onRemix) return onRemix(lib);
     toast.info(`Remix "${lib.name}" — open the generator with this set as a seed.`);
   };
 
   const handleRegenerate = (lib: IconLibrary) => {
+    if (!canEdit) return;
     setRegenLib(lib);
   };
 
   const handleCompare = (lib: IconLibrary) => {
     if (onCompare) return onCompare(lib);
     toast.info(`Compare versions of "${lib.name}" coming up.`);
-  };
-
-  const handleDelete = (lib: IconLibrary) => {
-    setPendingDelete(lib);
-  };
-  const confirmDelete = () => {
-    if (!pendingDelete) return;
-    deleteLibrary.mutate(pendingDelete.id);
-    setPendingDelete(null);
   };
 
   const levelLabelFor = (lib: IconLibrary) => LEVEL_META[lib.level as LevelKey]?.label ?? lib.level;
