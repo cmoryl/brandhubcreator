@@ -187,7 +187,7 @@ const IconStudioPage = () => {
       onBrandChange={handleBrandChange}
       onBack={() => navigate(-1)}
       onSaveToLibrary={
-        canEdit && shellSection === 'generate' && wizardSaveRef.current
+        canEdit && shellSection === 'generate' && wizardCanSave
           ? () => wizardSaveRef.current?.()
           : undefined
       }
