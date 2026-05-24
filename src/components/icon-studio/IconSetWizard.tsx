@@ -601,6 +601,8 @@ const CoreStep = ({
   setCompanyName,
   style,
   setStyle,
+  detailLevel,
+  setDetailLevel,
   sections,
   busy,
   stats,
@@ -612,6 +614,8 @@ const CoreStep = ({
   setCompanyName: (s: string) => void;
   style: 'outlined' | 'filled' | 'duotone';
   setStyle: (s: 'outlined' | 'filled' | 'duotone') => void;
+  detailLevel: 'low' | 'medium' | 'high';
+  setDetailLevel: (d: 'low' | 'medium' | 'high') => void;
   sections: Map<string, SectionState>;
   busy: boolean;
   stats: { done: number; total: number; sections: number };
