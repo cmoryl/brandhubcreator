@@ -29,6 +29,8 @@ interface SuggestedIconsRailProps {
   industry?: string | null;
   existingIcons?: BrandIconography[];
   onAdd: (icon: BrandIconography) => void;
+  /** Optional batch handler. When provided, kits add all icons in a single state update. */
+  onAddBatch?: (icons: BrandIconography[]) => void;
   limit?: number;
   /** Phase 4: optional brand DNA — when present, previews are auto-restyled. */
   brandDna?: BrandRestyleDNA;
@@ -39,6 +41,7 @@ export const SuggestedIconsRail = ({
   industry,
   existingIcons = [],
   onAdd,
+  onAddBatch,
   limit = 24,
   brandDna,
 }: SuggestedIconsRailProps) => {
