@@ -335,24 +335,27 @@ These icons must be indistinguishable in quality from a hand-crafted Lucide rele
 ${brandContextBlock}
 
 ## Mandatory Style (identical on EVERY icon)
-- Preset: "${preset}"
-- ${isFilled ? "FILLED" : `OUTLINED, stroke-width ${strokeWidth}`}, ${cornerStyle} corners
+- Preset: "${preset}" · Detail tier: "${detail}" · Max paths: ${maxPaths}
+- ${isFilled ? "FILLED" : isDuotone ? `DUOTONE — back fill (fill-opacity 0.25) + front line (stroke-width ${strokeWidth})` : `OUTLINED, stroke-width ${strokeWidth}`}, ${cornerStyle} corners
 - stroke-linecap "${linecap}" / stroke-linejoin "${linejoin}"
 ${isFilled
   ? `- Each path: fill="currentColor" stroke="none"`
+  : isDuotone
+  ? `- Back path: fill="currentColor" fill-opacity="0.25" stroke="none". Front path(s): fill="none" stroke="currentColor".`
   : `- Each path: fill="none" stroke="currentColor" (wrapper enforces this — do NOT add color attributes yourself)`}
 
 ## Design Direction
-- Reference: Lucide "${currentSection.name.toLowerCase()}", Tabler outline, Feather, Phosphor regular. Then EXCEED them.
+- Reference: Lucide "${currentSection.name.toLowerCase()}", Tabler outline, Feather, ${isDuotone ? "Phosphor Duotone" : "Phosphor regular"}. Then EXCEED them.
 - Each icon must read clearly at 16px and remain a distinct silhouette at 12px.
 - Translate the brand DNA above into metaphor choices — e.g. if the brand archetype is "Sage", lean on tomes/lenses/compass motifs; if "Outlaw", lean on bolts/sparks/asymmetry. NEVER generic stock.
 - For Industry-Specific sections, draw 60%+ of metaphors from the brand's actual services/products listed above.
 - These should feel like premium icons designed specifically for "${entityName}", not interchangeable with another brand's set.
 
 ## Pre-Submission Checklist (verify EACH icon)
-✓ Only <path> elements, max 2, prefer 1
+✓ Only <path> elements, max ${maxPaths}${isDuotone ? " (≥2: back fill + front line)" : detail === "low" ? ", prefer 1" : ""}
 ✓ ALL coordinates are integers or .5 — ZERO arbitrary decimals
-✓ No transforms, no inline colors, no ids/classes/styles
+✓ No transforms, no inline ${isDuotone ? "stroke" : "fill/stroke"} colors, no ids/classes/styles
+✓ Uniform visual weight across the batch
 ✓ Uniform visual weight across the batch
 ✓ Recognizable as a silhouette at 12×12
 ✓ Reflects the brand DNA, not a generic icon-set
