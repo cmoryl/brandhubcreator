@@ -149,10 +149,12 @@ export const IconSetsView = ({
   };
 
   const handleDelete = (lib: IconLibrary) => {
-    if (typeof window !== 'undefined' && !window.confirm(`Delete icon set "${lib.name}"? This cannot be undone.`)) {
-      return;
-    }
-    deleteLibrary.mutate(lib.id);
+    setPendingDelete(lib);
+  };
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    deleteLibrary.mutate(pendingDelete.id);
+    setPendingDelete(null);
   };
 
   const levelLabelFor = (lib: IconLibrary) => LEVEL_META[lib.level as LevelKey]?.label ?? lib.level;
