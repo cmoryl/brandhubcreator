@@ -39,7 +39,8 @@ export const ColorPaletteSection = ({
   onColorCombinationsChange,
   customSubtitle,
   onSubtitleChange,
-  brandName = 'Brand'
+  brandName = 'Brand',
+  brandSlug,
 }: ColorPaletteSectionProps) => {
   const canEdit = Boolean(onColorsChange);
   const [editingId, setEditingId] = useState<string | null>(null);
