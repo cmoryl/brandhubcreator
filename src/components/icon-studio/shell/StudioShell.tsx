@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Compass,
   FolderOpen,
+  Image as ImageIcon,
   Home,
   LayoutDashboard,
   Library,
