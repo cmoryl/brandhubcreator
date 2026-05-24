@@ -525,7 +525,7 @@ ${isFilled
  */
 function sanitizeAndValidate(
   raw: string,
-  opts: { isFilled: boolean; isDuotone?: boolean; strokeWidth: number; linecap: string; linejoin: string; maxPaths?: number },
+  opts: { isFilled: boolean; isDuotone?: boolean; strokeWidth: number; linecap: string; linejoin: string; maxPaths?: number; gridSize?: 24 | 48 },
 ): { ok: true; svg: string } | { ok: false; reason: string } {
   let svg = String(raw || "").trim();
   if (!svg.startsWith("<svg")) return { ok: false, reason: "missing <svg> root" };
