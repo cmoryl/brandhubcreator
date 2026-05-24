@@ -203,6 +203,11 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
         {profiles.map((b) => {
           const accent = `hsl(var(${b.accentToken}))`;
           const to = `/icon-studio/${b.entityType || 'brand'}/${b.slug}`;
+          const { setsCount, iconsCount } = countsForProfile({
+            id: b.id,
+            name: b.name,
+            entityType: b.entityType,
+          });
           return (
             <Link
               key={b.id}
