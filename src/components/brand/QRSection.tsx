@@ -148,6 +148,7 @@ export const QRSection = ({
 
   return (
     <section id="qr" className="scroll-mt-24 space-y-6">
+      {isTransPerfect && <TransPerfectQRPanel />}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1">
           <SectionHeader
