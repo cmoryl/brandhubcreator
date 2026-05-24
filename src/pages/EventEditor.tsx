@@ -625,7 +625,7 @@ const EventEditor = () => {
       case 'eventdigital':
         return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={canEdit ? (eventDigitalMaterials) => updateEvent({ eventDigitalMaterials }) : () => {}} banners={event.eventBanners || []} onBannersChange={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : undefined} printMaterials={event.eventPrintMaterials || []} onPrintMaterialsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined} sponsorshipMaterials={event.eventSponsorshipMaterials || []} onSponsorshipMaterialsChange={canEdit ? (eventSponsorshipMaterials) => updateEvent({ eventSponsorshipMaterials }) : undefined} emailBanners={event.emailBanners || []} onEmailBannersChange={canEdit ? (emailBanners) => updateEvent({ emailBanners }) : undefined} infographics={event.eventInfographics || []} onInfographicsChange={canEdit ? (eventInfographics) => updateEvent({ eventInfographics }) : undefined} applications={event.eventApplications || []} onApplicationsChange={canEdit ? (eventApplications) => updateEvent({ eventApplications }) : undefined} digitalAssets={event.eventDigitalAssets || []} onDigitalAssetsChange={canEdit ? (eventDigitalAssets) => updateEvent({ eventDigitalAssets }) : undefined} isEditable={canEdit || false} eventId={event.id} />;
       case 'colors': 
-        return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
+        return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} brandSlug={(event as any).brandSlug || (event as any).parentBrandSlug} />;
       case 'gradients': 
         return <GradientsSection gradients={event.gradients} onGradientsChange={editHandler((gradients) => updateEvent({ gradients }))} brandName={event.hero.name} brandColors={event.colors} />;
       case 'layouttemplates': {
@@ -643,7 +643,7 @@ const EventEditor = () => {
         return <LayoutTemplatesSection brandVisuals={derivedVisuals} isDerived={isDerived} />;
       }
       case 'typography': 
-        return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} isAdmin={isGuideAdmin} />;
+        return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} isAdmin={isGuideAdmin} brandSlug={(event as any).brandSlug || (event as any).parentBrandSlug} />;
       case 'imagery': 
         return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} entityId={event.id} entityType="event" isAdmin={isGuideAdmin} brandSlug={(event as any).brandSlug || (event as any).parentBrandSlug} />;
       case 'social': 

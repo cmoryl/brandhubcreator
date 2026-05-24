@@ -19,6 +19,8 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 
+import { TransPerfectColorTypographyPanel } from './identity/TransPerfectColorTypographyPanel';
+
 interface ColorPaletteSectionProps {
   colors: BrandColor[];
   onColorsChange?: (colors: BrandColor[]) => void;
@@ -27,6 +29,7 @@ interface ColorPaletteSectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   brandName?: string;
+  brandSlug?: string;
 }
 
 export const ColorPaletteSection = ({ 
@@ -36,7 +39,8 @@ export const ColorPaletteSection = ({
   onColorCombinationsChange,
   customSubtitle,
   onSubtitleChange,
-  brandName = 'Brand'
+  brandName = 'Brand',
+  brandSlug,
 }: ColorPaletteSectionProps) => {
   const canEdit = Boolean(onColorsChange);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -133,6 +137,9 @@ export const ColorPaletteSection = ({
 
   return (
     <section className="space-y-6 sm:space-y-8">
+      {brandSlug?.toLowerCase() === 'transperfect' && (
+        <TransPerfectColorTypographyPanel variant="color" />
+      )}
       {/* Color Palette */}
       <div className="space-y-4 sm:space-y-6">
         {/* Section header - always full width on its own row */}
