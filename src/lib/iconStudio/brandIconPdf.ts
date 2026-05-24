@@ -751,11 +751,13 @@ export async function buildBrandIconPdf({
   }
 
 
+  onProgress?.({ stage: 'finalizing', percent: 0.99, current: iconsProcessed, total: totalIcons, message: 'Encoding PDF…' });
   const filename = `${sanitizeFileName(entityName)}-icon-system.pdf`;
   const blob = doc.output('blob');
   const url = URL.createObjectURL(blob);
   if (autoDownload) {
     doc.save(filename);
   }
+  onProgress?.({ stage: 'done', percent: 1, current: iconsProcessed, total: totalIcons, message: 'Done' });
   return { blob, url, filename };
 }
