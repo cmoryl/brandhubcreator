@@ -120,14 +120,42 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
     });
 
   const handleExport = async () => {
+    const includeImported = selectedSetId === 'all' || selectedSetId === 'imported';
     const scopedLibs =
-      selectedSetId === 'all' ? libraries : libraries.filter((l) => l.id === selectedSetId);
+      selectedSetId === 'all' || selectedSetId === 'imported'
+        ? libraries
+        : libraries.filter((l) => l.id === selectedSetId);
     const allIcons = scopedLibs.flatMap((lib) =>
       lib.icons.map((ic) => ({ lib, icon: ic })),
     );
 
-    if (allIcons.length === 0) {
-      toast({ title: 'No icons in scope', description: 'Generate a set first.', variant: 'destructive' });
+    let importedSvgData: { name: string; slug: string; svgPath: string; viewBox: string }[] = [];
+    if (includeImported && importedIcons.length > 0) {
+      const fetched = await Promise.all(
+        importedIcons.map(async (entry) => {
+          try {
+            const text = await fetch(entry.path).then((r) => r.text());
+            const pathMatch = text.match(/<path[^>]*d="([^"]*)"/);
+            const svgPath = pathMatch ? pathMatch[1] : text;
+            const viewBoxMatch = text.match(/viewBox="([^"]*)"/);
+            return {
+              name: entry.name,
+              slug: slugify(entry.name),
+              svgPath,
+              viewBox: viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24',
+            };
+          } catch {
+            return null;
+          }
+        })
+      );
+      importedSvgData = fetched.filter(Boolean) as typeof importedSvgData;
+    }
+
+    const totalCount = allIcons.length + importedSvgData.length;
+
+    if (totalCount === 0) {
+      toast({ title: 'No icons in scope', description: 'Generate a set or import icons first.', variant: 'destructive' });
       return;
     }
 
