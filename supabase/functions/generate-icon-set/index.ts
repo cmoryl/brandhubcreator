@@ -462,7 +462,7 @@ ${isFilled
     // Sanitize + validate each SVG against the rule set. Reject icons we can't fix.
     const cleaned = icons
       .map((icon, idx) => {
-        const result = sanitizeAndValidate(icon.svg || "", { isFilled, isDuotone, strokeWidth, linecap, linejoin, maxPaths });
+        const result = sanitizeAndValidate(icon.svg || "", { isFilled, isDuotone, strokeWidth, linecap, linejoin, maxPaths, gridSize });
         if (!result.ok) {
           console.warn(`[generate-icon-set-worker] Rejected icon "${icon.name}": ${result.reason}`);
           return null;
@@ -472,7 +472,7 @@ ${isFilled
           name: icon.name || `${currentSection.name} Icon ${idx + 1}`,
           svgPath: result.svg,
           category: `${category} / ${currentSection.name}`,
-          viewBox: "0 0 24 24",
+          viewBox: `0 0 ${gridSize} ${gridSize}`,
           fillMode: isFilled ? "fill" : "stroke",
         };
       })
