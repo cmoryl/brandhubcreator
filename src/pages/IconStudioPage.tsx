@@ -232,10 +232,10 @@ const IconStudioPage = () => {
               needsReview: libraries.reduce((s, l) => s + (l.is_active ? 0 : l.icons.length), 0),
               failed: 0,
               generating: 0,
-              brandCompliance: 0,
-              a11y: 0,
-              svgHealth: 0,
-              exportReadiness: 0,
+              brandCompliance: qualityMetrics.brandCompliance,
+              a11y: qualityMetrics.a11y,
+              svgHealth: qualityMetrics.svgHealth,
+              exportReadiness: qualityMetrics.exportReadiness,
             }}
             brandName={activeBrand?.name}
             industryName="Workspace"
