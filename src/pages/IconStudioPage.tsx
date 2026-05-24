@@ -496,6 +496,8 @@ const IconStudioPage = () => {
           onCreate={() => setShellSection('generate')}
           onRemix={() => setShellSection('generate')}
           onCompare={() => setShellSection('qa')}
+          autoOpenLibraryId={deepLinkLibraryId}
+          onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
         />
       ) : shellSection === 'qa' ? (
         <QAView
