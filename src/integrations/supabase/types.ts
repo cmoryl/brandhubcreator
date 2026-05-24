@@ -3699,6 +3699,48 @@ export type Database = {
           },
         ]
       }
+      icon_usage_events: {
+        Row: {
+          action: string
+          brand_id: string | null
+          created_at: string
+          icon_name: string
+          id: string
+          industry: string | null
+          organization_id: string
+          pack: string
+          section_id: string
+          source: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          brand_id?: string | null
+          created_at?: string
+          icon_name: string
+          id?: string
+          industry?: string | null
+          organization_id: string
+          pack: string
+          section_id: string
+          source?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          brand_id?: string | null
+          created_at?: string
+          icon_name?: string
+          id?: string
+          industry?: string | null
+          organization_id?: string
+          pack?: string
+          section_id?: string
+          source?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       imagery_preference_signals: {
         Row: {
           action: string
