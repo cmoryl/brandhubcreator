@@ -278,6 +278,7 @@ export async function buildBrandIconPdf({
   });
 
   /* ──────── Cover page ──────── */
+  onProgress?.({ stage: 'cover', percent: 0.05, current: 0, total: totalIcons, message: 'Drawing cover…' });
   // Accent header band
   doc.setFillColor(accentRgb[0], accentRgb[1], accentRgb[2]);
   doc.rect(0, 0, pageW, 260, 'F');
