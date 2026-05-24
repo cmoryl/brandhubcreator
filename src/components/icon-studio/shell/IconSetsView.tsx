@@ -59,14 +59,31 @@ export const IconSetsView = ({
   organizationId,
   onCreate,
   onRegenerate,
+export const IconSetsView = ({
+  libraries,
+  organizationId,
+  onCreate,
+  onRegenerate,
   onRemix,
   onCompare,
+  autoOpenLibraryId,
+  onAutoOpenConsumed,
 }: Props) => {
   const [q, setQ] = useState('');
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
   const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
   const [expandOpen, setExpandOpen] = useState(false);
   const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
+
+  // Auto-open from deep link (e.g. /icon-studio?section=sets&library=<id>)
+  useEffect(() => {
+    if (!autoOpenLibraryId) return;
+    const match = libraries.find((l) => l.id === autoOpenLibraryId);
+    if (match) {
+      setActiveLib(match);
+      onAutoOpenConsumed?.();
+    }
+  }, [autoOpenLibraryId, libraries, onAutoOpenConsumed]);
 
   const grouped = useMemo(() => {
     const term = q.toLowerCase();
