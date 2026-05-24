@@ -4,7 +4,8 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles, Wand2 } from 'lucide-react';
+import { useEnrichAllLibraries } from '@/hooks/useEnrichAllLibraries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
