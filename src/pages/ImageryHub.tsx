@@ -247,27 +247,38 @@ const ImageryHub = () => {
 
         {/* Right: Workspace */}
         {selectedEntity ? (
-          <ImageryWorkspace
-            entity={selectedEntity}
-            sections={sections}
-            isLoading={imageryLoading}
-            organizationId={organizationId}
-            onAddSection={addSection}
-            onRemoveSection={removeSection}
-            onAddImages={addImages}
-            onRemoveImage={removeImage}
-            onReorderImages={reorderImages}
-            onUpdateImageTags={updateImageTags}
-            onStartComparison={() => setShowComparison(true)}
-            onStartBulkCopy={handleStartBulkCopy}
-            selectedImages={selectedImages}
-            onToggleImageSelection={handleToggleImageSelection}
-            selectionMode={selectionMode}
-            onToggleSelectionMode={() => {
-              setSelectionMode(!selectionMode);
-              if (selectionMode) setSelectedImages(new Map());
-            }}
-          />
+          <div className="flex-1 flex flex-col overflow-y-auto">
+            <div className="p-4 pb-0">
+              <BrandVisualDnaPanel
+                entityId={selectedEntity.id}
+                entityType={selectedEntity.type}
+                entityName={selectedEntity.name}
+                organizationId={organizationId}
+                approvedImageCount={totalImages}
+              />
+            </div>
+            <ImageryWorkspace
+              entity={selectedEntity}
+              sections={sections}
+              isLoading={imageryLoading}
+              organizationId={organizationId}
+              onAddSection={addSection}
+              onRemoveSection={removeSection}
+              onAddImages={addImages}
+              onRemoveImage={removeImage}
+              onReorderImages={reorderImages}
+              onUpdateImageTags={updateImageTags}
+              onStartComparison={() => setShowComparison(true)}
+              onStartBulkCopy={handleStartBulkCopy}
+              selectedImages={selectedImages}
+              onToggleImageSelection={handleToggleImageSelection}
+              selectionMode={selectionMode}
+              onToggleSelectionMode={() => {
+                setSelectionMode(!selectionMode);
+                if (selectionMode) setSelectedImages(new Map());
+              }}
+            />
+          </div>
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
             <div className="text-center space-y-3">
