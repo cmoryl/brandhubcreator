@@ -147,12 +147,12 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
               Every icon set you've saved — searchable, taggable, version-controlled.
             </p>
           </div>
-          <Button size="sm" className="gap-1.5" onClick={onCreate}>
-            <Plus className="h-4 w-4" />
-            New set
-          </Button>
-        </div>
-      </header>
+          {canEdit && (
+            <Button size="sm" className="gap-1.5" onClick={onCreate}>
+              <Plus className="h-4 w-4" />
+              New set
+            </Button>
+          )}
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
