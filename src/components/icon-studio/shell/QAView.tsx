@@ -8,12 +8,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ShieldCheck, Check, AlertTriangle, Eye, RefreshCw,
+  ShieldCheck, Check, AlertTriangle, RefreshCw,
   CheckCircle2, XCircle, Grid3x3, Wand2, MinusCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { StatusChip } from './StatusChip';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { runPreflight, type PreflightSummary } from '@/lib/iconStudio/qa';
@@ -84,8 +83,7 @@ const ScoreCard = ({
       <span className="text-3xl font-semibold tabular-nums">{value}</span>
       <span className="text-sm text-muted-foreground">%</span>
     </div>
-    <Progress value={value} className="mt-3 h-1.5" style={{ ['--tw-progress' as string]: token }} />
-    <div className="mt-2 h-1.5 w-full rounded-full overflow-hidden bg-muted">
+    <div className="mt-3 h-1.5 w-full rounded-full overflow-hidden bg-muted">
       <div
         className="h-full rounded-full transition-all"
         style={{ width: `${value}%`, background: `hsl(var(${token}))` }}
@@ -220,9 +218,6 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
                   {c.count} affected
                 </Badge>
               )}
-              <Button variant="ghost" size="icon" className="h-7 w-7" title="View details">
-                <Eye className="h-3.5 w-3.5" />
-              </Button>
             </li>
           ))}
         </ul>
@@ -255,8 +250,15 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
                   {l.icons.length} icons
                 </Badge>
                 <StatusChip status={l.icons.length > 0 ? 'approved' : 'idle'} />
-                <Button variant="ghost" size="icon" className="h-7 w-7" title="Run preflight">
-                  <RefreshCw className="h-3.5 w-3.5" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  title="Re-run preflight"
+                  onClick={handleRerun}
+                  disabled={running}
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${running ? 'animate-spin' : ''}`} />
                 </Button>
               </li>
             ))}
