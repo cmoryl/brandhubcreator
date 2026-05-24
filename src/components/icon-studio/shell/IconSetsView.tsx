@@ -27,6 +27,8 @@ interface Props {
   onRegenerate?: (lib: IconLibrary) => void;
   onRemix?: (lib: IconLibrary) => void;
   onCompare?: (lib: IconLibrary) => void;
+  autoOpenLibraryId?: string | null;
+  onAutoOpenConsumed?: () => void;
 }
 
 const SAMPLE_FOR = (name: string): string[] => {
