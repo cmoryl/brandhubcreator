@@ -165,6 +165,7 @@ serve(async (req) => {
       style = { strokeWidth: 2, cornerRadius: "rounded", fill: false },
       preset = "outlined",
       detailLevel = "medium",
+      gridSize: gridSizeRaw,
       customCount,
     } = body;
 
@@ -172,6 +173,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Entity name is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    const gridSize: 24 | 48 = gridSizeRaw === 48 ? 48 : 24;
 
     const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
     if (sectionIndex >= taxonomyCategory.sections.length) {
@@ -189,7 +192,7 @@ serve(async (req) => {
         entity_type: "icon_generation",
         user_id: user.id,
         status: "pending",
-        result: { category, sectionIndex, style, preset, detailLevel, customCount, industry, entityName, entityId, entityType },
+        result: { category, sectionIndex, style, preset, detailLevel, gridSize, customCount, industry, entityName, entityId, entityType },
       }),
     });
 
@@ -226,7 +229,7 @@ async function runWorker(jobId: string) {
     const params = jobs?.[0]?.result;
     if (!params) throw new Error("No job params found");
 
-    const { category, sectionIndex, style, preset, detailLevel = "medium", customCount, industry, entityName, entityId, entityType } = params;
+    const { category, sectionIndex, style, preset, detailLevel = "medium", gridSize: gridSizeJob, customCount, industry, entityName, entityId, entityType } = params;
     const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
     const currentSection = taxonomyCategory.sections[sectionIndex];
     const iconCount = customCount && customCount > 0 ? customCount : currentSection.count;
@@ -235,18 +238,27 @@ async function runWorker(jobId: string) {
     // Detail tier — drives prompt verbosity AND validator strictness
     const detail: "low" | "medium" | "high" =
       detailLevel === "low" || detailLevel === "high" ? detailLevel : "medium";
-    // Stroke gets slightly thicker on low detail (so simpler glyphs still feel substantial)
-    // and slightly thinner on high detail (so dense linework doesn't choke).
-    const defaultStroke = detail === "low" ? 1.75 : detail === "high" ? 1.25 : 1.5;
+    const gridSize: 24 | 48 = gridSizeJob === 48 ? 48 : 24;
+    const isLargeGrid = gridSize === 48;
+    const safeMin = isLargeGrid ? 4 : 2;
+    const safeMax = gridSize - safeMin;
+    const opticalCenter = gridSize / 2;
+    // Stroke tracks both detail tier AND grid size — 48px grid carries thicker lines proportionally.
+    const baseStroke = detail === "low" ? 1.75 : detail === "high" ? 1.25 : 1.5;
+    const defaultStroke = isLargeGrid ? +(baseStroke * 1.6).toFixed(2) : baseStroke;
     const strokeWidth = style?.strokeWidth ?? (isFilled ? 0 : defaultStroke);
     const cornerStyle = style?.cornerRadius || "rounded";
     const linecap = cornerStyle === "sharp" ? "square" : "round";
     const linejoin = cornerStyle === "sharp" ? "miter" : "round";
 
-    // Max paths allowed per icon, by detail level. Duotone always needs ≥2 (back fill + line).
-    const maxPaths = isDuotone
-      ? (detail === "high" ? 4 : detail === "low" ? 2 : 3)
-      : (detail === "high" ? 4 : detail === "low" ? 1 : 2);
+    // Max paths allowed per icon — 48px grid unlocks denser, illustrative compositions.
+    const maxPaths = isLargeGrid
+      ? (isDuotone
+        ? (detail === "high" ? 8 : detail === "low" ? 3 : 5)
+        : (detail === "high" ? 6 : detail === "low" ? 2 : 4))
+      : (isDuotone
+        ? (detail === "high" ? 4 : detail === "low" ? 2 : 3)
+        : (detail === "high" ? 4 : detail === "low" ? 1 : 2));
 
     // ── Brand DNA: pull rich context so icons feel tailored to the brand ──
     const brandDNA = await loadBrandDNA(entityId, entityType);
@@ -260,12 +272,12 @@ async function runWorker(jobId: string) {
 ## NON-NEGOTIABLE RULES — any violation rejects the whole batch
 
 ### Canvas & Grid
-- viewBox: "0 0 24 24". Safe zone: keep all content inside (2,2)→(22,22).
-- Optical center at 12,12. Pick ONE keyline per icon:
-  • Square 18×18 at (3,3)→(21,21)
-  • Circle Ø20 centered
-  • Portrait 14w×20h | Landscape 20w×14h
-- Snap to a 1px grid. Allowed coordinate fractions: .0 and .5 ONLY. NEVER 7.33, 15.8, 4.27.
+- viewBox: "0 0 ${gridSize} ${gridSize}". Safe zone: keep all content inside (${safeMin},${safeMin})→(${safeMax},${safeMax}).
+- Optical center at ${opticalCenter},${opticalCenter}. Pick ONE keyline per icon:
+  • Square ${gridSize - 6}×${gridSize - 6} at (3,3)→(${gridSize - 3},${gridSize - 3})
+  • Circle Ø${gridSize - 4} centered
+  • Portrait ${Math.round(gridSize * 0.58)}w×${gridSize - 4}h | Landscape ${gridSize - 4}w×${Math.round(gridSize * 0.58)}h
+- Snap to a 1px grid. Allowed coordinate fractions: .0 and .5 ONLY. NEVER 7.33, 15.8, 4.27.${isLargeGrid ? `\n- This is a HIGH-DENSITY 48×48 canvas — exploit it. Add inner architecture, micro-detail, secondary forms, and storytelling layers that simply don't fit in a 24px frame. Reference: Material Symbols 48dp, Phosphor Bold, Iconoir 48.` : ""}
 
 ### SVG Purity (HARD)
 - ONLY <path> elements inside <svg>. NO <circle>, <rect>, <line>, <polygon>, <polyline>, <ellipse>, <g>, <use>, <defs>, <mask>, <clipPath>, <style>, <filter>.
@@ -335,7 +347,7 @@ These icons must be indistinguishable in quality from a hand-crafted Lucide rele
 ${brandContextBlock}
 
 ## Mandatory Style (identical on EVERY icon)
-- Preset: "${preset}" · Detail tier: "${detail}" · Max paths: ${maxPaths}
+- Preset: "${preset}" · Detail tier: "${detail}" · Grid: ${gridSize}×${gridSize} · Max paths: ${maxPaths}
 - ${isFilled ? "FILLED" : isDuotone ? `DUOTONE — back fill (fill-opacity 0.25) + front line (stroke-width ${strokeWidth})` : `OUTLINED, stroke-width ${strokeWidth}`}, ${cornerStyle} corners
 - stroke-linecap "${linecap}" / stroke-linejoin "${linejoin}"
 ${isFilled
@@ -450,7 +462,7 @@ ${isFilled
     // Sanitize + validate each SVG against the rule set. Reject icons we can't fix.
     const cleaned = icons
       .map((icon, idx) => {
-        const result = sanitizeAndValidate(icon.svg || "", { isFilled, isDuotone, strokeWidth, linecap, linejoin, maxPaths });
+        const result = sanitizeAndValidate(icon.svg || "", { isFilled, isDuotone, strokeWidth, linecap, linejoin, maxPaths, gridSize });
         if (!result.ok) {
           console.warn(`[generate-icon-set-worker] Rejected icon "${icon.name}": ${result.reason}`);
           return null;
@@ -460,7 +472,7 @@ ${isFilled
           name: icon.name || `${currentSection.name} Icon ${idx + 1}`,
           svgPath: result.svg,
           category: `${category} / ${currentSection.name}`,
-          viewBox: "0 0 24 24",
+          viewBox: `0 0 ${gridSize} ${gridSize}`,
           fillMode: isFilled ? "fill" : "stroke",
         };
       })
@@ -513,7 +525,7 @@ ${isFilled
  */
 function sanitizeAndValidate(
   raw: string,
-  opts: { isFilled: boolean; isDuotone?: boolean; strokeWidth: number; linecap: string; linejoin: string; maxPaths?: number },
+  opts: { isFilled: boolean; isDuotone?: boolean; strokeWidth: number; linecap: string; linejoin: string; maxPaths?: number; gridSize?: 24 | 48 },
 ): { ok: true; svg: string } | { ok: false; reason: string } {
   let svg = String(raw || "").trim();
   if (!svg.startsWith("<svg")) return { ok: false, reason: "missing <svg> root" };
@@ -542,6 +554,7 @@ function sanitizeAndValidate(
   // Strip forbidden attributes from every element.
   svg = svg.replace(/\s(id|class|style|data-[\w-]+|transform)\s*=\s*"[^"]*"/gi, "");
 
+  const vb = opts.gridSize === 48 ? "0 0 48 48" : "0 0 24 24";
   if (opts.isDuotone) {
     // Duotone: preserve fill="currentColor" + fill-opacity (back layer) and stroke (front).
     // Strip baked color hexes / named colors but keep currentColor + fill-opacity.
@@ -553,7 +566,7 @@ function sanitizeAndValidate(
       return `<path${a}/>`;
     });
     // Wrapper for duotone: outline defaults, individual back paths override with fill+opacity
-    const wrapperAttrs = `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+    const wrapperAttrs = `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
     svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
   } else {
     // Strip baked colors from inner elements (we re-apply wrapper-level coloring).
@@ -563,8 +576,8 @@ function sanitizeAndValidate(
       return `<${tag}${cleaned}>`;
     });
     const wrapperAttrs = opts.isFilled
-      ? `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="none"`
-      : `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+      ? `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="24" height="24" fill="currentColor" stroke="none"`
+      : `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
     svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
   }
 

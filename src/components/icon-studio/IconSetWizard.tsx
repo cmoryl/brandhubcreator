@@ -130,6 +130,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
   const [companyName, setCompanyName] = useState(organizationName || '');
   const [style, setStyle] = useState<'outlined' | 'filled' | 'duotone'>('outlined');
   const [detailLevel, setDetailLevel] = useState<'low' | 'medium' | 'high'>('medium');
+  const [gridSize, setGridSize] = useState<24 | 48>(24);
   const [selectedSubSetIds, setSelectedSubSetIds] = useState<Set<string>>(new Set());
   const [grouping, setGrouping] = useState<SubSetGrouping>('department');
 
@@ -218,6 +219,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
             industry: industry.name,
             style,
             detailLevel,
+            gridSize,
             onTaskStart: (task) =>
               upsertSection(task.key, { status: 'generating' }),
             onTaskDone: (result: GenerationResult) => {
@@ -233,7 +235,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
         setBusy(false);
       }
     },
-    [industry, companyName, style, detailLevel, entityId, entityType, upsertSection],
+    [industry, companyName, style, detailLevel, gridSize, entityId, entityType, upsertSection],
   );
 
   const generateCore = useCallback(async () => {
@@ -279,6 +281,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
           industry: industry?.name,
           style,
           detailLevel,
+          gridSize,
         });
         upsertSection(key, { status: 'complete', icons });
       } catch (err) {
@@ -288,7 +291,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
         });
       }
     },
-    [sections, companyName, industry, style, detailLevel, entityId, entityType, upsertSection],
+    [sections, companyName, industry, style, detailLevel, gridSize, entityId, entityType, upsertSection],
   );
 
   const removeIcon = useCallback((sectionKey: string, iconId: string) => {
@@ -395,6 +398,8 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
             setStyle={setStyle}
             detailLevel={detailLevel}
             setDetailLevel={setDetailLevel}
+            gridSize={gridSize}
+            setGridSize={setGridSize}
             sections={sections}
             busy={busy}
             stats={stats}
@@ -603,6 +608,8 @@ const CoreStep = ({
   setStyle,
   detailLevel,
   setDetailLevel,
+  gridSize,
+  setGridSize,
   sections,
   busy,
   stats,
@@ -616,6 +623,8 @@ const CoreStep = ({
   setStyle: (s: 'outlined' | 'filled' | 'duotone') => void;
   detailLevel: 'low' | 'medium' | 'high';
   setDetailLevel: (d: 'low' | 'medium' | 'high') => void;
+  gridSize: 24 | 48;
+  setGridSize: (g: 24 | 48) => void;
   sections: Map<string, SectionState>;
   busy: boolean;
   stats: { done: number; total: number; sections: number };
@@ -641,7 +650,7 @@ const CoreStep = ({
       </div>
 
       <Card>
-        <CardContent className="grid gap-4 md:grid-cols-4 p-5">
+        <CardContent className="grid gap-4 md:grid-cols-5 p-5">
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Company name</label>
             <Input
@@ -687,6 +696,29 @@ const CoreStep = ({
                   }
                 >
                   {d === 'low' ? 'Compact' : d === 'high' ? 'Expressive' : 'Standard'}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Grid · <span className="text-foreground">{gridSize}×{gridSize}</span>
+            </label>
+            <div className="flex gap-1">
+              {([24, 48] as const).map((g) => (
+                <Button
+                  key={g}
+                  size="sm"
+                  variant={gridSize === g ? 'default' : 'outline'}
+                  onClick={() => setGridSize(g)}
+                  className="flex-1"
+                  title={
+                    g === 24
+                      ? 'Standard UI grid — Lucide/Feather density'
+                      : 'High-density illustrative grid — Material 48dp, room for layered detail'
+                  }
+                >
+                  {g === 24 ? 'UI 24' : 'Detailed 48'}
                 </Button>
               ))}
             </div>
