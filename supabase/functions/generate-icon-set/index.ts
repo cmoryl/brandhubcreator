@@ -269,17 +269,30 @@ async function runWorker(jobId: string) {
 
 ### SVG Purity (HARD)
 - ONLY <path> elements inside <svg>. NO <circle>, <rect>, <line>, <polygon>, <polyline>, <ellipse>, <g>, <use>, <defs>, <mask>, <clipPath>, <style>, <filter>.
-- Max 2 paths, strongly prefer 1.
+- Max ${maxPaths} paths${detail === "low" ? ", strongly prefer 1" : detail === "medium" ? ", strongly prefer 1–2" : " — use the budget when the metaphor benefits from layered detail, never just to decorate"}.
 - Use arcs (A/a) for circular curves. Never approximate circles with cubic Bézier chains.
-- NO transform=, NO id=, NO class=, NO style=, NO data-*, NO inline fill/stroke colors (those come from the wrapper).
+- NO transform=, NO id=, NO class=, NO style=, NO data-*, NO inline stroke colors (those come from the wrapper).
 
 ### Stroke Style
 ${isFilled
   ? `- This batch is FILLED: solid shapes, no stroke. Each path: fill="currentColor".`
+  : isDuotone
+  ? `- This batch is DUOTONE (Phosphor-style): TWO layered paths per icon — a SOFT BACK FILL plus a CRISP FRONT LINE.
+- Back path: a closed silhouette, fill="currentColor" fill-opacity="0.25" stroke="none". Sits behind, suggesting mass.
+- Front path(s): pure outline, stroke="currentColor" stroke-width="${strokeWidth}" fill="none" stroke-linecap="${linecap}" stroke-linejoin="${linejoin}". Carries the readable detail.
+- The back fill MUST be subordinate to the front line — it's there to add depth, never to obscure the silhouette.
+- DO NOT use gradients, patterns, or more than two distinct opacity values.`
   : `- This batch is OUTLINED: stroke-only, no fills. Lines feel like a ${strokeWidth}px pen by Lucide/Tabler/Feather.
 - The host wrapper applies: fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="${linecap}" stroke-linejoin="${linejoin}".
 - DO NOT bake fills, gradients, or duotone shading. Pure outlines only.
 - Stroke terminals and joins are UNIFORM across the entire batch.`}
+
+### Detail Tier — "${detail}"
+${detail === "low"
+  ? `- COMPACT/UI-grade: minimal linework, single dominant gesture, optimised for 16–20px display. Ban inner ornament. Think Feather.`
+  : detail === "high"
+  ? `- EXPRESSIVE/illustrative: allow secondary inner shapes, supporting micro-detail (texture hatching, inner glyphs, doubled outlines, cutouts) that earns the path budget. Optimised for ≥32px display. Think Phosphor Duotone or Material Symbols at weight 700. Still must read clearly at 24px.`
+  : `- STANDARD: balanced detail — one primary form plus at most one supporting element. Reads clearly at 20–28px. Default Lucide/Tabler register.`}
 
 ## MASTER CRAFT
 
