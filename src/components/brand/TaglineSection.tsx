@@ -60,7 +60,9 @@ const loadGoogleFont = (fontFamily: string) => {
   document.head.appendChild(link);
 };
 
-export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSubtitleChange }: TaglineSectionProps) => {
+export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSubtitleChange, brandSlug }: TaglineSectionProps) => {
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   const [isEditing, setIsEditing] = useState(false);
   const [newVariation, setNewVariation] = useState('');
   const [settings, setSettings] = useState<TaglineSettings>(() => {
