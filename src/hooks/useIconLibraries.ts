@@ -52,12 +52,18 @@ export const useIconLibraries = (organizationId: string | undefined) => {
     queryFn: async () => {
       if (!organizationId) return [];
       
+      // Explicit cap: each row carries a large `icons` JSONB. We cap at 500
+      // rows to stay well below Supabase's default 1000-row implicit limit and
+      // keep payloads predictable. If an org outgrows this we'll move to paged
+      // fetching keyed by level.
       const { data, error } = await supabase
         .from('organization_icon_libraries')
         .select('*')
         .eq('organization_id', organizationId)
         .order('level')
-        .order('display_order');
+        .order('display_order')
+        .order('updated_at', { ascending: false })
+        .range(0, 499);
 
       if (error) throw error;
       
