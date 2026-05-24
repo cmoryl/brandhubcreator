@@ -4,8 +4,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Plus, Lock, MoreHorizontal, Library as LibraryIcon, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
+import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -15,20 +14,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { StatusChip } from './StatusChip';
-import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
+import { type IconLibrary } from '@/hooks/useIconLibraries';
+import { useIconLibraryRowActions } from './useIconLibraryRowActions';
 
 interface Props {
   libraries: IconLibrary[];
@@ -64,33 +54,8 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
   const [openLib, setOpenLib] = useState<IconLibrary | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<IconLibrary | null>(null);
-  const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
-
-  const handleDuplicate = (lib: IconLibrary) => {
-    if (!organizationId) { toast.error('No organization selected'); return; }
-    createLibrary.mutate({
-      organization_id: organizationId,
-      name: `${lib.name} (copy)`,
-      level: lib.level,
-      description: lib.description || undefined,
-      icons: lib.icons,
-      parent_library_id: lib.parent_library_id,
-      is_active: lib.is_active,
-      display_order: (lib.display_order ?? 0) + 1,
-    });
-  };
-  const handleLockToggle = (lib: IconLibrary) => {
-    updateLibrary.mutate(
-      { id: lib.id, updates: { is_active: !lib.is_active } },
-      { onSuccess: () => toast.success(lib.is_active ? `${lib.name} locked` : `${lib.name} unlocked`) },
-    );
-  };
-  const confirmDelete = () => {
-    if (!pendingDelete) return;
-    deleteLibrary.mutate(pendingDelete.id);
-    setPendingDelete(null);
-  };
+  const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
+    useIconLibraryRowActions({ organizationId, canEdit });
 
   // Auto-open from deep link
   useEffect(() => {
@@ -243,7 +208,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                         <DropdownMenuItem onClick={() => handleLockToggle(lib)}>
                           {lib.is_active ? 'Lock set' : 'Unlock set'}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={() => setPendingDelete(lib)}>Delete</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onClick={() => requestDelete(lib)}>Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
@@ -283,25 +248,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
         onClose={() => setOpenLib(null)}
       />
 
-      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete icon set?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently remove <strong>{pendingDelete?.name}</strong> and all of its icons. This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {deleteDialog}
     </div>
   );
 };
