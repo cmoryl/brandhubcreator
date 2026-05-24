@@ -248,7 +248,7 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
                   </div>
                 </div>
                 <Badge variant="outline" className="text-[10px] tabular-nums">
-                  {Math.min(100, 80 + (l.icons.length % 18))}%
+                  {l.icons.length} icons
                 </Badge>
                 <StatusChip status={l.icons.length > 0 ? 'approved' : 'idle'} />
                 <Button variant="ghost" size="icon" className="h-7 w-7" title="Run preflight">
