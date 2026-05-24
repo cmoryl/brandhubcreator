@@ -66,6 +66,55 @@ export function useEnrichAllLibraries(organizationId: string | undefined) {
     [libraries, updateLibrary],
   );
 
+  /**
+   * Brand repository builder — for every brand-level library, append a
+   * deep industry-specific set (multiple sub-areas × 150 icons each) so each
+   * brand ends up with a fully-stocked working icon repository.
+   */
+  const enrichBrandRepositories = useCallback(
+    async (opts?: { perCategory?: number; maxAdded?: number }) => {
+      const targets = libraries.filter((l) => l.is_active && l.level === 'brand');
+      if (!targets.length) {
+        toast.info('No brand libraries to enrich');
+        return;
+      }
+      const perCategory = opts?.perCategory ?? 150;
+      const maxAdded = opts?.maxAdded ?? 1200;
+      setProgress({ total: targets.length, done: 0, running: true, totalAdded: 0 });
+      const id = toast.loading(`Building brand repositories (${targets.length})…`);
+      let totalAdded = 0;
+      try {
+        for (let i = 0; i < targets.length; i++) {
+          const lib = targets[i];
+          setProgress((p) => ({ ...p, current: lib.name, done: i }));
+          try {
+            const result = await enrichLibrary(lib, {
+              perCategory,
+              maxAdded,
+              // Guarantee coverage of generic working areas on every brand
+              // library in addition to whatever the industry inference picks.
+              extraCategories: ['ui', 'arrows', 'communication', 'business', 'files', 'media', 'security'],
+            });
+            if (result.added > 0) {
+              await updateLibrary.mutateAsync({ id: lib.id, updates: { icons: result.icons } });
+              totalAdded += result.added;
+            }
+          } catch (e) {
+            logger.debug('[enrichBrand] failed', lib.name, e);
+          }
+          setProgress((p) => ({ ...p, done: i + 1, totalAdded }));
+        }
+        toast.success(`Added ${totalAdded} icons across ${targets.length} brand libraries`, { id });
+      } catch (e) {
+        logger.debug('[enrichBrand] aborted', e);
+        toast.error('Brand enrichment failed', { id });
+      } finally {
+        setProgress((p) => ({ ...p, running: false, current: undefined }));
+      }
+    },
+    [libraries, updateLibrary],
+  );
+
   const enrichOne = useCallback(
     async (library: IconLibrary, opts?: { perCategory?: number; maxAdded?: number }) => {
       const id = toast.loading(`Enriching ${library.name}…`);
