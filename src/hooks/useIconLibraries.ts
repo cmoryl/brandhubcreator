@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BrandIconography } from '@/types/brand';
+import { logActivity } from '@/lib/auditLog';
 
 export interface IconLibrary {
   id: string;
@@ -90,9 +91,17 @@ export const useIconLibraries = (organizationId: string | undefined) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
       toast.success('Icon library created');
+      void logActivity({
+        entityType: 'icon_library',
+        entityId: data?.id,
+        entityName: data?.name,
+        actionType: 'create',
+        organizationId,
+        details: { level: data?.level, iconCount: Array.isArray(data?.icons) ? (data.icons as unknown[]).length : 0 },
+      });
     },
     onError: (error) => {
       console.error('Failed to create icon library:', error);
@@ -117,9 +126,17 @@ export const useIconLibraries = (organizationId: string | undefined) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
       toast.success('Icon library updated');
+      void logActivity({
+        entityType: 'icon_library',
+        entityId: data?.id,
+        entityName: data?.name,
+        actionType: 'update',
+        organizationId,
+        details: { changedFields: Object.keys(vars.updates) },
+      });
     },
     onError: (error) => {
       console.error('Failed to update icon library:', error);
@@ -129,16 +146,26 @@ export const useIconLibraries = (organizationId: string | undefined) => {
 
   const deleteLibrary = useMutation({
     mutationFn: async (id: string) => {
+      const target = libraries.find((l) => l.id === id);
       const { error } = await supabase
         .from('organization_icon_libraries')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+      return { id, name: target?.name, level: target?.level };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
       toast.success('Icon library deleted');
+      void logActivity({
+        entityType: 'icon_library',
+        entityId: result.id,
+        entityName: result.name,
+        actionType: 'delete',
+        organizationId,
+        details: { level: result.level },
+      });
     },
     onError: (error) => {
       console.error('Failed to delete icon library:', error);

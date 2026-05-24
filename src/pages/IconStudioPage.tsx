@@ -52,11 +52,12 @@ const IconStudioPage = () => {
     if (!authLoading && !user) navigate('/auth');
   }, [user, authLoading, navigate]);
 
-  // Honor deep-links like /icon-studio?section=library&library=<id>
+  // Honor deep-links like /icon-studio?section=library&library=<id>&brand=<id>
   const [searchParams] = useSearchParams();
   const validSections: ShellSection[] = ['dashboard','library','brands','styles','sets','qa','export','generate'];
   const urlSection = searchParams.get('section') as ShellSection | null;
   const urlLibrary = searchParams.get('library');
+  const urlBrand = searchParams.get('brand');
   const initialSection: ShellSection =
     urlSection && validSections.includes(urlSection)
       ? urlSection
@@ -74,7 +75,8 @@ const IconStudioPage = () => {
   useEffect(() => {
     const s = searchParams.get('section') as ShellSection | null;
     const lib = searchParams.get('library');
-    if (!s && !lib) return;
+    const br = searchParams.get('brand');
+    if (!s && !lib && !br) return;
     if (s && validSections.includes(s)) setShellSection(s);
     if (lib) {
       setDeepLinkLibraryId(lib);
@@ -84,6 +86,7 @@ const IconStudioPage = () => {
       const url = new URL(window.location.href);
       url.searchParams.delete('section');
       url.searchParams.delete('library');
+      url.searchParams.delete('brand');
       window.history.replaceState(window.history.state, '', url.pathname + url.search);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,6 +130,26 @@ const IconStudioPage = () => {
     return [...base, ...extras].filter((b) => (seen.has(b.id) ? false : (seen.add(b.id), true)));
   }, [organization, hierarchyBrands]);
 
+  // Restore active brand from URL or localStorage once brands load
+  useEffect(() => {
+    if (activeBrand || shellBrands.length === 0) return;
+    const storageKey = `icon-studio:active-brand:${organizationId}`;
+    const targetId = urlBrand || (typeof window !== 'undefined' ? window.localStorage.getItem(storageKey) : null);
+    if (targetId) {
+      const match = shellBrands.find((b) => b.id === targetId);
+      if (match) setActiveBrand(match);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shellBrands, organizationId]);
+
+  // Persist active brand selection
+  const handleBrandChange = useCallback((b: ShellBrand) => {
+    setActiveBrand(b);
+    if (typeof window !== 'undefined' && organizationId) {
+      window.localStorage.setItem(`icon-studio:active-brand:${organizationId}`, b.id);
+    }
+  }, [organizationId]);
+
   const handleSaveSetAsLibrary = useCallback(
     (name: string, icons: BrandIconography[]) => {
       if (!organizationId || !canEdit) return;
@@ -155,7 +178,7 @@ const IconStudioPage = () => {
       onSectionChange={setShellSection}
       brands={shellBrands}
       activeBrand={activeBrand}
-      onBrandChange={setActiveBrand}
+      onBrandChange={handleBrandChange}
       onBack={() => navigate(-1)}
       onSaveToLibrary={canEdit ? () => setShellSection('library') : undefined}
       rightRail={
