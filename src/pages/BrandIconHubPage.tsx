@@ -770,8 +770,8 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
               </DialogHeader>
 
               <div className="flex items-center justify-center py-6 border rounded-lg bg-background/40">
-                <div className="h-32 w-32 text-foreground">
-                  {renderIconSvg(selectedIcon.icon)}
+                <div className="text-foreground">
+                  <IconSvgRender icon={selectedIcon.icon} size={128} />
                 </div>
               </div>
 
