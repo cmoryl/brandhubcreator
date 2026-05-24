@@ -365,6 +365,21 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                 <span className="hidden sm:inline">{entityType === 'brand' ? 'Brand profile' : entityType === 'product' ? 'Product profile' : 'Event profile'}</span>
               </Link>
             </Button>
+            {(() => {
+              const guide: any = (brand as any).guide_data || {};
+              const colors: Array<{ hex: string; role?: string }> = Array.isArray(guide?.colors) ? guide.colors : [];
+              const primary = colors.find((c) => c?.role === 'primary')?.hex || colors[0]?.hex || '#0f172a';
+              const kind: 'Brand' | 'Product' | 'Event' =
+                entityType === 'product' ? 'Product' : entityType === 'event' ? 'Event' : 'Brand';
+              const current = pdfBranding ?? defaultPdfBranding(brand.name, kind, primary);
+              return (
+                <PdfBrandingPopover
+                  value={current}
+                  onChange={setPdfBranding}
+                  onReset={() => setPdfBranding(null)}
+                />
+              );
+            })()}
             <Button
               variant="outline"
               size="sm"
