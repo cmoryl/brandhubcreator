@@ -59,7 +59,6 @@ export const IconSetsView = ({
   organizationId,
   onCreate,
   onRegenerate,
-export const IconSetsView = ({
   libraries,
   organizationId,
   onCreate,
