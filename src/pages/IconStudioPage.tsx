@@ -208,6 +208,12 @@ const IconStudioPage = () => {
             Select or create an organization to use Icon Studio.
           </CardContent>
         </Card>
+      ) : librariesLoading && libraries.length === 0 ? (
+        <Card className="tp-card">
+          <CardContent className="py-16 text-center text-sm text-muted-foreground">
+            Loading icon libraries…
+          </CardContent>
+        </Card>
       ) : shellSection === 'dashboard' ? (
         <DashboardView
           organizationName={organizationName}
