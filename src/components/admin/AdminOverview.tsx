@@ -319,7 +319,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-3">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-8 gap-3">
           <DataForceSummaryWidget onTabChange={onTabChange} />
           <GlobalLinkSummaryWidget onTabChange={onTabChange} />
           <BotSummaryWidget onTabChange={onTabChange} />
@@ -327,6 +327,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
           <VisibilitySummaryWidget onTabChange={onTabChange} />
           <AICenterSummaryWidget onTabChange={onTabChange} />
           <IconStudioSummaryWidget />
+          <ImageryHubSummaryWidget />
         </div>
       </motion.div>
 
@@ -808,6 +809,77 @@ const IconStudioSummaryWidget: React.FC = () => {
               <SummaryRow icon={Sparkles} color="text-emerald-500" bg="bg-emerald-500/10" label="Added 30d" value={data.added30d} onClick={go} />
             </div>
             <SummaryRow icon={Download} color="text-amber-500" bg="bg-amber-500/10" label="Exports 30d" value={data.exported30d} onClick={go} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// ─── Imagery Hub Summary ────────────────────────────────────
+const ImageryHubSummaryWidget: React.FC = () => {
+  const navigate = useNavigate();
+  const [data, setData] = useState<{
+    images: number;
+    trainedBrains: number;
+    approved: number;
+    embeddings: number;
+    avgConfidence: number;
+  } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const [imgsRes, dnaRes, embRes] = await Promise.all([
+        supabase.from('organization_images').select('id', { count: 'exact', head: true }),
+        supabase.from('imagery_visual_dna').select('total_approved, confidence_score, last_analyzed_at'),
+        supabase.from('brand_imagery_embeddings').select('id', { count: 'exact', head: true }),
+      ]);
+      const dnas = dnaRes.data || [];
+      const trained = dnas.filter((d: any) => d.last_analyzed_at).length;
+      const approved = dnas.reduce((sum, d: any) => sum + (d.total_approved || 0), 0);
+      const confidences = dnas.map((d: any) => Number(d.confidence_score) || 0).filter((v) => v > 0);
+      const avg = confidences.length > 0 ? confidences.reduce((a, b) => a + b, 0) / confidences.length : 0;
+      setData({
+        images: imgsRes.count || 0,
+        trainedBrains: trained,
+        approved,
+        embeddings: embRes.count || 0,
+        avgConfidence: avg,
+      });
+    })();
+  }, []);
+
+  const go = () => navigate('/n-hub');
+  const confColor = (v: number) => v >= 0.75 ? 'text-emerald-500' : v >= 0.5 ? 'text-amber-500' : 'text-muted-foreground';
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="p-3 pb-2 border-b border-border/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Image className="h-3.5 w-3.5 text-rose-500" />
+            <CardTitle className="text-xs font-semibold">Imagery Hub</CardTitle>
+          </div>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground" onClick={go}>
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-2.5">
+        {!data ? (
+          <div className="flex justify-center py-4"><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+        ) : (
+          <div className="space-y-1.5">
+            <SummaryRow icon={Image} color="text-rose-500" bg="bg-rose-500/10" label="Library Images" value={data.images}
+              sub={`${data.approved} approved`} subColor="text-emerald-500"
+              onClick={go} />
+            <div className="grid grid-cols-2 gap-1.5">
+              <SummaryRow icon={Brain} color="text-violet-500" bg="bg-violet-500/10" label="Trained" value={data.trainedBrains}
+                sub={data.avgConfidence > 0 ? `${(data.avgConfidence * 100).toFixed(0)}%` : undefined}
+                subColor={confColor(data.avgConfidence)}
+                onClick={go} />
+              <SummaryRow icon={Sparkles} color="text-cyan-500" bg="bg-cyan-500/10" label="Embeddings" value={data.embeddings} onClick={go} />
+            </div>
           </div>
         )}
       </CardContent>
