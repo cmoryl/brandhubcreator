@@ -4,12 +4,13 @@
  * Click an icon to add it to the brand's iconography list.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Sparkles, Plus, RefreshCw } from 'lucide-react';
+import { Sparkles, Plus, RefreshCw, Wand2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { getSuggestedIcons, type SuggestedIcon } from '@/lib/iconLibrary/suggestions';
 import { materializeAsBrandIconography, materializeDataUrl } from '@/lib/iconLibrary/loader';
+import { restyleBundledIcon, applyBrandDnaToSvg, type BrandRestyleDNA } from '@/lib/iconLibrary/restyle';
 import type { BrandIconography } from '@/types/brand';
 
 interface SuggestedIconsRailProps {
@@ -18,6 +19,8 @@ interface SuggestedIconsRailProps {
   existingIcons?: BrandIconography[];
   onAdd: (icon: BrandIconography) => void;
   limit?: number;
+  /** Phase 4: optional brand DNA — when present, previews are auto-restyled. */
+  brandDna?: BrandRestyleDNA;
 }
 
 export const SuggestedIconsRail = ({
@@ -26,10 +29,12 @@ export const SuggestedIconsRail = ({
   existingIcons = [],
   onAdd,
   limit = 24,
+  brandDna,
 }: SuggestedIconsRailProps) => {
   const [items, setItems] = useState<SuggestedIcon[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [restyleOn, setRestyleOn] = useState<boolean>(!!brandDna);
 
   useEffect(() => {
     let alive = true;
@@ -37,7 +42,6 @@ export const SuggestedIconsRail = ({
     getSuggestedIcons({ sectionId, industry, limit: limit * 2 })
       .then((res) => {
         if (!alive) return;
-        // Shuffle slightly for variety on refresh.
         const shuffled = refreshKey === 0 ? res : [...res].sort(() => Math.random() - 0.5);
         setItems(shuffled.slice(0, limit));
       })
@@ -60,8 +64,16 @@ export const SuggestedIconsRail = ({
         toast.info('Already in your iconography');
         return;
       }
+      if (brandDna && restyleOn) {
+        try {
+          const restyled = await restyleBundledIcon(s.pack, s.name, brandDna);
+          if (!restyled.skipped) {
+            (brandIcon as BrandIconography).svgPath = applyBrandDnaToSvg(restyled.svg, brandDna);
+          }
+        } catch { /* fall back to original */ }
+      }
       onAdd(brandIcon as BrandIconography);
-      toast.success(`Added ${brandIcon.name}`);
+      toast.success(`Added ${brandIcon.name}${brandDna && restyleOn ? ' (brand DNA applied)' : ''}`);
     } catch {
       toast.error('Could not add icon');
     }
