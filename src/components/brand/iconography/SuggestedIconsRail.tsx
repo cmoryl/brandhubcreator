@@ -4,9 +4,11 @@
  * Click an icon to add it to the brand's iconography list.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Sparkles, Plus, RefreshCw, Wand2 } from 'lucide-react';
+import { Sparkles, Plus, RefreshCw, Wand2, Search, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useSemanticIconSearch } from '@/lib/iconLibrary/semanticSearch';
 import { toast } from 'sonner';
 import { getSuggestedIcons, type SuggestedIcon } from '@/lib/iconLibrary/suggestions';
 import { materializeAsBrandIconography, materializeDataUrl } from '@/lib/iconLibrary/loader';
@@ -35,6 +37,21 @@ export const SuggestedIconsRail = ({
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [restyleOn, setRestyleOn] = useState<boolean>(!!brandDna);
+  // Phase 3 — AI semantic search state
+  const [aiQuery, setAiQuery] = useState('');
+  const ai = useSemanticIconSearch();
+  const aiActive = ai.hits.length > 0 || !!ai.error;
+  const aiExpansion = ai.expansion;
+  const displayItems = aiActive
+    ? ai.hits.map((h) => ({
+        pack: h.pack,
+        packName: h.packName,
+        name: h.name,
+        category: h.category,
+        tags: h.tags,
+        license: h.license,
+      }))
+    : items;
 
   useEffect(() => {
     let alive = true;
@@ -91,17 +108,50 @@ export const SuggestedIconsRail = ({
         }}
         aria-hidden
       />
-      <div className="relative flex items-center justify-between gap-3 mb-3">
+      <div className="relative flex flex-wrap items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold tracking-tight">Suggested for this brand</h3>
-          {industry && (
+          <h3 className="text-sm font-semibold tracking-tight">
+            {aiActive ? 'AI search results' : 'Suggested for this brand'}
+          </h3>
+          {industry && !aiActive && (
             <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
               {industry}
             </Badge>
           )}
+          {aiActive && aiExpansion?.reasoning && (
+            <span className="text-[10px] text-muted-foreground italic max-w-[260px] truncate">
+              {aiExpansion.reasoning}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (aiQuery.trim().length < 2) return;
+              ai.search({ query: aiQuery, industry, sectionId }).catch(() => {});
+            }}
+            className="relative"
+          >
+            <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={aiQuery}
+              onChange={(e) => setAiQuery(e.target.value)}
+              placeholder="AI search: e.g. 'momentum'"
+              className="h-7 pl-7 pr-7 text-[11px] w-[180px] md:w-[220px]"
+            />
+            {aiQuery && (
+              <button
+                type="button"
+                onClick={() => { setAiQuery(''); ai.reset(); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </form>
           {brandDna && (
             <Button
               size="sm"
@@ -119,20 +169,26 @@ export const SuggestedIconsRail = ({
             variant="ghost"
             className="h-7 text-[11px]"
             onClick={() => setRefreshKey((k) => k + 1)}
-            disabled={loading}
+            disabled={loading || ai.loading}
           >
-            <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-3 w-3 mr-1 ${(loading || ai.loading) ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
       </div>
 
       <div className="relative grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2">
-        {loading
+        {(loading || ai.loading)
           ? Array.from({ length: limit }).map((_, i) => (
               <div key={i} className="aspect-square rounded-md bg-muted/40 animate-pulse" />
             ))
-          : items.map((s) => (
+          : displayItems.length === 0
+          ? (
+            <div className="col-span-full py-8 text-center text-xs text-muted-foreground">
+              {aiActive ? 'No matches. Try a different phrase.' : 'No suggestions yet.'}
+            </div>
+          )
+          : displayItems.map((s) => (
               <SuggestedCell
                 key={`${s.pack}/${s.name}`}
                 icon={s}
