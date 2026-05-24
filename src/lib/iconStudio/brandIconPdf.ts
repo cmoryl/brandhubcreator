@@ -596,12 +596,11 @@ export async function buildBrandIconPdf({
 
   /* ──────── Bookmarks (outline) — built last so page numbers are final ──────── */
   try {
+    const outline = (doc as unknown as { outline: { add: (parent: unknown, title: string, opts: unknown) => unknown } }).outline;
     for (const entry of libStartPages) {
-      // @ts-expect-error jsPDF outline API
-      const libNode = doc.outline.add(null, entry.lib.name, { pageNumber: entry.page + 1 });
+      const libNode = outline.add(null, entry.lib.name, { pageNumber: entry.page + 1 });
       for (const cat of entry.catBookmarks) {
-        // @ts-expect-error jsPDF outline API
-        doc.outline.add(libNode, cat.name, { pageNumber: cat.page + 1 });
+        outline.add(libNode, cat.name, { pageNumber: cat.page + 1 });
       }
     }
   } catch { /* ignore */ }
