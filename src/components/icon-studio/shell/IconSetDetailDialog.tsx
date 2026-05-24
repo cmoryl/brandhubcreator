@@ -359,73 +359,92 @@ export const IconSetDetailDialog = ({
 };
 
 /* -------------------------------------------------------------------------- */
-/* Real icon ladder — renders BrandIconography svgPath at multiple sizes      */
+/* Filtered single-size grid + category chip                                  */
 /* -------------------------------------------------------------------------- */
 
-const LADDER: { label: string; tile: number; icon: number }[] = [
-  { label: '20 px', tile: 32, icon: 18 },
-  { label: '32 px', tile: 48, icon: 26 },
-  { label: '48 px', tile: 72, icon: 40 },
-  { label: '64 px', tile: 96, icon: 56 },
-];
+const CategoryChip = ({
+  label,
+  active,
+  onClick,
+  accent,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  accent: string;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="text-[11px] px-2.5 py-1 rounded-full border transition-colors capitalize"
+    style={{
+      borderColor: active ? accent : 'hsl(var(--border))',
+      background: active ? `color-mix(in oklab, ${accent} 14%, transparent)` : 'transparent',
+      color: active ? accent : 'hsl(var(--muted-foreground))',
+    }}
+  >
+    {label}
+  </button>
+);
 
-interface LadderProps {
+interface GridProps {
   icons: Array<{ id: string; name: string; svgPath: string; viewBox?: string; fillMode?: 'stroke' | 'fill' }>;
   accent: string;
   styleMode?: 'outlined' | 'filled' | 'duotone';
+  sizePx: 20 | 32 | 48 | 64;
   onIconClick?: (id: string) => void;
 }
 
-const RealIconLadder = ({ icons, accent, styleMode = 'outlined', onIconClick }: LadderProps) => {
+const TILE_FOR_SIZE: Record<number, number> = { 20: 36, 32: 52, 48: 76, 64: 100 };
+
+const FilteredIconGrid = ({ icons, accent, styleMode = 'outlined', sizePx, onIconClick }: GridProps) => {
+  const tile = TILE_FOR_SIZE[sizePx];
+  // Cap displayed icons to keep DOM cheap; rely on filter/search to narrow.
+  const MAX = 600;
+  const shown = icons.slice(0, MAX);
+  const overflow = icons.length - shown.length;
   return (
-    <div className="space-y-6">
-      {LADDER.map((s) => (
-        <section key={s.label} className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {s.label}
-            </h4>
-            <span className="text-[10px] text-muted-foreground">{icons.length} icons</span>
-          </div>
-          <div
-            className="tp-card p-4 grid gap-3"
-            style={{
-              gridTemplateColumns: `repeat(auto-fill, minmax(${s.tile + 24}px, 1fr))`,
-            }}
+    <div className="space-y-3">
+      <div
+        className="tp-card p-4 grid gap-3"
+        style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${tile + 24}px, 1fr))` }}
+      >
+        {shown.map((icon) => (
+          <button
+            type="button"
+            key={icon.id}
+            onClick={() => onIconClick?.(icon.id)}
+            className="flex flex-col items-center gap-1.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+            title={icon.name}
           >
-            {icons.map((icon) => (
-              <button
-                type="button"
-                key={`${s.label}-${icon.id}`}
-                onClick={() => onIconClick?.(icon.id)}
-                className="flex flex-col items-center gap-1.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
-                title={icon.name}
-              >
-                <div
-                  className="flex items-center justify-center rounded-lg transition-transform group-hover:scale-105"
-                  style={{
-                    width: s.tile,
-                    height: s.tile,
-                    background: `color-mix(in oklab, ${accent} 10%, transparent)`,
-                    border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
-                  }}
-                >
-                  <IconSvgRender
-                    icon={icon as BrandIconography}
-                    size={s.icon}
-                    color={accent}
-                    presentation={styleMode}
-                    strokeWidth={styleMode === 'duotone' ? 1.5 : 1.75}
-                  />
-                </div>
-                <span className="text-[10px] text-muted-foreground truncate max-w-[88px]">
-                  {icon.name}
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-      ))}
+            <div
+              className="flex items-center justify-center rounded-lg transition-transform group-hover:scale-105"
+              style={{
+                width: tile,
+                height: tile,
+                background: `color-mix(in oklab, ${accent} 10%, transparent)`,
+                border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
+              }}
+            >
+              <IconSvgRender
+                icon={icon as BrandIconography}
+                size={sizePx}
+                color={accent}
+                presentation={styleMode}
+                strokeWidth={styleMode === 'duotone' ? 1.5 : 1.75}
+              />
+            </div>
+            <span className="text-[10px] text-muted-foreground truncate max-w-[88px]">
+              {icon.name}
+            </span>
+          </button>
+        ))}
+      </div>
+      {overflow > 0 && (
+        <div className="text-[11px] text-muted-foreground text-center">
+          Showing first {MAX} of {icons.length}. Use search or category filters to narrow.
+        </div>
+      )}
     </div>
   );
 };
