@@ -32,6 +32,7 @@ import {
 import { useZoneSeedMode } from '@/hooks/useZoneSeedMode';
 import { buildSurfaceDefaultZones, getDefaultAspectForSurface } from '@/lib/templateZoneDefaults';
 import { safeUUID } from '@/lib/safeUUID';
+import { TransPerfectCollateralPanel } from './identity/TransPerfectCollateralPanel';
 
 import {
   DndContext,
