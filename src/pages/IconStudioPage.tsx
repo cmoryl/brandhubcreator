@@ -29,6 +29,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
+import { useImportedIcons } from '@/hooks/useImportedIcons';
 import { BrandIconography } from '@/types/brand';
 import { useSEO } from '@/hooks/useSEO';
 
@@ -106,6 +107,8 @@ const IconStudioPage = () => {
     createLibrary,
     updateLibrary,
   } = useIconLibraries(organizationId);
+
+  const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
 
   const totalIcons = useMemo(
     () => libraries.reduce((sum, l) => sum + l.icons.length, 0),
@@ -291,6 +294,7 @@ const IconStudioPage = () => {
             entityType: b.type,
             tone: b.type === 'brand' ? 'Brand' : b.type === 'product' ? 'Product' : 'Event',
           }))}
+          importedIconCount={importedEntries.length}
         />
       ) : shellSection === 'generate' ? (
         <IconSetWizard
@@ -309,6 +313,7 @@ const IconStudioPage = () => {
           onRemix={() => setShellSection('generate')}
           autoOpenLibraryId={deepLinkLibraryId}
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
+          onViewImported={() => setShellSection('imported')}
         />
       ) : shellSection === 'imported' ? (
         <ImportedIconsView />
@@ -339,6 +344,7 @@ const IconStudioPage = () => {
           libraries={libraries}
           organizationName={organizationName}
           onOpenLibrary={() => setShellSection('library')}
+          importedIcons={importedEntries}
         />
       ) : (
         <SettingsView />

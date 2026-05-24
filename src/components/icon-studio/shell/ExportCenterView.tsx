@@ -21,11 +21,13 @@ import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { BASE_STYLES, type BaseStyle } from './studioData';
 import { IconSetPreview } from './IconSetPreview';
 import { buildStyledSvg, svgToPng, slugify, resolveCssColor } from './styleSvgExporter';
+import type { ImportedIconEntry } from '@/hooks/useImportedIcons';
 
 interface Props {
   libraries: IconLibrary[];
   organizationName: string;
   onOpenLibrary?: () => void;
+  importedIcons?: ImportedIconEntry[];
 }
 
 interface FormatRow {
@@ -70,7 +72,7 @@ const PREVIEW_EMOJIS = ['⚙️', '📊', '🔐', '🛒', '✨', '🛡️'];
 // its `svgPath` — keeps the export pipeline deterministic.
 const FALLBACK_PATH = 'M12 2 L22 7 L22 17 L12 22 L2 17 L2 7 Z';
 
-export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }: Props) => {
+export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, importedIcons = [] }: Props) => {
   const { toast } = useToast();
   const [formats, setFormats] = useState(DEFAULT_FORMATS);
   const [sizes, setSizes] = useState<Set<number>>(new Set([24, 48, 128, 512]));
@@ -90,9 +92,12 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
     : undefined;
 
   const targetIcons = useMemo(() => {
-    if (selectedSetId === 'all') return libraries.reduce((s, l) => s + l.icons.length, 0);
+    if (selectedSetId === 'all') {
+      return libraries.reduce((s, l) => s + l.icons.length, 0) + importedIcons.length;
+    }
+    if (selectedSetId === 'imported') return importedIcons.length;
     return libraries.find((l) => l.id === selectedSetId)?.icons.length ?? 0;
-  }, [libraries, selectedSetId]);
+  }, [libraries, selectedSetId, importedIcons]);
 
   const fileEstimate = useMemo(() => {
     const pngVariants = sizes.size;
@@ -115,14 +120,42 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
     });
 
   const handleExport = async () => {
+    const includeImported = selectedSetId === 'all' || selectedSetId === 'imported';
     const scopedLibs =
-      selectedSetId === 'all' ? libraries : libraries.filter((l) => l.id === selectedSetId);
+      selectedSetId === 'all' || selectedSetId === 'imported'
+        ? libraries
+        : libraries.filter((l) => l.id === selectedSetId);
     const allIcons = scopedLibs.flatMap((lib) =>
       lib.icons.map((ic) => ({ lib, icon: ic })),
     );
 
-    if (allIcons.length === 0) {
-      toast({ title: 'No icons in scope', description: 'Generate a set first.', variant: 'destructive' });
+    let importedSvgData: { name: string; slug: string; svgPath: string; viewBox: string }[] = [];
+    if (includeImported && importedIcons.length > 0) {
+      const fetched = await Promise.all(
+        importedIcons.map(async (entry) => {
+          try {
+            const text = await fetch(entry.path).then((r) => r.text());
+            const pathMatch = text.match(/<path[^>]*d="([^"]*)"/);
+            const svgPath = pathMatch ? pathMatch[1] : text;
+            const viewBoxMatch = text.match(/viewBox="([^"]*)"/);
+            return {
+              name: entry.name,
+              slug: slugify(entry.name),
+              svgPath,
+              viewBox: viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24',
+            };
+          } catch {
+            return null;
+          }
+        })
+      );
+      importedSvgData = fetched.filter(Boolean) as typeof importedSvgData;
+    }
+
+    const totalCount = allIcons.length + importedSvgData.length;
+
+    if (totalCount === 0) {
+      toast({ title: 'No icons in scope', description: 'Generate a set or import icons first.', variant: 'destructive' });
       return;
     }
 
@@ -162,7 +195,8 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
         pngSizes: Array.from(sizes).sort((a, b) => a - b),
         formats: formats.filter((f) => f.enabled).map((f) => f.id),
         libraries: scopedLibs.map((l) => ({ id: l.id, name: l.name, count: l.icons.length })),
-        totals: { icons: allIcons.length },
+        imported: importedSvgData.length > 0 ? { count: importedSvgData.length, source: 'bundled' } : undefined,
+        totals: { icons: totalCount },
       };
 
       if (formats.find((f) => f.id === 'json')?.enabled) {
@@ -220,13 +254,58 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
         }
       }
 
+      // Per-icon emission — imported icons
+      for (const ic of importedSvgData) {
+        const iconSlug = ic.slug;
+        const path = ic.svgPath || FALLBACK_PATH;
+        const viewBox = ic.viewBox || '0 0 24 24';
+
+        if (wantStyled) {
+          const svg = buildStyledSvg({
+            svgPath: path,
+            viewBox,
+            style: activeStyle,
+            accent: resolvedAccent,
+            accent2: resolvedAccent2,
+            size: 64,
+            standalone: true,
+          });
+          root.file(`svg/imported/${iconSlug}.svg`, svg);
+        }
+
+        if (wantRaw) {
+          const raw = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`;
+          root.file(`svg-raw/imported/${iconSlug}.svg`, raw);
+        }
+
+        if (wantPng) {
+          for (const px of pngList) {
+            const styledForPx = buildStyledSvg({
+              svgPath: path,
+              viewBox,
+              style: activeStyle,
+              accent: resolvedAccent,
+              accent2: resolvedAccent2,
+              size: px,
+              standalone: false,
+            });
+            try {
+              const blob = await svgToPng(styledForPx, px);
+              root.file(`png/${px}/imported/${iconSlug}.png`, blob);
+            } catch {
+              // Skip individual PNG failures.
+            }
+          }
+        }
+      }
+
       // Contact sheet HTML — quick visual proof
       root.file(
         'README.html',
         `<!doctype html><meta charset="utf-8"><title>${organizationName} · ${activeStyle.name}</title>
 <style>body{font-family:system-ui;background:#0f1422;color:#e7eaf3;padding:32px}h1{font-size:20px}.grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-top:16px}.cell{background:#181f33;border-radius:8px;padding:8px;text-align:center;font-size:10px}img{width:48px;height:48px;display:block;margin:0 auto 4px}</style>
 <h1>${organizationName} — ${activeStyle.name} (${activeStyle.preview.variant})</h1>
-<p style="opacity:.7">Accent: ${resolvedAccent}${resolvedAccent2 ? ` · 2nd: ${resolvedAccent2}` : ''} · ${allIcons.length} icons</p>
+<p style="opacity:.7">Accent: ${resolvedAccent}${resolvedAccent2 ? ` · 2nd: ${resolvedAccent2}` : ''} · ${totalCount} icons</p>
 <p style="opacity:.6">Open <code>svg/</code> for styled SVGs, <code>png/</code> for rasterized variants, <code>manifest.json</code> for metadata.</p>`,
       );
 
@@ -242,7 +321,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
 
       toast({
         title: 'Bundle exported',
-        description: `${allIcons.length} icons in “${activeStyle.name}” style.`,
+        description: `${totalCount} icons in “${activeStyle.name}” style.`,
       });
     } catch (e) {
       logger.debug('[ExportCenter] export failed', e);
@@ -427,7 +506,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
         </header>
         <div className="flex flex-wrap gap-2">
           <ScopeChip
-            label={`Entire workspace (${libraries.length})`}
+            label={`Entire workspace (${libraries.length + (importedIcons.length > 0 ? 1 : 0)})`}
             active={selectedSetId === 'all'}
             onClick={() => setSelectedSetId('all')}
           />
@@ -439,9 +518,16 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
               onClick={() => setSelectedSetId(l.id)}
             />
           ))}
-          {libraries.length === 0 && (
+          {importedIcons.length > 0 && (
+            <ScopeChip
+              label={`Imported Assets · ${importedIcons.length}`}
+              active={selectedSetId === 'imported'}
+              onClick={() => setSelectedSetId('imported')}
+            />
+          )}
+          {libraries.length === 0 && importedIcons.length === 0 && (
             <p className="text-xs text-muted-foreground">
-              No sets yet — generate one to enable scoped exports.
+              No sets yet — generate one or import icons to enable scoped exports.
             </p>
           )}
         </div>

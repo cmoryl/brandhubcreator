@@ -11,6 +11,7 @@
 import {
   ArrowUpRight,
   Folder,
+  Image as ImageIcon,
   Plus,
   Sparkles,
   Users,
@@ -53,13 +54,15 @@ interface Props {
   totalLibraries: number;
   onStartGenerate: () => void;
   /** Navigate to another shell section (library, sets, export, brands, qa, styles). */
-  onNavigate?: (section: 'library' | 'sets' | 'export' | 'brands' | 'qa' | 'styles' | 'generate') => void;
+  onNavigate?: (section: 'library' | 'sets' | 'export' | 'brands' | 'qa' | 'styles' | 'generate' | 'imported') => void;
   /** Open a specific library's detail dialog. */
   onOpenLibrary?: (libraryId: string) => void;
   /** Recent saved libraries (most recently created/updated first). */
   recentLibraries?: RecentLibrary[];
   /** Real brand profiles loaded from the org. */
   brandProfiles?: BrandProfile[];
+  /** Number of imported bundled icons. */
+  importedIconCount?: number;
 }
 
 const ActivityRow = ({
@@ -114,6 +117,7 @@ export const DashboardView = ({
   onOpenLibrary,
   recentLibraries = [],
   brandProfiles = [],
+  importedIconCount = 0,
 }: Props) => {
   const { hidden: hiddenBrands, hide: hideBrand, clear: clearHiddenBrands, isHidden: isBrandHidden } =
     useHiddenItems('brand-profiles');
@@ -161,6 +165,12 @@ export const DashboardView = ({
                 <Folder className="h-3 w-3" />
                 {totalLibraries.toLocaleString()} libraries
               </Badge>
+              {importedIconCount > 0 && (
+                <Badge variant="outline" className="gap-1 text-[11px]" style={{ borderColor: 'hsl(var(--tp-teal) / 0.5)', color: 'hsl(var(--tp-teal))' }}>
+                  <ImageIcon className="h-3 w-3" />
+                  {importedIconCount.toLocaleString()} imported
+                </Badge>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -207,6 +217,37 @@ export const DashboardView = ({
           </ul>
         </div>
       </section>
+
+      {/* Imported Assets quick link */}
+      {importedIconCount > 0 && (
+        <section className="tp-card p-5">
+          <header className="mb-3 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold">Imported assets</h3>
+              <p className="text-xs text-muted-foreground">
+                {importedIconCount.toLocaleString()} bundled SVG icons ready to use.
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => onNavigate?.('imported')}>
+              Browse <ArrowUpRight className="h-3 w-3" />
+            </Button>
+          </header>
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-lg"
+              style={{ background: 'hsl(var(--tp-teal) / 0.12)', color: 'hsl(var(--tp-teal))' }}
+            >
+              <ImageIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-sm font-medium">Curated icon library</div>
+              <div className="text-[11px] text-muted-foreground">
+                Light-blue & white variants · searchable · copy-ready
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Brand profiles teaser */}
       <section className="tp-card p-5">
