@@ -1,0 +1,3968 @@
+[
+  {
+    "id": "12",
+    "name": "12",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/12.svg",
+      "white": "/icon-library/white/12.svg"
+    }
+  },
+  {
+    "id": "13",
+    "name": "13",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/13.svg",
+      "white": "/icon-library/white/13.svg"
+    }
+  },
+  {
+    "id": "6",
+    "name": "6",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/6.svg",
+      "white": "/icon-library/white/6.svg"
+    }
+  },
+  {
+    "id": "7",
+    "name": "7",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/7.svg",
+      "white": "/icon-library/white/7.svg"
+    }
+  },
+  {
+    "id": "asset-1091",
+    "name": "Asset 1091",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1091.svg"
+    }
+  },
+  {
+    "id": "asset-1092",
+    "name": "Asset 1092",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1092.svg"
+    }
+  },
+  {
+    "id": "asset-1093",
+    "name": "Asset 1093",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1093.svg"
+    }
+  },
+  {
+    "id": "asset-1094",
+    "name": "Asset 1094",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1094.svg"
+    }
+  },
+  {
+    "id": "asset-1095",
+    "name": "Asset 1095",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1095.svg"
+    }
+  },
+  {
+    "id": "asset-1096",
+    "name": "Asset 1096",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1096.svg"
+    }
+  },
+  {
+    "id": "asset-1097",
+    "name": "Asset 1097",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1097.svg"
+    }
+  },
+  {
+    "id": "asset-1098",
+    "name": "Asset 1098",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1098.svg"
+    }
+  },
+  {
+    "id": "asset-1099",
+    "name": "Asset 1099",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1099.svg"
+    }
+  },
+  {
+    "id": "asset-1100",
+    "name": "Asset 1100",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1100.svg"
+    }
+  },
+  {
+    "id": "asset-1101",
+    "name": "Asset 1101",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1101.svg"
+    }
+  },
+  {
+    "id": "asset-1102",
+    "name": "Asset 1102",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1102.svg"
+    }
+  },
+  {
+    "id": "asset-1103",
+    "name": "Asset 1103",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1103.svg"
+    }
+  },
+  {
+    "id": "asset-1104",
+    "name": "Asset 1104",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1104.svg"
+    }
+  },
+  {
+    "id": "asset-1105",
+    "name": "Asset 1105",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1105.svg"
+    }
+  },
+  {
+    "id": "asset-1106",
+    "name": "Asset 1106",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1106.svg"
+    }
+  },
+  {
+    "id": "asset-1107",
+    "name": "Asset 1107",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1107.svg"
+    }
+  },
+  {
+    "id": "asset-1108",
+    "name": "Asset 1108",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1108.svg"
+    }
+  },
+  {
+    "id": "asset-1109",
+    "name": "Asset 1109",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1109.svg"
+    }
+  },
+  {
+    "id": "asset-1112",
+    "name": "Asset 1112",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1112.svg"
+    }
+  },
+  {
+    "id": "asset-1113",
+    "name": "Asset 1113",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1113.svg"
+    }
+  },
+  {
+    "id": "asset-1114",
+    "name": "Asset 1114",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1114.svg"
+    }
+  },
+  {
+    "id": "asset-1115",
+    "name": "Asset 1115",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1115.svg"
+    }
+  },
+  {
+    "id": "asset-1116",
+    "name": "Asset 1116",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1116.svg"
+    }
+  },
+  {
+    "id": "asset-1117",
+    "name": "Asset 1117",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1117.svg"
+    }
+  },
+  {
+    "id": "asset-1118",
+    "name": "Asset 1118",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1118.svg"
+    }
+  },
+  {
+    "id": "asset-1119",
+    "name": "Asset 1119",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1119.svg"
+    }
+  },
+  {
+    "id": "asset-1120",
+    "name": "Asset 1120",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1120.svg"
+    }
+  },
+  {
+    "id": "asset-1121",
+    "name": "Asset 1121",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1121.svg"
+    }
+  },
+  {
+    "id": "asset-1122",
+    "name": "Asset 1122",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1122.svg"
+    }
+  },
+  {
+    "id": "asset-1123",
+    "name": "Asset 1123",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1123.svg"
+    }
+  },
+  {
+    "id": "asset-1124",
+    "name": "Asset 1124",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1124.svg"
+    }
+  },
+  {
+    "id": "asset-1125",
+    "name": "Asset 1125",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1125.svg"
+    }
+  },
+  {
+    "id": "asset-1126",
+    "name": "Asset 1126",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1126.svg"
+    }
+  },
+  {
+    "id": "asset-1127",
+    "name": "Asset 1127",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1127.svg"
+    }
+  },
+  {
+    "id": "asset-1128",
+    "name": "Asset 1128",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1128.svg"
+    }
+  },
+  {
+    "id": "asset-1129",
+    "name": "Asset 1129",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1129.svg"
+    }
+  },
+  {
+    "id": "asset-1130",
+    "name": "Asset 1130",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1130.svg"
+    }
+  },
+  {
+    "id": "asset-1131",
+    "name": "Asset 1131",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1131.svg"
+    }
+  },
+  {
+    "id": "asset-1132",
+    "name": "Asset 1132",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1132.svg"
+    }
+  },
+  {
+    "id": "asset-1133",
+    "name": "Asset 1133",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1133.svg"
+    }
+  },
+  {
+    "id": "asset-1134",
+    "name": "Asset 1134",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1134.svg"
+    }
+  },
+  {
+    "id": "asset-1135",
+    "name": "Asset 1135",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1135.svg"
+    }
+  },
+  {
+    "id": "asset-1136",
+    "name": "Asset 1136",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1136.svg"
+    }
+  },
+  {
+    "id": "asset-1137",
+    "name": "Asset 1137",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1137.svg"
+    }
+  },
+  {
+    "id": "asset-1138",
+    "name": "Asset 1138",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1138.svg"
+    }
+  },
+  {
+    "id": "asset-1139",
+    "name": "Asset 1139",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1139.svg"
+    }
+  },
+  {
+    "id": "asset-1140",
+    "name": "Asset 1140",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1140.svg"
+    }
+  },
+  {
+    "id": "asset-1141",
+    "name": "Asset 1141",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1141.svg"
+    }
+  },
+  {
+    "id": "asset-1142",
+    "name": "Asset 1142",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1142.svg"
+    }
+  },
+  {
+    "id": "asset-1143",
+    "name": "Asset 1143",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1143.svg"
+    }
+  },
+  {
+    "id": "asset-1144",
+    "name": "Asset 1144",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1144.svg"
+    }
+  },
+  {
+    "id": "asset-1145",
+    "name": "Asset 1145",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1145.svg"
+    }
+  },
+  {
+    "id": "asset-1146",
+    "name": "Asset 1146",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1146.svg"
+    }
+  },
+  {
+    "id": "asset-1147",
+    "name": "Asset 1147",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1147.svg"
+    }
+  },
+  {
+    "id": "asset-1148",
+    "name": "Asset 1148",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1148.svg"
+    }
+  },
+  {
+    "id": "asset-1149",
+    "name": "Asset 1149",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1149.svg"
+    }
+  },
+  {
+    "id": "asset-1150",
+    "name": "Asset 1150",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1150.svg"
+    }
+  },
+  {
+    "id": "asset-1151",
+    "name": "Asset 1151",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1151.svg"
+    }
+  },
+  {
+    "id": "asset-1152",
+    "name": "Asset 1152",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1152.svg"
+    }
+  },
+  {
+    "id": "asset-1153",
+    "name": "Asset 1153",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1153.svg"
+    }
+  },
+  {
+    "id": "asset-1154",
+    "name": "Asset 1154",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1154.svg"
+    }
+  },
+  {
+    "id": "asset-1155",
+    "name": "Asset 1155",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1155.svg"
+    }
+  },
+  {
+    "id": "asset-1156",
+    "name": "Asset 1156",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1156.svg"
+    }
+  },
+  {
+    "id": "asset-1158",
+    "name": "Asset 1158",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1158.svg"
+    }
+  },
+  {
+    "id": "asset-1159",
+    "name": "Asset 1159",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1159.svg"
+    }
+  },
+  {
+    "id": "asset-1160",
+    "name": "Asset 1160",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1160.svg"
+    }
+  },
+  {
+    "id": "asset-1161",
+    "name": "Asset 1161",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1161.svg"
+    }
+  },
+  {
+    "id": "asset-1162",
+    "name": "Asset 1162",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1162.svg"
+    }
+  },
+  {
+    "id": "asset-1163",
+    "name": "Asset 1163",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1163.svg"
+    }
+  },
+  {
+    "id": "asset-1164",
+    "name": "Asset 1164",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1164.svg"
+    }
+  },
+  {
+    "id": "asset-1165",
+    "name": "Asset 1165",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1165.svg"
+    }
+  },
+  {
+    "id": "asset-1166",
+    "name": "Asset 1166",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1166.svg"
+    }
+  },
+  {
+    "id": "asset-1177",
+    "name": "Asset 1177",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1177.svg"
+    }
+  },
+  {
+    "id": "asset-1178",
+    "name": "Asset 1178",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1178.svg"
+    }
+  },
+  {
+    "id": "asset-1179",
+    "name": "Asset 1179",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1179.svg"
+    }
+  },
+  {
+    "id": "asset-1180",
+    "name": "Asset 1180",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1180.svg"
+    }
+  },
+  {
+    "id": "asset-1181",
+    "name": "Asset 1181",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1181.svg"
+    }
+  },
+  {
+    "id": "asset-1182",
+    "name": "Asset 1182",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1182.svg"
+    }
+  },
+  {
+    "id": "asset-1183",
+    "name": "Asset 1183",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1183.svg"
+    }
+  },
+  {
+    "id": "asset-1184",
+    "name": "Asset 1184",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1184.svg"
+    }
+  },
+  {
+    "id": "asset-1185",
+    "name": "Asset 1185",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1185.svg"
+    }
+  },
+  {
+    "id": "asset-1186",
+    "name": "Asset 1186",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1186.svg"
+    }
+  },
+  {
+    "id": "asset-1187",
+    "name": "Asset 1187",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1187.svg"
+    }
+  },
+  {
+    "id": "asset-1192",
+    "name": "Asset 1192",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1192.svg"
+    }
+  },
+  {
+    "id": "asset-1193",
+    "name": "Asset 1193",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1193.svg"
+    }
+  },
+  {
+    "id": "asset-1194",
+    "name": "Asset 1194",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1194.svg"
+    }
+  },
+  {
+    "id": "asset-1195",
+    "name": "Asset 1195",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1195.svg"
+    }
+  },
+  {
+    "id": "asset-1196",
+    "name": "Asset 1196",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1196.svg"
+    }
+  },
+  {
+    "id": "asset-1197",
+    "name": "Asset 1197",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1197.svg"
+    }
+  },
+  {
+    "id": "asset-1198",
+    "name": "Asset 1198",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1198.svg"
+    }
+  },
+  {
+    "id": "asset-1199",
+    "name": "Asset 1199",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1199.svg"
+    }
+  },
+  {
+    "id": "asset-1200",
+    "name": "Asset 1200",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1200.svg"
+    }
+  },
+  {
+    "id": "asset-1201",
+    "name": "Asset 1201",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1201.svg"
+    }
+  },
+  {
+    "id": "asset-1202",
+    "name": "Asset 1202",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1202.svg"
+    }
+  },
+  {
+    "id": "asset-1203",
+    "name": "Asset 1203",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1203.svg"
+    }
+  },
+  {
+    "id": "asset-1204",
+    "name": "Asset 1204",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1204.svg"
+    }
+  },
+  {
+    "id": "asset-1205",
+    "name": "Asset 1205",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1205.svg"
+    }
+  },
+  {
+    "id": "asset-1206",
+    "name": "Asset 1206",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1206.svg"
+    }
+  },
+  {
+    "id": "asset-1207",
+    "name": "Asset 1207",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1207.svg"
+    }
+  },
+  {
+    "id": "asset-1208",
+    "name": "Asset 1208",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1208.svg"
+    }
+  },
+  {
+    "id": "asset-1209",
+    "name": "Asset 1209",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1209.svg"
+    }
+  },
+  {
+    "id": "asset-1210",
+    "name": "Asset 1210",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1210.svg"
+    }
+  },
+  {
+    "id": "asset-1211",
+    "name": "Asset 1211",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1211.svg"
+    }
+  },
+  {
+    "id": "asset-1212",
+    "name": "Asset 1212",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1212.svg"
+    }
+  },
+  {
+    "id": "asset-1213",
+    "name": "Asset 1213",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1213.svg"
+    }
+  },
+  {
+    "id": "asset-1214",
+    "name": "Asset 1214",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1214.svg"
+    }
+  },
+  {
+    "id": "asset-1215",
+    "name": "Asset 1215",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1215.svg"
+    }
+  },
+  {
+    "id": "asset-1216",
+    "name": "Asset 1216",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1216.svg"
+    }
+  },
+  {
+    "id": "asset-1217",
+    "name": "Asset 1217",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1217.svg"
+    }
+  },
+  {
+    "id": "asset-1218",
+    "name": "Asset 1218",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1218.svg"
+    }
+  },
+  {
+    "id": "asset-1219",
+    "name": "Asset 1219",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1219.svg"
+    }
+  },
+  {
+    "id": "asset-1220",
+    "name": "Asset 1220",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1220.svg"
+    }
+  },
+  {
+    "id": "asset-1221",
+    "name": "Asset 1221",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1221.svg"
+    }
+  },
+  {
+    "id": "asset-1222",
+    "name": "Asset 1222",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1222.svg"
+    }
+  },
+  {
+    "id": "asset-1223",
+    "name": "Asset 1223",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1223.svg"
+    }
+  },
+  {
+    "id": "asset-1224",
+    "name": "Asset 1224",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1224.svg"
+    }
+  },
+  {
+    "id": "asset-1225",
+    "name": "Asset 1225",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1225.svg"
+    }
+  },
+  {
+    "id": "asset-1226",
+    "name": "Asset 1226",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1226.svg"
+    }
+  },
+  {
+    "id": "asset-1227",
+    "name": "Asset 1227",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1227.svg"
+    }
+  },
+  {
+    "id": "asset-1228",
+    "name": "Asset 1228",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1228.svg"
+    }
+  },
+  {
+    "id": "asset-1229",
+    "name": "Asset 1229",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1229.svg"
+    }
+  },
+  {
+    "id": "asset-1230",
+    "name": "Asset 1230",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1230.svg"
+    }
+  },
+  {
+    "id": "asset-1231",
+    "name": "Asset 1231",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1231.svg"
+    }
+  },
+  {
+    "id": "asset-1232",
+    "name": "Asset 1232",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1232.svg"
+    }
+  },
+  {
+    "id": "asset-1233",
+    "name": "Asset 1233",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1233.svg"
+    }
+  },
+  {
+    "id": "asset-1234",
+    "name": "Asset 1234",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1234.svg"
+    }
+  },
+  {
+    "id": "asset-1235",
+    "name": "Asset 1235",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1235.svg"
+    }
+  },
+  {
+    "id": "asset-1236",
+    "name": "Asset 1236",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1236.svg"
+    }
+  },
+  {
+    "id": "asset-1237",
+    "name": "Asset 1237",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1237.svg"
+    }
+  },
+  {
+    "id": "asset-1238",
+    "name": "Asset 1238",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1238.svg"
+    }
+  },
+  {
+    "id": "asset-1239",
+    "name": "Asset 1239",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1239.svg"
+    }
+  },
+  {
+    "id": "asset-1240",
+    "name": "Asset 1240",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1240.svg"
+    }
+  },
+  {
+    "id": "asset-1241",
+    "name": "Asset 1241",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1241.svg"
+    }
+  },
+  {
+    "id": "asset-1242",
+    "name": "Asset 1242",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1242.svg"
+    }
+  },
+  {
+    "id": "asset-1243",
+    "name": "Asset 1243",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1243.svg"
+    }
+  },
+  {
+    "id": "asset-1244",
+    "name": "Asset 1244",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1244.svg"
+    }
+  },
+  {
+    "id": "asset-1245",
+    "name": "Asset 1245",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1245.svg"
+    }
+  },
+  {
+    "id": "asset-1246",
+    "name": "Asset 1246",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1246.svg"
+    }
+  },
+  {
+    "id": "asset-1247",
+    "name": "Asset 1247",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1247.svg"
+    }
+  },
+  {
+    "id": "asset-1248",
+    "name": "Asset 1248",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1248.svg"
+    }
+  },
+  {
+    "id": "asset-1249",
+    "name": "Asset 1249",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1249.svg"
+    }
+  },
+  {
+    "id": "asset-1250",
+    "name": "Asset 1250",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1250.svg"
+    }
+  },
+  {
+    "id": "asset-1251",
+    "name": "Asset 1251",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1251.svg"
+    }
+  },
+  {
+    "id": "asset-1252",
+    "name": "Asset 1252",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1252.svg"
+    }
+  },
+  {
+    "id": "asset-1253",
+    "name": "Asset 1253",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1253.svg"
+    }
+  },
+  {
+    "id": "asset-1254",
+    "name": "Asset 1254",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1254.svg"
+    }
+  },
+  {
+    "id": "asset-1255",
+    "name": "Asset 1255",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1255.svg"
+    }
+  },
+  {
+    "id": "asset-1256",
+    "name": "Asset 1256",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1256.svg"
+    }
+  },
+  {
+    "id": "asset-1257",
+    "name": "Asset 1257",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1257.svg"
+    }
+  },
+  {
+    "id": "asset-1258",
+    "name": "Asset 1258",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1258.svg"
+    }
+  },
+  {
+    "id": "asset-1259",
+    "name": "Asset 1259",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1259.svg"
+    }
+  },
+  {
+    "id": "asset-1260",
+    "name": "Asset 1260",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1260.svg"
+    }
+  },
+  {
+    "id": "asset-1261",
+    "name": "Asset 1261",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1261.svg"
+    }
+  },
+  {
+    "id": "asset-1262",
+    "name": "Asset 1262",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1262.svg"
+    }
+  },
+  {
+    "id": "asset-1263",
+    "name": "Asset 1263",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1263.svg"
+    }
+  },
+  {
+    "id": "asset-1264",
+    "name": "Asset 1264",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1264.svg"
+    }
+  },
+  {
+    "id": "asset-1265",
+    "name": "Asset 1265",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1265.svg"
+    }
+  },
+  {
+    "id": "asset-1266",
+    "name": "Asset 1266",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1266.svg"
+    }
+  },
+  {
+    "id": "asset-1267",
+    "name": "Asset 1267",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1267.svg"
+    }
+  },
+  {
+    "id": "asset-1268",
+    "name": "Asset 1268",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1268.svg"
+    }
+  },
+  {
+    "id": "asset-1269",
+    "name": "Asset 1269",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1269.svg"
+    }
+  },
+  {
+    "id": "asset-1270",
+    "name": "Asset 1270",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1270.svg"
+    }
+  },
+  {
+    "id": "asset-1271",
+    "name": "Asset 1271",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1271.svg"
+    }
+  },
+  {
+    "id": "asset-1272",
+    "name": "Asset 1272",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1272.svg"
+    }
+  },
+  {
+    "id": "asset-1273",
+    "name": "Asset 1273",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1273.svg"
+    }
+  },
+  {
+    "id": "asset-1274",
+    "name": "Asset 1274",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1274.svg"
+    }
+  },
+  {
+    "id": "asset-1275",
+    "name": "Asset 1275",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1275.svg"
+    }
+  },
+  {
+    "id": "asset-1276",
+    "name": "Asset 1276",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1276.svg"
+    }
+  },
+  {
+    "id": "asset-1277",
+    "name": "Asset 1277",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1277.svg"
+    }
+  },
+  {
+    "id": "asset-1278",
+    "name": "Asset 1278",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1278.svg"
+    }
+  },
+  {
+    "id": "asset-1279",
+    "name": "Asset 1279",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1279.svg"
+    }
+  },
+  {
+    "id": "asset-1280",
+    "name": "Asset 1280",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1280.svg"
+    }
+  },
+  {
+    "id": "asset-1281",
+    "name": "Asset 1281",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1281.svg"
+    }
+  },
+  {
+    "id": "asset-1282",
+    "name": "Asset 1282",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1282.svg"
+    }
+  },
+  {
+    "id": "asset-1283",
+    "name": "Asset 1283",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1283.svg"
+    }
+  },
+  {
+    "id": "asset-1284",
+    "name": "Asset 1284",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1284.svg"
+    }
+  },
+  {
+    "id": "asset-1285",
+    "name": "Asset 1285",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1285.svg"
+    }
+  },
+  {
+    "id": "asset-1286",
+    "name": "Asset 1286",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1286.svg"
+    }
+  },
+  {
+    "id": "asset-1287",
+    "name": "Asset 1287",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1287.svg"
+    }
+  },
+  {
+    "id": "asset-1288",
+    "name": "Asset 1288",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1288.svg"
+    }
+  },
+  {
+    "id": "asset-1289",
+    "name": "Asset 1289",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1289.svg"
+    }
+  },
+  {
+    "id": "asset-1290",
+    "name": "Asset 1290",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1290.svg"
+    }
+  },
+  {
+    "id": "asset-1291",
+    "name": "Asset 1291",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1291.svg"
+    }
+  },
+  {
+    "id": "asset-1292",
+    "name": "Asset 1292",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1292.svg"
+    }
+  },
+  {
+    "id": "asset-1293",
+    "name": "Asset 1293",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1293.svg"
+    }
+  },
+  {
+    "id": "asset-1294",
+    "name": "Asset 1294",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1294.svg"
+    }
+  },
+  {
+    "id": "asset-1295",
+    "name": "Asset 1295",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1295.svg"
+    }
+  },
+  {
+    "id": "asset-1296",
+    "name": "Asset 1296",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1296.svg"
+    }
+  },
+  {
+    "id": "asset-1297",
+    "name": "Asset 1297",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1297.svg"
+    }
+  },
+  {
+    "id": "asset-1298",
+    "name": "Asset 1298",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1298.svg"
+    }
+  },
+  {
+    "id": "asset-1299",
+    "name": "Asset 1299",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1299.svg"
+    }
+  },
+  {
+    "id": "asset-1300",
+    "name": "Asset 1300",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1300.svg"
+    }
+  },
+  {
+    "id": "asset-1301",
+    "name": "Asset 1301",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1301.svg"
+    }
+  },
+  {
+    "id": "asset-1302",
+    "name": "Asset 1302",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1302.svg"
+    }
+  },
+  {
+    "id": "asset-1303",
+    "name": "Asset 1303",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1303.svg"
+    }
+  },
+  {
+    "id": "asset-1304",
+    "name": "Asset 1304",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1304.svg"
+    }
+  },
+  {
+    "id": "asset-1305",
+    "name": "Asset 1305",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1305.svg"
+    }
+  },
+  {
+    "id": "asset-1306",
+    "name": "Asset 1306",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1306.svg"
+    }
+  },
+  {
+    "id": "asset-1307",
+    "name": "Asset 1307",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1307.svg"
+    }
+  },
+  {
+    "id": "asset-1308",
+    "name": "Asset 1308",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1308.svg"
+    }
+  },
+  {
+    "id": "asset-1309",
+    "name": "Asset 1309",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1309.svg"
+    }
+  },
+  {
+    "id": "asset-1310",
+    "name": "Asset 1310",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1310.svg"
+    }
+  },
+  {
+    "id": "asset-1311",
+    "name": "Asset 1311",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1311.svg"
+    }
+  },
+  {
+    "id": "asset-1312",
+    "name": "Asset 1312",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1312.svg"
+    }
+  },
+  {
+    "id": "asset-1313",
+    "name": "Asset 1313",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1313.svg"
+    }
+  },
+  {
+    "id": "asset-1314",
+    "name": "Asset 1314",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1314.svg"
+    }
+  },
+  {
+    "id": "asset-1315",
+    "name": "Asset 1315",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1315.svg"
+    }
+  },
+  {
+    "id": "asset-1316",
+    "name": "Asset 1316",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1316.svg"
+    }
+  },
+  {
+    "id": "asset-1317",
+    "name": "Asset 1317",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1317.svg"
+    }
+  },
+  {
+    "id": "asset-1318",
+    "name": "Asset 1318",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1318.svg"
+    }
+  },
+  {
+    "id": "asset-1319",
+    "name": "Asset 1319",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1319.svg"
+    }
+  },
+  {
+    "id": "asset-1320",
+    "name": "Asset 1320",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1320.svg"
+    }
+  },
+  {
+    "id": "asset-1321",
+    "name": "Asset 1321",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1321.svg"
+    }
+  },
+  {
+    "id": "asset-1322",
+    "name": "Asset 1322",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1322.svg"
+    }
+  },
+  {
+    "id": "asset-1323",
+    "name": "Asset 1323",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1323.svg"
+    }
+  },
+  {
+    "id": "asset-1324",
+    "name": "Asset 1324",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1324.svg"
+    }
+  },
+  {
+    "id": "asset-1325",
+    "name": "Asset 1325",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1325.svg"
+    }
+  },
+  {
+    "id": "asset-1326",
+    "name": "Asset 1326",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1326.svg"
+    }
+  },
+  {
+    "id": "asset-1327",
+    "name": "Asset 1327",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1327.svg"
+    }
+  },
+  {
+    "id": "asset-1328",
+    "name": "Asset 1328",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1328.svg"
+    }
+  },
+  {
+    "id": "asset-1329",
+    "name": "Asset 1329",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1329.svg"
+    }
+  },
+  {
+    "id": "asset-1330",
+    "name": "Asset 1330",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1330.svg"
+    }
+  },
+  {
+    "id": "asset-1331",
+    "name": "Asset 1331",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1331.svg"
+    }
+  },
+  {
+    "id": "asset-1332",
+    "name": "Asset 1332",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1332.svg"
+    }
+  },
+  {
+    "id": "asset-1333",
+    "name": "Asset 1333",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1333.svg"
+    }
+  },
+  {
+    "id": "asset-1334",
+    "name": "Asset 1334",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1334.svg"
+    }
+  },
+  {
+    "id": "asset-1335",
+    "name": "Asset 1335",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1335.svg"
+    }
+  },
+  {
+    "id": "asset-1336",
+    "name": "Asset 1336",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1336.svg"
+    }
+  },
+  {
+    "id": "asset-1337",
+    "name": "Asset 1337",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1337.svg"
+    }
+  },
+  {
+    "id": "asset-1338",
+    "name": "Asset 1338",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1338.svg"
+    }
+  },
+  {
+    "id": "asset-1339",
+    "name": "Asset 1339",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1339.svg"
+    }
+  },
+  {
+    "id": "asset-1340",
+    "name": "Asset 1340",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1340.svg"
+    }
+  },
+  {
+    "id": "asset-1341",
+    "name": "Asset 1341",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1341.svg"
+    }
+  },
+  {
+    "id": "asset-1342",
+    "name": "Asset 1342",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1342.svg"
+    }
+  },
+  {
+    "id": "asset-1343",
+    "name": "Asset 1343",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1343.svg"
+    }
+  },
+  {
+    "id": "asset-1344",
+    "name": "Asset 1344",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1344.svg"
+    }
+  },
+  {
+    "id": "asset-1345",
+    "name": "Asset 1345",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1345.svg"
+    }
+  },
+  {
+    "id": "asset-1346",
+    "name": "Asset 1346",
+    "category": "general",
+    "files": {
+      "light-blue": "/icon-library/light-blue/asset-1346.svg"
+    }
+  },
+  {
+    "id": "asset-1347",
+    "name": "Asset 1347",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1347.svg"
+    }
+  },
+  {
+    "id": "asset-1348",
+    "name": "Asset 1348",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1348.svg"
+    }
+  },
+  {
+    "id": "asset-1349",
+    "name": "Asset 1349",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1349.svg"
+    }
+  },
+  {
+    "id": "asset-1350",
+    "name": "Asset 1350",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1350.svg"
+    }
+  },
+  {
+    "id": "asset-1351",
+    "name": "Asset 1351",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1351.svg"
+    }
+  },
+  {
+    "id": "asset-1352",
+    "name": "Asset 1352",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1352.svg"
+    }
+  },
+  {
+    "id": "asset-1353",
+    "name": "Asset 1353",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1353.svg"
+    }
+  },
+  {
+    "id": "asset-1354",
+    "name": "Asset 1354",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1354.svg"
+    }
+  },
+  {
+    "id": "asset-1355",
+    "name": "Asset 1355",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1355.svg"
+    }
+  },
+  {
+    "id": "asset-1356",
+    "name": "Asset 1356",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1356.svg"
+    }
+  },
+  {
+    "id": "asset-1357",
+    "name": "Asset 1357",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1357.svg"
+    }
+  },
+  {
+    "id": "asset-1358",
+    "name": "Asset 1358",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1358.svg"
+    }
+  },
+  {
+    "id": "asset-1359",
+    "name": "Asset 1359",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1359.svg"
+    }
+  },
+  {
+    "id": "asset-1360",
+    "name": "Asset 1360",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1360.svg"
+    }
+  },
+  {
+    "id": "asset-1361",
+    "name": "Asset 1361",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1361.svg"
+    }
+  },
+  {
+    "id": "asset-1362",
+    "name": "Asset 1362",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1362.svg"
+    }
+  },
+  {
+    "id": "asset-1363",
+    "name": "Asset 1363",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1363.svg"
+    }
+  },
+  {
+    "id": "asset-1364",
+    "name": "Asset 1364",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1364.svg"
+    }
+  },
+  {
+    "id": "asset-1365",
+    "name": "Asset 1365",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1365.svg"
+    }
+  },
+  {
+    "id": "asset-1366",
+    "name": "Asset 1366",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1366.svg"
+    }
+  },
+  {
+    "id": "asset-1367",
+    "name": "Asset 1367",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1367.svg"
+    }
+  },
+  {
+    "id": "asset-1368",
+    "name": "Asset 1368",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1368.svg"
+    }
+  },
+  {
+    "id": "asset-1369",
+    "name": "Asset 1369",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1369.svg"
+    }
+  },
+  {
+    "id": "asset-1370",
+    "name": "Asset 1370",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1370.svg"
+    }
+  },
+  {
+    "id": "asset-1371",
+    "name": "Asset 1371",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1371.svg"
+    }
+  },
+  {
+    "id": "asset-1372",
+    "name": "Asset 1372",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1372.svg"
+    }
+  },
+  {
+    "id": "asset-1373",
+    "name": "Asset 1373",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1373.svg"
+    }
+  },
+  {
+    "id": "asset-1374",
+    "name": "Asset 1374",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1374.svg"
+    }
+  },
+  {
+    "id": "asset-1375",
+    "name": "Asset 1375",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1375.svg"
+    }
+  },
+  {
+    "id": "asset-1376",
+    "name": "Asset 1376",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1376.svg"
+    }
+  },
+  {
+    "id": "asset-1377",
+    "name": "Asset 1377",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1377.svg"
+    }
+  },
+  {
+    "id": "asset-1378",
+    "name": "Asset 1378",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1378.svg"
+    }
+  },
+  {
+    "id": "asset-1379",
+    "name": "Asset 1379",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1379.svg"
+    }
+  },
+  {
+    "id": "asset-1380",
+    "name": "Asset 1380",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1380.svg"
+    }
+  },
+  {
+    "id": "asset-1381",
+    "name": "Asset 1381",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1381.svg"
+    }
+  },
+  {
+    "id": "asset-1382",
+    "name": "Asset 1382",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1382.svg"
+    }
+  },
+  {
+    "id": "asset-1383",
+    "name": "Asset 1383",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1383.svg"
+    }
+  },
+  {
+    "id": "asset-1384",
+    "name": "Asset 1384",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1384.svg"
+    }
+  },
+  {
+    "id": "asset-1385",
+    "name": "Asset 1385",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1385.svg"
+    }
+  },
+  {
+    "id": "asset-1386",
+    "name": "Asset 1386",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1386.svg"
+    }
+  },
+  {
+    "id": "asset-1387",
+    "name": "Asset 1387",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1387.svg"
+    }
+  },
+  {
+    "id": "asset-1388",
+    "name": "Asset 1388",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1388.svg"
+    }
+  },
+  {
+    "id": "asset-1389",
+    "name": "Asset 1389",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1389.svg"
+    }
+  },
+  {
+    "id": "asset-1390",
+    "name": "Asset 1390",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1390.svg"
+    }
+  },
+  {
+    "id": "asset-1391",
+    "name": "Asset 1391",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1391.svg"
+    }
+  },
+  {
+    "id": "asset-1392",
+    "name": "Asset 1392",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1392.svg"
+    }
+  },
+  {
+    "id": "asset-1393",
+    "name": "Asset 1393",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1393.svg"
+    }
+  },
+  {
+    "id": "asset-1394",
+    "name": "Asset 1394",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1394.svg"
+    }
+  },
+  {
+    "id": "asset-1395",
+    "name": "Asset 1395",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1395.svg"
+    }
+  },
+  {
+    "id": "asset-1396",
+    "name": "Asset 1396",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1396.svg"
+    }
+  },
+  {
+    "id": "asset-1397",
+    "name": "Asset 1397",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1397.svg"
+    }
+  },
+  {
+    "id": "asset-1398",
+    "name": "Asset 1398",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1398.svg"
+    }
+  },
+  {
+    "id": "asset-1399",
+    "name": "Asset 1399",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1399.svg"
+    }
+  },
+  {
+    "id": "asset-1400",
+    "name": "Asset 1400",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1400.svg"
+    }
+  },
+  {
+    "id": "asset-1401",
+    "name": "Asset 1401",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1401.svg"
+    }
+  },
+  {
+    "id": "asset-1402",
+    "name": "Asset 1402",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1402.svg"
+    }
+  },
+  {
+    "id": "asset-1403",
+    "name": "Asset 1403",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1403.svg"
+    }
+  },
+  {
+    "id": "asset-1404",
+    "name": "Asset 1404",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1404.svg"
+    }
+  },
+  {
+    "id": "asset-1405",
+    "name": "Asset 1405",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1405.svg"
+    }
+  },
+  {
+    "id": "asset-1406",
+    "name": "Asset 1406",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1406.svg"
+    }
+  },
+  {
+    "id": "asset-1407",
+    "name": "Asset 1407",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1407.svg"
+    }
+  },
+  {
+    "id": "asset-1408",
+    "name": "Asset 1408",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1408.svg"
+    }
+  },
+  {
+    "id": "asset-1409",
+    "name": "Asset 1409",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1409.svg"
+    }
+  },
+  {
+    "id": "asset-1410",
+    "name": "Asset 1410",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1410.svg"
+    }
+  },
+  {
+    "id": "asset-1411",
+    "name": "Asset 1411",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1411.svg"
+    }
+  },
+  {
+    "id": "asset-1412",
+    "name": "Asset 1412",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1412.svg"
+    }
+  },
+  {
+    "id": "asset-1413",
+    "name": "Asset 1413",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1413.svg"
+    }
+  },
+  {
+    "id": "asset-1414",
+    "name": "Asset 1414",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1414.svg"
+    }
+  },
+  {
+    "id": "asset-1415",
+    "name": "Asset 1415",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1415.svg"
+    }
+  },
+  {
+    "id": "asset-1416",
+    "name": "Asset 1416",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1416.svg"
+    }
+  },
+  {
+    "id": "asset-1417",
+    "name": "Asset 1417",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1417.svg"
+    }
+  },
+  {
+    "id": "asset-1418",
+    "name": "Asset 1418",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1418.svg"
+    }
+  },
+  {
+    "id": "asset-1419",
+    "name": "Asset 1419",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1419.svg"
+    }
+  },
+  {
+    "id": "asset-1420",
+    "name": "Asset 1420",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1420.svg"
+    }
+  },
+  {
+    "id": "asset-1421",
+    "name": "Asset 1421",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1421.svg"
+    }
+  },
+  {
+    "id": "asset-1422",
+    "name": "Asset 1422",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1422.svg"
+    }
+  },
+  {
+    "id": "asset-1433",
+    "name": "Asset 1433",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1433.svg"
+    }
+  },
+  {
+    "id": "asset-1434",
+    "name": "Asset 1434",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1434.svg"
+    }
+  },
+  {
+    "id": "asset-1435",
+    "name": "Asset 1435",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1435.svg"
+    }
+  },
+  {
+    "id": "asset-1436",
+    "name": "Asset 1436",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1436.svg"
+    }
+  },
+  {
+    "id": "asset-1437",
+    "name": "Asset 1437",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1437.svg"
+    }
+  },
+  {
+    "id": "asset-1438",
+    "name": "Asset 1438",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1438.svg"
+    }
+  },
+  {
+    "id": "asset-1439",
+    "name": "Asset 1439",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1439.svg"
+    }
+  },
+  {
+    "id": "asset-1440",
+    "name": "Asset 1440",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1440.svg"
+    }
+  },
+  {
+    "id": "asset-1441",
+    "name": "Asset 1441",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1441.svg"
+    }
+  },
+  {
+    "id": "asset-1442",
+    "name": "Asset 1442",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1442.svg"
+    }
+  },
+  {
+    "id": "asset-1443",
+    "name": "Asset 1443",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1443.svg"
+    }
+  },
+  {
+    "id": "asset-1448",
+    "name": "Asset 1448",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1448.svg"
+    }
+  },
+  {
+    "id": "asset-1449",
+    "name": "Asset 1449",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1449.svg"
+    }
+  },
+  {
+    "id": "asset-1450",
+    "name": "Asset 1450",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1450.svg"
+    }
+  },
+  {
+    "id": "asset-1451",
+    "name": "Asset 1451",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1451.svg"
+    }
+  },
+  {
+    "id": "asset-1452",
+    "name": "Asset 1452",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1452.svg"
+    }
+  },
+  {
+    "id": "asset-1453",
+    "name": "Asset 1453",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1453.svg"
+    }
+  },
+  {
+    "id": "asset-1454",
+    "name": "Asset 1454",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1454.svg"
+    }
+  },
+  {
+    "id": "asset-1455",
+    "name": "Asset 1455",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1455.svg"
+    }
+  },
+  {
+    "id": "asset-1456",
+    "name": "Asset 1456",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1456.svg"
+    }
+  },
+  {
+    "id": "asset-1457",
+    "name": "Asset 1457",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1457.svg"
+    }
+  },
+  {
+    "id": "asset-1458",
+    "name": "Asset 1458",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1458.svg"
+    }
+  },
+  {
+    "id": "asset-1459",
+    "name": "Asset 1459",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1459.svg"
+    }
+  },
+  {
+    "id": "asset-1460",
+    "name": "Asset 1460",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1460.svg"
+    }
+  },
+  {
+    "id": "asset-1461",
+    "name": "Asset 1461",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1461.svg"
+    }
+  },
+  {
+    "id": "asset-1462",
+    "name": "Asset 1462",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1462.svg"
+    }
+  },
+  {
+    "id": "asset-1463",
+    "name": "Asset 1463",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1463.svg"
+    }
+  },
+  {
+    "id": "asset-1464",
+    "name": "Asset 1464",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1464.svg"
+    }
+  },
+  {
+    "id": "asset-1465",
+    "name": "Asset 1465",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1465.svg"
+    }
+  },
+  {
+    "id": "asset-1466",
+    "name": "Asset 1466",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1466.svg"
+    }
+  },
+  {
+    "id": "asset-1467",
+    "name": "Asset 1467",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1467.svg"
+    }
+  },
+  {
+    "id": "asset-1468",
+    "name": "Asset 1468",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1468.svg"
+    }
+  },
+  {
+    "id": "asset-1469",
+    "name": "Asset 1469",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1469.svg"
+    }
+  },
+  {
+    "id": "asset-1470",
+    "name": "Asset 1470",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1470.svg"
+    }
+  },
+  {
+    "id": "asset-1471",
+    "name": "Asset 1471",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1471.svg"
+    }
+  },
+  {
+    "id": "asset-1472",
+    "name": "Asset 1472",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1472.svg"
+    }
+  },
+  {
+    "id": "asset-1473",
+    "name": "Asset 1473",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1473.svg"
+    }
+  },
+  {
+    "id": "asset-1474",
+    "name": "Asset 1474",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1474.svg"
+    }
+  },
+  {
+    "id": "asset-1475",
+    "name": "Asset 1475",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1475.svg"
+    }
+  },
+  {
+    "id": "asset-1476",
+    "name": "Asset 1476",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1476.svg"
+    }
+  },
+  {
+    "id": "asset-1477",
+    "name": "Asset 1477",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1477.svg"
+    }
+  },
+  {
+    "id": "asset-1478",
+    "name": "Asset 1478",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1478.svg"
+    }
+  },
+  {
+    "id": "asset-1479",
+    "name": "Asset 1479",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1479.svg"
+    }
+  },
+  {
+    "id": "asset-1480",
+    "name": "Asset 1480",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1480.svg"
+    }
+  },
+  {
+    "id": "asset-1481",
+    "name": "Asset 1481",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1481.svg"
+    }
+  },
+  {
+    "id": "asset-1482",
+    "name": "Asset 1482",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1482.svg"
+    }
+  },
+  {
+    "id": "asset-1483",
+    "name": "Asset 1483",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1483.svg"
+    }
+  },
+  {
+    "id": "asset-1484",
+    "name": "Asset 1484",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1484.svg"
+    }
+  },
+  {
+    "id": "asset-1485",
+    "name": "Asset 1485",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1485.svg"
+    }
+  },
+  {
+    "id": "asset-1486",
+    "name": "Asset 1486",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1486.svg"
+    }
+  },
+  {
+    "id": "asset-1487",
+    "name": "Asset 1487",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1487.svg"
+    }
+  },
+  {
+    "id": "asset-1488",
+    "name": "Asset 1488",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1488.svg"
+    }
+  },
+  {
+    "id": "asset-1489",
+    "name": "Asset 1489",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1489.svg"
+    }
+  },
+  {
+    "id": "asset-1490",
+    "name": "Asset 1490",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1490.svg"
+    }
+  },
+  {
+    "id": "asset-1491",
+    "name": "Asset 1491",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1491.svg"
+    }
+  },
+  {
+    "id": "asset-1492",
+    "name": "Asset 1492",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1492.svg"
+    }
+  },
+  {
+    "id": "asset-1493",
+    "name": "Asset 1493",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1493.svg"
+    }
+  },
+  {
+    "id": "asset-1494",
+    "name": "Asset 1494",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1494.svg"
+    }
+  },
+  {
+    "id": "asset-1495",
+    "name": "Asset 1495",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1495.svg"
+    }
+  },
+  {
+    "id": "asset-1496",
+    "name": "Asset 1496",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1496.svg"
+    }
+  },
+  {
+    "id": "asset-1497",
+    "name": "Asset 1497",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1497.svg"
+    }
+  },
+  {
+    "id": "asset-1498",
+    "name": "Asset 1498",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1498.svg"
+    }
+  },
+  {
+    "id": "asset-1499",
+    "name": "Asset 1499",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1499.svg"
+    }
+  },
+  {
+    "id": "asset-1500",
+    "name": "Asset 1500",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1500.svg"
+    }
+  },
+  {
+    "id": "asset-1501",
+    "name": "Asset 1501",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1501.svg"
+    }
+  },
+  {
+    "id": "asset-1502",
+    "name": "Asset 1502",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1502.svg"
+    }
+  },
+  {
+    "id": "asset-1503",
+    "name": "Asset 1503",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1503.svg"
+    }
+  },
+  {
+    "id": "asset-1504",
+    "name": "Asset 1504",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1504.svg"
+    }
+  },
+  {
+    "id": "asset-1505",
+    "name": "Asset 1505",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1505.svg"
+    }
+  },
+  {
+    "id": "asset-1506",
+    "name": "Asset 1506",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1506.svg"
+    }
+  },
+  {
+    "id": "asset-1507",
+    "name": "Asset 1507",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1507.svg"
+    }
+  },
+  {
+    "id": "asset-1508",
+    "name": "Asset 1508",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1508.svg"
+    }
+  },
+  {
+    "id": "asset-1509",
+    "name": "Asset 1509",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1509.svg"
+    }
+  },
+  {
+    "id": "asset-1510",
+    "name": "Asset 1510",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1510.svg"
+    }
+  },
+  {
+    "id": "asset-1511",
+    "name": "Asset 1511",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1511.svg"
+    }
+  },
+  {
+    "id": "asset-1512",
+    "name": "Asset 1512",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1512.svg"
+    }
+  },
+  {
+    "id": "asset-1513",
+    "name": "Asset 1513",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1513.svg"
+    }
+  },
+  {
+    "id": "asset-1514",
+    "name": "Asset 1514",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1514.svg"
+    }
+  },
+  {
+    "id": "asset-1515",
+    "name": "Asset 1515",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1515.svg"
+    }
+  },
+  {
+    "id": "asset-1516",
+    "name": "Asset 1516",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1516.svg"
+    }
+  },
+  {
+    "id": "asset-1517",
+    "name": "Asset 1517",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1517.svg"
+    }
+  },
+  {
+    "id": "asset-1518",
+    "name": "Asset 1518",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1518.svg"
+    }
+  },
+  {
+    "id": "asset-1519",
+    "name": "Asset 1519",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1519.svg"
+    }
+  },
+  {
+    "id": "asset-1520",
+    "name": "Asset 1520",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1520.svg"
+    }
+  },
+  {
+    "id": "asset-1521",
+    "name": "Asset 1521",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1521.svg"
+    }
+  },
+  {
+    "id": "asset-1522",
+    "name": "Asset 1522",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1522.svg"
+    }
+  },
+  {
+    "id": "asset-1523",
+    "name": "Asset 1523",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1523.svg"
+    }
+  },
+  {
+    "id": "asset-1524",
+    "name": "Asset 1524",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1524.svg"
+    }
+  },
+  {
+    "id": "asset-1525",
+    "name": "Asset 1525",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1525.svg"
+    }
+  },
+  {
+    "id": "asset-1526",
+    "name": "Asset 1526",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1526.svg"
+    }
+  },
+  {
+    "id": "asset-1527",
+    "name": "Asset 1527",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1527.svg"
+    }
+  },
+  {
+    "id": "asset-1528",
+    "name": "Asset 1528",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1528.svg"
+    }
+  },
+  {
+    "id": "asset-1529",
+    "name": "Asset 1529",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1529.svg"
+    }
+  },
+  {
+    "id": "asset-1530",
+    "name": "Asset 1530",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1530.svg"
+    }
+  },
+  {
+    "id": "asset-1531",
+    "name": "Asset 1531",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1531.svg"
+    }
+  },
+  {
+    "id": "asset-1532",
+    "name": "Asset 1532",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1532.svg"
+    }
+  },
+  {
+    "id": "asset-1533",
+    "name": "Asset 1533",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1533.svg"
+    }
+  },
+  {
+    "id": "asset-1534",
+    "name": "Asset 1534",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1534.svg"
+    }
+  },
+  {
+    "id": "asset-1535",
+    "name": "Asset 1535",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1535.svg"
+    }
+  },
+  {
+    "id": "asset-1536",
+    "name": "Asset 1536",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1536.svg"
+    }
+  },
+  {
+    "id": "asset-1537",
+    "name": "Asset 1537",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1537.svg"
+    }
+  },
+  {
+    "id": "asset-1538",
+    "name": "Asset 1538",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1538.svg"
+    }
+  },
+  {
+    "id": "asset-1539",
+    "name": "Asset 1539",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1539.svg"
+    }
+  },
+  {
+    "id": "asset-1540",
+    "name": "Asset 1540",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1540.svg"
+    }
+  },
+  {
+    "id": "asset-1541",
+    "name": "Asset 1541",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1541.svg"
+    }
+  },
+  {
+    "id": "asset-1542",
+    "name": "Asset 1542",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1542.svg"
+    }
+  },
+  {
+    "id": "asset-1543",
+    "name": "Asset 1543",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1543.svg"
+    }
+  },
+  {
+    "id": "asset-1544",
+    "name": "Asset 1544",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1544.svg"
+    }
+  },
+  {
+    "id": "asset-1545",
+    "name": "Asset 1545",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1545.svg"
+    }
+  },
+  {
+    "id": "asset-1546",
+    "name": "Asset 1546",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1546.svg"
+    }
+  },
+  {
+    "id": "asset-1547",
+    "name": "Asset 1547",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1547.svg"
+    }
+  },
+  {
+    "id": "asset-1548",
+    "name": "Asset 1548",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1548.svg"
+    }
+  },
+  {
+    "id": "asset-1549",
+    "name": "Asset 1549",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1549.svg"
+    }
+  },
+  {
+    "id": "asset-1550",
+    "name": "Asset 1550",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1550.svg"
+    }
+  },
+  {
+    "id": "asset-1551",
+    "name": "Asset 1551",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1551.svg"
+    }
+  },
+  {
+    "id": "asset-1552",
+    "name": "Asset 1552",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1552.svg"
+    }
+  },
+  {
+    "id": "asset-1553",
+    "name": "Asset 1553",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1553.svg"
+    }
+  },
+  {
+    "id": "asset-1554",
+    "name": "Asset 1554",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1554.svg"
+    }
+  },
+  {
+    "id": "asset-1555",
+    "name": "Asset 1555",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1555.svg"
+    }
+  },
+  {
+    "id": "asset-1556",
+    "name": "Asset 1556",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1556.svg"
+    }
+  },
+  {
+    "id": "asset-1557",
+    "name": "Asset 1557",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1557.svg"
+    }
+  },
+  {
+    "id": "asset-1558",
+    "name": "Asset 1558",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1558.svg"
+    }
+  },
+  {
+    "id": "asset-1559",
+    "name": "Asset 1559",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1559.svg"
+    }
+  },
+  {
+    "id": "asset-1560",
+    "name": "Asset 1560",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1560.svg"
+    }
+  },
+  {
+    "id": "asset-1561",
+    "name": "Asset 1561",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1561.svg"
+    }
+  },
+  {
+    "id": "asset-1562",
+    "name": "Asset 1562",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1562.svg"
+    }
+  },
+  {
+    "id": "asset-1563",
+    "name": "Asset 1563",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1563.svg"
+    }
+  },
+  {
+    "id": "asset-1564",
+    "name": "Asset 1564",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1564.svg"
+    }
+  },
+  {
+    "id": "asset-1565",
+    "name": "Asset 1565",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1565.svg"
+    }
+  },
+  {
+    "id": "asset-1566",
+    "name": "Asset 1566",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1566.svg"
+    }
+  },
+  {
+    "id": "asset-1567",
+    "name": "Asset 1567",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1567.svg"
+    }
+  },
+  {
+    "id": "asset-1568",
+    "name": "Asset 1568",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1568.svg"
+    }
+  },
+  {
+    "id": "asset-1569",
+    "name": "Asset 1569",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1569.svg"
+    }
+  },
+  {
+    "id": "asset-1570",
+    "name": "Asset 1570",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1570.svg"
+    }
+  },
+  {
+    "id": "asset-1571",
+    "name": "Asset 1571",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1571.svg"
+    }
+  },
+  {
+    "id": "asset-1572",
+    "name": "Asset 1572",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1572.svg"
+    }
+  },
+  {
+    "id": "asset-1573",
+    "name": "Asset 1573",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1573.svg"
+    }
+  },
+  {
+    "id": "asset-1574",
+    "name": "Asset 1574",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1574.svg"
+    }
+  },
+  {
+    "id": "asset-1575",
+    "name": "Asset 1575",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1575.svg"
+    }
+  },
+  {
+    "id": "asset-1576",
+    "name": "Asset 1576",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1576.svg"
+    }
+  },
+  {
+    "id": "asset-1577",
+    "name": "Asset 1577",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1577.svg"
+    }
+  },
+  {
+    "id": "asset-1578",
+    "name": "Asset 1578",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1578.svg"
+    }
+  },
+  {
+    "id": "asset-1579",
+    "name": "Asset 1579",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1579.svg"
+    }
+  },
+  {
+    "id": "asset-1580",
+    "name": "Asset 1580",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1580.svg"
+    }
+  },
+  {
+    "id": "asset-1581",
+    "name": "Asset 1581",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1581.svg"
+    }
+  },
+  {
+    "id": "asset-1582",
+    "name": "Asset 1582",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1582.svg"
+    }
+  },
+  {
+    "id": "asset-1583",
+    "name": "Asset 1583",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1583.svg"
+    }
+  },
+  {
+    "id": "asset-1584",
+    "name": "Asset 1584",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1584.svg"
+    }
+  },
+  {
+    "id": "asset-1585",
+    "name": "Asset 1585",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1585.svg"
+    }
+  },
+  {
+    "id": "asset-1586",
+    "name": "Asset 1586",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1586.svg"
+    }
+  },
+  {
+    "id": "asset-1587",
+    "name": "Asset 1587",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1587.svg"
+    }
+  },
+  {
+    "id": "asset-1588",
+    "name": "Asset 1588",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1588.svg"
+    }
+  },
+  {
+    "id": "asset-1589",
+    "name": "Asset 1589",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1589.svg"
+    }
+  },
+  {
+    "id": "asset-1590",
+    "name": "Asset 1590",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1590.svg"
+    }
+  },
+  {
+    "id": "asset-1591",
+    "name": "Asset 1591",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1591.svg"
+    }
+  },
+  {
+    "id": "asset-1592",
+    "name": "Asset 1592",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1592.svg"
+    }
+  },
+  {
+    "id": "asset-1593",
+    "name": "Asset 1593",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1593.svg"
+    }
+  },
+  {
+    "id": "asset-1594",
+    "name": "Asset 1594",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1594.svg"
+    }
+  },
+  {
+    "id": "asset-1595",
+    "name": "Asset 1595",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1595.svg"
+    }
+  },
+  {
+    "id": "asset-1596",
+    "name": "Asset 1596",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1596.svg"
+    }
+  },
+  {
+    "id": "asset-1597",
+    "name": "Asset 1597",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1597.svg"
+    }
+  },
+  {
+    "id": "asset-1598",
+    "name": "Asset 1598",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1598.svg"
+    }
+  },
+  {
+    "id": "asset-1599",
+    "name": "Asset 1599",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1599.svg"
+    }
+  },
+  {
+    "id": "asset-1600",
+    "name": "Asset 1600",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1600.svg"
+    }
+  },
+  {
+    "id": "asset-1601",
+    "name": "Asset 1601",
+    "category": "general",
+    "files": {
+      "white": "/icon-library/white/asset-1601.svg"
+    }
+  },
+  {
+    "id": "band-aid",
+    "name": "Band Aid",
+    "category": "medical",
+    "files": {
+      "light-blue": "/icon-library/light-blue/band-aid.svg",
+      "white": "/icon-library/white/band-aid.svg"
+    }
+  },
+  {
+    "id": "dna-test",
+    "name": "DNA Test",
+    "category": "medical",
+    "files": {
+      "light-blue": "/icon-library/light-blue/dna-test.svg",
+      "white": "/icon-library/white/dna-test.svg"
+    }
+  },
+  {
+    "id": "emergency-call-app",
+    "name": "Emergency Call App",
+    "category": "medical",
+    "files": {
+      "light-blue": "/icon-library/light-blue/emergency-call-app.svg",
+      "white": "/icon-library/white/emergency-call-app.svg"
+    }
+  },
+  {
+    "id": "first-aid-kit",
+    "name": "First Aid Kit",
+    "category": "medical",
+    "files": {
+      "light-blue": "/icon-library/light-blue/first-aid-kit.svg",
+      "white": "/icon-library/white/first-aid-kit.svg"
+    }
+  },
+  {
+    "id": "health-insurance",
+    "name": "Health Insurance",
+    "category": "medical",
+    "files": {
+      "light-blue": "/icon-library/light-blue/health-insurance.svg",
+      "white": "/icon-library/white/health-insurance.svg"
+    }
+  },
+  {
+    "id": "hospital",
+    "name": "Hospital",
+    "category": "medical",
+    "files": {
+      "light-blue": "/icon-library/light-blue/hospital.svg",
+      "white": "/icon-library/white/hospital.svg"
+    }
+  },
+  {
+    "id": "medical-check-home-doctor",
+    "name": "Medical Check Home Doctor",
+    "category": "medical",
+    "files": {
+      "light-blue": "/icon-library/light-blue/medical-check-home-doctor.svg",
+      "white": "/icon-library/white/medical-check-home-doctor.svg"
+    }
+  },
+  {
+    "id": "medical-prescription",
+    "name": "Medical Prescription",
+    "category": "medical",
+    "files": {
+      "light-blue": "/icon-library/light-blue/medical-prescription.svg",
+      "white": "/icon-library/white/medical-prescription.svg"
+    }
+  },
+  {
+    "id": "online-medical-consultation-diagnosis",
+    "name": "Online Medical Consultation Diagnosis",
+    "category": "medical",
+    "files": {
+      "light-blue": "/icon-library/light-blue/online-medical-consultation-diagnosis.svg",
+      "white": "/icon-library/white/online-medical-consultation-diagnosis.svg"
+    }
+  },
+  {
+    "id": "syringe",
+    "name": "Syringe",
+    "category": "medical",
+    "files": {
+      "light-blue": "/icon-library/light-blue/syringe.svg",
+      "white": "/icon-library/white/syringe.svg"
+    }
+  }
+]
