@@ -37,6 +37,21 @@ export const SuggestedIconsRail = ({
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [restyleOn, setRestyleOn] = useState<boolean>(!!brandDna);
+  // Phase 3 — AI semantic search state
+  const [aiQuery, setAiQuery] = useState('');
+  const ai = useSemanticIconSearch();
+  const aiActive = ai.hits.length > 0 || !!ai.error;
+  const aiExpansion = ai.expansion;
+  const displayItems = aiActive
+    ? ai.hits.map((h) => ({
+        pack: h.pack,
+        packName: h.packName,
+        name: h.name,
+        category: h.category,
+        tags: h.tags,
+        license: h.license,
+      }))
+    : items;
 
   useEffect(() => {
     let alive = true;
