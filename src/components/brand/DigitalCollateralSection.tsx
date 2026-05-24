@@ -68,6 +68,8 @@ interface DigitalCollateralSectionProps {
   layoutTemplateCustomizations?: LayoutTemplateCustomization[];
   /** Brand logo library — drives the variant picker + auto-match in the templated zone editor. */
   brandLogos?: BrandLogo[];
+  /** Brand slug — drives brand-specific standards panels (e.g. TransPerfect). */
+  brandSlug?: string;
 }
 
 // Lucide icon map for built-in categories
