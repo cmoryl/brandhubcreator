@@ -727,6 +727,19 @@ ${innerContent}
         </div>
       )}
 
+      {canEdit && (
+        <SuggestedIconsRail
+          sectionId="iconography"
+          industry={industry}
+          existingIcons={iconography}
+          onAdd={(icon) => {
+            if (!onIconographyChange) return;
+            if (iconography.some((i) => i.id === icon.id)) return;
+            onIconographyChange([...iconography, icon]);
+          }}
+        />
+      )}
+
       <div className="space-y-6">
         {Object.entries(groupedIcons).map(([category, icons]) => {
           const isExpanded = expandedCategories.has(category);
