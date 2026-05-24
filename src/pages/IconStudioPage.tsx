@@ -30,6 +30,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
 import { useImportedIcons } from '@/hooks/useImportedIcons';
+import { useBundledIconLibraries } from '@/hooks/useBundledIconLibraries';
 import { BrandIconography } from '@/types/brand';
 import { useSEO } from '@/hooks/useSEO';
 
@@ -109,6 +110,19 @@ const IconStudioPage = () => {
   } = useIconLibraries(organizationId);
 
   const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
+  const { bundledLibraries } = useBundledIconLibraries(organizationId);
+  const [initialBundledPack, setInitialBundledPack] = useState<string | null>(null);
+
+  // Merge generated + bundled — bundled appear in Core sections of LibraryView/IconSetsView.
+  const allLibraries = useMemo(
+    () => [...libraries, ...bundledLibraries],
+    [libraries, bundledLibraries],
+  );
+
+  const openBundledPack = useCallback((packId: string) => {
+    setInitialBundledPack(packId);
+    setShellSection('imported');
+  }, []);
 
   const totalIcons = useMemo(
     () => libraries.reduce((sum, l) => sum + l.icons.length, 0),
@@ -306,7 +320,7 @@ const IconStudioPage = () => {
         />
       ) : shellSection === 'library' ? (
         <LibraryView
-          libraries={libraries}
+          libraries={allLibraries}
           organizationId={organizationId}
           canEdit={canEdit}
           onCreate={() => setShellSection('generate')}
@@ -314,16 +328,20 @@ const IconStudioPage = () => {
           autoOpenLibraryId={deepLinkLibraryId}
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
           onViewImported={() => setShellSection('imported')}
+          onOpenBundledPack={openBundledPack}
         />
       ) : shellSection === 'imported' ? (
-        <ImportedIconsView />
+        <ImportedIconsView
+          initialPackId={initialBundledPack ?? undefined}
+          onInitialPackConsumed={() => setInitialBundledPack(null)}
+        />
       ) : shellSection === 'brands' ? (
         <BrandsView organizationName={organizationName} organizationId={organizationId} brandProfiles={hierarchyBrands} />
       ) : shellSection === 'styles' ? (
         <StyleSystemsView onStartGenerate={() => setShellSection('generate')} />
       ) : shellSection === 'sets' ? (
         <IconSetsView
-          libraries={libraries}
+          libraries={allLibraries}
           organizationId={organizationId}
           canEdit={canEdit}
           onCreate={() => setShellSection('generate')}
@@ -331,6 +349,7 @@ const IconStudioPage = () => {
           onCompare={() => setShellSection('qa')}
           autoOpenLibraryId={deepLinkLibraryId}
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
+          onOpenBundledPack={openBundledPack}
         />
       ) : shellSection === 'qa' ? (
         <QAView

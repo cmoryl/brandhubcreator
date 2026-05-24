@@ -22,6 +22,7 @@ import { type IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryRowActions } from './useIconLibraryRowActions';
 import { useImportedIcons } from '@/hooks/useImportedIcons';
 import { ImportedIconPreview } from './ImportedIconPreview';
+import { isBundledLibraryId, bundledLibraryPackId } from '@/hooks/useBundledIconLibraries';
 
 interface Props {
   libraries: IconLibrary[];
@@ -36,6 +37,8 @@ interface Props {
   onAutoOpenConsumed?: () => void;
   /** Navigate to the Imported Icons tab. */
   onViewImported?: () => void;
+  /** Navigate to the Imported Icons tab with a specific pack pre-selected. */
+  onOpenBundledPack?: (packId: string) => void;
 }
 
 const LEVEL_LABEL: Record<IconLibrary['level'], { label: string; token: string }> = {
@@ -55,7 +58,7 @@ const sampleEmojisFor = (name: string): string[] => {
   return ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
 };
 
-export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenSet, onCreate, onRemix, autoOpenLibraryId, onAutoOpenConsumed, onViewImported }: Props) => {
+export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenSet, onCreate, onRemix, autoOpenLibraryId, onAutoOpenConsumed, onViewImported, onOpenBundledPack }: Props) => {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
   const [openLib, setOpenLib] = useState<IconLibrary | null>(null);
@@ -243,17 +246,27 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
           {filtered.map((lib) => {
             const level = LEVEL_LABEL[lib.level];
             const accent = `hsl(var(${level.token}))`;
+            const bundled = isBundledLibraryId(lib.id);
+            const onClick = () => {
+              if (bundled) {
+                const pid = bundledLibraryPackId(lib.id);
+                if (pid && onOpenBundledPack) onOpenBundledPack(pid);
+                else onViewImported?.();
+                return;
+              }
+              setOpenLib(lib);
+              onOpenSet?.(lib);
+            };
             return (
               <div
                 key={lib.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => { setOpenLib(lib); onOpenSet?.(lib); }}
+                onClick={onClick}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    setOpenLib(lib);
-                    onOpenSet?.(lib);
+                    onClick();
                   }
                 }}
                 className="tp-card tp-card-interactive group p-5 text-left transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
@@ -262,17 +275,31 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                 }}
               >
                 <div className="flex items-start justify-between mb-3">
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] uppercase tracking-wider"
-                    style={{
-                      borderColor: `hsl(var(${level.token}) / 0.4)`,
-                      color: `hsl(var(${level.token}))`,
-                    }}
-                  >
-                    {level.label}
-                  </Badge>
-                  {canEdit && (
+                  <div className="flex items-center gap-1.5">
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] uppercase tracking-wider"
+                      style={{
+                        borderColor: `hsl(var(${level.token}) / 0.4)`,
+                        color: `hsl(var(${level.token}))`,
+                      }}
+                    >
+                      {level.label}
+                    </Badge>
+                    {bundled && (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] uppercase tracking-wider"
+                        style={{
+                          borderColor: 'hsl(var(--tp-teal) / 0.4)',
+                          color: 'hsl(var(--tp-teal))',
+                        }}
+                      >
+                        Bundled
+                      </Badge>
+                    )}
+                  </div>
+                  {canEdit && !bundled && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -317,6 +344,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
           })}
         </div>
       )}
+
 
       <IconSetDetailDialog
         library={openLib}
