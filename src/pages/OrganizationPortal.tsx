@@ -6,7 +6,7 @@
 
 import { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot, Droplets, LayoutGrid, ImageIcon } from 'lucide-react';
+import { Globe, Lock, Building2, ArrowLeft, Search, Package, Calendar, Plus, Shield, Settings, LogOut, User, LayoutDashboard, Users, HelpCircle, Bot, Droplets, LayoutGrid, ImageIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
