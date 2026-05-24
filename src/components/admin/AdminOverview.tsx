@@ -12,7 +12,8 @@ import {
   UserCheck, FileText, Database, HardDrive, Mail, Image,
   Eye, Zap, ArrowRight, Brain, Wrench, RefreshCw, BarChart3,
   Bot, Globe, Languages, Sparkles, ChevronRight, Layers,
-  Scan, ShieldCheck, MessageSquare, Accessibility, Scale
+  Scan, ShieldCheck, MessageSquare, Accessibility, Scale,
+  Shapes, Download
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
