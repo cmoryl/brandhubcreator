@@ -114,10 +114,6 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
         entityType: b.type,
       }));
 
-    // Merge static defaults, avoiding duplicates by name
-    const seen = new Set(realProfiles.map((p) => p.name.toLowerCase()));
-    const staticProfiles = DEFAULT_PROFILES.filter((p) => !seen.has(p.name.toLowerCase()));
-
     const orgProfile: BrandProfile = {
       id: 'org',
       name: organizationName || 'Your brand',
@@ -132,7 +128,7 @@ export const BrandsView = ({ organizationName, organizationId, brandProfiles = [
       accentToken: '--tp-light-blue',
     };
 
-    const all = [orgProfile, ...realProfiles, ...staticProfiles];
+    const all = [orgProfile, ...realProfiles];
     if (!q.trim()) return all;
     const term = q.toLowerCase();
     return all.filter(
