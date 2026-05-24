@@ -232,18 +232,75 @@ export const IconSetDetailDialog = ({
               </DialogHeader>
             </div>
 
-            {/* Size ladder with real or sample previews */}
-            <div className="p-6 space-y-6">
+            {/* Browse / filter / single-size grid */}
+            <div className="p-6 space-y-4">
               {realIcons.length > 0 ? (
-                <RealIconLadder
-                  icons={realIcons}
-                  accent={accent}
-                  styleMode={effectiveStyle}
-                  onIconClick={(id) => {
-                    const full = library.icons.find((i) => i.id === id) ?? null;
-                    setSelectedIcon(full);
-                  }}
-                />
+                <>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative flex-1 min-w-[220px] max-w-md">
+                      <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder={`Search ${realIcons.length} icons…`}
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 rounded-md border border-border/60 p-0.5">
+                      {([20, 32, 48, 64] as const).map((s) => (
+                        <Button
+                          key={s}
+                          size="sm"
+                          variant={previewSize === s ? 'default' : 'ghost'}
+                          className="h-7 px-2 text-[11px] tabular-nums"
+                          onClick={() => setPreviewSize(s)}
+                        >
+                          {s}px
+                        </Button>
+                      ))}
+                    </div>
+                    <span className="text-[11px] text-muted-foreground ml-auto tabular-nums">
+                      {visibleIcons.length} of {realIcons.length}
+                    </span>
+                  </div>
+
+                  {categories.length > 1 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      <CategoryChip
+                        label={`All ${realIcons.length}`}
+                        active={activeCategory === 'all'}
+                        onClick={() => setActiveCategory('all')}
+                        accent={accent}
+                      />
+                      {categories.map(([cat, count]) => (
+                        <CategoryChip
+                          key={cat}
+                          label={`${cat} ${count}`}
+                          active={activeCategory === cat}
+                          onClick={() => setActiveCategory(cat)}
+                          accent={accent}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {visibleIcons.length === 0 ? (
+                    <div className="tp-card p-8 text-center text-sm text-muted-foreground">
+                      No icons match your search.
+                    </div>
+                  ) : (
+                    <FilteredIconGrid
+                      icons={visibleIcons}
+                      accent={accent}
+                      styleMode={effectiveStyle}
+                      sizePx={previewSize}
+                      onIconClick={(id) => {
+                        const full = library.icons.find((i) => i.id === id) ?? null;
+                        setSelectedIcon(full);
+                      }}
+                    />
+                  )}
+                </>
               ) : (
                 <div className="space-y-4">
                   <div className="text-xs text-muted-foreground">
