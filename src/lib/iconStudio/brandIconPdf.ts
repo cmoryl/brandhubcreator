@@ -167,6 +167,12 @@ const groupByCategory = (icons: BrandIconography[]) => {
 
 /* ─────────────────────────── main builder ─────────────────────────── */
 
+export interface BuildBrandIconPdfResult {
+  blob: Blob;
+  url: string;
+  filename: string;
+}
+
 export async function buildBrandIconPdf({
   entityName,
   entityKind,
@@ -175,7 +181,8 @@ export async function buildBrandIconPdf({
   palette = [],
   logoUrl,
   tagline,
-}: BuildOptions): Promise<void> {
+  autoDownload = true,
+}: BuildOptions & { autoDownload?: boolean }): Promise<BuildBrandIconPdfResult> {
   const nonEmpty = libraries.filter((l) => l.icons && l.icons.length > 0);
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
