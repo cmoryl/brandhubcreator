@@ -94,6 +94,7 @@ export const IconographySection = ({
   productLineId,
   entityType = 'brand',
   entityName = '',
+  entitySlug,
   industry,
 }: IconographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
