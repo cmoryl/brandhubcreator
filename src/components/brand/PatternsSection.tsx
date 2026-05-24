@@ -288,8 +288,11 @@ export const PatternsSection = ({
     toast.success(`Downloaded ${patterns.length} pattern(s)`);
   };
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section className="space-y-4 sm:space-y-6">
+      {isTransPerfect && <TransPerfectMotionPanel />}
       {/* Section header - always full width on its own row */}
       <SectionHeader
         title="Geometric Primitives"
