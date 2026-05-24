@@ -5,7 +5,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Wand2, RefreshCw, Lock, Copy, Download, Sun, Moon, Sparkles } from 'lucide-react';
+import { Wand2, RefreshCw, Lock, Copy, Download, Sun, Moon, Sparkles, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
 import { IconDetailDialog } from '@/components/icon-studio/IconDetailDialog';
@@ -64,8 +65,10 @@ export const IconSetDetailDialog = ({
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
   const [remixOpen, setRemixOpen] = useState(false);
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
-  // Style override applied to the WHOLE set in the preview (does not mutate stored icons)
   const [styleOverride, setStyleOverride] = useState<'auto' | 'outlined' | 'filled' | 'duotone'>('auto');
+  const [query, setQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [previewSize, setPreviewSize] = useState<20 | 32 | 48 | 64>(32);
 
   const baseRecipe: IconRecipe | null = useMemo(() => {
     if (!library) return null;
@@ -106,6 +109,29 @@ export const IconSetDetailDialog = ({
     if (!library) return [];
     return library.icons.filter((i) => i.svgPath);
   }, [library]);
+
+  // Category list (sorted by count desc).
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const i of realIcons) {
+      const c = (i.category || 'uncategorized').toLowerCase();
+      counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1]);
+  }, [realIcons]);
+
+  const visibleIcons = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return realIcons.filter((i) => {
+      if (activeCategory !== 'all') {
+        const c = (i.category || 'uncategorized').toLowerCase();
+        if (c !== activeCategory) return false;
+      }
+      if (!q) return true;
+      return i.name.toLowerCase().includes(q);
+    });
+  }, [realIcons, query, activeCategory]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -206,18 +232,75 @@ export const IconSetDetailDialog = ({
               </DialogHeader>
             </div>
 
-            {/* Size ladder with real or sample previews */}
-            <div className="p-6 space-y-6">
+            {/* Browse / filter / single-size grid */}
+            <div className="p-6 space-y-4">
               {realIcons.length > 0 ? (
-                <RealIconLadder
-                  icons={realIcons}
-                  accent={accent}
-                  styleMode={effectiveStyle}
-                  onIconClick={(id) => {
-                    const full = library.icons.find((i) => i.id === id) ?? null;
-                    setSelectedIcon(full);
-                  }}
-                />
+                <>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative flex-1 min-w-[220px] max-w-md">
+                      <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder={`Search ${realIcons.length} icons…`}
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 rounded-md border border-border/60 p-0.5">
+                      {([20, 32, 48, 64] as const).map((s) => (
+                        <Button
+                          key={s}
+                          size="sm"
+                          variant={previewSize === s ? 'default' : 'ghost'}
+                          className="h-7 px-2 text-[11px] tabular-nums"
+                          onClick={() => setPreviewSize(s)}
+                        >
+                          {s}px
+                        </Button>
+                      ))}
+                    </div>
+                    <span className="text-[11px] text-muted-foreground ml-auto tabular-nums">
+                      {visibleIcons.length} of {realIcons.length}
+                    </span>
+                  </div>
+
+                  {categories.length > 1 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      <CategoryChip
+                        label={`All ${realIcons.length}`}
+                        active={activeCategory === 'all'}
+                        onClick={() => setActiveCategory('all')}
+                        accent={accent}
+                      />
+                      {categories.map(([cat, count]) => (
+                        <CategoryChip
+                          key={cat}
+                          label={`${cat} ${count}`}
+                          active={activeCategory === cat}
+                          onClick={() => setActiveCategory(cat)}
+                          accent={accent}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {visibleIcons.length === 0 ? (
+                    <div className="tp-card p-8 text-center text-sm text-muted-foreground">
+                      No icons match your search.
+                    </div>
+                  ) : (
+                    <FilteredIconGrid
+                      icons={visibleIcons}
+                      accent={accent}
+                      styleMode={effectiveStyle}
+                      sizePx={previewSize}
+                      onIconClick={(id) => {
+                        const full = library.icons.find((i) => i.id === id) ?? null;
+                        setSelectedIcon(full);
+                      }}
+                    />
+                  )}
+                </>
               ) : (
                 <div className="space-y-4">
                   <div className="text-xs text-muted-foreground">
@@ -276,73 +359,92 @@ export const IconSetDetailDialog = ({
 };
 
 /* -------------------------------------------------------------------------- */
-/* Real icon ladder — renders BrandIconography svgPath at multiple sizes      */
+/* Filtered single-size grid + category chip                                  */
 /* -------------------------------------------------------------------------- */
 
-const LADDER: { label: string; tile: number; icon: number }[] = [
-  { label: '20 px', tile: 32, icon: 18 },
-  { label: '32 px', tile: 48, icon: 26 },
-  { label: '48 px', tile: 72, icon: 40 },
-  { label: '64 px', tile: 96, icon: 56 },
-];
+const CategoryChip = ({
+  label,
+  active,
+  onClick,
+  accent,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  accent: string;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="text-[11px] px-2.5 py-1 rounded-full border transition-colors capitalize"
+    style={{
+      borderColor: active ? accent : 'hsl(var(--border))',
+      background: active ? `color-mix(in oklab, ${accent} 14%, transparent)` : 'transparent',
+      color: active ? accent : 'hsl(var(--muted-foreground))',
+    }}
+  >
+    {label}
+  </button>
+);
 
-interface LadderProps {
+interface GridProps {
   icons: Array<{ id: string; name: string; svgPath: string; viewBox?: string; fillMode?: 'stroke' | 'fill' }>;
   accent: string;
   styleMode?: 'outlined' | 'filled' | 'duotone';
+  sizePx: 20 | 32 | 48 | 64;
   onIconClick?: (id: string) => void;
 }
 
-const RealIconLadder = ({ icons, accent, styleMode = 'outlined', onIconClick }: LadderProps) => {
+const TILE_FOR_SIZE: Record<number, number> = { 20: 36, 32: 52, 48: 76, 64: 100 };
+
+const FilteredIconGrid = ({ icons, accent, styleMode = 'outlined', sizePx, onIconClick }: GridProps) => {
+  const tile = TILE_FOR_SIZE[sizePx];
+  // Cap displayed icons to keep DOM cheap; rely on filter/search to narrow.
+  const MAX = 600;
+  const shown = icons.slice(0, MAX);
+  const overflow = icons.length - shown.length;
   return (
-    <div className="space-y-6">
-      {LADDER.map((s) => (
-        <section key={s.label} className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {s.label}
-            </h4>
-            <span className="text-[10px] text-muted-foreground">{icons.length} icons</span>
-          </div>
-          <div
-            className="tp-card p-4 grid gap-3"
-            style={{
-              gridTemplateColumns: `repeat(auto-fill, minmax(${s.tile + 24}px, 1fr))`,
-            }}
+    <div className="space-y-3">
+      <div
+        className="tp-card p-4 grid gap-3"
+        style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${tile + 24}px, 1fr))` }}
+      >
+        {shown.map((icon) => (
+          <button
+            type="button"
+            key={icon.id}
+            onClick={() => onIconClick?.(icon.id)}
+            className="flex flex-col items-center gap-1.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+            title={icon.name}
           >
-            {icons.map((icon) => (
-              <button
-                type="button"
-                key={`${s.label}-${icon.id}`}
-                onClick={() => onIconClick?.(icon.id)}
-                className="flex flex-col items-center gap-1.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
-                title={icon.name}
-              >
-                <div
-                  className="flex items-center justify-center rounded-lg transition-transform group-hover:scale-105"
-                  style={{
-                    width: s.tile,
-                    height: s.tile,
-                    background: `color-mix(in oklab, ${accent} 10%, transparent)`,
-                    border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
-                  }}
-                >
-                  <IconSvgRender
-                    icon={icon as BrandIconography}
-                    size={s.icon}
-                    color={accent}
-                    presentation={styleMode}
-                    strokeWidth={styleMode === 'duotone' ? 1.5 : 1.75}
-                  />
-                </div>
-                <span className="text-[10px] text-muted-foreground truncate max-w-[88px]">
-                  {icon.name}
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-      ))}
+            <div
+              className="flex items-center justify-center rounded-lg transition-transform group-hover:scale-105"
+              style={{
+                width: tile,
+                height: tile,
+                background: `color-mix(in oklab, ${accent} 10%, transparent)`,
+                border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
+              }}
+            >
+              <IconSvgRender
+                icon={icon as BrandIconography}
+                size={sizePx}
+                color={accent}
+                presentation={styleMode}
+                strokeWidth={styleMode === 'duotone' ? 1.5 : 1.75}
+              />
+            </div>
+            <span className="text-[10px] text-muted-foreground truncate max-w-[88px]">
+              {icon.name}
+            </span>
+          </button>
+        ))}
+      </div>
+      {overflow > 0 && (
+        <div className="text-[11px] text-muted-foreground text-center">
+          Showing first {MAX} of {icons.length}. Use search or category filters to narrow.
+        </div>
+      )}
     </div>
   );
 };
