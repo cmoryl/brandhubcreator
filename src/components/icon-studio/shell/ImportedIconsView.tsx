@@ -128,6 +128,7 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
   const [indexLoading, setIndexLoading] = useState(false);
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<string>('all');
+  const [variant, setVariant] = useState<string>('all');
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
 
   // Honor initialPackId once it (and the packs list) become available.
