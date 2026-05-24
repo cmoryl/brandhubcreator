@@ -228,6 +228,10 @@ export function useSvgOptimizer() {
     abortRef.current = true;
   }, []);
 
+  const clearRun = useCallback(() => {
+    setLatestRun(null);
+  }, []);
+
   return {
     presets,
     isOptimizing,
@@ -235,5 +239,6 @@ export function useSvgOptimizer() {
     optimizeIcon,
     optimizeBatch,
     abort,
+    clearRun,
   };
 }
