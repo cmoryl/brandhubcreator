@@ -24,6 +24,7 @@ interface Props {
   libraries: IconLibrary[];
   totalIcons: number;
   organizationId?: string;
+  organizationName?: string;
   onStartGenerate?: () => void;
 }
 
