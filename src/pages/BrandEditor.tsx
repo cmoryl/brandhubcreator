@@ -889,7 +889,9 @@ const BrandEditor = () => {
             brandVisuals={derivedVisuals}
             layoutTemplateCustomizations={(brand as any).layoutTemplateCustomizations || []}
             brandLogos={brand.logos}
+            brandSlug={brand.slug}
           />
+
         );
       }
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={editHandler((templates) => updateBrand({ templates }))} entityId={brand.id} entityType="brand" />;
