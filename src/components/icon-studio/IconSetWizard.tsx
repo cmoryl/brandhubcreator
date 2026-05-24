@@ -129,6 +129,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
   const [industry, setIndustry] = useState<IndustryPreset | null>(null);
   const [companyName, setCompanyName] = useState(organizationName || '');
   const [style, setStyle] = useState<'outlined' | 'filled' | 'duotone'>('outlined');
+  const [detailLevel, setDetailLevel] = useState<'low' | 'medium' | 'high'>('medium');
   const [selectedSubSetIds, setSelectedSubSetIds] = useState<Set<string>>(new Set());
   const [grouping, setGrouping] = useState<SubSetGrouping>('department');
 
