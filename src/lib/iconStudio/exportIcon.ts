@@ -21,8 +21,8 @@ const sanitizeFileName = (raw: string) =>
 const toSvgString = (icon: BrandIconography): string => {
   const built = buildSvgString({
     svgPath: icon.svgPath || '',
-    viewBox: (icon as any).viewBox || '0 0 24 24',
-    fillMode: (icon as any).fillMode,
+    viewBox: icon.viewBox || '0 0 24 24',
+    fillMode: icon.fillMode,
     name: icon.name,
   });
   return sanitizeSvg(built);

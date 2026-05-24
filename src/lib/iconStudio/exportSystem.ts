@@ -32,8 +32,8 @@ const downloadBlob = (blob: Blob, fileName: string) => {
 const toSvgString = (icon: BrandIconography): string => {
   const built = buildSvgString({
     svgPath: icon.svgPath || '',
-    viewBox: (icon as any).viewBox || '0 0 24 24',
-    fillMode: (icon as any).fillMode,
+    viewBox: icon.viewBox || '0 0 24 24',
+    fillMode: icon.fillMode,
     name: icon.name,
   });
   return sanitizeSvg(built);
@@ -62,9 +62,9 @@ export const buildContactSheetSvg = (
       const row = Math.floor(i / columns);
       const x = padding + col * tile;
       const y = headerH + padding + row * cellH;
-      const vb = (icon as any).viewBox || '0 0 24 24';
-      const fill = (icon as any).fillMode === 'fill' ? accent : 'none';
-      const stroke = (icon as any).fillMode === 'fill' ? 'none' : accent;
+      const vb = icon.viewBox || '0 0 24 24';
+      const fill = icon.fillMode === 'fill' ? accent : 'none';
+      const stroke = icon.fillMode === 'fill' ? 'none' : accent;
       const safeName = (icon.name || 'icon').replace(/[<>&"']/g, '');
       return `
   <g transform="translate(${x},${y})">
