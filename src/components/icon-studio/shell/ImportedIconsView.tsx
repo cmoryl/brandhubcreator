@@ -14,6 +14,10 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useImportedIcons } from '@/hooks/useImportedIcons';
 import { materializeDataUrl, materializeSvg } from '@/lib/iconLibrary/loader';
 import type { IconIndexEntry } from '@/lib/iconLibrary/types';
+import type { BrandIconography } from '@/types/brand';
+import { IconDetailDialog } from '@/components/icon-studio/IconDetailDialog';
+import { AddToLibraryMenu } from '@/components/icon-studio/AddToLibraryMenu';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 interface ResolvedRow {
   pack: string;
@@ -62,12 +66,14 @@ interface ImportedIconsViewProps {
 }
 
 export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: ImportedIconsViewProps = {}) => {
+  const { organization } = useOrganization();
   const { packs, totalCount, loading } = useImportedIcons();
   const [selectedPack, setSelectedPack] = useState<string>(initialPackId ?? packs[0]?.id ?? 'ph');
   const [packIndex, setPackIndex] = useState<IconIndexEntry[]>([]);
   const [indexLoading, setIndexLoading] = useState(false);
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<string>('all');
+  const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
 
   // Honor initialPackId once it (and the packs list) become available.
   useEffect(() => {
@@ -123,30 +129,29 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
     overscan: 4,
   });
 
-  const copyMarkup = useCallback(async (pack: string, name: string) => {
+  // Open the same workspace dialog used for generated icons.
+  // Materializes the SVG on demand and converts it into a BrandIconography
+  // object the dialog/exporters already understand.
+  const openDetail = useCallback(async (pack: string, name: string, category: string) => {
     try {
       const svg = await materializeSvg(pack, name);
-      await navigator.clipboard.writeText(svg);
-      toast.success('SVG markup copied');
+      // Extract viewBox if present, otherwise default to 24x24.
+      const vbMatch = svg.match(/viewBox\s*=\s*"([^"]+)"/i);
+      const viewBox = vbMatch?.[1] ?? '0 0 24 24';
+      // Detect stroke-style markup; default to fill otherwise.
+      const lower = svg.toLowerCase();
+      const looksStroke = /stroke\s*=\s*"(?!none)/i.test(svg) && lower.includes('fill="none"');
+      const fillMode: 'stroke' | 'fill' = looksStroke ? 'stroke' : 'fill';
+      setSelectedIcon({
+        id: `bundled:${pack}/${name}`,
+        name,
+        svgPath: svg, // full <svg> string — supported by IconSvgRender/buildSvgString
+        category: category || 'misc',
+        viewBox,
+        fillMode,
+      });
     } catch {
-      toast.error('Copy failed');
-    }
-  }, []);
-
-  const downloadIcon = useCallback(async (pack: string, name: string) => {
-    try {
-      const svg = await materializeSvg(pack, name);
-      const blob = new Blob([svg], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${pack}-${name}.svg`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch {
-      toast.error('Download failed');
+      toast.error('Failed to open icon');
     }
   }, []);
 
@@ -282,8 +287,7 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
                             key={e.n}
                             pack={selectedPack}
                             name={e.n}
-                            onCopy={() => copyMarkup(selectedPack, e.n)}
-                            onDownload={() => downloadIcon(selectedPack, e.n)}
+                            onOpen={() => openDetail(selectedPack, e.n, e.c)}
                           />
                         ))}
                       </div>
@@ -295,6 +299,22 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
           )}
         </div>
       </div>
+
+      {/* Workspace dialog — same as generated icons, with an extra
+          "Add to library" action so imported icons can flow into brand sections. */}
+      <IconDetailDialog
+        icon={selectedIcon}
+        onClose={() => setSelectedIcon(null)}
+        presentation="auto"
+        hideReviewActions
+        extraActions={
+          <AddToLibraryMenu
+            icon={selectedIcon}
+            organizationId={organization?.id}
+            label="Add to brand section"
+          />
+        }
+      />
     </div>
   );
 };
@@ -302,11 +322,10 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
 interface CellProps {
   pack: string;
   name: string;
-  onCopy: () => void;
-  onDownload: () => void;
+  onOpen: () => void;
 }
 
-const IconCell = ({ pack, name, onCopy, onDownload }: CellProps) => {
+const IconCell = ({ pack, name, onOpen }: CellProps) => {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
@@ -317,10 +336,11 @@ const IconCell = ({ pack, name, onCopy, onDownload }: CellProps) => {
   }, [pack, name]);
 
   return (
-    <div
-      className="group relative flex aspect-square items-center justify-center rounded-md border bg-muted/30 hover:bg-muted transition cursor-default"
-      title={name}
-      onClick={onCopy}
+    <button
+      type="button"
+      className="group relative flex aspect-square items-center justify-center rounded-md border bg-muted/30 hover:bg-muted hover:border-primary/40 transition cursor-pointer"
+      title={`Open ${name}`}
+      onClick={onOpen}
     >
       {url ? (
         <img src={url} alt={name} loading="lazy" className="h-7 w-7 object-contain" style={{ color: 'hsl(var(--foreground))' }} />
@@ -330,6 +350,6 @@ const IconCell = ({ pack, name, onCopy, onDownload }: CellProps) => {
       <div className="absolute inset-x-0 -bottom-5 truncate text-center text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100">
         {name}
       </div>
-    </div>
+    </button>
   );
 };

@@ -56,6 +56,10 @@ interface Props {
   onRegenerate?: (recipe: IconRecipe) => Promise<void> | void;
   onApprove?: (icon: BrandIconography) => void;
   onReject?: (icon: BrandIconography) => void;
+  /** Optional extra action buttons rendered alongside the default action row. */
+  extraActions?: React.ReactNode;
+  /** When true, hides Approve/Reject/Regenerate (used for read-only sources like imported icons). */
+  hideReviewActions?: boolean;
 }
 
 const SIZE_STRIP = [16, 24, 32, 48, 64];
@@ -69,6 +73,8 @@ export const IconDetailDialog = ({
   onRegenerate,
   onApprove,
   onReject,
+  extraActions,
+  hideReviewActions = false,
 }: Props) => {
   const [bg, setBg] = useState<'light' | 'dark'>('light');
   const [copied, setCopied] = useState(false);
@@ -199,34 +205,38 @@ export const IconDetailDialog = ({
 
             {/* Actions */}
             <div className="px-6 pb-6 flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant="default"
-                className="gap-1.5"
-                onClick={() => onApprove?.(icon)}
-              >
-                <ThumbsUp className="h-3.5 w-3.5" /> Approve
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1.5"
-                onClick={() => onReject?.(icon)}
-              >
-                <ThumbsDown className="h-3.5 w-3.5" /> Reject
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1.5"
-                onClick={handleRegenerate}
-                disabled={!onRegenerate || regenerating || !recipe}
-              >
-                <RefreshCw
-                  className={cn('h-3.5 w-3.5', regenerating && 'animate-spin')}
-                />
-                Regenerate
-              </Button>
+              {!hideReviewActions && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="gap-1.5"
+                    onClick={() => onApprove?.(icon)}
+                  >
+                    <ThumbsUp className="h-3.5 w-3.5" /> Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => onReject?.(icon)}
+                  >
+                    <ThumbsDown className="h-3.5 w-3.5" /> Reject
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={handleRegenerate}
+                    disabled={!onRegenerate || regenerating || !recipe}
+                  >
+                    <RefreshCw
+                      className={cn('h-3.5 w-3.5', regenerating && 'animate-spin')}
+                    />
+                    Regenerate
+                  </Button>
+                </>
+              )}
               <Button
                 size="sm"
                 variant="outline"
@@ -243,6 +253,7 @@ export const IconDetailDialog = ({
               >
                 <Package className="h-3.5 w-3.5" /> Bundle
               </Button>
+              {extraActions}
             </div>
           </div>
 
