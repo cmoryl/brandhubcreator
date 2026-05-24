@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SectionHeader } from './SectionHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { TransPerfectColorTypographyPanel } from './identity/TransPerfectColorTypographyPanel';
 
 interface TypographySectionProps {
   typography: BrandTypography[];
@@ -14,6 +15,7 @@ interface TypographySectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   isAdmin?: boolean;
+  brandSlug?: string;
 }
 
 const fontOptions = [
