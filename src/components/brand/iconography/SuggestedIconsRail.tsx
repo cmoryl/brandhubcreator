@@ -22,6 +22,7 @@ import { getSuggestedIcons, type SuggestedIcon } from '@/lib/iconLibrary/suggest
 import { materializeAsBrandIconography, materializeDataUrl } from '@/lib/iconLibrary/loader';
 import { restyleBundledIcon, applyBrandDnaToSvg, type BrandRestyleDNA } from '@/lib/iconLibrary/restyle';
 import { kitsForSection, resolveKit } from '@/lib/iconLibrary/kits';
+import { useIconUsageLogger } from '@/lib/iconLibrary/usageTracking';
 import type { BrandIconography } from '@/types/brand';
 
 interface SuggestedIconsRailProps {
