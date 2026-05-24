@@ -17,6 +17,7 @@ import { DashboardView } from '@/components/icon-studio/shell/DashboardView';
 import { ProductionSummary } from '@/components/icon-studio/shell/ProductionSummary';
 
 import { LibraryView } from '@/components/icon-studio/shell/LibraryView';
+import { ImportedIconsView } from '@/components/icon-studio/shell/ImportedIconsView';
 import { BrandsView } from '@/components/icon-studio/shell/BrandsView';
 import { StyleSystemsView } from '@/components/icon-studio/shell/StyleSystemsView';
 import { IconSetsView } from '@/components/icon-studio/shell/IconSetsView';
@@ -54,7 +55,7 @@ const IconStudioPage = () => {
 
   // Honor deep-links like /icon-studio?section=library&library=<id>&brand=<id>
   const [searchParams] = useSearchParams();
-  const validSections: ShellSection[] = ['dashboard','library','brands','styles','sets','qa','export','generate'];
+  const validSections: ShellSection[] = ['dashboard','library','imported','brands','styles','sets','qa','export','generate'];
   const urlSection = searchParams.get('section') as ShellSection | null;
   const urlLibrary = searchParams.get('library');
   const urlBrand = searchParams.get('brand');
@@ -309,6 +310,8 @@ const IconStudioPage = () => {
           autoOpenLibraryId={deepLinkLibraryId}
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
         />
+      ) : shellSection === 'imported' ? (
+        <ImportedIconsView />
       ) : shellSection === 'brands' ? (
         <BrandsView organizationName={organizationName} organizationId={organizationId} brandProfiles={hierarchyBrands} />
       ) : shellSection === 'styles' ? (
