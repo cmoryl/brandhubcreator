@@ -432,7 +432,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         </header>
         <div className="flex flex-wrap gap-2">
           <ScopeChip
-            label={`Entire workspace (${libraries.length})`}
+            label={`Entire workspace (${libraries.length + (importedIcons.length > 0 ? 1 : 0)})`}
             active={selectedSetId === 'all'}
             onClick={() => setSelectedSetId('all')}
           />
@@ -444,9 +444,16 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
               onClick={() => setSelectedSetId(l.id)}
             />
           ))}
-          {libraries.length === 0 && (
+          {importedIcons.length > 0 && (
+            <ScopeChip
+              label={`Imported Assets · ${importedIcons.length}`}
+              active={selectedSetId === 'imported'}
+              onClick={() => setSelectedSetId('imported')}
+            />
+          )}
+          {libraries.length === 0 && importedIcons.length === 0 && (
             <p className="text-xs text-muted-foreground">
-              No sets yet — generate one to enable scoped exports.
+              No sets yet — generate one or import icons to enable scoped exports.
             </p>
           )}
         </div>
