@@ -135,5 +135,5 @@ export function useEnrichAllLibraries(organizationId: string | undefined) {
     [updateLibrary],
   );
 
-  return { progress, enrichAll, enrichOne };
+  return { progress, enrichAll, enrichOne, enrichBrandRepositories };
 }
