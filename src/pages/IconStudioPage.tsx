@@ -24,6 +24,8 @@ import { IconSetsView } from '@/components/icon-studio/shell/IconSetsView';
 import { QAView } from '@/components/icon-studio/shell/QAView';
 import { ExportCenterView } from '@/components/icon-studio/shell/ExportCenterView';
 import { SettingsView } from '@/components/icon-studio/shell/SettingsView';
+import { CommandPalette, useStudioHotkeys } from '@/components/icon-studio/shell/CommandPalette';
+import { KeyboardShortcutsDialog } from '@/components/icon-studio/shell/KeyboardShortcutsDialog';
 import '@/components/icon-studio/shell/tpTokens.css';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -109,9 +111,18 @@ const IconStudioPage = () => {
     updateLibrary,
   } = useIconLibraries(organizationId);
 
-  const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
+  const { entries: importedEntries, loading: importedLoading, packs: bundledPacks } = useImportedIcons();
   const { bundledLibraries } = useBundledIconLibraries(organizationId);
   const [initialBundledPack, setInitialBundledPack] = useState<string | null>(null);
+
+  // Cmd+K command palette + ? shortcuts dialog
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  useStudioHotkeys({
+    onTogglePalette: () => setPaletteOpen((v) => !v),
+    onShowShortcuts: () => setShortcutsOpen((v) => !v),
+    onNavigate: (s) => setShellSection(s),
+  });
 
   // Merge generated + bundled — bundled appear in Core sections of LibraryView/IconSetsView.
   const allLibraries = useMemo(
@@ -228,6 +239,7 @@ const IconStudioPage = () => {
   }
 
   return (
+    <>
     <StudioShell
       activeSection={shellSection}
       onSectionChange={setShellSection}
@@ -235,6 +247,7 @@ const IconStudioPage = () => {
       activeBrand={activeBrand}
       onBrandChange={handleBrandChange}
       onBack={() => navigate(-1)}
+      onOpenCommandPalette={() => setPaletteOpen(true)}
       onSaveToLibrary={
         canEdit && shellSection === 'generate' && wizardCanSave
           ? () => wizardSaveRef.current?.()
@@ -375,6 +388,30 @@ const IconStudioPage = () => {
         <SettingsView />
       )}
     </StudioShell>
+    <CommandPalette
+      open={paletteOpen}
+      onOpenChange={setPaletteOpen}
+      onNavigate={(s) => setShellSection(s)}
+      onOpenLibrary={(id) => {
+        setDeepLinkLibraryId(id);
+        setShellSection('library');
+      }}
+      onOpenBundledPack={openBundledPack}
+      onChangeBrand={handleBrandChange}
+      onShowShortcuts={() => setShortcutsOpen(true)}
+      libraries={[...libraries]
+        .sort((a: any, b: any) => {
+          const ta = new Date(a.updated_at || a.created_at || 0).getTime();
+          const tb = new Date(b.updated_at || b.created_at || 0).getTime();
+          return tb - ta;
+        })
+        .map((l) => ({ id: l.id, name: l.name, iconCount: l.icons.length, level: l.level }))}
+      brands={shellBrands}
+      activeBrandId={activeBrand?.id}
+      packs={bundledPacks.map((p) => ({ id: p.id, name: p.name, count: p.count }))}
+    />
+    <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+    </>
   );
 };
 
