@@ -29,6 +29,25 @@ interface IconLibLite {
   icons: BrandIconography[];
 }
 
+export interface PdfBranding {
+  /** Show a running header (logo + text) on every content page (skips cover). Default: true. */
+  showHeader?: boolean;
+  /** Show a running footer (text + page numbers) on every content page (skips cover). Default: true. */
+  showFooter?: boolean;
+  /** Override the left-hand text in the header. Defaults to entity name. */
+  headerText?: string;
+  /** Override the left-hand text in the footer. Defaults to "{entityName} · {entityKind} icon system". */
+  footerText?: string;
+  /** Header background color (hex). Defaults to accentColor. */
+  headerBgColor?: string;
+  /** Footer text color (hex). Defaults to a muted grey. */
+  footerTextColor?: string;
+  /** Include the brand logo (if provided) in the running header. Default: true. */
+  showLogoInHeader?: boolean;
+  /** Include the brand logo (if provided) on the cover. Default: true. */
+  showLogoOnCover?: boolean;
+}
+
 interface BuildOptions {
   entityName: string;
   entityKind: 'Brand' | 'Product' | 'Event';
@@ -41,6 +60,8 @@ interface BuildOptions {
   logoUrl?: string;
   /** Optional tagline shown under the entity name on the cover */
   tagline?: string;
+  /** Configurable header/footer branding applied to content pages. */
+  branding?: PdfBranding;
 }
 
 /* ─────────────────────────── helpers ─────────────────────────── */
