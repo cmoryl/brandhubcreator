@@ -5,7 +5,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Wand2, RefreshCw, Lock, Copy, Download, Sun, Moon, Sparkles } from 'lucide-react';
+import { Wand2, RefreshCw, Lock, Copy, Download, Sun, Moon, Sparkles, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { StatusChip } from './StatusChip';
 import { IconSetPreview } from './IconSetPreview';
 import { IconDetailDialog } from '@/components/icon-studio/IconDetailDialog';
