@@ -681,3 +681,86 @@ function truncate(s: string, n: number): string {
   if (!s) return "";
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
 }
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* Creative lens — rotates the visual point-of-view per section so each batch */
+/* arrives with a distinct aesthetic instead of defaulting to generic Lucide. */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+interface CreativeLens {
+  name: string;
+  brief: string;
+  tactics: string;
+}
+
+const CREATIVE_LENSES: CreativeLens[] = [
+  {
+    name: "Bauhaus Primitives",
+    brief: "Reduce every metaphor to its most essential geometric primitive — circle, triangle, square — then compose them with Klee/Albers precision. Forms feel inevitable, not decorative.",
+    tactics: "lean on perfect circles and 45°/90° angles, use one bold gesture per icon, prefer composition over detail.",
+  },
+  {
+    name: "Risograph Cut-Paper",
+    brief: "Imagine each icon hand-cut from coloured paper with scissors. Slightly imperfect curves, confident silhouettes, the energy of Matisse late-period gouaches.",
+    tactics: "use bold closed shapes, embrace gentle organic curves over machine arcs, let counter-form do half the work.",
+  },
+  {
+    name: "Japanese Mon (家紋)",
+    brief: "Family-crest discipline. Centred, contained, symbolic. A single emblem that distils an entire concept into one breath. Centuries of refinement compressed into 24px.",
+    tactics: "tight radial composition, repeating motifs around a center, deeply symbolic over literal — ban any obvious Western referent.",
+  },
+  {
+    name: "Brutalist Concrete",
+    brief: "Heavy, blocky, architectural. Le Corbusier and Paul Rand meet Massimo Vignelli. Mass and weight tell the story; refinement comes from proportion, not decoration.",
+    tactics: "thick slab-like forms, rectilinear silhouettes, harsh corners, monumental scale within the frame.",
+  },
+  {
+    name: "Memphis Off-Kilter",
+    brief: "Ettore Sottsass playfulness — slightly tilted, intentionally imperfect, joyfully geometric. Squiggles, half-arcs, and confident asymmetry that feels deliberate, not accidental.",
+    tactics: "tilt the axis 5–10°, mix one curved gesture with one angular, prefer odd-numbered elements, embrace counterpoint.",
+  },
+  {
+    name: "Constructivist Diagonal",
+    brief: "Rodchenko and El Lissitzky energy. Diagonals slice the frame, forms converge to off-centre vanishing points, every glyph implies motion or force.",
+    tactics: "rotate primary axis to 30°/60°, asymmetric weight distribution, arrow-like directionality even in static concepts.",
+  },
+  {
+    name: "Art Nouveau Whiplash",
+    brief: "Mucha-meets-Mackintosh sinuous line work. Curves that breathe and accelerate, organic growth patterns, the feeling of botanical engineering.",
+    tactics: "vary line curvature within a single stroke, S-curves and parabolic arcs over circles, asymmetric organic balance.",
+  },
+  {
+    name: "ISO Wayfinding",
+    brief: "AIGA and Otl Aicher pictogram clarity. Universal, calm, unambiguous. The icon equivalent of an airport — strangers in any culture understand instantly.",
+    tactics: "high silhouette legibility, rigid geometric reduction, NO ornament — but find an unexpected viewpoint to escape stock.",
+  },
+  {
+    name: "Punk Photocopy",
+    brief: "Jamie Reid, Barney Bubbles, early Factory Records. Slightly broken, off-register, defiantly hand-made. Energy over polish, but still controlled by an expert hand.",
+    tactics: "intentional rough corner, slight rotation, contrast a sharp edge with a torn one, break ONE rule per icon (only one).",
+  },
+  {
+    name: "Suprematist Floating",
+    brief: "Malevich's white-on-white compositions. Forms floating in measured space, each shape weighted by its position as much as its mass. Silence as composition.",
+    tactics: "off-centre placement within the safe zone, generous negative space, two forms in spatial dialogue rather than one centred shape.",
+  },
+  {
+    name: "Op-Art Counter-Form",
+    brief: "Bridget Riley and Victor Vasarely — the icon emerges from rhythm and counter-form rather than literal depiction. The eye assembles the meaning from pattern.",
+    tactics: "build the icon from repeated parallel strokes or nested arcs, let the gestalt do the work, lean hard into counter-form.",
+  },
+  {
+    name: "Folk Woodcut",
+    brief: "Mexican lotería, Polish papercut, Scandinavian rosemaling. Symbolic, decorative-but-meaningful, the warmth of generational craft compressed into a glyph.",
+    tactics: "use small symbolic flourishes that mean something culturally, prefer symmetric folk-balance, every curve hand-drawn-feeling.",
+  },
+];
+
+function pickCreativeLens(entityName: string, category: string, sectionIndex: number): CreativeLens {
+  // Stable hash across (brand × category × section) so the same section regenerates with the same lens,
+  // but adjacent sections get different lenses — yielding visual variety across a brand's whole set.
+  const seed = `${entityName || "brand"}::${category || "core"}::${sectionIndex}`;
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  return CREATIVE_LENSES[Math.abs(h) % CREATIVE_LENSES.length];
+}
