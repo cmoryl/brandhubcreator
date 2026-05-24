@@ -17,6 +17,7 @@ import { StatusChip } from './StatusChip';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { runPreflight, type PreflightSummary } from '@/lib/iconStudio/qa';
 import { AbTestPanel } from './AbTestPanel';
+import { SvgOptimizerPanel } from './SvgOptimizerPanel';
 
 
 interface Props {
