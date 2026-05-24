@@ -15,6 +15,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { StatusChip } from './StatusChip';
@@ -23,6 +33,8 @@ import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 interface Props {
   libraries: IconLibrary[];
   organizationId?: string;
+  /** When false, hides destructive / mutating affordances (Duplicate, Lock, Delete, New set). */
+  canEdit?: boolean;
   onOpenSet?: (lib: IconLibrary) => void;
   onCreate?: () => void;
   onRemix?: (lib: IconLibrary) => void;
@@ -48,10 +60,11 @@ const sampleEmojisFor = (name: string): string[] => {
   return ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
 };
 
-export const LibraryView = ({ libraries, organizationId, onOpenSet, onCreate, onRemix, autoOpenLibraryId, onAutoOpenConsumed }: Props) => {
+export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenSet, onCreate, onRemix, autoOpenLibraryId, onAutoOpenConsumed }: Props) => {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
   const [openLib, setOpenLib] = useState<IconLibrary | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<IconLibrary | null>(null);
   const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
 
   const handleDuplicate = (lib: IconLibrary) => {
@@ -73,9 +86,10 @@ export const LibraryView = ({ libraries, organizationId, onOpenSet, onCreate, on
       { onSuccess: () => toast.success(lib.is_active ? `${lib.name} locked` : `${lib.name} unlocked`) },
     );
   };
-  const handleDelete = (lib: IconLibrary) => {
-    if (typeof window !== 'undefined' && !window.confirm(`Delete icon set "${lib.name}"? This cannot be undone.`)) return;
-    deleteLibrary.mutate(lib.id);
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    deleteLibrary.mutate(pendingDelete.id);
+    setPendingDelete(null);
   };
 
   // Auto-open from deep link
@@ -133,12 +147,16 @@ export const LibraryView = ({ libraries, organizationId, onOpenSet, onCreate, on
               Every icon set you've saved — searchable, taggable, version-controlled.
             </p>
           </div>
-          <Button size="sm" className="gap-1.5" onClick={onCreate}>
-            <Plus className="h-4 w-4" />
-            New set
-          </Button>
+          {canEdit && (
+            <Button size="sm" className="gap-1.5" onClick={onCreate}>
+              <Plus className="h-4 w-4" />
+              New set
+            </Button>
+          )}
         </div>
       </header>
+
+
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
@@ -212,21 +230,23 @@ export const LibraryView = ({ libraries, organizationId, onOpenSet, onCreate, on
                   >
                     {level.label}
                   </Badge>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon" className="h-7 w-7">
-                        <MoreHorizontal className="h-3.5 w-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onClick={() => handleDuplicate(lib)}>Duplicate</DropdownMenuItem>
-                      {onRemix && <DropdownMenuItem onClick={() => onRemix(lib)}>Remix</DropdownMenuItem>}
-                      <DropdownMenuItem onClick={() => handleLockToggle(lib)}>
-                        {lib.is_active ? 'Lock set' : 'Unlock set'}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(lib)}>Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {canEdit && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onClick={() => handleDuplicate(lib)}>Duplicate</DropdownMenuItem>
+                        {onRemix && <DropdownMenuItem onClick={() => onRemix(lib)}>Remix</DropdownMenuItem>}
+                        <DropdownMenuItem onClick={() => handleLockToggle(lib)}>
+                          {lib.is_active ? 'Lock set' : 'Unlock set'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onClick={() => setPendingDelete(lib)}>Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
                 <h3 className="text-base font-semibold leading-tight">{lib.name}</h3>
                 <p className="text-xs text-muted-foreground mt-1 line-clamp-2 min-h-[2.25rem]">
@@ -262,6 +282,27 @@ export const LibraryView = ({ libraries, organizationId, onOpenSet, onCreate, on
         levelLabel={openLib ? LEVEL_LABEL[openLib.level].label : ''}
         onClose={() => setOpenLib(null)}
       />
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete icon set?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove <strong>{pendingDelete?.name}</strong> and all of its icons. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
+

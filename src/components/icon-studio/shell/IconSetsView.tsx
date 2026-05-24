@@ -12,6 +12,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { StatusChip } from './StatusChip';
@@ -23,6 +33,8 @@ import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 interface Props {
   libraries: IconLibrary[];
   organizationId?: string;
+  /** When false, hides destructive / mutating affordances. */
+  canEdit?: boolean;
   onCreate?: () => void;
   onRegenerate?: (lib: IconLibrary) => void;
   onRemix?: (lib: IconLibrary) => void;
@@ -57,6 +69,7 @@ type LevelKey = keyof typeof LEVEL_META;
 export const IconSetsView = ({
   libraries,
   organizationId,
+  canEdit = true,
   onCreate,
   onRegenerate,
   onRemix,
@@ -68,6 +81,7 @@ export const IconSetsView = ({
   const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
   const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
   const [expandOpen, setExpandOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<IconLibrary | null>(null);
   const { createLibrary, updateLibrary, deleteLibrary } = useIconLibraries(organizationId);
 
   // Auto-open from deep link (e.g. /icon-studio?section=sets&library=<id>)
@@ -135,10 +149,12 @@ export const IconSetsView = ({
   };
 
   const handleDelete = (lib: IconLibrary) => {
-    if (typeof window !== 'undefined' && !window.confirm(`Delete icon set "${lib.name}"? This cannot be undone.`)) {
-      return;
-    }
-    deleteLibrary.mutate(lib.id);
+    setPendingDelete(lib);
+  };
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    deleteLibrary.mutate(pendingDelete.id);
+    setPendingDelete(null);
   };
 
   const levelLabelFor = (lib: IconLibrary) => LEVEL_META[lib.level as LevelKey]?.label ?? lib.level;
@@ -169,16 +185,18 @@ export const IconSetsView = ({
               lock, or compare.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setExpandOpen(true)}>
-              <Sparkles className="h-4 w-4" />
-              Expand brand sets +120
-            </Button>
-            <Button size="sm" className="gap-1.5" onClick={onCreate}>
-              <Plus className="h-4 w-4" />
-              New set
-            </Button>
-          </div>
+          {canEdit && (
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setExpandOpen(true)}>
+                <Sparkles className="h-4 w-4" />
+                Expand brand sets +120
+              </Button>
+              <Button size="sm" className="gap-1.5" onClick={onCreate}>
+                <Plus className="h-4 w-4" />
+                New set
+              </Button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -234,18 +252,19 @@ export const IconSetsView = ({
                     label: string;
                     icon: typeof Copy;
                     onClick: () => void;
-                  }> = [
-                    { label: 'Duplicate', icon: Copy, onClick: () => handleDuplicate(lib) },
-                    { label: 'Remix', icon: Wand2, onClick: () => handleRemix(lib) },
-                    { label: 'Regenerate', icon: RefreshCw, onClick: () => handleRegenerate(lib) },
-                    
-                    {
-                      label: lib.is_active ? 'Lock' : 'Unlock',
-                      icon: lib.is_active ? Lock : Unlock,
-                      onClick: () => handleLockToggle(lib),
-                    },
-                    { label: 'Delete', icon: Trash2, onClick: () => handleDelete(lib) },
-                  ];
+                  }> = canEdit
+                    ? [
+                        { label: 'Duplicate', icon: Copy, onClick: () => handleDuplicate(lib) },
+                        { label: 'Remix', icon: Wand2, onClick: () => handleRemix(lib) },
+                        { label: 'Regenerate', icon: RefreshCw, onClick: () => handleRegenerate(lib) },
+                        {
+                          label: lib.is_active ? 'Lock' : 'Unlock',
+                          icon: lib.is_active ? Lock : Unlock,
+                          onClick: () => handleLockToggle(lib),
+                        },
+                        { label: 'Delete', icon: Trash2, onClick: () => handleDelete(lib) },
+                      ]
+                    : [];
 
                   return (
                     <article
@@ -356,6 +375,27 @@ export const IconSetsView = ({
         level="brand"
         onClose={() => setExpandOpen(false)}
       />
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete icon set?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove <strong>{pendingDelete?.name}</strong> and all of its icons. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
+

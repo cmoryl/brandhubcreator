@@ -96,8 +96,8 @@ export interface Brand {
 interface Props {
   activeSection: ShellSection;
   onSectionChange: (s: ShellSection) => void;
-  expertMode: boolean;
-  onExpertModeChange: (v: boolean) => void;
+  expertMode?: boolean;
+  onExpertModeChange?: (v: boolean) => void;
   brands: Brand[];
   activeBrand?: Brand;
   onBrandChange?: (b: Brand) => void;
@@ -234,25 +234,27 @@ export const StudioShell = ({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Mode toggle */}
-            <div
-              className="hidden md:flex items-center gap-2 rounded-md border bg-secondary/40 px-2.5 py-1"
-              style={{ borderColor: 'hsl(var(--border))' }}
-            >
-              <Compass className="h-3 w-3 text-muted-foreground" />
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Guided
-              </span>
-              <Switch
-                checked={expertMode}
-                onCheckedChange={onExpertModeChange}
-                aria-label="Toggle expert mode"
-                className="h-4 w-7"
-              />
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Expert
-              </span>
-            </div>
+            {/* Mode toggle (only when caller provides expert mode handlers) */}
+            {onExpertModeChange && (
+              <div
+                className="hidden md:flex items-center gap-2 rounded-md border bg-secondary/40 px-2.5 py-1"
+                style={{ borderColor: 'hsl(var(--border))' }}
+              >
+                <Compass className="h-3 w-3 text-muted-foreground" />
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Guided
+                </span>
+                <Switch
+                  checked={!!expertMode}
+                  onCheckedChange={onExpertModeChange}
+                  aria-label="Toggle expert mode"
+                  className="h-4 w-7"
+                />
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Expert
+                </span>
+              </div>
+            )}
 
             <Button
               size="sm"
