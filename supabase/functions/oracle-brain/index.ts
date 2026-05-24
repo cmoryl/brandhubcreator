@@ -220,13 +220,15 @@ async function processOracleSynthesis(apiKey: string, jobId: string, organizatio
   try {
     await updateJob(jobId, { status: "processing", started_at: new Date().toISOString(), progress: 10 });
 
-    const [brains, brands, products, events, knowledge, priorDigests] = await Promise.all([
+    const [brains, brands, products, events, knowledge, priorDigests, iconLibs, iconUsage] = await Promise.all([
       restQuery("brand_intelligence", `organization_id=eq.${organizationId}&select=entity_type,entity_id,brand_summary,market_position,competitive_advantages,brand_voice_profile,localization_readiness_score`),
       restQuery("brands", `organization_id=eq.${organizationId}&select=id,name`),
       restQuery("products", `organization_id=eq.${organizationId}&select=id,name`),
       restQuery("events", `organization_id=eq.${organizationId}&select=id,name`),
       restQuery("oracle_knowledge_base", `organization_id=eq.${organizationId}&is_active=eq.true&order=updated_at.desc&limit=30&select=title,content,content_type,tags`),
       restQuery("intelligence_digests", `organization_id=eq.${organizationId}&order=generated_at.desc&limit=3&select=digest,generated_at,data_sources`),
+      restQuery("organization_icon_libraries", `organization_id=eq.${organizationId}&is_active=eq.true&select=id,name,level,icons`),
+      restQuery("icon_usage_events", `organization_id=eq.${organizationId}&order=created_at.desc&limit=300&select=pack,icon_name,action,brand_id`),
     ]);
 
     const nameMap: Record<string, string> = {};
