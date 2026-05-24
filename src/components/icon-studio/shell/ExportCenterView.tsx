@@ -21,6 +21,7 @@ import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { BASE_STYLES, type BaseStyle } from './studioData';
 import { IconSetPreview } from './IconSetPreview';
 import { buildStyledSvg, svgToPng, slugify, resolveCssColor } from './styleSvgExporter';
+import { buildSymbolSheet, buildSpriteCss, buildSpriteReadme, buildReactPackage, type EmitIcon } from './exportPackagers';
 import type { ImportedIconEntry } from '@/hooks/useImportedIcons';
 
 interface Props {
@@ -31,7 +32,7 @@ interface Props {
 }
 
 interface FormatRow {
-  id: 'svg' | 'svg-opt' | 'png' | 'json';
+  id: 'svg' | 'svg-opt' | 'png' | 'json' | 'sprite' | 'react' | 'css';
   label: string;
   description: string;
   icon: typeof Package;
@@ -43,14 +44,15 @@ const DEFAULT_FORMATS: FormatRow[] = [
   { id: 'svg', label: 'Styled SVG', description: 'Self-contained SVG with baked-in look & feel', icon: ImageIcon, enabled: true, ext: '.svg' },
   { id: 'svg-opt', label: 'Raw glyph SVG', description: 'Source path only — no wrapper styling', icon: ImageIcon, enabled: false, ext: '.svg' },
   { id: 'png', label: 'PNG (styled)', description: 'Rasterized styled icons at every selected size', icon: ImageIcon, enabled: true, ext: '.png' },
+  { id: 'sprite', label: 'SVG sprite + symbol sheet', description: 'Single <symbol> sheet for <use href> references', icon: Layers, enabled: false, ext: '.svg' },
+  { id: 'react', label: 'React component package', description: 'TSX components + index.ts barrel export', icon: Code2, enabled: false, ext: '.tsx' },
+  { id: 'css', label: 'CSS utility classes', description: 'Background-image classes from the sprite', icon: FileText, enabled: false, ext: '.css' },
   { id: 'json', label: 'JSON manifest', description: 'Style recipe, icon index, hashes, metadata', icon: FileText, enabled: true, ext: '.json' },
 ];
 
 const COMING_SOON: FormatRow[] = [
   { id: 'svg', label: 'Figma frame export', description: 'Plugin-ready frame names', icon: ImageIcon, enabled: false, ext: '.svg' },
-  { id: 'svg', label: 'React component lib', description: 'TSX icons + index export', icon: Code2, enabled: false, ext: '.tsx' },
-  { id: 'svg', label: 'Icon font', description: 'WOFF2 + CSS class names', icon: FileText, enabled: false, ext: '.woff2' },
-  { id: 'svg', label: 'CSS sprite', description: 'Single sprite + class map', icon: Layers, enabled: false, ext: '.css' },
+  { id: 'svg', label: 'Icon font (WOFF2)', description: 'Font + CSS class names', icon: FileText, enabled: false, ext: '.woff2' },
   { id: 'svg', label: 'Favicons', description: 'ICO + 16/32/180/512 PNG', icon: Smartphone, enabled: false, ext: '.zip' },
   { id: 'svg', label: 'PDF contact sheet', description: 'Searchable preview', icon: FileText, enabled: false, ext: '.pdf' },
 ];
@@ -204,7 +206,11 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
       const wantStyled = formats.find((f) => f.id === 'svg')?.enabled;
       const wantRaw = formats.find((f) => f.id === 'svg-opt')?.enabled;
       const wantPng = formats.find((f) => f.id === 'png')?.enabled;
+      const wantSprite = formats.find((f) => f.id === 'sprite')?.enabled;
+      const wantReact = formats.find((f) => f.id === 'react')?.enabled;
+      const wantCss = formats.find((f) => f.id === 'css')?.enabled;
       const pngList = Array.from(sizes).sort((a, b) => a - b);
+      const collected: EmitIcon[] = [];
 
       // Per-icon emission
       for (const { lib, icon } of allIcons) {
@@ -212,6 +218,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         const iconSlug = slugify(icon.name);
         const path = icon.svgPath || FALLBACK_PATH;
         const viewBox = icon.viewBox || '0 0 24 24';
+        collected.push({ slug: `${libSlug}-${iconSlug}`, name: icon.name, svgPath: path, viewBox });
 
         if (wantStyled) {
           const svg = buildStyledSvg({
@@ -257,6 +264,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         const iconSlug = ic.slug;
         const path = ic.svgPath || FALLBACK_PATH;
         const viewBox = ic.viewBox || '0 0 24 24';
+        collected.push({ slug: `imported-${iconSlug}`, name: ic.name, svgPath: path, viewBox });
 
         if (wantStyled) {
           const svg = buildStyledSvg({
@@ -296,6 +304,21 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
           }
         }
       }
+
+      // Phase 7 — aggregated distribution formats
+      if (wantSprite && collected.length > 0) {
+        root.file('sprite/sprite.svg', buildSymbolSheet(collected));
+        root.file('sprite/README.md', buildSpriteReadme('sprite.svg'));
+      }
+      if (wantCss && collected.length > 0) {
+        root.file('sprite/icons.css', buildSpriteCss(collected, 'sprite.svg'));
+      }
+      if (wantReact && collected.length > 0) {
+        for (const f of buildReactPackage(collected)) {
+          root.file(f.path, f.content);
+        }
+      }
+
 
       // Contact sheet HTML — quick visual proof
       root.file(
