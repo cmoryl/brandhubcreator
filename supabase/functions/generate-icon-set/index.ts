@@ -371,6 +371,7 @@ ${isFilled
 - Translate the brand DNA above into metaphor choices — e.g. if the brand archetype is "Sage", lean on tomes/lenses/compass motifs; if "Outlaw", lean on bolts/sparks/asymmetry. NEVER generic stock.
 - For Industry-Specific sections, draw 60%+ of metaphors from the brand's actual services/products listed above.
 - These should feel like premium icons designed specifically for "${entityName}", not interchangeable with another brand's set.
+- Filter EVERY metaphor through the "${lens.name}" lens above — that's what separates this batch from a generic icon dump.
 
 ## Pre-Submission Checklist (verify EACH icon)
 ✓ Only <path> elements, max ${maxPaths}${isDuotone ? " (≥2: back fill + front line)" : detail === "low" ? ", prefer 1" : ""}
