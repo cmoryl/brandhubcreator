@@ -8,12 +8,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ShieldCheck, Check, AlertTriangle, Eye, RefreshCw,
+  ShieldCheck, Check, AlertTriangle, RefreshCw,
   CheckCircle2, XCircle, Grid3x3, Wand2, MinusCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { StatusChip } from './StatusChip';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { runPreflight, type PreflightSummary } from '@/lib/iconStudio/qa';
