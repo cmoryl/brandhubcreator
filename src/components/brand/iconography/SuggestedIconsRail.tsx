@@ -146,6 +146,21 @@ export const SuggestedIconsRail = ({
       } else {
         fresh.forEach((ic) => onAdd(ic));
       }
+      // Log each icon in the kit individually so trending stats remain per-icon.
+      for (const ic of fresh) {
+        const [pack, ...rest] = ic.id.split('/');
+        const iconName = rest.join('/');
+        logUsage({
+          organizationId,
+          brandId,
+          industry,
+          sectionId,
+          pack,
+          iconName,
+          action: 'kit_added',
+          source: kit.id,
+        });
+      }
       toast.success(`Added ${fresh.length} icons from ${kit.name}${dna ? ' · brand DNA applied' : ''}`);
     } catch {
       toast.error('Could not populate kit');
