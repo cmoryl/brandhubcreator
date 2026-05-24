@@ -72,7 +72,7 @@ const PREVIEW_EMOJIS = ['⚙️', '📊', '🔐', '🛒', '✨', '🛡️'];
 // its `svgPath` — keeps the export pipeline deterministic.
 const FALLBACK_PATH = 'M12 2 L22 7 L22 17 L12 22 L2 17 L2 7 Z';
 
-export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }: Props) => {
+export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, importedIcons = [] }: Props) => {
   const { toast } = useToast();
   const [formats, setFormats] = useState(DEFAULT_FORMATS);
   const [sizes, setSizes] = useState<Set<number>>(new Set([24, 48, 128, 512]));
