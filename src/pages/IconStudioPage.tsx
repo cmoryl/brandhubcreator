@@ -180,7 +180,11 @@ const IconStudioPage = () => {
       activeBrand={activeBrand}
       onBrandChange={handleBrandChange}
       onBack={() => navigate(-1)}
-      onSaveToLibrary={canEdit ? () => setShellSection('library') : undefined}
+      onSaveToLibrary={
+        canEdit && shellSection === 'generate' && wizardSaveRef.current
+          ? () => wizardSaveRef.current?.()
+          : undefined
+      }
       rightRail={
         shellSection === 'generate' ? (
           <ProductionSummary
