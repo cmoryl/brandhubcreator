@@ -9,7 +9,7 @@
  *  - Brand-scoped settings placeholders for advanced integrations
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,8 +37,8 @@ import { IconSetPreview } from '@/components/icon-studio/shell/IconSetPreview';
 import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 import '@/components/icon-studio/shell/tpTokens.css';
 import { toast } from 'sonner';
-import { buildBrandIconPdf } from '@/lib/iconStudio/brandIconPdf';
-import { PdfPreviewDialog } from '@/components/icon-studio/PdfPreviewDialog';
+import { buildBrandIconPdf, PdfBuildAbortedError, type PdfBuildProgress } from '@/lib/iconStudio/brandIconPdf';
+import { PdfPreviewDialog, type PdfPreviewProgress } from '@/components/icon-studio/PdfPreviewDialog';
 import { PdfBrandingPopover, defaultPdfBranding, type PdfBrandingState } from '@/components/icon-studio/PdfBrandingPopover';
 import { useHiddenItems } from '@/components/icon-studio/shell/useHiddenItems';
 
@@ -186,14 +186,26 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
   const openIconDetail = (icon: BrandIconography, libraryName: string) => {
     setSelectedIcon({ icon, libraryName });
   };
+  const [pdfProgress, setPdfProgress] = useState<PdfPreviewProgress | null>(null);
+  const pdfAbortRef = useRef<AbortController | null>(null);
+
+  const handleCancelPdf = () => {
+    pdfAbortRef.current?.abort();
+  };
+
   const handleDownloadPdf = async () => {
     if (!brand) return;
     if (linkedLibraries.length === 0) {
       toast.info('Link at least one collection before exporting a PDF.');
       return;
     }
+    // Abort any in-flight build before starting a new one.
+    pdfAbortRef.current?.abort();
+    const controller = new AbortController();
+    pdfAbortRef.current = controller;
+
     setExportingPdf(true);
-    // Open the preview dialog immediately in a loading state so the user gets feedback.
+    setPdfProgress({ percent: 0, message: 'Preparing document…' });
     setPdfPreview({ open: true, url: null, filename: '', title: `${brand.name} · Icon system` });
     const toastId = toast.loading(`Building ${brand.name} icon PDF preview…`);
     try {
@@ -221,6 +233,15 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
         tagline,
         autoDownload: false,
         branding: effectiveBranding,
+        signal: controller.signal,
+        onProgress: (p: PdfBuildProgress) => {
+          setPdfProgress({
+            percent: p.percent,
+            message: p.message,
+            current: p.current,
+            total: p.total,
+          });
+        },
         libraries: linkedLibraries.map((l) => ({
           id: l.id,
           name: l.name,
@@ -230,12 +251,19 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
         })),
       });
       setPdfPreview({ open: true, url, filename, title: `${brand.name} · Icon system` });
+      setPdfProgress(null);
       toast.success('Preview ready — review then download.', { id: toastId });
     } catch (err) {
-      console.error('Icon PDF export failed', err);
-      toast.error('Failed to build PDF', { id: toastId });
+      if (err instanceof PdfBuildAbortedError || controller.signal.aborted) {
+        toast.message('PDF build cancelled.', { id: toastId });
+      } else {
+        console.error('Icon PDF export failed', err);
+        toast.error('Failed to build PDF', { id: toastId });
+      }
       setPdfPreview({ open: false, url: null, filename: '', title: '' });
+      setPdfProgress(null);
     } finally {
+      if (pdfAbortRef.current === controller) pdfAbortRef.current = null;
       setExportingPdf(false);
     }
   };
@@ -791,11 +819,16 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
       {/* In-app PDF preview before download */}
       <PdfPreviewDialog
         open={pdfPreview.open}
-        onOpenChange={(o) => setPdfPreview((p) => ({ ...p, open: o }))}
+        onOpenChange={(o) => {
+          if (!o && exportingPdf) pdfAbortRef.current?.abort();
+          setPdfPreview((p) => ({ ...p, open: o }));
+        }}
         url={pdfPreview.url}
         filename={pdfPreview.filename}
         title={pdfPreview.title}
         loading={exportingPdf}
+        progress={pdfProgress}
+        onCancel={exportingPdf ? handleCancelPdf : undefined}
       />
 
 

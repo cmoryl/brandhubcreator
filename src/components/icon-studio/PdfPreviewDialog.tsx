@@ -1,12 +1,19 @@
 /**
  * PdfPreviewDialog — in-app preview of a generated PDF before download.
- * Renders the document via an <iframe> using a blob URL so the user can
- * page through, zoom, and confirm content before saving.
+ * Shows progress + cancel while building, then an iframe preview when ready.
  */
 import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, ExternalLink, Loader2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Download, ExternalLink, Loader2, X } from 'lucide-react';
+
+export interface PdfPreviewProgress {
+  percent: number;       // 0–1
+  message: string;
+  current?: number;
+  total?: number;
+}
 
 interface PdfPreviewDialogProps {
   open: boolean;
@@ -16,6 +23,9 @@ interface PdfPreviewDialogProps {
   title?: string;
   description?: string;
   loading?: boolean;
+  progress?: PdfPreviewProgress | null;
+  /** Optional cancel handler — when provided, shows a Cancel button while loading. */
+  onCancel?: () => void;
 }
 
 export const PdfPreviewDialog = ({
@@ -26,8 +36,9 @@ export const PdfPreviewDialog = ({
   title = 'PDF preview',
   description,
   loading,
+  progress,
+  onCancel,
 }: PdfPreviewDialogProps) => {
-  // Revoke the blob URL when the dialog fully closes to free memory.
   useEffect(() => {
     if (!open && url) {
       const u = url;
@@ -45,6 +56,8 @@ export const PdfPreviewDialog = ({
     a.click();
     document.body.removeChild(a);
   };
+
+  const pct = Math.max(0, Math.min(100, Math.round((progress?.percent ?? 0) * 100)));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,9 +90,35 @@ export const PdfPreviewDialog = ({
 
         <div className="flex-1 min-h-0 bg-muted/30">
           {loading || !url ? (
-            <div className="h-full w-full flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              Building preview…
+            <div className="h-full w-full flex flex-col items-center justify-center gap-5 px-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <span className="font-medium text-foreground">
+                  {progress?.message ?? 'Building preview…'}
+                </span>
+              </div>
+              <div className="w-full max-w-md space-y-2">
+                <Progress value={pct} className="h-2" />
+                <div className="flex justify-between text-xs tabular-nums text-muted-foreground">
+                  <span>
+                    {progress?.current != null && progress?.total != null
+                      ? `${progress.current} / ${progress.total} icons`
+                      : 'Working…'}
+                  </span>
+                  <span>{pct}%</span>
+                </div>
+              </div>
+              {onCancel && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={onCancel}
+                >
+                  <X className="h-4 w-4" />
+                  Cancel
+                </Button>
+              )}
             </div>
           ) : (
             <iframe

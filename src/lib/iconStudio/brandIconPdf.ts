@@ -48,20 +48,38 @@ export interface PdfBranding {
   showLogoOnCover?: boolean;
 }
 
+export interface PdfBuildProgress {
+  stage: 'preparing' | 'cover' | 'library-spec' | 'rendering-icons' | 'index' | 'toc' | 'finalizing' | 'done';
+  /** 0–1 normalised progress */
+  percent: number;
+  /** Icons processed so far */
+  current: number;
+  /** Total icons to process */
+  total: number;
+  /** Human-readable label */
+  message: string;
+}
+
+export class PdfBuildAbortedError extends Error {
+  constructor() {
+    super('PDF build aborted');
+    this.name = 'PdfBuildAbortedError';
+  }
+}
+
 interface BuildOptions {
   entityName: string;
   entityKind: 'Brand' | 'Product' | 'Event';
   libraries: IconLibLite[];
-  /** Optional brand accent color (hex, e.g. "#0ea5e9") used on cover + headers */
   accentColor?: string;
-  /** Optional palette of brand colors (hex strings) rendered as swatch strip */
   palette?: string[];
-  /** Optional logo URL (raster or SVG) shown on the cover */
   logoUrl?: string;
-  /** Optional tagline shown under the entity name on the cover */
   tagline?: string;
-  /** Configurable header/footer branding applied to content pages. */
   branding?: PdfBranding;
+  /** Progress callback fired throughout the build pipeline. */
+  onProgress?: (p: PdfBuildProgress) => void;
+  /** AbortSignal — when aborted, the build throws a `PdfBuildAbortedError`. */
+  signal?: AbortSignal;
 }
 
 /* ─────────────────────────── helpers ─────────────────────────── */
@@ -204,6 +222,8 @@ export async function buildBrandIconPdf({
   tagline,
   autoDownload = true,
   branding = {},
+  onProgress,
+  signal,
 }: BuildOptions & { autoDownload?: boolean }): Promise<BuildBrandIconPdfResult> {
   const {
     showHeader = true,
@@ -230,6 +250,25 @@ export async function buildBrandIconPdf({
   const onAccent = readableOn(accentColor);
   const generatedAt = new Date();
 
+  const checkAborted = () => {
+    if (signal?.aborted) throw new PdfBuildAbortedError();
+  };
+  let iconsProcessed = 0;
+  const reserveFraction = 0.92; // last 8% reserved for index/TOC/finalize
+  const reportIconProgress = (message: string) => {
+    const ratio = totalIcons > 0 ? iconsProcessed / totalIcons : 0;
+    onProgress?.({
+      stage: 'rendering-icons',
+      percent: 0.08 + ratio * reserveFraction * 0.85, // 8% → ~86%
+      current: iconsProcessed,
+      total: totalIcons,
+      message,
+    });
+  };
+
+  onProgress?.({ stage: 'preparing', percent: 0.02, current: 0, total: totalIcons, message: 'Preparing document…' });
+  checkAborted();
+
   doc.setProperties({
     title: `${entityName} — Icon System`,
     subject: `${entityKind} icon library export`,
@@ -239,6 +278,7 @@ export async function buildBrandIconPdf({
   });
 
   /* ──────── Cover page ──────── */
+  onProgress?.({ stage: 'cover', percent: 0.05, current: 0, total: totalIcons, message: 'Drawing cover…' });
   // Accent header band
   doc.setFillColor(accentRgb[0], accentRgb[1], accentRgb[2]);
   doc.rect(0, 0, pageW, 260, 'F');
@@ -340,6 +380,14 @@ export async function buildBrandIconPdf({
   const iconIndex: Array<{ name: string; library: string; category: string; page: number }> = [];
 
   for (const lib of nonEmpty) {
+    checkAborted();
+    onProgress?.({
+      stage: 'library-spec',
+      percent: Math.max(0.08, iconsProcessed / Math.max(totalIcons, 1) * 0.85 + 0.08),
+      current: iconsProcessed,
+      total: totalIcons,
+      message: `Building “${lib.name}” spec…`,
+    });
     /* Library spec page */
     doc.addPage();
     const libStartPage = doc.getNumberOfPages();
@@ -509,14 +557,24 @@ export async function buildBrandIconPdf({
             category,
             page: doc.getNumberOfPages(),
           });
+          iconsProcessed++;
+          if ((iconsProcessed & 3) === 0) {
+            checkAborted();
+            reportIconProgress(`Rasterising ${lib.name} — ${iconsProcessed}/${totalIcons}`);
+            // Yield to the event loop so the UI can repaint + handle cancel clicks.
+            await new Promise<void>((r) => setTimeout(r, 0));
+          }
         }
 
         gy += rowH;
       }
     }
   }
+  reportIconProgress(`Rasterised ${iconsProcessed}/${totalIcons} icons`);
 
   /* ──────── Alphabetical index appendix ──────── */
+  checkAborted();
+  onProgress?.({ stage: 'index', percent: 0.93, current: iconsProcessed, total: totalIcons, message: 'Building alphabetical index…' });
   if (iconIndex.length > 0) {
     doc.addPage();
     const indexStart = doc.getNumberOfPages();
@@ -576,6 +634,8 @@ export async function buildBrandIconPdf({
   }
 
   /* ──────── Insert TOC at page 2 (now that we know page numbers) ──────── */
+  checkAborted();
+  onProgress?.({ stage: 'toc', percent: 0.96, current: iconsProcessed, total: totalIcons, message: 'Generating table of contents…' });
   doc.insertPage(2);
   doc.setPage(2);
   doc.setFillColor(accentRgb[0], accentRgb[1], accentRgb[2]);
@@ -691,11 +751,13 @@ export async function buildBrandIconPdf({
   }
 
 
+  onProgress?.({ stage: 'finalizing', percent: 0.99, current: iconsProcessed, total: totalIcons, message: 'Encoding PDF…' });
   const filename = `${sanitizeFileName(entityName)}-icon-system.pdf`;
   const blob = doc.output('blob');
   const url = URL.createObjectURL(blob);
   if (autoDownload) {
     doc.save(filename);
   }
+  onProgress?.({ stage: 'done', percent: 1, current: iconsProcessed, total: totalIcons, message: 'Done' });
   return { blob, url, filename };
 }
