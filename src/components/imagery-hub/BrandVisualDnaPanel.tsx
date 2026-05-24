@@ -297,12 +297,9 @@ export const BrandVisualDnaPanel = ({
         </div>
       )}
 
-      {loading && !row_is_visible_hint(hasDna) && (
+      {loading && !hasDna && (
         <p className="text-[11px] text-muted-foreground">Loading visual DNA…</p>
       )}
     </Card>
   );
 };
-
-// Tiny helper to avoid an extra useMemo just to skip a loading line.
-function row_is_visible_hint(hasDna: boolean) { return hasDna; }

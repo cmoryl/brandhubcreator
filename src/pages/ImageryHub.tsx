@@ -15,6 +15,8 @@ import { EntityPicker } from '@/components/imagery-hub/EntityPicker';
 import { ImageryWorkspace } from '@/components/imagery-hub/ImageryWorkspace';
 import { ComparisonPanel } from '@/components/imagery-hub/ComparisonPanel';
 import { BulkCopyDialog } from '@/components/imagery-hub/BulkCopyDialog';
+import { BrandVisualDnaPanel } from '@/components/imagery-hub/BrandVisualDnaPanel';
+import { useBrandVisualDna } from '@/hooks/useBrandVisualDna';
 import { ApprovedImage } from '@/types/brand';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
