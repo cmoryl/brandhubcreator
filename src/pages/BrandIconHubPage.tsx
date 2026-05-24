@@ -764,6 +764,18 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
         </DialogContent>
       </Dialog>
 
+      {/* In-app PDF preview before download */}
+      <PdfPreviewDialog
+        open={pdfPreview.open}
+        onOpenChange={(o) => setPdfPreview((p) => ({ ...p, open: o }))}
+        url={pdfPreview.url}
+        filename={pdfPreview.filename}
+        title={pdfPreview.title}
+        loading={exportingPdf}
+      />
+
+
+
       {/* Per-icon detail + downloads */}
       <Dialog open={!!selectedIcon} onOpenChange={(o) => !o && setSelectedIcon(null)}>
         <DialogContent className="max-w-lg">
