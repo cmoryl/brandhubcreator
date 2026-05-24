@@ -55,13 +55,29 @@ const CATEGORY_LABELS: Record<string, string> = {
   misc: 'Misc',
 };
 
-export const ImportedIconsView = () => {
+interface ImportedIconsViewProps {
+  /** When set, opens this pack on mount (used when navigating from a bundled library card). */
+  initialPackId?: string;
+  onInitialPackConsumed?: () => void;
+}
+
+export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: ImportedIconsViewProps = {}) => {
   const { packs, totalCount, loading } = useImportedIcons();
-  const [selectedPack, setSelectedPack] = useState<string>(packs[0]?.id ?? 'ph');
+  const [selectedPack, setSelectedPack] = useState<string>(initialPackId ?? packs[0]?.id ?? 'ph');
   const [packIndex, setPackIndex] = useState<IconIndexEntry[]>([]);
   const [indexLoading, setIndexLoading] = useState(false);
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<string>('all');
+
+  // Honor initialPackId once it (and the packs list) become available.
+  useEffect(() => {
+    if (initialPackId && packs.some((p) => p.id === initialPackId)) {
+      setSelectedPack(initialPackId);
+      setCategory('all');
+      setQ('');
+      onInitialPackConsumed?.();
+    }
+  }, [initialPackId, packs, onInitialPackConsumed]);
 
   useEffect(() => {
     if (!selectedPack && packs.length) setSelectedPack(packs[0].id);
