@@ -84,8 +84,7 @@ const ScoreCard = ({
       <span className="text-3xl font-semibold tabular-nums">{value}</span>
       <span className="text-sm text-muted-foreground">%</span>
     </div>
-    <Progress value={value} className="mt-3 h-1.5" style={{ ['--tw-progress' as string]: token }} />
-    <div className="mt-2 h-1.5 w-full rounded-full overflow-hidden bg-muted">
+    <div className="mt-3 h-1.5 w-full rounded-full overflow-hidden bg-muted">
       <div
         className="h-full rounded-full transition-all"
         style={{ width: `${value}%`, background: `hsl(var(${token}))` }}
