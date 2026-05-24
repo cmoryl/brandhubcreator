@@ -326,6 +326,22 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
           )}
         </div>
       </div>
+
+      {/* Workspace dialog — same as generated icons, with an extra
+          "Add to library" action so imported icons can flow into brand sections. */}
+      <IconDetailDialog
+        icon={selectedIcon}
+        onClose={() => setSelectedIcon(null)}
+        presentation="auto"
+        hideReviewActions
+        extraActions={
+          <AddToLibraryMenu
+            icon={selectedIcon}
+            organizationId={organization?.id}
+            label="Add to brand section"
+          />
+        }
+      />
     </div>
   );
 };
@@ -333,11 +349,10 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
 interface CellProps {
   pack: string;
   name: string;
-  onCopy: () => void;
-  onDownload: () => void;
+  onOpen: () => void;
 }
 
-const IconCell = ({ pack, name, onCopy, onDownload }: CellProps) => {
+const IconCell = ({ pack, name, onOpen }: CellProps) => {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
@@ -348,10 +363,11 @@ const IconCell = ({ pack, name, onCopy, onDownload }: CellProps) => {
   }, [pack, name]);
 
   return (
-    <div
-      className="group relative flex aspect-square items-center justify-center rounded-md border bg-muted/30 hover:bg-muted transition cursor-default"
-      title={name}
-      onClick={onCopy}
+    <button
+      type="button"
+      className="group relative flex aspect-square items-center justify-center rounded-md border bg-muted/30 hover:bg-muted hover:border-primary/40 transition cursor-pointer"
+      title={`Open ${name}`}
+      onClick={onOpen}
     >
       {url ? (
         <img src={url} alt={name} loading="lazy" className="h-7 w-7 object-contain" style={{ color: 'hsl(var(--foreground))' }} />
@@ -361,6 +377,6 @@ const IconCell = ({ pack, name, onCopy, onDownload }: CellProps) => {
       <div className="absolute inset-x-0 -bottom-5 truncate text-center text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100">
         {name}
       </div>
-    </div>
+    </button>
   );
 };
