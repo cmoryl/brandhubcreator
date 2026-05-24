@@ -527,7 +527,7 @@ export async function buildBrandIconPdf({
 
     // Bookmark for index
     try {
-      // @ts-ignore jsPDF outline API
+      // @ts-expect-error jsPDF outline API
       doc.outline.add(null, 'Alphabetical Index', { pageNumber: indexStart });
     } catch { /* ignore */ }
   }
@@ -598,10 +598,10 @@ export async function buildBrandIconPdf({
   /* ──────── Bookmarks (outline) — built last so page numbers are final ──────── */
   try {
     for (const entry of libStartPages) {
-      // @ts-ignore jsPDF outline API
+      // @ts-expect-error jsPDF outline API
       const libNode = doc.outline.add(null, entry.lib.name, { pageNumber: entry.page + 1 });
       for (const cat of entry.catBookmarks) {
-        // @ts-ignore jsPDF outline API
+        // @ts-expect-error jsPDF outline API
         doc.outline.add(libNode, cat.name, { pageNumber: cat.page + 1 });
       }
     }
