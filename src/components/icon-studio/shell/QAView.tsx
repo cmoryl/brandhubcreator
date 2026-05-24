@@ -118,13 +118,16 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
   }, [totalIcons]);
 
   const checks = useMemo(() => buildChecks(totalIcons, preflight), [totalIcons, preflight]);
-  const passing = checks.filter((c) => c.status === 'pass').length;
-  const warnings = checks.filter((c) => c.status === 'warn').length;
-  const failing = checks.filter((c) => c.status === 'fail').length;
-  const brandScore = Math.min(100, 80 + Math.floor(passing));
-  const a11yScore = Math.min(100, 78 + Math.floor(passing * 1.2));
-  const svgHealth = Math.min(100, 88 + Math.floor(passing * 0.5));
-  const exportReady = totalIcons > 0 ? Math.min(100, 70 + passing * 2) : 0;
+  const liveChecks = checks.filter((c) => c.status !== 'na');
+  const passing = liveChecks.filter((c) => c.status === 'pass').length;
+  const warnings = liveChecks.filter((c) => c.status === 'warn').length;
+  const failing = liveChecks.filter((c) => c.status === 'fail').length;
+  const liveTotal = Math.max(liveChecks.length, 1);
+  const pct = (n: number) => Math.round((n / liveTotal) * 100);
+  const brandScore = totalIcons === 0 ? 0 : pct(liveChecks.filter((c) => ['brand', 'stroke'].includes(c.id) && c.status === 'pass').length || 0) || (warnings + failing === 0 ? 100 : pct(passing));
+  const a11yScore = totalIcons === 0 ? 0 : (preflight ? Math.max(0, 100 - Math.round(((preflight.contrastFails.length) / Math.max(totalIcons, 1)) * 100)) : 0);
+  const svgHealth = totalIcons === 0 ? 0 : (preflight ? Math.max(0, 100 - Math.round(((preflight.rasterFails.length) / Math.max(totalIcons, 1)) * 100)) : 0);
+  const exportReady = totalIcons === 0 ? 0 : (preflight ? Math.max(0, 100 - Math.round((preflight.exportNotReadyCount / Math.max(totalIcons, 1)) * 100)) : 0);
 
   const handleRerun = async () => {
     queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
