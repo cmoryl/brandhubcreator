@@ -132,7 +132,11 @@ export function BundledIconLadder({
     () => (slugs ?? BASE_SAMPLE_SLUGS).slice(0, count),
     [slugs, count],
   );
-  const dna = useMemo(() => styleRecipeToDna(style, accent), [style, accent]);
+  const resolvedAccent = useMemo(() => resolveCssColor(accent), [accent]);
+  const dna = useMemo(
+    () => styleRecipeToDna(style, resolvedAccent),
+    [style, resolvedAccent],
+  );
 
   const [resolved, setResolved] = useState<ResolvedIcon[]>(() =>
     effectiveSlugs.map(() => ({ pack: '', name: '', dataUrl: null })),
