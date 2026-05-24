@@ -143,7 +143,7 @@ export const SvgOptimizerPanel = ({ libraries, organizationName }: Props) => {
     });
 
     const blob = await zip.generateAsync({ type: 'blob' });
-    saveAs(blob, `${organizationName}-optimized-icons.zip`);
+    downloadBlob(blob, `${organizationName}-optimized-icons.zip`);
     toast({ title: 'Download started', description: `${latestRun.results.filter((r) => r.success).length} icons exported.` });
   }, [latestRun, organizationName, toast]);
 
