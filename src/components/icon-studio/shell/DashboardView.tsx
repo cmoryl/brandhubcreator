@@ -10,7 +10,6 @@
 
 import {
   ArrowUpRight,
-  Download,
   Folder,
   Plus,
   Sparkles,
