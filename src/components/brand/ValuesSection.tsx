@@ -408,6 +408,7 @@ export const ValuesSection = ({
 
   return (
     <section className="space-y-4 sm:space-y-6">
+      {isTransPerfect && <TransPerfectValuesPanel />}
       <input
         ref={fileInputRef}
         type="file"
