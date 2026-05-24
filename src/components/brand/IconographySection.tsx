@@ -14,6 +14,7 @@ import { SectionHeader } from './SectionHeader';
 import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './iconography';
 import { IconLibraryPicker } from './iconography/IconLibraryPicker';
 import { IconPreviewDialog } from './iconography/IconPreviewDialog';
+import { SuggestedIconsRail } from './iconography/SuggestedIconsRail';
 import type { IconStudioTab } from './iconography';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
