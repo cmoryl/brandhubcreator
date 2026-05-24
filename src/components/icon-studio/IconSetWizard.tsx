@@ -608,6 +608,8 @@ const CoreStep = ({
   setStyle,
   detailLevel,
   setDetailLevel,
+  gridSize,
+  setGridSize,
   sections,
   busy,
   stats,
@@ -621,6 +623,8 @@ const CoreStep = ({
   setStyle: (s: 'outlined' | 'filled' | 'duotone') => void;
   detailLevel: 'low' | 'medium' | 'high';
   setDetailLevel: (d: 'low' | 'medium' | 'high') => void;
+  gridSize: 24 | 48;
+  setGridSize: (g: 24 | 48) => void;
   sections: Map<string, SectionState>;
   busy: boolean;
   stats: { done: number; total: number; sections: number };
