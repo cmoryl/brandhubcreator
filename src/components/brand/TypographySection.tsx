@@ -49,7 +49,7 @@ const getGoogleFontsUrl = (fontFamily: string): string | null => {
 
 const DEFAULT_PREVIEW_TEXT = 'The quick brown fox jumps over the lazy dog';
 
-export const TypographySection = ({ typography, onTypographyChange, customSubtitle, onSubtitleChange, isAdmin = false }: TypographySectionProps) => {
+export const TypographySection = ({ typography, onTypographyChange, customSubtitle, onSubtitleChange, isAdmin = false, brandSlug }: TypographySectionProps) => {
   const canEdit = Boolean(onTypographyChange);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
