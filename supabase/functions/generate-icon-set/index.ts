@@ -506,6 +506,7 @@ ${isFilled
           category: `${category} / ${currentSection.name}`,
           viewBox: `0 0 ${gridSize} ${gridSize}`,
           fillMode: isFilled ? "fill" : "stroke",
+          concept: typeof (icon as { concept?: unknown }).concept === "string" ? (icon as { concept: string }).concept : undefined,
         };
       })
       .filter(Boolean) as Array<Record<string, unknown>>;
