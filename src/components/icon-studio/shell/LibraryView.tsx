@@ -153,6 +153,10 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
               New set
             </Button>
           )}
+        </div>
+      </header>
+
+
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
