@@ -187,6 +187,22 @@ export const StudioShell = ({
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
+            {onOpenCommandPalette && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onOpenCommandPalette}
+                className="hidden md:flex h-8 gap-2 px-2.5 text-muted-foreground"
+                aria-label="Open command palette"
+                title="Command palette"
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span className="text-xs">Search</span>
+                <kbd className="ml-1 rounded border bg-secondary/60 px-1 py-0.5 text-[10px] font-mono leading-none">
+                  {isMac ? '⌘K' : 'Ctrl K'}
+                </kbd>
+              </Button>
+            )}
             {/* Brand selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
