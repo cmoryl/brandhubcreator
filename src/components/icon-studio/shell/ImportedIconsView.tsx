@@ -66,6 +66,54 @@ const CATEGORY_LABELS: Record<string, string> = {
   misc: 'Misc',
 };
 
+/**
+ * Variants are inferred from icon-name suffixes that virtually every major
+ * icon pack uses (Phosphor: -bold/-duotone/-fill/-thin/-light; Material
+ * Symbols / Fluent: -outlined/-rounded/-sharp/-filled; Tabler: -filled;
+ * Heroicons / Solar: -solid/-outline/-bold/-linear/-broken/-twotone, etc.).
+ * Filtering by these is the closest stable proxy to a true variant axis
+ * across packs that don't expose one explicitly.
+ */
+const VARIANT_TOKENS = [
+  'outline', 'outlined',
+  'filled', 'fill', 'solid',
+  'duotone', 'two-tone', 'twotone',
+  'bold', 'thin', 'light', 'regular',
+  'rounded', 'sharp',
+  'linear', 'broken', 'mono', 'color',
+] as const;
+
+const VARIANT_LABELS: Record<string, string> = {
+  outline: 'Outline',
+  outlined: 'Outlined',
+  filled: 'Filled',
+  fill: 'Fill',
+  solid: 'Solid',
+  duotone: 'Duotone',
+  'two-tone': 'Two-tone',
+  twotone: 'Two-tone',
+  bold: 'Bold',
+  thin: 'Thin',
+  light: 'Light',
+  regular: 'Regular',
+  rounded: 'Rounded',
+  sharp: 'Sharp',
+  linear: 'Linear',
+  broken: 'Broken',
+  mono: 'Mono',
+  color: 'Color',
+};
+
+/** Find variant tokens present anywhere in an icon name (delimited by - or _). */
+const variantsOf = (name: string): string[] => {
+  const tokens = name.toLowerCase().split(/[-_]/);
+  const found: string[] = [];
+  for (const v of VARIANT_TOKENS) {
+    if (tokens.includes(v)) found.push(v);
+  }
+  return found;
+};
+
 interface ImportedIconsViewProps {
   /** When set, opens this pack on mount (used when navigating from a bundled library card). */
   initialPackId?: string;
