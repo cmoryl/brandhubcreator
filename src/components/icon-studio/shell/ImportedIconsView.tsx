@@ -165,13 +165,10 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
       // Extract viewBox if present, otherwise default to 24x24.
       const vbMatch = svg.match(/viewBox\s*=\s*"([^"]+)"/i);
       const viewBox = vbMatch?.[1] ?? '0 0 24 24';
-      // Detect fill mode from the markup as a hint.
+      // Detect stroke-style markup; default to fill otherwise.
       const lower = svg.toLowerCase();
-      const fillMode: 'stroke' | 'fill' =
-        lower.includes('stroke=') && !lower.includes('fill="none"') === false &&
-        (lower.includes('stroke="currentcolor"') || lower.includes("stroke='currentcolor'") || lower.includes('fill="none"'))
-          ? 'stroke'
-          : 'fill';
+      const looksStroke = /stroke\s*=\s*"(?!none)/i.test(svg) && lower.includes('fill="none"');
+      const fillMode: 'stroke' | 'fill' = looksStroke ? 'stroke' : 'fill';
       setSelectedIcon({
         id: `bundled:${pack}/${name}`,
         name,
