@@ -266,7 +266,7 @@ export const SvgOptimizerPanel = ({ libraries, organizationName }: Props) => {
               <FileDown className="h-3.5 w-3.5" />
               Manifest JSON
             </Button>
-            <Button size="sm" variant="ghost" className="gap-1.5 h-8" onClick={() => setLatestRun(null)}>
+            <Button size="sm" variant="ghost" className="gap-1.5 h-8" onClick={clearRun}>
               <RotateCcw className="h-3.5 w-3.5" />
               Reset
             </Button>
