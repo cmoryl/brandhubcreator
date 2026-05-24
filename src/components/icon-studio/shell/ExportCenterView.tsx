@@ -21,7 +21,7 @@ import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { BASE_STYLES, type BaseStyle } from './studioData';
 import { IconSetPreview } from './IconSetPreview';
 import { buildStyledSvg, svgToPng, slugify, resolveCssColor } from './styleSvgExporter';
-import { buildSymbolSheet, buildSpriteCss, buildSpriteReadme, buildReactPackage, buildFigmaPackage, buildSvgIconFont, buildFavicons, type EmitIcon } from './exportPackagers';
+import { buildSymbolSheet, buildSpriteCss, buildSpriteReadme, buildReactPackage, buildFigmaPackage, buildSvgIconFont, buildFavicons, buildPdfContactSheet, type EmitIcon } from './exportPackagers';
 import type { ImportedIconEntry } from '@/hooks/useImportedIcons';
 
 interface Props {
@@ -32,7 +32,7 @@ interface Props {
 }
 
 interface FormatRow {
-  id: 'svg' | 'svg-opt' | 'png' | 'json' | 'sprite' | 'react' | 'css' | 'figma' | 'font' | 'favicon';
+  id: 'svg' | 'svg-opt' | 'png' | 'json' | 'sprite' | 'react' | 'css' | 'figma' | 'font' | 'favicon' | 'pdf';
   label: string;
   description: string;
   icon: typeof Package;
@@ -50,12 +50,11 @@ const DEFAULT_FORMATS: FormatRow[] = [
   { id: 'figma', label: 'Figma frame export', description: 'Named Frame_<slug>.svg files for plugin import', icon: ImageIcon, enabled: false, ext: '.svg' },
   { id: 'font', label: 'Icon font (SVG source)', description: 'SVG font + CSS — convert to WOFF2 via fontforge', icon: FileText, enabled: false, ext: '.svg' },
   { id: 'favicon', label: 'Favicons (from brand mark)', description: '16/32/180/192/512 PNG + manifest from first icon', icon: Smartphone, enabled: false, ext: '.png' },
+  { id: 'pdf', label: 'PDF contact sheet', description: 'Paginated grid of every icon with style recipe cover', icon: FileText, enabled: false, ext: '.pdf' },
   { id: 'json', label: 'JSON manifest', description: 'Style recipe, icon index, hashes, metadata', icon: FileText, enabled: true, ext: '.json' },
 ];
 
-const COMING_SOON: FormatRow[] = [
-  { id: 'svg', label: 'PDF contact sheet', description: 'Searchable preview', icon: FileText, enabled: false, ext: '.pdf' },
-];
+const COMING_SOON: FormatRow[] = [];
 
 const PNG_SIZES = [16, 24, 32, 48, 64, 128, 256, 512];
 
@@ -367,6 +366,38 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
           logger.debug('[ExportCenter] favicon emit failed', e);
         }
       }
+
+      const wantPdf = formats.find((f) => f.id === 'pdf')?.enabled;
+      if (wantPdf && collected.length > 0) {
+        try {
+          const styledFor = (ic: EmitIcon) =>
+            buildStyledSvg({
+              svgPath: ic.svgPath,
+              viewBox: ic.viewBox,
+              style: activeStyle,
+              accent: resolvedAccent,
+              accent2: resolvedAccent2,
+              size: 64,
+              standalone: true,
+            });
+          const pdfBlob = await buildPdfContactSheet(
+            collected,
+            styledFor,
+            (svg, px) => svgToPng(svg, px),
+            {
+              organization: organizationName,
+              styleName: activeStyle.name,
+              variant: activeStyle.preview.variant,
+              accent: resolvedAccent,
+            },
+          );
+          root.file('contact-sheet.pdf', pdfBlob);
+        } catch (e) {
+          logger.debug('[ExportCenter] pdf emit failed', e);
+        }
+      }
+
+
 
 
 
