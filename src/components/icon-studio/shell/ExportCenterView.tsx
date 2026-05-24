@@ -21,7 +21,7 @@ import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { BASE_STYLES, type BaseStyle } from './studioData';
 import { IconSetPreview } from './IconSetPreview';
 import { buildStyledSvg, svgToPng, slugify, resolveCssColor } from './styleSvgExporter';
-import { buildSymbolSheet, buildSpriteCss, buildSpriteReadme, buildReactPackage, type EmitIcon } from './exportPackagers';
+import { buildSymbolSheet, buildSpriteCss, buildSpriteReadme, buildReactPackage, buildFigmaPackage, buildSvgIconFont, buildFavicons, type EmitIcon } from './exportPackagers';
 import type { ImportedIconEntry } from '@/hooks/useImportedIcons';
 
 interface Props {
@@ -32,7 +32,7 @@ interface Props {
 }
 
 interface FormatRow {
-  id: 'svg' | 'svg-opt' | 'png' | 'json' | 'sprite' | 'react' | 'css';
+  id: 'svg' | 'svg-opt' | 'png' | 'json' | 'sprite' | 'react' | 'css' | 'figma' | 'font' | 'favicon';
   label: string;
   description: string;
   icon: typeof Package;
@@ -47,13 +47,13 @@ const DEFAULT_FORMATS: FormatRow[] = [
   { id: 'sprite', label: 'SVG sprite + symbol sheet', description: 'Single <symbol> sheet for <use href> references', icon: Layers, enabled: false, ext: '.svg' },
   { id: 'react', label: 'React component package', description: 'TSX components + index.ts barrel export', icon: Code2, enabled: false, ext: '.tsx' },
   { id: 'css', label: 'CSS utility classes', description: 'Background-image classes from the sprite', icon: FileText, enabled: false, ext: '.css' },
+  { id: 'figma', label: 'Figma frame export', description: 'Named Frame_<slug>.svg files for plugin import', icon: ImageIcon, enabled: false, ext: '.svg' },
+  { id: 'font', label: 'Icon font (SVG source)', description: 'SVG font + CSS — convert to WOFF2 via fontforge', icon: FileText, enabled: false, ext: '.svg' },
+  { id: 'favicon', label: 'Favicons (from brand mark)', description: '16/32/180/192/512 PNG + manifest from first icon', icon: Smartphone, enabled: false, ext: '.png' },
   { id: 'json', label: 'JSON manifest', description: 'Style recipe, icon index, hashes, metadata', icon: FileText, enabled: true, ext: '.json' },
 ];
 
 const COMING_SOON: FormatRow[] = [
-  { id: 'svg', label: 'Figma frame export', description: 'Plugin-ready frame names', icon: ImageIcon, enabled: false, ext: '.svg' },
-  { id: 'svg', label: 'Icon font (WOFF2)', description: 'Font + CSS class names', icon: FileText, enabled: false, ext: '.woff2' },
-  { id: 'svg', label: 'Favicons', description: 'ICO + 16/32/180/512 PNG', icon: Smartphone, enabled: false, ext: '.zip' },
   { id: 'svg', label: 'PDF contact sheet', description: 'Searchable preview', icon: FileText, enabled: false, ext: '.pdf' },
 ];
 
@@ -318,6 +318,56 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
           root.file(f.path, f.content);
         }
       }
+
+      // Phase 8 — Figma, icon font, favicons
+      const wantFigma = formats.find((f) => f.id === 'figma')?.enabled;
+      const wantFont = formats.find((f) => f.id === 'font')?.enabled;
+      const wantFavicon = formats.find((f) => f.id === 'favicon')?.enabled;
+
+      if (wantFigma && collected.length > 0) {
+        const styledFor = (ic: EmitIcon) =>
+          buildStyledSvg({
+            svgPath: ic.svgPath,
+            viewBox: ic.viewBox,
+            style: activeStyle,
+            accent: resolvedAccent,
+            accent2: resolvedAccent2,
+            size: 24,
+            standalone: true,
+          });
+        for (const f of buildFigmaPackage(collected, styledFor)) {
+          root.file(f.path, f.content);
+        }
+      }
+
+      if (wantFont && collected.length > 0) {
+        const fontFamily = `${slugify(organizationName || 'brand')}-icons`;
+        for (const f of buildSvgIconFont(collected, fontFamily)) {
+          root.file(f.path, f.content);
+        }
+      }
+
+      if (wantFavicon && collected.length > 0) {
+        const mark = collected[0];
+        const markSvg = buildStyledSvg({
+          svgPath: mark.svgPath,
+          viewBox: mark.viewBox,
+          style: activeStyle,
+          accent: resolvedAccent,
+          accent2: resolvedAccent2,
+          size: 512,
+          standalone: true,
+        });
+        try {
+          const faviconFiles = await buildFavicons(markSvg, (svg, px) => svgToPng(svg, px));
+          for (const f of faviconFiles) {
+            root.file(f.path, f.content);
+          }
+        } catch (e) {
+          logger.debug('[ExportCenter] favicon emit failed', e);
+        }
+      }
+
 
 
       // Contact sheet HTML — quick visual proof
