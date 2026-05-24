@@ -176,10 +176,19 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
             const level = LEVEL_LABEL[lib.level];
             const accent = `hsl(var(${level.token}))`;
             return (
-              <button
+              <div
                 key={lib.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => { setOpenLib(lib); onOpenSet?.(lib); }}
-                className="tp-card tp-card-interactive group p-5 text-left transition-all"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setOpenLib(lib);
+                    onOpenSet?.(lib);
+                  }
+                }}
+                className="tp-card tp-card-interactive group p-5 text-left transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                 style={{
                   backgroundImage: `linear-gradient(135deg, hsl(var(${level.token}) / 0.08), transparent 60%)`,
                 }}
@@ -235,7 +244,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                   </div>
                   <StatusChip status={lib.is_active ? 'approved' : 'idle'} />
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
