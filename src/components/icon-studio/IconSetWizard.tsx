@@ -650,7 +650,7 @@ const CoreStep = ({
       </div>
 
       <Card>
-        <CardContent className="grid gap-4 md:grid-cols-4 p-5">
+        <CardContent className="grid gap-4 md:grid-cols-5 p-5">
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Company name</label>
             <Input
