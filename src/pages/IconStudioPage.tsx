@@ -29,6 +29,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
+import { useImportedIcons } from '@/hooks/useImportedIcons';
 import { BrandIconography } from '@/types/brand';
 import { useSEO } from '@/hooks/useSEO';
 
