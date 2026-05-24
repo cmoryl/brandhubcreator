@@ -14,7 +14,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
-  
   Building2,
   ChevronDown,
   ChevronLeft,
@@ -29,6 +28,7 @@ import {
   Package,
   Palette,
   Save,
+  Search,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -107,6 +107,8 @@ interface Props {
   onCreateBrand?: () => void;
   onSaveToLibrary?: () => void;
   onBack?: () => void;
+  /** Opens the global command palette (Cmd/Ctrl+K). When provided, renders a search trigger in the top bar. */
+  onOpenCommandPalette?: () => void;
   /** Right rail panel (Production Summary) — renders when provided */
   rightRail?: ReactNode;
   children: ReactNode;
@@ -123,9 +125,11 @@ export const StudioShell = ({
   onCreateBrand,
   onSaveToLibrary,
   onBack,
+  onOpenCommandPalette,
   rightRail,
   children,
 }: Props) => {
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/i.test(navigator.platform);
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     if (typeof window === 'undefined') return 'light';
