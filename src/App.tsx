@@ -99,6 +99,7 @@ const ImageryHub = lazyWithRetry(() => import("./pages/ImageryHub"));
 const LogoDownloadActivity = lazyWithRetry(() => import("./pages/LogoDownloadActivity"));
 const BrandAgentPage = lazyWithRetry(() => import("./pages/BrandAgentPage"));
 const IconStudioPage = lazyWithRetry(() => import("./pages/IconStudioPage"));
+const AttributionsView = lazyWithRetry(() => import("./pages/AttributionsView"));
 const BrandIconHubPage = lazyWithRetry(() => import("./pages/BrandIconHubPage"));
 
 const queryClient = new QueryClient({
@@ -446,6 +447,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <IconStudioPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="icon-studio/attributions"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <AttributionsView />
                         </Suspense>
                       }
                     />
