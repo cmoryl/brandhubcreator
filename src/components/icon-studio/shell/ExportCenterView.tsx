@@ -305,6 +305,21 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         }
       }
 
+      // Phase 7 — aggregated distribution formats
+      if (wantSprite && collected.length > 0) {
+        root.file('sprite/sprite.svg', buildSymbolSheet(collected));
+        root.file('sprite/README.md', buildSpriteReadme('sprite.svg'));
+      }
+      if (wantCss && collected.length > 0) {
+        root.file('sprite/icons.css', buildSpriteCss(collected, 'sprite.svg'));
+      }
+      if (wantReact && collected.length > 0) {
+        for (const f of buildReactPackage(collected)) {
+          root.file(f.path, f.content);
+        }
+      }
+
+
       // Contact sheet HTML — quick visual proof
       root.file(
         'README.html',
