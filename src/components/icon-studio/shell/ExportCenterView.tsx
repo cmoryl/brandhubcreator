@@ -92,9 +92,12 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
     : undefined;
 
   const targetIcons = useMemo(() => {
-    if (selectedSetId === 'all') return libraries.reduce((s, l) => s + l.icons.length, 0);
+    if (selectedSetId === 'all') {
+      return libraries.reduce((s, l) => s + l.icons.length, 0) + importedIcons.length;
+    }
+    if (selectedSetId === 'imported') return importedIcons.length;
     return libraries.find((l) => l.id === selectedSetId)?.icons.length ?? 0;
-  }, [libraries, selectedSetId]);
+  }, [libraries, selectedSetId, importedIcons]);
 
   const fileEstimate = useMemo(() => {
     const pngVariants = sizes.size;
