@@ -474,6 +474,7 @@ export const DigitalCollateralSection = ({
   brandVisuals,
   layoutTemplateCustomizations,
   brandLogos,
+  brandSlug,
 }: DigitalCollateralSectionProps) => {
   const collateral = Array.isArray(collateralProp) ? collateralProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
