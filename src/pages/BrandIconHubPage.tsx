@@ -175,6 +175,7 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     [linkedLibraries, previewLibId],
   );
   const [selectedIcon, setSelectedIcon] = useState<{ icon: BrandIconography; libraryName: string } | null>(null);
+  const [previewBg, setPreviewBg] = useState<'light' | 'dark'>('dark');
   const openIconDetail = (icon: BrandIconography, libraryName: string) => {
     setSelectedIcon({ icon, libraryName });
   };
