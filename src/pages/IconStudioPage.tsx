@@ -338,7 +338,13 @@ const IconStudioPage = () => {
       ) : shellSection === 'brands' ? (
         <BrandsView organizationName={organizationName} organizationId={organizationId} brandProfiles={hierarchyBrands} />
       ) : shellSection === 'styles' ? (
-        <StyleSystemsView onStartGenerate={() => setShellSection('generate')} />
+        <StyleSystemsView
+          onStartGenerate={() => setShellSection('generate')}
+          onLibraryCreated={(id) => {
+            setDeepLinkLibraryId(id);
+            setShellSection('library');
+          }}
+        />
       ) : shellSection === 'sets' ? (
         <IconSetsView
           libraries={allLibraries}
