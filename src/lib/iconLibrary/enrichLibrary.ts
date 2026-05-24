@@ -64,6 +64,13 @@ export interface EnrichOptions {
   maxAdded?: number;
   /** Optional explicit industry override (skips inference). */
   industry?: string | null;
+  /**
+   * Extra categories to always include alongside the industry-derived ones.
+   * Used for the "Build brand repository" action which guarantees coverage of
+   * generic UI / business / communication / files areas no matter the
+   * industry, so every brand library doubles as a working app icon set.
+   */
+  extraCategories?: IconCategory[];
 }
 
 export interface EnrichResult {
@@ -107,7 +114,13 @@ export async function enrichLibrary(
   const perCategory = opts.perCategory ?? 12;
   const maxAdded = opts.maxAdded ?? 80;
   const industry = opts.industry ?? inferIndustry(library.name, library.description);
-  const categories = categoriesForIndustry(industry || library.name);
+  const baseCategories = categoriesForIndustry(industry || library.name);
+  // Merge industry + extras, preserving order and deduping.
+  const seen = new Set<IconCategory>();
+  const categories: IconCategory[] = [];
+  for (const c of [...baseCategories, ...(opts.extraCategories ?? [])]) {
+    if (!seen.has(c)) { seen.add(c); categories.push(c); }
+  }
 
   // Existing icon id lookup so we never duplicate.
   const existingIds = new Set(library.icons.map((i) => i.id));

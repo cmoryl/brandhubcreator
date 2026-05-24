@@ -67,7 +67,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
   const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
     useIconLibraryRowActions({ organizationId, canEdit });
   const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
-  const { enrichAll, enrichOne, progress: enrichProgress } = useEnrichAllLibraries(organizationId);
+  const { enrichAll, enrichOne, enrichBrandRepositories, progress: enrichProgress } = useEnrichAllLibraries(organizationId);
 
   // Auto-open from deep link
   useEffect(() => {
@@ -144,6 +144,21 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                 {enrichProgress.running
                   ? `Enriching ${enrichProgress.done}/${enrichProgress.total}…`
                   : 'Auto-fill with industry icons'}
+              </Button>
+            )}
+            {canEdit && libraries.some((l) => l.level === 'brand') && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                disabled={enrichProgress.running}
+                onClick={() => enrichBrandRepositories()}
+                title="For every brand library, add 150 icons per industry sub-area so each brand has a full working repository."
+              >
+                <Sparkles className="h-4 w-4" />
+                {enrichProgress.running
+                  ? `Building ${enrichProgress.done}/${enrichProgress.total}…`
+                  : 'Build brand repositories (150/area)'}
               </Button>
             )}
             {canEdit && (
