@@ -126,6 +126,16 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
       return;
     }
 
+    const wantPngEarly = formats.find((f) => f.id === 'png')?.enabled;
+    if (wantPngEarly && sizes.size === 0) {
+      toast({
+        title: 'No PNG sizes selected',
+        description: 'Pick at least one size or disable the PNG format.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setExporting(true);
     try {
       const zip = new JSZip();
