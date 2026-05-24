@@ -175,6 +175,8 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
   const [pdfPreview, setPdfPreview] = useState<{ open: boolean; url: string | null; filename: string; title: string }>(
     { open: false, url: null, filename: '', title: '' },
   );
+  // null = use computed defaults from current brand/accent
+  const [pdfBranding, setPdfBranding] = useState<PdfBrandingState | null>(null);
   const previewLib = useMemo(
     () => linkedLibraries.find((l) => l.id === previewLibId) || null,
     [linkedLibraries, previewLibId],
