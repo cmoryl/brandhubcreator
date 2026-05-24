@@ -159,7 +159,7 @@ export function useSvgOptimizer() {
           warnings,
         };
       } catch (err) {
-        logger.error('SVGO optimization failed', { id, name, error: err });
+        console.error('SVGO optimization failed', { id, name, error: err });
         return {
           id,
           name,
