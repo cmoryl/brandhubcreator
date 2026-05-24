@@ -8,8 +8,9 @@
 import { useMemo, useState } from 'react';
 import {
   Package, Download, Image as ImageIcon, FileText, Code2, Layers,
-  Smartphone, Palette, Library as LibraryIcon, Sparkles, Wand2, Loader2,
+  Smartphone, Library as LibraryIcon, Sparkles, Wand2, Loader2,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 import JSZip from 'jszip';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -125,6 +126,16 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
       return;
     }
 
+    const wantPngEarly = formats.find((f) => f.id === 'png')?.enabled;
+    if (wantPngEarly && sizes.size === 0) {
+      toast({
+        title: 'No PNG sizes selected',
+        description: 'Pick at least one size or disable the PNG format.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setExporting(true);
     try {
       const zip = new JSZip();
@@ -234,7 +245,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary }:
         description: `${allIcons.length} icons in “${activeStyle.name}” style.`,
       });
     } catch (e) {
-      console.error(e);
+      logger.debug('[ExportCenter] export failed', e);
       toast({
         title: 'Export failed',
         description: e instanceof Error ? e.message : 'Unknown error',
