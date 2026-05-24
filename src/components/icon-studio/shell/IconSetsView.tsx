@@ -218,7 +218,7 @@ export const IconSetsView = ({
                           icon: lib.is_active ? Lock : Unlock,
                           onClick: () => handleLockToggle(lib),
                         },
-                        { label: 'Delete', icon: Trash2, onClick: () => handleDelete(lib) },
+                        { label: 'Delete', icon: Trash2, onClick: () => requestDelete(lib) },
                       ]
                     : [];
 
