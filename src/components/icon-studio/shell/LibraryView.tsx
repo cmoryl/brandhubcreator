@@ -67,6 +67,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
   const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
     useIconLibraryRowActions({ organizationId, canEdit });
   const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
+  const { enrichAll, progress: enrichProgress } = useEnrichAllLibraries(organizationId);
 
   // Auto-open from deep link
   useEffect(() => {
