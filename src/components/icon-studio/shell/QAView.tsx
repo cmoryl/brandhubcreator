@@ -98,8 +98,12 @@ export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate 
   const queryClient = useQueryClient();
   const [preflight, setPreflight] = useState<PreflightSummary | null>(null);
   const [running, setRunning] = useState(false);
-
-  const allIcons = useMemo(() => libraries.flatMap((l) => l.icons), [libraries]);
+  // Cap preflight scan at 2,000 icons to bound CPU/memory on huge libraries.
+  const PREFLIGHT_CAP = 2000;
+  const allIcons = useMemo(
+    () => libraries.flatMap((l) => l.icons).slice(0, PREFLIGHT_CAP),
+    [libraries],
+  );
 
   const runChecks = async () => {
     setRunning(true);
