@@ -41,6 +41,7 @@ import { toast } from 'sonner';
 import type { LucideIcon } from 'lucide-react';
 import { getPillarImage, getStablePillarImage, pillarImagesList, pillarImagesWithLabels } from '@/assets/pillars';
 import { useSavePillarsToLibrary } from '@/hooks/useSavePillarsToLibrary';
+import { TransPerfectValuesPanel } from './identity/TransPerfectValuesPanel';
 
 interface ValuesSectionProps {
   values: BrandValue[];
