@@ -21,6 +21,7 @@ import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { BASE_STYLES, type BaseStyle } from './studioData';
 import { IconSetPreview } from './IconSetPreview';
 import { buildStyledSvg, svgToPng, slugify, resolveCssColor } from './styleSvgExporter';
+import { buildSymbolSheet, buildSpriteCss, buildSpriteReadme, buildReactPackage, type EmitIcon } from './exportPackagers';
 import type { ImportedIconEntry } from '@/hooks/useImportedIcons';
 
 interface Props {
