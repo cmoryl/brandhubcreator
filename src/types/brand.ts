@@ -228,6 +228,8 @@ export interface BrandIconography {
   category: string;
   viewBox?: string;
   fillMode?: 'stroke' | 'fill';
+  /** One-line metaphor commitment from the generator (shown on hover / in details). */
+  concept?: string;
 }
 
 // SOCIALICONS - Platform Markers

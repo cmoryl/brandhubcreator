@@ -344,6 +344,24 @@ You are NOT making a stock icon pack. You are making a curated, gallery-grade co
 - BRAND-NATIVE METAPHORS. Mine the brand DNA (archetype, services, mission verbs) for symbols competitors would never think to use. The collection should feel un-portable to any other brand.
 - GESTURE & ENERGY. Static icons are boring. Every glyph should imply a verb — flowing, pulling, opening, breaking, branching, folding, meeting, departing. Capture motion in still form.
 
+## CONCEPT-FIRST PROTOCOL (mandatory)
+For EACH icon, before you touch a path, silently work through:
+  1. **Three candidate metaphors** — rank them literal → functional → poetic. Discard the literal.
+  2. **Pick the poetic one** unless it fails the 0.3-second readability test; then pick functional.
+  3. **Write a one-line concept** (e.g. "two hands meeting mid-fold → trust handshake"). Submit it in the \`concept\` field.
+  4. **Sketch the silhouette** in your head at 16px. Reject the concept if it confuses with another icon already in this batch.
+  5. **Only then** draw the SVG. The concept commits you — no drifting toward cliché mid-path.
+
+## REFERENCE BAR (these are the icons you must equal or exceed)
+- **Phosphor "Cube Transparent"** — a single confident isometric line implies depth without shading.
+- **Apple SF "figure.archery"** — body, bow, and arrow rendered as one continuous gesture; reads as motion frozen.
+- **Material Symbols "spa"** — five petals arranged with mathematical calm; meaning emerges from rhythm.
+- **Tabler "ironing-3"** — mundane object made elegant through ruthless reduction of line weight.
+- **Lucide "git-fork"** — three nodes + two arcs = entire concept of branching; nothing to remove.
+- **Iconoir "candlestick-chart"** — abstract financial concept reduced to four vertical gestures with no chart frame.
+- **AIGA pictogram "no smoking"** — universal communication via pure counter-form and silhouette discipline.
+The bar is: a designer who knows these references should see your batch and say "this could ship in any of those libraries."
+
 These icons must be indistinguishable in quality from a hand-crafted Lucide release — and more interesting than one.`;
 
 
@@ -398,6 +416,7 @@ ${isFilled
         model: "google/gemini-3.1-pro-preview",
         temperature: 1.05,
         top_p: 0.95,
+        reasoning: { effort: "high" },
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -415,10 +434,11 @@ ${isFilled
                   items: {
                     type: "object",
                     properties: {
-                      name: { type: "string", description: "Specific, evocative icon name" },
+                      name: { type: "string", description: "Specific, evocative 1–3 word icon name (e.g. 'Beacon Alert', 'Spiral Index')" },
+                      concept: { type: "string", description: "One-line metaphor commitment (e.g. 'two hands meeting mid-fold → trust handshake'). Required — proves you brainstormed before drawing." },
                       svg: { type: "string", description: "Complete SVG element string" },
                     },
-                    required: ["name", "svg"],
+                    required: ["name", "concept", "svg"],
                     additionalProperties: false,
                   },
                 },
@@ -486,6 +506,7 @@ ${isFilled
           category: `${category} / ${currentSection.name}`,
           viewBox: `0 0 ${gridSize} ${gridSize}`,
           fillMode: isFilled ? "fill" : "stroke",
+          concept: typeof (icon as { concept?: unknown }).concept === "string" ? (icon as { concept: string }).concept : undefined,
         };
       })
       .filter(Boolean) as Array<Record<string, unknown>>;
