@@ -20,6 +20,8 @@ import { BulkRegenerateDialog } from './BulkRegenerateDialog';
 import { StatusChip } from './StatusChip';
 import { type IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryRowActions } from './useIconLibraryRowActions';
+import { useImportedIcons } from '@/hooks/useImportedIcons';
+import { ImportedIconPreview } from './ImportedIconPreview';
 
 interface Props {
   libraries: IconLibrary[];
@@ -32,6 +34,8 @@ interface Props {
   /** When set, scroll-to-and-highlight this library card and auto-open it once. */
   autoOpenLibraryId?: string | null;
   onAutoOpenConsumed?: () => void;
+  /** Navigate to the Imported Icons tab. */
+  onViewImported?: () => void;
 }
 
 const LEVEL_LABEL: Record<IconLibrary['level'], { label: string; token: string }> = {
