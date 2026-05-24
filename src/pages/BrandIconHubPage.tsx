@@ -770,8 +770,34 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="flex items-center justify-center py-6 border rounded-lg bg-background/40">
-                <div className="text-foreground">
+              <div className="space-y-2">
+                <div className="flex items-center justify-end gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={previewBg === 'light' ? 'default' : 'outline'}
+                    className="h-7 px-2 text-[11px]"
+                    onClick={() => setPreviewBg('light')}
+                  >
+                    Light
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={previewBg === 'dark' ? 'default' : 'outline'}
+                    className="h-7 px-2 text-[11px]"
+                    onClick={() => setPreviewBg('dark')}
+                  >
+                    Dark
+                  </Button>
+                </div>
+                <div
+                  className={`flex items-center justify-center py-6 border rounded-lg ${
+                    previewBg === 'light'
+                      ? 'bg-white border-zinc-200 text-zinc-900'
+                      : 'bg-zinc-950 border-zinc-800 text-zinc-50'
+                  }`}
+                >
                   <IconSvgRender icon={selectedIcon.icon} size={128} />
                 </div>
               </div>
