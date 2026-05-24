@@ -1,17 +1,25 @@
 /**
- * StyleSystemsView — gallery of the 18 base styles as reusable recipes
+ * StyleSystemsView — gallery of the 36 base styles as reusable recipes
  * with mini-previews and a "Apply to set" action.
+ *
+ * Previews now use real bundled icons restyled through each recipe via
+ * `BundledIconLadder`. The "Apply to imported pack…" action streams the
+ * recipe across a chosen bundled pack and saves the result as a new core
+ * icon library.
  */
 
 import { useMemo, useState } from 'react';
-import { Palette, Wand2, Check, Maximize2, X } from 'lucide-react';
+import { Palette, Wand2, Check, Maximize2, X, Library as LibraryIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { IconSetPreview } from './IconSetPreview';
 import { StyleSystemDetailDialog } from './StyleSystemDetailDialog';
+import { ApplyStyleToBundledDialog } from './ApplyStyleToBundledDialog';
+import { BundledIconLadder } from './BundledIconLadder';
+import { getStyleSource } from './styleRecipeToDna';
 import { BASE_STYLES, COLOR_MODES, type BaseStyle } from './studioData';
 import { useHiddenItems } from './useHiddenItems';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { cn } from '@/lib/utils';
 
 const ACCENTS = [
@@ -24,18 +32,21 @@ const ACCENTS = [
   '--tp-light-blue',
 ];
 
-const SAMPLE_EMOJIS = ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
-
 interface Props {
   onStartGenerate?: () => void;
+  /** Called with a new library id (deep-link to LibraryView). */
+  onLibraryCreated?: (libraryId: string) => void;
 }
 
-export const StyleSystemsView = ({ onStartGenerate }: Props) => {
+export const StyleSystemsView = ({ onStartGenerate, onLibraryCreated }: Props) => {
+  const { organization } = useOrganization();
   const [q, setQ] = useState('');
   const [activeId, setActiveId] = useState<string>(BASE_STYLES[0].id);
   const [colorMode, setColorMode] = useState<string>('mono');
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detailAccent, setDetailAccent] = useState<string>(`hsl(var(${ACCENTS[0]}))`);
+  const [applyStyle, setApplyStyle] = useState<BaseStyle | null>(null);
+  const [applyAccent, setApplyAccent] = useState<string>(`hsl(var(${ACCENTS[0]}))`);
   const { hidden, hide, clear, isHidden } = useHiddenItems('style-systems');
 
   const filtered = useMemo(() => {
