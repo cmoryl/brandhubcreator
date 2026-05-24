@@ -264,6 +264,10 @@ async function runWorker(jobId: string) {
     const brandDNA = await loadBrandDNA(entityId, entityType);
     const brandContextBlock = buildBrandContextBlock({ entityName, industry, brandDNA });
 
+    // ── Creative lens: rotate per-section so every batch arrives with a fresh
+    //    visual point-of-view instead of defaulting to generic Lucide register.
+    const lens = pickCreativeLens(entityName, category, sectionIndex);
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
