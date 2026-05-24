@@ -388,6 +388,30 @@ const IconStudioPage = () => {
         <SettingsView />
       )}
     </StudioShell>
+    <CommandPalette
+      open={paletteOpen}
+      onOpenChange={setPaletteOpen}
+      onNavigate={(s) => setShellSection(s)}
+      onOpenLibrary={(id) => {
+        setDeepLinkLibraryId(id);
+        setShellSection('library');
+      }}
+      onOpenBundledPack={openBundledPack}
+      onChangeBrand={handleBrandChange}
+      onShowShortcuts={() => setShortcutsOpen(true)}
+      libraries={[...libraries]
+        .sort((a: any, b: any) => {
+          const ta = new Date(a.updated_at || a.created_at || 0).getTime();
+          const tb = new Date(b.updated_at || b.created_at || 0).getTime();
+          return tb - ta;
+        })
+        .map((l) => ({ id: l.id, name: l.name, iconCount: l.icons.length, level: l.level }))}
+      brands={shellBrands}
+      activeBrandId={activeBrand?.id}
+      packs={bundledPacks.map((p) => ({ id: p.id, name: p.name, count: p.count }))}
+    />
+    <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+    </>
   );
 };
 
