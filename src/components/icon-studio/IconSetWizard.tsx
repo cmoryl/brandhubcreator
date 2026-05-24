@@ -641,7 +641,7 @@ const CoreStep = ({
       </div>
 
       <Card>
-        <CardContent className="grid gap-4 md:grid-cols-3 p-5">
+        <CardContent className="grid gap-4 md:grid-cols-4 p-5">
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Company name</label>
             <Input
@@ -662,6 +662,31 @@ const CoreStep = ({
                   className="capitalize flex-1"
                 >
                   {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Detail · <span className="capitalize text-foreground">{detailLevel}</span>
+            </label>
+            <div className="flex gap-1">
+              {(['low', 'medium', 'high'] as const).map((d) => (
+                <Button
+                  key={d}
+                  size="sm"
+                  variant={detailLevel === d ? 'default' : 'outline'}
+                  onClick={() => setDetailLevel(d)}
+                  className="capitalize flex-1"
+                  title={
+                    d === 'low'
+                      ? 'Compact · UI-grade, 1 path, 16–20px'
+                      : d === 'high'
+                      ? 'Expressive · layered, up to 4 paths, ≥32px'
+                      : 'Standard · balanced detail'
+                  }
+                >
+                  {d === 'low' ? 'Compact' : d === 'high' ? 'Expressive' : 'Standard'}
                 </Button>
               ))}
             </div>
@@ -690,6 +715,7 @@ const CoreStep = ({
           </div>
         </CardContent>
       </Card>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {coreSections.map(({ entry, section }) => (
