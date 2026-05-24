@@ -222,6 +222,8 @@ export async function buildBrandIconPdf({
   tagline,
   autoDownload = true,
   branding = {},
+  onProgress,
+  signal,
 }: BuildOptions & { autoDownload?: boolean }): Promise<BuildBrandIconPdfResult> {
   const {
     showHeader = true,
@@ -247,6 +249,25 @@ export async function buildBrandIconPdf({
   const accentRgb = hexToRgb(accentColor);
   const onAccent = readableOn(accentColor);
   const generatedAt = new Date();
+
+  const checkAborted = () => {
+    if (signal?.aborted) throw new PdfBuildAbortedError();
+  };
+  let iconsProcessed = 0;
+  const reserveFraction = 0.92; // last 8% reserved for index/TOC/finalize
+  const reportIconProgress = (message: string) => {
+    const ratio = totalIcons > 0 ? iconsProcessed / totalIcons : 0;
+    onProgress?.({
+      stage: 'rendering-icons',
+      percent: 0.08 + ratio * reserveFraction * 0.85, // 8% → ~86%
+      current: iconsProcessed,
+      total: totalIcons,
+      message,
+    });
+  };
+
+  onProgress?.({ stage: 'preparing', percent: 0.02, current: 0, total: totalIcons, message: 'Preparing document…' });
+  checkAborted();
 
   doc.setProperties({
     title: `${entityName} — Icon System`,
