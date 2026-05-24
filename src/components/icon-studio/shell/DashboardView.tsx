@@ -152,6 +152,16 @@ export const DashboardView = ({
               Generate, QA, organize and export brand-consistent icon systems at scale —
               with industry packs, preflight discipline, and production-ready bundles.
             </p>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Badge variant="outline" className="gap-1 text-[11px]">
+                <Sparkles className="h-3 w-3" />
+                {totalIcons.toLocaleString()} icons
+              </Badge>
+              <Badge variant="outline" className="gap-1 text-[11px]">
+                <Folder className="h-3 w-3" />
+                {totalLibraries.toLocaleString()} libraries
+              </Badge>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onNavigate?.('library')}>
