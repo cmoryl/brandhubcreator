@@ -20,6 +20,29 @@ import { restyleBundledIcon } from '@/lib/iconLibrary/restyle';
 import type { IconIndexEntry } from '@/lib/iconLibrary/types';
 import { cn } from '@/lib/utils';
 
+/**
+ * Resolve any CSS color expression (including `hsl(var(--token))`) to a
+ * concrete color string. CSS variables don't resolve inside SVG data-URLs
+ * used as <img> sources, so we must bake real colors into the SVG before
+ * serialization — otherwise stroke-based icons render invisible (default
+ * stroke is `none`) and fill-based icons fall back to default black.
+ */
+function resolveCssColor(input: string): string {
+  if (typeof window === 'undefined' || !input) return input;
+  if (!input.includes('var(')) return input;
+  try {
+    const probe = document.createElement('span');
+    probe.style.color = input;
+    probe.style.display = 'none';
+    document.body.appendChild(probe);
+    const computed = getComputedStyle(probe).color;
+    document.body.removeChild(probe);
+    return computed && computed !== '' ? computed : input;
+  } catch {
+    return input;
+  }
+}
+
 interface Props {
   style: BaseStyle;
   accent: string;
@@ -109,7 +132,11 @@ export function BundledIconLadder({
     () => (slugs ?? BASE_SAMPLE_SLUGS).slice(0, count),
     [slugs, count],
   );
-  const dna = useMemo(() => styleRecipeToDna(style, accent), [style, accent]);
+  const resolvedAccent = useMemo(() => resolveCssColor(accent), [accent]);
+  const dna = useMemo(
+    () => styleRecipeToDna(style, resolvedAccent),
+    [style, resolvedAccent],
+  );
 
   const [resolved, setResolved] = useState<ResolvedIcon[]>(() =>
     effectiveSlugs.map(() => ({ pack: '', name: '', dataUrl: null })),
