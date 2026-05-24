@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PatternPreviewModal } from './PatternPreviewModal';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { DesignElementsSection } from './DesignElementsSection';
+import { TransPerfectMotionPanel } from './identity/TransPerfectMotionPanel';
 import { useSaveToLibrary } from '@/hooks/useSaveToLibrary';
 import { GeometricPrimitivesStudio } from './primitives/GeometricPrimitivesStudio';
 
@@ -287,8 +288,11 @@ export const PatternsSection = ({
     toast.success(`Downloaded ${patterns.length} pattern(s)`);
   };
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section className="space-y-4 sm:space-y-6">
+      {isTransPerfect && <TransPerfectMotionPanel />}
       {/* Section header - always full width on its own row */}
       <SectionHeader
         title="Geometric Primitives"
