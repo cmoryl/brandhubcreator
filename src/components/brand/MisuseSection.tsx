@@ -88,6 +88,7 @@ export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtit
 
   return (
     <section className="space-y-6">
+      {isTransPerfect && <TransPerfectAntiPatternsPanel />}
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           <SectionHeader
