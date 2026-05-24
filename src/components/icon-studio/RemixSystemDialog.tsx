@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Wand2, Sparkles, Moon, Layers, PenTool, Megaphone, Box, Presentation, Square } from 'lucide-react';
+import { Wand2, Sparkles, Moon, Layers, PenTool, Megaphone, Box, Presentation, Square, type LucideIcon } from 'lucide-react';
 import { REMIX_MUTATIONS, type IconRecipe } from '@/lib/iconStudio/recipe';
 import { cn } from '@/lib/utils';
 
