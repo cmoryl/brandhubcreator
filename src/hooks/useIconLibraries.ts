@@ -111,7 +111,7 @@ export const useIconLibraries = (organizationId: string | undefined) => {
       });
     },
     onError: (error) => {
-      console.error('Failed to create icon library:', error);
+      logger.debug('Failed to create icon library', error);
       toast.error('Failed to create icon library');
     },
   });
@@ -146,7 +146,7 @@ export const useIconLibraries = (organizationId: string | undefined) => {
       });
     },
     onError: (error) => {
-      console.error('Failed to update icon library:', error);
+      logger.debug('Failed to update icon library', error);
       toast.error('Failed to update icon library');
     },
   });
@@ -175,7 +175,7 @@ export const useIconLibraries = (organizationId: string | undefined) => {
       });
     },
     onError: (error) => {
-      console.error('Failed to delete icon library:', error);
+      logger.debug('Failed to delete icon library', error);
       toast.error('Failed to delete icon library');
     },
   });
