@@ -111,6 +111,37 @@ const IconStudioPage = () => {
     [libraries],
   );
 
+  // Lightweight, defensible quality heuristics computed from the actual SVG payload.
+  const qualityMetrics = useMemo(() => {
+    const allIcons = libraries.flatMap((l) => l.icons);
+    const n = allIcons.length;
+    if (n === 0) {
+      return { brandCompliance: 0, a11y: 0, svgHealth: 0, exportReadiness: 0 };
+    }
+    let healthy = 0;
+    let named = 0;
+    let exportable = 0;
+    const fillModes: Record<string, number> = {};
+    for (const ic of allIcons) {
+      const path = (ic.svgPath || '').trim();
+      const hasPath = path.length > 0;
+      const hasViewBox = !!ic.viewBox && /\d/.test(ic.viewBox);
+      if (hasPath && hasViewBox) healthy += 1;
+      if (hasPath) exportable += 1;
+      const nm = (ic.name || '').trim();
+      if (nm.length >= 3 && nm.toLowerCase() !== 'icon') named += 1;
+      const fm = ic.fillMode || 'stroke';
+      fillModes[fm] = (fillModes[fm] || 0) + 1;
+    }
+    const dominant = Math.max(...Object.values(fillModes));
+    return {
+      brandCompliance: Math.round((dominant / n) * 100),
+      a11y: Math.round((named / n) * 100),
+      svgHealth: Math.round((healthy / n) * 100),
+      exportReadiness: Math.round((exportable / n) * 100),
+    };
+  }, [libraries]);
+
   const { data: hierarchyBrands = [] } = useQuery({
     queryKey: ['icon-studio-page-hierarchy', organizationId],
     queryFn: async () => {
