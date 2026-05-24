@@ -68,6 +68,7 @@ const IconStudioPage = () => {
   const [shellSection, setShellSection] = useState<ShellSection>(initialSection);
   const [activeBrand, setActiveBrand] = useState<ShellBrand | undefined>(undefined);
   const [deepLinkLibraryId, setDeepLinkLibraryId] = useState<string | null>(urlLibrary);
+  const wizardSaveRef = useRef<(() => void) | null>(null);
 
   // Clean URL once consumed so subsequent in-app nav isn't sticky.
   // IMPORTANT: use window.history.replaceState (not setSearchParams) — RootLayout
