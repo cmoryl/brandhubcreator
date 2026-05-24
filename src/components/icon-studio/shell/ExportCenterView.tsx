@@ -206,7 +206,11 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
       const wantStyled = formats.find((f) => f.id === 'svg')?.enabled;
       const wantRaw = formats.find((f) => f.id === 'svg-opt')?.enabled;
       const wantPng = formats.find((f) => f.id === 'png')?.enabled;
+      const wantSprite = formats.find((f) => f.id === 'sprite')?.enabled;
+      const wantReact = formats.find((f) => f.id === 'react')?.enabled;
+      const wantCss = formats.find((f) => f.id === 'css')?.enabled;
       const pngList = Array.from(sizes).sort((a, b) => a - b);
+      const collected: EmitIcon[] = [];
 
       // Per-icon emission
       for (const { lib, icon } of allIcons) {
