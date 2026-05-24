@@ -10,7 +10,7 @@
  * the edge function is heavy.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Loader2, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import {
   Dialog,
