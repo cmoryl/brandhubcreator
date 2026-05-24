@@ -178,7 +178,7 @@ const IconStudioPage = () => {
       onSectionChange={setShellSection}
       brands={shellBrands}
       activeBrand={activeBrand}
-      onBrandChange={setActiveBrand}
+      onBrandChange={handleBrandChange}
       onBack={() => navigate(-1)}
       onSaveToLibrary={canEdit ? () => setShellSection('library') : undefined}
       rightRail={
