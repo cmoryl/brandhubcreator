@@ -5,7 +5,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Wand2, RefreshCw, Lock, Copy, Download, Sun, Moon } from 'lucide-react';
+import { Wand2, RefreshCw, Lock, Copy, Download, Sun, Moon, Sparkles } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
