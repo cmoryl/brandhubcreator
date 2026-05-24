@@ -219,6 +219,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
             industry: industry.name,
             style,
             detailLevel,
+            gridSize,
             onTaskStart: (task) =>
               upsertSection(task.key, { status: 'generating' }),
             onTaskDone: (result: GenerationResult) => {
@@ -234,7 +235,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
         setBusy(false);
       }
     },
-    [industry, companyName, style, detailLevel, entityId, entityType, upsertSection],
+    [industry, companyName, style, detailLevel, gridSize, entityId, entityType, upsertSection],
   );
 
   const generateCore = useCallback(async () => {
