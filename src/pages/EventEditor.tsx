@@ -643,7 +643,7 @@ const EventEditor = () => {
         return <LayoutTemplatesSection brandVisuals={derivedVisuals} isDerived={isDerived} />;
       }
       case 'typography': 
-        return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} isAdmin={isGuideAdmin} />;
+        return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} isAdmin={isGuideAdmin} brandSlug={(event as any).brandSlug || (event as any).parentBrandSlug} />;
       case 'imagery': 
         return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} entityId={event.id} entityType="event" isAdmin={isGuideAdmin} brandSlug={(event as any).brandSlug || (event as any).parentBrandSlug} />;
       case 'social': 
