@@ -396,6 +396,8 @@ ${isFilled
       },
       body: JSON.stringify({
         model: "google/gemini-3.1-pro-preview",
+        temperature: 1.05,
+        top_p: 0.95,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
