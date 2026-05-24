@@ -161,7 +161,7 @@ export const IconSetPreview = ({
             style.background = `color-mix(in oklab, ${accent} 18%, transparent)`;
             style.border = `2px solid ${accent}`;
             style.borderRadius = 2;
-            style.imageRendering = 'pixelated' as any;
+            style.imageRendering = 'pixelated' as React.CSSProperties['imageRendering'];
             iconStroke = 2.25;
             break;
           case 'embossed':

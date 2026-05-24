@@ -86,8 +86,8 @@ export const IconDetailDialog = ({
     return sanitizeSvg(
       buildSvgString({
         svgPath: icon.svgPath,
-        viewBox: (icon as any).viewBox || '0 0 24 24',
-        fillMode: (icon as any).fillMode,
+        viewBox: icon.viewBox || '0 0 24 24',
+        fillMode: icon.fillMode,
         name: icon.name,
       }),
     );
@@ -113,8 +113,8 @@ export const IconDetailDialog = ({
     try {
       await onRegenerate(recipe);
       toast.success('Regeneration queued');
-    } catch (e: any) {
-      toast.error(e?.message ?? 'Regeneration failed');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Regeneration failed');
     } finally {
       setRegenerating(false);
     }

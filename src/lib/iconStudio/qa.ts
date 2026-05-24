@@ -53,8 +53,8 @@ const getSvgString = (icon: BrandIconography): string => {
   if (!icon.svgPath) return '';
   return buildSvgString({
     svgPath: icon.svgPath,
-    viewBox: (icon as any).viewBox || '0 0 24 24',
-    fillMode: (icon as any).fillMode,
+    viewBox: icon.viewBox || '0 0 24 24',
+    fillMode: icon.fillMode,
     name: icon.name,
   });
 };

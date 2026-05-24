@@ -159,6 +159,7 @@ export function useIconOptimizer(options: OptimizationOptions = {}) {
       y: mathCenterY + (ySkew * 0.3),
       needsAdjustment,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- extractCoordinates is a stable function declaration
   }, []);
 
   /**
@@ -519,6 +520,7 @@ export function useIconOptimizer(options: OptimizationOptions = {}) {
       grade,
       status,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- extractCoordinates is a stable function declaration
   }, [
     calculateInkDensity, 
     calculateVisualCenter, 
@@ -662,6 +664,7 @@ export function useIconOptimizer(options: OptimizationOptions = {}) {
         anchorPointCount,
       },
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- extractCoordinates is a stable function declaration
   }, [
     opts.maxFileSizeBytes,
     opts.maxComplexityScore,

@@ -197,4 +197,4 @@ export const attachRecipe = (
 
 /** Read the recipe from an icon, if previously attached. */
 export const readRecipe = (icon: BrandIconography): IconRecipe | null =>
-  (icon as any).recipe ?? null;
+  (icon as BrandIconography & { recipe?: IconRecipe }).recipe ?? null;

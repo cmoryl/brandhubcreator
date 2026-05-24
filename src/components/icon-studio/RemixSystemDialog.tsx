@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Wand2, Sparkles, Moon, Layers, PenTool, Megaphone, Box, Presentation, Square } from 'lucide-react';
+import { Wand2, Sparkles, Moon, Layers, PenTool, Megaphone, Box, Presentation, Square, type LucideIcon } from 'lucide-react';
 import { REMIX_MUTATIONS, type IconRecipe } from '@/lib/iconStudio/recipe';
 import { cn } from '@/lib/utils';
 
@@ -29,7 +29,7 @@ interface Props {
   onRemix?: (mutationKey: string, nextRecipe: IconRecipe | null) => void;
 }
 
-const MUTATION_META: Record<string, { icon: any; description: string }> = {
+const MUTATION_META: Record<string, { icon: LucideIcon; description: string }> = {
   filled: { icon: Square, description: 'Solid, weight-forward icons. Great for navigation and small UI.' },
   duotone: { icon: Layers, description: 'Two-tone treatment using a primary + supporting brand color.' },
   softer: { icon: PenTool, description: 'Rounded corners, thinner strokes. Approachable, friendly tone.' },

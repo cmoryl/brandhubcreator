@@ -127,11 +127,12 @@ export async function runGenerationQueue(
       const result: GenerationResult = { task, icons };
       results.push(result);
       opts.onTaskDone?.(result);
-    } catch (err: any) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Generation failed';
       const result: GenerationResult = {
         task,
         icons: [],
-        error: err?.message ?? 'Generation failed',
+        error: message,
       };
       results.push(result);
       opts.onTaskDone?.(result);

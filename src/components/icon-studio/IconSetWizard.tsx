@@ -94,7 +94,7 @@ import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 
 type StepId = 'industry' | 'core' | 'subsets' | 'preflight' | 'export';
 
-const STEPS: Array<{ id: StepId; label: string; icon: any; helper: string }> = [
+const STEPS: Array<{ id: StepId; label: string; icon: LucideIcon; helper: string }> = [
   { id: 'industry', label: 'Industry', icon: Building2, helper: 'Pick your space' },
   { id: 'core', label: 'Core set', icon: ShieldCheck, helper: 'Company essentials' },
   { id: 'subsets', label: 'Sub-sets', icon: Layers, helper: 'Specialized packs' },
@@ -278,10 +278,10 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
           style,
         });
         upsertSection(key, { status: 'complete', icons });
-      } catch (err: any) {
+      } catch (err) {
         upsertSection(key, {
           status: 'error',
-          error: err?.message ?? 'Failed',
+          error: err instanceof Error ? err.message : 'Failed',
         });
       }
     },
@@ -326,8 +326,8 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
         onProgress: setExportProgress,
       });
       toast.success('Icon system ZIP ready');
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Export failed');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Export failed');
     } finally {
       setBusy(false);
       setExportProgress(0);
@@ -357,7 +357,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
 
   const canNext = (() => {
     if (step === 'industry') return !!industry;
-    if (step === 'core') return stats.done >= industry?.coreSet.length! ? true : false;
+    if (step === 'core') return industry ? stats.done >= industry.coreSet.length : false;
     if (step === 'subsets') return true; // optional
     if (step === 'preflight') return stats.total > 0;
     return false;
@@ -1220,8 +1220,8 @@ const IconQuickActions = ({
       if (kind === 'svg') downloadIconSvg(icon);
       else if (kind === 'png') await downloadIconPng(icon, 256);
       else await downloadIconBundle(icon);
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Download failed');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Download failed');
     } finally {
       setPending(null);
     }

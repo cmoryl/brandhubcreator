@@ -110,8 +110,8 @@ export const BulkRegenerateDialog = ({ library, organizationId, onClose }: Props
         const stamped = icons.map((ic) => ({ ...ic, category: row.category }));
         accumulated.push(...stamped);
         update(i, { status: 'done', newIcons: stamped });
-      } catch (err: any) {
-        update(i, { status: 'error', error: err?.message ?? 'Failed' });
+      } catch (err) {
+        update(i, { status: 'error', error: err instanceof Error ? err.message : 'Failed' });
       }
     }
 
@@ -128,8 +128,8 @@ export const BulkRegenerateDialog = ({ library, organizationId, onClose }: Props
         updates: { icons: accumulated },
       });
       toast.success(`${library.name} regenerated (${accumulated.length} icons)`);
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to save regenerated icons');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save regenerated icons');
     } finally {
       setBusy(false);
       setFinished(true);

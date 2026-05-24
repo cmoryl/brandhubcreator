@@ -45,12 +45,12 @@ const DEFAULT_FORMATS: FormatRow[] = [
 ];
 
 const COMING_SOON: FormatRow[] = [
-  { id: 'svg' as any, label: 'Figma frame export', description: 'Plugin-ready frame names', icon: ImageIcon, enabled: false, ext: '.svg' },
-  { id: 'svg' as any, label: 'React component lib', description: 'TSX icons + index export', icon: Code2, enabled: false, ext: '.tsx' },
-  { id: 'svg' as any, label: 'Icon font', description: 'WOFF2 + CSS class names', icon: FileText, enabled: false, ext: '.woff2' },
-  { id: 'svg' as any, label: 'CSS sprite', description: 'Single sprite + class map', icon: Layers, enabled: false, ext: '.css' },
-  { id: 'svg' as any, label: 'Favicons', description: 'ICO + 16/32/180/512 PNG', icon: Smartphone, enabled: false, ext: '.zip' },
-  { id: 'svg' as any, label: 'PDF contact sheet', description: 'Searchable preview', icon: FileText, enabled: false, ext: '.pdf' },
+  { id: 'svg', label: 'Figma frame export', description: 'Plugin-ready frame names', icon: ImageIcon, enabled: false, ext: '.svg' },
+  { id: 'svg', label: 'React component lib', description: 'TSX icons + index export', icon: Code2, enabled: false, ext: '.tsx' },
+  { id: 'svg', label: 'Icon font', description: 'WOFF2 + CSS class names', icon: FileText, enabled: false, ext: '.woff2' },
+  { id: 'svg', label: 'CSS sprite', description: 'Single sprite + class map', icon: Layers, enabled: false, ext: '.css' },
+  { id: 'svg', label: 'Favicons', description: 'ICO + 16/32/180/512 PNG', icon: Smartphone, enabled: false, ext: '.zip' },
+  { id: 'svg', label: 'PDF contact sheet', description: 'Searchable preview', icon: FileText, enabled: false, ext: '.pdf' },
 ];
 
 const PNG_SIZES = [16, 24, 32, 48, 64, 128, 256, 512];
