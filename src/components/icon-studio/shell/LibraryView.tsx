@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
+import { BulkRegenerateDialog } from './BulkRegenerateDialog';
 import { StatusChip } from './StatusChip';
 import { type IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryRowActions } from './useIconLibraryRowActions';
@@ -54,6 +55,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
   const [openLib, setOpenLib] = useState<IconLibrary | null>(null);
+  const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
   const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
     useIconLibraryRowActions({ organizationId, canEdit });
 
@@ -255,6 +257,16 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
         accent={openLib ? `hsl(var(${LEVEL_LABEL[openLib.level].token}))` : 'hsl(var(--tp-digital-blue))'}
         levelLabel={openLib ? LEVEL_LABEL[openLib.level].label : ''}
         onClose={() => setOpenLib(null)}
+        onDuplicate={canEdit && openLib ? () => handleDuplicate(openLib) : undefined}
+        onRemix={canEdit && openLib && onRemix ? () => { onRemix(openLib); setOpenLib(null); } : undefined}
+        onRegenerate={canEdit && openLib ? () => { setRegenLib(openLib); setOpenLib(null); } : undefined}
+        onLockToggle={canEdit && openLib ? () => handleLockToggle(openLib) : undefined}
+      />
+
+      <BulkRegenerateDialog
+        library={regenLib}
+        organizationId={organizationId}
+        onClose={() => setRegenLib(null)}
       />
 
       {deleteDialog}
