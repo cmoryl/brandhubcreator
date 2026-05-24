@@ -375,6 +375,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
         onRemix={canEdit && openLib && onRemix ? () => { onRemix(openLib); setOpenLib(null); } : undefined}
         onRegenerate={canEdit && openLib ? () => { setRegenLib(openLib); setOpenLib(null); } : undefined}
         onLockToggle={canEdit && openLib ? () => handleLockToggle(openLib) : undefined}
+        onEnrich={canEdit && openLib ? () => enrichOne(openLib) : undefined}
       />
 
       <BulkRegenerateDialog
