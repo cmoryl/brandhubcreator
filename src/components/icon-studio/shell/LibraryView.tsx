@@ -325,6 +325,9 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenuItem onClick={() => handleDuplicate(lib)}>Duplicate</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => enrichOne(lib)}>
+                          Add industry icons
+                        </DropdownMenuItem>
                         {onRemix && <DropdownMenuItem onClick={() => onRemix(lib)}>Remix</DropdownMenuItem>}
                         <DropdownMenuItem onClick={() => handleLockToggle(lib)}>
                           {lib.is_active ? 'Lock set' : 'Unlock set'}
