@@ -36,6 +36,7 @@ interface Props {
   onRegenerate?: () => void;
   onCompare?: () => void;
   onLockToggle?: () => void;
+  onEnrich?: () => void;
 }
 
 const SIZE_LADDER: { label: string; tile: number; icon: number; columns: number }[] = [
