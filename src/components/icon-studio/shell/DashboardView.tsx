@@ -107,6 +107,8 @@ const ActivityRow = ({
 
 export const DashboardView = ({
   organizationName,
+  totalIcons,
+  totalLibraries,
   onStartGenerate,
   onNavigate,
   onOpenLibrary,
