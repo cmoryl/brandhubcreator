@@ -164,6 +164,7 @@ serve(async (req) => {
       sectionIndex = 0,
       style = { strokeWidth: 2, cornerRadius: "rounded", fill: false },
       preset = "outlined",
+      detailLevel = "medium",
       customCount,
     } = body;
 
@@ -188,7 +189,7 @@ serve(async (req) => {
         entity_type: "icon_generation",
         user_id: user.id,
         status: "pending",
-        result: { category, sectionIndex, style, preset, customCount, industry, entityName, entityId, entityType },
+        result: { category, sectionIndex, style, preset, detailLevel, customCount, industry, entityName, entityId, entityType },
       }),
     });
 
@@ -225,16 +226,27 @@ async function runWorker(jobId: string) {
     const params = jobs?.[0]?.result;
     if (!params) throw new Error("No job params found");
 
-    const { category, sectionIndex, style, preset, customCount, industry, entityName, entityId, entityType } = params;
+    const { category, sectionIndex, style, preset, detailLevel = "medium", customCount, industry, entityName, entityId, entityType } = params;
     const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
     const currentSection = taxonomyCategory.sections[sectionIndex];
     const iconCount = customCount && customCount > 0 ? customCount : currentSection.count;
     const isFilled = style?.fill || preset === "filled";
-    // Minimal-line default: 1.5px stroke (Lucide/Tabler/Feather DNA) unless explicitly overridden.
-    const strokeWidth = style?.strokeWidth ?? (isFilled ? 0 : 1.5);
+    const isDuotone = preset === "duotone";
+    // Detail tier — drives prompt verbosity AND validator strictness
+    const detail: "low" | "medium" | "high" =
+      detailLevel === "low" || detailLevel === "high" ? detailLevel : "medium";
+    // Stroke gets slightly thicker on low detail (so simpler glyphs still feel substantial)
+    // and slightly thinner on high detail (so dense linework doesn't choke).
+    const defaultStroke = detail === "low" ? 1.75 : detail === "high" ? 1.25 : 1.5;
+    const strokeWidth = style?.strokeWidth ?? (isFilled ? 0 : defaultStroke);
     const cornerStyle = style?.cornerRadius || "rounded";
     const linecap = cornerStyle === "sharp" ? "square" : "round";
     const linejoin = cornerStyle === "sharp" ? "miter" : "round";
+
+    // Max paths allowed per icon, by detail level. Duotone always needs ≥2 (back fill + line).
+    const maxPaths = isDuotone
+      ? (detail === "high" ? 4 : detail === "low" ? 2 : 3)
+      : (detail === "high" ? 4 : detail === "low" ? 1 : 2);
 
     // ── Brand DNA: pull rich context so icons feel tailored to the brand ──
     const brandDNA = await loadBrandDNA(entityId, entityType);
@@ -257,17 +269,30 @@ async function runWorker(jobId: string) {
 
 ### SVG Purity (HARD)
 - ONLY <path> elements inside <svg>. NO <circle>, <rect>, <line>, <polygon>, <polyline>, <ellipse>, <g>, <use>, <defs>, <mask>, <clipPath>, <style>, <filter>.
-- Max 2 paths, strongly prefer 1.
+- Max ${maxPaths} paths${detail === "low" ? ", strongly prefer 1" : detail === "medium" ? ", strongly prefer 1–2" : " — use the budget when the metaphor benefits from layered detail, never just to decorate"}.
 - Use arcs (A/a) for circular curves. Never approximate circles with cubic Bézier chains.
-- NO transform=, NO id=, NO class=, NO style=, NO data-*, NO inline fill/stroke colors (those come from the wrapper).
+- NO transform=, NO id=, NO class=, NO style=, NO data-*, NO inline stroke colors (those come from the wrapper).
 
 ### Stroke Style
 ${isFilled
   ? `- This batch is FILLED: solid shapes, no stroke. Each path: fill="currentColor".`
+  : isDuotone
+  ? `- This batch is DUOTONE (Phosphor-style): TWO layered paths per icon — a SOFT BACK FILL plus a CRISP FRONT LINE.
+- Back path: a closed silhouette, fill="currentColor" fill-opacity="0.25" stroke="none". Sits behind, suggesting mass.
+- Front path(s): pure outline, stroke="currentColor" stroke-width="${strokeWidth}" fill="none" stroke-linecap="${linecap}" stroke-linejoin="${linejoin}". Carries the readable detail.
+- The back fill MUST be subordinate to the front line — it's there to add depth, never to obscure the silhouette.
+- DO NOT use gradients, patterns, or more than two distinct opacity values.`
   : `- This batch is OUTLINED: stroke-only, no fills. Lines feel like a ${strokeWidth}px pen by Lucide/Tabler/Feather.
 - The host wrapper applies: fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="${linecap}" stroke-linejoin="${linejoin}".
 - DO NOT bake fills, gradients, or duotone shading. Pure outlines only.
 - Stroke terminals and joins are UNIFORM across the entire batch.`}
+
+### Detail Tier — "${detail}"
+${detail === "low"
+  ? `- COMPACT/UI-grade: minimal linework, single dominant gesture, optimised for 16–20px display. Ban inner ornament. Think Feather.`
+  : detail === "high"
+  ? `- EXPRESSIVE/illustrative: allow secondary inner shapes, supporting micro-detail (texture hatching, inner glyphs, doubled outlines, cutouts) that earns the path budget. Optimised for ≥32px display. Think Phosphor Duotone or Material Symbols at weight 700. Still must read clearly at 24px.`
+  : `- STANDARD: balanced detail — one primary form plus at most one supporting element. Reads clearly at 20–28px. Default Lucide/Tabler register.`}
 
 ## MASTER CRAFT
 
@@ -310,24 +335,27 @@ These icons must be indistinguishable in quality from a hand-crafted Lucide rele
 ${brandContextBlock}
 
 ## Mandatory Style (identical on EVERY icon)
-- Preset: "${preset}"
-- ${isFilled ? "FILLED" : `OUTLINED, stroke-width ${strokeWidth}`}, ${cornerStyle} corners
+- Preset: "${preset}" · Detail tier: "${detail}" · Max paths: ${maxPaths}
+- ${isFilled ? "FILLED" : isDuotone ? `DUOTONE — back fill (fill-opacity 0.25) + front line (stroke-width ${strokeWidth})` : `OUTLINED, stroke-width ${strokeWidth}`}, ${cornerStyle} corners
 - stroke-linecap "${linecap}" / stroke-linejoin "${linejoin}"
 ${isFilled
   ? `- Each path: fill="currentColor" stroke="none"`
+  : isDuotone
+  ? `- Back path: fill="currentColor" fill-opacity="0.25" stroke="none". Front path(s): fill="none" stroke="currentColor".`
   : `- Each path: fill="none" stroke="currentColor" (wrapper enforces this — do NOT add color attributes yourself)`}
 
 ## Design Direction
-- Reference: Lucide "${currentSection.name.toLowerCase()}", Tabler outline, Feather, Phosphor regular. Then EXCEED them.
+- Reference: Lucide "${currentSection.name.toLowerCase()}", Tabler outline, Feather, ${isDuotone ? "Phosphor Duotone" : "Phosphor regular"}. Then EXCEED them.
 - Each icon must read clearly at 16px and remain a distinct silhouette at 12px.
 - Translate the brand DNA above into metaphor choices — e.g. if the brand archetype is "Sage", lean on tomes/lenses/compass motifs; if "Outlaw", lean on bolts/sparks/asymmetry. NEVER generic stock.
 - For Industry-Specific sections, draw 60%+ of metaphors from the brand's actual services/products listed above.
 - These should feel like premium icons designed specifically for "${entityName}", not interchangeable with another brand's set.
 
 ## Pre-Submission Checklist (verify EACH icon)
-✓ Only <path> elements, max 2, prefer 1
+✓ Only <path> elements, max ${maxPaths}${isDuotone ? " (≥2: back fill + front line)" : detail === "low" ? ", prefer 1" : ""}
 ✓ ALL coordinates are integers or .5 — ZERO arbitrary decimals
-✓ No transforms, no inline colors, no ids/classes/styles
+✓ No transforms, no inline ${isDuotone ? "stroke" : "fill/stroke"} colors, no ids/classes/styles
+✓ Uniform visual weight across the batch
 ✓ Uniform visual weight across the batch
 ✓ Recognizable as a silhouette at 12×12
 ✓ Reflects the brand DNA, not a generic icon-set
@@ -422,7 +450,7 @@ ${isFilled
     // Sanitize + validate each SVG against the rule set. Reject icons we can't fix.
     const cleaned = icons
       .map((icon, idx) => {
-        const result = sanitizeAndValidate(icon.svg || "", { isFilled, strokeWidth, linecap, linejoin });
+        const result = sanitizeAndValidate(icon.svg || "", { isFilled, isDuotone, strokeWidth, linecap, linejoin, maxPaths });
         if (!result.ok) {
           console.warn(`[generate-icon-set-worker] Rejected icon "${icon.name}": ${result.reason}`);
           return null;
@@ -485,7 +513,7 @@ ${isFilled
  */
 function sanitizeAndValidate(
   raw: string,
-  opts: { isFilled: boolean; strokeWidth: number; linecap: string; linejoin: string },
+  opts: { isFilled: boolean; isDuotone?: boolean; strokeWidth: number; linecap: string; linejoin: string; maxPaths?: number },
 ): { ok: true; svg: string } | { ok: false; reason: string } {
   let svg = String(raw || "").trim();
   if (!svg.startsWith("<svg")) return { ok: false, reason: "missing <svg> root" };
@@ -498,7 +526,9 @@ function sanitizeAndValidate(
   // Must contain at least one <path d="…">
   const pathMatches = [...svg.matchAll(/<path\b[^>]*\bd\s*=\s*"([^"]+)"[^>]*\/?>/gi)];
   if (pathMatches.length === 0) return { ok: false, reason: "no <path d=…> found" };
-  if (pathMatches.length > 3) return { ok: false, reason: `${pathMatches.length} paths (max 3)` };
+  const maxPaths = opts.maxPaths ?? 3;
+  if (pathMatches.length > maxPaths) return { ok: false, reason: `${pathMatches.length} paths (max ${maxPaths})` };
+  if (opts.isDuotone && pathMatches.length < 2) return { ok: false, reason: "duotone requires ≥2 paths (back fill + front line)" };
 
   // Reject wild decimal coordinates (more than 2 decimal places, or non-.5 fractions are a soft warning only).
   for (const m of pathMatches) {
@@ -512,19 +542,31 @@ function sanitizeAndValidate(
   // Strip forbidden attributes from every element.
   svg = svg.replace(/\s(id|class|style|data-[\w-]+|transform)\s*=\s*"[^"]*"/gi, "");
 
-  // Strip baked colors from inner elements (we re-apply wrapper-level coloring).
-  svg = svg.replace(/<(path|svg)\b([^>]*)>/gi, (_, tag, attrs) => {
-    const cleaned = attrs
-      .replace(/\s(fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|stroke-miterlimit|opacity|fill-opacity|stroke-opacity)\s*=\s*"[^"]*"/gi, "");
-    return `<${tag}${cleaned}>`;
-  });
-
-  // Force a clean, predictable <svg ...> opening tag with our enforced attributes.
-  const wrapperAttrs = opts.isFilled
-    ? `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="none"`
-    : `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
-
-  svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
+  if (opts.isDuotone) {
+    // Duotone: preserve fill="currentColor" + fill-opacity (back layer) and stroke (front).
+    // Strip baked color hexes / named colors but keep currentColor + fill-opacity.
+    svg = svg.replace(/<path\b([^>]*)\/?>(?!\s*<\/path>)/gi, (m, attrs) => {
+      let a: string = attrs;
+      // Replace literal color hex/keywords with currentColor on fill/stroke
+      a = a.replace(/(fill|stroke)\s*=\s*"(?!currentColor|none)[^"]*"/gi, '$1="currentColor"');
+      // Drop stroke-width/cap/join — wrapper enforces front-line defaults, back-fill paths set their own stroke="none"
+      return `<path${a}/>`;
+    });
+    // Wrapper for duotone: outline defaults, individual back paths override with fill+opacity
+    const wrapperAttrs = `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+    svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
+  } else {
+    // Strip baked colors from inner elements (we re-apply wrapper-level coloring).
+    svg = svg.replace(/<(path|svg)\b([^>]*)>/gi, (_, tag, attrs) => {
+      const cleaned = attrs
+        .replace(/\s(fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|stroke-miterlimit|opacity|fill-opacity|stroke-opacity)\s*=\s*"[^"]*"/gi, "");
+      return `<${tag}${cleaned}>`;
+    });
+    const wrapperAttrs = opts.isFilled
+      ? `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="none"`
+      : `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+    svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
+  }
 
   // Final sanity: must still parse as a closed <svg>…</svg>.
   if (!/<\/svg>\s*$/i.test(svg)) return { ok: false, reason: "unterminated <svg>" };

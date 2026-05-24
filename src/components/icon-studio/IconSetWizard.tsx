@@ -129,6 +129,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
   const [industry, setIndustry] = useState<IndustryPreset | null>(null);
   const [companyName, setCompanyName] = useState(organizationName || '');
   const [style, setStyle] = useState<'outlined' | 'filled' | 'duotone'>('outlined');
+  const [detailLevel, setDetailLevel] = useState<'low' | 'medium' | 'high'>('medium');
   const [selectedSubSetIds, setSelectedSubSetIds] = useState<Set<string>>(new Set());
   const [grouping, setGrouping] = useState<SubSetGrouping>('department');
 
@@ -216,6 +217,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
             entityType,
             industry: industry.name,
             style,
+            detailLevel,
             onTaskStart: (task) =>
               upsertSection(task.key, { status: 'generating' }),
             onTaskDone: (result: GenerationResult) => {
@@ -231,7 +233,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
         setBusy(false);
       }
     },
-    [industry, companyName, style, entityId, entityType, upsertSection],
+    [industry, companyName, style, detailLevel, entityId, entityType, upsertSection],
   );
 
   const generateCore = useCallback(async () => {
@@ -276,6 +278,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
           entityType,
           industry: industry?.name,
           style,
+          detailLevel,
         });
         upsertSection(key, { status: 'complete', icons });
       } catch (err) {
@@ -285,7 +288,7 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
         });
       }
     },
-    [sections, companyName, industry, style, entityId, entityType, upsertSection],
+    [sections, companyName, industry, style, detailLevel, entityId, entityType, upsertSection],
   );
 
   const removeIcon = useCallback((sectionKey: string, iconId: string) => {
@@ -390,6 +393,8 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
             setCompanyName={setCompanyName}
             style={style}
             setStyle={setStyle}
+            detailLevel={detailLevel}
+            setDetailLevel={setDetailLevel}
             sections={sections}
             busy={busy}
             stats={stats}
@@ -596,6 +601,8 @@ const CoreStep = ({
   setCompanyName,
   style,
   setStyle,
+  detailLevel,
+  setDetailLevel,
   sections,
   busy,
   stats,
@@ -607,6 +614,8 @@ const CoreStep = ({
   setCompanyName: (s: string) => void;
   style: 'outlined' | 'filled' | 'duotone';
   setStyle: (s: 'outlined' | 'filled' | 'duotone') => void;
+  detailLevel: 'low' | 'medium' | 'high';
+  setDetailLevel: (d: 'low' | 'medium' | 'high') => void;
   sections: Map<string, SectionState>;
   busy: boolean;
   stats: { done: number; total: number; sections: number };
@@ -632,7 +641,7 @@ const CoreStep = ({
       </div>
 
       <Card>
-        <CardContent className="grid gap-4 md:grid-cols-3 p-5">
+        <CardContent className="grid gap-4 md:grid-cols-4 p-5">
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Company name</label>
             <Input
@@ -653,6 +662,31 @@ const CoreStep = ({
                   className="capitalize flex-1"
                 >
                   {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Detail · <span className="capitalize text-foreground">{detailLevel}</span>
+            </label>
+            <div className="flex gap-1">
+              {(['low', 'medium', 'high'] as const).map((d) => (
+                <Button
+                  key={d}
+                  size="sm"
+                  variant={detailLevel === d ? 'default' : 'outline'}
+                  onClick={() => setDetailLevel(d)}
+                  className="capitalize flex-1"
+                  title={
+                    d === 'low'
+                      ? 'Compact · UI-grade, 1 path, 16–20px'
+                      : d === 'high'
+                      ? 'Expressive · layered, up to 4 paths, ≥32px'
+                      : 'Standard · balanced detail'
+                  }
+                >
+                  {d === 'low' ? 'Compact' : d === 'high' ? 'Expressive' : 'Standard'}
                 </Button>
               ))}
             </div>
@@ -681,6 +715,7 @@ const CoreStep = ({
           </div>
         </CardContent>
       </Card>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {coreSections.map(({ entry, section }) => (
