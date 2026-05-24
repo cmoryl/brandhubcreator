@@ -380,6 +380,14 @@ export async function buildBrandIconPdf({
   const iconIndex: Array<{ name: string; library: string; category: string; page: number }> = [];
 
   for (const lib of nonEmpty) {
+    checkAborted();
+    onProgress?.({
+      stage: 'library-spec',
+      percent: Math.max(0.08, iconsProcessed / Math.max(totalIcons, 1) * 0.85 + 0.08),
+      current: iconsProcessed,
+      total: totalIcons,
+      message: `Building “${lib.name}” spec…`,
+    });
     /* Library spec page */
     doc.addPage();
     const libStartPage = doc.getNumberOfPages();
