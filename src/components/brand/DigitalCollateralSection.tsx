@@ -32,6 +32,7 @@ import {
 import { useZoneSeedMode } from '@/hooks/useZoneSeedMode';
 import { buildSurfaceDefaultZones, getDefaultAspectForSurface } from '@/lib/templateZoneDefaults';
 import { safeUUID } from '@/lib/safeUUID';
+import { TransPerfectCollateralPanel } from './identity/TransPerfectCollateralPanel';
 
 import {
   DndContext,
@@ -68,6 +69,8 @@ interface DigitalCollateralSectionProps {
   layoutTemplateCustomizations?: LayoutTemplateCustomization[];
   /** Brand logo library — drives the variant picker + auto-match in the templated zone editor. */
   brandLogos?: BrandLogo[];
+  /** Brand slug — drives brand-specific standards panels (e.g. TransPerfect). */
+  brandSlug?: string;
 }
 
 // Lucide icon map for built-in categories
@@ -472,6 +475,7 @@ export const DigitalCollateralSection = ({
   brandVisuals,
   layoutTemplateCustomizations,
   brandLogos,
+  brandSlug,
 }: DigitalCollateralSectionProps) => {
   const collateral = Array.isArray(collateralProp) ? collateralProp : [];
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -957,8 +961,11 @@ export const DigitalCollateralSection = ({
 
   const activeItem = activeId ? collateral.find(item => item.id === activeId) : null;
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section className="space-y-6">
+      {isTransPerfect && <TransPerfectCollateralPanel />}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1">
           <SectionHeader
