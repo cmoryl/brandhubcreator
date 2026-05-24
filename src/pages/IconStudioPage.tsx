@@ -52,11 +52,12 @@ const IconStudioPage = () => {
     if (!authLoading && !user) navigate('/auth');
   }, [user, authLoading, navigate]);
 
-  // Honor deep-links like /icon-studio?section=library&library=<id>
+  // Honor deep-links like /icon-studio?section=library&library=<id>&brand=<id>
   const [searchParams] = useSearchParams();
   const validSections: ShellSection[] = ['dashboard','library','brands','styles','sets','qa','export','generate'];
   const urlSection = searchParams.get('section') as ShellSection | null;
   const urlLibrary = searchParams.get('library');
+  const urlBrand = searchParams.get('brand');
   const initialSection: ShellSection =
     urlSection && validSections.includes(urlSection)
       ? urlSection
@@ -74,7 +75,8 @@ const IconStudioPage = () => {
   useEffect(() => {
     const s = searchParams.get('section') as ShellSection | null;
     const lib = searchParams.get('library');
-    if (!s && !lib) return;
+    const br = searchParams.get('brand');
+    if (!s && !lib && !br) return;
     if (s && validSections.includes(s)) setShellSection(s);
     if (lib) {
       setDeepLinkLibraryId(lib);
@@ -84,6 +86,7 @@ const IconStudioPage = () => {
       const url = new URL(window.location.href);
       url.searchParams.delete('section');
       url.searchParams.delete('library');
+      url.searchParams.delete('brand');
       window.history.replaceState(window.history.state, '', url.pathname + url.search);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
