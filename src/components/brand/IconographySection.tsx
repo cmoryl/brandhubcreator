@@ -732,6 +732,18 @@ ${innerContent}
         </div>
       )}
 
+      {/* Brand-specific icon collections curated in Icon Studio */}
+      {organizationId && brandId && (
+        <LinkedIconStudioLibraries
+          organizationId={organizationId}
+          entityId={brandId}
+          entityType={entityType}
+          entitySlug={entitySlug}
+          entityName={entityName}
+          iconColor={iconColor}
+        />
+      )}
+
       {canEdit && (
         <SuggestedIconsRail
           sectionId="iconography"
