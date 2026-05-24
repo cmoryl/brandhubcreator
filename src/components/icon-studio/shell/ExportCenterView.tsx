@@ -321,7 +321,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
 
       toast({
         title: 'Bundle exported',
-        description: `${allIcons.length} icons in “${activeStyle.name}” style.`,
+        description: `${totalCount} icons in “${activeStyle.name}” style.`,
       });
     } catch (e) {
       logger.debug('[ExportCenter] export failed', e);
