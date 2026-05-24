@@ -319,6 +319,61 @@ serve(async (req) => {
       console.warn('[worker] Compliance fetch failed (non-critical):', e);
     }
 
+    // Fetch Icon Studio context (brand-specific iconography)
+    let iconStudioContext = '';
+    try {
+      const isBrandEntity = job.entity_type === 'brand';
+      // Libraries linked to this brand, plus org core libraries
+      const links = isBrandEntity
+        ? await db.select('icon_library_brand_links',
+            `brand_id=eq.${job.entity_id}&select=library_id`)
+        : [];
+      const linkedIds = links.map((l: any) => l.library_id).filter(Boolean);
+
+      const libs = await db.select('organization_icon_libraries',
+        `organization_id=eq.${job.organization_id}&is_active=eq.true&select=id,name,level,icons,description&order=display_order.asc`);
+
+      const relevantLibs = isBrandEntity
+        ? (libs || []).filter((l: any) => l.level === 'core' || linkedIds.includes(l.id))
+        : (libs || []).filter((l: any) => l.level === 'core');
+
+      // Recent usage for this brand (or org if not a brand)
+      const usageQ = isBrandEntity
+        ? `brand_id=eq.${job.entity_id}&select=pack,icon_name,action`
+        : `organization_id=eq.${job.organization_id}&select=pack,icon_name,action&limit=200`;
+      const usage = await db.select('icon_usage_events', `${usageQ}&order=created_at.desc&limit=200`);
+
+      if (relevantLibs.length > 0 || usage.length > 0) {
+        const totalIcons = relevantLibs.reduce((s: number, l: any) =>
+          s + (Array.isArray(l.icons) ? l.icons.length : 0), 0);
+        const libSummary = relevantLibs.slice(0, 6).map((l: any) =>
+          `${l.name} (${l.level}, ${Array.isArray(l.icons) ? l.icons.length : 0} icons)`
+        ).join('; ');
+
+        // Top packs + most-used icons
+        const packCount: Record<string, number> = {};
+        const iconCount: Record<string, number> = {};
+        const actionCount: Record<string, number> = { added: 0, exported: 0, kit_added: 0, removed: 0 };
+        for (const u of usage) {
+          if (u.pack) packCount[u.pack] = (packCount[u.pack] || 0) + 1;
+          if (u.icon_name) iconCount[u.icon_name] = (iconCount[u.icon_name] || 0) + 1;
+          if (u.action) actionCount[u.action] = (actionCount[u.action] || 0) + 1;
+        }
+        const topPacks = Object.entries(packCount).sort((a, b) => b[1] - a[1]).slice(0, 5)
+          .map(([k, v]) => `${k} (${v})`).join(', ');
+        const topIcons = Object.entries(iconCount).sort((a, b) => b[1] - a[1]).slice(0, 8)
+          .map(([k, v]) => `${k}×${v}`).join(', ');
+
+        const parts: string[] = ['ICON STUDIO (brand iconography system):'];
+        parts.push(`Linked libraries (${relevantLibs.length}, ${totalIcons} icons): ${libSummary || 'none'}`);
+        if (topPacks) parts.push(`Top icon packs in use: ${topPacks}`);
+        if (topIcons) parts.push(`Most-used icons: ${topIcons}`);
+        parts.push(`Usage signals: ${actionCount.added} added, ${actionCount.kit_added} kit-added, ${actionCount.exported} exported, ${actionCount.removed} removed`);
+        iconStudioContext = `\n${parts.join('\n')}\nEvaluate whether the iconography aligns with the brand voice and visual DNA. Flag inconsistencies between icon style (line/filled/duotone) and the stated brand personality, and recommend icon-system improvements where coverage is thin.`;
+      }
+    } catch (e) {
+      console.warn('[worker] Icon Studio fetch failed (non-critical):', e);
+
     // Build event-specific physical accessibility context
     const isEvent = job.entity_type === 'event';
     const physicalAccessibilityContext = isEvent ? `
@@ -411,6 +466,7 @@ ${visibilityContext}
 ${socialMetricsContext}
 ${complianceContext}
 ${imageryAuditContext}
+${iconStudioContext}
 ${externalDocContent ? `\nEXTERNAL LINKED DOCUMENTS (fetched from Dropbox/GlobalLink/external sources):\n${externalDocContent}` : ''}
 ${priorAnalysisContext}
 ${physicalAccessibilityContext}
