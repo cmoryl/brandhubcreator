@@ -23,6 +23,7 @@ import { SectionEnvironmentOverlay } from './SectionEnvironmentOverlay';
 import { TaglineAnimationSettings } from './TaglineAnimationSettings';
 import { TypographyPairingPreview, POPULAR_FONT_PAIRINGS } from './settings/TypographyPairingPreview';
 import { cn } from '@/lib/utils';
+import { TransPerfectVoicePanel } from './identity/TransPerfectVoicePanel';
 
 type TaglineBackgroundStyle = 'floating' | 'gradient' | 'solid' | 'glass';
 type VariationStyle = TaglineVariation['style'];
@@ -32,6 +33,7 @@ interface TaglineSectionProps {
   onTaglineChange?: (tagline: BrandTagline) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  brandSlug?: string;
 }
 
 interface TaglineSettings {
