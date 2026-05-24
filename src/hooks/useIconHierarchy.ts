@@ -217,7 +217,7 @@ export function useIconHierarchy(
     override: IconStyleOverride
   ): BrandIconography => {
     // First apply DNA rules
-    let processed = applyDNA(icon);
+    const processed = applyDNA(icon);
     let svg = processed.svgPath;
 
     // Apply corner radius override
