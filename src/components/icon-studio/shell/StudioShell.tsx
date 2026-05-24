@@ -63,6 +63,7 @@ export type ShellSection =
   | 'dashboard'
   | 'generate'
   | 'library'
+  | 'imported'
   | 'brands'
   | 'styles'
   | 'sets'
