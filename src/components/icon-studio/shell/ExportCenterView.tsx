@@ -31,7 +31,7 @@ interface Props {
 }
 
 interface FormatRow {
-  id: 'svg' | 'svg-opt' | 'png' | 'json';
+  id: 'svg' | 'svg-opt' | 'png' | 'json' | 'sprite' | 'react' | 'css';
   label: string;
   description: string;
   icon: typeof Package;
@@ -43,14 +43,15 @@ const DEFAULT_FORMATS: FormatRow[] = [
   { id: 'svg', label: 'Styled SVG', description: 'Self-contained SVG with baked-in look & feel', icon: ImageIcon, enabled: true, ext: '.svg' },
   { id: 'svg-opt', label: 'Raw glyph SVG', description: 'Source path only — no wrapper styling', icon: ImageIcon, enabled: false, ext: '.svg' },
   { id: 'png', label: 'PNG (styled)', description: 'Rasterized styled icons at every selected size', icon: ImageIcon, enabled: true, ext: '.png' },
+  { id: 'sprite', label: 'SVG sprite + symbol sheet', description: 'Single <symbol> sheet for <use href> references', icon: Layers, enabled: false, ext: '.svg' },
+  { id: 'react', label: 'React component package', description: 'TSX components + index.ts barrel export', icon: Code2, enabled: false, ext: '.tsx' },
+  { id: 'css', label: 'CSS utility classes', description: 'Background-image classes from the sprite', icon: FileText, enabled: false, ext: '.css' },
   { id: 'json', label: 'JSON manifest', description: 'Style recipe, icon index, hashes, metadata', icon: FileText, enabled: true, ext: '.json' },
 ];
 
 const COMING_SOON: FormatRow[] = [
   { id: 'svg', label: 'Figma frame export', description: 'Plugin-ready frame names', icon: ImageIcon, enabled: false, ext: '.svg' },
-  { id: 'svg', label: 'React component lib', description: 'TSX icons + index export', icon: Code2, enabled: false, ext: '.tsx' },
-  { id: 'svg', label: 'Icon font', description: 'WOFF2 + CSS class names', icon: FileText, enabled: false, ext: '.woff2' },
-  { id: 'svg', label: 'CSS sprite', description: 'Single sprite + class map', icon: Layers, enabled: false, ext: '.css' },
+  { id: 'svg', label: 'Icon font (WOFF2)', description: 'Font + CSS class names', icon: FileText, enabled: false, ext: '.woff2' },
   { id: 'svg', label: 'Favicons', description: 'ICO + 16/32/180/512 PNG', icon: Smartphone, enabled: false, ext: '.zip' },
   { id: 'svg', label: 'PDF contact sheet', description: 'Searchable preview', icon: FileText, enabled: false, ext: '.pdf' },
 ];
