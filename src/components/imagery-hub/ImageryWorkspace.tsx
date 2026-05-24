@@ -228,7 +228,7 @@ export const ImageryWorkspace = ({
     // even when many images are categorized into the same new folder.
     const newSectionCache = new Map<string, string>();
     // Pre-seed with existing sections to catch case-insensitive matches.
-    sections.forEach(s => newSectionCache.set(s.name.toLowerCase(), s.id));
+    sections.forEach(s => newSectionCache.set((s.name || '').toLowerCase(), s.id));
 
     // Group images by target section to batch-insert and avoid race conditions.
     const grouped = new Map<string, { sectionId: string; images: ApprovedImage[] }>();
@@ -272,7 +272,7 @@ export const ImageryWorkspace = ({
   const duplicateGroups = (() => {
     const groups = new Map<string, ApprovedImagerySubSection[]>();
     sections.forEach(s => {
-      const key = s.name.trim().toLowerCase();
+      const key = (s.name || '').trim().toLowerCase();
       const arr = groups.get(key) || [];
       arr.push(s);
       groups.set(key, arr);
@@ -335,7 +335,7 @@ export const ImageryWorkspace = ({
       targetSectionId = chosenSectionId;
     } else {
       // Reuse an existing "Website Imports" folder if one exists, otherwise create.
-      const existing = sections.find(s => s.name.trim().toLowerCase() === 'website imports');
+      const existing = sections.find(s => (s.name || '').trim().toLowerCase() === 'website imports');
       if (existing) {
         targetSectionId = existing.id;
       } else {
