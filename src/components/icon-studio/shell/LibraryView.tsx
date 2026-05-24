@@ -119,12 +119,20 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
               Every icon set you've saved — searchable, taggable, version-controlled.
             </p>
           </div>
-          {canEdit && (
-            <Button size="sm" className="gap-1.5" onClick={onCreate}>
-              <Plus className="h-4 w-4" />
-              New set
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {onViewImported && (
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={onViewImported}>
+                <LibraryIcon className="h-4 w-4" />
+                Imported assets
+              </Button>
+            )}
+            {canEdit && (
+              <Button size="sm" className="gap-1.5" onClick={onCreate}>
+                <Plus className="h-4 w-4" />
+                New set
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
