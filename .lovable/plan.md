@@ -1,134 +1,85 @@
-# Icon Studio Master Plan — 8 Phases
+## Context
 
-End-state: every brand in BrandHub owns a fully-restyled, AI-searchable, governance-controlled library of ~40,000 world-class icons, surfaced contextually in every relevant guide section, and exportable as fonts, React packages, sprites, or Figma libraries.
+Today `StyleSystemsView` and `StyleSystemDetailDialog` render every recipe with **emoji placeholders** (`SAMPLE_EMOJIS`, `CATEGORIES`). The recipe (`stroke / fill / duotone / mono` + a visual `variant`) is shown via CSS surfaces around an emoji glyph. None of it touches a real icon.
 
----
+Now that we have:
+- 111k bundled SVG icons across 29 packs with category + variant metadata
+- `applyBrandDnaToSvg()` / `restyleBundledIcon()` that can re-skin any bundled SVG to a target stroke / cap / join / color / fillMode
+- Variant detection (outline, filled, duotone, bold, thin, rounded, sharp, …)
 
-## Phase 1 — Maximal Permissive Icon Library (~40k icons)
+Style Systems should stop being a mood board and become a **live preview + apply** surface.
 
-Bundle 19 best-in-class free/permissive packs. Excludes anything paid (Streamline, Noun Project, FA Pro, Iconscout, Flaticon, SF Symbols) — license-blocked for redistribution.
+## Goals
 
-**Original 12 (~15k):** Phosphor, Lucide, Tabler, Heroicons, Remix, Iconoir, Material Symbols, Carbon, Game Icons, Simple Icons, Font Awesome Free, Ionicons.
+1. Every Style System tile previews with **real bundled icons**, restyled through that system's recipe.
+2. Each system declares **preferred source variants** so recipes pull from native variants where possible (Outline → outline, Duotone → duotone, Sharp UI → sharp, etc.) instead of synthesizing from one source.
+3. From a Style System users can **apply the recipe to a bundled pack/selection** and save the result as a new core library — same flow imported icons already use, but in bulk.
+4. The detail dialog becomes the "try before you buy" surface: pick a pack, pick a category, see the restyle live across a real ladder.
 
-**Tier 1 (~17k):** Fluent UI, Mingcute, Solar, Hugeicons Free, Radix, Akar, Devicon, Flag Icons, Weather Icons, Twemoji.
+## Changes
 
-**Tier 2 (~8k):** CoreUI Free, CSS.gg, Bytesize, Pixelarticons, Cryptocurrency Icons, OpenMoji, Atlas Icons.
+### 1. Recipe → BrandRestyleDNA mapping
+Add `src/components/icon-studio/shell/styleRecipeToDna.ts`:
+- Maps each `BaseStyle.recipe` + `preview` to a `BrandRestyleDNA` (`strokeWidth`, `strokeLinecap`, `strokeLinejoin`, `fillMode`, `primaryColor`).
+- Maps each style to **preferred source variants** (ordered list, e.g. `['outline', 'thin', 'light']` for `outline`, `['duotone', 'two-tone']` for `duotone`, `['sharp']` for `sharp-ui`, etc.).
+- Declares **preferred packs** per style (e.g. `phosphor` for duotone, `heroicons` for outline/solid, `material-symbols` for rounded/sharp).
 
-**Implementation:**
-- `scripts/build-icon-library.mjs` — one-shot Node importer (npm + GitHub tarballs), normalizes to 24×24 + `currentColor`, runs SVGO, preserves multi-variant packs (Phosphor 6 weights, Material Symbols 3 styles, Hugeicons 9 styles, Solar 4 styles, Fluent regular/filled).
-- Manifest schema extended with `pack`, `variant`, `category`, `tags[]`, `license`, `attribution`, `multicolor`. Split per-pack and lazy-loaded.
-- New `ImportedIconsView` with react-window virtualization, filter rail (pack + industry + variant), search, license chips.
-- New `/icon-studio/attributions` route + `LICENSES.md` for CC-BY / SIL OFL / CC-BY-SA compliance. Export `.zip` includes `ATTRIBUTIONS.txt`.
+### 2. Canonical sample slugs
+Add `BASE_SAMPLE_SLUGS` — 6–8 universally-present icon names that exist in nearly every pack (`home`, `search`, `user`, `settings`, `heart`, `star`, `bell`, `download`). Used everywhere a preview is currently emoji-driven.
 
-Footprint: ~90 MB repo, ~40k SVGs across 19 pack directories.
+### 3. New `BundledIconLadder` preview component
+`src/components/icon-studio/shell/BundledIconLadder.tsx`:
+- Props: `style: BaseStyle`, `pack?: string` (defaults to style's preferred pack), `count`, `size`, `accent`.
+- Resolves each canonical slug → best variant match in the chosen pack (using existing variant detector against `loadPackIndex`), with graceful fallback to the next preferred pack.
+- Calls `restyleBundledIcon(pack, name, dna)` and renders the returned data URLs.
+- Lazy / suspended; skeletons while resolving.
 
----
+### 4. `StyleSystemsView` updates
+- Replace `IconSetPreview emojis={SAMPLE_EMOJIS}` on each card with `<BundledIconLadder style={s} count={6} size="sm" />`.
+- Replace the **Active recipe panel** preview with the same component at a larger size, plus a small "Source: {pack} · {variant}" caption.
+- Add an "Apply to imported pack…" button next to "Use in new set" — opens the new dialog below.
 
-## Phase 2 — Section-Aware Icon Surfacing
+### 5. `StyleSystemDetailDialog` updates
+- Drop the `CATEGORIES`/emoji ladder. Replace with:
+  - A **pack picker** (defaults to style's preferred pack, lists all packs that expose at least one preferred variant).
+  - A **category picker** sourced from `pack.categories`.
+  - The size ladder (16 / 24 / 32 / 48 / 64) rendered with `BundledIconLadder` against the chosen pack+category.
+- "Apply to set" button stays but now also offers "Apply to this pack's selection" → opens dialog #6.
 
-Auto-surface relevant icons in every brand guide section based on the brand's industry and the section's purpose.
+### 6. New `ApplyStyleToBundledDialog`
+`src/components/icon-studio/shell/ApplyStyleToBundledDialog.tsx`:
+- Inputs: style recipe, pack, optional category filter, optional variant filter, icon-count cap (default 48, max 250).
+- Streams `restyleBundledIcon()` over the selected entries with a progress bar.
+- On confirm, calls `useIconLibraries().createLibrary` with `level: 'core'`, `name: "{Pack} · {Style}"`, and the restyled icons stored as `BrandIconography[]` (`id: 'restyled:{pack}/{name}/{recipeHash}'`, `svgPath: <full svg>`, `viewBox`, `fillMode`, `category`).
+- Toasts and navigates to the new library in `LibraryView` via the existing `deepLinkLibraryId` pattern (already wired in `IconStudioPage`).
 
-**Implementation:**
-- `src/lib/iconSectionMapping.ts` — section → category/tag list (e.g. `socialAssets` → `['brands','social']`, `appIcons` → `['ui','system','communication']`, `iconography` → all UI families, `geometricPrimitives` → `['shapes','abstract']`).
-- `src/lib/brandIndustryToIconTags.ts` — brand `industry` → preferred categories (healthcare → `['health','science','wellness']`, fintech → `['finance','crypto','business','charts']`, etc., ~25 industries).
-- "Suggested for this brand" rail at the top of each relevant section (Iconography, Symbol Standards, Social Assets, App Icons, QR Codes, Geometric Primitives), with "Browse all" below.
-- Selections persisted to `guide_data.sectionIconSelections` so admins can lock per-brand curated sets.
-- Edit-permission guarded via `useGuideAdmin` (per existing project rules).
+### 7. Pack-aware "preferred source" hints
+On each Style System card, show a tiny caption: `Sourced from {pack} · {variant}`. This makes the variant-filter work feel visible and explains why the previews look authentic instead of synthesized.
 
----
+## Out of scope (call out, don't build)
 
-## Phase 3 — AI Icon Intelligence
+- New style recipes. The current 36 stay as-is.
+- Editing recipes from the UI. Recipes remain code-defined.
+- Re-running restyle on already-generated libraries (separate "remix" flow).
 
-- **Semantic search**: embed every icon's name + tags + category via Lovable AI Gateway, cache in new `icon_embeddings` table (id, embedding vector, manifest_id). Edge function `icon-semantic-search` returns ranked matches. Search like "trustworthy handshake" → cross-pack semantic results.
-- **Auto-tagging pass**: batch script using Gemini Flash Lite enriches sparse tag arrays. One-time + re-runnable.
-- **Brand-fit scoring**: edge function `icon-brand-fit` scores icons against brand archetype + industry + voice, returns top-N curated set per brand.
+## Technical details
 
-Schema additions: `icon_embeddings`, `icon_brand_fit_scores` (brand_id, icon_id, score, computed_at).
+- Resolution order per slug: exact match in preferred pack → preferred variant suffix in preferred pack → exact match in fallback packs → first hit in any preferred pack. Cache resolved `(slug, packPreferenceKey) → (pack, name)` in memory for the session.
+- `restyleBundledIcon` already caches by `(pack, name, dnaHash)` in memory + localStorage, so re-rendering Style System cards on filter changes is cheap.
+- `BundledIconLadder` must defer all SVG materialization until visible (use `IntersectionObserver` or render-on-mount with skeletons — same pattern as `IconCell` in `ImportedIconsView`).
+- Skip multicolor packs (`twemoji`, `openmoji`, `flag`, `devicon`, `cryptocurrency`, `meteocons`) from preferred-pack lists for monochrome styles; `restyleBundledIcon` already returns `skipped: true` for these so it's safe, but filtering up front avoids a flash.
+- Save-as-library writes go through the existing `organization_icon_libraries` table — no migration needed. `BrandIconography.svgPath` already supports full `<svg>` strings (proven by the imported-icons "Add to library" flow).
+- All new UI uses semantic tokens; no raw colors.
 
----
+## File map
 
-## Phase 4 — Auto-Restyling Pipeline (the big "wow")
-
-Apply each brand's icon DNA (stroke weight, cap, corner radius, fill rule, color tokens) to any of the 40k bundled icons on demand.
-
-- Extend existing IconKIT Brand DNA Lock to operate on bundled SVG paths (not only AI-generated icons).
-- Restyling happens client-side via the existing `fetchSvgAsBrandIconography` pipeline; results cached per (brand_id, icon_id, dna_version) in `brand_icon_restyled` table with optional Supabase storage offload for hot sets.
-- Multicolor packs (Flags, Devicon, Twemoji, OpenMoji, Crypto) flagged to skip recolor — strokes still conformed where possible.
-- UI: side-by-side "Original / On-Brand" toggle on every icon card.
-
-Outcome: every brand effectively owns 40k icons in its own visual language.
-
----
-
-## Phase 5 — Smart Icon Sets & Kits
-
-- **Auto-assembled kits**: edge function takes industry + section + size → returns a coherent set (nav, actions, states, categories) restyled to brand.
-- **Section presets**: "Populate Iconography" / "Populate App Icons" one-click buttons in each section.
-- **Cross-brand kit cloning**: copy a kit from parent brand to sub-brand, DNA-inheritance applied automatically.
-- New `icon_kits` table: brand_id, name, section, icon_ids[], dna_snapshot, locked.
-
----
-
-## Phase 6 — Usage Analytics & Learning Loop
-
-- Track icon picks per section per industry → `icon_usage_events` table.
-- Feed back into Phase 3 brand-fit ranking (collaborative filtering style: "brands like yours also chose…").
-- "Trending in your industry" rail.
-- "Brand Essentials" surface: most-used icons across this brand's sections.
-- Surface unused icons for cleanup.
-
----
-
-## Phase 7 — Export & Distribution
-
-- **Icon font (.woff2)** generation per brand — uses fantasticon or icomoon-style pipeline in an edge function.
-- **React component package** export (`<BrandIcons.Heart />`) as a downloadable npm tarball.
-- **Figma plugin export** — push the brand's restyled set to a Figma library via Figma REST API (requires Figma token per org).
-- **SVG sprite sheet** + **symbol sheet** for performance-critical embeds.
-- All export formats added to existing `ExportCenterView` scope.
-
----
-
-## Phase 8 — Governance & Compliance
-
-- Compliance scanner (extends existing DataForce compliance pipeline) flags use of non-approved icons per brand.
-- Section icon-set locking: master admin can freeze a section's icon set; sub-brand admins request changes.
-- Approval workflow with audit log entries (uses existing `audit_logs` infrastructure).
-- "Approved Icons Only" mode per brand for strict governance contexts.
-
----
-
-## Database additions (cumulative across phases)
-
-```
-Phase 3: icon_embeddings, icon_brand_fit_scores
-Phase 4: brand_icon_restyled
-Phase 5: icon_kits
-Phase 6: icon_usage_events
-Phase 8: icon_approval_requests (audit_logs already exists)
+```text
+src/components/icon-studio/shell/
+  StyleSystemsView.tsx              (edit)
+  StyleSystemDetailDialog.tsx       (edit)
+  styleRecipeToDna.ts               (new)
+  BundledIconLadder.tsx             (new)
+  ApplyStyleToBundledDialog.tsx     (new)
 ```
 
-All tables RLS-protected, scoped to organization_id via existing membership checks. No FKs to auth.users; user_id is uuid only.
-
----
-
-## Execution order & rationale
-
-1. **Phase 1** — foundation (the icons themselves)
-2. **Phase 2** — make them useful in context
-3. **Phase 4** — biggest visible payoff (every brand owns 40k on-brand icons)
-4. **Phase 3** — AI search amplifies discovery
-5. **Phase 5** — kits productize the restyling
-6. **Phase 7** — export turns the library into a deliverable
-7. **Phase 6** — analytics improve everything once real usage exists
-8. **Phase 8** — governance hardens it for enterprise
-
-Per your standing preference, each phase runs continuously — no per-batch check-ins. Approval gates only between phases.
-
----
-
-## Out of scope (across all phases)
-
-- Paid packs (Streamline, Noun Project, Iconscout, Flaticon, FA Pro, SF Symbols) — license-blocked
-- GPL-licensed packs — would relicense the codebase
-- AI-generated *new* icons (already covered by existing IconKIT AI Generator tab)
+No DB, no edge functions, no schema changes.
