@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { LibraryIconPreview } from './LibraryIconPreview';
 import { StatusChip } from './StatusChip';
 import { IconSetDetailDialog } from './IconSetDetailDialog';
+import { useEnrichAllLibraries } from '@/hooks/useEnrichAllLibraries';
 import { BulkRegenerateDialog } from './BulkRegenerateDialog';
 import { BulkExpandDialog } from './BulkExpandDialog';
 import { type IconLibrary } from '@/hooks/useIconLibraries';
@@ -78,6 +79,7 @@ export const IconSetsView = ({
   const [expandOpen, setExpandOpen] = useState(false);
   const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
     useIconLibraryRowActions({ organizationId, canEdit });
+  const { enrichOne } = useEnrichAllLibraries(organizationId);
 
   // Auto-open from deep link (e.g. /icon-studio?section=sets&library=<id>)
   useEffect(() => {
@@ -342,6 +344,7 @@ export const IconSetsView = ({
         onRegenerate={() => activeLib && handleRegenerate(activeLib)}
         onCompare={() => activeLib && handleCompare(activeLib)}
         onLockToggle={() => activeLib && handleLockToggle(activeLib)}
+        onEnrich={canEdit && activeLib ? () => enrichOne(activeLib) : undefined}
       />
 
       <BulkRegenerateDialog

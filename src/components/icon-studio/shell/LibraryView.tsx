@@ -67,7 +67,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
   const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
     useIconLibraryRowActions({ organizationId, canEdit });
   const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
-  const { enrichAll, progress: enrichProgress } = useEnrichAllLibraries(organizationId);
+  const { enrichAll, enrichOne, progress: enrichProgress } = useEnrichAllLibraries(organizationId);
 
   // Auto-open from deep link
   useEffect(() => {
@@ -325,6 +325,9 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenuItem onClick={() => handleDuplicate(lib)}>Duplicate</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => enrichOne(lib)}>
+                          Add industry icons
+                        </DropdownMenuItem>
                         {onRemix && <DropdownMenuItem onClick={() => onRemix(lib)}>Remix</DropdownMenuItem>}
                         <DropdownMenuItem onClick={() => handleLockToggle(lib)}>
                           {lib.is_active ? 'Lock set' : 'Unlock set'}
@@ -372,6 +375,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
         onRemix={canEdit && openLib && onRemix ? () => { onRemix(openLib); setOpenLib(null); } : undefined}
         onRegenerate={canEdit && openLib ? () => { setRegenLib(openLib); setOpenLib(null); } : undefined}
         onLockToggle={canEdit && openLib ? () => handleLockToggle(openLib) : undefined}
+        onEnrich={canEdit && openLib ? () => enrichOne(openLib) : undefined}
       />
 
       <BulkRegenerateDialog

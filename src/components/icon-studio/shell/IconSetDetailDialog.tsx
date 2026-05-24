@@ -5,7 +5,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Wand2, RefreshCw, Lock, Copy, Download, Sun, Moon } from 'lucide-react';
+import { Wand2, RefreshCw, Lock, Copy, Download, Sun, Moon, Sparkles } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,7 @@ interface Props {
   onRegenerate?: () => void;
   onCompare?: () => void;
   onLockToggle?: () => void;
+  onEnrich?: () => void;
 }
 
 const SIZE_LADDER: { label: string; tile: number; icon: number; columns: number }[] = [
@@ -57,6 +58,7 @@ export const IconSetDetailDialog = ({
   onRegenerate,
   onCompare,
   onLockToggle,
+  onEnrich,
 }: Props) => {
   const open = !!library;
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
@@ -142,6 +144,11 @@ export const IconSetDetailDialog = ({
                   <Button size="sm" variant="outline" className="gap-1.5" onClick={onRegenerate}>
                     <RefreshCw className="h-3.5 w-3.5" /> Regenerate
                   </Button>
+                  {onEnrich && (
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={onEnrich}>
+                      <Sparkles className="h-3.5 w-3.5" /> Add industry icons
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" className="gap-1.5" onClick={onLockToggle}>
                     <Lock className="h-3.5 w-3.5" />
                     {library.is_active ? 'Lock' : 'Unlock'}
