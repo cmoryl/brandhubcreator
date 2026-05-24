@@ -513,7 +513,7 @@ ${isFilled
  */
 function sanitizeAndValidate(
   raw: string,
-  opts: { isFilled: boolean; strokeWidth: number; linecap: string; linejoin: string },
+  opts: { isFilled: boolean; isDuotone?: boolean; strokeWidth: number; linecap: string; linejoin: string; maxPaths?: number },
 ): { ok: true; svg: string } | { ok: false; reason: string } {
   let svg = String(raw || "").trim();
   if (!svg.startsWith("<svg")) return { ok: false, reason: "missing <svg> root" };
@@ -526,7 +526,9 @@ function sanitizeAndValidate(
   // Must contain at least one <path d="…">
   const pathMatches = [...svg.matchAll(/<path\b[^>]*\bd\s*=\s*"([^"]+)"[^>]*\/?>/gi)];
   if (pathMatches.length === 0) return { ok: false, reason: "no <path d=…> found" };
-  if (pathMatches.length > 3) return { ok: false, reason: `${pathMatches.length} paths (max 3)` };
+  const maxPaths = opts.maxPaths ?? 3;
+  if (pathMatches.length > maxPaths) return { ok: false, reason: `${pathMatches.length} paths (max ${maxPaths})` };
+  if (opts.isDuotone && pathMatches.length < 2) return { ok: false, reason: "duotone requires ≥2 paths (back fill + front line)" };
 
   // Reject wild decimal coordinates (more than 2 decimal places, or non-.5 fractions are a soft warning only).
   for (const m of pathMatches) {
@@ -540,19 +542,31 @@ function sanitizeAndValidate(
   // Strip forbidden attributes from every element.
   svg = svg.replace(/\s(id|class|style|data-[\w-]+|transform)\s*=\s*"[^"]*"/gi, "");
 
-  // Strip baked colors from inner elements (we re-apply wrapper-level coloring).
-  svg = svg.replace(/<(path|svg)\b([^>]*)>/gi, (_, tag, attrs) => {
-    const cleaned = attrs
-      .replace(/\s(fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|stroke-miterlimit|opacity|fill-opacity|stroke-opacity)\s*=\s*"[^"]*"/gi, "");
-    return `<${tag}${cleaned}>`;
-  });
-
-  // Force a clean, predictable <svg ...> opening tag with our enforced attributes.
-  const wrapperAttrs = opts.isFilled
-    ? `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="none"`
-    : `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
-
-  svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
+  if (opts.isDuotone) {
+    // Duotone: preserve fill="currentColor" + fill-opacity (back layer) and stroke (front).
+    // Strip baked color hexes / named colors but keep currentColor + fill-opacity.
+    svg = svg.replace(/<path\b([^>]*)\/?>(?!\s*<\/path>)/gi, (m, attrs) => {
+      let a: string = attrs;
+      // Replace literal color hex/keywords with currentColor on fill/stroke
+      a = a.replace(/(fill|stroke)\s*=\s*"(?!currentColor|none)[^"]*"/gi, '$1="currentColor"');
+      // Drop stroke-width/cap/join — wrapper enforces front-line defaults, back-fill paths set their own stroke="none"
+      return `<path${a}/>`;
+    });
+    // Wrapper for duotone: outline defaults, individual back paths override with fill+opacity
+    const wrapperAttrs = `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+    svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
+  } else {
+    // Strip baked colors from inner elements (we re-apply wrapper-level coloring).
+    svg = svg.replace(/<(path|svg)\b([^>]*)>/gi, (_, tag, attrs) => {
+      const cleaned = attrs
+        .replace(/\s(fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|stroke-miterlimit|opacity|fill-opacity|stroke-opacity)\s*=\s*"[^"]*"/gi, "");
+      return `<${tag}${cleaned}>`;
+    });
+    const wrapperAttrs = opts.isFilled
+      ? `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" stroke="none"`
+      : `xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+    svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
+  }
 
   // Final sanity: must still parse as a closed <svg>…</svg>.
   if (!/<\/svg>\s*$/i.test(svg)) return { ok: false, reason: "unterminated <svg>" };
