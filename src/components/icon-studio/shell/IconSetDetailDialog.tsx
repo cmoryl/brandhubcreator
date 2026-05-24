@@ -65,8 +65,10 @@ export const IconSetDetailDialog = ({
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
   const [remixOpen, setRemixOpen] = useState(false);
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
-  // Style override applied to the WHOLE set in the preview (does not mutate stored icons)
   const [styleOverride, setStyleOverride] = useState<'auto' | 'outlined' | 'filled' | 'duotone'>('auto');
+  const [query, setQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [previewSize, setPreviewSize] = useState<20 | 32 | 48 | 64>(32);
 
   const baseRecipe: IconRecipe | null = useMemo(() => {
     if (!library) return null;
