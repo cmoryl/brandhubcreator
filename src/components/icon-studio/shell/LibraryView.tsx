@@ -131,6 +131,21 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                 Imported assets
               </Button>
             )}
+            {canEdit && libraries.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                disabled={enrichProgress.running}
+                onClick={() => enrichAll()}
+                title="Append industry-relevant icons from the bundled library to every saved set."
+              >
+                <Wand2 className="h-4 w-4" />
+                {enrichProgress.running
+                  ? `Enriching ${enrichProgress.done}/${enrichProgress.total}…`
+                  : 'Auto-fill with industry icons'}
+              </Button>
+            )}
             {canEdit && (
               <Button size="sm" className="gap-1.5" onClick={onCreate}>
                 <Plus className="h-4 w-4" />
