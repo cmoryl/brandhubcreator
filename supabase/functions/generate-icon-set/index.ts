@@ -347,7 +347,7 @@ These icons must be indistinguishable in quality from a hand-crafted Lucide rele
 ${brandContextBlock}
 
 ## Mandatory Style (identical on EVERY icon)
-- Preset: "${preset}" · Detail tier: "${detail}" · Max paths: ${maxPaths}
+- Preset: "${preset}" · Detail tier: "${detail}" · Grid: ${gridSize}×${gridSize} · Max paths: ${maxPaths}
 - ${isFilled ? "FILLED" : isDuotone ? `DUOTONE — back fill (fill-opacity 0.25) + front line (stroke-width ${strokeWidth})` : `OUTLINED, stroke-width ${strokeWidth}`}, ${cornerStyle} corners
 - stroke-linecap "${linecap}" / stroke-linejoin "${linejoin}"
 ${isFilled
