@@ -14,6 +14,10 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useImportedIcons } from '@/hooks/useImportedIcons';
 import { materializeDataUrl, materializeSvg } from '@/lib/iconLibrary/loader';
 import type { IconIndexEntry } from '@/lib/iconLibrary/types';
+import type { BrandIconography } from '@/types/brand';
+import { IconDetailDialog } from '@/components/icon-studio/IconDetailDialog';
+import { AddToLibraryMenu } from '@/components/icon-studio/AddToLibraryMenu';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 interface ResolvedRow {
   pack: string;
