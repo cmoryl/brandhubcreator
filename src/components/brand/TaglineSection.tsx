@@ -230,6 +230,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
 
   return (
     <section className="space-y-4 sm:space-y-6">
+      {isTransPerfect && <TransPerfectVoicePanel />}
       {/* Options bar - only show when editing is allowed */}
       {canEdit && (
       <div className="flex items-center justify-end gap-2">
