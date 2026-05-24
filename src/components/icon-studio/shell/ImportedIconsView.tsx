@@ -297,32 +297,102 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
         {/* Main */}
         <div className="space-y-4 min-w-0">
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[240px] max-w-md">
-              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder={`Search ${currentPack?.name ?? ''}…`}
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                className="pl-9 h-9"
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {categories.slice(0, 12).map((c) => (
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative flex-1 min-w-[240px] max-w-md">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder={`Search ${currentPack?.name ?? ''}…`}
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  className="pl-9 h-9"
+                />
+              </div>
+
+              {/* Category — full list via Select so every pack category is reachable. */}
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="h-9 w-[180px] text-[12px]">
+                  <SelectValue placeholder="All categories" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[60vh]">
+                  {categories.map((c) => (
+                    <SelectItem key={c} value={c} className="text-[12px]">
+                      <span className="flex items-center justify-between gap-3 w-full">
+                        <span>{CATEGORY_LABELS[c] ?? c}</span>
+                        {currentPack && c !== 'all' && (
+                          <span className="text-[10px] text-muted-foreground tabular-nums">
+                            {currentPack.categories[c]?.toLocaleString() ?? 0}
+                          </span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Variant — only shown when the pack actually exposes variant suffixes. */}
+              {availableVariants.length > 0 && (
+                <Select value={variant} onValueChange={setVariant}>
+                  <SelectTrigger className="h-9 w-[150px] text-[12px]">
+                    <SelectValue placeholder="All variants" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-[12px]">All variants</SelectItem>
+                    {availableVariants.map((v) => (
+                      <SelectItem key={v} value={v} className="text-[12px]">
+                        <span className="flex items-center justify-between gap-3 w-full">
+                          <span>{VARIANT_LABELS[v] ?? v}</span>
+                          <span className="text-[10px] text-muted-foreground tabular-nums">
+                            {variantCounts.get(v)?.toLocaleString() ?? 0}
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {activeFilterCount > 0 && (
                 <Button
-                  key={c}
                   size="sm"
-                  variant={category === c ? 'default' : 'outline'}
-                  className="h-7 text-[11px]"
-                  onClick={() => setCategory(c)}
+                  variant="ghost"
+                  className="h-9 gap-1.5 text-[11px] text-muted-foreground"
+                  onClick={() => { setCategory('all'); setVariant('all'); setQ(''); }}
                 >
-                  {CATEGORY_LABELS[c] ?? c}
-                  {currentPack && c !== 'all' && (
-                    <span className="ml-1 opacity-60">{currentPack.categories[c]}</span>
-                  )}
+                  <X className="h-3.5 w-3.5" /> Clear filters
                 </Button>
-              ))}
+              )}
             </div>
+
+            {/* Quick variant chips: parity with the previous category-chip strip,
+                but for the axis users most often want to switch between. */}
+            {availableVariants.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">
+                  Variant
+                </span>
+                <Button
+                  size="sm"
+                  variant={variant === 'all' ? 'default' : 'outline'}
+                  className="h-7 text-[11px]"
+                  onClick={() => setVariant('all')}
+                >
+                  All
+                </Button>
+                {availableVariants.map((v) => (
+                  <Button
+                    key={v}
+                    size="sm"
+                    variant={variant === v ? 'default' : 'outline'}
+                    className="h-7 text-[11px]"
+                    onClick={() => setVariant(v)}
+                  >
+                    {VARIANT_LABELS[v] ?? v}
+                    <span className="ml-1 opacity-60">{variantCounts.get(v)}</span>
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
 
           {currentPack && (
