@@ -252,18 +252,19 @@ export const IconSetsView = ({
                     label: string;
                     icon: typeof Copy;
                     onClick: () => void;
-                  }> = [
-                    { label: 'Duplicate', icon: Copy, onClick: () => handleDuplicate(lib) },
-                    { label: 'Remix', icon: Wand2, onClick: () => handleRemix(lib) },
-                    { label: 'Regenerate', icon: RefreshCw, onClick: () => handleRegenerate(lib) },
-                    
-                    {
-                      label: lib.is_active ? 'Lock' : 'Unlock',
-                      icon: lib.is_active ? Lock : Unlock,
-                      onClick: () => handleLockToggle(lib),
-                    },
-                    { label: 'Delete', icon: Trash2, onClick: () => handleDelete(lib) },
-                  ];
+                  }> = canEdit
+                    ? [
+                        { label: 'Duplicate', icon: Copy, onClick: () => handleDuplicate(lib) },
+                        { label: 'Remix', icon: Wand2, onClick: () => handleRemix(lib) },
+                        { label: 'Regenerate', icon: RefreshCw, onClick: () => handleRegenerate(lib) },
+                        {
+                          label: lib.is_active ? 'Lock' : 'Unlock',
+                          icon: lib.is_active ? Lock : Unlock,
+                          onClick: () => handleLockToggle(lib),
+                        },
+                        { label: 'Delete', icon: Trash2, onClick: () => handleDelete(lib) },
+                      ]
+                    : [];
 
                   return (
                     <article
