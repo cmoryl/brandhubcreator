@@ -271,16 +271,17 @@ export const StudioShell = ({
               )}
             </Button>
 
-            <Button
-              size="sm"
-              variant="outline"
-              className="gap-1.5 h-8"
-              onClick={onSaveToLibrary}
-              disabled={!onSaveToLibrary}
-            >
-              <Save className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Save to library</span>
-            </Button>
+            {onSaveToLibrary && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 h-8"
+                onClick={onSaveToLibrary}
+              >
+                <Save className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Save to library</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>
