@@ -109,6 +109,16 @@ export const SuggestedIconsRail = ({
         } catch { /* fall back to original */ }
       }
       onAdd(brandIcon as BrandIconography);
+      logUsage({
+        organizationId,
+        brandId,
+        industry,
+        sectionId,
+        pack: s.pack,
+        iconName: s.name,
+        action: 'added',
+        source: aiActive ? 'ai-search' : 'suggested',
+      });
       toast.success(`Added ${brandIcon.name}${brandDna && restyleOn ? ' (brand DNA applied)' : ''}`);
     } catch {
       toast.error('Could not add icon');
