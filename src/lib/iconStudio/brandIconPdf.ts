@@ -48,20 +48,38 @@ export interface PdfBranding {
   showLogoOnCover?: boolean;
 }
 
+export interface PdfBuildProgress {
+  stage: 'preparing' | 'cover' | 'library-spec' | 'rendering-icons' | 'index' | 'toc' | 'finalizing' | 'done';
+  /** 0–1 normalised progress */
+  percent: number;
+  /** Icons processed so far */
+  current: number;
+  /** Total icons to process */
+  total: number;
+  /** Human-readable label */
+  message: string;
+}
+
+export class PdfBuildAbortedError extends Error {
+  constructor() {
+    super('PDF build aborted');
+    this.name = 'PdfBuildAbortedError';
+  }
+}
+
 interface BuildOptions {
   entityName: string;
   entityKind: 'Brand' | 'Product' | 'Event';
   libraries: IconLibLite[];
-  /** Optional brand accent color (hex, e.g. "#0ea5e9") used on cover + headers */
   accentColor?: string;
-  /** Optional palette of brand colors (hex strings) rendered as swatch strip */
   palette?: string[];
-  /** Optional logo URL (raster or SVG) shown on the cover */
   logoUrl?: string;
-  /** Optional tagline shown under the entity name on the cover */
   tagline?: string;
-  /** Configurable header/footer branding applied to content pages. */
   branding?: PdfBranding;
+  /** Progress callback fired throughout the build pipeline. */
+  onProgress?: (p: PdfBuildProgress) => void;
+  /** AbortSignal — when aborted, the build throws a `PdfBuildAbortedError`. */
+  signal?: AbortSignal;
 }
 
 /* ─────────────────────────── helpers ─────────────────────────── */
