@@ -234,10 +234,32 @@ export const StyleSystemsView = ({ onStartGenerate, onLibraryCreated }: Props) =
             </ul>
           </RecipeFieldset>
 
-          <Button size="sm" className="w-full gap-1.5" onClick={onStartGenerate}>
-            <Wand2 className="h-3.5 w-3.5" />
-            Apply to new set
-          </Button>
+          <div className="space-y-2">
+            <div className="rounded-md border border-border/40 bg-card/40 p-2">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                Live preview · {getStyleSource(active).label}
+              </div>
+              <BundledIconLadder style={active} accent={detailAccent} count={6} tile={32} />
+            </div>
+            <Button size="sm" className="w-full gap-1.5" onClick={onStartGenerate}>
+              <Wand2 className="h-3.5 w-3.5" />
+              Apply to new set
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full gap-1.5"
+              onClick={() => {
+                setApplyStyle(active);
+                setApplyAccent(detailAccent);
+              }}
+              disabled={!organization?.id}
+              title={!organization?.id ? 'Select an organization first' : undefined}
+            >
+              <LibraryIcon className="h-3.5 w-3.5" />
+              Apply to imported pack…
+            </Button>
+          </div>
         </aside>
       </div>
 
@@ -246,6 +268,18 @@ export const StyleSystemsView = ({ onStartGenerate, onLibraryCreated }: Props) =
         accent={detailAccent}
         onClose={() => setDetailId(null)}
         onApply={onStartGenerate}
+        onApplyToBundled={(s) => {
+          setApplyStyle(s);
+          setApplyAccent(detailAccent);
+        }}
+      />
+
+      <ApplyStyleToBundledDialog
+        style={applyStyle}
+        accent={applyAccent}
+        organizationId={organization?.id}
+        onClose={() => setApplyStyle(null)}
+        onCreated={(id) => onLibraryCreated?.(id)}
       />
     </div>
   );
