@@ -203,7 +203,23 @@ export async function buildBrandIconPdf({
   logoUrl,
   tagline,
   autoDownload = true,
+  branding = {},
 }: BuildOptions & { autoDownload?: boolean }): Promise<BuildBrandIconPdfResult> {
+  const {
+    showHeader = true,
+    showFooter = true,
+    headerText,
+    footerText,
+    headerBgColor,
+    footerTextColor,
+    showLogoInHeader = true,
+    showLogoOnCover = true,
+  } = branding;
+  const headerLeft = headerText ?? entityName;
+  const footerLeft = footerText ?? `${entityName} · ${entityKind} icon system`;
+  const headerBgRgb = hexToRgb(headerBgColor ?? accentColor);
+  const headerFgRgb = readableOn(headerBgColor ?? accentColor);
+  const footerFgRgb = footerTextColor ? hexToRgb(footerTextColor) : [150, 150, 150] as [number, number, number];
   const nonEmpty = libraries.filter((l) => l.icons && l.icons.length > 0);
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
