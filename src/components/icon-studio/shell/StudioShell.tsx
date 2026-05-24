@@ -82,6 +82,7 @@ const NAV: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'generate', label: 'Generate', icon: Wand2, badge: 'Wizard' },
   { id: 'library', label: 'Library', icon: Library },
+  { id: 'imported', label: 'Imported Icons', icon: ImageIcon, badge: 'New' },
   { id: 'brands', label: 'Brands', icon: Building2 },
   { id: 'styles', label: 'Style Systems', icon: Palette },
   { id: 'sets', label: 'Icon Sets', icon: FolderOpen },
