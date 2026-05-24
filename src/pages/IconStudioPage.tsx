@@ -320,7 +320,7 @@ const IconStudioPage = () => {
         />
       ) : shellSection === 'library' ? (
         <LibraryView
-          libraries={libraries}
+          libraries={allLibraries}
           organizationId={organizationId}
           canEdit={canEdit}
           onCreate={() => setShellSection('generate')}
@@ -328,16 +328,20 @@ const IconStudioPage = () => {
           autoOpenLibraryId={deepLinkLibraryId}
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
           onViewImported={() => setShellSection('imported')}
+          onOpenBundledPack={openBundledPack}
         />
       ) : shellSection === 'imported' ? (
-        <ImportedIconsView />
+        <ImportedIconsView
+          initialPackId={initialBundledPack ?? undefined}
+          onInitialPackConsumed={() => setInitialBundledPack(null)}
+        />
       ) : shellSection === 'brands' ? (
         <BrandsView organizationName={organizationName} organizationId={organizationId} brandProfiles={hierarchyBrands} />
       ) : shellSection === 'styles' ? (
         <StyleSystemsView onStartGenerate={() => setShellSection('generate')} />
       ) : shellSection === 'sets' ? (
         <IconSetsView
-          libraries={libraries}
+          libraries={allLibraries}
           organizationId={organizationId}
           canEdit={canEdit}
           onCreate={() => setShellSection('generate')}
@@ -345,6 +349,7 @@ const IconStudioPage = () => {
           onCompare={() => setShellSection('qa')}
           autoOpenLibraryId={deepLinkLibraryId}
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
+          onOpenBundledPack={openBundledPack}
         />
       ) : shellSection === 'qa' ? (
         <QAView
