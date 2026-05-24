@@ -193,6 +193,41 @@ export const SuggestedIconsRail = ({
               </button>
             )}
           </form>
+          {availableKits.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-[11px]"
+                  disabled={!!kitLoadingId}
+                  title="Populate a curated kit in one click"
+                >
+                  <PackageIcon className={`h-3 w-3 mr-1 ${kitLoadingId ? 'animate-pulse' : ''}`} />
+                  {kitLoadingId ? 'Adding…' : 'Populate kit'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>One-click icon kits</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {availableKits.map((kit) => (
+                  <DropdownMenuItem
+                    key={kit.id}
+                    onClick={() => handlePopulateKit(kit.id)}
+                    className="flex flex-col items-start gap-0.5 py-2"
+                  >
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <span className="text-xs font-medium">{kit.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{kit.items.length}</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground leading-tight">
+                      {kit.description}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           {brandDna && (
             <Button
               size="sm"
