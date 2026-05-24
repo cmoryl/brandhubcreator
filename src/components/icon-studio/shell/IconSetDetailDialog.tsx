@@ -58,6 +58,7 @@ export const IconSetDetailDialog = ({
   onRegenerate,
   onCompare,
   onLockToggle,
+  onEnrich,
 }: Props) => {
   const open = !!library;
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
