@@ -94,7 +94,7 @@ const ScoreCard = ({
   </div>
 );
 
-export const QAView = ({ libraries, totalIcons, organizationId, onStartGenerate }: Props) => {
+export const QAView = ({ libraries, totalIcons, organizationId, organizationName, onStartGenerate }: Props) => {
   const queryClient = useQueryClient();
   const [preflight, setPreflight] = useState<PreflightSummary | null>(null);
   const [running, setRunning] = useState(false);
