@@ -34,6 +34,9 @@ interface SuggestedIconsRailProps {
   limit?: number;
   /** Phase 4: optional brand DNA — when present, previews are auto-restyled. */
   brandDna?: BrandRestyleDNA;
+  /** Phase 6: org + brand context for usage tracking. */
+  organizationId?: string | null;
+  brandId?: string | null;
 }
 
 export const SuggestedIconsRail = ({
