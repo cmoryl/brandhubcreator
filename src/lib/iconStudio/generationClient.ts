@@ -48,12 +48,16 @@ export interface GenerationResult {
   error?: string;
 }
 
+export type DetailLevel = 'low' | 'medium' | 'high';
+
 interface RunOpts {
   entityName: string;
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
   industry?: string;
   style?: 'outlined' | 'filled' | 'duotone';
+  /** Visual density tier — drives prompt verbosity + sanitizer strictness. */
+  detailLevel?: DetailLevel;
   onTaskStart?: (task: GenerationTask) => void;
   onTaskDone?: (result: GenerationResult) => void;
   signal?: AbortSignal;
@@ -88,7 +92,7 @@ export async function runGenerationTask(
   task: GenerationTask,
   opts: RunOpts,
 ): Promise<BrandIconography[]> {
-  const { entityName, entityId, entityType, industry, style = 'outlined' } = opts;
+  const { entityName, entityId, entityType, industry, style = 'outlined', detailLevel = 'medium' } = opts;
   const { data, error } = await supabase.functions.invoke('generate-icon-set', {
     body: {
       entityName,
@@ -99,6 +103,7 @@ export async function runGenerationTask(
       sectionIndex: task.sectionIndex,
       style: { fill: style === 'filled', stroke: style !== 'filled' },
       preset: style,
+      detailLevel,
       customCount: task.count,
     },
   });
