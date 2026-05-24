@@ -21,11 +21,13 @@ import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { BASE_STYLES, type BaseStyle } from './studioData';
 import { IconSetPreview } from './IconSetPreview';
 import { buildStyledSvg, svgToPng, slugify, resolveCssColor } from './styleSvgExporter';
+import type { ImportedIconEntry } from '@/hooks/useImportedIcons';
 
 interface Props {
   libraries: IconLibrary[];
   organizationName: string;
   onOpenLibrary?: () => void;
+  importedIcons?: ImportedIconEntry[];
 }
 
 interface FormatRow {
