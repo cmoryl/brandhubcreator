@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 import type { BrandIconography } from '@/types/brand';
 import {
   runGenerationQueue,
@@ -100,7 +101,7 @@ export const GoldenPathCard = ({ onSaveAsLibrary }: Props) => {
           completedTasks += 1;
           if (result.error) {
             // Don't fail the whole run on a single subset failure
-            console.warn('Subset failed:', result.task.label, result.error);
+            logger.debug('Subset failed', result.task.label, result.error);
           } else {
             // Attach the recipe to every generated icon (per-icon recipe inherits
             // from the system recipe with the subset's category as metaphor)
