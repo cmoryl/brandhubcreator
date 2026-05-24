@@ -4,15 +4,24 @@
  * Click an icon to add it to the brand's iconography list.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Sparkles, Plus, RefreshCw, Wand2, Search, X } from 'lucide-react';
+import { Sparkles, Plus, RefreshCw, Wand2, Search, X, Package as PackageIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useSemanticIconSearch } from '@/lib/iconLibrary/semanticSearch';
 import { toast } from 'sonner';
 import { getSuggestedIcons, type SuggestedIcon } from '@/lib/iconLibrary/suggestions';
 import { materializeAsBrandIconography, materializeDataUrl } from '@/lib/iconLibrary/loader';
 import { restyleBundledIcon, applyBrandDnaToSvg, type BrandRestyleDNA } from '@/lib/iconLibrary/restyle';
+import { kitsForSection, resolveKit } from '@/lib/iconLibrary/kits';
 import type { BrandIconography } from '@/types/brand';
 
 interface SuggestedIconsRailProps {
@@ -20,6 +29,8 @@ interface SuggestedIconsRailProps {
   industry?: string | null;
   existingIcons?: BrandIconography[];
   onAdd: (icon: BrandIconography) => void;
+  /** Optional batch handler. When provided, kits add all icons in a single state update. */
+  onAddBatch?: (icons: BrandIconography[]) => void;
   limit?: number;
   /** Phase 4: optional brand DNA — when present, previews are auto-restyled. */
   brandDna?: BrandRestyleDNA;
@@ -30,6 +41,7 @@ export const SuggestedIconsRail = ({
   industry,
   existingIcons = [],
   onAdd,
+  onAddBatch,
   limit = 24,
   brandDna,
 }: SuggestedIconsRailProps) => {
@@ -96,6 +108,35 @@ export const SuggestedIconsRail = ({
     }
   };
 
+  // Phase 5 — populate a curated kit in one click.
+  const availableKits = useMemo(() => kitsForSection(sectionId), [sectionId]);
+  const [kitLoadingId, setKitLoadingId] = useState<string | null>(null);
+
+  const handlePopulateKit = async (kitId: string) => {
+    const kit = availableKits.find((k) => k.id === kitId);
+    if (!kit) return;
+    setKitLoadingId(kitId);
+    try {
+      const dna = brandDna && restyleOn ? brandDna : undefined;
+      const resolved = await resolveKit(kit, dna);
+      const fresh = resolved.filter((ic) => !existingIds.has(ic.id));
+      if (fresh.length === 0) {
+        toast.info(`All ${kit.name} icons are already added`);
+        return;
+      }
+      if (onAddBatch) {
+        onAddBatch(fresh);
+      } else {
+        fresh.forEach((ic) => onAdd(ic));
+      }
+      toast.success(`Added ${fresh.length} icons from ${kit.name}${dna ? ' · brand DNA applied' : ''}`);
+    } catch {
+      toast.error('Could not populate kit');
+    } finally {
+      setKitLoadingId(null);
+    }
+  };
+
   if (!loading && items.length === 0) return null;
 
   return (
@@ -152,6 +193,41 @@ export const SuggestedIconsRail = ({
               </button>
             )}
           </form>
+          {availableKits.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-[11px]"
+                  disabled={!!kitLoadingId}
+                  title="Populate a curated kit in one click"
+                >
+                  <PackageIcon className={`h-3 w-3 mr-1 ${kitLoadingId ? 'animate-pulse' : ''}`} />
+                  {kitLoadingId ? 'Adding…' : 'Populate kit'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>One-click icon kits</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {availableKits.map((kit) => (
+                  <DropdownMenuItem
+                    key={kit.id}
+                    onClick={() => handlePopulateKit(kit.id)}
+                    className="flex flex-col items-start gap-0.5 py-2"
+                  >
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <span className="text-xs font-medium">{kit.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{kit.items.length}</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground leading-tight">
+                      {kit.description}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           {brandDna && (
             <Button
               size="sm"

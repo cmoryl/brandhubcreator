@@ -747,6 +747,13 @@ ${innerContent}
             if (iconography.some((i) => i.id === icon.id)) return;
             onIconographyChange([...iconography, icon]);
           }}
+          onAddBatch={(icons) => {
+            if (!onIconographyChange) return;
+            const existing = new Set(iconography.map((i) => i.id));
+            const fresh = icons.filter((ic) => !existing.has(ic.id));
+            if (fresh.length === 0) return;
+            onIconographyChange([...iconography, ...fresh]);
+          }}
         />
       )}
 
