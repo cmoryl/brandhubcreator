@@ -31,30 +31,29 @@ interface CheckRow {
   id: string;
   label: string;
   description: string;
-  status: 'pass' | 'warn' | 'fail';
+  status: 'pass' | 'warn' | 'fail' | 'na';
   count: number;
 }
 
 const buildChecks = (totalIcons: number, pf: PreflightSummary | null): CheckRow[] => {
-  const t = Math.max(totalIcons, 0);
   const contrastFailN = pf?.contrastFails.length ?? 0;
   const rasterFailN = pf?.rasterFails.length ?? 0;
   const strokeN = pf?.strokeInconsistentCount ?? 0;
   const brandN = pf?.brandFitFailCount ?? 0;
   return [
-    { id: 'svg', label: 'SVG validity', description: 'Parseable, single root, no nested svgs', status: 'pass', count: t },
-    { id: 'viewbox', label: 'ViewBox normalized', description: 'All icons share a 0 0 24 24 viewBox', status: 'pass', count: t },
     { id: 'stroke', label: 'Stroke consistency', description: 'Uniform stroke width across set', status: strokeN > 0 ? 'warn' : 'pass', count: strokeN },
-    { id: 'grid', label: 'Grid alignment', description: '24px grid, 20px safe zone', status: 'pass', count: 0 },
-    { id: 'optical', label: 'Optical balance', description: 'Visual weight check across the set', status: t > 30 ? 'warn' : 'pass', count: t > 30 ? 2 : 0 },
     { id: 'minsize', label: 'Min-size readability', description: 'Rendered to 16×16 canvas, ≥8% pixel coverage', status: rasterFailN > 0 ? 'fail' : 'pass', count: rasterFailN },
-    { id: 'dupes', label: 'Duplicate detection', description: 'Shape & path hash comparison', status: 'pass', count: 0 },
-    { id: 'overlap', label: 'Overlap detection', description: 'Self-overlapping fills cleaned', status: 'pass', count: 0 },
     { id: 'contrast', label: 'Color contrast (APCA)', description: 'Lc ≥ 45 against white + #0B0B0F backgrounds', status: contrastFailN > 0 ? 'fail' : 'pass', count: contrastFailN },
-    { id: 'a11y', label: 'A11y metadata', description: 'title + role + aria-label present', status: t > 0 ? 'warn' : 'pass', count: t > 0 ? Math.max(1, Math.floor(t * 0.03)) : 0 },
-    { id: 'rai', label: 'Responsible-AI metaphor', description: 'Cultural & sensitive content check', status: 'pass', count: 0 },
     { id: 'brand', label: 'Brand compliance', description: 'Matches brand color & stroke rules', status: brandN > 0 ? 'warn' : 'pass', count: brandN },
-
+    // Not yet implemented — surfaced honestly instead of fake-passing
+    { id: 'svg', label: 'SVG validity', description: 'Parseable, single root, no nested svgs', status: 'na', count: 0 },
+    { id: 'viewbox', label: 'ViewBox normalized', description: 'All icons share a 0 0 24 24 viewBox', status: 'na', count: 0 },
+    { id: 'grid', label: 'Grid alignment', description: '24px grid, 20px safe zone', status: 'na', count: 0 },
+    { id: 'optical', label: 'Optical balance', description: 'Visual weight check across the set', status: 'na', count: 0 },
+    { id: 'dupes', label: 'Duplicate detection', description: 'Shape & path hash comparison', status: 'na', count: 0 },
+    { id: 'overlap', label: 'Overlap detection', description: 'Self-overlapping fills cleaned', status: 'na', count: 0 },
+    { id: 'a11y', label: 'A11y metadata', description: 'title + role + aria-label present', status: 'na', count: 0 },
+    { id: 'rai', label: 'Responsible-AI metaphor', description: 'Cultural & sensitive content check', status: 'na', count: 0 },
   ];
 };
 
@@ -63,6 +62,8 @@ const StatusIcon = ({ status }: { status: CheckRow['status'] }) => {
     return <CheckCircle2 className="h-3.5 w-3.5" style={{ color: 'hsl(var(--tp-green))' }} />;
   if (status === 'warn')
     return <AlertTriangle className="h-3.5 w-3.5" style={{ color: 'hsl(var(--tp-orange))' }} />;
+  if (status === 'na')
+    return <MinusCircle className="h-3.5 w-3.5 text-muted-foreground" />;
   return <XCircle className="h-3.5 w-3.5" style={{ color: 'hsl(var(--destructive))' }} />;
 };
 
