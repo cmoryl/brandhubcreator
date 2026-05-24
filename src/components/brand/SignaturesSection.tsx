@@ -269,6 +269,7 @@ export const SignaturesSection = ({
 
   return (
     <section className="space-y-6">
+      {isTransPerfect && <TransPerfectSignaturePanel />}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <SectionHeader
