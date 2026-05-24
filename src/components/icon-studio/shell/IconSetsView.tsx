@@ -344,6 +344,7 @@ export const IconSetsView = ({
         onRegenerate={() => activeLib && handleRegenerate(activeLib)}
         onCompare={() => activeLib && handleCompare(activeLib)}
         onLockToggle={() => activeLib && handleLockToggle(activeLib)}
+        onEnrich={canEdit && activeLib ? () => enrichOne(activeLib) : undefined}
       />
 
       <BulkRegenerateDialog
