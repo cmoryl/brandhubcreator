@@ -287,6 +287,8 @@ ${brainSummaries || "No entity brains yet."}
 
 KNOWLEDGE (${(knowledge||[]).length} entries):
 ${knowledgeCtx || "None."}
+${iconStudioBlock}
+
 
 HISTORICAL GOVERNANCE DIGESTS (${(priorDigests||[]).length} prior runs):
 ${digestHistory || "No prior digests — this is the first governance cycle."}
