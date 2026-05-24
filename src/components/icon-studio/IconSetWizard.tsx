@@ -10,7 +10,7 @@
  *  5. Export         — Bulk ZIP (SVG + transparent PNGs) or individual download.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
   CheckCircle2,
@@ -121,9 +121,11 @@ interface Props {
   entityType?: 'brand' | 'product' | 'event';
   /** Called when the user saves the resulting set(s) into a library. */
   onSaveAsLibrary?: (name: string, icons: BrandIconography[]) => void;
+  /** Registers an imperative save handle so an external chrome (top bar) can trigger save when ready. */
+  registerSaveHandle?: (handle: (() => void) | null) => void;
 }
 
-export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAsLibrary }: Props) => {
+export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAsLibrary, registerSaveHandle }: Props) => {
   const [step, setStep] = useState<StepId>('industry');
   const [industry, setIndustry] = useState<IndustryPreset | null>(null);
   const [companyName, setCompanyName] = useState(organizationName || '');
@@ -343,6 +345,14 @@ export const IconSetWizard = ({ organizationName, entityId, entityType, onSaveAs
     );
     toast.success('Saved to your library');
   }, [onSaveAsLibrary, industry, allIcons, companyName]);
+
+  // Expose imperative save handle while there's content to save.
+  useEffect(() => {
+    if (!registerSaveHandle) return;
+    const canSave = !!onSaveAsLibrary && !!industry && allIcons.length > 0;
+    registerSaveHandle(canSave ? saveToLibrary : null);
+    return () => registerSaveHandle(null);
+  }, [registerSaveHandle, onSaveAsLibrary, industry, allIcons.length, saveToLibrary]);
 
   /* ------------------------------- Render ------------------------------ */
 

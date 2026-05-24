@@ -7,7 +7,7 @@
  * the guided IconSetWizard.
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -68,6 +68,12 @@ const IconStudioPage = () => {
   const [shellSection, setShellSection] = useState<ShellSection>(initialSection);
   const [activeBrand, setActiveBrand] = useState<ShellBrand | undefined>(undefined);
   const [deepLinkLibraryId, setDeepLinkLibraryId] = useState<string | null>(urlLibrary);
+  const wizardSaveRef = useRef<(() => void) | null>(null);
+  const [wizardCanSave, setWizardCanSave] = useState(false);
+  const registerWizardSave = useCallback((handle: (() => void) | null) => {
+    wizardSaveRef.current = handle;
+    setWizardCanSave(!!handle);
+  }, []);
 
   // Clean URL once consumed so subsequent in-app nav isn't sticky.
   // IMPORTANT: use window.history.replaceState (not setSearchParams) — RootLayout
@@ -180,7 +186,11 @@ const IconStudioPage = () => {
       activeBrand={activeBrand}
       onBrandChange={handleBrandChange}
       onBack={() => navigate(-1)}
-      onSaveToLibrary={canEdit ? () => setShellSection('library') : undefined}
+      onSaveToLibrary={
+        canEdit && shellSection === 'generate' && wizardCanSave
+          ? () => wizardSaveRef.current?.()
+          : undefined
+      }
       rightRail={
         shellSection === 'generate' ? (
           <ProductionSummary
@@ -254,6 +264,7 @@ const IconStudioPage = () => {
           entityId={activeBrand?.id}
           entityType="brand"
           onSaveAsLibrary={canEdit ? handleSaveSetAsLibrary : undefined as any}
+          registerSaveHandle={registerWizardSave}
         />
       ) : shellSection === 'library' ? (
         <LibraryView
