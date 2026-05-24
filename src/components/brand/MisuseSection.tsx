@@ -10,6 +10,8 @@ import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 
+import { TransPerfectAntiPatternsPanel } from './identity/TransPerfectAntiPatternsPanel';
+
 interface MisuseSectionProps {
   misuse: BrandMisuse[];
   onMisuseChange: (misuse: BrandMisuse[]) => void;
@@ -17,9 +19,11 @@ interface MisuseSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   entityId?: string;
   entityType?: 'brand' | 'product' | 'event';
+  brandSlug?: string;
 }
 
-export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand' }: MisuseSectionProps) => {
+export const MisuseSection = ({ misuse, onMisuseChange, customSubtitle, onSubtitleChange, entityId, entityType = 'brand', brandSlug }: MisuseSectionProps) => {
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const { uploadFile, isUploading } = useStorageUpload({ entityType, entityId });
