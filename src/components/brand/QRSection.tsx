@@ -26,6 +26,7 @@ interface QRSectionProps {
   entityType?: 'brand' | 'product' | 'event';
   entityId?: string;
   logos?: BrandLogo[]; // Brand logos for overlay options
+  brandSlug?: string;
 }
 
 const USE_CASE_FILTERS = [
