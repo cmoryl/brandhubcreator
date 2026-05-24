@@ -163,15 +163,40 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
     return ['all', ...Object.keys(currentPack.categories).sort()];
   }, [currentPack]);
 
+  // Variants present in this pack — derived once per pack load, with counts.
+  const variantCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const e of packIndex) {
+      for (const v of variantsOf(e.n)) {
+        counts.set(v, (counts.get(v) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [packIndex]);
+
+  const availableVariants = useMemo(() => {
+    // Order by VARIANT_TOKENS canonical order, keep only those present.
+    return VARIANT_TOKENS.filter((v) => variantCounts.has(v));
+  }, [variantCounts]);
+
+  // Reset variant when switching to a pack that doesn't expose the current one.
+  useEffect(() => {
+    if (variant !== 'all' && !variantCounts.has(variant)) setVariant('all');
+  }, [variant, variantCounts]);
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     return packIndex.filter((e) => {
       if (category !== 'all' && e.c !== category) return false;
+      if (variant !== 'all' && !variantsOf(e.n).includes(variant)) return false;
       if (!term) return true;
       if (e.n.includes(term)) return true;
       return e.t.some((t) => t.includes(term));
     });
-  }, [packIndex, q, category]);
+  }, [packIndex, q, category, variant]);
+
+  const activeFilterCount =
+    (category !== 'all' ? 1 : 0) + (variant !== 'all' ? 1 : 0) + (q.trim() ? 1 : 0);
 
   // Virtualized grid: compute row count from columns
   const parentRef = useRef<HTMLDivElement>(null);
