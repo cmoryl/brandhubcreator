@@ -130,6 +130,26 @@ const IconStudioPage = () => {
     return [...base, ...extras].filter((b) => (seen.has(b.id) ? false : (seen.add(b.id), true)));
   }, [organization, hierarchyBrands]);
 
+  // Restore active brand from URL or localStorage once brands load
+  useEffect(() => {
+    if (activeBrand || shellBrands.length === 0) return;
+    const storageKey = `icon-studio:active-brand:${organizationId}`;
+    const targetId = urlBrand || (typeof window !== 'undefined' ? window.localStorage.getItem(storageKey) : null);
+    if (targetId) {
+      const match = shellBrands.find((b) => b.id === targetId);
+      if (match) setActiveBrand(match);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shellBrands, organizationId]);
+
+  // Persist active brand selection
+  const handleBrandChange = useCallback((b: ShellBrand) => {
+    setActiveBrand(b);
+    if (typeof window !== 'undefined' && organizationId) {
+      window.localStorage.setItem(`icon-studio:active-brand:${organizationId}`, b.id);
+    }
+  }, [organizationId]);
+
   const handleSaveSetAsLibrary = useCallback(
     (name: string, icons: BrandIconography[]) => {
       if (!organizationId || !canEdit) return;
