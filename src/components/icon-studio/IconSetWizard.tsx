@@ -700,6 +700,29 @@ const CoreStep = ({
               ))}
             </div>
           </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Grid · <span className="text-foreground">{gridSize}×{gridSize}</span>
+            </label>
+            <div className="flex gap-1">
+              {([24, 48] as const).map((g) => (
+                <Button
+                  key={g}
+                  size="sm"
+                  variant={gridSize === g ? 'default' : 'outline'}
+                  onClick={() => setGridSize(g)}
+                  className="flex-1"
+                  title={
+                    g === 24
+                      ? 'Standard UI grid — Lucide/Feather density'
+                      : 'High-density illustrative grid — Material 48dp, room for layered detail'
+                  }
+                >
+                  {g === 24 ? 'UI 24' : 'Detailed 48'}
+                </Button>
+              ))}
+            </div>
+          </div>
           <div className="flex items-end">
             <Button
               onClick={onGenerate}
