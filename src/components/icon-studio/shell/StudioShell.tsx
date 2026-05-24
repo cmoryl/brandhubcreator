@@ -96,8 +96,8 @@ export interface Brand {
 interface Props {
   activeSection: ShellSection;
   onSectionChange: (s: ShellSection) => void;
-  expertMode: boolean;
-  onExpertModeChange: (v: boolean) => void;
+  expertMode?: boolean;
+  onExpertModeChange?: (v: boolean) => void;
   brands: Brand[];
   activeBrand?: Brand;
   onBrandChange?: (b: Brand) => void;
