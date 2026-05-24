@@ -20,6 +20,7 @@ import { BulkRegenerateDialog } from './BulkRegenerateDialog';
 import { BulkExpandDialog } from './BulkExpandDialog';
 import { type IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryRowActions } from './useIconLibraryRowActions';
+import { isBundledLibraryId, bundledLibraryPackId } from '@/hooks/useBundledIconLibraries';
 
 interface Props {
   libraries: IconLibrary[];
@@ -32,6 +33,8 @@ interface Props {
   onCompare?: (lib: IconLibrary) => void;
   autoOpenLibraryId?: string | null;
   onAutoOpenConsumed?: () => void;
+  /** Navigate to the Imported Icons tab with the given bundled pack pre-selected. */
+  onOpenBundledPack?: (packId: string) => void;
 }
 
 const SAMPLE_FOR = (name: string): string[] => {
