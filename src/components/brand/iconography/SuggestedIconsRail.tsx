@@ -93,26 +93,96 @@ export const SuggestedIconsRail = ({
         }}
         aria-hidden
       />
-      <SemanticSearchHeader
-        industry={industry}
-        brandDna={brandDna}
-        restyleOn={restyleOn}
-        setRestyleOn={setRestyleOn}
-        loading={loading}
-        onRefresh={() => setRefreshKey((k) => k + 1)}
-        sectionId={sectionId}
-      />
+      <div className="relative flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold tracking-tight">
+            {aiActive ? 'AI search results' : 'Suggested for this brand'}
+          </h3>
+          {industry && !aiActive && (
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
+              {industry}
+            </Badge>
+          )}
+          {aiActive && aiExpansion?.reasoning && (
+            <span className="text-[10px] text-muted-foreground italic max-w-[260px] truncate">
+              {aiExpansion.reasoning}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (aiQuery.trim().length < 2) return;
+              ai.search({ query: aiQuery, industry, sectionId }).catch(() => {});
+            }}
+            className="relative"
+          >
+            <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={aiQuery}
+              onChange={(e) => setAiQuery(e.target.value)}
+              placeholder="AI search: e.g. 'momentum'"
+              className="h-7 pl-7 pr-7 text-[11px] w-[180px] md:w-[220px]"
+            />
+            {aiQuery && (
+              <button
+                type="button"
+                onClick={() => { setAiQuery(''); ai.reset(); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </form>
+          {brandDna && (
+            <Button
+              size="sm"
+              variant={restyleOn ? 'default' : 'outline'}
+              className="h-7 text-[11px]"
+              onClick={() => setRestyleOn((v) => !v)}
+              title="Restyle previews to match this brand's DNA"
+            >
+              <Wand2 className="h-3 w-3 mr-1" />
+              Brand DNA
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 text-[11px]"
+            onClick={() => setRefreshKey((k) => k + 1)}
+            disabled={loading || ai.loading}
+          >
+            <RefreshCw className={`h-3 w-3 mr-1 ${(loading || ai.loading) ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
+      </div>
 
-      <SuggestedGrid
-        items={items}
-        loading={loading}
-        limit={limit}
-        existingIds={existingIds}
-        handleAdd={handleAdd}
-        brandDna={brandDna && restyleOn ? brandDna : undefined}
-        industry={industry}
-        sectionId={sectionId}
-      />
+      <div className="relative grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2">
+        {(loading || ai.loading)
+          ? Array.from({ length: limit }).map((_, i) => (
+              <div key={i} className="aspect-square rounded-md bg-muted/40 animate-pulse" />
+            ))
+          : displayItems.length === 0
+          ? (
+            <div className="col-span-full py-8 text-center text-xs text-muted-foreground">
+              {aiActive ? 'No matches. Try a different phrase.' : 'No suggestions yet.'}
+            </div>
+          )
+          : displayItems.map((s) => (
+              <SuggestedCell
+                key={`${s.pack}/${s.name}`}
+                icon={s}
+                added={existingIds.has(`${s.pack}/${s.name}`)}
+                onAdd={() => handleAdd(s)}
+                brandDna={brandDna && restyleOn ? brandDna : undefined}
+              />
+            ))}
+      </div>
     </section>
   );
 };
