@@ -1587,6 +1587,54 @@ export type Database = {
           },
         ]
       }
+      brand_imagery_embeddings: {
+        Row: {
+          caption: string | null
+          created_at: string
+          embedding: string
+          entity_id: string
+          entity_type: string
+          id: string
+          image_id: string
+          image_url: string
+          model_version: string
+          organization_id: string
+          section_id: string | null
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          embedding: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          image_id: string
+          image_url: string
+          model_version?: string
+          organization_id: string
+          section_id?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          embedding?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          image_id?: string
+          image_url?: string
+          model_version?: string
+          organization_id?: string
+          section_id?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       brand_intelligence: {
         Row: {
           analysis_count: number
@@ -2061,6 +2109,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      brand_visual_dna: {
+        Row: {
+          auto_train: boolean
+          created_at: string
+          dna: Json
+          entity_id: string
+          entity_type: string
+          id: string
+          last_trained_at: string | null
+          last_training_error: string | null
+          last_training_status: string | null
+          organization_id: string
+          prompt_seed: string | null
+          source_image_count: number
+          updated_at: string
+        }
+        Insert: {
+          auto_train?: boolean
+          created_at?: string
+          dna?: Json
+          entity_id: string
+          entity_type: string
+          id?: string
+          last_trained_at?: string | null
+          last_training_error?: string | null
+          last_training_status?: string | null
+          organization_id: string
+          prompt_seed?: string | null
+          source_image_count?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_train?: boolean
+          created_at?: string
+          dna?: Json
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          last_trained_at?: string | null
+          last_training_error?: string | null
+          last_training_status?: string | null
+          organization_id?: string
+          prompt_seed?: string | null
+          source_image_count?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       brands: {
         Row: {
@@ -7051,6 +7147,23 @@ export type Database = {
           invited_role: string
           is_valid: boolean
           org_name: string
+        }[]
+      }
+      match_brand_imagery: {
+        Args: {
+          p_entity_id: string
+          p_entity_type: string
+          p_match_count?: number
+          p_query_embedding: string
+        }
+        Returns: {
+          caption: string
+          id: string
+          image_id: string
+          image_url: string
+          section_id: string
+          similarity: number
+          tags: string[]
         }[]
       }
       move_to_dlq: {

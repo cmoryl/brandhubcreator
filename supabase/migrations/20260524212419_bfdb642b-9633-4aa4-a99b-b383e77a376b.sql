@@ -1,0 +1,2 @@
+revoke execute on function public.match_brand_imagery(uuid, text, vector, integer) from public, anon;
+grant execute on function public.match_brand_imagery(uuid, text, vector, integer) to authenticated;

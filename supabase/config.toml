@@ -191,3 +191,9 @@ verify_jwt = false
 
 [functions.skill-qa-scheduled]
 verify_jwt = false
+
+[functions.brand-visual-dna]
+verify_jwt = false
+
+[functions.brand-imagery-similar]
+verify_jwt = false
