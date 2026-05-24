@@ -294,6 +294,7 @@ const IconStudioPage = () => {
             entityType: b.type,
             tone: b.type === 'brand' ? 'Brand' : b.type === 'product' ? 'Product' : 'Event',
           }))}
+          importedIconCount={importedEntries.length}
         />
       ) : shellSection === 'generate' ? (
         <IconSetWizard
