@@ -264,6 +264,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         const iconSlug = ic.slug;
         const path = ic.svgPath || FALLBACK_PATH;
         const viewBox = ic.viewBox || '0 0 24 24';
+        collected.push({ slug: `imported-${iconSlug}`, name: ic.name, svgPath: path, viewBox });
 
         if (wantStyled) {
           const svg = buildStyledSvg({
