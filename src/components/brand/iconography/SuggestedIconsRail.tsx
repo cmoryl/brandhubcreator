@@ -4,15 +4,24 @@
  * Click an icon to add it to the brand's iconography list.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { Sparkles, Plus, RefreshCw, Wand2, Search, X } from 'lucide-react';
+import { Sparkles, Plus, RefreshCw, Wand2, Search, X, Package as PackageIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useSemanticIconSearch } from '@/lib/iconLibrary/semanticSearch';
 import { toast } from 'sonner';
 import { getSuggestedIcons, type SuggestedIcon } from '@/lib/iconLibrary/suggestions';
 import { materializeAsBrandIconography, materializeDataUrl } from '@/lib/iconLibrary/loader';
 import { restyleBundledIcon, applyBrandDnaToSvg, type BrandRestyleDNA } from '@/lib/iconLibrary/restyle';
+import { kitsForSection, resolveKit } from '@/lib/iconLibrary/kits';
 import type { BrandIconography } from '@/types/brand';
 
 interface SuggestedIconsRailProps {
