@@ -297,10 +297,24 @@ export const StyleSystemDetailDialog = ({ style, accent, onClose, onApply, onApp
                 <div className="text-xs text-muted-foreground">
                   Recipe locked across all generated icons in this system.
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={onClose}>
                     Close
                   </Button>
+                  {onApplyToBundled && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      onClick={() => {
+                        onApplyToBundled(style);
+                        onClose();
+                      }}
+                    >
+                      <PackageOpen className="h-3.5 w-3.5" />
+                      Apply to imported pack…
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     className="gap-1.5"
