@@ -156,6 +156,35 @@ export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: Impo
     }
   }, []);
 
+  // Open the same workspace dialog used for generated icons.
+  // Materializes the SVG on demand and converts it into a BrandIconography
+  // object the dialog/exporters already understand.
+  const openDetail = useCallback(async (pack: string, name: string, category: string) => {
+    try {
+      const svg = await materializeSvg(pack, name);
+      // Extract viewBox if present, otherwise default to 24x24.
+      const vbMatch = svg.match(/viewBox\s*=\s*"([^"]+)"/i);
+      const viewBox = vbMatch?.[1] ?? '0 0 24 24';
+      // Detect fill mode from the markup as a hint.
+      const lower = svg.toLowerCase();
+      const fillMode: 'stroke' | 'fill' =
+        lower.includes('stroke=') && !lower.includes('fill="none"') === false &&
+        (lower.includes('stroke="currentcolor"') || lower.includes("stroke='currentcolor'") || lower.includes('fill="none"'))
+          ? 'stroke'
+          : 'fill';
+      setSelectedIcon({
+        id: `bundled:${pack}/${name}`,
+        name,
+        svgPath: svg, // full <svg> string — supported by IconSvgRender/buildSvgString
+        category: category || 'misc',
+        viewBox,
+        fillMode,
+      });
+    } catch {
+      toast.error('Failed to open icon');
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Header */}
