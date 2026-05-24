@@ -226,16 +226,27 @@ async function runWorker(jobId: string) {
     const params = jobs?.[0]?.result;
     if (!params) throw new Error("No job params found");
 
-    const { category, sectionIndex, style, preset, customCount, industry, entityName, entityId, entityType } = params;
+    const { category, sectionIndex, style, preset, detailLevel = "medium", customCount, industry, entityName, entityId, entityType } = params;
     const taxonomyCategory = ICON_TAXONOMY[category] || ICON_TAXONOMY.Foundation;
     const currentSection = taxonomyCategory.sections[sectionIndex];
     const iconCount = customCount && customCount > 0 ? customCount : currentSection.count;
     const isFilled = style?.fill || preset === "filled";
-    // Minimal-line default: 1.5px stroke (Lucide/Tabler/Feather DNA) unless explicitly overridden.
-    const strokeWidth = style?.strokeWidth ?? (isFilled ? 0 : 1.5);
+    const isDuotone = preset === "duotone";
+    // Detail tier — drives prompt verbosity AND validator strictness
+    const detail: "low" | "medium" | "high" =
+      detailLevel === "low" || detailLevel === "high" ? detailLevel : "medium";
+    // Stroke gets slightly thicker on low detail (so simpler glyphs still feel substantial)
+    // and slightly thinner on high detail (so dense linework doesn't choke).
+    const defaultStroke = detail === "low" ? 1.75 : detail === "high" ? 1.25 : 1.5;
+    const strokeWidth = style?.strokeWidth ?? (isFilled ? 0 : defaultStroke);
     const cornerStyle = style?.cornerRadius || "rounded";
     const linecap = cornerStyle === "sharp" ? "square" : "round";
     const linejoin = cornerStyle === "sharp" ? "miter" : "round";
+
+    // Max paths allowed per icon, by detail level. Duotone always needs ≥2 (back fill + line).
+    const maxPaths = isDuotone
+      ? (detail === "high" ? 4 : detail === "low" ? 2 : 3)
+      : (detail === "high" ? 4 : detail === "low" ? 1 : 2);
 
     // ── Brand DNA: pull rich context so icons feel tailored to the brand ──
     const brandDNA = await loadBrandDNA(entityId, entityType);
