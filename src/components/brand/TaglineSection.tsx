@@ -23,6 +23,7 @@ import { SectionEnvironmentOverlay } from './SectionEnvironmentOverlay';
 import { TaglineAnimationSettings } from './TaglineAnimationSettings';
 import { TypographyPairingPreview, POPULAR_FONT_PAIRINGS } from './settings/TypographyPairingPreview';
 import { cn } from '@/lib/utils';
+import { TransPerfectVoicePanel } from './identity/TransPerfectVoicePanel';
 
 type TaglineBackgroundStyle = 'floating' | 'gradient' | 'solid' | 'glass';
 type VariationStyle = TaglineVariation['style'];
@@ -32,6 +33,7 @@ interface TaglineSectionProps {
   onTaglineChange?: (tagline: BrandTagline) => void;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  brandSlug?: string;
 }
 
 interface TaglineSettings {
@@ -58,7 +60,9 @@ const loadGoogleFont = (fontFamily: string) => {
   document.head.appendChild(link);
 };
 
-export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSubtitleChange }: TaglineSectionProps) => {
+export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSubtitleChange, brandSlug }: TaglineSectionProps) => {
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   const [isEditing, setIsEditing] = useState(false);
   const [newVariation, setNewVariation] = useState('');
   const [settings, setSettings] = useState<TaglineSettings>(() => {
@@ -226,6 +230,7 @@ export const TaglineSection = ({ tagline, onTaglineChange, customSubtitle, onSub
 
   return (
     <section className="space-y-4 sm:space-y-6">
+      {isTransPerfect && <TransPerfectVoicePanel />}
       {/* Options bar - only show when editing is allowed */}
       {canEdit && (
       <div className="flex items-center justify-end gap-2">
