@@ -313,6 +313,7 @@ const IconStudioPage = () => {
           onRemix={() => setShellSection('generate')}
           autoOpenLibraryId={deepLinkLibraryId}
           onAutoOpenConsumed={() => setDeepLinkLibraryId(null)}
+          onViewImported={() => setShellSection('imported')}
         />
       ) : shellSection === 'imported' ? (
         <ImportedIconsView />
