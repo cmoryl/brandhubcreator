@@ -14,6 +14,7 @@ import { SectionHeader } from './SectionHeader';
 import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './iconography';
 import { IconLibraryPicker } from './iconography/IconLibraryPicker';
 import { IconPreviewDialog } from './iconography/IconPreviewDialog';
+import { SuggestedIconsRail } from './iconography/SuggestedIconsRail';
 import type { IconStudioTab } from './iconography';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
@@ -725,6 +726,19 @@ ${innerContent}
             <span className="font-medium">{inheritedSummary.totalInherited + iconography.length}</span> total available
           </div>
         </div>
+      )}
+
+      {canEdit && (
+        <SuggestedIconsRail
+          sectionId="iconography"
+          industry={industry}
+          existingIcons={iconography}
+          onAdd={(icon) => {
+            if (!onIconographyChange) return;
+            if (iconography.some((i) => i.id === icon.id)) return;
+            onIconographyChange([...iconography, icon]);
+          }}
+        />
       )}
 
       <div className="space-y-6">
