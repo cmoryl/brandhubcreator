@@ -66,12 +66,14 @@ interface ImportedIconsViewProps {
 }
 
 export const ImportedIconsView = ({ initialPackId, onInitialPackConsumed }: ImportedIconsViewProps = {}) => {
+  const { organization } = useOrganization();
   const { packs, totalCount, loading } = useImportedIcons();
   const [selectedPack, setSelectedPack] = useState<string>(initialPackId ?? packs[0]?.id ?? 'ph');
   const [packIndex, setPackIndex] = useState<IconIndexEntry[]>([]);
   const [indexLoading, setIndexLoading] = useState(false);
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<string>('all');
+  const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
 
   // Honor initialPackId once it (and the packs list) become available.
   useEffect(() => {
