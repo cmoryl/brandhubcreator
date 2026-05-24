@@ -38,6 +38,7 @@ import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 import '@/components/icon-studio/shell/tpTokens.css';
 import { toast } from 'sonner';
 import { buildBrandIconPdf } from '@/lib/iconStudio/brandIconPdf';
+import { PdfPreviewDialog } from '@/components/icon-studio/PdfPreviewDialog';
 import { useHiddenItems } from '@/components/icon-studio/shell/useHiddenItems';
 
 const SAMPLE_FOR = (name: string): string[] => {
@@ -170,6 +171,9 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
 
   const [exportingPdf, setExportingPdf] = useState(false);
   const [previewLibId, setPreviewLibId] = useState<string | null>(null);
+  const [pdfPreview, setPdfPreview] = useState<{ open: boolean; url: string | null; filename: string; title: string }>(
+    { open: false, url: null, filename: '', title: '' },
+  );
   const previewLib = useMemo(
     () => linkedLibraries.find((l) => l.id === previewLibId) || null,
     [linkedLibraries, previewLibId],
@@ -186,7 +190,9 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
       return;
     }
     setExportingPdf(true);
-    const toastId = toast.loading(`Building ${brand.name} icon PDF…`);
+    // Open the preview dialog immediately in a loading state so the user gets feedback.
+    setPdfPreview({ open: true, url: null, filename: '', title: `${brand.name} · Icon system` });
+    const toastId = toast.loading(`Building ${brand.name} icon PDF preview…`);
     try {
       const guide: any = (brand as any).guide_data || {};
       const colors: Array<{ hex: string; role?: string }> = Array.isArray(guide?.colors) ? guide.colors : [];
@@ -198,13 +204,14 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
         logos[0]?.url;
       const tagline: string | undefined = guide?.hero?.tagline || undefined;
 
-      await buildBrandIconPdf({
+      const { url, filename } = await buildBrandIconPdf({
         entityName: brand.name,
         entityKind: entityType === 'product' ? 'Product' : entityType === 'event' ? 'Event' : 'Brand',
         accentColor: primary,
         palette: colors.map((c) => c?.hex).filter(Boolean),
         logoUrl: logo,
         tagline,
+        autoDownload: false,
         libraries: linkedLibraries.map((l) => ({
           id: l.id,
           name: l.name,
@@ -213,14 +220,17 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
           icons: l.icons,
         })),
       });
-      toast.success('PDF downloaded', { id: toastId });
+      setPdfPreview({ open: true, url, filename, title: `${brand.name} · Icon system` });
+      toast.success('Preview ready — review then download.', { id: toastId });
     } catch (err) {
       console.error('Icon PDF export failed', err);
       toast.error('Failed to build PDF', { id: toastId });
+      setPdfPreview({ open: false, url: null, filename: '', title: '' });
     } finally {
       setExportingPdf(false);
     }
   };
+
 
   // Brand-scoped icon search across linked collections
   const [iconQuery, setIconQuery] = useState('');
@@ -753,6 +763,18 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* In-app PDF preview before download */}
+      <PdfPreviewDialog
+        open={pdfPreview.open}
+        onOpenChange={(o) => setPdfPreview((p) => ({ ...p, open: o }))}
+        url={pdfPreview.url}
+        filename={pdfPreview.filename}
+        title={pdfPreview.title}
+        loading={exportingPdf}
+      />
+
+
 
       {/* Per-icon detail + downloads */}
       <Dialog open={!!selectedIcon} onOpenChange={(o) => !o && setSelectedIcon(null)}>
