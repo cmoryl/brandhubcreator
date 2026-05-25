@@ -947,7 +947,7 @@ const BrandEditor = () => {
           return <GlobalLinkUniverseSection linkedGuides={brand.linkedGuides} primaryColor={brand.colors?.[0]?.hex} />;
         }
         return <BrandUniverseOrbit organizationId={brand.organizationId} brandColors={brand.colors} organizationName={brand.hero?.name} />;
-      case 'presentations': return <PresentationTemplatesSection presentations={brand.presentationTemplates || []} onUpdate={editHandler((presentationTemplates) => updateBrand({ presentationTemplates }))} />;
+      case 'presentations': return <PresentationTemplatesSection presentations={brand.presentationTemplates || []} onUpdate={editHandler((presentationTemplates) => updateBrand({ presentationTemplates }))} brandSlug={brand.slug} />;
       case 'approvedimagery':
         return <ApprovedImagerySection approvedImagery={brand.approvedImagery} onApprovedImageryChange={editHandler((approvedImagery) => updateBrand({ approvedImagery }))} canEdit={canEdit} entityId={brand.id} entityType="brand" organizationId={brand.organizationId} />;
       case 'studios':
