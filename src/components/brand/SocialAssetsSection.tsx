@@ -2630,8 +2630,11 @@ export const SocialAssetsSection = ({
     if (!preset) setSelectedPlatform(newAsset);
   };
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section className="space-y-6 sm:space-y-8">
+      {isTransPerfect && <TransPerfectSocialPanel />}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
