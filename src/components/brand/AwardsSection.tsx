@@ -35,7 +35,7 @@ const ITEMS_PER_ROW = 6; // Based on xl:grid-cols-6
 const INITIAL_ROWS = 2;
 const INITIAL_VISIBLE_COUNT = ITEMS_PER_ROW * INITIAL_ROWS;
 
-const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, entityType = 'product', entityId }: AwardsSectionProps) => {
+const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, entityType = 'product', entityId, brandSlug }: AwardsSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingAward, setEditingAward] = useState<BrandAward | null>(null);
