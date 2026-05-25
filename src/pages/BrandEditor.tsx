@@ -938,7 +938,7 @@ const BrandEditor = () => {
           />
         </Suspense>
       );
-      case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => updateBrand({ awards }))} entityType="brand" entityId={brand.id} />;
+      case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => updateBrand({ awards }))} entityType="brand" entityId={brand.id} brandSlug={brand.slug} />;
       case 'imageassets': return <ImageAssetsSection imageAssets={brand.imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => updateBrand({ imageAssets }))} canEdit={canEdit} entityId={brand.id} entityType="brand" imageryAvoidList={(brand as any).imageryAvoidList || []} onImageryAvoidListChange={editHandler((imageryAvoidList) => updateBrand({ imageryAvoidList } as any))} />;
       case 'events': return <EventsSection brandId={brand.id} canEdit={canEdit} />;
       case 'eventsignage': return <BrandEventSignageSection eventSignage={brand.eventSignage || []} onEventSignageChange={editHandler((eventSignage) => updateBrand({ eventSignage }))} linkedBooths={brand.linkedBooths || []} onLinkedBoothsChange={editHandler((linkedBooths) => updateBrand({ linkedBooths }))} brandColors={brand.colors || []} isAdmin={isGuideAdmin} />;
