@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { TransPerfectWebsitePanel } from './identity/TransPerfectWebsitePanel';
 
 interface WebsiteSectionProps {
   websites: BrandWebsiteLink[];
@@ -13,9 +14,10 @@ interface WebsiteSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   entityType?: 'brand' | 'product' | 'event';
   entityId?: string;
+  brandSlug?: string;
 }
 
-export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onSubtitleChange, entityType = 'brand', entityId }: WebsiteSectionProps) => {
+export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onSubtitleChange, entityType = 'brand', entityId, brandSlug }: WebsiteSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
