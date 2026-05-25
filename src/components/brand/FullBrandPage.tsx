@@ -433,6 +433,7 @@ export const FullBrandPage = ({
           isEditable={canEdit}
           entityId={brandId}
           entityType={entityType}
+          brandSlug={brand.slug}
         />;
       case 'sponsorlogos':
         return <SponsorLogosSection 
