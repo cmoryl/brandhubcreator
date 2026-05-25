@@ -29,6 +29,7 @@ import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePresentationTemplates } from '@/hooks/usePresentationTemplates';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { TransPerfectPresentationPanel } from './identity/TransPerfectPresentationPanel';
 
 interface PresentationTemplatesSectionProps {
   presentations?: PresentationTemplate[];
