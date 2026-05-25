@@ -28,6 +28,7 @@ interface AwardsSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   entityType?: 'brand' | 'product' | 'event';
   entityId?: string;
+  brandSlug?: string;
 }
 
 const ITEMS_PER_ROW = 6; // Based on xl:grid-cols-6
