@@ -852,6 +852,7 @@ const BrandEditor = () => {
           entityId={brand.id}
           entityType="brand"
           brandLogos={brand.logos}
+          brandSlug={brand.slug}
         />
       );
       case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => updateBrand({ websites }))} entityType="brand" entityId={brand.id} />;

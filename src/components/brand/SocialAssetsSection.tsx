@@ -33,6 +33,7 @@ import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewD
 import { getTemplateDefinitionForAsset, getTemplatePreviewImage, getTemplatesForPlatformFormat, TemplateZoneType } from '@/lib/socialTemplates';
 import { SlotFitControl } from './SlotFitControl';
 import { BrandLogoVariantPicker } from './templating/BrandLogoVariantPicker';
+import { TransPerfectSocialPanel } from './identity/TransPerfectSocialPanel';
 import {
   defaultTemplatePreviewFit,
   getZoneMediaFit as sharedGetZoneMediaFit,
@@ -61,6 +62,7 @@ interface SocialAssetsProps {
   entityType?: 'brand' | 'product' | 'event';
   /** Brand logo library — used to auto-place a real logo into template `logo` zones. */
   brandLogos?: BrandLogo[];
+  brandSlug?: string;
 }
 
 const platformIcons: Record<string, React.ElementType> = {
@@ -2566,6 +2568,7 @@ export const SocialAssetsSection = ({
   entityId,
   entityType,
   brandLogos,
+  brandSlug,
 }: SocialAssetsProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
@@ -2628,8 +2631,11 @@ export const SocialAssetsSection = ({
     if (!preset) setSelectedPlatform(newAsset);
   };
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section className="space-y-6 sm:space-y-8">
+      {isTransPerfect && <TransPerfectSocialPanel />}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
