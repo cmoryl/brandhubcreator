@@ -2567,6 +2567,7 @@ export const SocialAssetsSection = ({
   entityId,
   entityType,
   brandLogos,
+  brandSlug,
 }: SocialAssetsProps) => {
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<BrandSocialAssetSpec | null>(null);
