@@ -350,6 +350,7 @@ export const FullBrandPage = ({
           isEditable={canEdit}
           entityId={brandId}
           entityType={entityType}
+          brandSlug={brand.slug}
         />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => onBrandUpdate({ templateSpecs }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandColors={brand.colors || []} />;
       case 'products': 
