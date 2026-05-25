@@ -33,6 +33,7 @@ import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewD
 import { getTemplateDefinitionForAsset, getTemplatePreviewImage, getTemplatesForPlatformFormat, TemplateZoneType } from '@/lib/socialTemplates';
 import { SlotFitControl } from './SlotFitControl';
 import { BrandLogoVariantPicker } from './templating/BrandLogoVariantPicker';
+import { TransPerfectSocialPanel } from './identity/TransPerfectSocialPanel';
 import {
   defaultTemplatePreviewFit,
   getZoneMediaFit as sharedGetZoneMediaFit,
