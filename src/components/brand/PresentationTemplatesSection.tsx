@@ -214,6 +214,7 @@ export const PresentationTemplatesSection = ({
   subtitle,
   entityType = 'brand',
   entityId,
+  brandSlug,
 }: PresentationTemplatesSectionProps) => {
   // Default to false for public view; only editable if explicitly enabled
   const canEdit = isEditable ?? false;
