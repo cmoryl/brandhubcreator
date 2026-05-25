@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import {
-  ChevronDown, ChevronUp, PresentationIcon, CheckCircle2, XCircle,
+  ChevronDown, ChevronUp, Presentation, CheckCircle2, XCircle,
   Ruler, Type, Palette, ShieldAlert,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
