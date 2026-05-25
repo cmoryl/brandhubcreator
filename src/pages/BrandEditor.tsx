@@ -855,7 +855,7 @@ const BrandEditor = () => {
           brandSlug={brand.slug}
         />
       );
-      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => updateBrand({ websites }))} entityType="brand" entityId={brand.id} />;
+      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => updateBrand({ websites }))} entityType="brand" entityId={brand.id} brandSlug={brand.slug} />;
       case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={editHandler((signatures) => updateBrand({ signatures }))} emailBanners={brand.emailBanners || []} onEmailBannersChange={editHandler((emailBanners) => updateBrand({ emailBanners }))} brandSlug={brand.slug} />;
       case 'qr': return <QRSection qr={brand.qr} onQRChange={editHandler((qr) => updateBrand({ qr }))} entityType="brand" entityId={brand.id} logos={brand.logos} brandSlug={brand.slug} />;
       case 'videos': return <VideosSection videos={brand.videos} onVideosChange={editHandler((videos) => updateBrand({ videos }))} entityName={brand.hero?.name} entityType="brand" industry={(brand as any).industry} websiteUrl={brand.websites?.[0]?.url} />;
