@@ -855,7 +855,7 @@ const BrandEditor = () => {
           brandSlug={brand.slug}
         />
       );
-      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => updateBrand({ websites }))} entityType="brand" entityId={brand.id} />;
+      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => updateBrand({ websites }))} entityType="brand" entityId={brand.id} brandSlug={brand.slug} />;
       case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={editHandler((signatures) => updateBrand({ signatures }))} emailBanners={brand.emailBanners || []} onEmailBannersChange={editHandler((emailBanners) => updateBrand({ emailBanners }))} brandSlug={brand.slug} />;
       case 'qr': return <QRSection qr={brand.qr} onQRChange={editHandler((qr) => updateBrand({ qr }))} entityType="brand" entityId={brand.id} logos={brand.logos} brandSlug={brand.slug} />;
       case 'videos': return <VideosSection videos={brand.videos} onVideosChange={editHandler((videos) => updateBrand({ videos }))} entityName={brand.hero?.name} entityType="brand" industry={(brand as any).industry} websiteUrl={brand.websites?.[0]?.url} />;
@@ -938,7 +938,7 @@ const BrandEditor = () => {
           />
         </Suspense>
       );
-      case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => updateBrand({ awards }))} entityType="brand" entityId={brand.id} />;
+      case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => updateBrand({ awards }))} entityType="brand" entityId={brand.id} brandSlug={brand.slug} />;
       case 'imageassets': return <ImageAssetsSection imageAssets={brand.imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => updateBrand({ imageAssets }))} canEdit={canEdit} entityId={brand.id} entityType="brand" imageryAvoidList={(brand as any).imageryAvoidList || []} onImageryAvoidListChange={editHandler((imageryAvoidList) => updateBrand({ imageryAvoidList } as any))} />;
       case 'events': return <EventsSection brandId={brand.id} canEdit={canEdit} />;
       case 'eventsignage': return <BrandEventSignageSection eventSignage={brand.eventSignage || []} onEventSignageChange={editHandler((eventSignage) => updateBrand({ eventSignage }))} linkedBooths={brand.linkedBooths || []} onLinkedBoothsChange={editHandler((linkedBooths) => updateBrand({ linkedBooths }))} brandColors={brand.colors || []} isAdmin={isGuideAdmin} />;
@@ -947,7 +947,7 @@ const BrandEditor = () => {
           return <GlobalLinkUniverseSection linkedGuides={brand.linkedGuides} primaryColor={brand.colors?.[0]?.hex} />;
         }
         return <BrandUniverseOrbit organizationId={brand.organizationId} brandColors={brand.colors} organizationName={brand.hero?.name} />;
-      case 'presentations': return <PresentationTemplatesSection presentations={brand.presentationTemplates || []} onUpdate={editHandler((presentationTemplates) => updateBrand({ presentationTemplates }))} />;
+      case 'presentations': return <PresentationTemplatesSection presentations={brand.presentationTemplates || []} onUpdate={editHandler((presentationTemplates) => updateBrand({ presentationTemplates }))} brandSlug={brand.slug} />;
       case 'approvedimagery':
         return <ApprovedImagerySection approvedImagery={brand.approvedImagery} onApprovedImageryChange={editHandler((approvedImagery) => updateBrand({ approvedImagery }))} canEdit={canEdit} entityId={brand.id} entityType="brand" organizationId={brand.organizationId} />;
       case 'studios':

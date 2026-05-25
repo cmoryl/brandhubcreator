@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SectionHeader } from './SectionHeader';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
+import { TransPerfectWebsitePanel } from './identity/TransPerfectWebsitePanel';
 
 interface WebsiteSectionProps {
   websites: BrandWebsiteLink[];
@@ -13,9 +14,10 @@ interface WebsiteSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   entityType?: 'brand' | 'product' | 'event';
   entityId?: string;
+  brandSlug?: string;
 }
 
-export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onSubtitleChange, entityType = 'brand', entityId }: WebsiteSectionProps) => {
+export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onSubtitleChange, entityType = 'brand', entityId, brandSlug }: WebsiteSectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
@@ -78,8 +80,11 @@ export const WebsiteSection = ({ websites, onWebsitesChange, customSubtitle, onS
     input.click();
   };
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section className="space-y-6">
+      {isTransPerfect && <TransPerfectWebsitePanel />}
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1">
           <SectionHeader

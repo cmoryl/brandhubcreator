@@ -19,6 +19,7 @@ import AwardsTimeline from './awards/AwardsTimeline';
 import AwardsSortControls, { SortOption, ViewMode } from './awards/AwardsSortControls';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { cn } from '@/lib/utils';
+import { TransPerfectAwardsPanel } from './identity/TransPerfectAwardsPanel';
 
 interface AwardsSectionProps {
   awards: BrandAward[];
@@ -27,13 +28,14 @@ interface AwardsSectionProps {
   onSubtitleChange?: (subtitle: string) => void;
   entityType?: 'brand' | 'product' | 'event';
   entityId?: string;
+  brandSlug?: string;
 }
 
 const ITEMS_PER_ROW = 6; // Based on xl:grid-cols-6
 const INITIAL_ROWS = 2;
 const INITIAL_VISIBLE_COUNT = ITEMS_PER_ROW * INITIAL_ROWS;
 
-const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, entityType = 'product', entityId }: AwardsSectionProps) => {
+const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, entityType = 'product', entityId, brandSlug }: AwardsSectionProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingAward, setEditingAward] = useState<BrandAward | null>(null);
@@ -177,8 +179,11 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, ent
     return { awardsByYear: grouped, sortedYears: years };
   }, [sortedAwards, sortOption]);
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section id="awards" className="space-y-4">
+      {isTransPerfect && <TransPerfectAwardsPanel />}
       <SectionHeader
         title="Awards & Recognition"
         defaultSubtitle="Industry recognition and achievements"
