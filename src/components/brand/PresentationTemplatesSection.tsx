@@ -625,8 +625,11 @@ export const PresentationTemplatesSection = ({
     return null;
   };
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section id="presentations" className="scroll-mt-24 space-y-6">
+      {isTransPerfect && <TransPerfectPresentationPanel />}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold">Presentation Templates</h2>
