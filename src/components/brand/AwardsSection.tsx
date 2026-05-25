@@ -179,8 +179,11 @@ const AwardsSection = ({ awards, onUpdate, customSubtitle, onSubtitleChange, ent
     return { awardsByYear: grouped, sortedYears: years };
   }, [sortedAwards, sortOption]);
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section id="awards" className="space-y-4">
+      {isTransPerfect && <TransPerfectAwardsPanel />}
       <SectionHeader
         title="Awards & Recognition"
         defaultSubtitle="Industry recognition and achievements"
