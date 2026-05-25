@@ -19,6 +19,7 @@ import AwardsTimeline from './awards/AwardsTimeline';
 import AwardsSortControls, { SortOption, ViewMode } from './awards/AwardsSortControls';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { cn } from '@/lib/utils';
+import { TransPerfectAwardsPanel } from './identity/TransPerfectAwardsPanel';
 
 interface AwardsSectionProps {
   awards: BrandAward[];
