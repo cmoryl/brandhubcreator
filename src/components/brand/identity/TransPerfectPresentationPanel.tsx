@@ -39,7 +39,7 @@ export const TransPerfectPresentationPanel = () => {
     <div className="border border-border rounded-xl overflow-hidden bg-card">
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors text-left">
         <div className="flex items-center gap-2">
-          <PresentationIcon className="h-4 w-4 text-primary" />
+          <Presentation className="h-4 w-4 text-primary" />
           <span className="text-sm font-semibold text-foreground">TransPerfect Presentation Standards</span>
           <Badge variant="secondary" className="text-[10px] ml-1">Brand Guidelines 2026 · v3.0</Badge>
         </div>
