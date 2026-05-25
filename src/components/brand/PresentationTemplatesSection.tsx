@@ -38,6 +38,7 @@ interface PresentationTemplatesSectionProps {
   subtitle?: string;
   entityType?: 'brand' | 'event' | 'product';
   entityId?: string;
+  brandSlug?: string;
 }
 
 // Categories for filtering
