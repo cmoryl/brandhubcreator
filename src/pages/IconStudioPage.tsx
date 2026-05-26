@@ -121,6 +121,7 @@ const IconStudioPage = () => {
   // Cmd+K command palette + ? shortcuts dialog
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [autoLinkOpen, setAutoLinkOpen] = useState(false);
   useStudioHotkeys({
     onTogglePalette: () => setPaletteOpen((v) => !v),
     onShowShortcuts: () => setShortcutsOpen((v) => !v),
