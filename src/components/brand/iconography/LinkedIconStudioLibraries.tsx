@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
+import { useBundledIconLibraries } from '@/hooks/useBundledIconLibraries';
 import { buildSvgString, applyColorVariant, recolorSvg } from '@/lib/svgUtils';
 import type { BrandIconography } from '@/types/brand';
 
