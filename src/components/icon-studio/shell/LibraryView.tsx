@@ -93,7 +93,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
             extraCategories: ['ui', 'arrows', 'communication', 'business', 'files', 'media', 'security'],
           });
           if (result.added > 0) {
-            await updateLibrary.mutateAsync({ id: lib.id, updates: { icons: result.icons } });
+            await updateLibrary.mutateAsync({ id: lib.id, updates: { icons: result.icons, silent: true } });
             totalAdded += result.added;
             stocked += 1;
           }

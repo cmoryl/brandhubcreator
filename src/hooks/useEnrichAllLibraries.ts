@@ -47,7 +47,7 @@ export function useEnrichAllLibraries(organizationId: string | undefined) {
           try {
             const result = await enrichLibrary(lib, opts);
             if (result.added > 0) {
-              await updateLibrary.mutateAsync({ id: lib.id, updates: { icons: result.icons } });
+              await updateLibrary.mutateAsync({ id: lib.id, updates: { icons: result.icons, silent: true } });
               totalAdded += result.added;
             }
           } catch (e) {
@@ -96,7 +96,7 @@ export function useEnrichAllLibraries(organizationId: string | undefined) {
               extraCategories: ['ui', 'arrows', 'communication', 'business', 'files', 'media', 'security'],
             });
             if (result.added > 0) {
-              await updateLibrary.mutateAsync({ id: lib.id, updates: { icons: result.icons } });
+              await updateLibrary.mutateAsync({ id: lib.id, updates: { icons: result.icons, silent: true } });
               totalAdded += result.added;
             }
           } catch (e) {
@@ -134,7 +134,7 @@ export function useEnrichAllLibraries(organizationId: string | undefined) {
           nextCount: result.icons.length,
         });
         if (result.added > 0) {
-          await updateLibrary.mutateAsync({ id: library.id, updates: { icons: result.icons } });
+          await updateLibrary.mutateAsync({ id: library.id, updates: { icons: result.icons, silent: true } });
           toast.success(`Added ${result.added} icons to ${library.name}`, { id });
         } else {
           toast.info(
