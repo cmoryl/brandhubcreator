@@ -37,6 +37,9 @@ import { BrandIconography } from '@/types/brand';
 import { useSEO } from '@/hooks/useSEO';
 
 import { IconSetWizard } from '@/components/icon-studio/IconSetWizard';
+import { AutoLinkIndustryDialog } from '@/components/icon-studio/AutoLinkIndustryDialog';
+import { Button } from '@/components/ui/button';
+import { Sparkles } from 'lucide-react';
 
 const IconStudioPage = () => {
   const navigate = useNavigate();
