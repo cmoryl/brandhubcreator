@@ -211,15 +211,15 @@ const prepareSvgMarkup = (
     const hasFillPaint = Boolean(fill && fill !== 'none' && !fill.startsWith('url('));
     const hasStrokePaint = Boolean(stroke && stroke !== 'none' && !stroke.startsWith('url('));
 
-    if (presentation === 'outlined') {
+    if (effectivePresentation === 'outlined') {
       el.setAttribute('fill', 'none');
       el.setAttribute('stroke', 'currentColor');
       el.setAttribute('stroke-width', String(uniformStroke));
-    } else if (presentation === 'filled') {
+    } else if (effectivePresentation === 'filled') {
       el.setAttribute('fill', isLine ? 'none' : 'currentColor');
       el.setAttribute('stroke', isLine ? 'currentColor' : 'none');
       if (isLine) el.setAttribute('stroke-width', String(uniformStroke));
-    } else if (presentation === 'duotone') {
+    } else if (effectivePresentation === 'duotone') {
       el.setAttribute('fill', isLine ? 'none' : 'currentColor');
       if (!isLine) el.setAttribute('fill-opacity', '0.28');
       el.setAttribute('stroke', 'currentColor');
