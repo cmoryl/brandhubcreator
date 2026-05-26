@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryBrandLinks } from '@/hooks/useIconLibraryBrandLinks';
+import { useBundledIconLibraries } from '@/hooks/useBundledIconLibraries';
 import { buildSvgString, applyColorVariant, recolorSvg } from '@/lib/svgUtils';
 import type { BrandIconography } from '@/types/brand';
 
@@ -67,29 +68,38 @@ export const LinkedIconStudioLibraries = ({
   defaultIconLimit = 12,
 }: LinkedIconStudioLibrariesProps) => {
   const { libraries, isLoading } = useIconLibraries(organizationId);
+  const { bundledLibraries, loading: bundledLoading } = useBundledIconLibraries(organizationId);
   const { getLinkedLibraryIdsForEntity, isLoading: linksLoading } = useIconLibraryBrandLinks(organizationId);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const linkedLibraries = useMemo(() => {
     if (!entityId || !organizationId) return [];
     const ids = new Set(getLinkedLibraryIdsForEntity(entityId, entityType));
-
-    // Auto-match brand-level libraries whose name matches the entity name
-    // (case-insensitive, trimmed). This lets Icon Studio collections created
-    // for a brand surface automatically without requiring an explicit link.
     const normalizedName = (entityName || '').trim().toLowerCase();
-    const matched = libraries.filter(lib => {
+
+    // Auto-attach: every brand sees all org-level (core / product_line) libraries,
+    // every bundled pack (Multicultural, Twemoji, etc.), explicitly linked sets,
+    // and brand-level libraries whose name matches this entity.
+    const all = [...libraries, ...bundledLibraries];
+    const matched = all.filter(lib => {
       if (!lib.is_active) return false;
       if (ids.has(lib.id)) return true;
+      if (lib.level === 'core' || lib.level === 'product_line') return true;
       if (lib.level !== 'brand' || !normalizedName) return false;
       const libName = lib.name.trim().toLowerCase();
-      // Match exact, "<brand> essentials", or libs that contain brand name
       return libName === normalizedName
         || libName.startsWith(`${normalizedName} `)
         || libName === `${normalizedName} essentials`;
     });
-    return matched;
-  }, [libraries, entityId, entityType, organizationId, getLinkedLibraryIdsForEntity, entityName]);
+
+    // Stable order: explicitly linked first, then by level (brand → product_line → core).
+    const levelOrder: Record<string, number> = { brand: 0, product_line: 1, core: 2 };
+    return matched.sort((a, b) => {
+      const al = ids.has(a.id) ? -1 : levelOrder[a.level] ?? 3;
+      const bl = ids.has(b.id) ? -1 : levelOrder[b.level] ?? 3;
+      return al - bl;
+    });
+  }, [libraries, bundledLibraries, entityId, entityType, organizationId, getLinkedLibraryIdsForEntity, entityName]);
 
   if (!organizationId || !entityId) return null;
   if (isLoading || linksLoading) return null;
