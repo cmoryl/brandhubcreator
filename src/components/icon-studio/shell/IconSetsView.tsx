@@ -346,6 +346,9 @@ export const IconSetsView = ({
         onCompare={() => activeLib && handleCompare(activeLib)}
         onLockToggle={() => activeLib && handleLockToggle(activeLib)}
         onEnrich={canEdit && activeLib ? () => enrichOne(activeLib) : undefined}
+        onMutateIcons={canEdit && activeLib ? async (icons) => {
+          await updateLibrary.mutateAsync({ id: activeLib.id, updates: { icons } });
+        } : undefined}
       />
 
       <BulkRegenerateDialog
