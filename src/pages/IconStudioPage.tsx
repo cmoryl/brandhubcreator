@@ -293,6 +293,15 @@ const IconStudioPage = () => {
           </CardContent>
         </Card>
       ) : shellSection === 'dashboard' ? (
+        <>
+        {canEdit && (
+          <div className="mb-3 flex justify-end">
+            <Button size="sm" variant="outline" onClick={() => setAutoLinkOpen(true)}>
+              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+              Auto-link industry icons to brands
+            </Button>
+          </div>
+        )}
         <DashboardView
           organizationName={organizationName}
           totalIcons={totalIcons}
