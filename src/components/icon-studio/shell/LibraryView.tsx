@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles, Wand2 } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles, Wand2, ShieldCheck } from 'lucide-react';
 import { useEnrichAllLibraries } from '@/hooks/useEnrichAllLibraries';
 import { enrichLibrary } from '@/lib/iconLibrary/enrichLibrary';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
