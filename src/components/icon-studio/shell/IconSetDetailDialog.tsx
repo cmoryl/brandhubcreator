@@ -21,6 +21,7 @@ import { IconSetPreview } from './IconSetPreview';
 import { IconDetailDialog } from '@/components/icon-studio/IconDetailDialog';
 import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 import { RemixSystemDialog } from '@/components/icon-studio/RemixSystemDialog';
+import { ReplaceIconDialog } from './ReplaceIconDialog';
 import { exportIconSystem } from '@/lib/iconStudio/exportSystem';
 import { readRecipe, type IconRecipe } from '@/lib/iconStudio/recipe';
 import type { BrandIconography } from '@/types/brand';
