@@ -7,7 +7,7 @@ export type IconCategory =
   | 'education' | 'science' | 'nature' | 'weather' | 'transport'
   | 'tech' | 'devtools' | 'media' | 'security' | 'gaming'
   | 'sports' | 'files' | 'arrows' | 'ui' | 'shapes'
-  | 'emoji' | 'flags' | 'crypto' | 'misc';
+  | 'emoji' | 'flags' | 'crypto' | 'multicultural' | 'misc';
 
 /** Map guide section id → preferred categories (first match wins). */
 export const SECTION_CATEGORY_MAP: Record<string, IconCategory[]> = {

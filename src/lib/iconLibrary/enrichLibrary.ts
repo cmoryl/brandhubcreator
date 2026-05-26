@@ -54,6 +54,7 @@ const CATEGORY_PACKS: Record<IconCategory, string[]> = {
   emoji: ['ph', 'lucide'],
   flags: ['flag'],
   crypto: ['cryptocurrency', 'ph', 'lucide'],
+  multicultural: ['twemoji', 'openmoji', 'flag', 'ph', 'lucide', 'fluent', 'mdi'],
   misc: ['lucide', 'tabler', 'ph'],
 };
 
