@@ -380,6 +380,16 @@ export const IconSetDetailDialog = ({
         accent={accent}
         presentation={effectiveStyle}
         fallbackRecipe={baseRecipe}
+        onReject={onMutateIcons ? handleReject : undefined}
+        onReplace={onMutateIcons ? (i) => setReplaceTarget(i) : undefined}
+      />
+
+      <ReplaceIconDialog
+        open={!!replaceTarget}
+        seedQuery={replaceTarget?.name ?? ''}
+        accent={accent}
+        onClose={() => setReplaceTarget(null)}
+        onPick={handleReplacePick}
       />
 
       <RemixSystemDialog
