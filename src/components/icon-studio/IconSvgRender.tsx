@@ -200,16 +200,16 @@ const prepareSvgMarkup = (
     if (presentation === 'outlined') {
       el.setAttribute('fill', 'none');
       el.setAttribute('stroke', 'currentColor');
-      el.setAttribute('stroke-width', String(strokeWidth));
+      el.setAttribute('stroke-width', String(uniformStroke));
     } else if (presentation === 'filled') {
       el.setAttribute('fill', isLine ? 'none' : 'currentColor');
       el.setAttribute('stroke', isLine ? 'currentColor' : 'none');
-      if (isLine) el.setAttribute('stroke-width', String(strokeWidth));
+      if (isLine) el.setAttribute('stroke-width', String(uniformStroke));
     } else if (presentation === 'duotone') {
       el.setAttribute('fill', isLine ? 'none' : 'currentColor');
       if (!isLine) el.setAttribute('fill-opacity', '0.28');
       el.setAttribute('stroke', 'currentColor');
-      el.setAttribute('stroke-width', String(strokeWidth));
+      el.setAttribute('stroke-width', String(uniformStroke));
     } else {
       // auto: respect inherited paint. Outlined icons (fill=none + stroke on
       // an ancestor <g>) must stay outlines — never override with a fill.
@@ -222,12 +222,12 @@ const prepareSvgMarkup = (
           if (detectedMode === 'stroke') {
             el.setAttribute('fill', 'none');
             el.setAttribute('stroke', 'currentColor');
-            el.setAttribute('stroke-width', String(strokeWidth));
+            el.setAttribute('stroke-width', String(uniformStroke));
           } else {
             el.setAttribute('fill', isLine ? 'none' : 'currentColor');
             if (isLine) {
               el.setAttribute('stroke', 'currentColor');
-              el.setAttribute('stroke-width', String(strokeWidth));
+              el.setAttribute('stroke-width', String(uniformStroke));
             }
           }
         }
