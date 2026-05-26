@@ -336,6 +336,7 @@ const IconStudioPage = () => {
           }))}
           importedIconCount={importedEntries.length}
         />
+        </>
       ) : shellSection === 'generate' ? (
         <IconSetWizard
           organizationName={organizationName}
