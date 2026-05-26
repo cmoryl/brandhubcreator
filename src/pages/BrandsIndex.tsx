@@ -386,6 +386,14 @@ const BrandsIndex = () => {
                 <span className="hidden md:inline">Help</span>
               </Button>
 
+              {/* BrandAgent */}
+              {user && (
+                <Button variant="outline" size="sm" onClick={() => navigate('/agent')} className="gap-2 p-2 sm:px-3">
+                  <Sparkles className="h-4 w-4" />
+                  <span className="hidden sm:inline">BrandAgent</span>
+                </Button>
+              )}
+
               {/* Sync Status - Only show on desktop or when logged in */}
               {user && <SyncStatusIndicator />}
 
