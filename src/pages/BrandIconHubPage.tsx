@@ -296,31 +296,10 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     return out;
   }, [iconQuery, linkedLibraries]);
 
-  const renderIconSvg = (icon: BrandIconography) => {
-    const viewBox = icon.viewBox || '0 0 24 24';
-    const isFullSvg = icon.svgPath?.includes('<');
-    if (isFullSvg) {
-      const sanitized = DOMPurify.sanitize(icon.svgPath, {
-        USE_PROFILES: { svg: true, svgFilters: true },
-      });
-      return (
-        <svg viewBox={viewBox} className="w-full h-full" fill="currentColor">
-          <g dangerouslySetInnerHTML={{ __html: sanitized }} />
-        </svg>
-      );
-    }
-    return (
-      <svg
-        viewBox={viewBox}
-        className="w-full h-full"
-        fill={icon.fillMode === 'fill' ? 'currentColor' : 'none'}
-        stroke={icon.fillMode === 'stroke' ? 'currentColor' : 'none'}
-        strokeWidth={icon.fillMode === 'stroke' ? 2 : undefined}
-      >
-        <path d={icon.svgPath} />
-      </svg>
-    );
-  };
+  const renderIconSvg = (icon: BrandIconography) => (
+    <IconSvgRender icon={icon} size={24} presentation="auto" strokeWidth={1.75} className="w-full h-full" />
+  );
+
 
   const brandColors = useMemo(() => {
     const palette: any[] = (brand as any)?.guide_data?.colors?.primary || [];
