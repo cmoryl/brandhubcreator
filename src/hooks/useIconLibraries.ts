@@ -43,6 +43,8 @@ interface IconLibraryUpdate {
   is_active?: boolean;
   display_order?: number;
   parent_library_id?: string | null;
+  /** When true, suppress the generic "Icon library updated" toast (caller shows its own). */
+  silent?: boolean;
 }
 
 export const useIconLibraries = (organizationId: string | undefined) => {
@@ -118,11 +120,12 @@ export const useIconLibraries = (organizationId: string | undefined) => {
 
   const updateLibrary = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: IconLibraryUpdate }) => {
-      const payload: Record<string, unknown> = { ...updates };
-      if (updates.icons) {
-        payload.icons = JSON.parse(JSON.stringify(updates.icons));
+      const { silent: _silent, ...rest } = updates;
+      const payload: Record<string, unknown> = { ...rest };
+      if (rest.icons) {
+        payload.icons = JSON.parse(JSON.stringify(rest.icons));
       }
-      
+
       const { data, error } = await supabase
         .from('organization_icon_libraries')
         .update(payload)
@@ -130,24 +133,30 @@ export const useIconLibraries = (organizationId: string | undefined) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        logger.debug('[updateLibrary] supabase error', error);
+        throw new Error(error.message || 'Database update failed');
+      }
       return data;
     },
     onSuccess: (data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
-      toast.success('Icon library updated');
+      if (!vars.updates.silent) toast.success('Icon library updated');
       void logActivity({
         entityType: 'icon_library',
         entityId: data?.id,
         entityName: data?.name,
         actionType: 'update',
         organizationId,
-        details: { changedFields: Object.keys(vars.updates) },
+        details: { changedFields: Object.keys(vars.updates).filter((k) => k !== 'silent') },
       });
     },
-    onError: (error) => {
+    onError: (error, vars) => {
       logger.debug('Failed to update icon library', error);
-      toast.error('Failed to update icon library');
+      if (!vars.updates.silent) {
+        const msg = error instanceof Error ? error.message : 'Failed to update icon library';
+        toast.error(`Failed to update icon library: ${msg}`);
+      }
     },
   });
 
