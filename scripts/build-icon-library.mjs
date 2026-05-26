@@ -79,7 +79,8 @@ const CATEGORY_RULES = [
   { cat: 'arrows', re: /(arrow|chevron|caret|direction|left|right|up|down|forward|back|next|prev|return|undo|redo|refresh|repeat|rotate|swap|move|drag)/ },
   { cat: 'ui', re: /(menu|burger|grid|list|layout|sidebar|panel|tab|window|modal|popup|tooltip|toast|alert|badge|button|toggle|switch|slider|checkbox|radio|input|form|search|filter|sort|settings|gear|cog|preferences)/ },
   { cat: 'shapes', re: /(circle|square|triangle|rectangle|polygon|star|hexagon|pentagon|diamond|heart|line|dot|shape|abstract|geometric|pattern)/ },
-  { cat: 'emoji', re: /(emoji|emoticon|smile|laugh|cry|wink|kiss|hug|wave|clap|pray|thumb|peace|love|wink)/ },
+  { cat: 'multicultural', re: /(translate|translation|language|locale|globe|world|earth|international|global|multicultural|culture|cultural|heritage|diversity|inclusion|equality|religion|religious|faith|prayer|pray|worship|spiritual|mosque|church|cathedral|chapel|temple|synagogue|pagoda|shrine|monastery|crucifix|crescent|star-of-david|star-and-crescent|yin-yang|peace|handshake|ramadan|christmas|hanukkah|diwali|kwanzaa|easter|eid|halal|kosher|hijab|turban|kimono|sari|kippah|menorah|kaaba|gita|bible|quran|koran|torah|scripture|rosary|ankh|dharma|calligraphy|alphabet|japan|japanese|chinese|korea|korean|arabic|india|hebrew|russian|european|asian|african|hispanic|indigenous|tribal|ethnic|dictionary|interpreter|sign-language|braille|festival|carnival|parade|lantern|fortune|rainbow|pride|lgbt|lgbtq|nonbinary|transgender|kanji|hiragana|katakana|devanagari|cyrillic|hangul|namaste|incense)/ },
+  { cat: 'emoji', re: /(emoji|emoticon|smile|laugh|cry|wink|kiss|hug|wave|clap|pray|thumb|love)/ },
   { cat: 'flags', re: /(flag|country|nation|state)/ },
   { cat: 'crypto', re: /(bitcoin|ethereum|litecoin|crypto|blockchain|nft|wallet|defi|btc|eth)/ },
 ];
