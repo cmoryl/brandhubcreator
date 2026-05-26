@@ -39,7 +39,13 @@ export const BrandIconsSection = ({ brandIcons, onBrandIconsChange, customSubtit
   const otherIcons = brandIcons.filter(icon => !icon.isPrimary && !icon.isVariation);
   
   const handleLibraryIconsSelected = (icons: BrandIcon[]) => {
+    if (!icons.length) return;
     onBrandIconsChange([...brandIcons, ...icons]);
+    toast.success(
+      icons.length === 1
+        ? `Added "${icons[0].name}" to this brand section`
+        : `Added ${icons.length} icons to this brand section`
+    );
   };
 
   const triggerUpload = (asPrimary: boolean, asVariation: boolean) => {
