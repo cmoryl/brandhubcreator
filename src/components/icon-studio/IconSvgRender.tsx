@@ -154,12 +154,28 @@ const prepareSvgMarkup = (
   const forcedMode = presentation !== 'auto';
   const detectedMode = icon.fillMode ?? (detectFillMode(base) === 'stroke' ? 'stroke' : 'fill');
 
+  // Resolve fill/stroke by walking up ancestor <g> elements so paths inside
+  // <g fill="none" stroke="currentColor"> are recognised as outline strokes
+  // instead of being force-filled by the auto branch.
+  const inheritedAttr = (el: Element, attr: 'fill' | 'stroke'): string | null => {
+    let cur: Element | null = el;
+    while (cur) {
+      const v = cur.getAttribute(attr);
+      if (v) return v;
+      if (cur === svg) break;
+      cur = cur.parentElement;
+    }
+    return null;
+  };
+
   drawables.forEach((el) => {
     const tag = el.tagName.toLowerCase();
     const isLine = LINE_DRAWABLES.has(tag);
     const style = el.getAttribute('style');
-    const fill = el.getAttribute('fill');
-    const stroke = el.getAttribute('stroke');
+    const ownFill = el.getAttribute('fill');
+    const ownStroke = el.getAttribute('stroke');
+    const fill = inheritedAttr(el, 'fill');
+    const stroke = inheritedAttr(el, 'stroke');
     const hasFillPaint = Boolean(fill && fill !== 'none' && !fill.startsWith('url('));
     const hasStrokePaint = Boolean(stroke && stroke !== 'none' && !stroke.startsWith('url('));
 
@@ -177,18 +193,24 @@ const prepareSvgMarkup = (
       el.setAttribute('stroke', 'currentColor');
       el.setAttribute('stroke-width', String(strokeWidth));
     } else {
-      if (hasFillPaint) el.setAttribute('fill', 'currentColor');
-      if (hasStrokePaint) el.setAttribute('stroke', 'currentColor');
-      if (!fill && !stroke && !hasPaintStyle(style, 'fill') && !hasPaintStyle(style, 'stroke')) {
-        if (detectedMode === 'stroke') {
-          el.setAttribute('fill', 'none');
-          el.setAttribute('stroke', 'currentColor');
-          el.setAttribute('stroke-width', String(strokeWidth));
-        } else {
-          el.setAttribute('fill', isLine ? 'none' : 'currentColor');
-          if (isLine) {
+      // auto: respect inherited paint. Outlined icons (fill=none + stroke on
+      // an ancestor <g>) must stay outlines — never override with a fill.
+      if (hasStrokePaint && !hasFillPaint) {
+        // clean outline inherited from ancestor; leave element untouched
+      } else {
+        if (hasFillPaint && ownFill) el.setAttribute('fill', 'currentColor');
+        if (hasStrokePaint && ownStroke) el.setAttribute('stroke', 'currentColor');
+        if (!fill && !stroke && !hasPaintStyle(style, 'fill') && !hasPaintStyle(style, 'stroke')) {
+          if (detectedMode === 'stroke') {
+            el.setAttribute('fill', 'none');
             el.setAttribute('stroke', 'currentColor');
             el.setAttribute('stroke-width', String(strokeWidth));
+          } else {
+            el.setAttribute('fill', isLine ? 'none' : 'currentColor');
+            if (isLine) {
+              el.setAttribute('stroke', 'currentColor');
+              el.setAttribute('stroke-width', String(strokeWidth));
+            }
           }
         }
       }
