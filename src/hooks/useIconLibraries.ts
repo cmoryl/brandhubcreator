@@ -43,6 +43,8 @@ interface IconLibraryUpdate {
   is_active?: boolean;
   display_order?: number;
   parent_library_id?: string | null;
+  /** When true, suppress the generic "Icon library updated" toast (caller shows its own). */
+  silent?: boolean;
 }
 
 export const useIconLibraries = (organizationId: string | undefined) => {
