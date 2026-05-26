@@ -388,6 +388,8 @@ export const IconSetDetailDialog = ({
         open={!!replaceTarget}
         seedQuery={replaceTarget?.name ?? ''}
         accent={accent}
+        organizationId={library?.organization_id}
+        currentLibraryId={library?.id}
         onClose={() => setReplaceTarget(null)}
         onPick={handleReplacePick}
       />
