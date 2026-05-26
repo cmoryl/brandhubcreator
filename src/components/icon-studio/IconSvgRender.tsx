@@ -142,6 +142,22 @@ const prepareSvgMarkup = (
   svg.setAttribute('aria-label', icon.name || 'Icon');
   if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', icon.viewBox || '0 0 24 24');
 
+  // Uniform stroke for every icon — guarantees consistent weight regardless of
+  // source pack (lucide, tabler thin/light/bold variants, etc.).
+  svg.setAttribute('stroke-width', String(strokeWidth));
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  // Strip per-element / per-group stroke-width so the root value wins.
+  svg.querySelectorAll('[stroke-width]').forEach((el) => {
+    if (el !== svg) el.removeAttribute('stroke-width');
+  });
+  svg.querySelectorAll('[style]').forEach((el) => {
+    const s = el.getAttribute('style');
+    if (!s) return;
+    const cleaned = s.replace(/stroke-width\s*:\s*[^;]+;?/gi, '').trim();
+    if (cleaned) el.setAttribute('style', cleaned); else el.removeAttribute('style');
+  });
+
   let rootStyle = svg.getAttribute('style');
   rootStyle = upsertStyle(rootStyle, 'display', 'block');
   rootStyle = upsertStyle(rootStyle, 'width', '100%');
