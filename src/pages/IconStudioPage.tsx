@@ -1,10 +1,8 @@
-import { useNavigate } from 'react-router-dom';
 import { IconStudio } from '@/components/brand/iconography';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { PageSkeleton } from '@/components/PageSkeleton';
 
 const IconStudioPage = () => {
-  const navigate = useNavigate();
   const { organization, isLoading } = useOrganization();
 
   if (isLoading) return <PageSkeleton />;
@@ -22,10 +20,7 @@ const IconStudioPage = () => {
 
   return (
     <IconStudio
-      open
-      onOpenChange={(o) => {
-        if (!o) navigate(-1);
-      }}
+      asPage
       organizationId={organization.id}
       organizationName={organization.name}
     />
