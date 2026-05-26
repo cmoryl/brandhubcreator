@@ -183,7 +183,7 @@ const prepareSvgMarkup = (
   svg.setAttribute('style', rootStyle);
 
   const drawables = Array.from(svg.querySelectorAll(DRAWABLE_SELECTOR));
-  const forcedMode = presentation !== 'auto';
+  const forcedMode = effectivePresentation !== 'auto';
   const detectedMode = icon.fillMode ?? (detectFillMode(base) === 'stroke' ? 'stroke' : 'fill');
 
   // Resolve fill/stroke by walking up ancestor <g> elements so paths inside
