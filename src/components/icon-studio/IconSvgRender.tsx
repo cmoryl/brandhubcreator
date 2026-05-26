@@ -142,15 +142,24 @@ const prepareSvgMarkup = (
   svg.setAttribute('aria-label', icon.name || 'Icon');
   if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', icon.viewBox || '0 0 24 24');
 
+  // Detect the icon's native presentation. Filled icons designed at 256/512
+  // user units have complex shapes that look like a wire-mess if forcibly
+  // rendered as outlines, so we always respect their native fill in that case.
+  const baseMarkup = normalizeToSvgMarkup(icon);
+  const nativeMode = icon.fillMode ?? (detectFillMode(baseMarkup) === 'stroke' ? 'stroke' : 'fill');
+  const effectivePresentation: IconPresentation =
+    presentation === 'outlined' && nativeMode === 'fill' ? 'auto' : presentation;
+
   // Scale stroke-width to the icon's viewBox so packs authored at 24, 32, 256
-  // or 512 user units all render at the same visual weight. The configured
-  // strokeWidth is treated as the target weight in a 24-unit canvas.
+  // or 512 user units render with comparable visual weight. The configured
+  // strokeWidth is treated as the target weight in a 24-unit canvas. We only
+  // apply scaling to stroke-native icons — filled icons keep their fills and
+  // don't need (and would be harmed by) a giant stroke-width.
   const vbParts = (svg.getAttribute('viewBox') || '0 0 24 24').trim().split(/[\s,]+/).map(Number);
   const vbW = Number.isFinite(vbParts[2]) && vbParts[2] > 0 ? vbParts[2] : 24;
   const vbH = Number.isFinite(vbParts[3]) && vbParts[3] > 0 ? vbParts[3] : 24;
-  const vbScale = Math.max(vbW, vbH) / 24;
-  const baseStroke = Math.max(strokeWidth, 2);
-  const uniformStroke = +(baseStroke * vbScale).toFixed(3);
+  const vbScale = nativeMode === 'stroke' ? Math.max(vbW, vbH) / 24 : 1;
+  const uniformStroke = +(strokeWidth * vbScale).toFixed(3);
   svg.setAttribute('stroke-width', String(uniformStroke));
   svg.setAttribute('stroke-linecap', 'round');
   svg.setAttribute('stroke-linejoin', 'round');
