@@ -15,6 +15,8 @@ import { EntityPicker } from '@/components/imagery-hub/EntityPicker';
 import { ImageryWorkspace } from '@/components/imagery-hub/ImageryWorkspace';
 import { ComparisonPanel } from '@/components/imagery-hub/ComparisonPanel';
 import { BulkCopyDialog } from '@/components/imagery-hub/BulkCopyDialog';
+import { BrandVisualDnaPanel } from '@/components/imagery-hub/BrandVisualDnaPanel';
+import { useBrandVisualDna } from '@/hooks/useBrandVisualDna';
 import { ApprovedImage } from '@/types/brand';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,6 +50,23 @@ const ImageryHub = () => {
     entityId: selectedEntity?.id,
     entityType: selectedEntity?.type || 'brand',
   });
+
+  // Visual DNA — used at page level for the panel AND to honor auto-train.
+  const totalImages = sections.reduce((sum, s) => sum + (s.images?.length ?? 0), 0);
+  const { autoTrain, isRunning: dnaRunning, train: trainDna } = useBrandVisualDna({
+    entityId: selectedEntity?.id,
+    entityType: selectedEntity?.type,
+    organizationId,
+  });
+
+  // Debounced auto-train when the approved image count grows.
+  useEffect(() => {
+    if (!autoTrain || !selectedEntity || dnaRunning || totalImages === 0) return;
+    const handle = window.setTimeout(() => {
+      void trainDna();
+    }, 4000);
+    return () => window.clearTimeout(handle);
+  }, [autoTrain, selectedEntity, totalImages, dnaRunning, trainDna]);
 
   // Auth guard
   useEffect(() => {
@@ -228,27 +247,38 @@ const ImageryHub = () => {
 
         {/* Right: Workspace */}
         {selectedEntity ? (
-          <ImageryWorkspace
-            entity={selectedEntity}
-            sections={sections}
-            isLoading={imageryLoading}
-            organizationId={organizationId}
-            onAddSection={addSection}
-            onRemoveSection={removeSection}
-            onAddImages={addImages}
-            onRemoveImage={removeImage}
-            onReorderImages={reorderImages}
-            onUpdateImageTags={updateImageTags}
-            onStartComparison={() => setShowComparison(true)}
-            onStartBulkCopy={handleStartBulkCopy}
-            selectedImages={selectedImages}
-            onToggleImageSelection={handleToggleImageSelection}
-            selectionMode={selectionMode}
-            onToggleSelectionMode={() => {
-              setSelectionMode(!selectionMode);
-              if (selectionMode) setSelectedImages(new Map());
-            }}
-          />
+          <div className="flex-1 flex flex-col overflow-y-auto">
+            <div className="p-4 pb-0">
+              <BrandVisualDnaPanel
+                entityId={selectedEntity.id}
+                entityType={selectedEntity.type}
+                entityName={selectedEntity.name}
+                organizationId={organizationId}
+                approvedImageCount={totalImages}
+              />
+            </div>
+            <ImageryWorkspace
+              entity={selectedEntity}
+              sections={sections}
+              isLoading={imageryLoading}
+              organizationId={organizationId}
+              onAddSection={addSection}
+              onRemoveSection={removeSection}
+              onAddImages={addImages}
+              onRemoveImage={removeImage}
+              onReorderImages={reorderImages}
+              onUpdateImageTags={updateImageTags}
+              onStartComparison={() => setShowComparison(true)}
+              onStartBulkCopy={handleStartBulkCopy}
+              selectedImages={selectedImages}
+              onToggleImageSelection={handleToggleImageSelection}
+              selectionMode={selectionMode}
+              onToggleSelectionMode={() => {
+                setSelectionMode(!selectionMode);
+                if (selectionMode) setSelectedImages(new Map());
+              }}
+            />
+          </div>
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
             <div className="text-center space-y-3">

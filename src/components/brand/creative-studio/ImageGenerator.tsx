@@ -8,7 +8,7 @@ import { Wand2, Sparkles, Settings2, Save, Loader2, Download, Copy, Check } from
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,13 +49,18 @@ const ASPECT_RATIO_OPTIONS: Record<AspectRatio, { label: string; dimensions: str
   'custom': { label: 'Custom', dimensions: 'Variable' }
 };
 
-const STYLE_PRESET_OPTIONS: Record<StylePreset, { label: string; description: string }> = {
-  'photorealistic': { label: 'Photorealistic', description: 'High-quality photography' },
-  'illustration': { label: 'Illustration', description: 'Digital art style' },
-  'minimal': { label: 'Minimal', description: 'Clean and simple' },
-  'bold': { label: 'Bold', description: 'Strong contrasts' },
-  '3d': { label: '3D Render', description: 'CGI quality' },
-  'abstract': { label: 'Abstract', description: 'Artistic expression' }
+const STYLE_PRESET_OPTIONS: Record<StylePreset, { label: string; description: string; group: 'photography' | 'design' }> = {
+  'humanRealistic': { label: 'Hyper-Realistic Human', description: 'Soft light, shallow DoF, authentic moments', group: 'photography' },
+  'softTransition': { label: 'Soft Transition', description: 'Photo merged with progressive brand-color blur', group: 'photography' },
+  'documentaryPortrait': { label: 'Documentary Portrait', description: 'Quiet observed close-ups, available light', group: 'photography' },
+  'environmentalCandid': { label: 'Environmental Candid', description: 'Wider scenes, people in natural workspaces', group: 'photography' },
+  'goldenHourIntimate': { label: 'Golden Hour Intimate', description: 'Warm window light, amber rim, calm reflection', group: 'photography' },
+  'photorealistic': { label: 'Photorealistic (Generic)', description: 'High-quality photography', group: 'photography' },
+  'illustration': { label: 'Illustration', description: 'Digital art style', group: 'design' },
+  'minimal': { label: 'Minimal', description: 'Clean and simple', group: 'design' },
+  'bold': { label: 'Bold', description: 'Strong contrasts', group: 'design' },
+  '3d': { label: '3D Render', description: 'CGI quality', group: 'design' },
+  'abstract': { label: 'Abstract', description: 'Artistic expression', group: 'design' }
 };
 
 const CATEGORY_OPTIONS: Record<PromptCategory, string> = {
@@ -249,12 +254,38 @@ export const ImageGenerator = ({
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              {(Object.entries(STYLE_PRESET_OPTIONS) as [StylePreset, { label: string }][]).map(([key, { label }]) => (
-                <SelectItem key={key} value={key}>
-                  {label}
-                </SelectItem>
-              ))}
+            <SelectContent className="max-h-[420px]">
+              <SelectGroup>
+                <SelectLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Brand Photography
+                </SelectLabel>
+                {(Object.entries(STYLE_PRESET_OPTIONS) as [StylePreset, { label: string; description: string; group: string }][])
+                  .filter(([, v]) => v.group === 'photography')
+                  .map(([key, { label, description }]) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{label}</span>
+                        <span className="text-xs text-muted-foreground">{description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+              </SelectGroup>
+              <SelectSeparator />
+              <SelectGroup>
+                <SelectLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Design & Illustration
+                </SelectLabel>
+                {(Object.entries(STYLE_PRESET_OPTIONS) as [StylePreset, { label: string; description: string; group: string }][])
+                  .filter(([, v]) => v.group === 'design')
+                  .map(([key, { label, description }]) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{label}</span>
+                        <span className="text-xs text-muted-foreground">{description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>

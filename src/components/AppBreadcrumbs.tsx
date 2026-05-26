@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { ChevronRight, Home, Building2, Package, FileText, Shield, HelpCircle, Settings, Star, Users } from 'lucide-react';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { ChevronRight, Home, Building2, Package, FileText, Shield, HelpCircle, Settings, Star, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Breadcrumb,
@@ -42,6 +42,7 @@ const ROUTE_MAPPINGS: Record<string, BreadcrumbConfig> = {
   '/contact': { label: 'Contact Us', icon: Users },
   '/onboarding': { label: 'Onboarding', icon: Settings },
   '/pending-approval': { label: 'Pending Approval', icon: Users },
+  '/icon-studio': { label: 'Icon Studio', icon: Sparkles },
 };
 
 export const AppBreadcrumbs = React.forwardRef<
@@ -56,7 +57,44 @@ export const AppBreadcrumbs = React.forwardRef<
   homeHref = '/',
 }, ref) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const pathSegments = location.pathname.split('/').filter(Boolean);
+
+  // Programmatic navigation handler — guarantees React Router processes the
+  // route change even if a parent component is intercepting Link clicks.
+  // For cross-section navigation (e.g. brand → org portal), uses a hard browser
+  // navigation to guarantee the previous editor fully unmounts and any cached
+  // provider state (BrandProvider, EventProvider) is cleared.
+  const handleNav = React.useCallback(
+    (href: string) => (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => {
+      // Allow modifier-clicks (open in new tab) to work normally — only on anchors
+      if (e.currentTarget.tagName === 'A') {
+        const me = e as React.MouseEvent<HTMLAnchorElement>;
+        if (me.metaKey || me.ctrlKey || me.shiftKey || me.altKey || me.button !== 0) return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      if (href === location.pathname) return;
+
+      // Detect cross-section navigation (e.g., /brand/* → /org/*).
+      // These transitions cross provider boundaries and have historically failed
+      // to fully unmount the previous editor when using React Router's soft nav,
+      // leaving the URL updated but the old page still rendered. A hard browser
+      // navigation guarantees a clean route swap.
+      const currentSection = location.pathname.split('/').filter(Boolean)[0] || '';
+      const targetSection = href.split('/').filter(Boolean)[0] || '';
+      const isCrossSection = currentSection !== targetSection;
+
+      if (isCrossSection) {
+        window.location.href = href;
+        return;
+      }
+
+      // Same-section navigation — soft navigation is fine.
+      Promise.resolve().then(() => navigate(href));
+    },
+    [navigate, location.pathname],
+  );
 
   // Build breadcrumb items from path if not provided
   const breadcrumbItems: BreadcrumbConfig[] = items || [];
@@ -129,7 +167,10 @@ export const AppBreadcrumbs = React.forwardRef<
               <BreadcrumbLink asChild>
                 <Link
                   to={homeHref}
-                  className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1 rounded-md cursor-pointer pointer-events-auto"
+                  onClick={handleNav(homeHref)}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1 rounded-md cursor-pointer pointer-events-auto relative z-20"
                 >
                   <Home className="h-4 w-4 flex-shrink-0" />
                   <span className="hidden sm:inline">Home</span>
@@ -161,7 +202,10 @@ export const AppBreadcrumbs = React.forwardRef<
                   <BreadcrumbLink asChild>
                     <Link
                       to={item.href || '/'}
-                      className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1 rounded-md cursor-pointer pointer-events-auto"
+                      onClick={handleNav(item.href || '/')}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] sm:min-h-0 px-1 rounded-md cursor-pointer pointer-events-auto relative z-20"
                     >
                       {Icon && <Icon className="h-4 w-4 flex-shrink-0 hidden sm:block" />}
                       <span className="truncate max-w-[100px] sm:max-w-[150px]">{item.label}</span>

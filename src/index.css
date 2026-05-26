@@ -2,7 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Poppins (primary) & Montserrat (fallback) fonts loaded via index.html */
+/* Geist — master typeface (self-hosted from /public/fonts) */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url('/fonts/Geist-Thin.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url('/fonts/Geist-ExtraLight.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/fonts/Geist-Light.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Geist-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/Geist-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Geist-SemiBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/Geist-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('/fonts/Geist-ExtraBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('/fonts/Geist-Black.ttf') format('truetype');
+}
 
 @layer base {
   :root {
@@ -120,7 +183,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Poppins', 'Montserrat', sans-serif;
+    font-family: 'Geist', 'Poppins', 'Montserrat', sans-serif;
     /* Use dynamic viewport height for mobile */
     min-height: 100vh;
     min-height: 100dvh;
@@ -151,12 +214,12 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', 'Montserrat', sans-serif;
+    font-family: 'Geist', 'Poppins', 'Montserrat', sans-serif;
     font-weight: 700;
   }
 
   h1, h2 {
-    font-family: 'Poppins', 'Montserrat', sans-serif !important;
+    font-family: 'Geist', 'Poppins', 'Montserrat', sans-serif !important;
     font-weight: 700 !important;
   }
 

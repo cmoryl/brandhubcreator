@@ -43,6 +43,8 @@ import { TextStylesSection } from '@/components/brand/TextStylesSection';
 import { IconographySection } from '@/components/brand/IconographySection';
 import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
+import { LayoutTemplatesSection } from '@/components/brand/LayoutTemplatesSection';
+import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { WebsiteSection } from '@/components/brand/WebsiteSection';
@@ -52,6 +54,7 @@ import { VideosSection } from '@/components/brand/VideosSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
+import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
@@ -79,6 +82,7 @@ import { RegionalVariantWizard } from '@/components/brand/RegionalVariantWizard'
 import { TranslationHub } from '@/components/brand/TranslationHub';
 import { GlobalLinkWorkflowTrigger } from '@/components/brand/GlobalLinkWorkflowTrigger';
 import { AdminToolbar, type AdminToolbarAction } from '@/components/admin/AdminToolbar';
+import { CloneBrandDialog } from '@/components/brand/CloneBrandDialog';
 import { StickyBreadcrumbs } from '@/components/StickyBreadcrumbs';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { GuideLanguageSelector } from '@/components/localization/GuideLanguageSelector';
@@ -686,6 +690,24 @@ const BrandEditor = () => {
     navigate('/');
   };
 
+  const hasLayoutTemplates = useMemo(() => {
+    const visuals = (brand as any)?.brandVisuals;
+    return ((visuals?.staticAssets?.length ?? 0) + (visuals?.motionAssets?.length ?? 0)) > 0;
+  }, [brand]);
+
+  const openLayoutTemplates = useCallback(() => {
+    setActiveSection('layouttemplates');
+    setViewMode('full');
+    setScrollToSection('layouttemplates');
+    navigate({ pathname: location.pathname, hash: 'layouttemplates' }, { replace: false });
+
+    window.setTimeout(() => {
+      const target = document.getElementById('layouttemplates') ?? document.getElementById('layout-templates');
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setScrollToSection(null);
+    }, 220);
+  }, [location.pathname, navigate]);
+
   const handleSectionChange = useCallback((section: SectionId) => {
     setActiveSection(section);
     if (viewMode === 'full') {
@@ -767,39 +789,112 @@ const BrandEditor = () => {
     
     switch (activeSection) {
       case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => updateBrand({ hero }))} onOpenIntelligence={canViewAnalytics ? () => setIntelligenceOpen(true) : undefined} guideData={brand as unknown as Record<string, unknown>} entityType="brand" entityId={brand.id} complianceScore={complianceScores?.get(brand.id)?.score} hiddenSections={hiddenSections} sectionOrder={sectionOrder} compact={viewMode === 'cards'} />;
-      case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => updateBrand({ tagline }))} />;
+      case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => updateBrand({ tagline }))} brandSlug={brand.slug} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={editHandler((identity) => updateBrand({ identity }))} />;
-      case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => updateBrand({ values }))} organizationId={brand.organizationId} brandId={brand.id} brandName={brand.hero.name} canEdit={canEdit} />;
+      case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => updateBrand({ values }))} organizationId={brand.organizationId} brandId={brand.id} brandName={brand.hero.name} brandSlug={brand.slug} canEdit={canEdit} />;
       case 'bythenumbers': return <ByTheNumbersSection statistics={brand.statistics || []} onStatisticsChange={editHandler((statistics) => updateBrand({ statistics }))} brandName={brand.hero.name} infographicLayout={brand.infographicLayout || 'infographic'} onLayoutChange={canEdit ? (infographicLayout) => updateBrand({ infographicLayout }) : undefined} brandColors={brand.colors || []} />;
       case 'services': return <ServicesSection services={brand.services || []} onServicesChange={editHandler((services) => updateBrand({ services }))} entityId={brand.id} entityType="brand" brandWebsites={brand.websites || []} brandName={brand.hero?.name} />;
       case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={editHandler((revenueData) => updateBrand({ revenueData }))} brandName={brand.hero.name} chartTheme={brand.chartTheme} onChartThemeChange={editHandler((chartTheme) => updateBrand({ chartTheme }))} brandColors={brand.colors || []} />;
       case 'webinars': return <WebinarSeriesSection webinars={brand.webinars || []} onWebinarsChange={editHandler((webinars) => updateBrand({ webinars }))} />;
-      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={editHandler((logos) => updateBrand({ logos }))} entityId={brand.id} entityType="brand" logoDownloadLinks={brand.logoDownloadLinks} onLogoDownloadLinksChange={editHandler((logoDownloadLinks) => updateBrand({ logoDownloadLinks }))} />;
+      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={editHandler((logos) => updateBrand({ logos }))} entityId={brand.id} entityType="brand" brandSlug={brand.slug} logoDownloadLinks={brand.logoDownloadLinks} onLogoDownloadLinksChange={editHandler((logoDownloadLinks) => updateBrand({ logoDownloadLinks }))} />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => updateBrand({ brandIcons }))} entityId={brand.id} entityType="brand" />;
-      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => updateBrand({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateBrand({ colorCombinations }))} brandName={brand.hero.name} />;
+      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => updateBrand({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateBrand({ colorCombinations }))} brandName={brand.hero.name} brandSlug={brand.slug} />;
       case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => updateBrand({ gradients }))} brandName={brand.hero.name} brandColors={brand.colors} />;
+      case 'layouttemplates': {
+        const explicitVisuals = (brand as any).brandVisuals;
+        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          brandSlug: brand.slug,
+          hero: brand.hero,
+          logos: brand.logos,
+          imagery: brand.imagery,
+          patterns: brand.patterns,
+          gradients: brand.gradients,
+          approvedImagery: (brand as any).approvedImagery,
+        });
+        const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
+        return <LayoutTemplatesSection
+          brandVisuals={derivedVisuals}
+          brandLogos={brand.logos}
+          isDerived={isDerived}
+          savedCustomizations={(brand as any).layoutTemplateCustomizations || []}
+          onSaveCustomization={canEdit ? (variant) => {
+            const existing = (brand as any).layoutTemplateCustomizations || [];
+            const next = [...existing.filter((v: any) => v.id !== variant.id), variant];
+            updateBrand({ ...(brand as any), layoutTemplateCustomizations: next } as any);
+          } : undefined}
+          onApplyToSection={canEdit ? (target, asset) => {
+            if (target === 'hero') {
+              const heroPatch = asset.type === 'video'
+                ? { ...brand.hero, coverVideo: asset.url, useVideo: true }
+                : { ...brand.hero, coverImage: asset.url, useVideo: false };
+              updateBrand({ hero: heroPatch });
+            } else if (target === 'social') {
+              const imagery = brand.imagery || [];
+              updateBrand({ imagery: [{ id: `lt-${Date.now()}`, url: asset.url, type: 'do', description: 'Applied from layout template' } as any, ...imagery] });
+            } else if (target === 'casestudy') {
+              const cs = brand.caseStudies || [];
+              updateBrand({ caseStudies: [{ id: `lt-${Date.now()}`, title: 'New case study', description: '', imageUrl: asset.url } as any, ...cs] });
+            }
+          } : undefined}
+        />;
+      }
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => updateBrand({ patterns }))} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} brandSlug={brand.slug} customShapes={brand.customShapes} onCustomShapesChange={canEdit ? (customShapes) => updateBrand({ customShapes }) : undefined} entityId={brand.id} entityType="brand" />;
-      case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => updateBrand({ typography }))} isAdmin={isGuideAdmin} />;
+      case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => updateBrand({ typography }))} isAdmin={isGuideAdmin} brandSlug={brand.slug} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => updateBrand({ textStyles }))} adminCustomStyle={brand.adminCustomStyle} onAdminCustomStyleChange={canEdit ? (adminCustomStyle) => updateBrand({ adminCustomStyle }) : undefined} canEdit={canEdit} />;
-      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => updateBrand({ iconography }))} defaultIconColor={brand.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => updateBrand({ defaultIconColor }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} brandId={brand.id} entityType="brand" entityName={brand.hero?.name || ''} />;
+      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => updateBrand({ iconography }))} defaultIconColor={brand.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => updateBrand({ defaultIconColor }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} brandId={brand.id} entityType="brand" entityName={brand.hero?.name || ''} entitySlug={brand.slug} />;
       case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={editHandler((socialIcons) => updateBrand({ socialIcons }))} />;
-      case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={editHandler((imagery) => updateBrand({ imagery }))} entityId={brand.id} entityType="brand" isAdmin={isGuideAdmin} />;
+      case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={editHandler((imagery) => updateBrand({ imagery }))} entityId={brand.id} entityType="brand" isAdmin={isGuideAdmin} brandSlug={brand.slug} brandVisuals={(brand as any).brandVisuals} />;
       case 'social': return <SocialSection social={brand.social} onSocialChange={editHandler((social) => updateBrand({ social }))} entityId={brand.id} entityType="brand" organizationId={brand.organizationId} entityName={brand.hero?.name} />;
       case 'socialassets': return (
         <SocialAssetsSection
           socialAssets={brand.socialAssets || []}
           onSocialAssetsChange={editHandler((socialAssets) => updateBrand({ socialAssets }))}
-            
+          entityId={brand.id}
+          entityType="brand"
+          brandLogos={brand.logos}
+          brandSlug={brand.slug}
         />
       );
-      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => updateBrand({ websites }))} entityType="brand" entityId={brand.id} />;
-      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={editHandler((signatures) => updateBrand({ signatures }))} emailBanners={brand.emailBanners || []} onEmailBannersChange={editHandler((emailBanners) => updateBrand({ emailBanners }))} />;
-      case 'qr': return <QRSection qr={brand.qr} onQRChange={editHandler((qr) => updateBrand({ qr }))} entityType="brand" entityId={brand.id} logos={brand.logos} />;
+      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => updateBrand({ websites }))} entityType="brand" entityId={brand.id} brandSlug={brand.slug} />;
+      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={editHandler((signatures) => updateBrand({ signatures }))} emailBanners={brand.emailBanners || []} onEmailBannersChange={editHandler((emailBanners) => updateBrand({ emailBanners }))} brandSlug={brand.slug} />;
+      case 'qr': return <QRSection qr={brand.qr} onQRChange={editHandler((qr) => updateBrand({ qr }))} entityType="brand" entityId={brand.id} logos={brand.logos} brandSlug={brand.slug} />;
       case 'videos': return <VideosSection videos={brand.videos} onVideosChange={editHandler((videos) => updateBrand({ videos }))} entityName={brand.hero?.name} entityType="brand" industry={(brand as any).industry} websiteUrl={brand.websites?.[0]?.url} />;
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={editHandler((assets) => updateBrand({ assets }))} websiteUrl={brand.websites?.[0]?.url} entityId={brand.id} entityType="brand" />;
-      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => updateBrand({ misuse }))} entityId={brand.id} entityType="brand" />;
-      case 'casestudies': 
-      case 'brochures': return <DigitalCollateralSection collateral={brand.brochures} onCollateralChange={editHandler((brochures) => updateBrand({ brochures }))} entityId={brand.id} entityType="brand" />;
+      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => updateBrand({ misuse }))} entityId={brand.id} entityType="brand" brandSlug={brand.slug} />;
+      case 'casestudies': return (
+        <CaseStudiesSection
+          caseStudies={brand.caseStudies || []}
+          onCaseStudiesChange={editHandler((caseStudies) => updateBrand({ caseStudies }))}
+          entityId={brand.id}
+          entityType="brand"
+          brandLogos={brand.logos}
+        />
+      );
+      case 'brochures': {
+        const explicitVisuals = (brand as any).brandVisuals;
+        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          brandSlug: brand.slug,
+          hero: brand.hero,
+          logos: brand.logos,
+          imagery: brand.imagery,
+          patterns: brand.patterns,
+          gradients: brand.gradients,
+          approvedImagery: (brand as any).approvedImagery,
+        });
+        return (
+          <DigitalCollateralSection
+            collateral={brand.brochures}
+            onCollateralChange={editHandler((brochures) => updateBrand({ brochures }))}
+            entityId={brand.id}
+            entityType="brand"
+            brandVisuals={derivedVisuals}
+            layoutTemplateCustomizations={(brand as any).layoutTemplateCustomizations || []}
+            brandLogos={brand.logos}
+            brandSlug={brand.slug}
+          />
+
+        );
+      }
       case 'templates': return <TemplatesSection templates={brand.templates} onTemplatesChange={editHandler((templates) => updateBrand({ templates }))} entityId={brand.id} entityType="brand" />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => updateBrand({ templateSpecs }))} brandColors={brand.colors || []} entityId={brand.id} entityType="brand" />;
       case 'products': return <ProductsSection brandId={brand.id} />;
@@ -843,8 +938,8 @@ const BrandEditor = () => {
           />
         </Suspense>
       );
-      case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => updateBrand({ awards }))} entityType="brand" entityId={brand.id} />;
-      case 'imageassets': return <ImageAssetsSection imageAssets={brand.imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => updateBrand({ imageAssets }))} canEdit={canEdit} entityId={brand.id} entityType="brand" />;
+      case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => updateBrand({ awards }))} entityType="brand" entityId={brand.id} brandSlug={brand.slug} />;
+      case 'imageassets': return <ImageAssetsSection imageAssets={brand.imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => updateBrand({ imageAssets }))} canEdit={canEdit} entityId={brand.id} entityType="brand" imageryAvoidList={(brand as any).imageryAvoidList || []} onImageryAvoidListChange={editHandler((imageryAvoidList) => updateBrand({ imageryAvoidList } as any))} />;
       case 'events': return <EventsSection brandId={brand.id} canEdit={canEdit} />;
       case 'eventsignage': return <BrandEventSignageSection eventSignage={brand.eventSignage || []} onEventSignageChange={editHandler((eventSignage) => updateBrand({ eventSignage }))} linkedBooths={brand.linkedBooths || []} onLinkedBoothsChange={editHandler((linkedBooths) => updateBrand({ linkedBooths }))} brandColors={brand.colors || []} isAdmin={isGuideAdmin} />;
       case 'universe': 
@@ -852,7 +947,7 @@ const BrandEditor = () => {
           return <GlobalLinkUniverseSection linkedGuides={brand.linkedGuides} primaryColor={brand.colors?.[0]?.hex} />;
         }
         return <BrandUniverseOrbit organizationId={brand.organizationId} brandColors={brand.colors} organizationName={brand.hero?.name} />;
-      case 'presentations': return <PresentationTemplatesSection presentations={brand.presentationTemplates || []} onUpdate={editHandler((presentationTemplates) => updateBrand({ presentationTemplates }))} />;
+      case 'presentations': return <PresentationTemplatesSection presentations={brand.presentationTemplates || []} onUpdate={editHandler((presentationTemplates) => updateBrand({ presentationTemplates }))} brandSlug={brand.slug} />;
       case 'approvedimagery':
         return <ApprovedImagerySection approvedImagery={brand.approvedImagery} onApprovedImageryChange={editHandler((approvedImagery) => updateBrand({ approvedImagery }))} canEdit={canEdit} entityId={brand.id} entityType="brand" organizationId={brand.organizationId} />;
       case 'studios':
@@ -1024,6 +1119,17 @@ const BrandEditor = () => {
                   organizationSlug={organization?.slug}
                   existingShareToken={brand.shareToken}
                 />
+                {hasLayoutTemplates && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={openLayoutTemplates}
+                    className="gap-2"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    Layout templates
+                  </Button>
+                )}
                 <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} className="bg-muted rounded-lg p-0.5">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -1241,6 +1347,18 @@ const BrandEditor = () => {
                     />
                   ) : null,
                 },
+                {
+                  id: 'clone-workspace',
+                  label: 'Clone to New Workspace',
+                  icon: Settings,
+                  render: () => (
+                    <CloneBrandDialog
+                      brandId={brand.id}
+                      brandName={brand.hero?.name || 'Brand'}
+                      brandSlug={brand.slug || ''}
+                    />
+                  ),
+                },
               ] as AdminToolbarAction[] : []),
             ]}
           />
@@ -1269,22 +1387,35 @@ const BrandEditor = () => {
           <main className="flex-1 pt-2 px-4 pb-4 sm:pt-2 sm:px-6 sm:pb-6 lg:pt-3 lg:px-8 lg:pb-8 overflow-x-hidden">
             <div className={`${getContentWidthClass()} mx-auto animate-fade-in-up ${getSectionSpacingClass()}`}>
               {/* Sticky Breadcrumbs */}
-              <StickyBreadcrumbs
-                homeHref={effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/'}
-                items={[
-                  { label: effectiveOrgName || 'Brands', icon: effectiveOrgSlug ? Building2 : FileText, href: effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/' },
-                  // Only show parent brand breadcrumb if:
-                  // 1. There is a parent brand, AND
-                  // 2. It's not the same entity name as the org (avoid "TransPerfect > TransPerfect > Games")
-                  //    When org and master brand share a name, showing both is redundant
-                  ...(parentBrand && (!effectiveOrgName || parentBrand.name.toLowerCase() !== effectiveOrgName.toLowerCase()) 
-                    ? [{ label: parentBrand.name, icon: FileText, href: `/brand/${parentBrand.slug}` }] 
-                    : []),
-                ]}
-                currentPage={brand.hero.name}
-                currentIcon={FileText}
-              />
-              
+              {(() => {
+                // When the master brand shares the org's name (e.g. "TransPerfect" → "TransPerfect"),
+                // we used to render "Home > TransPerfect > TransPerfect" — both labels identical, which
+                // made it impossible to tell which one was the link back to the org portal.
+                // Disambiguate the current page label so the org-link crumb is visually distinct.
+                const orgNameLower = (effectiveOrgName || '').toLowerCase();
+                const brandNameLower = (brand.hero.name || '').toLowerCase();
+                const sharesOrgName = !!effectiveOrgName && orgNameLower === brandNameLower && !parentBrand;
+                const currentLabel = sharesOrgName
+                  ? `${brand.hero.name} — Brand Guidelines`
+                  : brand.hero.name;
+                return (
+                  <StickyBreadcrumbs
+                    homeHref={effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/'}
+                    items={[
+                      { label: effectiveOrgName || 'Brands', icon: effectiveOrgSlug ? Building2 : FileText, href: effectiveOrgSlug ? `/org/${effectiveOrgSlug}` : '/' },
+                      // Only show parent brand breadcrumb if:
+                      // 1. There is a parent brand, AND
+                      // 2. It's not the same entity name as the org (avoid "TransPerfect > TransPerfect > Games")
+                      //    When org and master brand share a name, showing both is redundant
+                      ...(parentBrand && (!effectiveOrgName || parentBrand.name.toLowerCase() !== orgNameLower)
+                        ? [{ label: parentBrand.name, icon: FileText, href: `/brand/${parentBrand.slug}` }]
+                        : []),
+                    ]}
+                    currentPage={currentLabel}
+                    currentIcon={FileText}
+                  />
+                );
+              })()}
               {viewMode === 'cards' ? (
                 <div className="animate-fade-in">
                   <SectionCardGrid

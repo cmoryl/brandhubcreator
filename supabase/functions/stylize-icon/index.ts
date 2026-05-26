@@ -10,45 +10,46 @@ const corsHeaders = {
  * SVG Stylizer System Prompt
  * Converts PNG/image descriptions into clean, brand-aligned SVG icons
  */
-const STYLIZER_PROMPT = `You are an expert SVG Icon Vectorizer. Your task is to convert an uploaded image into a clean, production-ready SVG icon.
+const STYLIZER_PROMPT = `You are a master SVG icon vectorizer in the lineage of Lucide, Tabler, Feather, and Phosphor. You translate raster images into clean, production-grade vector icons — NOT pixel tracings.
 
-## Core Principles
+## CORE PRINCIPLES
 
-1. **Semantic Interpretation**: Don't just trace edges. Understand what the image represents and create an iconic, simplified version.
+1. **Semantic interpretation, not edge tracing.** Identify what the image represents, then design the iconic equivalent. A photo of a coffee mug becomes a 6-segment mug, not a 200-point silhouette.
 
-2. **Geometric Primitives**: Prefer geometric shapes (circles, rectangles, lines) over complex curves when possible.
+2. **Lucide DNA.** Single-weight stroke, generous negative space, rounded terminals, geometric purity. Squint test: must read clearly at 16px.
 
-3. **Path Optimization**:
-   - Keep anchor points under 50
-   - Use whole numbers or single decimal coordinates
-   - Combine overlapping paths into single clean paths
+3. **Paths only.** Output uses ONLY <path> elements. No <circle>, <rect>, <line>, <polygon>, <polyline>, <ellipse>, <g>, <use>, <defs>, <mask>, <clipPath>, <style>, <filter>, <image>, <text>. Convert every shape to optimized path data (use arcs for circles).
 
-4. **Grid Alignment**: 
-   - ViewBox: Always 0 0 24 24
-   - Content Zone: Keep all elements within a 20px safe zone (2-22 on both axes)
-   - Center the icon both horizontally and vertically
+4. **Coordinate discipline.** Allowed fractions: .0 and .5 ONLY. NEVER 7.337, 15.81. Snap every anchor to the 1px grid.
 
-## Style Application
+5. **Path budget.** Maximum 3 <path> elements. Strongly prefer 1–2. Merge collinear segments; remove redundant anchors.
 
-Apply these style parameters to the output:
-- stroke-width: {STROKE_WIDTH}px
-- stroke-linecap: round
-- stroke-linejoin: round
-- Corner radius: {CORNER_RADIUS}px (round sharp corners)
+## CANVAS
+
+- viewBox: "0 0 24 24"
+- Safe zone: keep content inside (2,2)→(22,22)
+- Optically center at 12,12
+
+## STYLE APPLICATION
+
+- stroke-width: {STROKE_WIDTH}
+- stroke-linecap: round | stroke-linejoin: round
+- Corner radius hint: {CORNER_RADIUS}px (rounded vs sharp)
 - Fill mode: {FILL_MODE}
+- Use currentColor (the wrapper enforces colors — do NOT bake fills/strokes into child paths)
 
-## Output Requirements
+## FORBIDDEN ATTRIBUTES (any present → rejected)
 
-Return ONLY a valid SVG element. No explanation, no markdown.
-The SVG must:
-- Have xmlns="http://www.w3.org/2000/svg"
-- Use viewBox="0 0 24 24"
-- Use currentColor for stroke/fill (for theming)
-- Be properly centered
-- Have clean, optimized paths
+- transform, id, class, style, data-*
+- inline fill/stroke colors on child <path>
+- gradients, filters, masks, clip-paths
 
-Example output format:
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 12h3v8h6v-6h2v6h6v-8h3L12 2z"/></svg>`;
+## OUTPUT
+
+Return ONLY the raw <svg>…</svg> element. No markdown, no backticks, no explanation.
+
+Example:
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13a4 4 0 0 1 0 8h-2M3 7v9a3 3 0 0 0 3 3h7a3 3 0 0 0 3-3v-1M7 3v2M11 3v2"/></svg>`;
 
 interface StylizerOptions {
   removeBackground: boolean;
@@ -108,7 +109,8 @@ serve(async (req) => {
     }
 
     // Build style parameters
-    const strokeWidth = options.strokeWidth ?? 2;
+    // Lucide-grade default: 1.5px stroke matches generate-icon / generate-icon-set.
+    const strokeWidth = options.strokeWidth ?? 1.5;
     const cornerRadius = options.cornerRadius ?? 4;
     const fillMode = options.fillMode ?? 'auto';
     const simplifyThreshold = options.simplifyThreshold ?? 0.5;
@@ -142,7 +144,7 @@ Analyze the image and create a semantic, iconic SVG representation. Output ONLY 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: styledPrompt },
           { 
@@ -239,9 +241,21 @@ Analyze the image and create a semantic, iconic SVG representation. Output ONLY 
 
     // Also strip fill/stroke from child elements for stroke-only mode
     if (fillMode === 'stroke') {
-      svg = svg.replace(/<(path|circle|rect|line|polyline|polygon|ellipse)([^>]*)\bfill="(?!none)[^"]*"/gi, 
+      svg = svg.replace(/<(path|circle|rect|line|polyline|polygon|ellipse)([^>]*)\bfill="(?!none)[^"]*"/gi,
         '<$1$2fill="none"');
     }
+
+    // Reject vectorizations that still contain primitives — those render at the
+    // wrong stroke weight relative to <path> siblings and break the design system.
+    if (/<(g|use|defs|mask|clipPath|style|filter|linearGradient|radialGradient|image|text|foreignObject)\b/i.test(svg)) {
+      console.error("[stylize-icon] Forbidden element survived vectorization");
+      return new Response(
+        JSON.stringify({ error: "Vectorization produced unsupported elements. Try a simpler/clearer source image." }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // Strip transform/id/class/style/data-* on any element — they'd break grid alignment.
+    svg = svg.replace(/\s(id|class|style|data-[\w-]+|transform)\s*=\s*"[^"]*"/gi, "");
 
     // Clean up whitespace
     svg = svg.replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim();

@@ -14,6 +14,8 @@ import { LogoSection } from './LogoSection';
 import { BrandIconsSection } from './BrandIconsSection';
 import { ColorPaletteSection } from './ColorPaletteSection';
 import { GradientsSection } from './GradientsSection';
+import { LayoutTemplatesSection } from './LayoutTemplatesSection';
+import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { PatternsSection } from './PatternsSection';
 import { TypographySection } from './TypographySection';
 import { TextStylesSection } from './TextStylesSection';
@@ -30,6 +32,7 @@ import { AssetsSection } from './AssetsSection';
 import { ImageAssetsSection } from './ImageAssetsSection';
 import { MisuseSection } from './MisuseSection';
 import { DigitalCollateralSection } from './DigitalCollateralSection';
+import { CaseStudiesSection } from './CaseStudiesSection';
 import { TemplatesSection } from './TemplatesSection';
 import { TemplateSpecsSection } from './TemplateSpecsSection';
 import { ProductsSection } from './ProductsSection';
@@ -296,35 +299,49 @@ export const FullBrandPage = ({
 
     switch (sectionId) {
       case 'hero': return <HeroSection hero={brand.hero} onHeroChange={editHandler((hero) => onBrandUpdate({ hero }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} fullWidth={heroFullWidth} onOpenIntelligence={onOpenIntelligence} guideData={brand as unknown as Record<string, unknown>} entityType={entityType} entityId={brandId} hiddenSections={hiddenSections} />;
-      case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => onBrandUpdate({ tagline }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'tagline': return <TaglineSection tagline={brand.tagline} onTaglineChange={editHandler((tagline) => onBrandUpdate({ tagline }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandSlug={brand.slug} />;
       case 'identity': return <IdentitySection identity={brand.identity} onIdentityChange={editHandler((identity) => onBrandUpdate({ identity }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => onBrandUpdate({ values }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} organizationId={organizationId} brandId={brandId} brandName={brand.hero.name} canEdit={canEdit} />;
+      case 'values': return <ValuesSection values={brand.values} onValuesChange={editHandler((values) => onBrandUpdate({ values }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} organizationId={organizationId} brandId={brandId} brandName={brand.hero.name} brandSlug={brand.slug} canEdit={canEdit} />;
       case 'bythenumbers': return <ByTheNumbersSection statistics={brand.statistics || []} onStatisticsChange={editHandler((statistics) => onBrandUpdate({ statistics }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} infographicLayout={brand.infographicLayout || 'infographic'} onLayoutChange={canEdit ? (infographicLayout: InfographicLayout) => onBrandUpdate({ infographicLayout }) : undefined} brandColors={brand.colors || []} />;
       case 'services': return <ServicesSection services={brand.services || []} onServicesChange={editHandler((services) => onBrandUpdate({ services }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} brandWebsites={brand.websites || []} brandName={brand.hero?.name} />;
       case 'revenue': return <RevenueChartSection revenueData={brand.revenueData} onRevenueDataChange={editHandler((revenueData) => onBrandUpdate({ revenueData }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} chartTheme={brand.chartTheme} onChartThemeChange={editHandler((chartTheme) => onBrandUpdate({ chartTheme }))} brandColors={brand.colors || []} />;
-      case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => onBrandUpdate({ awards }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityType={entityType} entityId={brandId} />;
+      case 'awards': return <AwardsSection awards={brand.awards || []} onUpdate={editHandler((awards) => onBrandUpdate({ awards }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityType={entityType} entityId={brandId} brandSlug={brand.slug} />;
       case 'webinars': return <WebinarSeriesSection webinars={brand.webinars || []} onWebinarsChange={editHandler((webinars) => onBrandUpdate({ webinars }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityName={brand.hero?.name} entityType="brand" industry={(brand as any).industry} websiteUrl={brand.websites?.[0]?.url} />;
-      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={editHandler((logos) => onBrandUpdate({ logos }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} logoDownloadLinks={brand.logoDownloadLinks} onLogoDownloadLinksChange={editHandler((logoDownloadLinks) => onBrandUpdate({ logoDownloadLinks }))} />;
+      case 'logos': return <LogoSection logos={brand.logos} onLogosChange={editHandler((logos) => onBrandUpdate({ logos }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandSlug={brand.slug} logoDownloadLinks={brand.logoDownloadLinks} onLogoDownloadLinksChange={editHandler((logoDownloadLinks) => onBrandUpdate({ logoDownloadLinks }))} />;
       case 'brandicon': return <BrandIconsSection brandIcons={brand.brandIcons} onBrandIconsChange={editHandler((brandIcons) => onBrandUpdate({ brandIcons }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => onBrandUpdate({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => onBrandUpdate({ colorCombinations }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} />;
+      case 'colors': return <ColorPaletteSection colors={brand.colors} onColorsChange={editHandler((colors) => onBrandUpdate({ colors }))} colorCombinations={brand.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => onBrandUpdate({ colorCombinations }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandName={brand.hero.name} brandSlug={brand.slug} />;
       case 'gradients': return <GradientsSection gradients={brand.gradients} onGradientsChange={editHandler((gradients) => onBrandUpdate({ gradients }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} brandName={brand.hero.name} brandColors={brand.colors} />;
+      case 'layouttemplates': {
+        const explicitVisuals = (brand as any).brandVisuals;
+        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          brandSlug: brand.slug,
+          hero: brand.hero,
+          logos: brand.logos,
+          imagery: brand.imagery,
+          patterns: brand.patterns,
+          gradients: brand.gradients,
+          approvedImagery: (brand as any).approvedImagery,
+        });
+        const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
+        return <LayoutTemplatesSection brandVisuals={derivedVisuals} brandLogos={brand.logos} isDerived={isDerived} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      }
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => onBrandUpdate({ patterns }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} brandSlug={brand.slug} customShapes={brand.customShapes} onCustomShapesChange={canEdit ? (customShapes) => onBrandUpdate({ customShapes }) : undefined} />;
-      case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => onBrandUpdate({ typography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+      case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => onBrandUpdate({ typography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandSlug={brand.slug} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => onBrandUpdate({ textStyles }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} adminCustomStyle={brand.adminCustomStyle} onAdminCustomStyleChange={canEdit ? (adminCustomStyle) => onBrandUpdate({ adminCustomStyle }) : undefined} canEdit={canEdit} />;
-      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => onBrandUpdate({ iconography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} defaultIconColor={brand.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => onBrandUpdate({ defaultIconColor }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organizationId} brandId={brandId} entityType={entityType || 'brand'} entityName={brand.hero?.name} industry={brand.identity?.archetype} />;
+      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => onBrandUpdate({ iconography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} defaultIconColor={brand.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => onBrandUpdate({ defaultIconColor }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organizationId} brandId={brandId} entityType={entityType || 'brand'} entityName={brand.hero?.name} entitySlug={brand.slug} industry={brand.identity?.archetype} />;
       case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={editHandler((socialIcons) => onBrandUpdate({ socialIcons }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={editHandler((imagery) => onBrandUpdate({ imagery }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} isAdmin={canEdit} />;
+      case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={editHandler((imagery) => onBrandUpdate({ imagery }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} isAdmin={canEdit} brandSlug={brand.slug} brandVisuals={(brand as any).brandVisuals} />;
       case 'social': return <SocialSection social={brand.social} onSocialChange={editHandler((social) => onBrandUpdate({ social }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityId={brandId} entityType={entityType || 'brand'} organizationId={organizationId} entityName={brand.hero?.name} />;
-      case 'socialassets': return <SocialAssetsSection socialAssets={brand.socialAssets || []} onSocialAssetsChange={editHandler((socialAssets) => onBrandUpdate({ socialAssets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} />;
-      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => onBrandUpdate({ websites }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityType={entityType || 'brand'} entityId={brandId} />;
-      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={editHandler((signatures) => onBrandUpdate({ signatures }))} emailBanners={brand.emailBanners || []} onEmailBannersChange={editHandler((emailBanners) => onBrandUpdate({ emailBanners }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'qr': return <QRSection qr={brand.qr} onQRChange={editHandler((qr) => onBrandUpdate({ qr }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityType={entityType || 'brand'} entityId={brandId} logos={brand.logos} />;
+      case 'socialassets': return <SocialAssetsSection socialAssets={brand.socialAssets || []} onSocialAssetsChange={editHandler((socialAssets) => onBrandUpdate({ socialAssets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} brandLogos={brand.logos} brandSlug={brand.slug} />;
+      case 'website': return <WebsiteSection websites={brand.websites} onWebsitesChange={editHandler((websites) => onBrandUpdate({ websites }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityType={entityType || 'brand'} entityId={brandId} brandSlug={brand.slug} />;
+      case 'signatures': return <SignaturesSection signatures={brand.signatures} onSignaturesChange={editHandler((signatures) => onBrandUpdate({ signatures }))} emailBanners={brand.emailBanners || []} onEmailBannersChange={editHandler((emailBanners) => onBrandUpdate({ emailBanners }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandSlug={brand.slug} />;
+      case 'qr': return <QRSection qr={brand.qr} onQRChange={editHandler((qr) => onBrandUpdate({ qr }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityType={entityType || 'brand'} entityId={brandId} logos={brand.logos} brandSlug={brand.slug} />;
       case 'videos': return <VideosSection videos={brand.videos} onVideosChange={editHandler((videos) => onBrandUpdate({ videos }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityName={brand.hero?.name} entityType={(entityType as 'brand' | 'product' | 'event') || 'brand'} industry={(brand as any).industry} websiteUrl={brand.websites?.[0]?.url} />;
       case 'assets': return <AssetsSection assets={brand.assets} onAssetsChange={editHandler((assets) => onBrandUpdate({ assets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} studios={brand.studios || []} />;
       case 'imageassets': return <ImageAssetsSection imageAssets={brand.imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => onBrandUpdate({ imageAssets }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} canEdit={canEdit} entityId={brandId} entityType="brand" />;
-      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => onBrandUpdate({ misuse }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
-      case 'casestudies':
-      case 'brochures': return <DigitalCollateralSection collateral={brand.brochures || []} onCollateralChange={editHandler((brochures) => onBrandUpdate({ brochures }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} />;
+      case 'misuse': return <MisuseSection misuse={brand.misuse} onMisuseChange={editHandler((misuse) => onBrandUpdate({ misuse }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandSlug={brand.slug} />;
+      case 'casestudies': return <CaseStudiesSection caseStudies={brand.caseStudies || []} onCaseStudiesChange={editHandler((caseStudies) => onBrandUpdate({ caseStudies }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} entityId={brandId} entityType={(entityType as 'brand' | 'product' | 'event') || 'brand'} brandLogos={brand.logos} />;
+      case 'brochures': return <DigitalCollateralSection collateral={brand.brochures || []} onCollateralChange={editHandler((brochures) => onBrandUpdate({ brochures }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} brandVisuals={(brand as any).brandVisuals} layoutTemplateCustomizations={(brand as any).layoutTemplateCustomizations || []} brandLogos={brand.logos} brandSlug={brand.slug} />;
       case 'templates': 
         // Legacy templates section now uses PresentationTemplatesSection
         return <PresentationTemplatesSection 
@@ -333,6 +350,7 @@ export const FullBrandPage = ({
           isEditable={canEdit}
           entityId={brandId}
           entityType={entityType}
+          brandSlug={brand.slug}
         />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={brand.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => onBrandUpdate({ templateSpecs }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandColors={brand.colors || []} />;
       case 'products': 
@@ -415,6 +433,7 @@ export const FullBrandPage = ({
           isEditable={canEdit}
           entityId={brandId}
           entityType={entityType}
+          brandSlug={brand.slug}
         />;
       case 'sponsorlogos':
         return <SponsorLogosSection 

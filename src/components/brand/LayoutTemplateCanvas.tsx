@@ -1,0 +1,250 @@
+/**
+ * Shared canvas renderer for a brand layout template (with optional copy + customization).
+ * Used by the gallery preview, the customization editor, and the export utility.
+ */
+import { forwardRef } from 'react';
+import { cn } from '@/lib/utils';
+import {
+  applyCustomization,
+  expressionStateColor,
+  gradientBlurOverlayStyle,
+  type BrandLayoutTemplate,
+  type LayoutTemplateCustomization,
+  type ResolvedSlot,
+} from '@/lib/brandLayoutTemplates';
+import { Image as ImageIcon, Film } from 'lucide-react';
+import { getDemoCopy, getTemplateTypography, overlayTypeToStyle } from '@/lib/layoutTemplateDemoCopy';
+
+export interface LayoutTemplateCanvasProps {
+  template: BrandLayoutTemplate;
+  resolved: ResolvedSlot[];
+  customization?: LayoutTemplateCustomization;
+  /** When true, renders only finished layout (no slot chips/dashed boxes) — used for export. */
+  presentationMode?: boolean;
+  className?: string;
+  /** Optional brand colours for the overlay text. */
+  primaryColor?: string;
+  /** Optional brand-approved logo URL — placed in the designated safe corner. */
+  logoUrl?: string;
+  /** Variant of the supplied logo (controls light/dark choice handling upstream). */
+  logoVariant?: 'reversed' | 'monochrome' | 'primary' | string;
+}
+
+export const LayoutTemplateCanvas = forwardRef<HTMLDivElement, LayoutTemplateCanvasProps>(
+  (
+    { template, resolved, customization, presentationMode = false, className, primaryColor, logoUrl, logoVariant },
+    ref,
+  ) => {
+    const merged = applyCustomization(template, customization);
+    const copy = customization?.copy;
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'relative w-full overflow-hidden rounded-md border border-border bg-muted/30',
+          className,
+        )}
+        style={{ aspectRatio: merged.aspectRatio }}
+      >
+        {resolved.map(({ slot, asset }) => {
+          const pos = slot.position ?? { x: 0, y: 0, width: 100, height: 100 };
+          const fit = customization?.slotFitOverrides?.[slot.key] ?? {
+            fit: 'cover' as const,
+            focusX: 50,
+            focusY: 50,
+          };
+          const mediaStyle: React.CSSProperties = {
+            objectFit: fit.fit,
+            objectPosition: `${fit.focusX}% ${fit.focusY}%`,
+          };
+          return (
+            <div
+              key={slot.key}
+              className="absolute overflow-hidden"
+              style={{
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
+                width: `${pos.width}%`,
+                height: `${pos.height}%`,
+                // contain mode benefits from a subtle backdrop so letterboxing isn't pure white
+                background: fit.fit === 'contain' ? 'hsl(var(--muted))' : undefined,
+              }}
+            >
+              {asset.type === 'image' && (
+                <img
+                  src={asset.url}
+                  alt={slot.label}
+                  className="h-full w-full"
+                  style={mediaStyle}
+                  loading="lazy"
+                  crossOrigin="anonymous"
+                />
+              )}
+              {asset.type === 'video' && (
+                <video
+                  src={asset.url}
+                  className="h-full w-full"
+                  style={mediaStyle}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  crossOrigin="anonymous"
+                />
+              )}
+              {asset.type === 'empty' && (
+                <div
+                  className="flex h-full w-full flex-col items-center justify-center gap-1 border border-dashed text-[10px]"
+                  style={{
+                    borderColor: expressionStateColor[slot.expressionState],
+                    background: `${expressionStateColor[slot.expressionState]}14`,
+                    color: expressionStateColor[slot.expressionState],
+                  }}
+                >
+                  <ImageIcon className="h-3 w-3" />
+                  <span>{slot.expressionState}</span>
+                </div>
+              )}
+
+              {!presentationMode && (
+                <div className="absolute left-1 top-1 flex items-center gap-1">
+                  <span
+                    className="rounded px-1 py-0.5 text-[9px] font-medium text-white shadow-sm"
+                    style={{ background: `${expressionStateColor[slot.expressionState]}cc` }}
+                  >
+                    {asset.type === 'video' ? (
+                      <Film className="inline h-2.5 w-2.5" />
+                    ) : (
+                      <ImageIcon className="inline h-2.5 w-2.5" />
+                    )}{' '}
+                    {slot.expressionState}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Advanced gradient blur overlays — separate imagery zones & boost copy legibility */}
+        {customization?.gradientBlurOverlays?.map((ov) => (
+          <div
+            key={ov.id}
+            aria-hidden
+            style={gradientBlurOverlayStyle(ov, primaryColor ?? 'hsl(229 100% 12%)')}
+          />
+        ))}
+
+        {/* Overlay copy — falls back to per-target demo copy when user hasn't set their own. */}
+        {(() => {
+          const demo = getDemoCopy(template.target);
+          const type = getTemplateTypography(template.target);
+          const eyebrowText = copy?.eyebrow ?? demo.eyebrow;
+          const headlineText = copy?.headline ?? demo.headline;
+          const ctaText = copy?.cta ?? demo.cta;
+
+          return (
+            <>
+              {merged.overlay?.eyebrow && (
+                <div
+                  className="pointer-events-none absolute left-0 right-0 px-[6%]"
+                  style={{ top: `${merged.overlay.eyebrow.y}%` }}
+                >
+                  <p
+                    className={cn(
+                      'text-white/90 drop-shadow',
+                      merged.overlay.eyebrow.align === 'center' && 'text-center',
+                      merged.overlay.eyebrow.align === 'right' && 'text-right',
+                    )}
+                    style={{ ...overlayTypeToStyle(type.eyebrow), color: primaryColor }}
+                  >
+                    {eyebrowText}
+                  </p>
+                </div>
+              )}
+
+              {merged.overlay?.headline && (
+                <div
+                  className="pointer-events-none absolute left-0 right-0 px-[6%]"
+                  style={{ top: `${merged.overlay.headline.y}%` }}
+                >
+                  <h2
+                    className={cn(
+                      'text-white drop-shadow-md',
+                      merged.overlay.headline.align === 'center' && 'text-center',
+                      merged.overlay.headline.align === 'right' && 'text-right',
+                    )}
+                    style={overlayTypeToStyle(type.headline)}
+                  >
+                    {headlineText}
+                  </h2>
+                </div>
+              )}
+
+              {merged.overlay?.cta && (
+                <div
+                  className="pointer-events-none absolute left-0 right-0 px-[6%]"
+                  style={{
+                    top: `${(merged.overlay.headline?.y ?? 70) + 14}%`,
+                    textAlign: merged.overlay.headline?.align ?? 'left',
+                  }}
+                >
+                  <span
+                    className="inline-block rounded-full px-3 py-1.5 text-white shadow"
+                    style={{ ...overlayTypeToStyle(type.cta), background: primaryColor ?? 'hsl(229 100% 39%)' }}
+                  >
+                    {ctaText}
+                  </span>
+                </div>
+              )}
+            </>
+          );
+        })()}
+
+        {/* Brand-approved logo — placed in a designated safe corner that
+            avoids the overlay copy. Headline alignment drives the corner so
+            the logo never collides with the headline. */}
+        {logoUrl && (() => {
+          const align = merged.overlay?.headline?.align ?? merged.overlay?.eyebrow?.align ?? 'left';
+          const corner =
+            align === 'right'
+              ? 'top-3 left-3'
+              : align === 'center'
+                ? 'bottom-3 right-3'
+                : 'top-3 right-3';
+          return (
+            <div
+              className={cn('pointer-events-none absolute z-10', corner)}
+              aria-hidden
+            >
+              <div
+                className="flex items-center justify-center rounded-md px-2 py-1 backdrop-blur-sm"
+                style={{
+                  background: 'rgba(0,0,0,0.35)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                }}
+              >
+                <img
+                  src={logoUrl}
+                  alt=""
+                  className="h-5 w-auto sm:h-6"
+                  style={{
+                    maxWidth: '22%',
+                    minWidth: 28,
+                    filter:
+                      logoVariant === 'monochrome' || logoVariant === 'reversed'
+                        ? undefined
+                        : 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+                  }}
+                  crossOrigin="anonymous"
+                />
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    );
+  },
+);
+
+LayoutTemplateCanvas.displayName = 'LayoutTemplateCanvas';

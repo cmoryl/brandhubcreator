@@ -325,6 +325,7 @@ export const FullEventPage = ({
             onSocialAssetsChange={editHandler((socialAssets) => updateEvent({ socialAssets }))}
             entityId={eventId}
             entityType="event"
+            brandLogos={event.logos}
           />
         );
       case 'assets':

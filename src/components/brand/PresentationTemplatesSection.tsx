@@ -29,6 +29,7 @@ import { RichTextDisplay } from '@/components/ui/rich-text-editor';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { usePresentationTemplates } from '@/hooks/usePresentationTemplates';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { TransPerfectPresentationPanel } from './identity/TransPerfectPresentationPanel';
 
 interface PresentationTemplatesSectionProps {
   presentations?: PresentationTemplate[];
@@ -37,6 +38,7 @@ interface PresentationTemplatesSectionProps {
   subtitle?: string;
   entityType?: 'brand' | 'event' | 'product';
   entityId?: string;
+  brandSlug?: string;
 }
 
 // Categories for filtering
@@ -212,6 +214,7 @@ export const PresentationTemplatesSection = ({
   subtitle,
   entityType = 'brand',
   entityId,
+  brandSlug,
 }: PresentationTemplatesSectionProps) => {
   // Default to false for public view; only editable if explicitly enabled
   const canEdit = isEditable ?? false;
@@ -622,8 +625,11 @@ export const PresentationTemplatesSection = ({
     return null;
   };
 
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
+
   return (
     <section id="presentations" className="scroll-mt-24 space-y-6">
+      {isTransPerfect && <TransPerfectPresentationPanel />}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold">Presentation Templates</h2>

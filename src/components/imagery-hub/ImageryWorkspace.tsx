@@ -4,7 +4,7 @@
  * batch operations, auto-categorization, visual search, and quality scoring
  */
 import { useState, useCallback, useEffect } from 'react';
-import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown, Globe } from 'lucide-react';
+import { Plus, Check, X, Copy, ArrowRightLeft, ImageIcon, FolderPlus, Search, Filter, BarChart3, Sparkles, MoreHorizontal, Upload, ChevronDown, Globe, Combine, Camera } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ import { DraggableImageGrid } from '@/components/imagery-hub/DraggableImageGrid'
 import { BatchOperationsToolbar } from '@/components/imagery-hub/BatchOperationsToolbar';
 import { AutoCategorizeDialog } from '@/components/imagery-hub/AutoCategorizeDialog';
 import { VisualSearchPanel } from '@/components/imagery-hub/VisualSearchPanel';
+import { BrandPhotographyGenerator } from '@/components/imagery-hub/BrandPhotographyGenerator';
 
 interface ImageryWorkspaceProps {
   entity: ImageryEntity;
@@ -61,6 +62,41 @@ export const ImageryWorkspace = ({
   const [visualSearchUrl, setVisualSearchUrl] = useState<string | null>(null);
   const [searchCollapsed, setSearchCollapsed] = useState(false);
   const [websiteScannerOpen, setWebsiteScannerOpen] = useState(false);
+  const [photoGenOpen, setPhotoGenOpen] = useState(false);
+  const [photoOnly, setPhotoOnly] = useState(false);
+  const [presetFilter, setPresetFilter] = useState<string | null>(null);
+
+  // Brand photography preset keys (kept in sync with BrandPhotographyGenerator)
+  const PHOTO_PRESETS: { key: string; label: string }[] = [
+    { key: 'humanRealistic', label: 'Hyper-Realistic Human' },
+    { key: 'softTransition', label: 'Soft Transition' },
+    { key: 'documentaryPortrait', label: 'Documentary Portrait' },
+    { key: 'environmentalCandid', label: 'Environmental Candid' },
+    { key: 'goldenHourIntimate', label: 'Golden Hour Intimate' },
+  ];
+
+  const isBrandPhoto = (img: ApprovedImage) =>
+    !!img.tags?.includes('ai-generated') && !!img.tags?.includes('brand-photography');
+
+  // Apply Brand Photography + preset filters to sections (hide empty sections after filtering)
+  const displaySections = (photoOnly || presetFilter)
+    ? sections
+        .map(s => ({
+          ...s,
+          images: s.images.filter(img => {
+            if (photoOnly && !isBrandPhoto(img)) return false;
+            if (presetFilter && !img.tags?.includes(presetFilter)) return false;
+            return true;
+          }),
+        }))
+        .filter(s => s.images.length > 0)
+    : sections;
+
+  // Count brand-photography images (across all sections, ignoring preset filter for the badge)
+  const photoCount = sections.reduce(
+    (sum, s) => sum + s.images.filter(isBrandPhoto).length,
+    0,
+  );
 
   const totalImages = sections.reduce((sum, s) => sum + s.images.length, 0);
   const searchSection = sections.find(s => s.id === searchSectionId);
@@ -188,19 +224,94 @@ export const ImageryWorkspace = ({
   const handleAutoCategorizeApply = useCallback(async (
     assignments: { image: ApprovedImage; sectionId: string; newSectionName?: string; tags: string[] }[]
   ) => {
+    // Cache new sections by lowercase name so we only create each once,
+    // even when many images are categorized into the same new folder.
+    const newSectionCache = new Map<string, string>();
+    // Pre-seed with existing sections to catch case-insensitive matches.
+    sections.forEach(s => newSectionCache.set((s.name || '').toLowerCase(), s.id));
+
+    // Group images by target section to batch-insert and avoid race conditions.
+    const grouped = new Map<string, { sectionId: string; images: ApprovedImage[] }>();
+
     for (const assignment of assignments) {
       let targetSectionId = assignment.sectionId;
-      if (assignment.newSectionName && !targetSectionId) {
-        const newId = await onAddSection(assignment.newSectionName);
-        if (newId) targetSectionId = newId;
-        else continue;
+
+      if (!targetSectionId && assignment.newSectionName) {
+        const key = assignment.newSectionName.trim().toLowerCase();
+        const cached = newSectionCache.get(key);
+        if (cached) {
+          targetSectionId = cached;
+        } else {
+          const newId = await onAddSection(assignment.newSectionName.trim());
+          if (!newId) continue;
+          targetSectionId = newId;
+          newSectionCache.set(key, newId);
+        }
       }
-      if (targetSectionId) {
-        const imageWithTags = { ...assignment.image, tags: [...new Set([...(assignment.image.tags || []), ...assignment.tags])] };
-        await onAddImages(targetSectionId, [imageWithTags]);
+
+      if (!targetSectionId) continue;
+
+      const imageWithTags = {
+        ...assignment.image,
+        tags: [...new Set([...(assignment.image.tags || []), ...assignment.tags])],
+      };
+      const bucket = grouped.get(targetSectionId);
+      if (bucket) {
+        bucket.images.push(imageWithTags);
+      } else {
+        grouped.set(targetSectionId, { sectionId: targetSectionId, images: [imageWithTags] });
       }
     }
-  }, [onAddSection, onAddImages]);
+
+    for (const { sectionId, images } of grouped.values()) {
+      await onAddImages(sectionId, images);
+    }
+  }, [sections, onAddSection, onAddImages]);
+
+  // Detect sections that share the same (case-insensitive, trimmed) name.
+  const duplicateGroups = (() => {
+    const groups = new Map<string, ApprovedImagerySubSection[]>();
+    sections.forEach(s => {
+      const key = (s.name || '').trim().toLowerCase();
+      const arr = groups.get(key) || [];
+      arr.push(s);
+      groups.set(key, arr);
+    });
+    return Array.from(groups.values()).filter(g => g.length > 1);
+  })();
+  const duplicateSectionCount = duplicateGroups.reduce((sum, g) => sum + (g.length - 1), 0);
+
+  const handleMergeDuplicates = useCallback(async () => {
+    if (duplicateGroups.length === 0) {
+      toast.info('No duplicate categories found');
+      return;
+    }
+    let mergedFolders = 0;
+    let mergedImages = 0;
+    for (const group of duplicateGroups) {
+      // Keep the first (oldest) section, merge the rest into it.
+      const [keeper, ...dupes] = group;
+      const existingIds = new Set(keeper.images.map(i => i.id));
+      const toMove: ApprovedImage[] = [];
+      for (const dupe of dupes) {
+        for (const img of dupe.images) {
+          if (!existingIds.has(img.id)) {
+            toMove.push(img);
+            existingIds.add(img.id);
+          }
+        }
+      }
+      if (toMove.length > 0) {
+        await onAddImages(keeper.id, toMove);
+        mergedImages += toMove.length;
+      }
+      for (const dupe of dupes) {
+        await onRemoveSection(dupe.id);
+        mergedFolders += 1;
+      }
+    }
+    toast.success(`Merged ${mergedFolders} duplicate categor${mergedFolders === 1 ? 'y' : 'ies'} (${mergedImages} image${mergedImages === 1 ? '' : 's'} consolidated)`);
+  }, [duplicateGroups, onAddImages, onRemoveSection]);
 
   const handleVisualSearchQuery = useCallback((query: string) => {
     if (sections.length > 0) {
@@ -209,9 +320,34 @@ export const ImageryWorkspace = ({
     setVisualSearchUrl(null);
   }, [sections]);
 
-  const handleWebsiteImport = useCallback(async (images: { name: string; url: string; type: string }[]) => {
-    const targetSectionId = searchSectionId || sections[0]?.id;
-    if (!targetSectionId) return;
+  const handleWebsiteImport = useCallback(async (
+    images: { name: string; url: string; type: string }[],
+    chosenSectionId?: string,
+  ) => {
+    if (images.length === 0) return;
+
+    // Resolve destination:
+    // - If caller explicitly passed a valid section id → use it
+    // - If caller passed undefined (means "create new Website Imports") → create one
+    // - If no sections exist at all → also create one
+    let targetSectionId: string | undefined;
+    if (chosenSectionId && sections.some(s => s.id === chosenSectionId)) {
+      targetSectionId = chosenSectionId;
+    } else {
+      // Reuse an existing "Website Imports" folder if one exists, otherwise create.
+      const existing = sections.find(s => (s.name || '').trim().toLowerCase() === 'website imports');
+      if (existing) {
+        targetSectionId = existing.id;
+      } else {
+        const created = await onAddSection('Website Imports');
+        if (!created) {
+          toast.error('Could not create a category for website imports');
+          return;
+        }
+        targetSectionId = created;
+      }
+    }
+
     const approved: ApprovedImage[] = images.map((img, i) => ({
       id: `web-${Date.now()}-${i}`,
       url: img.url,
@@ -222,7 +358,9 @@ export const ImageryWorkspace = ({
       tags: ['website-scan'],
     }));
     await onAddImages(targetSectionId, approved);
-  }, [searchSectionId, sections, onAddImages]);
+    // Make the new/used folder visible by switching the search context to it.
+    setSearchSectionId(targetSectionId);
+  }, [sections, onAddImages, onAddSection]);
 
   // Collect all unique tags across sections
   const allTags = new Set<string>();
@@ -288,6 +426,16 @@ export const ImageryWorkspace = ({
             {/* Divider */}
             <div className="h-6 w-px bg-border" />
 
+            {/* Generate Brand Photography — primary AI action */}
+            <Button
+              variant="default"
+              size="default"
+              onClick={() => setPhotoGenOpen(true)}
+              className="gap-2 h-9"
+            >
+              <Camera className="h-4 w-4" /> Generate Photography
+            </Button>
+
             {/* AI & analysis group */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -301,6 +449,17 @@ export const ImageryWorkspace = ({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setAutoCategorizeOpen(true)} disabled={allImages.length === 0} className="gap-2">
                   <Sparkles className="h-4 w-4" /> Auto-Categorize
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleMergeDuplicates}
+                  disabled={duplicateSectionCount === 0}
+                  className="gap-2"
+                >
+                  <Combine className="h-4 w-4" />
+                  Merge Duplicate Categories
+                  {duplicateSectionCount > 0 && (
+                    <Badge variant="secondary" className="ml-auto text-[10px] h-5">{duplicateSectionCount}</Badge>
+                  )}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setWebsiteScannerOpen(true)} className="gap-2">
@@ -393,6 +552,52 @@ export const ImageryWorkspace = ({
           <ImageryAnalytics entity={entity} sections={sections} />
         )}
 
+        {/* Brand Photography Filter Bar */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <Camera className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Button
+            variant={photoOnly ? 'default' : 'outline'}
+            size="sm"
+            className="h-9 gap-2"
+            onClick={() => {
+              const next = !photoOnly;
+              setPhotoOnly(next);
+              if (!next) setPresetFilter(null);
+            }}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            AI Brand Photography
+            <Badge variant="secondary" className="ml-1 text-[10px] h-5">{photoCount}</Badge>
+          </Button>
+          {photoOnly && (
+            <div className="flex gap-1.5 flex-wrap items-center">
+              <span className="text-xs text-muted-foreground">Preset:</span>
+              {PHOTO_PRESETS.map(p => {
+                const count = sections.reduce(
+                  (sum, s) => sum + s.images.filter(img => isBrandPhoto(img) && img.tags?.includes(p.key)).length,
+                  0,
+                );
+                if (count === 0) return null;
+                return (
+                  <Badge
+                    key={p.key}
+                    variant={presetFilter === p.key ? 'default' : 'outline'}
+                    className="text-xs cursor-pointer px-2.5 py-1"
+                    onClick={() => setPresetFilter(presetFilter === p.key ? null : p.key)}
+                  >
+                    {p.label} <span className="ml-1 opacity-60">{count}</span>
+                  </Badge>
+                );
+              })}
+              {presetFilter && (
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setPresetFilter(null)}>
+                  Clear preset
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Tag Filter Bar */}
         {allTags.size > 0 && (
           <div className="flex items-center gap-3 flex-wrap">
@@ -436,9 +641,21 @@ export const ImageryWorkspace = ({
               </Button>
             </CardContent>
           </Card>
+        ) : displaySections.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-10 text-center space-y-2">
+              <Camera className="h-10 w-10 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">
+                No images match the current filter.
+              </p>
+              <Button variant="outline" size="sm" onClick={() => { setPhotoOnly(false); setPresetFilter(null); }}>
+                Clear filters
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-5">
-            {sections.map(section => (
+            {displaySections.map(section => (
               <Collapsible key={section.id} defaultOpen>
                 <Card className="border-border/50">
                   <div className="p-4 flex items-center justify-between">
@@ -567,6 +784,18 @@ export const ImageryWorkspace = ({
         open={websiteScannerOpen}
         onOpenChange={setWebsiteScannerOpen}
         onImportImages={handleWebsiteImport}
+        destinations={sections.map(s => ({ id: s.id, name: s.name }))}
+        defaultDestinationId={searchSectionId || sections[sections.length - 1]?.id}
+      />
+
+      {/* Brand Photography Generator */}
+      <BrandPhotographyGenerator
+        open={photoGenOpen}
+        onOpenChange={setPhotoGenOpen}
+        entity={entity}
+        sections={sections}
+        onAddImages={onAddImages}
+        onAddSection={onAddSection}
       />
     </div>
   );

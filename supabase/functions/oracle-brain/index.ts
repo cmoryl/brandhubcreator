@@ -220,13 +220,15 @@ async function processOracleSynthesis(apiKey: string, jobId: string, organizatio
   try {
     await updateJob(jobId, { status: "processing", started_at: new Date().toISOString(), progress: 10 });
 
-    const [brains, brands, products, events, knowledge, priorDigests] = await Promise.all([
+    const [brains, brands, products, events, knowledge, priorDigests, iconLibs, iconUsage] = await Promise.all([
       restQuery("brand_intelligence", `organization_id=eq.${organizationId}&select=entity_type,entity_id,brand_summary,market_position,competitive_advantages,brand_voice_profile,localization_readiness_score`),
       restQuery("brands", `organization_id=eq.${organizationId}&select=id,name`),
       restQuery("products", `organization_id=eq.${organizationId}&select=id,name`),
       restQuery("events", `organization_id=eq.${organizationId}&select=id,name`),
       restQuery("oracle_knowledge_base", `organization_id=eq.${organizationId}&is_active=eq.true&order=updated_at.desc&limit=30&select=title,content,content_type,tags`),
       restQuery("intelligence_digests", `organization_id=eq.${organizationId}&order=generated_at.desc&limit=3&select=digest,generated_at,data_sources`),
+      restQuery("organization_icon_libraries", `organization_id=eq.${organizationId}&is_active=eq.true&select=id,name,level,icons`),
+      restQuery("icon_usage_events", `organization_id=eq.${organizationId}&order=created_at.desc&limit=300&select=pack,icon_name,action,brand_id`),
     ]);
 
     const nameMap: Record<string, string> = {};
@@ -254,6 +256,25 @@ async function processOracleSynthesis(apiKey: string, jobId: string, organizatio
 
     await updateJob(jobId, { progress: 40 });
 
+    // Build Icon Studio org-level rollup
+    const totalIconAssets = (iconLibs || []).reduce((s: number, l: any) =>
+      s + (Array.isArray(l.icons) ? l.icons.length : 0), 0);
+    const libsByLevel: Record<string, number> = { core: 0, product_line: 0, brand: 0 };
+    for (const l of (iconLibs || [])) libsByLevel[l.level] = (libsByLevel[l.level] || 0) + 1;
+    const brandsWithIcons = new Set((iconUsage || []).map((u: any) => u.brand_id).filter(Boolean)).size;
+    const packTally: Record<string, number> = {};
+    const actionTally: Record<string, number> = { added: 0, exported: 0, kit_added: 0, removed: 0 };
+    for (const u of (iconUsage || [])) {
+      if (u.pack) packTally[u.pack] = (packTally[u.pack] || 0) + 1;
+      if (u.action) actionTally[u.action] = (actionTally[u.action] || 0) + 1;
+    }
+    const topPacks = Object.entries(packTally).sort((a, b) => b[1] - a[1]).slice(0, 5)
+      .map(([k, v]) => `${k}(${v})`).join(', ');
+    const iconStudioBlock = (iconLibs || []).length === 0 && (iconUsage || []).length === 0
+      ? ''
+      : `\nICON STUDIO PORTFOLIO:\nLibraries: ${(iconLibs || []).length} (${libsByLevel.core} core, ${libsByLevel.product_line} product-line, ${libsByLevel.brand} brand-specific) totaling ${totalIconAssets} icons\nBrands actively using icons: ${brandsWithIcons} of ${(brands || []).length}\nTop icon packs across org: ${topPacks || 'none tracked'}\nActivity (last 300 events): ${actionTally.added} added, ${actionTally.kit_added} kit-added, ${actionTally.exported} exported, ${actionTally.removed} removed\nAssess iconography consistency across brands/products/events and surface gaps in visual_coherence + recommendations.`;
+
+
     const prompt = `You are the Master Oracle Brain. Synthesize ALL entity intelligence into unified org-level strategic insights. You also have access to Deep Intelligence governance modules.
 
 DEEP INTELLIGENCE GOVERNANCE:
@@ -266,6 +287,8 @@ ${brainSummaries || "No entity brains yet."}
 
 KNOWLEDGE (${(knowledge||[]).length} entries):
 ${knowledgeCtx || "None."}
+${iconStudioBlock}
+
 
 HISTORICAL GOVERNANCE DIGESTS (${(priorDigests||[]).length} prior runs):
 ${digestHistory || "No prior digests — this is the first governance cycle."}
@@ -307,7 +330,7 @@ Return ONLY valid JSON:
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
         max_tokens: 4000,
@@ -416,7 +439,7 @@ Extract and summarize the most important strategic insights, facts, frameworks, 
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-3.1-flash-lite-preview",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.2,
         max_tokens: 1500,

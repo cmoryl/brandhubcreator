@@ -22,6 +22,7 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   eventdigital: { label: 'Digital Collateral', icon: FolderArchive, category: 'Event Assets' },
   colors: { label: 'Event Colors', icon: Palette, category: 'Visual' },
   gradients: { label: 'Gradients', icon: Blend, category: 'Visual' },
+  layouttemplates: { label: 'Layout Templates', icon: LayoutGrid, category: 'Visual' },
   typography: { label: 'Typography', icon: Type, category: 'Visual' },
   imagery: { label: 'Visual Direction', icon: Camera, category: 'Visual' },
   social: { label: 'Social Registry', icon: Users, category: 'Communication' },

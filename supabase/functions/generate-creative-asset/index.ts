@@ -16,6 +16,7 @@ interface BrandContext {
   mission?: string;
   values?: string[];
   fonts?: Array<{ family: string; role?: string }>;
+  imageryAvoidList?: Array<{ name?: string; reason?: string; url?: string }>;
 }
 
 interface GenerateRequest {
@@ -67,6 +68,25 @@ function buildBrandConstraints(brand: BrandContext): string {
   return parts.join('. ');
 }
 
+function buildAvoidDirectives(brand: BrandContext): string {
+  if (!brand.imageryAvoidList || brand.imageryAvoidList.length === 0) return '';
+  // Cap at the 12 most recent rejections to keep prompt size sane
+  const recent = brand.imageryAvoidList.slice(-12);
+  const reasons = recent
+    .map((item) => item.reason?.trim())
+    .filter((r): r is string => !!r && r.length > 0);
+
+  const lines: string[] = [];
+  lines.push('NEGATIVE FEEDBACK — these directions have been explicitly rejected by the brand team. DO NOT generate imagery in this style, composition, or subject matter:');
+  if (reasons.length > 0) {
+    const unique = Array.from(new Set(reasons)).slice(0, 10);
+    unique.forEach((r) => lines.push(`- Avoid: ${r}`));
+  } else {
+    lines.push(`- ${recent.length} previously rejected reference${recent.length === 1 ? '' : 's'}; steer clearly away from their style and treatment.`);
+  }
+  return lines.join('\n');
+}
+
 function getAspectRatioDimensions(ratio: string): { width: number; height: number } {
   switch (ratio) {
     case '16:9': return { width: 1920, height: 1080 };
@@ -81,6 +101,58 @@ function getStyleModifiers(preset: string): string {
   switch (preset) {
     case 'photorealistic':
       return 'Photorealistic, high-resolution photography, professional lighting, sharp focus, ultra high detail.';
+    case 'humanRealistic':
+      return [
+        'Hyper-realistic editorial photography of real people in candid, unposed moments.',
+        'Subjects: diverse adults in natural conversation, collaboration, or quiet reflection — never staged, never looking at camera.',
+        'Lighting: soft, warm, alive — natural window light or gentle ambient. Colors balanced and natural, slightly desaturated, never over-saturated.',
+        'Lens: shallow depth of field (f/1.8–f/2.4), shot on full-frame mirrorless (Sony A7 / Leica Q feel), 50–85mm prime.',
+        'Composition: tight crops, off-center framing, partial faces / out-of-focus foreground elements at edges to create human intimacy and spatiality.',
+        'Mood: empathy, calm confidence, authenticity, human connection — the feeling of "the people behind progress".',
+        'Skin: real texture preserved, natural pores, no plastic retouching, no beauty-filter smoothing.',
+        'STRICT NEGATIVES: no stock-photo look, no corporate handshakes, no smiling at camera, no studio backdrops, no harsh flash, no HDR, no AI plastic skin, no exaggerated bokeh balls, no logos or text in frame.',
+      ].join(' ');
+    case 'softTransition':
+      return [
+        'Hyper-realistic human-focused photography (same rules as humanRealistic preset) treated with a soft progressive blur transition.',
+        'A portion of the image — typically the lower third or one edge — dissolves into a smooth gaussian blur of the brand\'s primary gradient colors (use the brand color palette provided above, sampled directly from the subject\'s clothing or background tones).',
+        'The blur is gradient-masked: sharp on the subject\'s face/eyes, progressively softening outward into pure color field with no visible edge between photo and gradient.',
+        'Effect should feel like the photograph is melting into the brand\'s abstract visual language — connecting the human and the abstract.',
+        'Use sparingly and elegantly. The human moment must remain the hero; the gradient is a quiet extension, never a frame or vignette.',
+        'STRICT NEGATIVES: no hard mask edges, no rectangular crop borders, no posterization, no duotone filter look, no Instagram presets, no double-exposure overlay.',
+      ].join(' ');
+    case 'documentaryPortrait':
+      return [
+        'Documentary-style close-up portrait of a single subject in a quiet, observed moment of thought, listening, or quiet conversation.',
+        'Lighting: 100% available natural light from a window or open doorway — soft directional, with gentle falloff into shadow on one side of the face. No artificial fill, no reflectors visible.',
+        'Lens: 85mm prime at f/2.0 on a full-frame mirrorless body. Tight headshot or upper-chest crop, eyes positioned on upper-third gridline.',
+        'Subject: a real adult of any ethnicity, ungroomed and natural — visible skin texture, fine lines, stray hair, real eyes catching window light. Expression is internal and unguarded, never performing for camera.',
+        'Background: deeply out of focus (creamy bokeh), neutral interior tones — soft greys, warm whites, muted earth colors. Never a colored studio sweep.',
+        'Color grade: warm neutral, slightly lifted shadows, film-emulation feel (Kodak Portra 400 reference). Subtle grain.',
+        'Mood: empathy, presence, dignity, quiet intelligence. The viewer should feel they have walked in on a private moment of focus.',
+        'STRICT NEGATIVES: no smiling at camera, no posed body language, no studio lighting, no ring-light reflections, no beauty retouching, no plastic skin, no oversaturation, no shallow Instagram bokeh balls, no logos or text.',
+      ].join(' ');
+    case 'environmentalCandid':
+      return [
+        'Wider environmental candid photograph showing one or two people working, collaborating, or moving through a real workspace — office, studio, lab, or open meeting area.',
+        'Subjects are mid-action and unaware of the camera. No eye contact, no posed gestures. Real ergonomics, real laptops, real notebooks, real coffee cups.',
+        'Lighting: ambient daylight mixed with practical interior sources (overhead pendants, desk lamps). Slight color-temperature mix is welcomed for authenticity.',
+        'Lens: 35mm at f/2.8, full-frame mirrorless. Subject occupies the middle ground; foreground is gently out of focus (a desk edge, a colleague\'s shoulder, a plant) to create a layered "we are inside the room" feeling.',
+        'Composition: off-center, often with negative space on one side allowing the environment to breathe. Diverse adults, varied ages and backgrounds, modern but understated workwear.',
+        'Color: balanced and natural, slightly desaturated, never glossy corporate stock.',
+        'Mood: collaboration, momentum, focus, the texture of real work. The viewer feels like a quiet observer.',
+        'STRICT NEGATIVES: no group selfies, no thumbs-up, no fake laughing, no perfectly tidy desks, no over-styled props, no saturated brand-colored backdrops, no stock-photo headset-and-mic energy, no logos or text on screens.',
+      ].join(' ');
+    case 'goldenHourIntimate':
+      return [
+        'Intimate human moment captured during golden hour — late afternoon or early morning warm low-angle light streaming through a window.',
+        'Subject: one or two adults near the window, partially backlit, with a warm amber rim light catching hair, shoulder, or the edge of a coffee cup. Faces are partly in soft shadow, partly in glow.',
+        'Lens: 50mm prime at f/1.8, full-frame. Eye-level or slightly below. Half of the frame can lens-flare gently into a warm haze — embraced, not corrected.',
+        'Composition: tight, asymmetric, contemplative. Often a hand on a cup, a notebook, or resting on a table — small human details elevated by the light.',
+        'Color grade: warm amber highlights, soft teal-grey shadows, gentle film bloom in the highlights. Skin tones glow but stay natural.',
+        'Mood: calm reflection, end-of-day satisfaction, optimism, a held breath. The brand feeling is "transformation completed quietly".',
+        'STRICT NEGATIVES: no orange-and-teal Hollywood grade, no HDR, no fake sun-flare overlays, no posed staring-into-the-distance shots, no candle-lit dinner romance vibe, no logos or text.',
+      ].join(' ');
     case 'illustration':
       return 'Digital illustration style, clean vector aesthetics, modern design, flat color areas with subtle gradients.';
     case 'minimal':
@@ -176,7 +248,8 @@ serve(async (req) => {
           toneOfVoice: identity.toneOfVoice as string[] || undefined,
           industry: guideData.industry as string || undefined,
           mission: identity.missionStatement as string || undefined,
-          fonts: (guideData.typography as BrandContext['fonts']) || []
+          fonts: (guideData.typography as BrandContext['fonts']) || [],
+          imageryAvoidList: (guideData.imageryAvoidList as BrandContext['imageryAvoidList']) || [],
         };
         organizationId = entity.organization_id;
       }
@@ -189,6 +262,10 @@ serve(async (req) => {
       const constraints = buildBrandConstraints(brandContext);
       if (constraints) {
         enhancedPrompt = `${prompt}\n\nBrand Guidelines:\n${constraints}`;
+      }
+      const avoidDirectives = buildAvoidDirectives(brandContext);
+      if (avoidDirectives) {
+        enhancedPrompt = `${enhancedPrompt}\n\n${avoidDirectives}`;
       }
     }
     

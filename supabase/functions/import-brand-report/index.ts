@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@0.12.1";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,11 +56,31 @@ serve(async (req) => {
       } else if (file) {
         fileName = file.name;
         if (file.name.toLowerCase().endsWith(".pdf")) {
-          // For PDF, we extract text using a simple approach
-          const arrayBuffer = await file.arrayBuffer();
-          textContent = extractTextFromPdfBytes(new Uint8Array(arrayBuffer));
+          // Use unpdf (Deno-compatible) for proper PDF text extraction. The
+          // legacy regex-based approach failed on virtually all modern PDFs
+          // because their text streams are FlateDecode-compressed.
+          try {
+            const arrayBuffer = await file.arrayBuffer();
+            if (arrayBuffer.byteLength > 15 * 1024 * 1024) {
+              throw new Error(`PDF too large: ${formatFileSize(arrayBuffer.byteLength)} (max 15MB)`);
+            }
+            const pdf = await getDocumentProxy(new Uint8Array(arrayBuffer));
+            const { text } = await extractText(pdf, { mergePages: true });
+            textContent = (Array.isArray(text) ? text.join("\n") : text || "").trim();
+            console.log(`[import-brand-report] unpdf extracted ${textContent.length} chars from ${file.name}`);
+          } catch (pdfErr) {
+            console.error("[import-brand-report] PDF extraction failed:", pdfErr);
+            // Fall back to the legacy extractor as a last resort
+            const arrayBuffer = await file.arrayBuffer();
+            textContent = extractTextFromPdfBytes(new Uint8Array(arrayBuffer));
+          }
           if (!textContent || textContent.trim().length < 50) {
-            textContent = `[PDF Document: ${file.name}, Size: ${formatFileSize(file.size)}] - PDF text extraction yielded limited results. The document may contain primarily images or scanned content.`;
+            return new Response(JSON.stringify({
+              error: `Could not extract readable text from "${file.name}". The PDF may be scanned/image-only — try exporting as text or pasting content directly.`,
+            }), {
+              status: 422,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
           }
         } else {
           // Text/markdown file
@@ -79,8 +101,8 @@ serve(async (req) => {
       });
     }
 
-    // Truncate very long documents to avoid token limits
-    const maxChars = 30000;
+    // Truncate very long documents to stay within AI token budgets.
+    const maxChars = 60000;
     const truncatedContent = textContent.length > maxChars
       ? textContent.substring(0, maxChars) + "\n\n[Content truncated due to length...]"
       : textContent;
@@ -102,7 +124,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           {
             role: "system",

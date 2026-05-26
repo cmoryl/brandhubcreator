@@ -99,6 +99,8 @@ const ImageryHub = lazyWithRetry(() => import("./pages/ImageryHub"));
 const LogoDownloadActivity = lazyWithRetry(() => import("./pages/LogoDownloadActivity"));
 const BrandAgentPage = lazyWithRetry(() => import("./pages/BrandAgentPage"));
 const IconStudioPage = lazyWithRetry(() => import("./pages/IconStudioPage"));
+const AttributionsView = lazyWithRetry(() => import("./pages/AttributionsView"));
+const BrandIconHubPage = lazyWithRetry(() => import("./pages/BrandIconHubPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -445,6 +447,38 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <IconStudioPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="icon-studio/attributions"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <AttributionsView />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="icon-studio/brand/:slug"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BrandIconHubPage entityType="brand" />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="icon-studio/product/:slug"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BrandIconHubPage entityType="product" />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="icon-studio/event/:slug"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <BrandIconHubPage entityType="event" />
                         </Suspense>
                       }
                     />

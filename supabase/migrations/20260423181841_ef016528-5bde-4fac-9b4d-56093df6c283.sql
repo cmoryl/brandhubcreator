@@ -1,0 +1,14 @@
+UPDATE brands
+SET guide_data = jsonb_set(
+  guide_data,
+  '{brandVisuals,staticAssets}',
+  '[
+    {"id":"bv-hero-wide","name":"Hero — Ultrawide","expressionState":"Foundation","aspectRatio":"30:13","imageUrl":"https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/public/organization-assets/transperfect/visuals/hero-3000x1300.png","tags":["hero","foundation","wide"],"recommendedUse":"Page hero, ultrawide banner, presentation cover","description":"Foundation expression — calm, grounded gradient form for primary heroes."},
+    {"id":"bv-hero-standard","name":"Hero — Standard","expressionState":"Foundation","aspectRatio":"16:10","imageUrl":"https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/public/organization-assets/transperfect/visuals/hero-2400x1500.png","tags":["hero","foundation"],"recommendedUse":"Standard page hero, section header","description":"Foundation expression in standard hero proportions."},
+    {"id":"bv-case-study","name":"Case Study — Standard","expressionState":"Collaborate","aspectRatio":"16:9","imageUrl":"https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/public/organization-assets/transperfect/visuals/case-study-2400x1290.png","tags":["case-study","collaborate","editorial"],"recommendedUse":"Case study covers, partner stories, editorial blocks","description":"Collaborate expression — intersecting forms suggesting partnership."},
+    {"id":"bv-case-study-wide","name":"Case Study — Banner","expressionState":"Collaborate","aspectRatio":"30:6","imageUrl":"https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/public/organization-assets/transperfect/visuals/case-study-3000x624.png","tags":["case-study","collaborate","banner"],"recommendedUse":"Inline banners, section dividers, email headers","description":"Collaborate expression in banner proportions."},
+    {"id":"bv-illustrative","name":"Illustrative","expressionState":"Collaborate","aspectRatio":"16:10","imageUrl":"https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/public/organization-assets/transperfect/visuals/illustrative-2400x1500.png","tags":["illustrative","collaborate","feature"],"recommendedUse":"Service feature blocks, illustrative content","description":"Collaborate illustrative variant for feature cards and content blocks."},
+    {"id":"bv-card-vertical","name":"Card — Vertical","expressionState":"Transform","aspectRatio":"12:13","imageUrl":"https://nhxaijbyqfkkhhoornzy.supabase.co/storage/v1/object/public/organization-assets/transperfect/visuals/card-2400x2600.png","tags":["card","transform","vertical","social"],"recommendedUse":"Vertical tiles, social cards, mobile features","description":"Transform expression — vertical card composition for social and mobile."}
+  ]'::jsonb
+)
+WHERE id = '0d6d5a5f-0dd0-4e62-9ac2-285a4095de84';

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SectionHeader } from './SectionHeader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { TransPerfectColorTypographyPanel } from './identity/TransPerfectColorTypographyPanel';
 
 interface TypographySectionProps {
   typography: BrandTypography[];
@@ -14,6 +15,7 @@ interface TypographySectionProps {
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
   isAdmin?: boolean;
+  brandSlug?: string;
 }
 
 const fontOptions = [
@@ -47,7 +49,7 @@ const getGoogleFontsUrl = (fontFamily: string): string | null => {
 
 const DEFAULT_PREVIEW_TEXT = 'The quick brown fox jumps over the lazy dog';
 
-export const TypographySection = ({ typography, onTypographyChange, customSubtitle, onSubtitleChange, isAdmin = false }: TypographySectionProps) => {
+export const TypographySection = ({ typography, onTypographyChange, customSubtitle, onSubtitleChange, isAdmin = false, brandSlug }: TypographySectionProps) => {
   const canEdit = Boolean(onTypographyChange);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -78,6 +80,9 @@ export const TypographySection = ({ typography, onTypographyChange, customSubtit
 
   return (
     <section className="space-y-4 sm:space-y-6">
+      {brandSlug?.toLowerCase() === 'transperfect' && (
+        <TransPerfectColorTypographyPanel variant="typography" />
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex-1 min-w-0">
           <SectionHeader

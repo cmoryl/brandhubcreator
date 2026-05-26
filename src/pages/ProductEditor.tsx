@@ -44,6 +44,8 @@ import { TextStylesSection } from '@/components/brand/TextStylesSection';
 import { IconographySection } from '@/components/brand/IconographySection';
 import { SocialIconsSection } from '@/components/brand/SocialIconsSection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
+import { LayoutTemplatesSection } from '@/components/brand/LayoutTemplatesSection';
+import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { SocialSection } from '@/components/brand/SocialSection';
 import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { WebsiteSection } from '@/components/brand/WebsiteSection';
@@ -52,6 +54,7 @@ import { QRSection } from '@/components/brand/QRSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
+import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { ProductsSection } from '@/components/brand/ProductsSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
@@ -645,21 +648,37 @@ const ProductEditor = () => {
       case 'services': return <ServicesSection services={currentProduct.services || []} onServicesChange={editHandler((services) => handleUpdateProduct({ services }))} entityId={currentProduct.id} entityType="product" brandWebsites={currentProduct.websites || []} brandName={currentProduct.hero?.name} />;
       case 'revenue': return <RevenueChartSection revenueData={currentProduct.revenueData} onRevenueDataChange={editHandler((revenueData) => handleUpdateProduct({ revenueData }))} brandName={currentProduct.hero.name} chartTheme={currentProduct.chartTheme} onChartThemeChange={editHandler((chartTheme) => handleUpdateProduct({ chartTheme }))} brandColors={currentProduct.colors || []} />;
       case 'brandicon': return <BrandIconsSection brandIcons={currentProduct.brandIcons} onBrandIconsChange={editHandler((brandIcons) => handleUpdateProduct({ brandIcons }))} entityId={currentProduct.id} entityType="product" />;
-      case 'colors': return <ColorPaletteSection colors={currentProduct.colors} onColorsChange={editHandler((colors) => handleUpdateProduct({ colors }))} colorCombinations={currentProduct.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => handleUpdateProduct({ colorCombinations }))} brandName={currentProduct.hero.name} />;
+      case 'colors': return <ColorPaletteSection colors={currentProduct.colors} onColorsChange={editHandler((colors) => handleUpdateProduct({ colors }))} colorCombinations={currentProduct.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => handleUpdateProduct({ colorCombinations }))} brandName={currentProduct.hero.name} brandSlug={parentBrand?.slug} />;
       case 'gradients': return <GradientsSection gradients={currentProduct.gradients} onGradientsChange={editHandler((gradients) => handleUpdateProduct({ gradients }))} brandName={currentProduct.hero.name} brandColors={currentProduct.colors} />;
       case 'patterns': return <PatternsSection patterns={currentProduct.patterns} onPatternsChange={editHandler((patterns) => handleUpdateProduct({ patterns }))} brandName={currentProduct.hero.name} brandColors={currentProduct.colors} brandTagline={currentProduct.tagline?.primary} brandArchetype={currentProduct.identity?.archetype} entityId={currentProduct.id} entityType="product" />;
-      case 'typography': return <TypographySection typography={currentProduct.typography} onTypographyChange={editHandler((typography) => handleUpdateProduct({ typography }))} isAdmin={isGuideAdmin} />;
+      case 'typography': return <TypographySection typography={currentProduct.typography} onTypographyChange={editHandler((typography) => handleUpdateProduct({ typography }))} isAdmin={isGuideAdmin} brandSlug={parentBrand?.slug} />;
       case 'textstyles': return <TextStylesSection textStyles={currentProduct.textStyles} onTextStylesChange={editHandler((textStyles) => handleUpdateProduct({ textStyles }))} adminCustomStyle={currentProduct.adminCustomStyle} onAdminCustomStyleChange={canEdit ? (adminCustomStyle) => handleUpdateProduct({ adminCustomStyle }) : undefined} canEdit={canEdit} />;
-      case 'iconography': return <IconographySection iconography={currentProduct.iconography} onIconographyChange={editHandler((iconography) => handleUpdateProduct({ iconography }))} defaultIconColor={currentProduct.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => handleUpdateProduct({ defaultIconColor }))} brandColors={currentProduct.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} brandId={currentProduct.id} entityType="product" entityName={currentProduct.hero?.name || ''} />;
+      case 'iconography': return <IconographySection iconography={currentProduct.iconography} onIconographyChange={editHandler((iconography) => handleUpdateProduct({ iconography }))} defaultIconColor={currentProduct.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => handleUpdateProduct({ defaultIconColor }))} brandColors={currentProduct.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} brandId={currentProduct.id} entityType="product" entityName={currentProduct.hero?.name || ''} entitySlug={currentProduct.slug} />;
       case 'socialicons': return <SocialIconsSection socialIcons={currentProduct.socialIcons} onSocialIconsChange={editHandler((socialIcons) => handleUpdateProduct({ socialIcons }))} />;
-      case 'imagery': return <ImagerySection imagery={currentProduct.imagery} onImageryChange={editHandler((imagery) => handleUpdateProduct({ imagery }))} entityId={currentProduct.id} entityType="product" isAdmin={isGuideAdmin} />;
+      case 'imagery': return <ImagerySection imagery={currentProduct.imagery} onImageryChange={editHandler((imagery) => handleUpdateProduct({ imagery }))} entityId={currentProduct.id} entityType="product" isAdmin={isGuideAdmin} brandSlug={parentBrand?.slug} />;
+      case 'layouttemplates': {
+        const explicitVisuals = (currentProduct as any).brandVisuals;
+        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          brandSlug: (currentProduct as any).brandSlug || (currentProduct as any).parentBrandSlug,
+          hero: currentProduct.hero,
+          logos: currentProduct.logos,
+          imagery: currentProduct.imagery,
+          patterns: currentProduct.patterns,
+          gradients: currentProduct.gradients,
+          approvedImagery: (currentProduct as any).approvedImagery,
+        });
+        const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
+        return <LayoutTemplatesSection brandVisuals={derivedVisuals} isDerived={isDerived} />;
+      }
       case 'social': return <SocialSection social={currentProduct.social} onSocialChange={editHandler((social) => handleUpdateProduct({ social }))} entityId={currentProduct.id} entityType="product" organizationId={currentProduct.organizationId} entityName={currentProduct.hero?.name} />;
       case 'socialassets':
         return (
           <SocialAssetsSection
             socialAssets={currentProduct.socialAssets || []}
             onSocialAssetsChange={editHandler((socialAssets) => handleUpdateProduct({ socialAssets }))}
-            
+            entityId={currentProduct.id}
+            entityType="product"
+            brandLogos={currentProduct.logos}
           />
         );
       case 'website': return <WebsiteSection websites={currentProduct.websites} onWebsitesChange={editHandler((websites) => handleUpdateProduct({ websites }))} entityType="product" entityId={currentProduct.id} />;
@@ -668,8 +687,8 @@ const ProductEditor = () => {
       case 'videos': return <VideosSection videos={currentProduct.videos} onVideosChange={editHandler((videos) => handleUpdateProduct({ videos }))} entityName={currentProduct.hero?.name} entityType="product" industry={(currentProduct as any).industry} websiteUrl={(currentProduct as any).websites?.[0]?.url} />;
       case 'assets': return <AssetsSection assets={currentProduct.assets} onAssetsChange={editHandler((assets) => handleUpdateProduct({ assets }))} websiteUrl={currentProduct.websites?.[0]?.url} entityId={currentProduct.id} entityType="product" />;
       case 'misuse': return <MisuseSection misuse={currentProduct.misuse} onMisuseChange={editHandler((misuse) => handleUpdateProduct({ misuse }))} entityId={currentProduct.id} entityType="product" />;
-      case 'casestudies':
-      case 'brochures': return <DigitalCollateralSection collateral={currentProduct.brochures} onCollateralChange={editHandler((brochures) => handleUpdateProduct({ brochures }))} entityId={currentProduct.id} entityType="product" />;
+      case 'casestudies': return <CaseStudiesSection caseStudies={(currentProduct as any).caseStudies || []} onCaseStudiesChange={editHandler((caseStudies) => handleUpdateProduct({ caseStudies } as any))} entityId={currentProduct.id} entityType="product" brandLogos={currentProduct.logos} />;
+      case 'brochures': return <DigitalCollateralSection collateral={currentProduct.brochures} onCollateralChange={editHandler((brochures) => handleUpdateProduct({ brochures }))} entityId={currentProduct.id} entityType="product" brandLogos={currentProduct.logos} />;
       case 'templates': return <TemplatesSection templates={currentProduct.templates} onTemplatesChange={editHandler((templates) => handleUpdateProduct({ templates }))} entityId={currentProduct.id} entityType="product" />;
       case 'templatespecs': return <TemplateSpecsSection templateSpecs={currentProduct.templateSpecs || []} onTemplateSpecsChange={editHandler((templateSpecs) => handleUpdateProduct({ templateSpecs }))} brandColors={currentProduct.colors || []} entityId={currentProduct.id} entityType="product" />;
       case 'products': return <ProductsSection productId={currentProduct.id} linkedGuides={currentProduct.linkedGuides || []} onLinkedGuidesChange={editHandler((linkedGuides) => handleUpdateProduct({ linkedGuides }))} />;
@@ -693,7 +712,7 @@ const ProductEditor = () => {
         />
       );
       case 'logos': return <LogoSection logos={currentProduct.logos} onLogosChange={editHandler((logos) => handleUpdateProduct({ logos }))} entityId={currentProduct.id} entityType="product" logoDownloadLinks={currentProduct.logoDownloadLinks} onLogoDownloadLinksChange={editHandler((logoDownloadLinks) => handleUpdateProduct({ logoDownloadLinks }))} />;
-      case 'imageassets': return <ImageAssetsSection imageAssets={(currentProduct as any).imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => handleUpdateProduct({ imageAssets } as any))} />;
+      case 'imageassets': return <ImageAssetsSection imageAssets={(currentProduct as any).imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => handleUpdateProduct({ imageAssets } as any))} imageryAvoidList={(currentProduct as any).imageryAvoidList || []} onImageryAvoidListChange={editHandler((imageryAvoidList) => handleUpdateProduct({ imageryAvoidList } as any))} />;
       case 'webinars': return <WebinarSeriesSection webinars={(currentProduct as any).webinars || []} onWebinarsChange={editHandler((webinars) => handleUpdateProduct({ webinars } as any))} entityName={currentProduct.hero?.name} entityType="product" industry={(currentProduct as any).industry} websiteUrl={(currentProduct as any).websites?.[0]?.url} />;
       case 'awards': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading...</div>}><AwardsSection awards={(currentProduct as any).awards || []} onUpdate={editHandler((awards) => handleUpdateProduct({ awards } as any))} entityType="product" entityId={currentProduct.id} /></Suspense>;
       case 'events': return <EventsSection brandId={currentProduct.id} />;

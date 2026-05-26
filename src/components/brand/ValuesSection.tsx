@@ -41,6 +41,7 @@ import { toast } from 'sonner';
 import type { LucideIcon } from 'lucide-react';
 import { getPillarImage, getStablePillarImage, pillarImagesList, pillarImagesWithLabels } from '@/assets/pillars';
 import { useSavePillarsToLibrary } from '@/hooks/useSavePillarsToLibrary';
+import { TransPerfectValuesPanel } from './identity/TransPerfectValuesPanel';
 
 interface ValuesSectionProps {
   values: BrandValue[];
@@ -50,6 +51,7 @@ interface ValuesSectionProps {
   organizationId?: string;
   brandId?: string;
   brandName?: string;
+  brandSlug?: string;
   canEdit?: boolean;
   onSyncComplete?: () => void;
 }
@@ -223,11 +225,13 @@ export const ValuesSection = ({
   organizationId,
   brandId,
   brandName,
+  brandSlug,
   canEdit: canEditProp,
   onSyncComplete,
 }: ValuesSectionProps) => {
   // Derive canEdit from prop or whether change handler is provided
   const canEdit = canEditProp ?? Boolean(onValuesChange);
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
   const [editingId, setEditingId] = useState<string | null>(null);
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
@@ -404,6 +408,7 @@ export const ValuesSection = ({
 
   return (
     <section className="space-y-4 sm:space-y-6">
+      {isTransPerfect && <TransPerfectValuesPanel />}
       <input
         ref={fileInputRef}
         type="file"

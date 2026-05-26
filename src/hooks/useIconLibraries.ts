@@ -7,6 +7,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BrandIconography } from '@/types/brand';
+import { logActivity } from '@/lib/auditLog';
+import { logger } from '@/lib/logger';
 
 export interface IconLibrary {
   id: string;
@@ -51,12 +53,18 @@ export const useIconLibraries = (organizationId: string | undefined) => {
     queryFn: async () => {
       if (!organizationId) return [];
       
+      // Explicit cap: each row carries a large `icons` JSONB. We cap at 500
+      // rows to stay well below Supabase's default 1000-row implicit limit and
+      // keep payloads predictable. If an org outgrows this we'll move to paged
+      // fetching keyed by level.
       const { data, error } = await supabase
         .from('organization_icon_libraries')
         .select('*')
         .eq('organization_id', organizationId)
         .order('level')
-        .order('display_order');
+        .order('display_order')
+        .order('updated_at', { ascending: false })
+        .range(0, 499);
 
       if (error) throw error;
       
@@ -67,6 +75,12 @@ export const useIconLibraries = (organizationId: string | undefined) => {
       })) as IconLibrary[];
     },
     enabled: !!organizationId,
+    // The icons column is a large JSONB (hundreds of SVG paths per library).
+    // Cache aggressively so navigating across the Icon Studio doesn't refetch MBs each time.
+    // Mutations invalidate ['icon-libraries', organizationId] explicitly.
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const createLibrary = useMutation({
@@ -84,12 +98,20 @@ export const useIconLibraries = (organizationId: string | undefined) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
       toast.success('Icon library created');
+      void logActivity({
+        entityType: 'icon_library',
+        entityId: data?.id,
+        entityName: data?.name,
+        actionType: 'create',
+        organizationId,
+        details: { level: data?.level, iconCount: Array.isArray(data?.icons) ? (data.icons as unknown[]).length : 0 },
+      });
     },
     onError: (error) => {
-      console.error('Failed to create icon library:', error);
+      logger.debug('Failed to create icon library', error);
       toast.error('Failed to create icon library');
     },
   });
@@ -111,31 +133,49 @@ export const useIconLibraries = (organizationId: string | undefined) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
       toast.success('Icon library updated');
+      void logActivity({
+        entityType: 'icon_library',
+        entityId: data?.id,
+        entityName: data?.name,
+        actionType: 'update',
+        organizationId,
+        details: { changedFields: Object.keys(vars.updates) },
+      });
     },
     onError: (error) => {
-      console.error('Failed to update icon library:', error);
+      logger.debug('Failed to update icon library', error);
       toast.error('Failed to update icon library');
     },
   });
 
   const deleteLibrary = useMutation({
     mutationFn: async (id: string) => {
+      const target = libraries.find((l) => l.id === id);
       const { error } = await supabase
         .from('organization_icon_libraries')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+      return { id, name: target?.name, level: target?.level };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['icon-libraries', organizationId] });
       toast.success('Icon library deleted');
+      void logActivity({
+        entityType: 'icon_library',
+        entityId: result.id,
+        entityName: result.name,
+        actionType: 'delete',
+        organizationId,
+        details: { level: result.level },
+      });
     },
     onError: (error) => {
-      console.error('Failed to delete icon library:', error);
+      logger.debug('Failed to delete icon library', error);
       toast.error('Failed to delete icon library');
     },
   });

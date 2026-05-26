@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
-import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Building2, Layers, Eye, FolderPlus, Library } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, X, Pencil, Copy, Check, Upload, Grid2X2, Grid3X3, LayoutGrid, Download, Package, Palette, ChevronDown, ChevronUp, Sparkles, Building2, Layers, Eye, FolderPlus, Library, ExternalLink } from 'lucide-react';
 import { BrandIconography, BrandIcon } from '@/types/brand';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,9 +12,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from '@/components/ui/label';
 import { SectionHeader } from './SectionHeader';
 import { IconStudio, IconUsageGuidelines, HierarchicalIconDisplay } from './iconography';
+import { LinkedIconStudioLibraries } from './iconography/LinkedIconStudioLibraries';
 import { IconLibraryPicker } from './iconography/IconLibraryPicker';
 import { IconPreviewDialog } from './iconography/IconPreviewDialog';
+import { SuggestedIconsRail } from './iconography/SuggestedIconsRail';
+import { TrendingIconsRail } from './iconography/TrendingIconsRail';
 import type { IconStudioTab } from './iconography';
+import { TransPerfectIconographyPanel } from './identity/TransPerfectIconographyPanel';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
@@ -55,6 +60,7 @@ interface IconographySectionProps {
   productLineId?: string;
   entityType?: 'brand' | 'product' | 'event';
   entityName?: string;
+  entitySlug?: string;
   industry?: string;
 }
 
@@ -89,6 +95,7 @@ export const IconographySection = ({
   productLineId,
   entityType = 'brand',
   entityName = '',
+  entitySlug,
   industry,
 }: IconographySectionProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -530,8 +537,11 @@ ${innerContent}
     return acc;
   }, {} as Record<string, BrandIconography[]>);
 
+  const isTransPerfect = entitySlug?.toLowerCase() === 'transperfect';
+
   return (
     <section className="space-y-6">
+      {isTransPerfect && <TransPerfectIconographyPanel />}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <SectionHeader
@@ -661,6 +671,12 @@ ${innerContent}
                 <Sparkles className="h-4 w-4" />
                 Icon Studio
               </Button>
+              <Button asChild size="sm" variant="outline" className="gap-2">
+                <Link to="/icon-studio">
+                  <ExternalLink className="h-4 w-4" />
+                  Open Full Page
+                </Link>
+              </Button>
             </>
           )}
         </div>
@@ -719,6 +735,73 @@ ${innerContent}
           </div>
         </div>
       )}
+
+      {/* Brand-specific icon collections curated in Icon Studio */}
+      {organizationId && brandId && (
+        <LinkedIconStudioLibraries
+          organizationId={organizationId}
+          entityId={brandId}
+          entityType={entityType}
+          entitySlug={entitySlug}
+          entityName={entityName}
+          iconColor={iconColor}
+        />
+      )}
+
+      {canEdit && (
+        <SuggestedIconsRail
+          sectionId="iconography"
+          industry={industry}
+          organizationId={organizationId}
+          brandId={brandId}
+          existingIcons={iconography}
+          brandDna={{
+            strokeWidth: 1.75,
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+            primaryColor: defaultIconColor && defaultIconColor !== 'currentColor'
+              ? defaultIconColor
+              : brandColors[0]?.hex,
+            fillMode: 'preserve',
+          }}
+          onAdd={(icon) => {
+            if (!onIconographyChange) return;
+            if (iconography.some((i) => i.id === icon.id)) return;
+            onIconographyChange([...iconography, icon]);
+          }}
+          onAddBatch={(icons) => {
+            if (!onIconographyChange) return;
+            const existing = new Set(iconography.map((i) => i.id));
+            const fresh = icons.filter((ic) => !existing.has(ic.id));
+            if (fresh.length === 0) return;
+            onIconographyChange([...iconography, ...fresh]);
+          }}
+        />
+      )}
+
+      {canEdit && (
+        <TrendingIconsRail
+          sectionId="iconography"
+          industry={industry}
+          organizationId={organizationId}
+          existingIcons={iconography}
+          brandDna={{
+            strokeWidth: 1.75,
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+            primaryColor: defaultIconColor && defaultIconColor !== 'currentColor'
+              ? defaultIconColor
+              : brandColors[0]?.hex,
+            fillMode: 'preserve',
+          }}
+          onAdd={(icon) => {
+            if (!onIconographyChange) return;
+            if (iconography.some((i) => i.id === icon.id)) return;
+            onIconographyChange([...iconography, icon]);
+          }}
+        />
+      )}
+
 
       <div className="space-y-6">
         {Object.entries(groupedIcons).map(([category, icons]) => {

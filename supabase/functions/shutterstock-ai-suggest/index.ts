@@ -214,66 +214,86 @@ Return a JSON object with this structure:
       });
     }
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: userQuery ? 'return_enhanced_queries' : 'return_suggestions',
-              description: userQuery ? 'Return enhanced search queries' : 'Return search suggestions',
-              parameters: userQuery ? {
-                type: 'object',
-                properties: {
-                  enhancedQueries: { type: 'array', items: { type: 'string' } },
-                  reasoning: { type: 'string' },
-                  suggestedOrientation: { type: 'string' },
-                  styleNotes: { type: 'string' },
-                },
-                required: ['enhancedQueries', 'reasoning'],
-                additionalProperties: false,
-              } : {
-                type: 'object',
-                properties: {
-                  suggestions: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        query: { type: 'string' },
-                        category: { type: 'string' },
-                        rationale: { type: 'string' },
-                      },
-                      required: ['query', 'rationale'],
-                      additionalProperties: false,
-                    },
+    // Abort the AI call before the platform's 150s idle timeout
+    const aiController = new AbortController();
+    const aiTimeout = setTimeout(() => aiController.abort(), 60000);
+
+    let aiResponse: Response;
+    try {
+      aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        signal: aiController.signal,
+        body: JSON.stringify({
+          model: 'google/gemini-3.1-flash-lite-preview',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          tools: [
+            {
+              type: 'function',
+              function: {
+                name: userQuery ? 'return_enhanced_queries' : 'return_suggestions',
+                description: userQuery ? 'Return enhanced search queries' : 'Return search suggestions',
+                parameters: userQuery ? {
+                  type: 'object',
+                  properties: {
+                    enhancedQueries: { type: 'array', items: { type: 'string' } },
+                    reasoning: { type: 'string' },
+                    suggestedOrientation: { type: 'string' },
+                    styleNotes: { type: 'string' },
                   },
-                  brandImageryProfile: { type: 'string' },
-                  moodKeywords: { type: 'array', items: { type: 'string' } },
-                  avoidKeywords: { type: 'array', items: { type: 'string' } },
+                  required: ['enhancedQueries', 'reasoning'],
+                  additionalProperties: false,
+                } : {
+                  type: 'object',
+                  properties: {
+                    suggestions: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          query: { type: 'string' },
+                          category: { type: 'string' },
+                          rationale: { type: 'string' },
+                        },
+                        required: ['query', 'rationale'],
+                        additionalProperties: false,
+                      },
+                    },
+                    brandImageryProfile: { type: 'string' },
+                    moodKeywords: { type: 'array', items: { type: 'string' } },
+                    avoidKeywords: { type: 'array', items: { type: 'string' } },
+                  },
+                  required: ['suggestions', 'brandImageryProfile'],
+                  additionalProperties: false,
                 },
-                required: ['suggestions', 'brandImageryProfile'],
-                additionalProperties: false,
               },
             },
+          ],
+          tool_choice: {
+            type: 'function',
+            function: { name: userQuery ? 'return_enhanced_queries' : 'return_suggestions' },
           },
-        ],
-        tool_choice: {
-          type: 'function',
-          function: { name: userQuery ? 'return_enhanced_queries' : 'return_suggestions' },
-        },
-      }),
-    });
+        }),
+      });
+    } catch (abortErr: any) {
+      clearTimeout(aiTimeout);
+      if (abortErr?.name === 'AbortError') {
+        return new Response(JSON.stringify({
+          error: 'AI suggestions timed out. Please try again.',
+          fallback: true,
+        }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      throw abortErr;
+    }
+    clearTimeout(aiTimeout);
 
     if (!aiResponse.ok) {
       if (aiResponse.status === 429) {
@@ -288,7 +308,6 @@ Return a JSON object with this structure:
       }
       const errText = await aiResponse.text();
       console.error('AI gateway error:', aiResponse.status, errText);
-      // Return a graceful fallback instead of 500 for transient gateway errors (520, 502, etc.)
       return new Response(JSON.stringify({
         error: 'AI suggestion service temporarily unavailable. Please try again.',
         fallback: true,

@@ -17,6 +17,7 @@ import { useQRCodes, QRCode } from '@/hooks/useQRCodes';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { cn } from '@/lib/utils';
+import { TransPerfectQRPanel } from './identity/TransPerfectQRPanel';
 
 interface QRSectionProps {
   qr?: BrandQR; // Legacy single QR (for backward compatibility)
@@ -26,6 +27,7 @@ interface QRSectionProps {
   entityType?: 'brand' | 'product' | 'event';
   entityId?: string;
   logos?: BrandLogo[]; // Brand logos for overlay options
+  brandSlug?: string;
 }
 
 const USE_CASE_FILTERS = [
@@ -46,7 +48,9 @@ export const QRSection = ({
   entityType = 'brand',
   entityId,
   logos = [],
+  brandSlug,
 }: QRSectionProps) => {
+  const isTransPerfect = brandSlug?.toLowerCase() === 'transperfect';
   const [isHeaderEditing, setIsHeaderEditing] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingQR, setEditingQR] = useState<QRCode | undefined>();
@@ -144,6 +148,7 @@ export const QRSection = ({
 
   return (
     <section id="qr" className="scroll-mt-24 space-y-6">
+      {isTransPerfect && <TransPerfectQRPanel />}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex-1">
           <SectionHeader

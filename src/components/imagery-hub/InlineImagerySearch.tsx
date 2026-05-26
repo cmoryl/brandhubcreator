@@ -13,6 +13,7 @@ import {
   Camera, PenTool, Layers, SlidersHorizontal, X, Palette, Users, Eye,
   CheckSquare, Square, FolderPlus, Bookmark, Brain, ZoomIn, ChevronLeft,
   ShieldCheck, Ruler, Ban, Grid3X3, LayoutGrid, Upload, TrendingUp, FileImage,
+  ThumbsDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -150,9 +151,54 @@ export const InlineImagerySearch = ({
 }: InlineImagerySearchProps) => {
   const {
     visualDna, signalCount, isAnalyzing, isLoading: dnaLoading,
-    recordApproved, recordSkipped, analyzePreferences,
+    recordApproved, recordSkipped, recordRemoved, analyzePreferences,
   } = useImageryPreferenceLearning(entityId, entityType, organizationId);
   const lastSearchContextRef = useRef<Record<string, unknown>>({});
+
+  // Per-entity persistent rejection list (thumbs-down) so we can hide
+  // disliked images on every future search and feed the learning loop.
+  const rejectedStorageKey = `shutterstock-rejected-${entityId || 'global'}`;
+  const [rejectedIds, setRejectedIds] = useState<Set<string>>(() => {
+    try {
+      const stored = typeof window !== 'undefined' ? localStorage.getItem(`shutterstock-rejected-${entityId || 'global'}`) : null;
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(rejectedStorageKey);
+      setRejectedIds(stored ? new Set(JSON.parse(stored)) : new Set());
+    } catch { /* ignore */ }
+  }, [rejectedStorageKey]);
+  const persistRejected = useCallback((next: Set<string>) => {
+    setRejectedIds(next);
+    try { localStorage.setItem(rejectedStorageKey, JSON.stringify(Array.from(next))); } catch { /* ignore */ }
+  }, [rejectedStorageKey]);
+
+  const handleThumbsDown = useCallback((result: ShutterstockSearchResult) => {
+    const next = new Set(rejectedIds);
+    next.add(result.id);
+    persistRejected(next);
+    recordRemoved(result.id, {
+      description: result.description,
+      categories: result.categories,
+      media_type: result.media_type,
+      width: result.width,
+      height: result.height,
+      source: 'search-thumbs-down',
+    });
+    // Drop from current results immediately
+    setResults(prev => prev.filter(r => r.id !== result.id));
+    setSelectedIds(prev => {
+      if (!prev.has(result.id)) return prev;
+      const n = new Set(prev);
+      n.delete(result.id);
+      return n;
+    });
+    toast.success('Got it — we\'ll learn from this and stop showing it');
+  }, [rejectedIds, persistRejected, recordRemoved]);
 
   const [query, setQuery] = useState('');
   const [orientation, setOrientation] = useState<string>('any');
@@ -1076,7 +1122,7 @@ export const InlineImagerySearch = ({
                 gridCols === 4 ? 'grid-cols-3 sm:grid-cols-4' :
                 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5'
               )}>
-                {results.map((result, idx) => {
+                {results.filter(r => !rejectedIds.has(r.id)).map((result, idx) => {
                   const isSelected = selectedIds.has(result.id);
                   return (
                     <div key={result.id}
@@ -1125,6 +1171,10 @@ export const InlineImagerySearch = ({
                             <button onClick={(e) => { e.stopPropagation(); handleSimilarSearch(result.id); }}
                               className="p-1 rounded bg-white/20 hover:bg-white/40 text-white transition-colors" title="Find similar">
                               <Eye className="h-3 w-3" />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleThumbsDown(result); }}
+                              className="p-1 rounded bg-destructive/70 hover:bg-destructive text-destructive-foreground transition-colors" title="Not for this brand — learn from this">
+                              <ThumbsDown className="h-3 w-3" />
                             </button>
                           </div>
                         </div>

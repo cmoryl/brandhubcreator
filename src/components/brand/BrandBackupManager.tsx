@@ -26,6 +26,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { BrandBackupDialog } from './BrandBackupDialog';
+import { ClaudeSkillExportButton } from './ClaudeSkillExportButton';
 
 interface BrandBackupManagerProps {
   guide?: BrandGuide | ProductGuide;
@@ -192,6 +193,7 @@ export const BrandBackupManager = ({
           <Download className="h-4 w-4 mr-2" />
           Export Backup
         </DropdownMenuItem>
+        {guide && <ClaudeSkillExportButton guide={guide as any} variant="dropdown-item" />}
         <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
           <Upload className="h-4 w-4 mr-2" />
           Import Backup
@@ -310,15 +312,18 @@ export const BrandBackupManager = ({
 
   // Button variant - use the new enhanced dialog
   return (
-    <BrandBackupDialog 
-      guide={guide} 
-      showFullBackup={showFullBackup}
-      trigger={
-        <Button variant="outline" size="sm" className="gap-2" aria-label="Backup options">
-          <FolderOpen className="h-4 w-4" />
-          Backup
-        </Button>
-      }
-    />
+    <div className="flex items-center gap-2">
+      <BrandBackupDialog
+        guide={guide}
+        showFullBackup={showFullBackup}
+        trigger={
+          <Button variant="outline" size="sm" className="gap-2" aria-label="Backup options">
+            <FolderOpen className="h-4 w-4" />
+            Backup
+          </Button>
+        }
+      />
+      {guide && <ClaudeSkillExportButton guide={guide as any} />}
+    </div>
   );
 };

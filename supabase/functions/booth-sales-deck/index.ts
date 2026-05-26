@@ -83,7 +83,7 @@ Generate exactly 7 slides:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-3.1-flash-lite-preview",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Generate the 7-slide sales deck content for the "${divisionName}" booth (${layoutName} ${boothSize}).` },

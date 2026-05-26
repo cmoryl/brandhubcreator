@@ -59,9 +59,8 @@ const TAB_MAPPING: Record<IconStudioTab, SimplifiedTab> = {
 };
 
 interface IconStudioProps {
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  asPage?: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   organizationId: string;
   organizationName?: string;
   brandColors?: Array<{ hex: string; name: string }>;
@@ -80,9 +79,8 @@ interface IconStudioProps {
 }
 
 export const IconStudio = ({
-  open = false,
+  open,
   onOpenChange,
-  asPage = false,
   organizationId,
   organizationName = '',
   brandColors = [],
@@ -289,71 +287,6 @@ export const IconStudio = ({
     }
   };
 
-  const body = (
-    <>
-      {/* Tab Navigation */}
-      <div className="px-6 py-3 border-b bg-muted/20">
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-          {([
-            { id: 'library' as const, label: 'Library', icon: Library, badge: totalIcons },
-            { id: 'creator' as const, label: 'Browse & Add', icon: Globe },
-            { id: 'generate' as const, label: 'AI Generate', icon: Wand2 },
-            { id: 'style' as const, label: 'Style', icon: Palette },
-            { id: 'export' as const, label: 'Export', icon: Package },
-          ]).map((tab) => {
-            const Icon = tab.icon;
-            const isActive = tab.id === activeTab;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap',
-                  'hover:bg-accent/50',
-                  isActive
-                    ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <Icon className="h-4 w-4 flex-shrink-0" />
-                <span>{tab.label}</span>
-                {'badge' in tab && tab.badge !== undefined && tab.badge > 0 && (
-                  <Badge variant="secondary" className="h-5 px-1.5 text-[10px] ml-0.5">
-                    {tab.badge}
-                  </Badge>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="p-6">
-          {renderTabContent()}
-        </div>
-      </div>
-    </>
-  );
-
-  if (asPage) {
-    return (
-      <div className="flex flex-col min-h-[calc(100vh-4rem)] bg-background">
-        <div className="px-6 pt-6 pb-4 border-b">
-          <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Icon Studio
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Create, manage, and export brand icons
-          </p>
-        </div>
-        {body}
-      </div>
-    );
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col p-0 gap-0">
@@ -366,7 +299,50 @@ export const IconStudio = ({
             Create, manage, and export brand icons
           </DialogDescription>
         </DialogHeader>
-        {body}
+
+        {/* Tab Navigation */}
+        <div className="px-6 py-3 border-b bg-muted/20">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {([
+              { id: 'library' as const, label: 'Library', icon: Library, badge: totalIcons },
+              { id: 'creator' as const, label: 'Browse & Add', icon: Globe },
+              { id: 'generate' as const, label: 'AI Generate', icon: Wand2 },
+              { id: 'style' as const, label: 'Style', icon: Palette },
+              { id: 'export' as const, label: 'Export', icon: Package },
+            ]).map((tab) => {
+              const Icon = tab.icon;
+              const isActive = tab.id === activeTab;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap',
+                    'hover:bg-accent/50',
+                    isActive
+                      ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <span>{tab.label}</span>
+                  {'badge' in tab && tab.badge !== undefined && tab.badge > 0 && (
+                    <Badge variant="secondary" className="h-5 px-1.5 text-[10px] ml-0.5">
+                      {tab.badge}
+                    </Badge>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="p-6">
+            {renderTabContent()}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

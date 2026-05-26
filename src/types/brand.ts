@@ -36,6 +36,7 @@ export interface BrandLogo {
   name: string;
   url: string;
   variant: 'primary' | 'secondary' | 'icon' | 'wordmark' | 'reversed' | 'monochrome';
+  description?: string;
 }
 
 // External logo download link (e.g. Dropbox direct links)
@@ -227,6 +228,8 @@ export interface BrandIconography {
   category: string;
   viewBox?: string;
   fillMode?: 'stroke' | 'fill';
+  /** One-line metaphor commitment from the generator (shown on hover / in details). */
+  concept?: string;
 }
 
 // SOCIALICONS - Platform Markers
@@ -614,6 +617,10 @@ export interface BrandCaseStudy {
   title: string;
   description: string;
   previewUrl: string;
+  /** Aspect ratio for the templated single-page canvas (e.g. '16/9', '4/3', '1/1'). */
+  templateAspect?: string;
+  /** Zones drawn over the previewUrl for the templated single-page editor. */
+  templateZones?: SocialTemplateZone[];
 }
 
 // BROCHURES - Digital Collateral
@@ -624,6 +631,15 @@ export interface BrandBrochure {
   previewUrl: string;
   thumbnailUrl?: string; // Optional image preview/screenshot
   externalUrl?: string; // External link (Dropbox, GlobalLink Share, etc.)
+  /** Aspect ratio for the templated single-page canvas (e.g. '16/9', '4/3', '1/1'). */
+  templateAspect?: string;
+  /**
+   * Zones drawn over the previewUrl/thumbnailUrl for the templated single-page
+   * editor — shared with Case Studies, Digital Collateral and Event Print
+   * Collateral. Always optional so legacy assets created before the templated
+   * canvas existed continue to render unchanged.
+   */
+  templateZones?: SocialTemplateZone[];
 }
 
 // TEMPLATES - Master Scaffolds
@@ -775,6 +791,34 @@ export interface BrandService {
 // SOCIAL ASSET TEMPLATE - Downloadable design files for social platforms
 export type SocialSizeCategory = 'post' | 'square' | 'story' | 'reel' | 'cover' | 'other';
 
+export interface SocialTemplateZone {
+  type: 'image' | 'text' | 'logo' | 'cta';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label: string;
+  content?: string;
+  mediaUrl?: string;
+  mediaFit?: {
+    fit: 'cover' | 'contain';
+    focusX: number;
+    focusY: number;
+  };
+  colorSlot?: 'primary' | 'secondary' | 'accent' | 'background';
+  fontSize?: 'sm' | 'md' | 'lg' | 'xl';
+  align?: 'left' | 'center' | 'right';
+  /**
+   * For logo zones: when the mediaUrl was auto-applied by the background-aware
+   * logo matcher, this records the brand-logo id we picked. As long as the
+   * field is present, the matcher is free to swap to a better variant when the
+   * underlying background changes. The first time a user manually picks a
+   * logo (via library, upload, or the variant picker) we clear this marker so
+   * we never overwrite their choice.
+   */
+  autoMatchedLogoId?: string;
+}
+
 export interface SocialAssetTemplate {
   id: string;
   name: string;
@@ -782,8 +826,16 @@ export interface SocialAssetTemplate {
   url: string;
   description?: string;
   previewImageUrl?: string;
+  previewFit?: {
+    fit: 'cover' | 'contain';
+    focusX: number;
+    focusY: number;
+  };
   dimensions?: string;
   sizeCategory?: SocialSizeCategory;
+  templateZones?: SocialTemplateZone[];
+  sourceTemplateId?: string;
+  sourceTemplateFormat?: 'feed' | 'story' | 'reel' | 'cover' | 'profile';
 }
 
 // SOCIAL ASSETS - Platform Specifications
@@ -1177,7 +1229,7 @@ export interface BrandStudio {
 // Default section order - canonical sections only (no deprecated aliases)
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero', 'tagline', 'identity', 'values', 'bythenumbers', 'services', 'revenue', 'awards', 'insights', 'locations', 'webinars', 
-  'logos', 'brandicon', 'colors', 'gradients', 'patterns', 
+  'logos', 'brandicon', 'colors', 'gradients', 'patterns', 'layouttemplates',
   'typography', 'textstyles', 
   'iconography', 'socialicons', 'imagery', 
   'social', 'socialassets', 'socialmetrics', 'website', 'signatures', 'qr', 
@@ -1212,6 +1264,7 @@ export type SectionId =
   | 'colors'
   | 'gradients'
   | 'patterns'
+  | 'layouttemplates'
   | 'typography'
   | 'textstyles'
   | 'iconography'

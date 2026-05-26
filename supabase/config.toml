@@ -18,6 +18,9 @@ verify_jwt = false
 [functions.generate-icon-set]
 verify_jwt = false
 
+[functions.icon-semantic-search]
+verify_jwt = false
+
 [functions.competitive-analysis]
 verify_jwt = false
 
@@ -164,3 +167,33 @@ verify_jwt = false
 [functions.enrich-demos-orchestrator]
 verify_jwt = false
 
+
+[functions.seed-zone-copy]
+verify_jwt = false
+
+[functions.skill-qa]
+verify_jwt = false
+
+[functions.skill-pdf-vision]
+verify_jwt = false
+
+[functions.skill-autofix]
+verify_jwt = false
+
+[functions.skill-chat]
+verify_jwt = false
+
+[functions.skill-anthropic-push]
+verify_jwt = false
+
+[functions.skill-token-optimizer]
+verify_jwt = false
+
+[functions.skill-qa-scheduled]
+verify_jwt = false
+
+[functions.brand-visual-dna]
+verify_jwt = false
+
+[functions.brand-imagery-similar]
+verify_jwt = false

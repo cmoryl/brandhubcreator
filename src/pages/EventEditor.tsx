@@ -49,6 +49,8 @@ import { HeroSection } from '@/components/brand/HeroSection';
 import { TaglineSection } from '@/components/brand/TaglineSection';
 import { ColorPaletteSection } from '@/components/brand/ColorPaletteSection';
 import { GradientsSection } from '@/components/brand/GradientsSection';
+import { LayoutTemplatesSection } from '@/components/brand/LayoutTemplatesSection';
+import { resolveBrandVisuals } from '@/lib/deriveBrandVisuals';
 import { TypographySection } from '@/components/brand/TypographySection';
 import { ImagerySection } from '@/components/brand/ImagerySection';
 import { SocialSection } from '@/components/brand/SocialSection';
@@ -56,6 +58,7 @@ import { SocialAssetsSection } from '@/components/brand/SocialAssetsSection';
 import { AssetsSection } from '@/components/brand/AssetsSection';
 import { MisuseSection } from '@/components/brand/MisuseSection';
 import { DigitalCollateralSection } from '@/components/brand/DigitalCollateralSection';
+import { CaseStudiesSection } from '@/components/brand/CaseStudiesSection';
 import { TemplatesSection } from '@/components/brand/TemplatesSection';
 import { TemplateSpecsSection } from '@/components/brand/TemplateSpecsSection';
 import { SponsorLogosSection } from '@/components/brand/SponsorLogosSection';
@@ -85,6 +88,7 @@ import { ValuesSection } from '@/components/brand/ValuesSection';
 import { IdentitySection } from '@/components/brand/IdentitySection';
 import { ShareButton } from '@/components/brand/ShareButton';
 import { EventExportPdfButton } from '@/components/event/EventExportPdfButton';
+import { ClaudeSkillExportButton } from '@/components/brand/ClaudeSkillExportButton';
 import { BrandIntelligencePanel } from '@/components/brand/BrandIntelligencePanel';
 import { BrandPageSettingsEditor } from '@/components/brand/BrandPageSettingsEditor';
 import { AdminToolbar, type AdminToolbarAction } from '@/components/admin/AdminToolbar';
@@ -621,13 +625,27 @@ const EventEditor = () => {
       case 'eventdigital':
         return <EventDigitalSection materials={event.eventDigitalMaterials || []} onUpdate={canEdit ? (eventDigitalMaterials) => updateEvent({ eventDigitalMaterials }) : () => {}} banners={event.eventBanners || []} onBannersChange={canEdit ? (eventBanners) => updateEvent({ eventBanners }) : undefined} printMaterials={event.eventPrintMaterials || []} onPrintMaterialsChange={canEdit ? (eventPrintMaterials) => updateEvent({ eventPrintMaterials }) : undefined} sponsorshipMaterials={event.eventSponsorshipMaterials || []} onSponsorshipMaterialsChange={canEdit ? (eventSponsorshipMaterials) => updateEvent({ eventSponsorshipMaterials }) : undefined} emailBanners={event.emailBanners || []} onEmailBannersChange={canEdit ? (emailBanners) => updateEvent({ emailBanners }) : undefined} infographics={event.eventInfographics || []} onInfographicsChange={canEdit ? (eventInfographics) => updateEvent({ eventInfographics }) : undefined} applications={event.eventApplications || []} onApplicationsChange={canEdit ? (eventApplications) => updateEvent({ eventApplications }) : undefined} digitalAssets={event.eventDigitalAssets || []} onDigitalAssetsChange={canEdit ? (eventDigitalAssets) => updateEvent({ eventDigitalAssets }) : undefined} isEditable={canEdit || false} eventId={event.id} />;
       case 'colors': 
-        return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} />;
+        return <ColorPaletteSection colors={event.colors} onColorsChange={editHandler((colors) => updateEvent({ colors }))} colorCombinations={event.colorCombinations} onColorCombinationsChange={editHandler((colorCombinations) => updateEvent({ colorCombinations }))} brandName={event.hero.name} brandSlug={(event as any).brandSlug || (event as any).parentBrandSlug} />;
       case 'gradients': 
         return <GradientsSection gradients={event.gradients} onGradientsChange={editHandler((gradients) => updateEvent({ gradients }))} brandName={event.hero.name} brandColors={event.colors} />;
+      case 'layouttemplates': {
+        const explicitVisuals = (event as any).brandVisuals;
+        const derivedVisuals = resolveBrandVisuals(explicitVisuals, {
+          brandSlug: (event as any).brandSlug || (event as any).parentBrandSlug,
+          hero: event.hero,
+          logos: event.logos,
+          imagery: event.imagery,
+          patterns: event.patterns,
+          gradients: event.gradients,
+          approvedImagery: (event as any).approvedImagery,
+        });
+        const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
+        return <LayoutTemplatesSection brandVisuals={derivedVisuals} isDerived={isDerived} />;
+      }
       case 'typography': 
-        return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} isAdmin={isGuideAdmin} />;
+        return <TypographySection typography={event.typography} onTypographyChange={editHandler((typography) => updateEvent({ typography }))} isAdmin={isGuideAdmin} brandSlug={(event as any).brandSlug || (event as any).parentBrandSlug} />;
       case 'imagery': 
-        return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} entityId={event.id} entityType="event" isAdmin={isGuideAdmin} />;
+        return <ImagerySection imagery={event.imagery} onImageryChange={editHandler((imagery) => updateEvent({ imagery }))} entityId={event.id} entityType="event" isAdmin={isGuideAdmin} brandSlug={(event as any).brandSlug || (event as any).parentBrandSlug} />;
       case 'social': 
         return <SocialSection social={event.social} onSocialChange={editHandler((social) => updateEvent({ social }))} entityId={event.id} entityType="event" organizationId={event.organizationId} entityName={event.hero?.name} />;
       case 'socialassets': 
@@ -635,7 +653,9 @@ const EventEditor = () => {
           <SocialAssetsSection
             socialAssets={event.socialAssets || []}
             onSocialAssetsChange={editHandler((socialAssets) => updateEvent({ socialAssets }))}
-            
+            entityId={event.id}
+            entityType="event"
+            brandLogos={event.logos}
           />
         );
       case 'eventspeakers':
@@ -661,9 +681,10 @@ const EventEditor = () => {
         return <AssetsSection assets={event.assets} onAssetsChange={editHandler((assets) => updateEvent({ assets }))} websiteUrl={(event as any).websites?.[0]?.url} entityId={event.id} entityType="event" />;
       case 'misuse': 
         return <MisuseSection misuse={event.misuse} onMisuseChange={editHandler((misuse) => updateEvent({ misuse }))} entityId={event.id} entityType="event" />;
-      case 'casestudies': 
+      case 'casestudies':
+        return <CaseStudiesSection caseStudies={(event as any).caseStudies || []} onCaseStudiesChange={editHandler((caseStudies) => updateEvent({ caseStudies } as any))} entityId={event.id} entityType="event" brandLogos={(event as any).logos} />;
       case 'brochures': 
-        return <DigitalCollateralSection collateral={event.brochures} onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))} entityId={event.id} entityType="event" />;
+        return <DigitalCollateralSection collateral={event.brochures} onCollateralChange={editHandler((brochures) => updateEvent({ brochures }))} entityId={event.id} entityType="event" brandLogos={(event as any).logos} />;
       case 'templates': 
         // Handled in eventdigital unified section - no standalone render
         return null;
@@ -754,13 +775,13 @@ const EventEditor = () => {
       case 'patterns': return <PatternsSection patterns={event.patterns} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} brandName={event.hero.name} brandColors={event.colors} entityId={event.id} entityType="event" />;
       case 'eventpatterns': return <EventPatternsSection patterns={event.patterns || []} onPatternsChange={editHandler((patterns) => updateEvent({ patterns }))} isEditable={canEdit} eventName={event.hero.name} eventColors={event.colors} eventTagline={event.hero.tagline} />;
       case 'textstyles': return <TextStylesSection textStyles={event.textStyles} onTextStylesChange={editHandler((textStyles) => updateEvent({ textStyles }))} />;
-      case 'iconography': return <IconographySection iconography={event.iconography} onIconographyChange={editHandler((iconography) => updateEvent({ iconography }))} defaultIconColor={(event as any).defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => updateEvent({ defaultIconColor }))} brandColors={event.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} brandId={event.id} entityType="event" entityName={event.hero?.name || ''} />;
+      case 'iconography': return <IconographySection iconography={event.iconography} onIconographyChange={editHandler((iconography) => updateEvent({ iconography }))} defaultIconColor={(event as any).defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => updateEvent({ defaultIconColor }))} brandColors={event.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organization?.id} brandId={event.id} entityType="event" entityName={event.hero?.name || ''} entitySlug={(event as any).slug} />;
       case 'socialicons': return <SocialIconsSection socialIcons={event.socialIcons} onSocialIconsChange={editHandler((socialIcons) => updateEvent({ socialIcons }))} />;
       case 'website': return <WebsiteSection websites={event.websites} onWebsitesChange={editHandler((websites) => updateEvent({ websites }))} entityType="event" entityId={event.id} />;
       case 'signatures': return <SignaturesSection signatures={event.signatures} onSignaturesChange={editHandler((signatures) => updateEvent({ signatures }))} />;
       case 'qr': return <QRSection qr={event.qr} onQRChange={editHandler((qr) => updateEvent({ qr }))} entityType="event" entityId={event.id} logos={event.logos} />;
       case 'videos': return <VideosSection videos={event.videos} onVideosChange={editHandler((videos) => updateEvent({ videos }))} entityName={event.hero?.name} entityType="event" industry={(event as any).industry} websiteUrl={(event as any).websites?.[0]?.url} />;
-      case 'imageassets': return <ImageAssetsSection imageAssets={(event as any).imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => updateEvent({ imageAssets } as any))} />;
+      case 'imageassets': return <ImageAssetsSection imageAssets={(event as any).imageAssets || []} onImageAssetsChange={editHandler((imageAssets) => updateEvent({ imageAssets } as any))} imageryAvoidList={(event as any).imageryAvoidList || []} onImageryAvoidListChange={editHandler((imageryAvoidList) => updateEvent({ imageryAvoidList } as any))} />;
       case 'bythenumbers': return <ByTheNumbersSection statistics={event.statistics || []} onStatisticsChange={editHandler((statistics) => updateEvent({ statistics }))} brandName={event.hero.name} brandColors={event.colors || []} />;
       case 'services': return <ServicesSection services={(event as any).services || []} onServicesChange={editHandler((services) => updateEvent({ services } as any))} />;
       case 'revenue': return <RevenueChartSection revenueData={(event as any).revenueData} onRevenueDataChange={editHandler((revenueData) => updateEvent({ revenueData } as any))} brandName={event.hero.name} brandColors={event.colors || []} />;
@@ -1180,6 +1201,12 @@ const EventEditor = () => {
                   label: 'Export PDF',
                   icon: Download,
                   render: () => <EventExportPdfButton event={event} />,
+                },
+                {
+                  id: 'claude-skill',
+                  label: 'Claude Skill',
+                  icon: Download,
+                  render: () => <ClaudeSkillExportButton guide={event as any} />,
                 },
               ] as AdminToolbarAction[] : []),
             ]}

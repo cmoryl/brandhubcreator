@@ -215,7 +215,7 @@ When writing recommendations, reference specific asset sources (e.g. "Approved I
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: "You are a brand imagery auditor. Inspect any provided thumbnails alongside the textual inventory. Return structured JSON via the supplied tool only." },
           { role: "user", content: userContent },
@@ -260,15 +260,26 @@ When writing recommendations, reference specific asset sources (e.g. "Approved I
 
     if (!aiResponse.ok) {
       const status = aiResponse.status;
+      // Return 200 with error payload so the Supabase client SDK doesn't throw
+      // and discard the body — the hook reads data.error to show a toast.
       if (status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again later" }), { status: 429, headers: corsHeaders });
+        return new Response(
+          JSON.stringify({ error: "Rate limit exceeded, please try again later", fallback: true }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
       if (status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted" }), { status: 402, headers: corsHeaders });
+        return new Response(
+          JSON.stringify({ error: "AI credits exhausted", fallback: true }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
       const text = await aiResponse.text();
       console.error("AI gateway error:", status, text);
-      throw new Error(`AI gateway error: ${status}`);
+      return new Response(
+        JSON.stringify({ error: `AI gateway error: ${status}`, fallback: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const aiData = await aiResponse.json();

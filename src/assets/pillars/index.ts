@@ -14,6 +14,7 @@ import diversityImg from '@/assets/pillars/diversity-pillar.jpg';
 import urgencyImg from '@/assets/pillars/urgency-pillar.jpg';
 import resultsImg from '@/assets/pillars/results-pillar.jpg';
 import transparencyImg from '@/assets/pillars/transparency-pillar.jpg';
+import financialResponsibilityImg from '@/assets/pillars/financial-responsibility-pillar.jpg';
 
 export const collaborationPillar = collaborationImg;
 export const integrityPillar = integrityImg;
@@ -26,8 +27,18 @@ export const diversityPillar = diversityImg;
 export const urgencyPillar = urgencyImg;
 export const resultsPillar = resultsImg;
 export const transparencyPillar = transparencyImg;
+export const financialResponsibilityPillar = financialResponsibilityImg;
 
 export const pillarImages: Record<string, string> = {
+  // Financial Responsibility / Stewardship
+  // (placed first so it wins over generic "responsibility" -> sustainability)
+  'financial responsibility': financialResponsibilityPillar,
+  'fiscal responsibility': financialResponsibilityPillar,
+  'financial stewardship': financialResponsibilityPillar,
+  financial: financialResponsibilityPillar,
+  fiscal: financialResponsibilityPillar,
+  stewardship: financialResponsibilityPillar,
+
   // Collaboration / Teamwork
   collaboration: collaborationPillar,
   teamwork: collaborationPillar,
@@ -92,7 +103,6 @@ export const pillarImages: Record<string, string> = {
   community: sustainabilityPillar,
   responsibility: sustainabilityPillar,
   giving: sustainabilityPillar,
-  financial: sustainabilityPillar,
   
   // Diversity / Inclusion
   diversity: diversityPillar,
@@ -115,6 +125,7 @@ export const pillarImagesList = [
   trustPillar,
   sustainabilityPillar,
   diversityPillar,
+  financialResponsibilityPillar,
 ];
 
 export const pillarImagesWithLabels = [
@@ -129,6 +140,7 @@ export const pillarImagesWithLabels = [
   { url: trustPillar, label: 'Trust', keywords: ['reliability', 'commitment', 'accountability'] },
   { url: sustainabilityPillar, label: 'Sustainability', keywords: ['environment', 'community', 'responsibility'] },
   { url: diversityPillar, label: 'Diversity', keywords: ['inclusion', 'belonging', 'respect'] },
+  { url: financialResponsibilityPillar, label: 'Financial Responsibility', keywords: ['fiscal', 'stewardship', 'finance'] },
 ];
 
 /**

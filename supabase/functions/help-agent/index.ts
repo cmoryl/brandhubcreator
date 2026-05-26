@@ -301,7 +301,7 @@ serve(async (req) => {
     dynamicConfig = await fetchBotConfig(orgIdForConfig);
     
     const systemPrompt = dynamicConfig?.system_prompt || fullSystemPrompt;
-    const model = dynamicConfig?.model || "google/gemini-2.5-flash-lite";
+    const model = dynamicConfig?.model || "google/gemini-3.1-flash-lite-preview";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
