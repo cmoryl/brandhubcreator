@@ -19,7 +19,7 @@ import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { useEnrichAllLibraries } from '@/hooks/useEnrichAllLibraries';
 import { BulkRegenerateDialog } from './BulkRegenerateDialog';
 import { BulkExpandDialog } from './BulkExpandDialog';
-import { type IconLibrary } from '@/hooks/useIconLibraries';
+import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryRowActions } from './useIconLibraryRowActions';
 import { isBundledLibraryId, bundledLibraryPackId } from '@/hooks/useBundledIconLibraries';
 
