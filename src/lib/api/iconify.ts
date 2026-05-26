@@ -124,6 +124,19 @@ export const INDUSTRY_CATEGORIES: LibraryCategory[] = [
       { prefix: 'circle-flags', name: 'Circle Flags' },
     ],
   },
+  {
+    id: 'multicultural',
+    name: 'Multicultural',
+    libraries: [
+      { prefix: 'twemoji', name: 'Twemoji' },
+      { prefix: 'openmoji', name: 'OpenMoji' },
+      { prefix: 'noto', name: 'Noto Emoji' },
+      { prefix: 'flag', name: 'Flags' },
+      { prefix: 'circle-flags', name: 'Circle Flags' },
+      { prefix: 'emojione', name: 'EmojiOne' },
+      { prefix: 'fluent-emoji', name: 'Fluent Emoji' },
+    ],
+  },
 ];
 
 /**
