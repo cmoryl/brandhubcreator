@@ -1,11 +1,8 @@
 /**
- * DashboardView — enterprise studio dashboard.
+ * DashboardView — enterprise studio dashboard (high-end visual revamp).
  *
- * Cards: recent systems, active drafts, approved sets, needs review,
- * export history, brand profiles, production volume sparkline, QA health gauge.
- *
- * Phase 1 ships static/derived data so the surface is wired and visible. Live
- * data hooks come in Phase 4 with the Supabase persistence layer.
+ * Premium hero with animated gradient mesh, large stat tiles, rich recent-system
+ * cards with real icon previews, and visually distinctive brand profile tiles.
  */
 
 import {
@@ -16,6 +13,8 @@ import {
   Sparkles,
   Users,
   X,
+  Layers,
+  Wand2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -48,65 +47,128 @@ interface RecentLibrary {
 
 interface Props {
   organizationName: string;
-  /** Total icons across saved libraries */
   totalIcons: number;
-  /** Total saved libraries */
   totalLibraries: number;
   onStartGenerate: () => void;
-  /** Navigate to another shell section (library, sets, export, brands, qa, styles). */
   onNavigate?: (section: 'library' | 'sets' | 'export' | 'brands' | 'qa' | 'styles' | 'generate' | 'imported') => void;
-  /** Open a specific library's detail dialog. */
   onOpenLibrary?: (libraryId: string) => void;
-  /** Recent saved libraries (most recently created/updated first). */
   recentLibraries?: RecentLibrary[];
-  /** Real brand profiles loaded from the org. */
   brandProfiles?: BrandProfile[];
-  /** Number of imported bundled icons. */
   importedIconCount?: number;
 }
 
-const ActivityRow = ({
-  title,
-  meta,
-  status,
-  emojis,
-  icons,
+const levelAccent = (lvl?: string) =>
+  lvl === 'product_line'
+    ? 'hsl(var(--tp-orange))'
+    : lvl === 'brand'
+    ? 'hsl(var(--tp-pink))'
+    : 'hsl(var(--tp-digital-blue))';
+const levelLabel = (lvl?: string) =>
+  lvl === 'product_line' ? 'Product line' : lvl === 'brand' ? 'Brand' : 'Core';
+
+const sampleEmojis = ['⚙️', '📊', '🔐', '🔌', '⚡', '🧩'];
+
+/* -------------------------- Stat tile -------------------------- */
+const StatTile = ({
+  label,
+  value,
+  icon: Icon,
   accent,
   onClick,
 }: {
-  title: string;
-  meta: string;
-  status: SectionStatus;
-  emojis: string[];
-  icons?: BrandIconography[];
+  label: string;
+  value: string;
+  icon: typeof Sparkles;
   accent: string;
   onClick?: () => void;
 }) => (
-  <li>
+  <button
+    type="button"
+    onClick={onClick}
+    className="group relative overflow-hidden rounded-2xl border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/40"
+    style={{ borderColor: `color-mix(in oklab, ${accent} 22%, hsl(var(--border)))` }}
+  >
+    <div
+      className="absolute inset-0 opacity-50 transition-opacity group-hover:opacity-80"
+      style={{
+        background: `radial-gradient(120% 90% at 100% 0%, ${accent} / 0.16, transparent 60%)`,
+      }}
+      aria-hidden
+    />
+    <div className="relative flex items-start justify-between">
+      <div>
+        <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          {label}
+        </div>
+        <div className="mt-2 text-3xl font-semibold tracking-tight">{value}</div>
+      </div>
+      <div
+        className="flex h-10 w-10 items-center justify-center rounded-xl"
+        style={{
+          background: `color-mix(in oklab, ${accent} 16%, transparent)`,
+          color: accent,
+        }}
+      >
+        <Icon className="h-5 w-5" />
+      </div>
+    </div>
+    <div className="relative mt-4 flex items-center gap-1 text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+      View <ArrowUpRight className="h-3 w-3" />
+    </div>
+  </button>
+);
+
+/* ------------------- Recent system card (rich) ------------------- */
+const RecentSystemCard = ({
+  lib,
+  onClick,
+}: {
+  lib: RecentLibrary;
+  onClick?: () => void;
+}) => {
+  const accent = levelAccent(lib.level);
+  return (
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary/40"
+      className="group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/40"
+      style={{ borderColor: `color-mix(in oklab, ${accent} 18%, hsl(var(--border)))` }}
     >
-      <div className="flex items-center gap-3 min-w-0 flex-1">
-        <LibraryIconPreview
-          icons={icons}
-          fallbackEmojis={emojis}
-          accent={accent}
-          count={4}
-          size="sm"
-          tilePx={28}
-          className="flex-shrink-0"
-        />
+      <div
+        className="absolute inset-x-0 top-0 h-24 opacity-60 transition-opacity group-hover:opacity-90"
+        style={{
+          background: `radial-gradient(80% 100% at 0% 0%, ${accent} / 0.22, transparent 70%)`,
+        }}
+        aria-hidden
+      />
+      <div className="relative flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-sm font-medium truncate">{title}</div>
-          <div className="text-[11px] text-muted-foreground truncate">{meta}</div>
+          <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            {levelLabel(lib.level)}
+          </div>
+          <div className="mt-1 truncate text-base font-semibold">{lib.name}</div>
         </div>
+        <StatusChip status={lib.isActive ? 'approved' : 'idle'} />
       </div>
-      <StatusChip status={status} />
+      <div className="relative">
+        <LibraryIconPreview
+          icons={lib.icons}
+          fallbackEmojis={sampleEmojis}
+          accent={accent}
+          count={6}
+          size="md"
+          tilePx={44}
+        />
+      </div>
+      <div className="relative flex items-center justify-between text-[11px] text-muted-foreground">
+        <span>{lib.iconCount} icons</span>
+        <span className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          Open <ArrowUpRight className="h-3 w-3" />
+        </span>
+      </div>
     </button>
-  </li>
-);
+  );
+};
 
 export const DashboardView = ({
   organizationName,
@@ -123,137 +185,197 @@ export const DashboardView = ({
     useHiddenItems('brand-profiles');
   const visibleBrandProfiles = brandProfiles.filter((b) => !isBrandHidden(b.id));
 
-  const levelAccent = (lvl?: string) =>
-    lvl === 'product_line' ? 'hsl(var(--tp-orange))'
-    : lvl === 'brand' ? 'hsl(var(--tp-pink))'
-    : 'hsl(var(--tp-digital-blue))';
-  const levelLabel = (lvl?: string) =>
-    lvl === 'product_line' ? 'Product line' : lvl === 'brand' ? 'Brand' : 'Core';
-  const sampleEmojis = ['⚙️','📊','🔐','🔌','⚡','🧩'];
-
   return (
-    <div className="space-y-8">
-      {/* Hero strip */}
-      <header className="tp-card relative overflow-hidden p-7">
+    <div className="space-y-10">
+      {/* ============ HERO ============ */}
+      <header className="relative overflow-hidden rounded-3xl border bg-card p-8 md:p-10">
+        {/* animated gradient mesh */}
         <div
-          className="absolute inset-0 opacity-50"
+          className="absolute inset-0"
           style={{
             background:
-              'radial-gradient(60% 60% at 15% 0%, hsl(var(--tp-digital-blue) / 0.25), transparent 70%), radial-gradient(50% 80% at 100% 100%, hsl(var(--tp-pink) / 0.15), transparent 70%)',
+              'radial-gradient(55% 70% at 10% 0%, hsl(var(--tp-digital-blue) / 0.35), transparent 70%), radial-gradient(45% 65% at 95% 20%, hsl(var(--tp-pink) / 0.22), transparent 70%), radial-gradient(60% 80% at 60% 110%, hsl(var(--tp-orange) / 0.18), transparent 70%)',
           }}
           aria-hidden
         />
-        <div className="relative flex flex-wrap items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Icon production platform</span>
+        {/* subtle grid */}
+        <div
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
+          }}
+          aria-hidden
+        />
+        <div className="relative flex flex-wrap items-end justify-between gap-8">
+          <div className="max-w-2xl space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border bg-background/60 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-muted-foreground backdrop-blur">
+              <Sparkles className="h-3 w-3" />
+              Icon production platform
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight">
-              Welcome back{organizationName ? `, ${organizationName}` : ''}
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight leading-[1.05]">
+              Welcome back
+              {organizationName ? (
+                <>
+                  ,{' '}
+                  <span
+                    className="bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage:
+                        'linear-gradient(120deg, hsl(var(--tp-digital-blue)), hsl(var(--tp-pink)))',
+                    }}
+                  >
+                    {organizationName}
+                  </span>
+                </>
+              ) : null}
             </h1>
-            <p className="text-sm text-muted-foreground max-w-xl">
+            <p className="text-sm md:text-base text-muted-foreground max-w-xl leading-relaxed">
               Generate, QA, organize and export brand-consistent icon systems at scale —
               with industry packs, preflight discipline, and production-ready bundles.
             </p>
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <Badge variant="outline" className="gap-1 text-[11px]">
-                <Sparkles className="h-3 w-3" />
-                {totalIcons.toLocaleString()} icons
-              </Badge>
-              <Badge variant="outline" className="gap-1 text-[11px]">
-                <Folder className="h-3 w-3" />
-                {totalLibraries.toLocaleString()} libraries
-              </Badge>
-              {importedIconCount > 0 && (
-                <Badge variant="outline" className="gap-1 text-[11px]" style={{ borderColor: 'hsl(var(--tp-teal) / 0.5)', color: 'hsl(var(--tp-teal))' }}>
-                  <ImageIcon className="h-3 w-3" />
-                  {importedIconCount.toLocaleString()} imported
-                </Badge>
-              )}
-            </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onNavigate?.('library')}>
+            <Button variant="outline" size="lg" className="gap-2 rounded-xl" onClick={() => onNavigate?.('library')}>
               <Folder className="h-4 w-4" />
               Open library
             </Button>
-            <Button size="sm" className="gap-1.5" onClick={onStartGenerate}>
-              <Plus className="h-4 w-4" />
+            <Button
+              size="lg"
+              className="gap-2 rounded-xl shadow-lg"
+              style={{
+                background:
+                  'linear-gradient(120deg, hsl(var(--tp-digital-blue)), hsl(var(--tp-pink)))',
+                color: 'white',
+              }}
+              onClick={onStartGenerate}
+            >
+              <Wand2 className="h-4 w-4" />
               New icon system
             </Button>
           </div>
         </div>
+
+        {/* Stat tiles */}
+        <div className="relative mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatTile
+            label="Total icons"
+            value={totalIcons.toLocaleString()}
+            icon={Sparkles}
+            accent="hsl(var(--tp-digital-blue))"
+            onClick={() => onNavigate?.('library')}
+          />
+          <StatTile
+            label="Libraries"
+            value={totalLibraries.toLocaleString()}
+            icon={Layers}
+            accent="hsl(var(--tp-pink))"
+            onClick={() => onNavigate?.('sets')}
+          />
+          <StatTile
+            label="Imported"
+            value={importedIconCount.toLocaleString()}
+            icon={ImageIcon}
+            accent="hsl(var(--tp-teal))"
+            onClick={() => onNavigate?.('imported')}
+          />
+          <StatTile
+            label="Brands"
+            value={visibleBrandProfiles.length.toLocaleString()}
+            icon={Users}
+            accent="hsl(var(--tp-orange))"
+            onClick={() => onNavigate?.('brands')}
+          />
+        </div>
       </header>
 
-      {/* Recent icon systems */}
+      {/* ============ RECENT SYSTEMS ============ */}
       <section>
-        <div className="tp-card p-5">
-          <header className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Recent icon systems</h3>
-            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => onNavigate?.('sets')}>
-              View all <ArrowUpRight className="h-3 w-3" />
+        <header className="mb-4 flex items-end justify-between">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Recent icon systems</h2>
+            <p className="text-xs text-muted-foreground">
+              Jump back into the libraries you touched most recently.
+            </p>
+          </div>
+          <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs" onClick={() => onNavigate?.('sets')}>
+            View all <ArrowUpRight className="h-3 w-3" />
+          </Button>
+        </header>
+
+        {recentLibraries.length === 0 ? (
+          <div className="rounded-2xl border border-dashed bg-card/40 p-10 text-center">
+            <div
+              className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl"
+              style={{
+                background: 'color-mix(in oklab, hsl(var(--tp-digital-blue)) 14%, transparent)',
+                color: 'hsl(var(--tp-digital-blue))',
+              }}
+            >
+              <Wand2 className="h-6 w-6" />
+            </div>
+            <div className="text-sm font-medium">No icon systems yet</div>
+            <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
+              Generate your first system to see it featured here with a live preview.
+            </p>
+            <Button size="sm" className="mt-4 gap-1.5" onClick={onStartGenerate}>
+              <Plus className="h-3.5 w-3.5" /> New icon system
             </Button>
-          </header>
-          <ul className="space-y-1">
-            {recentLibraries.length === 0 ? (
-              <li className="px-3 py-6 text-center text-xs text-muted-foreground">
-                No icon systems yet. Generate one to see it here.
-              </li>
-            ) : (
-              recentLibraries.slice(0, 8).map((lib) => (
-                <ActivityRow
-                  key={lib.id}
-                  title={lib.name}
-                  meta={`${levelLabel(lib.level)} · ${lib.iconCount} icons`}
-                  status={lib.isActive ? 'approved' : 'idle'}
-                  emojis={sampleEmojis}
-                  icons={lib.icons}
-                  accent={levelAccent(lib.level)}
-                  onClick={() => onOpenLibrary?.(lib.id)}
-                />
-              ))
-            )}
-          </ul>
-        </div>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {recentLibraries.slice(0, 8).map((lib) => (
+              <RecentSystemCard
+                key={lib.id}
+                lib={lib}
+                onClick={() => onOpenLibrary?.(lib.id)}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Imported Assets quick link */}
+      {/* ============ IMPORTED ASSETS ============ */}
       {importedIconCount > 0 && (
-        <section className="tp-card p-5">
-          <header className="mb-3 flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-semibold">Imported assets</h3>
-              <p className="text-xs text-muted-foreground">
-                {importedIconCount.toLocaleString()} bundled SVG icons ready to use.
-              </p>
-            </div>
-            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => onNavigate?.('imported')}>
-              Browse <ArrowUpRight className="h-3 w-3" />
-            </Button>
-          </header>
-          <div className="flex items-center gap-3">
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-lg"
-              style={{ background: 'hsl(var(--tp-teal) / 0.12)', color: 'hsl(var(--tp-teal))' }}
-            >
-              <ImageIcon className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-sm font-medium">Curated icon library</div>
-              <div className="text-[11px] text-muted-foreground">
-                Light-blue & white variants · searchable · copy-ready
+        <section
+          className="relative overflow-hidden rounded-2xl border p-6"
+          style={{
+            background:
+              'linear-gradient(120deg, color-mix(in oklab, hsl(var(--tp-teal)) 10%, hsl(var(--card))) 0%, hsl(var(--card)) 70%)',
+          }}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div
+                className="flex h-14 w-14 items-center justify-center rounded-2xl"
+                style={{
+                  background: 'color-mix(in oklab, hsl(var(--tp-teal)) 18%, transparent)',
+                  color: 'hsl(var(--tp-teal))',
+                }}
+              >
+                <ImageIcon className="h-7 w-7" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold">Curated imported library</h3>
+                <p className="text-xs text-muted-foreground">
+                  {importedIconCount.toLocaleString()} bundled SVG icons · light-blue & white
+                  variants · searchable · copy-ready
+                </p>
               </div>
             </div>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onNavigate?.('imported')}>
+              Browse imported <ArrowUpRight className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </section>
       )}
 
-      {/* Brand profiles teaser */}
-      <section className="tp-card p-5">
-        <header className="mb-3 flex items-center justify-between">
+      {/* ============ BRAND PROFILES ============ */}
+      <section>
+        <header className="mb-4 flex items-end justify-between">
           <div>
-            <h3 className="text-sm font-semibold">Brand profiles</h3>
+            <h2 className="text-xl font-semibold tracking-tight">Brand profiles</h2>
             <p className="text-xs text-muted-foreground">
               Profiles influence generation, QA, and export defaults.
             </p>
@@ -263,7 +385,7 @@ export const DashboardView = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-[11px]"
+                className="h-8 text-[11px]"
                 onClick={clearHiddenBrands}
               >
                 Restore {hiddenBrands.size} hidden
@@ -275,53 +397,94 @@ export const DashboardView = ({
             </Button>
           </div>
         </header>
-        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {(visibleBrandProfiles.length > 0
             ? visibleBrandProfiles
             : [{ id: 'placeholder', name: organizationName || 'Your brand', tone: 'Add brands to see them here', members: 0 } as typeof visibleBrandProfiles[number]]
-          ).map((b) => {
+          ).map((b, idx) => {
             const isPlaceholder = b.id === 'placeholder';
-            const content = (
-              <>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium truncate">{b.name}</span>
-                  <div className="flex items-center gap-1">
-                    {typeof b.members === 'number' && b.members > 0 && (
-                      <Badge variant="secondary" className="gap-1 text-[10px]">
-                        <Users className="h-3 w-3" />
-                        {b.members}
-                      </Badge>
-                    )}
-                    {!isPlaceholder && (
-                      <button
-                        type="button"
-                        aria-label={`Hide ${b.name} from dashboard`}
-                        title="Hide from dashboard"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          hideBrand(b.id);
-                        }}
-                        className="inline-flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-60 hover:opacity-100"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+            const palette = [
+              'hsl(var(--tp-digital-blue))',
+              'hsl(var(--tp-pink))',
+              'hsl(var(--tp-orange))',
+              'hsl(var(--tp-teal))',
+            ];
+            const accent = palette[idx % palette.length];
+            const initials = b.name
+              .split(/\s+/)
+              .slice(0, 2)
+              .map((p) => p[0])
+              .join('')
+              .toUpperCase();
+
+            const inner = (
+              <div
+                className="group relative h-full overflow-hidden rounded-2xl border bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl"
+                style={{ borderColor: `color-mix(in oklab, ${accent} 20%, hsl(var(--border)))` }}
+              >
+                <div
+                  className="absolute inset-x-0 top-0 h-16 opacity-60"
+                  style={{
+                    background: `radial-gradient(80% 100% at 0% 0%, ${accent} / 0.20, transparent 70%)`,
+                  }}
+                  aria-hidden
+                />
+                <div className="relative flex items-start gap-3">
+                  <div
+                    className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl text-sm font-semibold"
+                    style={{
+                      background: `color-mix(in oklab, ${accent} 18%, transparent)`,
+                      color: accent,
+                    }}
+                  >
+                    {initials || '★'}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-sm font-semibold">{b.name}</span>
+                      <div className="flex items-center gap-1">
+                        {typeof b.members === 'number' && b.members > 0 && (
+                          <Badge variant="secondary" className="gap-1 text-[10px]">
+                            <Users className="h-3 w-3" />
+                            {b.members}
+                          </Badge>
+                        )}
+                        {!isPlaceholder && (
+                          <button
+                            type="button"
+                            aria-label={`Hide ${b.name} from dashboard`}
+                            title="Hide from dashboard"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              hideBrand(b.id);
+                            }}
+                            className="inline-flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {b.tone && (
+                      <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">
+                        {b.tone}
+                      </div>
                     )}
                   </div>
                 </div>
-                {b.tone && <div className="text-[11px] text-muted-foreground">{b.tone}</div>}
-              </>
+              </div>
             );
-            const className =
-              'block rounded-lg border bg-secondary/30 px-3 py-2.5 transition-colors hover:bg-secondary/60 hover:border-primary/40';
+
             return (
               <li key={b.id}>
                 {b.slug ? (
-                  <Link to={`/icon-studio/${b.entityType || 'brand'}/${b.slug}`} className={className}>
-                    {content}
+                  <Link to={`/icon-studio/${b.entityType || 'brand'}/${b.slug}`} className="block h-full">
+                    {inner}
                   </Link>
                 ) : (
-                  <div className={className}>{content}</div>
+                  inner
                 )}
               </li>
             );
