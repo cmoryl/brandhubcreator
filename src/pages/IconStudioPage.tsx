@@ -37,6 +37,9 @@ import { BrandIconography } from '@/types/brand';
 import { useSEO } from '@/hooks/useSEO';
 
 import { IconSetWizard } from '@/components/icon-studio/IconSetWizard';
+import { AutoLinkIndustryDialog } from '@/components/icon-studio/AutoLinkIndustryDialog';
+import { Button } from '@/components/ui/button';
+import { Sparkles } from 'lucide-react';
 
 const IconStudioPage = () => {
   const navigate = useNavigate();
@@ -118,6 +121,7 @@ const IconStudioPage = () => {
   // Cmd+K command palette + ? shortcuts dialog
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [autoLinkOpen, setAutoLinkOpen] = useState(false);
   useStudioHotkeys({
     onTogglePalette: () => setPaletteOpen((v) => !v),
     onShowShortcuts: () => setShortcutsOpen((v) => !v),
@@ -289,6 +293,15 @@ const IconStudioPage = () => {
           </CardContent>
         </Card>
       ) : shellSection === 'dashboard' ? (
+        <>
+        {canEdit && (
+          <div className="mb-3 flex justify-end">
+            <Button size="sm" variant="outline" onClick={() => setAutoLinkOpen(true)}>
+              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+              Auto-link industry icons to brands
+            </Button>
+          </div>
+        )}
         <DashboardView
           organizationName={organizationName}
           totalIcons={totalIcons}
@@ -323,6 +336,7 @@ const IconStudioPage = () => {
           }))}
           importedIconCount={importedEntries.length}
         />
+        </>
       ) : shellSection === 'generate' ? (
         <IconSetWizard
           organizationName={organizationName}
@@ -412,6 +426,13 @@ const IconStudioPage = () => {
       packs={bundledPacks.map((p) => ({ id: p.id, name: p.name, count: p.count }))}
     />
     <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+    {organizationId && (
+      <AutoLinkIndustryDialog
+        open={autoLinkOpen}
+        onOpenChange={setAutoLinkOpen}
+        organizationId={organizationId}
+      />
+    )}
     </>
   );
 };
