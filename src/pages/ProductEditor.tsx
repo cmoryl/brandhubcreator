@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Bot } from 'lucide-react';
+import { Menu, LayoutList, ScrollText, LayoutGrid, ArrowLeft, Package, Star, Brain, Building2, Shield, LogOut, Lock, Download, Settings, HardDrive, ClipboardCheck, TrendingUp, LayoutDashboard, Users, HelpCircle, Globe2, Bot, ImageIcon, Sparkles } from 'lucide-react';
 import tpLogoWhite from '@/assets/tp-logo-white.svg';
 import tpLogoColor from '@/assets/tp-logo-color.svg';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -970,6 +970,14 @@ const ProductEditor = () => {
                               Manage Members
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuItem onClick={() => navigate('/imagery-hub')} className="gap-2 cursor-pointer">
+                            <ImageIcon className="h-4 w-4" />
+                            Imagery Hub
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate('/icon-studio')} className="gap-2 cursor-pointer">
+                            <Sparkles className="h-4 w-4" />
+                            Icon Studio
+                          </DropdownMenuItem>
                         </>
                       )}
                       
