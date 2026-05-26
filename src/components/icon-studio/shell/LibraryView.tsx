@@ -4,8 +4,9 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles, Wand2 } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles, Wand2, ShieldCheck } from 'lucide-react';
 import { useEnrichAllLibraries } from '@/hooks/useEnrichAllLibraries';
+import { useNormalizeAllLibraries } from '@/hooks/useNormalizeAllLibraries';
 import { enrichLibrary } from '@/lib/iconLibrary/enrichLibrary';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
 import { logger } from '@/lib/logger';
@@ -71,6 +72,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
     useIconLibraryRowActions({ organizationId, canEdit });
   const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
   const { enrichAll, enrichOne, enrichBrandRepositories, progress: enrichProgress } = useEnrichAllLibraries(organizationId);
+  const { normalizeAll, progress: normalizeProgress } = useNormalizeAllLibraries(organizationId);
   const { updateLibrary } = useIconLibraries(organizationId);
 
   // Auto-stock any brand library that has < 100 icons, once per session.
@@ -198,6 +200,21 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                 {enrichProgress.running
                   ? `Building ${enrichProgress.done}/${enrichProgress.total}…`
                   : 'Build brand repositories (150/area)'}
+              </Button>
+            )}
+            {canEdit && libraries.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                disabled={normalizeProgress.running}
+                onClick={() => normalizeAll()}
+                title="Re-detect fillMode + viewBox for every icon so strokes and fills render consistently across all libraries."
+              >
+                <ShieldCheck className="h-4 w-4" />
+                {normalizeProgress.running
+                  ? `Auditing ${normalizeProgress.done}/${normalizeProgress.total}…`
+                  : 'Audit icon rendering'}
               </Button>
             )}
             {canEdit && (
