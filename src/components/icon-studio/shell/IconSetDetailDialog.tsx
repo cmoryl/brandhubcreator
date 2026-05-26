@@ -78,15 +78,8 @@ export const IconSetDetailDialog = ({
 
   // Detect the dominant style from the set itself, so "auto" reflects what
   // was actually generated (outlined sets stay outlined, filled stay filled).
-  const detectedStyle: 'outlined' | 'filled' | 'duotone' = useMemo(() => {
-    if (!library) return 'outlined';
-    const name = (library.name || '').toLowerCase();
-    if (name.includes('duotone')) return 'duotone';
-    if (name.includes('filled')) return 'filled';
-    if (name.includes('outlin') || name.includes('line')) return 'outlined';
-    const fillCount = library.icons.filter((i) => i.fillMode === 'fill').length;
-    return fillCount > library.icons.length / 2 ? 'filled' : 'outlined';
-  }, [library]);
+  // Brand standard: every icon set renders as outline only — never filled.
+  const detectedStyle: 'outlined' | 'filled' | 'duotone' = 'outlined';
 
   const effectiveStyle = styleOverride === 'auto' ? detectedStyle : styleOverride;
 
