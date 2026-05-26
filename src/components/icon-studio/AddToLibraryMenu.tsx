@@ -49,7 +49,7 @@ export const AddToLibraryMenu = ({ icon, organizationId, label = 'Add to library
         id: lib.id,
         updates: { icons: [...lib.icons, icon] },
       });
-      toast.success(`Added to “${lib.name}”`);
+      toast.success(`Added "${icon.name}" to "${lib.name}" — available in brand sections`);
       setOpen(false);
     } catch {
       // toast already surfaced by hook
@@ -69,11 +69,13 @@ export const AddToLibraryMenu = ({ icon, organizationId, label = 'Add to library
         description: 'Icons saved from the bundled library',
         icons: [icon],
       });
+      toast.success(`Added "${icon.name}" to "Imported icons" — available in brand sections`);
       setOpen(false);
     } finally {
       setBusyId(null);
     }
   };
+
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
