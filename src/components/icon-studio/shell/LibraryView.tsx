@@ -430,6 +430,9 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
         onRegenerate={canEdit && openLib ? () => { setRegenLib(openLib); setOpenLib(null); } : undefined}
         onLockToggle={canEdit && openLib ? () => handleLockToggle(openLib) : undefined}
         onEnrich={canEdit && openLib ? () => enrichOne(openLib) : undefined}
+        onMutateIcons={canEdit && openLib ? async (icons) => {
+          await updateLibrary.mutateAsync({ id: openLib.id, updates: { icons } });
+        } : undefined}
       />
 
       <BulkRegenerateDialog

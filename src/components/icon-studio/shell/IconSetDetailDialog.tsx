@@ -63,15 +63,49 @@ export const IconSetDetailDialog = ({
   onCompare,
   onLockToggle,
   onEnrich,
+  onMutateIcons,
 }: Props) => {
   const open = !!library;
   const [selectedIcon, setSelectedIcon] = useState<BrandIconography | null>(null);
+  const [replaceTarget, setReplaceTarget] = useState<BrandIconography | null>(null);
   const [remixOpen, setRemixOpen] = useState(false);
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
   const [styleOverride, setStyleOverride] = useState<'auto' | 'outlined' | 'filled' | 'duotone'>('outlined');
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [previewSize, setPreviewSize] = useState<20 | 32 | 48 | 64>(32);
+
+  const handleReject = async (target: BrandIconography) => {
+    if (!library || !onMutateIcons) {
+      toast.error('You do not have permission to modify this set.');
+      return;
+    }
+    const next = library.icons.filter((i) => i.id !== target.id);
+    try {
+      await onMutateIcons(next);
+      toast.success(`Removed "${target.name}" from the set`);
+      setSelectedIcon(null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to remove icon');
+    }
+  };
+
+  const handleReplacePick = async (replacement: BrandIconography) => {
+    if (!library || !onMutateIcons || !replaceTarget) return;
+    const next = library.icons.map((i) =>
+      i.id === replaceTarget.id
+        ? { ...replacement, id: replaceTarget.id, category: replaceTarget.category || replacement.category }
+        : i,
+    );
+    try {
+      await onMutateIcons(next);
+      toast.success(`Replaced "${replaceTarget.name}" with "${replacement.name}"`);
+      setReplaceTarget(null);
+      setSelectedIcon(null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to replace icon');
+    }
+  };
 
   const baseRecipe: IconRecipe | null = useMemo(() => {
     if (!library) return null;
@@ -346,6 +380,16 @@ export const IconSetDetailDialog = ({
         accent={accent}
         presentation={effectiveStyle}
         fallbackRecipe={baseRecipe}
+        onReject={onMutateIcons ? handleReject : undefined}
+        onReplace={onMutateIcons ? (i) => setReplaceTarget(i) : undefined}
+      />
+
+      <ReplaceIconDialog
+        open={!!replaceTarget}
+        seedQuery={replaceTarget?.name ?? ''}
+        accent={accent}
+        onClose={() => setReplaceTarget(null)}
+        onPick={handleReplacePick}
       />
 
       <RemixSystemDialog

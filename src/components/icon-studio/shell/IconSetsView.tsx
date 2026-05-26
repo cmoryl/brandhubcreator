@@ -19,7 +19,7 @@ import { IconSetDetailDialog } from './IconSetDetailDialog';
 import { useEnrichAllLibraries } from '@/hooks/useEnrichAllLibraries';
 import { BulkRegenerateDialog } from './BulkRegenerateDialog';
 import { BulkExpandDialog } from './BulkExpandDialog';
-import { type IconLibrary } from '@/hooks/useIconLibraries';
+import { useIconLibraries, type IconLibrary } from '@/hooks/useIconLibraries';
 import { useIconLibraryRowActions } from './useIconLibraryRowActions';
 import { isBundledLibraryId, bundledLibraryPackId } from '@/hooks/useBundledIconLibraries';
 
@@ -80,6 +80,7 @@ export const IconSetsView = ({
   const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
     useIconLibraryRowActions({ organizationId, canEdit });
   const { enrichOne } = useEnrichAllLibraries(organizationId);
+  const { updateLibrary } = useIconLibraries(organizationId);
 
   // Auto-open from deep link (e.g. /icon-studio?section=sets&library=<id>)
   useEffect(() => {
@@ -345,6 +346,9 @@ export const IconSetsView = ({
         onCompare={() => activeLib && handleCompare(activeLib)}
         onLockToggle={() => activeLib && handleLockToggle(activeLib)}
         onEnrich={canEdit && activeLib ? () => enrichOne(activeLib) : undefined}
+        onMutateIcons={canEdit && activeLib ? async (icons) => {
+          await updateLibrary.mutateAsync({ id: activeLib.id, updates: { icons } });
+        } : undefined}
       />
 
       <BulkRegenerateDialog
