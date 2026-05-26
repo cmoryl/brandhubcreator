@@ -142,10 +142,15 @@ const prepareSvgMarkup = (
   svg.setAttribute('aria-label', icon.name || 'Icon');
   if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', icon.viewBox || '0 0 24 24');
 
-  // Uniform stroke for every icon — guarantees consistent weight regardless of
-  // source pack (lucide, tabler thin/light/bold variants, etc.). Floor at 2 so
-  // "thin/light/ghost" variants don't read as faded.
-  const uniformStroke = Math.max(strokeWidth, 2);
+  // Scale stroke-width to the icon's viewBox so packs authored at 24, 32, 256
+  // or 512 user units all render at the same visual weight. The configured
+  // strokeWidth is treated as the target weight in a 24-unit canvas.
+  const vbParts = (svg.getAttribute('viewBox') || '0 0 24 24').trim().split(/[\s,]+/).map(Number);
+  const vbW = Number.isFinite(vbParts[2]) && vbParts[2] > 0 ? vbParts[2] : 24;
+  const vbH = Number.isFinite(vbParts[3]) && vbParts[3] > 0 ? vbParts[3] : 24;
+  const vbScale = Math.max(vbW, vbH) / 24;
+  const baseStroke = Math.max(strokeWidth, 2);
+  const uniformStroke = +(baseStroke * vbScale).toFixed(3);
   svg.setAttribute('stroke-width', String(uniformStroke));
   svg.setAttribute('stroke-linecap', 'round');
   svg.setAttribute('stroke-linejoin', 'round');
