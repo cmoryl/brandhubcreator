@@ -1,8 +1,9 @@
 /**
- * LibraryIconPreview — shows the first N real icons from a saved library
- * (using IconSvgRender) so each card reflects the brand-specific style.
- * Falls back to the generic emoji-based IconSetPreview when the library
- * is empty.
+ * LibraryIconPreview — premium preview strip of real library icons.
+ *
+ * Renders a clean, evenly-spaced grid of brand-specific glyphs using
+ * IconSvgRender. Falls back to the emoji preview when a library is empty.
+ * Shows a "+N" tile when the library has more icons than fit in the preview.
  */
 
 import { cn } from '@/lib/utils';
@@ -16,9 +17,7 @@ interface Props {
   accent: string;
   count?: number;
   size?: 'sm' | 'md' | 'lg';
-  /** Visual size of the rendered SVG glyph in px. */
   iconPx?: number;
-  /** Tile height. */
   tilePx?: number;
   className?: string;
 }
@@ -33,7 +32,9 @@ export const LibraryIconPreview = ({
   tilePx,
   className,
 }: Props) => {
-  const real = (icons ?? []).filter((i) => i?.svgPath).slice(0, count);
+  const allReal = (icons ?? []).filter((i) => i?.svgPath);
+  const totalReal = allReal.length;
+  const real = allReal.slice(0, count);
 
   if (real.length === 0) {
     return (
@@ -48,25 +49,36 @@ export const LibraryIconPreview = ({
     );
   }
 
-  const tile = tilePx ?? (size === 'lg' ? 56 : size === 'md' ? 40 : 32);
+  const tile = tilePx ?? (size === 'lg' ? 56 : size === 'md' ? 44 : 36);
   const glyph = iconPx ?? Math.round(tile * 0.55);
-  const gap = size === 'lg' ? 'gap-2' : size === 'md' ? 'gap-1.5' : 'gap-1';
+  const gap = size === 'lg' ? 'gap-2' : size === 'md' ? 'gap-1.5' : 'gap-1.5';
+  const overflow = Math.max(0, totalReal - real.length);
+  // Reserve one slot for the "+N" tile if needed
+  const slots = overflow > 0 ? real.slice(0, count - 1) : real;
+  const showOverflow = overflow > 0;
 
   return (
     <div
-      className={cn('flex', gap, className)}
+      className={cn(
+        'relative grid auto-cols-fr grid-flow-col items-center rounded-xl p-1.5',
+        gap,
+        className,
+      )}
+      style={{
+        background: `linear-gradient(135deg, color-mix(in oklab, ${accent} 8%, transparent), color-mix(in oklab, ${accent} 2%, transparent))`,
+        border: `1px solid color-mix(in oklab, ${accent} 16%, transparent)`,
+      }}
       role="img"
       aria-label="Brand icon preview"
     >
-      {real.map((ic, i) => (
+      {slots.map((ic, i) => (
         <div
           key={ic.id ?? i}
-          className="flex items-center justify-center rounded-md border transition-transform hover:scale-105 text-foreground flex-shrink-0"
+          className="group flex items-center justify-center rounded-lg bg-background/70 backdrop-blur-sm text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
           style={{
             height: tile,
             width: tile,
-            background: `color-mix(in oklab, ${accent} 12%, transparent)`,
-            borderColor: `color-mix(in oklab, ${accent} 28%, transparent)`,
+            border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
           }}
           title={ic.name}
         >
@@ -78,18 +90,21 @@ export const LibraryIconPreview = ({
           />
         </div>
       ))}
-      {/* Pad with empty tiles to keep a stable grid */}
-      {Array.from({ length: Math.max(0, count - real.length) }).map((_, i) => (
+      {showOverflow && (
         <div
-          key={`pad-${i}`}
-          className="rounded-md border border-dashed flex-shrink-0"
+          className="flex items-center justify-center rounded-lg text-[10px] font-semibold tabular-nums"
           style={{
             height: tile,
             width: tile,
-            borderColor: `color-mix(in oklab, ${accent} 18%, transparent)`,
+            color: accent,
+            background: `color-mix(in oklab, ${accent} 14%, transparent)`,
+            border: `1px dashed color-mix(in oklab, ${accent} 34%, transparent)`,
           }}
-        />
-      ))}
+          title={`${overflow} more icons`}
+        >
+          +{overflow > 999 ? `${Math.round(overflow / 100) / 10}k` : overflow}
+        </div>
+      )}
     </div>
   );
 };
