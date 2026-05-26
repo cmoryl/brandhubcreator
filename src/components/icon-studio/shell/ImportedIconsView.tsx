@@ -63,6 +63,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   emoji: 'Emoji',
   flags: 'Flags',
   crypto: 'Crypto',
+  multicultural: 'Multicultural',
   misc: 'Misc',
 };
 
