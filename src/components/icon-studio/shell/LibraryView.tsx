@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Plus, MoreHorizontal, Library as LibraryIcon, Sparkles, Wand2, ShieldCheck } from 'lucide-react';
 import { useEnrichAllLibraries } from '@/hooks/useEnrichAllLibraries';
+import { useNormalizeAllLibraries } from '@/hooks/useNormalizeAllLibraries';
 import { enrichLibrary } from '@/lib/iconLibrary/enrichLibrary';
 import { useIconLibraries } from '@/hooks/useIconLibraries';
 import { logger } from '@/lib/logger';
