@@ -71,6 +71,7 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
     useIconLibraryRowActions({ organizationId, canEdit });
   const { entries: importedEntries, loading: importedLoading } = useImportedIcons();
   const { enrichAll, enrichOne, enrichBrandRepositories, progress: enrichProgress } = useEnrichAllLibraries(organizationId);
+  const { normalizeAll, progress: normalizeProgress } = useNormalizeAllLibraries(organizationId);
   const { updateLibrary } = useIconLibraries(organizationId);
 
   // Auto-stock any brand library that has < 100 icons, once per session.
