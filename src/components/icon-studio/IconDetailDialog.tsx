@@ -57,6 +57,8 @@ interface Props {
   onRegenerate?: (recipe: IconRecipe) => Promise<void> | void;
   onApprove?: (icon: BrandIconography) => void;
   onReject?: (icon: BrandIconography) => void;
+  /** Open a picker to replace this icon in its parent set. */
+  onReplace?: (icon: BrandIconography) => void;
   /** Optional extra action buttons rendered alongside the default action row. */
   extraActions?: React.ReactNode;
   /** When true, hides Approve/Reject/Regenerate (used for read-only sources like imported icons). */
