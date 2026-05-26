@@ -202,6 +202,21 @@ export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenS
                   : 'Build brand repositories (150/area)'}
               </Button>
             )}
+            {canEdit && libraries.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                disabled={normalizeProgress.running}
+                onClick={() => normalizeAll()}
+                title="Re-detect fillMode + viewBox for every icon so strokes and fills render consistently across all libraries."
+              >
+                <ShieldCheck className="h-4 w-4" />
+                {normalizeProgress.running
+                  ? `Auditing ${normalizeProgress.done}/${normalizeProgress.total}…`
+                  : 'Audit icon rendering'}
+              </Button>
+            )}
             {canEdit && (
               <Button size="sm" className="gap-1.5" onClick={onCreate}>
                 <Plus className="h-4 w-4" />
