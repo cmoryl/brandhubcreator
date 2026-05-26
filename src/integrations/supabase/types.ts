@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_call_log: {
+        Row: {
+          completion_tokens: number | null
+          created_at: string
+          duration_ms: number | null
+          entity_id: string | null
+          entity_type: string | null
+          error_code: string | null
+          function_name: string
+          id: string
+          model: string
+          organization_id: string | null
+          prompt_tokens: number | null
+          purpose: string | null
+          status_code: number
+          total_tokens: number | null
+          user_id: string | null
+        }
+        Insert: {
+          completion_tokens?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          entity_id?: string | null
+          entity_type?: string | null
+          error_code?: string | null
+          function_name: string
+          id?: string
+          model: string
+          organization_id?: string | null
+          prompt_tokens?: number | null
+          purpose?: string | null
+          status_code: number
+          total_tokens?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          completion_tokens?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          entity_id?: string | null
+          entity_type?: string | null
+          error_code?: string | null
+          function_name?: string
+          id?: string
+          model?: string
+          organization_id?: string | null
+          prompt_tokens?: number | null
+          purpose?: string | null
+          status_code?: number
+          total_tokens?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       assistant_memory: {
         Row: {
           conversation_id: string | null
@@ -1533,6 +1587,54 @@ export type Database = {
           },
         ]
       }
+      brand_imagery_embeddings: {
+        Row: {
+          caption: string | null
+          created_at: string
+          embedding: string
+          entity_id: string
+          entity_type: string
+          id: string
+          image_id: string
+          image_url: string
+          model_version: string
+          organization_id: string
+          section_id: string | null
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          embedding: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          image_id: string
+          image_url: string
+          model_version?: string
+          organization_id: string
+          section_id?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          embedding?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          image_id?: string
+          image_url?: string
+          model_version?: string
+          organization_id?: string
+          section_id?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       brand_intelligence: {
         Row: {
           analysis_count: number
@@ -2007,6 +2109,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      brand_visual_dna: {
+        Row: {
+          auto_train: boolean
+          created_at: string
+          dna: Json
+          entity_id: string
+          entity_type: string
+          id: string
+          last_trained_at: string | null
+          last_training_error: string | null
+          last_training_status: string | null
+          organization_id: string
+          prompt_seed: string | null
+          source_image_count: number
+          updated_at: string
+        }
+        Insert: {
+          auto_train?: boolean
+          created_at?: string
+          dna?: Json
+          entity_id: string
+          entity_type: string
+          id?: string
+          last_trained_at?: string | null
+          last_training_error?: string | null
+          last_training_status?: string | null
+          organization_id: string
+          prompt_seed?: string | null
+          source_image_count?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_train?: boolean
+          created_at?: string
+          dna?: Json
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          last_trained_at?: string | null
+          last_training_error?: string | null
+          last_training_status?: string | null
+          organization_id?: string
+          prompt_seed?: string | null
+          source_image_count?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       brands: {
         Row: {
@@ -3442,6 +3592,131 @@ export type Database = {
           },
         ]
       }
+      icon_ab_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: number
+          session_id: string | null
+          test_id: string
+          user_id: string | null
+          variant_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: number
+          session_id?: string | null
+          test_id: string
+          user_id?: string | null
+          variant_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: number
+          session_id?: string | null
+          test_id?: string
+          user_id?: string | null
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "icon_ab_events_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "icon_ab_tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "icon_ab_events_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "icon_ab_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      icon_ab_tests: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          library_id: string | null
+          name: string
+          organization_id: string
+          slot_key: string
+          status: string
+          updated_at: string
+          winner_variant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          library_id?: string | null
+          name: string
+          organization_id: string
+          slot_key: string
+          status?: string
+          updated_at?: string
+          winner_variant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          library_id?: string | null
+          name?: string
+          organization_id?: string
+          slot_key?: string
+          status?: string
+          updated_at?: string
+          winner_variant_id?: string | null
+        }
+        Relationships: []
+      }
+      icon_ab_variants: {
+        Row: {
+          created_at: string
+          icon_id: string
+          id: string
+          label: string | null
+          svg_path: string | null
+          test_id: string
+          view_box: string | null
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          icon_id: string
+          id?: string
+          label?: string | null
+          svg_path?: string | null
+          test_id: string
+          view_box?: string | null
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          icon_id?: string
+          id?: string
+          label?: string | null
+          svg_path?: string | null
+          test_id?: string
+          view_box?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "icon_ab_variants_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "icon_ab_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       icon_library_brand_links: {
         Row: {
           allow_overrides: boolean
@@ -3519,6 +3794,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      icon_usage_events: {
+        Row: {
+          action: string
+          brand_id: string | null
+          created_at: string
+          icon_name: string
+          id: string
+          industry: string | null
+          organization_id: string
+          pack: string
+          section_id: string
+          source: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          brand_id?: string | null
+          created_at?: string
+          icon_name: string
+          id?: string
+          industry?: string | null
+          organization_id: string
+          pack: string
+          section_id: string
+          source?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          brand_id?: string | null
+          created_at?: string
+          icon_name?: string
+          id?: string
+          industry?: string | null
+          organization_id?: string
+          pack?: string
+          section_id?: string
+          source?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       imagery_preference_signals: {
         Row: {
@@ -5401,6 +5718,236 @@ export type Database = {
           },
         ]
       }
+      skill_export_history: {
+        Row: {
+          anthropic_skill_id: string | null
+          approx_tokens: number | null
+          brand_name: string
+          changelog: string | null
+          created_at: string
+          diff_summary: Json | null
+          entity_id: string
+          entity_type: string
+          exported_to: string[] | null
+          file_count: number | null
+          id: string
+          locales: string[] | null
+          organization_id: string | null
+          prev_version: string | null
+          push_error: string | null
+          push_http_status: number | null
+          push_status: string | null
+          pushed_at: string | null
+          pushed_to_claude: boolean
+          skill_meta: Json | null
+          user_id: string | null
+          version: string
+        }
+        Insert: {
+          anthropic_skill_id?: string | null
+          approx_tokens?: number | null
+          brand_name: string
+          changelog?: string | null
+          created_at?: string
+          diff_summary?: Json | null
+          entity_id: string
+          entity_type: string
+          exported_to?: string[] | null
+          file_count?: number | null
+          id?: string
+          locales?: string[] | null
+          organization_id?: string | null
+          prev_version?: string | null
+          push_error?: string | null
+          push_http_status?: number | null
+          push_status?: string | null
+          pushed_at?: string | null
+          pushed_to_claude?: boolean
+          skill_meta?: Json | null
+          user_id?: string | null
+          version: string
+        }
+        Update: {
+          anthropic_skill_id?: string | null
+          approx_tokens?: number | null
+          brand_name?: string
+          changelog?: string | null
+          created_at?: string
+          diff_summary?: Json | null
+          entity_id?: string
+          entity_type?: string
+          exported_to?: string[] | null
+          file_count?: number | null
+          id?: string
+          locales?: string[] | null
+          organization_id?: string | null
+          prev_version?: string | null
+          push_error?: string | null
+          push_http_status?: number | null
+          push_status?: string | null
+          pushed_at?: string | null
+          pushed_to_claude?: boolean
+          skill_meta?: Json | null
+          user_id?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
+      skill_qa_jobs: {
+        Row: {
+          brand_name: string
+          completed_at: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          error: string | null
+          id: string
+          include_visual_regression: boolean
+          organization_id: string | null
+          partial_results: Json | null
+          progress: Json
+          sections: string[]
+          started_at: string | null
+          status: string
+          tiers: string[]
+          user_id: string | null
+        }
+        Insert: {
+          brand_name: string
+          completed_at?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          error?: string | null
+          id?: string
+          include_visual_regression?: boolean
+          organization_id?: string | null
+          partial_results?: Json | null
+          progress?: Json
+          sections?: string[]
+          started_at?: string | null
+          status?: string
+          tiers?: string[]
+          user_id?: string | null
+        }
+        Update: {
+          brand_name?: string
+          completed_at?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          error?: string | null
+          id?: string
+          include_visual_regression?: boolean
+          organization_id?: string | null
+          partial_results?: Json | null
+          progress?: Json
+          sections?: string[]
+          started_at?: string | null
+          status?: string
+          tiers?: string[]
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      skill_qa_reports: {
+        Row: {
+          avg_score_by_tier: Json
+          brand_name: string
+          consistently_missing: string[]
+          created_at: string
+          entity_id: string
+          entity_type: string
+          full_report: Json
+          id: string
+          job_id: string | null
+          organization_id: string | null
+          pdf_vision: Json | null
+          recurring_misuses: Json
+          visual_regression: Json | null
+        }
+        Insert: {
+          avg_score_by_tier?: Json
+          brand_name: string
+          consistently_missing?: string[]
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          full_report: Json
+          id?: string
+          job_id?: string | null
+          organization_id?: string | null
+          pdf_vision?: Json | null
+          recurring_misuses?: Json
+          visual_regression?: Json | null
+        }
+        Update: {
+          avg_score_by_tier?: Json
+          brand_name?: string
+          consistently_missing?: string[]
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          full_report?: Json
+          id?: string
+          job_id?: string | null
+          organization_id?: string | null
+          pdf_vision?: Json | null
+          recurring_misuses?: Json
+          visual_regression?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_qa_reports_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "skill_qa_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skill_qa_schedules: {
+        Row: {
+          cadence: string
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          entity_id: string
+          entity_type: string
+          id: string
+          last_run_at: string | null
+          next_run_at: string | null
+          organization_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          cadence?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          entity_id: string
+          entity_type: string
+          id?: string
+          last_run_at?: string | null
+          next_run_at?: string | null
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cadence?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          last_run_at?: string | null
+          next_run_at?: string | null
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       social_asset_analyses: {
         Row: {
           accessibility_findings: Json | null
@@ -6356,6 +6903,16 @@ export type Database = {
           website_score: number
         }[]
       }
+      get_icon_ab_results: {
+        Args: { p_test_id: string }
+        Returns: {
+          clicks: number
+          ctr: number
+          impressions: number
+          label: string
+          variant_id: string
+        }[]
+      }
       get_intelligence_cadence: { Args: never; Returns: string }
       get_linked_products_card_data: {
         Args: { p_parent_brand_id: string }
@@ -6590,6 +7147,23 @@ export type Database = {
           invited_role: string
           is_valid: boolean
           org_name: string
+        }[]
+      }
+      match_brand_imagery: {
+        Args: {
+          p_entity_id: string
+          p_entity_type: string
+          p_match_count?: number
+          p_query_embedding: string
+        }
+        Returns: {
+          caption: string
+          id: string
+          image_id: string
+          image_url: string
+          section_id: string
+          similarity: number
+          tags: string[]
         }[]
       }
       move_to_dlq: {
