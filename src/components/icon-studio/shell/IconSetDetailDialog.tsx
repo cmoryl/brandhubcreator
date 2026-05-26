@@ -39,6 +39,8 @@ interface Props {
   onCompare?: () => void;
   onLockToggle?: () => void;
   onEnrich?: () => void;
+  /** Persist a new icons array for the open library (reject / replace flows). */
+  onMutateIcons?: (nextIcons: BrandIconography[]) => Promise<void> | void;
 }
 
 const SIZE_LADDER: { label: string; tile: number; icon: number; columns: number }[] = [
