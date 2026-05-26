@@ -227,6 +227,16 @@ export const IconDetailDialog = ({
                   >
                     <ThumbsDown className="h-3.5 w-3.5" /> Reject
                   </Button>
+                  {onReplace && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      onClick={() => onReplace(icon)}
+                    >
+                      <Replace className="h-3.5 w-3.5" /> Replace…
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"
