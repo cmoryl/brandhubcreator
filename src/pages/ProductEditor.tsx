@@ -970,6 +970,14 @@ const ProductEditor = () => {
                               Manage Members
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuItem onClick={() => navigate('/imagery-hub')} className="gap-2 cursor-pointer">
+                            <ImageIcon className="h-4 w-4" />
+                            Imagery Hub
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate('/icon-studio')} className="gap-2 cursor-pointer">
+                            <Sparkles className="h-4 w-4" />
+                            Icon Studio
+                          </DropdownMenuItem>
                         </>
                       )}
                       
