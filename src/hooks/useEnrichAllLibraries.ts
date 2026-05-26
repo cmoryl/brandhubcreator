@@ -119,17 +119,34 @@ export function useEnrichAllLibraries(organizationId: string | undefined) {
     async (library: IconLibrary, opts?: { perCategory?: number; maxAdded?: number }) => {
       const id = toast.loading(`Enriching ${library.name}…`);
       try {
-        const result = await enrichLibrary(library, opts);
+        // Default to a meaningful batch so users always see icons added.
+        const effective = {
+          perCategory: opts?.perCategory ?? 40,
+          maxAdded: opts?.maxAdded ?? 300,
+          ...opts,
+        };
+        const result = await enrichLibrary(library, effective);
+        logger.debug('[enrichOne] result', {
+          lib: library.name,
+          added: result.added,
+          categories: result.categories,
+          existingCount: library.icons.length,
+          nextCount: result.icons.length,
+        });
         if (result.added > 0) {
           await updateLibrary.mutateAsync({ id: library.id, updates: { icons: result.icons } });
           toast.success(`Added ${result.added} icons to ${library.name}`, { id });
         } else {
-          toast.info('No new icons to add', { id });
+          toast.info(
+            `No new industry icons found for ${library.name}. Categories tried: ${result.categories.join(', ') || 'none'}.`,
+            { id },
+          );
         }
         return result;
       } catch (e) {
         logger.debug('[enrichOne] failed', e);
-        toast.error('Enrichment failed', { id });
+        const msg = e instanceof Error ? e.message : String(e);
+        toast.error(`Enrichment failed: ${msg}`, { id });
       }
     },
     [updateLibrary],
