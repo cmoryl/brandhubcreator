@@ -59,8 +59,9 @@ const TAB_MAPPING: Record<IconStudioTab, SimplifiedTab> = {
 };
 
 interface IconStudioProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  asPage?: boolean;
   organizationId: string;
   organizationName?: string;
   brandColors?: Array<{ hex: string; name: string }>;
@@ -79,8 +80,9 @@ interface IconStudioProps {
 }
 
 export const IconStudio = ({
-  open,
+  open = false,
   onOpenChange,
+  asPage = false,
   organizationId,
   organizationName = '',
   brandColors = [],
