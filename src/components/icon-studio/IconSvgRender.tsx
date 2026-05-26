@@ -143,8 +143,10 @@ const prepareSvgMarkup = (
   if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', icon.viewBox || '0 0 24 24');
 
   // Uniform stroke for every icon — guarantees consistent weight regardless of
-  // source pack (lucide, tabler thin/light/bold variants, etc.).
-  svg.setAttribute('stroke-width', String(strokeWidth));
+  // source pack (lucide, tabler thin/light/bold variants, etc.). Floor at 2 so
+  // "thin/light/ghost" variants don't read as faded.
+  const uniformStroke = Math.max(strokeWidth, 2);
+  svg.setAttribute('stroke-width', String(uniformStroke));
   svg.setAttribute('stroke-linecap', 'round');
   svg.setAttribute('stroke-linejoin', 'round');
   // Strip per-element / per-group stroke-width so the root value wins.
@@ -198,16 +200,16 @@ const prepareSvgMarkup = (
     if (presentation === 'outlined') {
       el.setAttribute('fill', 'none');
       el.setAttribute('stroke', 'currentColor');
-      el.setAttribute('stroke-width', String(strokeWidth));
+      el.setAttribute('stroke-width', String(uniformStroke));
     } else if (presentation === 'filled') {
       el.setAttribute('fill', isLine ? 'none' : 'currentColor');
       el.setAttribute('stroke', isLine ? 'currentColor' : 'none');
-      if (isLine) el.setAttribute('stroke-width', String(strokeWidth));
+      if (isLine) el.setAttribute('stroke-width', String(uniformStroke));
     } else if (presentation === 'duotone') {
       el.setAttribute('fill', isLine ? 'none' : 'currentColor');
       if (!isLine) el.setAttribute('fill-opacity', '0.28');
       el.setAttribute('stroke', 'currentColor');
-      el.setAttribute('stroke-width', String(strokeWidth));
+      el.setAttribute('stroke-width', String(uniformStroke));
     } else {
       // auto: respect inherited paint. Outlined icons (fill=none + stroke on
       // an ancestor <g>) must stay outlines — never override with a fill.
@@ -220,12 +222,12 @@ const prepareSvgMarkup = (
           if (detectedMode === 'stroke') {
             el.setAttribute('fill', 'none');
             el.setAttribute('stroke', 'currentColor');
-            el.setAttribute('stroke-width', String(strokeWidth));
+            el.setAttribute('stroke-width', String(uniformStroke));
           } else {
             el.setAttribute('fill', isLine ? 'none' : 'currentColor');
             if (isLine) {
               el.setAttribute('stroke', 'currentColor');
-              el.setAttribute('stroke-width', String(strokeWidth));
+              el.setAttribute('stroke-width', String(uniformStroke));
             }
           }
         }
@@ -264,7 +266,7 @@ export const IconSvgRender = ({
   size,
   color = 'currentColor',
   presentation = 'outlined',
-  strokeWidth = 1.75,
+  strokeWidth = 2,
   className,
   debug,
 }: IconSvgRenderProps) => {
