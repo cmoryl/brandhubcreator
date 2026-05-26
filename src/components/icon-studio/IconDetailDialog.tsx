@@ -76,6 +76,7 @@ export const IconDetailDialog = ({
   onRegenerate,
   onApprove,
   onReject,
+  onReplace,
   extraActions,
   hideReviewActions = false,
 }: Props) => {
