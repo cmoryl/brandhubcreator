@@ -85,6 +85,10 @@ export const LinkedIconStudioLibraries = ({
       if (!lib.is_active) return false;
       if (ids.has(lib.id)) return true;
       if (lib.level === 'core' || lib.level === 'product_line') return true;
+      // Brand-services libraries (named "Services - <Brand>") auto-attach to
+      // every entity in the org so each brand's solution-specific icons surface
+      // on brand, product, and event iconography sections.
+      if (lib.name?.toLowerCase().startsWith('services - ')) return true;
       if (lib.level !== 'brand' || !normalizedName) return false;
       const libName = lib.name.trim().toLowerCase();
       return libName === normalizedName
