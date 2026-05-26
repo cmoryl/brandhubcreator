@@ -29,6 +29,7 @@ import {
   Check,
   Download,
   RefreshCw,
+  Replace,
   ThumbsUp,
   ThumbsDown,
   Sparkles,
