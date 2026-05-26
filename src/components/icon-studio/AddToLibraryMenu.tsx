@@ -69,11 +69,13 @@ export const AddToLibraryMenu = ({ icon, organizationId, label = 'Add to library
         description: 'Icons saved from the bundled library',
         icons: [icon],
       });
+      toast.success(`Added "${icon.name}" to "Imported icons" — available in brand sections`);
       setOpen(false);
     } finally {
       setBusyId(null);
     }
   };
+
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
