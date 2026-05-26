@@ -80,6 +80,7 @@ export const IconSetsView = ({
   const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
     useIconLibraryRowActions({ organizationId, canEdit });
   const { enrichOne } = useEnrichAllLibraries(organizationId);
+  const { updateLibrary } = useIconLibraries(organizationId);
 
   // Auto-open from deep link (e.g. /icon-studio?section=sets&library=<id>)
   useEffect(() => {
