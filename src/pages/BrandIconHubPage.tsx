@@ -131,6 +131,13 @@ const BrandIconHubPage = ({ entityType = 'brand' }: BrandIconHubPageProps) => {
     for (const lib of libraries) {
       if (lib.level === 'core') { set.add(lib.id); continue; }
       const libKey = normalize(lib.name);
+      // Brand-services libraries (named "Services - <Brand>") are auto-attached
+      // org-wide so products & events surface every brand's solution-specific
+      // icon set without needing per-entity links.
+      if (lib.name?.toLowerCase().startsWith('services - ')) {
+        set.add(lib.id);
+        continue;
+      }
       if (!libKey || !entityKey) continue;
       if (libKey === entityKey || libKey.includes(entityKey) || entityKey.includes(libKey)) {
         set.add(lib.id);
