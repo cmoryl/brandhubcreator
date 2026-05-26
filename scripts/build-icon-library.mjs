@@ -73,7 +73,7 @@ const CATEGORY_RULES = [
   { cat: 'devtools', re: /(git|branch|merge|commit|repo|code|terminal|console|api|webhook|deploy|build|compile|debug|test|version|tag|release|fork|pull-request|issue|docker|kubernetes|npm|yarn)/ },
   { cat: 'media', re: /(play|pause|stop|record|video|music|audio|sound|song|album|playlist|camera|photo|image|picture|gallery|film|movie|tv|broadcast|stream|podcast|radio)/ },
   { cat: 'security', re: /(lock|unlock|key|password|shield|secure|protect|guard|safe|vault|fingerprint|face-id|encrypt|firewall|vpn|verify|auth|biometric|crime|police)/ },
-  { cat: 'gaming', re: /(game|gaming|controller|joystick|dice|chess|pawn|cards|trophy|achievement|level|score|player|console|playstation|xbox|nintendo|arcade|pixel)/ },
+  { cat: 'gaming', re: /(game|gaming|controller|joystick|dice|chess|pawn|cards|trophy|achievement|level|score|player|console|playstation|xbox|nintendo|arcade|pixel|sword|axe|bow|arrow-quiver|dagger|wand|wizard|warrior|knight|barbarian|shield|armor|helm|helmet|potion|spell|magic|dragon|goblin|orc|elf|dungeon|quest|meeple|rune|crown|treasure|chest|loot|monster|skull|crossbones|tome|scroll|amulet|gem|crystal|battle|combat|attack|defense|hp|mana|xp|mmo|rpg|nes|snes|gameboy|pacman)/ },
   { cat: 'sports', re: /(ball|football|soccer|basketball|baseball|tennis|golf|hockey|rugby|cricket|olympic|medal|trophy|race|stadium|gym|fitness|sport)/ },
   { cat: 'files', re: /(file|folder|document|pdf|doc|xls|ppt|zip|archive|attachment|upload|download|save|export|import|drive|storage|disk|backup)/ },
   { cat: 'arrows', re: /(arrow|chevron|caret|direction|left|right|up|down|forward|back|next|prev|return|undo|redo|refresh|repeat|rotate|swap|move|drag)/ },
