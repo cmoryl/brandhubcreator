@@ -254,9 +254,9 @@ const prepareSvgMarkup = (
         'style',
         forcedMode
           ? upsertStyle(
-              upsertStyle(nextStyle, 'fill', presentation === 'outlined' || isLine ? 'none' : 'currentColor'),
+              upsertStyle(nextStyle, 'fill', effectivePresentation === 'outlined' || isLine ? 'none' : 'currentColor'),
               'stroke',
-              presentation === 'filled' && !isLine ? 'none' : 'currentColor',
+              effectivePresentation === 'filled' && !isLine ? 'none' : 'currentColor',
             )
           : nextStyle
               .replace(/fill\s*:\s*(?!none|url\(|currentColor)([^;}]+)/gi, 'fill: currentColor')
