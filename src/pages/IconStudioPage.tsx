@@ -426,6 +426,13 @@ const IconStudioPage = () => {
       packs={bundledPacks.map((p) => ({ id: p.id, name: p.name, count: p.count }))}
     />
     <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+    {organizationId && (
+      <AutoLinkIndustryDialog
+        open={autoLinkOpen}
+        onOpenChange={setAutoLinkOpen}
+        organizationId={organizationId}
+      />
+    )}
     </>
   );
 };
