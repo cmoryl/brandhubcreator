@@ -78,6 +78,14 @@ export function loadPack(packId: string): Promise<IconifyPack> {
 
 /** Build an SVG string from pack data. Caches result per id. */
 export async function materializeSvg(packId: string, iconName: string): Promise<string> {
+  // Synthetic "multicultural" pack: entries encode "<srcPack>__<name>" — delegate
+  // to the real source pack so SVGs render without duplicating icon bodies.
+  if (packId === 'multicultural' && iconName.includes('__')) {
+    const sep = iconName.indexOf('__');
+    const srcPack = iconName.slice(0, sep);
+    const srcName = iconName.slice(sep + 2);
+    return materializeSvg(srcPack, srcName);
+  }
   const cacheKey = `${packId}/${iconName}`;
   const cached = svgCache.get(cacheKey);
   if (cached) return cached;
