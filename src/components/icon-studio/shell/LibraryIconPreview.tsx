@@ -73,7 +73,7 @@ export const LibraryIconPreview = ({
           <IconSvgRender
             icon={ic}
             size={glyph}
-            presentation="outlined"
+            presentation="auto"
             strokeWidth={1.75}
           />
         </div>
