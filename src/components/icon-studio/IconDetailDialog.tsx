@@ -29,6 +29,7 @@ import {
   Check,
   Download,
   RefreshCw,
+  Replace,
   ThumbsUp,
   ThumbsDown,
   Sparkles,
@@ -56,6 +57,8 @@ interface Props {
   onRegenerate?: (recipe: IconRecipe) => Promise<void> | void;
   onApprove?: (icon: BrandIconography) => void;
   onReject?: (icon: BrandIconography) => void;
+  /** Open a picker to replace this icon in its parent set. */
+  onReplace?: (icon: BrandIconography) => void;
   /** Optional extra action buttons rendered alongside the default action row. */
   extraActions?: React.ReactNode;
   /** When true, hides Approve/Reject/Regenerate (used for read-only sources like imported icons). */
@@ -73,6 +76,7 @@ export const IconDetailDialog = ({
   onRegenerate,
   onApprove,
   onReject,
+  onReplace,
   extraActions,
   hideReviewActions = false,
 }: Props) => {
@@ -223,6 +227,16 @@ export const IconDetailDialog = ({
                   >
                     <ThumbsDown className="h-3.5 w-3.5" /> Reject
                   </Button>
+                  {onReplace && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      onClick={() => onReplace(icon)}
+                    >
+                      <Replace className="h-3.5 w-3.5" /> Replace…
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"

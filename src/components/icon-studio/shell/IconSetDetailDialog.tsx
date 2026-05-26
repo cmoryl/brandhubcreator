@@ -21,6 +21,7 @@ import { IconSetPreview } from './IconSetPreview';
 import { IconDetailDialog } from '@/components/icon-studio/IconDetailDialog';
 import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 import { RemixSystemDialog } from '@/components/icon-studio/RemixSystemDialog';
+import { ReplaceIconDialog } from './ReplaceIconDialog';
 import { exportIconSystem } from '@/lib/iconStudio/exportSystem';
 import { readRecipe, type IconRecipe } from '@/lib/iconStudio/recipe';
 import type { BrandIconography } from '@/types/brand';
@@ -38,6 +39,8 @@ interface Props {
   onCompare?: () => void;
   onLockToggle?: () => void;
   onEnrich?: () => void;
+  /** Persist a new icons array for the open library (reject / replace flows). */
+  onMutateIcons?: (nextIcons: BrandIconography[]) => Promise<void> | void;
 }
 
 const SIZE_LADDER: { label: string; tile: number; icon: number; columns: number }[] = [
