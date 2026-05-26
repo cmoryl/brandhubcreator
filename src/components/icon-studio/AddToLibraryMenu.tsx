@@ -49,7 +49,7 @@ export const AddToLibraryMenu = ({ icon, organizationId, label = 'Add to library
         id: lib.id,
         updates: { icons: [...lib.icons, icon] },
       });
-      toast.success(`Added to “${lib.name}”`);
+      toast.success(`Added "${icon.name}" to "${lib.name}" — available in brand sections`);
       setOpen(false);
     } catch {
       // toast already surfaced by hook
