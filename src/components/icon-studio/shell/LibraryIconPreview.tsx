@@ -10,6 +10,33 @@ import { cn } from '@/lib/utils';
 import type { BrandIconography } from '@/types/brand';
 import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 import { IconSetPreview } from './IconSetPreview';
+import { scoreIcon, BRAIN_AXIS_LABELS, type BrainAxis } from '@/lib/iconStudio/qa';
+
+/**
+ * Compute the worst-axis brain citation for an icon. Returns null when the
+ * icon passes the rubric cleanly so we don't decorate healthy tiles.
+ */
+const brainCitationFor = (
+  icon: BrandIconography,
+): { axis: BrainAxis; score: number; principle?: string } | null => {
+  try {
+    const report = scoreIcon(icon);
+    let axis: BrainAxis = 'gridIntegrity';
+    let score = 100;
+    for (const k of Object.keys(report.scores.brainRubric) as BrainAxis[]) {
+      if (report.scores.brainRubric[k] < score) {
+        score = report.scores.brainRubric[k];
+        axis = k;
+      }
+    }
+    if (score >= 85) return null;
+    const finding = report.findings.find((f) => f.brainAxis === axis && f.brainPrinciple);
+    return { axis, score, principle: finding?.brainPrinciple };
+  } catch {
+    return null;
+  }
+};
+
 
 interface Props {
   icons?: BrandIconography[] | null;
