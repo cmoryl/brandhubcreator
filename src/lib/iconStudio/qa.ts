@@ -703,6 +703,8 @@ export interface PreflightSummary {
   strokeInconsistentCount: number;
   brandFitFailCount: number;
   exportNotReadyCount: number;
+  /** Iconography Brain rubric averaged across the scanned set. */
+  brainRubric: BrainRubric;
 }
 
 export const runPreflight = async (
@@ -714,12 +716,19 @@ export const runPreflight = async (
   let strokeInconsistentCount = 0;
   let brandFitFailCount = 0;
   let exportNotReadyCount = 0;
+  const rubricSum: BrainRubric = {
+    gridIntegrity: 0, strokeConsistency: 0, opticalBalance: 0,
+    squintTest: 0, metaphorClarity: 0, culturalNeutrality: 0,
+  };
 
   for (const icon of icons) {
     const report = scoreIcon(icon, recipe);
     if (report.findings.some((f) => f.id === 'stroke-inconsistent')) strokeInconsistentCount++;
     if (report.scores.brandFit < 70) brandFitFailCount++;
     if (!report.exportReady) exportNotReadyCount++;
+    for (const k of Object.keys(rubricSum) as BrainAxis[]) {
+      rubricSum[k] += report.scores.brainRubric[k];
+    }
 
     const cc = checkIconContrast(icon, recipe);
     if (!cc.ok) {
@@ -740,6 +749,16 @@ export const runPreflight = async (
     }
   }
 
+  const n = Math.max(icons.length, 1);
+  const brainRubric: BrainRubric = {
+    gridIntegrity: Math.round(rubricSum.gridIntegrity / n),
+    strokeConsistency: Math.round(rubricSum.strokeConsistency / n),
+    opticalBalance: Math.round(rubricSum.opticalBalance / n),
+    squintTest: Math.round(rubricSum.squintTest / n),
+    metaphorClarity: Math.round(rubricSum.metaphorClarity / n),
+    culturalNeutrality: Math.round(rubricSum.culturalNeutrality / n),
+  };
+
   return {
     total: icons.length,
     contrastFails,
@@ -747,6 +766,8 @@ export const runPreflight = async (
     strokeInconsistentCount,
     brandFitFailCount,
     exportNotReadyCount,
+    brainRubric,
   };
 };
+
 
