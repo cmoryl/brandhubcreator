@@ -5,6 +5,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { ICONOGRAPHY_BRAIN_SUMMARY } from "../_shared/iconographyKnowledge.ts";
+import { requireAiAccess } from "../_shared/requireAiAccess.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +28,9 @@ interface ExpandedSearch {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const gate = await requireAiAccess(req, { corsHeaders });
+  if (gate.response) return gate.response;
 
   try {
     const body = (await req.json()) as Req;
