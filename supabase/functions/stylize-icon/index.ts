@@ -303,7 +303,10 @@ Analyze the image semantically (form → convention → context), then produce t
           strokeWidth,
           cornerRadius,
           simplifyThreshold,
+          brainVersion: ICONOGRAPHY_BRAIN_VERSION,
+          brainContextApplied: Object.keys(context ?? {}).length > 0,
         }
+
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
