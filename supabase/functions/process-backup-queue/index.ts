@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.89.0";
+import { requireServiceRole } from "../_shared/internalAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,8 +8,9 @@ const corsHeaders = {
 
 /**
  * Process backup queue - handles pending backup jobs asynchronously.
- * This function can be called via cron or manually to process queued backups.
- * 
+ * Server-to-server only: invoked by queue-backup with the service-role bearer
+ * (or by Supabase cron). Public callers are rejected.
+ *
  * Flow:
  * 1. Find pending jobs that are ready to run (scheduled_for <= now or null)
  * 2. Mark them as 'processing'
@@ -20,6 +22,11 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // SECURITY: previously this endpoint had zero auth, letting any anonymous
+  // caller process the backup queue with service-role credentials.
+  const denied = requireServiceRole(req, corsHeaders);
+  if (denied) return denied;
+
   const startTime = Date.now();
   const maxProcessingTime = 55000; // 55 seconds to stay under edge function limits
 
@@ -27,6 +34,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
+
 
     // Parse optional params
     let jobId: string | undefined;

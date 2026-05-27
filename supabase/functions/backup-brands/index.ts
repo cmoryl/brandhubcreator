@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.89.0";
+import { verifyServiceRoleOrUser } from "../_shared/internalAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,42 +17,37 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // SECURITY: every caller must present either a valid user JWT (manual
+    // backups from the app) or the service-role bearer (scheduled jobs invoked
+    // by other edge functions / cron). Previously the function bypassed auth
+    // entirely when `backupType !== 'manual'`, letting any anonymous request
+    // dump an org's data.
+    const gate = await verifyServiceRoleOrUser(req, corsHeaders);
+    if (!gate.ok) return gate.response;
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
+
     const supabase = createClient(supabaseUrl, serviceRoleKey);
-    
+
     let organizationId: string | undefined;
     let backupType: 'scheduled' | 'manual' = 'manual';
     let userId: string | undefined;
 
-    const authHeader = req.headers.get("Authorization");
-    
     if (req.method === "POST") {
       const body: BackupRequest = await req.json().catch(() => ({}));
       organizationId = body.organizationId;
       backupType = body.backupType || 'manual';
     }
 
-    // Verify auth for manual backups
-    if (backupType === 'manual' && authHeader) {
-      const token = authHeader.replace("Bearer ", "");
-      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-      
-      if (authError || !user) {
-        return new Response(
-          JSON.stringify({ success: false, error: "Unauthorized" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      userId = user.id;
-
+    if (gate.auth.kind === 'user') {
+      userId = gate.auth.userId;
+      // Manual backups must still pass org-membership checks.
       if (organizationId) {
         const { data: isMember } = await supabase.rpc('is_org_member', {
           _user_id: userId,
-          _org_id: organizationId
+          _org_id: organizationId,
         });
-        
         if (!isMember) {
           return new Response(
             JSON.stringify({ success: false, error: "Must be organization member to create backups" }),
@@ -60,6 +56,7 @@ Deno.serve(async (req) => {
         }
       }
     }
+
 
     if (!organizationId) {
       return new Response(
