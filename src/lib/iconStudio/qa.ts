@@ -201,13 +201,13 @@ export const scoreIcon = (icon: BrandIconography, recipe?: IconRecipe | null): Q
         severity: 'warn',
         message: `Non-square viewBox (${vb[2]}×${vb[3]}). Icons should be square.`,
       });
-    } else if (vb[2] !== 24 || vb[0] !== 0 || vb[1] !== 0) {
+    } else if ((vb[2] !== 24 && vb[2] !== 48) || vb[0] !== 0 || vb[1] !== 0) {
       svgHealth -= 5;
       findings.push({
         id: 'viewbox-nonstandard',
         category: 'svgHealth',
         severity: 'warn',
-        message: `Non-standard viewBox "${vb.join(' ')}". Lucide/Tabler standard is "0 0 24 24".`,
+        message: `Non-standard viewBox "${vb.join(' ')}". Standard is "0 0 24 24" or "0 0 48 48".`,
       });
     }
 
@@ -273,7 +273,7 @@ export const scoreIcon = (icon: BrandIconography, recipe?: IconRecipe | null): Q
       .map((m) => m[1])
       .join(' ');
     if (pathData) {
-      const highPrecision = pathData.match(/\d+\.\d{2,}/g);
+      const highPrecision = pathData.match(/\d+\.\d{3,}/g);
       if (highPrecision && highPrecision.length > 0) {
         const sample = highPrecision.slice(0, 3).join(', ');
         const allNums = pathData.match(/\d+(\.\d+)?/g) || [];

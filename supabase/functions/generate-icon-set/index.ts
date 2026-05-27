@@ -134,7 +134,7 @@ serve(async (req) => {
 
     // Poll mode: check job status
     if (body.jobId) {
-      const jobs = await dbFetch(`brand_intelligence_jobs?id=eq.${body.jobId}&select=id,status,result,error_message`);
+      const jobs = await dbFetch(`brand_intelligence_jobs?id=eq.${body.jobId}&user_id=eq.${user.id}&select=id,status,result,error_message`);
       const job = jobs?.[0];
       if (!job) {
         return new Response(JSON.stringify({ error: "Job not found" }),
@@ -602,7 +602,7 @@ function sanitizeAndValidate(
       return `<path${a}/>`;
     });
     // Wrapper for duotone: outline defaults, individual back paths override with fill+opacity
-    const wrapperAttrs = `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+    const wrapperAttrs = `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${opts.gridSize ?? 24}" height="${opts.gridSize ?? 24}" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
     svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
   } else {
     // Strip baked colors from inner elements (we re-apply wrapper-level coloring).
@@ -612,8 +612,8 @@ function sanitizeAndValidate(
       return `<${tag}${cleaned}>`;
     });
     const wrapperAttrs = opts.isFilled
-      ? `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="24" height="24" fill="currentColor" stroke="none"`
-      : `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="24" height="24" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
+      ? `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${opts.gridSize ?? 24}" height="${opts.gridSize ?? 24}" fill="currentColor" stroke="none"`
+      : `xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${opts.gridSize ?? 24}" height="${opts.gridSize ?? 24}" fill="none" stroke="currentColor" stroke-width="${opts.strokeWidth}" stroke-linecap="${opts.linecap}" stroke-linejoin="${opts.linejoin}"`;
     svg = svg.replace(/<svg\b[^>]*>/i, `<svg ${wrapperAttrs}>`);
   }
 
