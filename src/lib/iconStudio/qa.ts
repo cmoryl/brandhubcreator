@@ -24,12 +24,79 @@ import { apcaContrast } from '@/lib/apcaContrast';
 
 export type QASeverity = 'pass' | 'warn' | 'fail';
 
+export type BrainAxis =
+  | 'gridIntegrity'
+  | 'strokeConsistency'
+  | 'opticalBalance'
+  | 'squintTest'
+  | 'metaphorClarity'
+  | 'culturalNeutrality';
+
+export const BRAIN_AXIS_LABELS: Record<BrainAxis, string> = {
+  gridIntegrity: 'Grid integrity',
+  strokeConsistency: 'Stroke consistency',
+  opticalBalance: 'Optical balance',
+  squintTest: 'Squint test (16px)',
+  metaphorClarity: 'Metaphor clarity',
+  culturalNeutrality: 'Cultural neutrality',
+};
+
+/**
+ * Iconography Brain → QA citations.
+ * Maps a finding id to the brain axis it violates plus a short principle
+ * citation that traces back to the iconography reference (Panofsky form,
+ * Lucide/Tabler stroke DNA, Isotype clarity, etc.).
+ */
+const BRAIN_CITATIONS: Record<string, { axis: BrainAxis; principle: string }> = {
+  'svg-missing':            { axis: 'metaphorClarity',     principle: 'No glyph = no Panofsky pre-iconographic read.' },
+  'viewbox-invalid':        { axis: 'gridIntegrity',        principle: 'Modern grid systems (Material, Lucide) require a valid viewBox.' },
+  'viewbox-non-square':     { axis: 'gridIntegrity',        principle: 'Icon grids are square — Olympic pictograms onward.' },
+  'viewbox-nonstandard':    { axis: 'gridIntegrity',        principle: 'Lucide/Tabler standardise on 0 0 24 24 for a shared visual DNA.' },
+  'raster-embedded':        { axis: 'squintTest',           principle: 'Pure vector is the icon-font / SVG sprite contract.' },
+  'non-path-primitives':    { axis: 'gridIntegrity',        principle: 'Paths-only keeps the system bake-clean at every scale.' },
+  'has-transform':          { axis: 'gridIntegrity',        principle: 'Bake transforms — half-pixel snapping is part of the grid contract.' },
+  'path-count-high':        { axis: 'metaphorClarity',      principle: 'Isotype/Lucide: minimum strokes for maximum read.' },
+  'path-count-above-target':{ axis: 'metaphorClarity',      principle: 'Aim ≤3 paths — Lucide-grade clarity.' },
+  'precision-high':         { axis: 'gridIntegrity',        principle: 'Snap to .0/.5 grid — high precision = tracing artefact.' },
+  'precision-stray':        { axis: 'gridIntegrity',        principle: 'Off-grid coordinates break the shared visual DNA.' },
+  'oversized':              { axis: 'squintTest',           principle: 'Under 2KB per glyph (modern variable icon-font budget).' },
+  'stroke-inconsistent':    { axis: 'strokeConsistency',    principle: 'Single-weight stroke across the set (Lucide/Tabler DNA).' },
+  'linecap-inconsistent':   { axis: 'strokeConsistency',    principle: 'One terminal style per family (rounded, butt, or square).' },
+  'linejoin-inconsistent':  { axis: 'strokeConsistency',    principle: 'One join style per family.' },
+  'too-dense-16px':         { axis: 'squintTest',           principle: 'Must read at 16px — the squint test from SF Symbols.' },
+  'stroke-too-thin':        { axis: 'squintTest',           principle: 'Stroke weight must survive 16px raster.' },
+  'no-brand-color':         { axis: 'opticalBalance',       principle: 'Brand palette is part of the system DNA.' },
+  'unapproved-color':       { axis: 'opticalBalance',       principle: 'Off-palette colours break the system DNA.' },
+  'style-mismatch':         { axis: 'strokeConsistency',    principle: 'Style family (line/filled/duotone) must match the recipe.' },
+  'no-recipe':              { axis: 'metaphorClarity',      principle: 'Without a recipe, brand fit cannot be scored.' },
+  'name-missing':           { axis: 'metaphorClarity',      principle: 'Naming = the third Panofsky layer (iconographic identity).' },
+  'name-not-kebab':         { axis: 'metaphorClarity',      principle: 'Kebab-case slugs match Lucide/Tabler conventions.' },
+  'category-missing':       { axis: 'metaphorClarity',      principle: 'Category drives semantic search and the brand taxonomy.' },
+};
+
+/**
+ * Heuristic cultural-sensitivity flag. The model-driven pass (auto-tagging)
+ * will refine this; for now we flag obvious metaphor families that need
+ * human review per the brain's "Cultural Fluency" principle.
+ */
+const CULTURALLY_SENSITIVE_TERMS = [
+  'hand', 'handshake', 'fist', 'finger', 'point', 'pray', 'praying', 'ok',
+  'thumbs', 'thumb', 'face', 'gender', 'flag', 'cross', 'star-of-david',
+  'crescent', 'religion', 'church', 'mosque', 'temple', 'gun', 'weapon',
+];
+
 export interface QAFinding {
   id: string;
   category: 'brandFit' | 'svgHealth' | 'smallSizeReadable' | 'exportReady';
   severity: QASeverity;
   message: string;
+  /** Iconography Brain axis this violates (when mappable). */
+  brainAxis?: BrainAxis;
+  /** Short citation from the iconography knowledge base. */
+  brainPrinciple?: string;
 }
+
+export type BrainRubric = Record<BrainAxis, number>;
 
 export interface QAScores {
   brandFit: number;
@@ -37,6 +104,8 @@ export interface QAScores {
   smallSizeReadable: number;
   exportReady: number;
   overall: number;
+  /** Six sub-scores from the Iconography Brain rubric (0–100 each). */
+  brainRubric: BrainRubric;
 }
 
 export interface QAReport {
@@ -44,6 +113,19 @@ export interface QAReport {
   findings: QAFinding[];
   exportReady: boolean;
 }
+
+const emptyRubric = (): BrainRubric => ({
+  gridIntegrity: 100,
+  strokeConsistency: 100,
+  opticalBalance: 100,
+  squintTest: 100,
+  metaphorClarity: 100,
+  culturalNeutrality: 100,
+});
+
+/** Dock per-axis points based on finding severity. */
+const BRAIN_AXIS_DOCK = { fail: 35, warn: 12, pass: 0 } as const;
+
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                     */
@@ -413,8 +495,37 @@ export const scoreIcon = (icon: BrandIconography, recipe?: IconRecipe | null): Q
     (brandFit * 0.3 + svgHealth * 0.3 + smallSizeReadable * 0.2 + exportReady * 0.2),
   );
 
+  /* ----- Brain rubric: annotate findings & derive sub-scores ----- */
+  const brainRubric = emptyRubric();
+  for (const f of findings) {
+    const cite = BRAIN_CITATIONS[f.id];
+    if (cite) {
+      f.brainAxis = cite.axis;
+      f.brainPrinciple = cite.principle;
+      brainRubric[cite.axis] = Math.max(0, brainRubric[cite.axis] - BRAIN_AXIS_DOCK[f.severity]);
+    }
+  }
+  // Heuristic cultural-neutrality flag (model pass will refine later).
+  const slug = (icon.name ?? '').toLowerCase();
+  const culturalHit = CULTURALLY_SENSITIVE_TERMS.find((t) => slug.includes(t));
+  if (culturalHit) {
+    brainRubric.culturalNeutrality = Math.min(brainRubric.culturalNeutrality, 70);
+    findings.push({
+      id: 'cultural-review',
+      category: 'brandFit',
+      severity: 'warn',
+      message: `Metaphor "${culturalHit}" varies by culture — flag for human review.`,
+      brainAxis: 'culturalNeutrality',
+      brainPrinciple: 'Cultural Fluency: gestures/symbols read differently across regions.',
+    });
+  }
+  // Optical balance: penalise paths-out-of-grid as a proxy for visual weight drift.
+  if (findings.some((f) => f.id === 'precision-high' || f.id === 'has-transform')) {
+    brainRubric.opticalBalance = Math.max(0, brainRubric.opticalBalance - 10);
+  }
+
   return {
-    scores: { brandFit, svgHealth, smallSizeReadable, exportReady, overall },
+    scores: { brandFit, svgHealth, smallSizeReadable, exportReady, overall, brainRubric },
     findings,
     exportReady: exportReady >= 70 && svgHealth >= 70,
   };
@@ -431,23 +542,38 @@ export const scoreLibrary = (
   passing: number;
 } => {
   const reports = icons.map((icon) => ({ icon, report: scoreIcon(icon, recipe) }));
+  const zeroRubric = (): BrainRubric => ({
+    gridIntegrity: 0, strokeConsistency: 0, opticalBalance: 0,
+    squintTest: 0, metaphorClarity: 0, culturalNeutrality: 0,
+  });
   if (reports.length === 0) {
     return {
       reports,
-      average: { brandFit: 0, svgHealth: 0, smallSizeReadable: 0, exportReady: 0, overall: 0 },
+      average: { brandFit: 0, svgHealth: 0, smallSizeReadable: 0, exportReady: 0, overall: 0, brainRubric: zeroRubric() },
       failing: 0,
       passing: 0,
     };
   }
   const sum = reports.reduce(
-    (acc, { report }) => ({
-      brandFit: acc.brandFit + report.scores.brandFit,
-      svgHealth: acc.svgHealth + report.scores.svgHealth,
-      smallSizeReadable: acc.smallSizeReadable + report.scores.smallSizeReadable,
-      exportReady: acc.exportReady + report.scores.exportReady,
-      overall: acc.overall + report.scores.overall,
-    }),
-    { brandFit: 0, svgHealth: 0, smallSizeReadable: 0, exportReady: 0, overall: 0 },
+    (acc, { report }) => {
+      const r = report.scores.brainRubric;
+      return {
+        brandFit: acc.brandFit + report.scores.brandFit,
+        svgHealth: acc.svgHealth + report.scores.svgHealth,
+        smallSizeReadable: acc.smallSizeReadable + report.scores.smallSizeReadable,
+        exportReady: acc.exportReady + report.scores.exportReady,
+        overall: acc.overall + report.scores.overall,
+        brainRubric: {
+          gridIntegrity: acc.brainRubric.gridIntegrity + r.gridIntegrity,
+          strokeConsistency: acc.brainRubric.strokeConsistency + r.strokeConsistency,
+          opticalBalance: acc.brainRubric.opticalBalance + r.opticalBalance,
+          squintTest: acc.brainRubric.squintTest + r.squintTest,
+          metaphorClarity: acc.brainRubric.metaphorClarity + r.metaphorClarity,
+          culturalNeutrality: acc.brainRubric.culturalNeutrality + r.culturalNeutrality,
+        },
+      };
+    },
+    { brandFit: 0, svgHealth: 0, smallSizeReadable: 0, exportReady: 0, overall: 0, brainRubric: zeroRubric() },
   );
   const n = reports.length;
   const average: QAScores = {
@@ -456,6 +582,14 @@ export const scoreLibrary = (
     smallSizeReadable: Math.round(sum.smallSizeReadable / n),
     exportReady: Math.round(sum.exportReady / n),
     overall: Math.round(sum.overall / n),
+    brainRubric: {
+      gridIntegrity: Math.round(sum.brainRubric.gridIntegrity / n),
+      strokeConsistency: Math.round(sum.brainRubric.strokeConsistency / n),
+      opticalBalance: Math.round(sum.brainRubric.opticalBalance / n),
+      squintTest: Math.round(sum.brainRubric.squintTest / n),
+      metaphorClarity: Math.round(sum.brainRubric.metaphorClarity / n),
+      culturalNeutrality: Math.round(sum.brainRubric.culturalNeutrality / n),
+    },
   };
   return {
     reports,
@@ -569,6 +703,8 @@ export interface PreflightSummary {
   strokeInconsistentCount: number;
   brandFitFailCount: number;
   exportNotReadyCount: number;
+  /** Iconography Brain rubric averaged across the scanned set. */
+  brainRubric: BrainRubric;
 }
 
 export const runPreflight = async (
@@ -580,12 +716,19 @@ export const runPreflight = async (
   let strokeInconsistentCount = 0;
   let brandFitFailCount = 0;
   let exportNotReadyCount = 0;
+  const rubricSum: BrainRubric = {
+    gridIntegrity: 0, strokeConsistency: 0, opticalBalance: 0,
+    squintTest: 0, metaphorClarity: 0, culturalNeutrality: 0,
+  };
 
   for (const icon of icons) {
     const report = scoreIcon(icon, recipe);
     if (report.findings.some((f) => f.id === 'stroke-inconsistent')) strokeInconsistentCount++;
     if (report.scores.brandFit < 70) brandFitFailCount++;
     if (!report.exportReady) exportNotReadyCount++;
+    for (const k of Object.keys(rubricSum) as BrainAxis[]) {
+      rubricSum[k] += report.scores.brainRubric[k];
+    }
 
     const cc = checkIconContrast(icon, recipe);
     if (!cc.ok) {
@@ -606,6 +749,16 @@ export const runPreflight = async (
     }
   }
 
+  const n = Math.max(icons.length, 1);
+  const brainRubric: BrainRubric = {
+    gridIntegrity: Math.round(rubricSum.gridIntegrity / n),
+    strokeConsistency: Math.round(rubricSum.strokeConsistency / n),
+    opticalBalance: Math.round(rubricSum.opticalBalance / n),
+    squintTest: Math.round(rubricSum.squintTest / n),
+    metaphorClarity: Math.round(rubricSum.metaphorClarity / n),
+    culturalNeutrality: Math.round(rubricSum.culturalNeutrality / n),
+  };
+
   return {
     total: icons.length,
     contrastFails,
@@ -613,6 +766,8 @@ export const runPreflight = async (
     strokeInconsistentCount,
     brandFitFailCount,
     exportNotReadyCount,
+    brainRubric,
   };
 };
+
 

@@ -1,85 +1,60 @@
-## Context
+## Goal
+Now that the Iconography Brain knowledge module is loaded into 5 edge functions, push it further so it measurably improves what the studio ships — not just what the model "knows."
 
-Today `StyleSystemsView` and `StyleSystemDetailDialog` render every recipe with **emoji placeholders** (`SAMPLE_EMOJIS`, `CATEGORIES`). The recipe (`stroke / fill / duotone / mono` + a visual `variant`) is shown via CSS surfaces around an emoji glyph. None of it touches a real icon.
+## Where the brain is wired today
+- `generate-icon-set`, `generate-icon`, `suggest-icons`, `icon-semantic-search`, `stylize-icon`
+- Surfaced in Settings as "Iconography Brain — Active" with a reference viewer
 
-Now that we have:
-- 111k bundled SVG icons across 29 packs with category + variant metadata
-- `applyBrandDnaToSvg()` / `restyleBundledIcon()` that can re-skin any bundled SVG to a target stroke / cap / join / color / fillMode
-- Variant detection (outline, filled, duotone, bold, thin, rounded, sharp, …)
+## Proposed upgrades
 
-Style Systems should stop being a mood board and become a **live preview + apply** surface.
+### 1. Make the brain steer QA, not just generation
+Today QA is a single 0–100 IQS score + a slider in Settings. Use the brain's principles to break that into the rubric every classic icon system actually uses:
+- **Grid integrity** (24×24, snap to half-pixel)
+- **Stroke consistency** (single weight across set, matches DNA lock)
+- **Optical balance** (counter sizes, terminal alignment)
+- **Squint test** (renders at 16px)
+- **Metaphor clarity** (Panofsky pre-iconographic read)
+- **Cultural neutrality** (flags handshake/OK/etc. for review)
 
-## Goals
+Show these as 6 sub-scores on each icon in Library + QA views. Block export when any sub-score < threshold.
 
-1. Every Style System tile previews with **real bundled icons**, restyled through that system's recipe.
-2. Each system declares **preferred source variants** so recipes pull from native variants where possible (Outline → outline, Duotone → duotone, Sharp UI → sharp, etc.) instead of synthesizing from one source.
-3. From a Style System users can **apply the recipe to a bundled pack/selection** and save the result as a new core library — same flow imported icons already use, but in bulk.
-4. The detail dialog becomes the "try before you buy" surface: pick a pack, pick a category, see the restyle live across a real ladder.
+### 2. Brand DNA inherits the brain's axes
+Extend DNA Lock fields to include the modern variable-font axes the brain documents: `FILL`, `wght`, `GRAD`, `opsz`, `style family`. Generation + stylize already receive the prompt — also write these into the request body so the model has structured constraints, not just prose.
 
-## Changes
+### 3. Auto-tagging on import / generation
+Run a lightweight classification pass (Lovable AI, `gemini-2.5-flash-lite`) using the brain summary to tag every icon with:
+- Style family (line / filled / duotone / glyph)
+- Metaphor category (object, action, status, brand)
+- Cultural-sensitivity flag
 
-### 1. Recipe → BrandRestyleDNA mapping
-Add `src/components/icon-studio/shell/styleRecipeToDna.ts`:
-- Maps each `BaseStyle.recipe` + `preview` to a `BrandRestyleDNA` (`strokeWidth`, `strokeLinecap`, `strokeLinejoin`, `fillMode`, `primaryColor`).
-- Maps each style to **preferred source variants** (ordered list, e.g. `['outline', 'thin', 'light']` for `outline`, `['duotone', 'two-tone']` for `duotone`, `['sharp']` for `sharp-ui`, etc.).
-- Declares **preferred packs** per style (e.g. `phosphor` for duotone, `heroicons` for outline/solid, `material-symbols` for rounded/sharp).
+Stored on the icon JSONB. Powers better search, filtering, and the "long brand-glyph mis-classified as stroke" class of bugs we just fixed.
 
-### 2. Canonical sample slugs
-Add `BASE_SAMPLE_SLUGS` — 6–8 universally-present icon names that exist in nearly every pack (`home`, `search`, `user`, `settings`, `heart`, `star`, `bell`, `download`). Used everywhere a preview is currently emoji-driven.
+### 4. Semantic search re-ranking
+`icon-semantic-search` currently expands tokens. Add a second pass that re-ranks the client-side intersection results using the brain (concept → best-matching metaphor) so "growth" prefers `sprout`/`trend-up` over `bar-chart-3`.
 
-### 3. New `BundledIconLadder` preview component
-`src/components/icon-studio/shell/BundledIconLadder.tsx`:
-- Props: `style: BaseStyle`, `pack?: string` (defaults to style's preferred pack), `count`, `size`, `accent`.
-- Resolves each canonical slug → best variant match in the chosen pack (using existing variant detector against `loadPackIndex`), with graceful fallback to the next preferred pack.
-- Calls `restyleBundledIcon(pack, name, dna)` and renders the returned data URLs.
-- Lazy / suspended; skeletons while resolving.
+### 5. Stylizer guardrails
+Use the brain's "≤2KB, single path family, no pixel tracing" rules as a hard post-process: reject the model's SVG and retry once if it violates them. Today it accepts whatever comes back.
 
-### 4. `StyleSystemsView` updates
-- Replace `IconSetPreview emojis={SAMPLE_EMOJIS}` on each card with `<BundledIconLadder style={s} count={6} size="sm" />`.
-- Replace the **Active recipe panel** preview with the same component at a larger size, plus a small "Source: {pack} · {variant}" caption.
-- Add an "Apply to imported pack…" button next to "Use in new set" — opens the new dialog below.
+### 6. Iconography Brain panel — make it actionable
+Right now Settings only views the reference. Add:
+- Toggle per-area (generation / suggest / search / stylize / QA) so power users can A/B the brain on or off
+- "Brain version" badge so we can iterate the summary without guessing what shipped
+- Inline citations: when an icon is rejected by QA, show which brain principle triggered it
 
-### 5. `StyleSystemDetailDialog` updates
-- Drop the `CATEGORIES`/emoji ladder. Replace with:
-  - A **pack picker** (defaults to style's preferred pack, lists all packs that expose at least one preferred variant).
-  - A **category picker** sourced from `pack.categories`.
-  - The size ladder (16 / 24 / 32 / 48 / 64) rendered with `BundledIconLadder` against the chosen pack+category.
-- "Apply to set" button stays but now also offers "Apply to this pack's selection" → opens dialog #6.
+### 7. Optional: ingest more references
+The current summary is one PDF. Allow uploading additional reference docs (Material guidelines, SF Symbols notes, brand-specific style guides) into a small `iconography_knowledge` table; concatenate the active ones into the prompt with a token budget guard.
 
-### 6. New `ApplyStyleToBundledDialog`
-`src/components/icon-studio/shell/ApplyStyleToBundledDialog.tsx`:
-- Inputs: style recipe, pack, optional category filter, optional variant filter, icon-count cap (default 48, max 250).
-- Streams `restyleBundledIcon()` over the selected entries with a progress bar.
-- On confirm, calls `useIconLibraries().createLibrary` with `level: 'core'`, `name: "{Pack} · {Style}"`, and the restyled icons stored as `BrandIconography[]` (`id: 'restyled:{pack}/{name}/{recipeHash}'`, `svgPath: <full svg>`, `viewBox`, `fillMode`, `category`).
-- Toasts and navigates to the new library in `LibraryView` via the existing `deepLinkLibraryId` pattern (already wired in `IconStudioPage`).
+## Recommended sequencing
+1. **Sub-scored QA + inline citations** — highest visible quality lift
+2. **Auto-tagging on import** — fixes a real bug class and improves search
+3. **Stylizer guardrails** — cheap, prevents bad SVGs from entering the library
+4. **DNA axes + structured constraints** — deeper, touches generation request shape
+5. **Search re-rank, per-area toggles, multi-doc ingestion** — polish
 
-### 7. Pack-aware "preferred source" hints
-On each Style System card, show a tiny caption: `Sourced from {pack} · {variant}`. This makes the variant-filter work feel visible and explains why the previews look authentic instead of synthesized.
+## Technical notes
+- All work stays inside existing edge functions + Icon Studio UI; no schema migration needed for items 1, 3, 5, 6. Items 2, 4, 7 add columns/tables.
+- Keep the brain summary capped (~2KB today) — any expansion should move to a retrieval step rather than growing every prompt.
+- Use `gemini-2.5-flash-lite` for tagging/QA classification to stay under the 150MB edge function limit.
 
-## Out of scope (call out, don't build)
-
-- New style recipes. The current 36 stay as-is.
-- Editing recipes from the UI. Recipes remain code-defined.
-- Re-running restyle on already-generated libraries (separate "remix" flow).
-
-## Technical details
-
-- Resolution order per slug: exact match in preferred pack → preferred variant suffix in preferred pack → exact match in fallback packs → first hit in any preferred pack. Cache resolved `(slug, packPreferenceKey) → (pack, name)` in memory for the session.
-- `restyleBundledIcon` already caches by `(pack, name, dnaHash)` in memory + localStorage, so re-rendering Style System cards on filter changes is cheap.
-- `BundledIconLadder` must defer all SVG materialization until visible (use `IntersectionObserver` or render-on-mount with skeletons — same pattern as `IconCell` in `ImportedIconsView`).
-- Skip multicolor packs (`twemoji`, `openmoji`, `flag`, `devicon`, `cryptocurrency`, `meteocons`) from preferred-pack lists for monochrome styles; `restyleBundledIcon` already returns `skipped: true` for these so it's safe, but filtering up front avoids a flash.
-- Save-as-library writes go through the existing `organization_icon_libraries` table — no migration needed. `BrandIconography.svgPath` already supports full `<svg>` strings (proven by the imported-icons "Add to library" flow).
-- All new UI uses semantic tokens; no raw colors.
-
-## File map
-
-```text
-src/components/icon-studio/shell/
-  StyleSystemsView.tsx              (edit)
-  StyleSystemDetailDialog.tsx       (edit)
-  styleRecipeToDna.ts               (new)
-  BundledIconLadder.tsx             (new)
-  ApplyStyleToBundledDialog.tsx     (new)
-```
-
-No DB, no edge functions, no schema changes.
+## Decision needed
+Want me to start with **#1 (sub-scored QA + citations)** as the first concrete build, or pick a different entry point from the list?
