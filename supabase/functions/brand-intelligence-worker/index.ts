@@ -81,6 +81,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // SECURITY: only the service-role bearer (used by `brand-intelligence` and
+  // Supabase cron) may invoke this worker. Reject everything else.
+  const denied = requireServiceRole(req, corsHeaders);
+  if (denied) return denied;
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
@@ -123,17 +128,36 @@ serve(async (req) => {
       });
     }
 
-    // Update to processing
-    await db.update('brand_intelligence_jobs', `id=eq.${jobId}`, {
-      status: 'processing',
-      started_at: new Date().toISOString(),
-      progress: 10,
-    });
-
-    // Fetch entity text context via server-side RPC
-    // This extracts ONLY text fields from guide_data in PostgreSQL,
-    // preventing the 77-126MB guide_data from ever entering Edge Function memory
-    const table = job.entity_type === 'brand' ? 'brands' : job.entity_type === 'product' ? 'products' : 'events';
+    // Atomic claim: only transition pending → processing. If two workers race
+    // for the same jobId, exactly one will see a row come back; the other
+    // exits cleanly without double-processing or double-billing.
+    const claimRes = await fetch(
+      `${supabaseUrl}/rest/v1/brand_intelligence_jobs?id=eq.${jobId}&status=eq.pending`,
+      {
+        method: 'PATCH',
+        headers: {
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+        },
+        body: JSON.stringify({
+          status: 'processing',
+          started_at: new Date().toISOString(),
+          progress: 10,
+        }),
+      },
+    );
+    if (!claimRes.ok) {
+      throw new Error(`Job claim failed: ${claimRes.status}`);
+    }
+    const claimed = await claimRes.json();
+    if (!Array.isArray(claimed) || claimed.length === 0) {
+      console.log(`[worker] Job ${jobId} already claimed by another worker — exiting.`);
+      return new Response(JSON.stringify({ success: true, skipped: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     const contextRes = await fetch(
       `${supabaseUrl}/rest/v1/rpc/get_entity_text_context`,
