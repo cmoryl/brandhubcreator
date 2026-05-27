@@ -10,6 +10,33 @@ import { cn } from '@/lib/utils';
 import type { BrandIconography } from '@/types/brand';
 import { IconSvgRender } from '@/components/icon-studio/IconSvgRender';
 import { IconSetPreview } from './IconSetPreview';
+import { scoreIcon, BRAIN_AXIS_LABELS, type BrainAxis } from '@/lib/iconStudio/qa';
+
+/**
+ * Compute the worst-axis brain citation for an icon. Returns null when the
+ * icon passes the rubric cleanly so we don't decorate healthy tiles.
+ */
+const brainCitationFor = (
+  icon: BrandIconography,
+): { axis: BrainAxis; score: number; principle?: string } | null => {
+  try {
+    const report = scoreIcon(icon);
+    let axis: BrainAxis = 'gridIntegrity';
+    let score = 100;
+    for (const k of Object.keys(report.scores.brainRubric) as BrainAxis[]) {
+      if (report.scores.brainRubric[k] < score) {
+        score = report.scores.brainRubric[k];
+        axis = k;
+      }
+    }
+    if (score >= 85) return null;
+    const finding = report.findings.find((f) => f.brainAxis === axis && f.brainPrinciple);
+    return { axis, score, principle: finding?.brainPrinciple };
+  } catch {
+    return null;
+  }
+};
+
 
 interface Props {
   icons?: BrandIconography[] | null;
@@ -71,25 +98,45 @@ export const LibraryIconPreview = ({
       role="img"
       aria-label="Brand icon preview"
     >
-      {slots.map((ic, i) => (
-        <div
-          key={ic.id ?? i}
-          className="group flex items-center justify-center rounded-lg bg-background/70 backdrop-blur-sm text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-          style={{
-            height: tile,
-            width: tile,
-            border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
-          }}
-          title={ic.name}
-        >
-          <IconSvgRender
-            icon={ic}
-            size={glyph}
-            presentation="auto"
-            strokeWidth={1.75}
-          />
-        </div>
-      ))}
+      {slots.map((ic, i) => {
+        const citation = brainCitationFor(ic);
+        const titleText = citation
+          ? `${ic.name}\n⚠ ${BRAIN_AXIS_LABELS[citation.axis]} · ${citation.score}${citation.principle ? `\nBrain: ${citation.principle}` : ''}`
+          : ic.name;
+        const dotColor =
+          citation && citation.score < 70
+            ? 'hsl(var(--destructive))'
+            : citation
+              ? 'hsl(var(--tp-orange))'
+              : null;
+        return (
+          <div
+            key={ic.id ?? i}
+            className="group relative flex items-center justify-center rounded-lg bg-background/70 backdrop-blur-sm text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+            style={{
+              height: tile,
+              width: tile,
+              border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
+            }}
+            title={titleText}
+          >
+            <IconSvgRender
+              icon={ic}
+              size={glyph}
+              presentation="auto"
+              strokeWidth={1.75}
+            />
+            {dotColor && (
+              <span
+                aria-hidden
+                className="absolute top-0.5 right-0.5 h-1.5 w-1.5 rounded-full"
+                style={{ background: dotColor }}
+              />
+            )}
+          </div>
+        );
+      })}
+
       {showOverflow && (
         <div
           className="flex items-center justify-center rounded-lg text-[10px] font-semibold tabular-nums"
