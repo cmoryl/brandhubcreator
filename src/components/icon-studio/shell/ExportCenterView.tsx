@@ -5,10 +5,11 @@
  * look & feel users see in Style System cards.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   Package, Download, Image as ImageIcon, FileText, Code2, Layers,
   Smartphone, Library as LibraryIcon, Sparkles, Wand2, Loader2, ShieldCheck,
+  Palette, Settings2, ChevronDown, Check, Rocket, Paintbrush, Globe, Boxes,
 } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import JSZip from 'jszip';
@@ -63,6 +64,55 @@ const DEFAULT_FORMATS: FormatRow[] = [
 
 const COMING_SOON: FormatRow[] = [];
 
+type FormatId = FormatRow['id'];
+type PresetId = 'designer' | 'developer' | 'web' | 'everything';
+
+interface Preset {
+  id: PresetId;
+  label: string;
+  blurb: string;
+  icon: typeof Package;
+  token: string;
+  formats: FormatId[];
+}
+
+const PRESETS: Preset[] = [
+  {
+    id: 'designer',
+    label: 'Designer kit',
+    blurb: 'Styled SVG + PNG + PDF contact sheet. Drop-in for Figma & decks.',
+    icon: Paintbrush,
+    token: '--tp-pink',
+    formats: ['svg', 'png', 'pdf', 'json'],
+  },
+  {
+    id: 'developer',
+    label: 'Developer kit',
+    blurb: 'React components, sprite sheet, CSS utilities, JSON manifest.',
+    icon: Code2,
+    token: '--tp-digital-blue',
+    formats: ['svg', 'sprite', 'react', 'css', 'json'],
+  },
+  {
+    id: 'web',
+    label: 'Web bundle',
+    blurb: 'Favicons, icon font, sprite + CSS — everything a site needs.',
+    icon: Globe,
+    token: '--tp-teal',
+    formats: ['svg', 'sprite', 'css', 'font', 'favicon', 'json'],
+  },
+  {
+    id: 'everything',
+    label: 'The works',
+    blurb: 'Every format in every size. Largest bundle.',
+    icon: Boxes,
+    token: '--tp-orange',
+    formats: ['svg', 'svg-opt', 'png', 'sprite', 'react', 'css', 'figma', 'font', 'favicon', 'pdf', 'json'],
+  },
+];
+
+
+
 const PNG_SIZES = [16, 24, 32, 48, 64, 128, 256, 512];
 
 const ACCENT_TOKENS = [
@@ -92,6 +142,10 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
   // the threshold so bundles never ship glyphs that violate the rubric.
   const [brainGateEnabled, setBrainGateEnabled] = useState(true);
   const [brainGateThreshold, setBrainGateThreshold] = useState(70);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [activePreset, setActivePreset] = useState<PresetId | 'custom'>('designer');
+
+
 
   // Scoped libraries used by both the brain gate and the export pipeline.
   const scopedLibs = useMemo(
@@ -171,8 +225,15 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
     return targetIcons * Math.max(0, perIcon) + manifest;
   }, [targetIcons, sizes.size, formats]);
 
-  const toggleFormat = (id: FormatRow['id']) =>
+  const toggleFormat = (id: FormatRow['id']) => {
+    setActivePreset('custom');
     setFormats((p) => p.map((f) => (f.id === id ? { ...f, enabled: !f.enabled } : f)));
+  };
+
+  const applyPreset = (preset: Preset) => {
+    setActivePreset(preset.id);
+    setFormats((p) => p.map((f) => ({ ...f, enabled: preset.formats.includes(f.id) })));
+  };
 
   const toggleSize = (s: number) =>
     setSizes((p) => {
@@ -500,7 +561,8 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28">
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="tp-card relative overflow-hidden p-6">
         <div
           className="absolute inset-0 opacity-40"
@@ -510,167 +572,33 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
           }}
           aria-hidden
         />
-        <div className="relative flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              <Package className="h-3.5 w-3.5" />
-              <span>Production exports · style-locked</span>
-            </div>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight">Export Center</h1>
-            <p className="text-sm text-muted-foreground max-w-2xl">
-              Pick a style system + brand accent, then export a production ZIP where every
-              SVG and PNG carries the exact look &amp; feel from the Style Systems gallery.
-            </p>
+        <div className="relative">
+          <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+            <Package className="h-3.5 w-3.5" />
+            <span>Export Center</span>
           </div>
-          <Button
-            size="lg"
-            className="gap-2"
-            disabled={enabledCount === 0 || targetIcons === 0 || exporting}
-            onClick={handleExport}
-          >
-            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            {exporting ? 'Building bundle…' : 'Export bundle'}
-          </Button>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">Ship your icons</h1>
+          <p className="text-sm text-muted-foreground max-w-2xl mt-1">
+            Three quick steps: pick what to export, choose a look, and select a bundle preset.
+            Your style is baked into every file.
+          </p>
         </div>
       </header>
 
-      {/* Style + accent picker — drives the look & feel of EVERY exported asset */}
-      <section className="tp-card p-5">
-        <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <Wand2 className="h-4 w-4 text-muted-foreground" />
-              Style system + accent
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              The exporter bakes this recipe into every SVG/PNG in the bundle.
-            </p>
-          </div>
-          <Badge variant="outline" className="text-[10px] capitalize">
-            {activeStyle.preview.variant}
-          </Badge>
-        </header>
-
-        <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Style ({BASE_STYLES.length})
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 max-h-72 overflow-y-auto pr-1">
-              {BASE_STYLES.map((s) => {
-                const active = s.id === styleId;
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => setStyleId(s.id)}
-                    className={cn(
-                      'rounded-lg border p-2 text-left transition-colors group',
-                      active
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:bg-secondary/40',
-                    )}
-                  >
-                    <div className="text-[11px] font-semibold truncate">{s.name}</div>
-                    <div className="mt-1.5">
-                      <IconSetPreview
-                        emojis={PREVIEW_EMOJIS}
-                        accent={accentCss}
-                        accent2={accent2Css}
-                        size="sm"
-                        count={4}
-                        columns={4}
-                        variant={s.preview.variant}
-                        radius={s.preview.radius}
-                        strokeWidth={s.preview.strokeWidth}
-                      />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground pt-2">
-              Brand accent
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {ACCENT_TOKENS.map((c) => {
-                const active = c.token === accentToken;
-                return (
-                  <button
-                    key={c.token}
-                    onClick={() => setAccentToken(c.token)}
-                    className={cn(
-                      'flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors',
-                      active ? 'border-primary bg-primary/5' : 'border-border hover:bg-secondary/40',
-                    )}
-                  >
-                    <span
-                      className="h-3 w-3 rounded-sm"
-                      style={{ background: `hsl(var(${c.token}))` }}
-                    />
-                    {c.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Live preview — exactly what export will look like */}
-          <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Export preview
-            </div>
-            <div className="text-sm font-semibold">{activeStyle.name}</div>
-            <p className="text-[11px] text-muted-foreground">{activeStyle.description}</p>
-            <IconSetPreview
-              emojis={PREVIEW_EMOJIS}
-              accent={accentCss}
-              accent2={accent2Css}
-              size="lg"
-              count={6}
-              columns={6}
-              variant={activeStyle.preview.variant}
-              radius={activeStyle.preview.radius}
-              strokeWidth={activeStyle.preview.strokeWidth}
-            />
-            <div className="flex flex-wrap gap-1 pt-1">
-              <Badge variant="outline" className="text-[10px]">
-                Radius {activeStyle.preview.radius ?? 10}px
-              </Badge>
-              {activeStyle.preview.strokeWidth && (
-                <Badge variant="outline" className="text-[10px]">
-                  Stroke {activeStyle.preview.strokeWidth}px
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Summary tiles */}
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <SummaryTile label="Icons in scope" value={targetIcons.toLocaleString()} token="--tp-digital-blue" icon={Sparkles} />
-        <SummaryTile label="Formats enabled" value={enabledCount} token="--tp-pink" icon={Package} />
-        <SummaryTile label="PNG sizes" value={sizes.size} token="--tp-teal" icon={ImageIcon} />
-        <SummaryTile label="Files in bundle" value={fileEstimate.toLocaleString()} token="--tp-green" icon={FileText} />
-      </section>
-
-      {/* Scope selector */}
-      <section className="tp-card p-5">
-        <header className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-sm font-semibold">Scope</h3>
-            <p className="text-[11px] text-muted-foreground">
-              Choose a single set or bundle everything.
-            </p>
-          </div>
+      {/* ── Step 1 · Scope ─────────────────────────────────────────────── */}
+      <StepCard
+        step={1}
+        title="What do you want to export?"
+        hint={`${targetIcons.toLocaleString()} icon${targetIcons === 1 ? '' : 's'} in scope`}
+        action={
           <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={onOpenLibrary}>
-            <LibraryIcon className="h-3.5 w-3.5" /> Open library
+            <LibraryIcon className="h-3.5 w-3.5" /> Library
           </Button>
-        </header>
+        }
+      >
         <div className="flex flex-wrap gap-2">
           <ScopeChip
-            label={`Entire workspace (${libraries.length + (importedIcons.length > 0 ? 1 : 0)})`}
+            label={`Everything · ${libraries.reduce((s, l) => s + l.icons.length, 0) + importedIcons.length}`}
             active={selectedSetId === 'all'}
             onClick={() => setSelectedSetId('all')}
           />
@@ -684,238 +612,453 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
           ))}
           {importedIcons.length > 0 && (
             <ScopeChip
-              label={`Imported Assets · ${importedIcons.length}`}
+              label={`Imported · ${importedIcons.length}`}
               active={selectedSetId === 'imported'}
               onClick={() => setSelectedSetId('imported')}
             />
           )}
           {libraries.length === 0 && importedIcons.length === 0 && (
-            <p className="text-xs text-muted-foreground">
-              No sets yet — generate one or import icons to enable scoped exports.
+            <p className="text-xs text-muted-foreground py-2">
+              No icons yet — generate a set or import some to start exporting.
             </p>
           )}
         </div>
-      </section>
+      </StepCard>
 
-      {/* Iconography Brain export gate */}
-      <section className="tp-card p-5">
-        <header className="mb-3 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-              Iconography Brain export gate
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Excludes icons whose worst rubric axis falls below the threshold so bundles never ship
-              glyphs that violate the brain.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant={brainScan.failing.length > 0 ? 'destructive' : 'secondary'}
-              className="text-[10px]"
-            >
-              {brainScan.failing.length} failing · threshold {brainGateThreshold}
-            </Badge>
-            <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
-              <Checkbox
-                checked={brainGateEnabled}
-                onCheckedChange={(v) => setBrainGateEnabled(v === true)}
-              />
-              Gate on
-            </label>
-          </div>
-        </header>
-
-        <div className="grid gap-3 lg:grid-cols-[200px_1fr]">
-          <div className="space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Threshold (per-axis)
-            </div>
-            <input
-              type="range"
-              min={50}
-              max={95}
-              step={5}
-              value={brainGateThreshold}
-              onChange={(e) => setBrainGateThreshold(Number(e.target.value))}
-              className="w-full accent-primary"
-              disabled={!brainGateEnabled}
-            />
-            <div className="flex justify-between text-[10px] text-muted-foreground tabular-nums">
-              <span>50</span>
-              <span className="font-semibold text-foreground">{brainGateThreshold}</span>
-              <span>95</span>
-            </div>
-          </div>
-
-          <div className="rounded-md border border-border/60 bg-secondary/20 p-3">
-            {brainScan.failing.length === 0 ? (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <ShieldCheck className="h-3.5 w-3.5" style={{ color: 'hsl(var(--tp-green))' }} />
-                Every icon in scope clears the rubric.
+      {/* ── Step 2 · Look & feel ──────────────────────────────────────── */}
+      <StepCard
+        step={2}
+        title="Choose your look"
+        hint={`${activeStyle.name} · ${activeStyle.preview.variant}`}
+      >
+        <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
+          <div className="space-y-4">
+            <div>
+              <div className="mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <Wand2 className="h-3 w-3" /> Style system
               </div>
-            ) : (
-              <>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
-                  Excluded icons (worst axis)
-                </div>
-                <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
-                  {brainScan.failing.slice(0, 60).map((f) => (
-                    <span
-                      key={f.key}
-                      title={`${BRAIN_AXIS_LABELS[f.worstAxis]} · ${f.worstScore}`}
-                      className="rounded border border-border bg-card/60 px-1.5 py-0.5 text-[10px] tabular-nums"
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 max-h-64 overflow-y-auto pr-1">
+                {BASE_STYLES.map((s) => {
+                  const active = s.id === styleId;
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setStyleId(s.id)}
+                      className={cn(
+                        'rounded-lg border p-2 text-left transition-all',
+                        active
+                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                          : 'border-border hover:bg-secondary/40',
+                      )}
                     >
-                      {f.name}
-                      <span className="ml-1 text-muted-foreground">{f.worstScore}</span>
-                    </span>
-                  ))}
-                  {brainScan.failing.length > 60 && (
-                    <span className="text-[10px] text-muted-foreground">
-                      +{brainScan.failing.length - 60} more
-                    </span>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-
-
-      {/* Formats matrix */}
-      <section className="tp-card p-5">
-        <header className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-sm font-semibold">Formats</h3>
-            <p className="text-[11px] text-muted-foreground">
-              Active formats are emitted with the chosen style baked in.
-            </p>
-          </div>
-          <Badge variant="outline">{enabledCount} of {formats.length}</Badge>
-        </header>
-        <div className="grid gap-2 md:grid-cols-2">
-          {formats.map((f) => {
-            const Icon = f.icon;
-            return (
-              <div
-                key={f.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => toggleFormat(f.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggleFormat(f.id);
-                  }
-                }}
-                className={cn(
-                  'flex items-start gap-3 rounded-lg border p-3 text-left transition-colors',
-                  f.enabled
-                    ? 'border-primary/40 bg-primary/5'
-                    : 'border-border bg-secondary/20 hover:bg-secondary/40',
-                )}
-              >
-                <Checkbox
-                  checked={f.enabled}
-                  className="mt-0.5 pointer-events-none"
-                  aria-hidden="true"
-                  tabIndex={-1}
-                />
-                <Icon className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium flex items-center gap-2">
-                    {f.label}
-                    <Badge variant="secondary" className="text-[10px]">
-                      {f.ext}
-                    </Badge>
-                  </div>
-                  <div className="text-[11px] text-muted-foreground">{f.description}</div>
-                </div>
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="text-[11px] font-semibold truncate">{s.name}</div>
+                        {active && <Check className="h-3 w-3 text-primary flex-shrink-0" />}
+                      </div>
+                      <div className="mt-1.5">
+                        <IconSetPreview
+                          emojis={PREVIEW_EMOJIS}
+                          accent={accentCss}
+                          accent2={accent2Css}
+                          size="sm"
+                          count={4}
+                          columns={4}
+                          variant={s.preview.variant}
+                          radius={s.preview.radius}
+                          strokeWidth={s.preview.strokeWidth}
+                        />
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
+            </div>
 
-        <div className="mt-4 pt-3 border-t border-border/40">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
-            Coming soon
+            <div>
+              <div className="mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <Palette className="h-3 w-3" /> Brand accent
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {ACCENT_TOKENS.map((c) => {
+                  const active = c.token === accentToken;
+                  return (
+                    <button
+                      key={c.token}
+                      onClick={() => setAccentToken(c.token)}
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors',
+                        active ? 'border-primary bg-primary/5' : 'border-border hover:bg-secondary/40',
+                      )}
+                    >
+                      <span
+                        className="h-3 w-3 rounded-sm ring-1 ring-border/50"
+                        style={{ background: `hsl(var(${c.token}))` }}
+                      />
+                      {c.label}
+                      {active && <Check className="h-3 w-3 text-primary ml-0.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          <div className="grid gap-2 md:grid-cols-3">
-            {COMING_SOON.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 rounded-md border border-dashed border-border bg-secondary/10 px-3 py-2 text-[11px] text-muted-foreground"
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  <span className="truncate">{f.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
-      {/* PNG sizes */}
-      <section className="tp-card p-5">
-        <header className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-sm font-semibold">PNG sizes</h3>
-            <p className="text-[11px] text-muted-foreground">
-              Raster sizes rendered per icon — each carries the styled wrapper.
+          {/* Live preview */}
+          <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-3">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Live preview
+            </div>
+            <IconSetPreview
+              emojis={PREVIEW_EMOJIS}
+              accent={accentCss}
+              accent2={accent2Css}
+              size="lg"
+              count={6}
+              columns={3}
+              variant={activeStyle.preview.variant}
+              radius={activeStyle.preview.radius}
+              strokeWidth={activeStyle.preview.strokeWidth}
+            />
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              {activeStyle.description}
             </p>
+            <div className="flex flex-wrap gap-1">
+              <Badge variant="outline" className="text-[10px]">
+                Radius {activeStyle.preview.radius ?? 10}px
+              </Badge>
+              {activeStyle.preview.strokeWidth && (
+                <Badge variant="outline" className="text-[10px]">
+                  Stroke {activeStyle.preview.strokeWidth}px
+                </Badge>
+              )}
+            </div>
           </div>
-          <Badge variant="outline">{sizes.size} sizes</Badge>
-        </header>
-        <div className="flex flex-wrap gap-1.5">
-          {PNG_SIZES.map((s) => {
-            const active = sizes.has(s);
+        </div>
+      </StepCard>
+
+      {/* ── Step 3 · Bundle preset ────────────────────────────────────── */}
+      <StepCard
+        step={3}
+        title="Pick a bundle"
+        hint={`${enabledCount} format${enabledCount === 1 ? '' : 's'} · ~${fileEstimate.toLocaleString()} files`}
+      >
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {PRESETS.map((p) => {
+            const Icon = p.icon;
+            const active = activePreset === p.id;
             return (
               <button
-                key={s}
-                onClick={() => toggleSize(s)}
+                key={p.id}
+                onClick={() => applyPreset(p)}
                 className={cn(
-                  'rounded-md border px-3 py-1.5 text-xs font-medium transition-colors tabular-nums',
+                  'group relative rounded-xl border p-4 text-left transition-all',
                   active
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-secondary/30 hover:bg-secondary/60 border-border',
+                    ? 'border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm'
+                    : 'border-border bg-card/40 hover:bg-secondary/40 hover:border-border/80',
                 )}
               >
-                {s} px
+                {active && (
+                  <div
+                    className="absolute top-3 right-3 h-5 w-5 rounded-full bg-primary flex items-center justify-center"
+                  >
+                    <Check className="h-3 w-3 text-primary-foreground" />
+                  </div>
+                )}
+                <div
+                  className="h-9 w-9 rounded-lg flex items-center justify-center mb-2"
+                  style={{
+                    background: `hsl(var(${p.token}) / 0.12)`,
+                    color: `hsl(var(${p.token}))`,
+                  }}
+                >
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="text-sm font-semibold">{p.label}</div>
+                <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{p.blurb}</p>
+                <div className="mt-2 text-[10px] text-muted-foreground tabular-nums">
+                  {p.formats.length} formats
+                </div>
               </button>
             );
           })}
         </div>
+
+        {activePreset === 'custom' && (
+          <div className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground rounded-md bg-secondary/30 border border-border/50 px-3 py-2">
+            <Settings2 className="h-3.5 w-3.5" />
+            Custom selection — adjust formats in the Advanced section below.
+          </div>
+        )}
+
+        {/* PNG sizes — inline & compact, only when PNG is on */}
+        {formats.find((f) => f.id === 'png')?.enabled && (
+          <div className="mt-4 pt-4 border-t border-border/40">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                PNG sizes
+              </div>
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                {sizes.size} selected
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {PNG_SIZES.map((s) => {
+                const active = sizes.has(s);
+                return (
+                  <button
+                    key={s}
+                    onClick={() => toggleSize(s)}
+                    className={cn(
+                      'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors tabular-nums',
+                      active
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-secondary/30 hover:bg-secondary/60 border-border',
+                    )}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </StepCard>
+
+      {/* ── Advanced (collapsible) ────────────────────────────────────── */}
+      <section className="tp-card overflow-hidden">
+        <button
+          onClick={() => setAdvancedOpen((v) => !v)}
+          className="w-full flex items-center justify-between p-5 text-left hover:bg-secondary/20 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Settings2 className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <div className="text-sm font-semibold">Advanced</div>
+              <div className="text-[11px] text-muted-foreground">
+                Fine-tune individual formats and the quality gate
+                {brainGateEnabled && brainScan.failing.length > 0 && (
+                  <span className="ml-2 text-destructive">
+                    · {brainScan.failing.length} icons will be excluded
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 text-muted-foreground transition-transform',
+              advancedOpen && 'rotate-180',
+            )}
+          />
+        </button>
+
+        {advancedOpen && (
+          <div className="border-t border-border/40 p-5 space-y-5">
+            {/* Quality gate */}
+            <div>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                  Quality gate
+                </div>
+                <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                  <Checkbox
+                    checked={brainGateEnabled}
+                    onCheckedChange={(v) => setBrainGateEnabled(v === true)}
+                  />
+                  Skip icons below {brainGateThreshold}
+                </label>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-3">
+                Auto-excludes glyphs whose worst rubric axis falls below the threshold.
+              </p>
+              <div className="grid gap-3 lg:grid-cols-[220px_1fr]">
+                <div>
+                  <input
+                    type="range"
+                    min={50}
+                    max={95}
+                    step={5}
+                    value={brainGateThreshold}
+                    onChange={(e) => setBrainGateThreshold(Number(e.target.value))}
+                    className="w-full accent-primary"
+                    disabled={!brainGateEnabled}
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground tabular-nums">
+                    <span>50</span>
+                    <span className="font-semibold text-foreground">{brainGateThreshold}</span>
+                    <span>95</span>
+                  </div>
+                </div>
+                <div className="rounded-md border border-border/60 bg-secondary/20 p-3 min-h-[60px]">
+                  {brainScan.failing.length === 0 ? (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <ShieldCheck
+                        className="h-3.5 w-3.5"
+                        style={{ color: 'hsl(var(--tp-green))' }}
+                      />
+                      Every icon in scope clears the rubric.
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                        {brainScan.failing.length} excluded
+                      </div>
+                      <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+                        {brainScan.failing.slice(0, 40).map((f) => (
+                          <span
+                            key={f.key}
+                            title={`${BRAIN_AXIS_LABELS[f.worstAxis]} · ${f.worstScore}`}
+                            className="rounded border border-border bg-card/60 px-1.5 py-0.5 text-[10px] tabular-nums"
+                          >
+                            {f.name}
+                            <span className="ml-1 text-muted-foreground">{f.worstScore}</span>
+                          </span>
+                        ))}
+                        {brainScan.failing.length > 40 && (
+                          <span className="text-[10px] text-muted-foreground">
+                            +{brainScan.failing.length - 40} more
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Format-level toggles */}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <div className="text-sm font-semibold">Formats</div>
+                <Badge variant="outline" className="text-[10px]">
+                  {enabledCount} of {formats.length}
+                </Badge>
+              </div>
+              <div className="grid gap-2 md:grid-cols-2">
+                {formats.map((f) => {
+                  const Icon = f.icon;
+                  return (
+                    <div
+                      key={f.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => toggleFormat(f.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleFormat(f.id);
+                        }
+                      }}
+                      className={cn(
+                        'flex items-start gap-3 rounded-lg border p-3 text-left transition-colors cursor-pointer',
+                        f.enabled
+                          ? 'border-primary/40 bg-primary/5'
+                          : 'border-border bg-secondary/20 hover:bg-secondary/40',
+                      )}
+                    >
+                      <Checkbox
+                        checked={f.enabled}
+                        className="mt-0.5 pointer-events-none"
+                        aria-hidden="true"
+                        tabIndex={-1}
+                      />
+                      <Icon className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium flex items-center gap-2">
+                          {f.label}
+                          <Badge variant="secondary" className="text-[10px]">
+                            {f.ext}
+                          </Badge>
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">{f.description}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
-      {/* Bundle tree preview */}
-      <section className="tp-card p-5">
-        <header className="mb-3">
-          <h3 className="text-sm font-semibold">Bundle tree preview</h3>
-          <p className="text-[11px] text-muted-foreground">
-            Files generated under{' '}
-            <span className="font-mono">
-              icon-system-{slugify(organizationName || 'org')}-{slugify(activeStyle.id)}.zip
-            </span>
-          </p>
-        </header>
-        <pre className="text-[11px] leading-relaxed bg-secondary/30 rounded-md p-3 overflow-x-auto font-mono text-muted-foreground">
-{`icon-system/
-├── manifest.json          // style recipe + accent + scope metadata
-├── README.html            // human-readable contact sheet
-├── svg/                   // styled SVGs (look & feel baked in)
-│   └── <set>/<icon>.svg
-${formats.find((f) => f.id === 'svg-opt')?.enabled ? '├── svg-raw/               // glyph-only source paths\n' : ''}└── png/                   // styled PNGs per size
-${Array.from(sizes).sort((a, b) => a - b).map((s) => `    ├── ${s}/<set>/<icon>.png`).join('\n')}`}
-        </pre>
-      </section>
+      {/* ── Sticky export bar ─────────────────────────────────────────── */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 w-[min(96vw,860px)]">
+        <div className="tp-card flex items-center gap-3 p-3 shadow-2xl backdrop-blur bg-card/95 border-border">
+          <div className="flex items-center gap-2 px-2 min-w-0">
+            <div
+              className="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{
+                background: 'hsl(var(--tp-digital-blue) / 0.12)',
+                color: 'hsl(var(--tp-digital-blue))',
+              }}
+            >
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 hidden sm:block">
+              <div className="text-sm font-semibold truncate">
+                {targetIcons.toLocaleString()} icons · {activeStyle.name}
+              </div>
+              <div className="text-[11px] text-muted-foreground truncate">
+                {enabledCount} formats · ~{fileEstimate.toLocaleString()} files
+              </div>
+            </div>
+          </div>
+          <div className="flex-1" />
+          <Button
+            size="lg"
+            className="gap-2 flex-shrink-0"
+            disabled={enabledCount === 0 || targetIcons === 0 || exporting}
+            onClick={handleExport}
+          >
+            {exporting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Building…</span>
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                <span>Export ZIP</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
+
+const StepCard = ({
+  step,
+  title,
+  hint,
+  action,
+  children,
+}: {
+  step: number;
+  title: string;
+  hint?: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) => (
+  <section className="tp-card p-5">
+    <header className="mb-4 flex items-start justify-between gap-3">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="h-7 w-7 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0">
+          {step}
+        </div>
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold truncate">{title}</h3>
+          {hint && <p className="text-[11px] text-muted-foreground truncate">{hint}</p>}
+        </div>
+      </div>
+      {action}
+    </header>
+    {children}
+  </section>
+);
+
 
 const ScopeChip = ({
   label,
