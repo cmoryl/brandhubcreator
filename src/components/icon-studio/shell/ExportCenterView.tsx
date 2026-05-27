@@ -26,6 +26,8 @@ import { IconSetPreview } from './IconSetPreview';
 import { buildStyledSvg, svgToPng, slugify, resolveCssColor } from './styleSvgExporter';
 import { buildSymbolSheet, buildSpriteCss, buildSpriteReadme, buildReactPackage, buildFigmaPackage, buildSvgIconFont, buildFavicons, buildPdfContactSheet, type EmitIcon } from './exportPackagers';
 import type { ImportedIconEntry } from '@/hooks/useImportedIcons';
+import { scoreIcon, BRAIN_AXIS_LABELS, type BrainAxis } from '@/lib/iconStudio/qa';
+
 
 
 
