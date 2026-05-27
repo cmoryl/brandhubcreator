@@ -691,6 +691,94 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         </div>
       </section>
 
+      {/* Iconography Brain export gate */}
+      <section className="tp-card p-5">
+        <header className="mb-3 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+              Iconography Brain export gate
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Excludes icons whose worst rubric axis falls below the threshold so bundles never ship
+              glyphs that violate the brain.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge
+              variant={brainScan.failing.length > 0 ? 'destructive' : 'secondary'}
+              className="text-[10px]"
+            >
+              {brainScan.failing.length} failing · threshold {brainGateThreshold}
+            </Badge>
+            <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+              <Checkbox
+                checked={brainGateEnabled}
+                onCheckedChange={(v) => setBrainGateEnabled(v === true)}
+              />
+              Gate on
+            </label>
+          </div>
+        </header>
+
+        <div className="grid gap-3 lg:grid-cols-[200px_1fr]">
+          <div className="space-y-2">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Threshold (per-axis)
+            </div>
+            <input
+              type="range"
+              min={50}
+              max={95}
+              step={5}
+              value={brainGateThreshold}
+              onChange={(e) => setBrainGateThreshold(Number(e.target.value))}
+              className="w-full accent-primary"
+              disabled={!brainGateEnabled}
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground tabular-nums">
+              <span>50</span>
+              <span className="font-semibold text-foreground">{brainGateThreshold}</span>
+              <span>95</span>
+            </div>
+          </div>
+
+          <div className="rounded-md border border-border/60 bg-secondary/20 p-3">
+            {brainScan.failing.length === 0 ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5" style={{ color: 'hsl(var(--tp-green))' }} />
+                Every icon in scope clears the rubric.
+              </div>
+            ) : (
+              <>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
+                  Excluded icons (worst axis)
+                </div>
+                <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
+                  {brainScan.failing.slice(0, 60).map((f) => (
+                    <span
+                      key={f.id}
+                      title={`${BRAIN_AXIS_LABELS[f.worstAxis]} · ${f.worstScore}`}
+                      className="rounded border border-border bg-card/60 px-1.5 py-0.5 text-[10px] tabular-nums"
+                    >
+                      {f.name}
+                      <span className="ml-1 text-muted-foreground">{f.worstScore}</span>
+                    </span>
+                  ))}
+                  {brainScan.failing.length > 60 && (
+                    <span className="text-[10px] text-muted-foreground">
+                      +{brainScan.failing.length - 60} more
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+
+
       {/* Formats matrix */}
       <section className="tp-card p-5">
         <header className="flex items-center justify-between mb-3">
