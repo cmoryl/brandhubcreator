@@ -24,12 +24,79 @@ import { apcaContrast } from '@/lib/apcaContrast';
 
 export type QASeverity = 'pass' | 'warn' | 'fail';
 
+export type BrainAxis =
+  | 'gridIntegrity'
+  | 'strokeConsistency'
+  | 'opticalBalance'
+  | 'squintTest'
+  | 'metaphorClarity'
+  | 'culturalNeutrality';
+
+export const BRAIN_AXIS_LABELS: Record<BrainAxis, string> = {
+  gridIntegrity: 'Grid integrity',
+  strokeConsistency: 'Stroke consistency',
+  opticalBalance: 'Optical balance',
+  squintTest: 'Squint test (16px)',
+  metaphorClarity: 'Metaphor clarity',
+  culturalNeutrality: 'Cultural neutrality',
+};
+
+/**
+ * Iconography Brain → QA citations.
+ * Maps a finding id to the brain axis it violates plus a short principle
+ * citation that traces back to the iconography reference (Panofsky form,
+ * Lucide/Tabler stroke DNA, Isotype clarity, etc.).
+ */
+const BRAIN_CITATIONS: Record<string, { axis: BrainAxis; principle: string }> = {
+  'svg-missing':            { axis: 'metaphorClarity',     principle: 'No glyph = no Panofsky pre-iconographic read.' },
+  'viewbox-invalid':        { axis: 'gridIntegrity',        principle: 'Modern grid systems (Material, Lucide) require a valid viewBox.' },
+  'viewbox-non-square':     { axis: 'gridIntegrity',        principle: 'Icon grids are square — Olympic pictograms onward.' },
+  'viewbox-nonstandard':    { axis: 'gridIntegrity',        principle: 'Lucide/Tabler standardise on 0 0 24 24 for a shared visual DNA.' },
+  'raster-embedded':        { axis: 'squintTest',           principle: 'Pure vector is the icon-font / SVG sprite contract.' },
+  'non-path-primitives':    { axis: 'gridIntegrity',        principle: 'Paths-only keeps the system bake-clean at every scale.' },
+  'has-transform':          { axis: 'gridIntegrity',        principle: 'Bake transforms — half-pixel snapping is part of the grid contract.' },
+  'path-count-high':        { axis: 'metaphorClarity',      principle: 'Isotype/Lucide: minimum strokes for maximum read.' },
+  'path-count-above-target':{ axis: 'metaphorClarity',      principle: 'Aim ≤3 paths — Lucide-grade clarity.' },
+  'precision-high':         { axis: 'gridIntegrity',        principle: 'Snap to .0/.5 grid — high precision = tracing artefact.' },
+  'precision-stray':        { axis: 'gridIntegrity',        principle: 'Off-grid coordinates break the shared visual DNA.' },
+  'oversized':              { axis: 'squintTest',           principle: 'Under 2KB per glyph (modern variable icon-font budget).' },
+  'stroke-inconsistent':    { axis: 'strokeConsistency',    principle: 'Single-weight stroke across the set (Lucide/Tabler DNA).' },
+  'linecap-inconsistent':   { axis: 'strokeConsistency',    principle: 'One terminal style per family (rounded, butt, or square).' },
+  'linejoin-inconsistent':  { axis: 'strokeConsistency',    principle: 'One join style per family.' },
+  'too-dense-16px':         { axis: 'squintTest',           principle: 'Must read at 16px — the squint test from SF Symbols.' },
+  'stroke-too-thin':        { axis: 'squintTest',           principle: 'Stroke weight must survive 16px raster.' },
+  'no-brand-color':         { axis: 'opticalBalance',       principle: 'Brand palette is part of the system DNA.' },
+  'unapproved-color':       { axis: 'opticalBalance',       principle: 'Off-palette colours break the system DNA.' },
+  'style-mismatch':         { axis: 'strokeConsistency',    principle: 'Style family (line/filled/duotone) must match the recipe.' },
+  'no-recipe':              { axis: 'metaphorClarity',      principle: 'Without a recipe, brand fit cannot be scored.' },
+  'name-missing':           { axis: 'metaphorClarity',      principle: 'Naming = the third Panofsky layer (iconographic identity).' },
+  'name-not-kebab':         { axis: 'metaphorClarity',      principle: 'Kebab-case slugs match Lucide/Tabler conventions.' },
+  'category-missing':       { axis: 'metaphorClarity',      principle: 'Category drives semantic search and the brand taxonomy.' },
+};
+
+/**
+ * Heuristic cultural-sensitivity flag. The model-driven pass (auto-tagging)
+ * will refine this; for now we flag obvious metaphor families that need
+ * human review per the brain's "Cultural Fluency" principle.
+ */
+const CULTURALLY_SENSITIVE_TERMS = [
+  'hand', 'handshake', 'fist', 'finger', 'point', 'pray', 'praying', 'ok',
+  'thumbs', 'thumb', 'face', 'gender', 'flag', 'cross', 'star-of-david',
+  'crescent', 'religion', 'church', 'mosque', 'temple', 'gun', 'weapon',
+];
+
 export interface QAFinding {
   id: string;
   category: 'brandFit' | 'svgHealth' | 'smallSizeReadable' | 'exportReady';
   severity: QASeverity;
   message: string;
+  /** Iconography Brain axis this violates (when mappable). */
+  brainAxis?: BrainAxis;
+  /** Short citation from the iconography knowledge base. */
+  brainPrinciple?: string;
 }
+
+export type BrainRubric = Record<BrainAxis, number>;
 
 export interface QAScores {
   brandFit: number;
@@ -37,6 +104,8 @@ export interface QAScores {
   smallSizeReadable: number;
   exportReady: number;
   overall: number;
+  /** Six sub-scores from the Iconography Brain rubric (0–100 each). */
+  brainRubric: BrainRubric;
 }
 
 export interface QAReport {
@@ -44,6 +113,19 @@ export interface QAReport {
   findings: QAFinding[];
   exportReady: boolean;
 }
+
+const emptyRubric = (): BrainRubric => ({
+  gridIntegrity: 100,
+  strokeConsistency: 100,
+  opticalBalance: 100,
+  squintTest: 100,
+  metaphorClarity: 100,
+  culturalNeutrality: 100,
+});
+
+/** Dock per-axis points based on finding severity. */
+const BRAIN_AXIS_DOCK = { fail: 35, warn: 12, pass: 0 } as const;
+
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                     */
