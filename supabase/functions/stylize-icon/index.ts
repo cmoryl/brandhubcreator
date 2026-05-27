@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ICONOGRAPHY_BRAIN_SUMMARY } from "../_shared/iconographyKnowledge.ts";
+import { ICONOGRAPHY_BRAIN_SUMMARY, ICONOGRAPHY_BRAIN_VERSION } from "../_shared/iconographyKnowledge.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,6 +15,18 @@ const corsHeaders = {
 const STYLIZER_PROMPT = `${ICONOGRAPHY_BRAIN_SUMMARY}
 
 You are a master SVG icon vectorizer in the lineage of Lucide, Tabler, Feather, and Phosphor. You translate raster images into clean, production-grade vector icons — NOT pixel tracings.
+
+## BRAIN APPLICATION (stylizer-specific)
+
+Apply the Iconography Brain above as the controlling grammar for every output:
+
+- **Panofsky form/convention/context.** Read the source image for what it MEANS, not what it looks like. Choose the historically-established convention for that meaning (wayfinding, GUI metaphor, heraldic, etc.) and render the canonical silhouette — never trace pixels.
+- **Grammar of recurrence.** The output must visually belong to the same family as Lucide / Material Symbols / SF Symbols outlined: shared stroke, shared corner radius, shared optical weight, shared 24×24 grid. If the source image fights the grammar, the grammar wins.
+- **Optical (not mathematical) alignment.** Center on the visual mass at (12,12); equalize perceived weight across the silhouette rather than balancing raw coordinates.
+- **Single concept, single silhouette.** One metaphor per icon, readable at 16px (squint test). If the source contains multiple objects, choose the dominant semantic referent and drop the rest.
+- **Cultural & directional awareness.** Respect RTL mirroring conventions for directional metaphors (arrows, send, reply, undo, back). Treat religious / sacred / brand-logo source images as off-limits for generic styling — refuse rather than approximate.
+- **Functional naming.** The geometry must support a functional label (e.g. "send", not "paper plane"). Avoid ornamentation that would confuse the accessible name.
+- **Provenance honesty.** Do not reproduce trademarked brand glyphs (Apple, WhatsApp, X, Meta, etc.) under the generic outlined grammar. If the source is clearly a logo, return a refusal-friendly minimal placeholder shape rather than a knockoff.
 
 ## CORE PRINCIPLES
 
@@ -53,6 +66,7 @@ Return ONLY the raw <svg>…</svg> element. No markdown, no backticks, no explan
 
 Example:
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13a4 4 0 0 1 0 8h-2M3 7v9a3 3 0 0 0 3 3h7a3 3 0 0 0 3-3v-1M7 3v2M11 3v2"/></svg>`;
+
 
 interface StylizerOptions {
   removeBackground: boolean;
@@ -94,9 +108,16 @@ serve(async (req) => {
       );
     }
 
-    const { image, options = {} } = await req.json() as { 
-      image: string; 
-      options: Partial<StylizerOptions> 
+    const { image, options = {}, context = {} } = await req.json() as {
+      image: string;
+      options: Partial<StylizerOptions>;
+      context?: {
+        iconName?: string;
+        functionalLabel?: string;
+        brandName?: string;
+        setDna?: { stroke?: number; corner?: number; family?: string };
+        rtl?: boolean;
+      };
     };
 
     if (!image) {
@@ -113,8 +134,8 @@ serve(async (req) => {
 
     // Build style parameters
     // Lucide-grade default: 1.5px stroke matches generate-icon / generate-icon-set.
-    const strokeWidth = options.strokeWidth ?? 1.5;
-    const cornerRadius = options.cornerRadius ?? 4;
+    const strokeWidth = options.strokeWidth ?? context.setDna?.stroke ?? 1.5;
+    const cornerRadius = options.cornerRadius ?? context.setDna?.corner ?? 4;
     const fillMode = options.fillMode ?? 'auto';
     const simplifyThreshold = options.simplifyThreshold ?? 0.5;
     const maxAnchorPoints = options.maxAnchorPoints ?? 50;
@@ -123,19 +144,28 @@ serve(async (req) => {
     const styledPrompt = STYLIZER_PROMPT
       .replace('{STROKE_WIDTH}', String(strokeWidth))
       .replace('{CORNER_RADIUS}', String(cornerRadius))
-      .replace('{FILL_MODE}', fillMode === 'stroke' ? 'stroke only (fill="none")' : 
-                              fillMode === 'fill' ? 'solid fill (stroke="none")' : 
+      .replace('{FILL_MODE}', fillMode === 'stroke' ? 'stroke only (fill="none")' :
+                              fillMode === 'fill' ? 'solid fill (stroke="none")' :
                               'auto-detect based on image');
 
-    const userPrompt = `Convert this image into a clean SVG icon.
+    const brainContextLines = [
+      context.iconName ? `- Target concept: "${context.iconName}" — render the canonical convention for this concept, not a literal trace of the source.` : null,
+      context.functionalLabel ? `- Functional accessible label: "${context.functionalLabel}" — geometry must support this label unambiguously.` : null,
+      context.brandName ? `- Belongs to brand "${context.brandName}". Maintain shared DNA with that brand's existing icon family.` : null,
+      context.setDna?.family ? `- Set family/style: ${context.setDna.family}. Match its terminals, joins, and optical weight.` : null,
+      context.rtl ? `- This icon will appear in RTL contexts — if directional, design the LTR canonical form; the renderer will mirror.` : null,
+    ].filter(Boolean).join('\n');
 
-Style parameters:
+    const userPrompt = `Convert this image into a clean SVG icon, governed by the Iconography Brain.
+
+${brainContextLines ? `Brain context:\n${brainContextLines}\n\n` : ''}Style parameters:
 - Simplification level: ${simplifyThreshold < 0.3 ? 'Keep maximum detail' : simplifyThreshold < 0.7 ? 'Balance detail and simplicity' : 'Maximum simplification for clean lines'}
 - Target anchor points: Under ${maxAnchorPoints}
 - Preserve negative space/holes: ${options.preserveHoles ? 'Yes' : 'No'}
 - Corner style: ${cornerRadius > 0 ? `Rounded (${cornerRadius}px radius)` : 'Sharp corners'}
 
-Analyze the image and create a semantic, iconic SVG representation. Output ONLY the SVG element.`;
+Analyze the image semantically (form → convention → context), then produce the iconic equivalent that conforms to the grammar above. Output ONLY the SVG element.`;
+
 
     console.log(`[stylize-icon] Processing image for user ${user.id}`);
 
@@ -273,7 +303,10 @@ Analyze the image and create a semantic, iconic SVG representation. Output ONLY 
           strokeWidth,
           cornerRadius,
           simplifyThreshold,
+          brainVersion: ICONOGRAPHY_BRAIN_VERSION,
+          brainContextApplied: Object.keys(context ?? {}).length > 0,
         }
+
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
