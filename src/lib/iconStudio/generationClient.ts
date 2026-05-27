@@ -16,6 +16,7 @@ import { CoreSetEntry, SubSetTemplate } from './industryPresets';
 const normalizeReturnedIcon = (
   icon: BrandIconography,
   style: 'outlined' | 'filled' | 'duotone',
+  gridSize: 24 | 48 = 24,
 ): BrandIconography => {
   if (!icon?.svgPath) return icon;
   try {
@@ -26,7 +27,10 @@ const normalizeReturnedIcon = (
       // Snap the path-only string in place.
       return { ...icon, svgPath: raw.replace(/d="([^"]+)"/g, (_, d) => `d="${d}"`) };
     }
-    const normalized = normalizeIconSvg(raw, { fillMode, strokeWidth: 1.5 });
+    // Preserve the grid-aware stroke weight baked by the edge function:
+    // 24-grid → 1.5 (Lucide-grade), 48-grid → 2.4 (×1.6 to keep perceived weight).
+    const strokeWidth = gridSize === 48 ? 2.4 : 1.5;
+    const normalized = normalizeIconSvg(raw, { fillMode, strokeWidth });
     return { ...icon, svgPath: normalized };
   } catch {
     return icon;
