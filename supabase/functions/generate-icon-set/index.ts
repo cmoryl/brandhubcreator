@@ -8,6 +8,7 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? SUPABASE_SERVICE_KEY;
 
 const ICON_TAXONOMY: Record<string, { name: string; description: string; sections: { name: string; description: string; count: number }[] }> = {
   Foundation: {
@@ -102,9 +103,11 @@ async function dbFetch(path: string, options: RequestInit = {}) {
 }
 
 async function verifyAuth(authHeader: string) {
+  // Use anon key — service-role isn't needed for /auth/v1/user, and leaking it
+  // through the apikey header to an outbound HTTPS call widens the blast radius.
   const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: {
-      apikey: SUPABASE_SERVICE_KEY,
+      apikey: SUPABASE_ANON_KEY,
       Authorization: authHeader,
     },
   });
