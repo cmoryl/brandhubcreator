@@ -64,6 +64,55 @@ const DEFAULT_FORMATS: FormatRow[] = [
 
 const COMING_SOON: FormatRow[] = [];
 
+type FormatId = FormatRow['id'];
+type PresetId = 'designer' | 'developer' | 'web' | 'everything';
+
+interface Preset {
+  id: PresetId;
+  label: string;
+  blurb: string;
+  icon: typeof Package;
+  token: string;
+  formats: FormatId[];
+}
+
+const PRESETS: Preset[] = [
+  {
+    id: 'designer',
+    label: 'Designer kit',
+    blurb: 'Styled SVG + PNG + PDF contact sheet. Drop-in for Figma & decks.',
+    icon: Paintbrush,
+    token: '--tp-pink',
+    formats: ['svg', 'png', 'pdf', 'json'],
+  },
+  {
+    id: 'developer',
+    label: 'Developer kit',
+    blurb: 'React components, sprite sheet, CSS utilities, JSON manifest.',
+    icon: Code2,
+    token: '--tp-digital-blue',
+    formats: ['svg', 'sprite', 'react', 'css', 'json'],
+  },
+  {
+    id: 'web',
+    label: 'Web bundle',
+    blurb: 'Favicons, icon font, sprite + CSS — everything a site needs.',
+    icon: Globe,
+    token: '--tp-teal',
+    formats: ['svg', 'sprite', 'css', 'font', 'favicon', 'json'],
+  },
+  {
+    id: 'everything',
+    label: 'The works',
+    blurb: 'Every format in every size. Largest bundle.',
+    icon: Boxes,
+    token: '--tp-orange',
+    formats: ['svg', 'svg-opt', 'png', 'sprite', 'react', 'css', 'figma', 'font', 'favicon', 'pdf', 'json'],
+  },
+];
+
+
+
 const PNG_SIZES = [16, 24, 32, 48, 64, 128, 256, 512];
 
 const ACCENT_TOKENS = [
