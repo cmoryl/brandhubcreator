@@ -399,7 +399,6 @@ ${isFilled
 ✓ ALL coordinates are integers or .5 — ZERO arbitrary decimals
 ✓ No transforms, no inline ${isDuotone ? "stroke" : "fill/stroke"} colors, no ids/classes/styles
 ✓ Uniform visual weight across the batch
-✓ Uniform visual weight across the batch
 ✓ Recognizable as a silhouette at 12×12
 ✓ Reflects the brand DNA, not a generic icon-set
 ✓ NOT the first/obvious metaphor — passed the "ban the cliché" test

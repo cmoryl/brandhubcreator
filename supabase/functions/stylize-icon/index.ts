@@ -308,7 +308,9 @@ Analyze the image semantically (form → convention → context), then produce t
 
       // Set defaults (only if not already present)
       if (!attrMap.has('xmlns')) attrMap.set('xmlns', 'http://www.w3.org/2000/svg');
-      if (!attrMap.has('viewbox')) attrMap.set('viewBox', '0 0 24 24');
+      // attrMap keys are lowercased — store the canonical viewBox key only when
+      // neither the lowercase nor camelCase form was present in the source SVG.
+      if (!attrMap.has('viewbox')) attrMap.set('viewbox', '0 0 24 24');
 
       // Apply fill mode
       if (fillMode === 'stroke') {

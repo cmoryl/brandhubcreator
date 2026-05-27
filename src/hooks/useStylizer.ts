@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useIconOptimizer, IconAuditResult } from './useIconOptimizer';
 
@@ -584,6 +584,10 @@ export function useStylizer(brandColors: string[] = []) {
       shadowCanvasRef.current = null;
     }
   }, []);
+
+  // Auto-cleanup the off-screen <canvas> when the host component unmounts —
+  // otherwise every Stylizer mount leaks a hidden 128×128 canvas into <body>.
+  useEffect(() => cleanup, [cleanup]);
 
   return {
     // State
