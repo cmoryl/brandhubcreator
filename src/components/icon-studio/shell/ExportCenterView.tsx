@@ -151,12 +151,11 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
     : undefined;
 
   const targetIcons = useMemo(() => {
-    if (selectedSetId === 'all') {
-      return libraries.reduce((s, l) => s + l.icons.length, 0) + importedIcons.length;
-    }
-    if (selectedSetId === 'imported') return importedIcons.length;
-    return libraries.find((l) => l.id === selectedSetId)?.icons.length ?? 0;
-  }, [libraries, selectedSetId, importedIcons]);
+    const baseLib = scopedLibs.reduce((s, l) => s + l.icons.length, 0);
+    const baseImported = selectedSetId === 'all' || selectedSetId === 'imported' ? importedIcons.length : 0;
+    return baseLib + baseImported - excludedIds.size;
+  }, [scopedLibs, selectedSetId, importedIcons, excludedIds]);
+
 
   const fileEstimate = useMemo(() => {
     const pngVariants = sizes.size;
