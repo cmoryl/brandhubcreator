@@ -2,9 +2,15 @@
  * Brand Intelligence Analysis Worker
  * Ultra-lightweight edge function for AI analysis
  * Uses direct fetch() REST calls instead of Supabase SDK to stay under 150MB
+ *
+ * SECURITY: server-to-server only. Invoked by `brand-intelligence` with the
+ * service-role bearer. Direct public access is rejected — without this guard
+ * any anonymous caller could guess a `jobId` and read a brand's data via the
+ * service-role queries below.
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireServiceRole } from "../_shared/internalAuth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
