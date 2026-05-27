@@ -225,8 +225,15 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
     return targetIcons * Math.max(0, perIcon) + manifest;
   }, [targetIcons, sizes.size, formats]);
 
-  const toggleFormat = (id: FormatRow['id']) =>
+  const toggleFormat = (id: FormatRow['id']) => {
+    setActivePreset('custom');
     setFormats((p) => p.map((f) => (f.id === id ? { ...f, enabled: !f.enabled } : f)));
+  };
+
+  const applyPreset = (preset: Preset) => {
+    setActivePreset(preset.id);
+    setFormats((p) => p.map((f) => ({ ...f, enabled: preset.formats.includes(f.id) })));
+  };
 
   const toggleSize = (s: number) =>
     setSizes((p) => {
