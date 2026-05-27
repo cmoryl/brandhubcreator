@@ -328,7 +328,15 @@ export const IconDetailDialog = ({
                                 f.severity === 'fail' ? 'text-destructive' : 'text-amber-500',
                               )}
                             />
-                            <span>{f.message}</span>
+                            <div className="min-w-0 flex-1">
+                              <div>{f.message}</div>
+                              {f.brainPrinciple && (
+                                <div className="mt-1 text-[10px] text-muted-foreground italic">
+                                  <span className="not-italic font-medium text-foreground/70">Brain · </span>
+                                  {f.brainPrinciple}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         ))
                       )}
