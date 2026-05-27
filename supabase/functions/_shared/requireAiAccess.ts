@@ -57,13 +57,18 @@ export async function requireAiAccess(req: Request, opts: RequireOpts): Promise<
     try {
       const { data: allowed, error: rpcErr } = await supabase.rpc('can_use_ai_features');
       if (rpcErr) {
-        // RPC missing → fail open with a warning log; do not block valid users.
-        console.warn('[requireAiAccess] can_use_ai_features RPC error:', rpcErr.message);
-      } else if (allowed === false) {
+        // Fail CLOSED: a broken feature-gate RPC must not allow unrestricted
+        // AI consumption. Surface a clear 503 so the client can retry / show
+        // a maintenance state instead of silently billing the workspace.
+        console.error('[requireAiAccess] can_use_ai_features RPC error:', rpcErr.message);
+        return { response: json(503, { error: 'AI feature gate temporarily unavailable' }) };
+      }
+      if (allowed === false) {
         return { response: json(403, { error: 'AI features not enabled for this account' }) };
       }
     } catch (e) {
-      console.warn('[requireAiAccess] feature check threw:', (e as Error).message);
+      console.error('[requireAiAccess] feature check threw:', (e as Error).message);
+      return { response: json(503, { error: 'AI feature gate temporarily unavailable' }) };
     }
   }
 
