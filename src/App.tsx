@@ -124,14 +124,20 @@ const RootLayout = () => {
     }
   }, [location.pathname, location.hash]);
   
+  // Per-route ErrorBoundary: keyed by location so a crash on one route
+  // doesn't permanently blank the app — navigating away resets the boundary.
+  // ConnectionBanner / PageTracker stay outside so they keep working even
+  // if the active route's tree throws.
   return (
-    <ErrorBoundary>
+    <>
       <ConnectionBanner />
       <PageTracker />
       <main key={location.key || location.pathname}>
-        <Outlet />
+        <ErrorBoundary key={location.key || location.pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
-    </ErrorBoundary>
+    </>
   );
 };
 
