@@ -169,60 +169,128 @@ Analyze the image semantically (form → convention → context), then produce t
 
     console.log(`[stylize-icon] Processing image for user ${user.id}`);
 
-    // Use vision model to interpret the image
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: styledPrompt },
-          { 
-            role: "user", 
-            content: [
-              { type: "text", text: userPrompt },
-              { type: "image_url", image_url: { url: image } }
-            ]
-          },
-        ],
-      }),
-    });
+    /**
+     * Iconography Brain hard guardrails — reject + retry once if the model
+     * output violates any of these structural rules.
+     */
+    const validateSvg = (raw: string): string | null => {
+      const bytes = new TextEncoder().encode(raw).length;
+      const pathCount = (raw.match(/<path\b/gi) ?? []).length;
+      const viewBoxMatch = raw.match(/viewBox\s*=\s*["']([^"']+)["']/i);
+      const viewBox = viewBoxMatch?.[1]?.trim();
+      const hasForbidden = /<(g|use|defs|mask|clipPath|style|filter|linearGradient|radialGradient|image|text|foreignObject|symbol|pattern)\b/i.test(raw);
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (bytes > 2048) return `SVG exceeds 2KB budget (${bytes}B)`;
+      if (pathCount === 0) return 'No <path> elements produced';
+      if (pathCount > 3) return `Path budget exceeded (${pathCount}/3)`;
+      if (hasForbidden) return 'Forbidden SVG element family present';
+      if (viewBox && viewBox !== '0 0 24 24') return `Non-standard viewBox "${viewBox}"`;
+      if (fillMode === 'stroke' && /<path[^>]*\bfill="(?!none)[^"]*"/i.test(raw)) {
+        return 'Stroke-mode output contains baked path fills';
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (fillMode === 'fill' && /<path[^>]*\bstroke="(?!none)[^"]*"/i.test(raw)) {
+        return 'Fill-mode output contains baked path strokes';
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error("Failed to process image");
+      return null;
+    };
+
+    const callModel = async (extraSystem = ''): Promise<string | null> => {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: styledPrompt + (extraSystem ? `\n\n## RETRY GUARDRAIL\n${extraSystem}` : '') },
+            {
+              role: "user",
+              content: [
+                { type: "text", text: userPrompt },
+                { type: "image_url", image_url: { url: image } }
+              ]
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Response(
+            JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        if (response.status === 402) {
+          throw new Response(
+            JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        const errorText = await response.text();
+        console.error("AI gateway error:", response.status, errorText);
+        throw new Error("Failed to process image");
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "";
+      const match = content.match(/<svg[\s\S]*?<\/svg>/i);
+      return match ? match[0] : null;
+    };
+
+    // ── Attempt #1 ──
+    let svg: string | null = null;
+    let retried = false;
+    let guardrailReason: string | null = null;
+
+    try {
+      svg = await callModel();
+    } catch (e) {
+      if (e instanceof Response) return e;
+      throw e;
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
-
-    // Extract SVG from the response
-    const svgMatch = content.match(/<svg[\s\S]*?<\/svg>/i);
-    if (!svgMatch) {
-      console.error("No SVG found in response:", content);
+    if (!svg) {
       return new Response(
         JSON.stringify({ error: "Failed to generate SVG from image. Please try a different image." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    let svg = svgMatch[0];
+    // ── Attempt #2: brain guardrail retry ──
+    const firstReason = validateSvg(svg);
+    if (firstReason) {
+      guardrailReason = firstReason;
+      retried = true;
+      console.warn(`[stylize-icon] Brain guardrail tripped: ${firstReason} — retrying once`);
+      try {
+        const retrySvg = await callModel(
+          `Your previous output was REJECTED: ${firstReason}. Iconography Brain hard limits: ≤2KB total, ≤3 <path> elements, viewBox MUST be "0 0 24 24", no <g>/<defs>/<filter>/<gradient>/<mask>/<image>/<text>, no baked path fills/strokes when fill-mode is ${fillMode}. Produce a cleaner, more economical glyph that obeys every rule.`
+        );
+        if (retrySvg) {
+          const retryReason = validateSvg(retrySvg);
+          if (!retryReason) {
+            svg = retrySvg;
+            guardrailReason = null;
+          } else {
+            console.error(`[stylize-icon] Brain guardrail tripped on retry too: ${retryReason}`);
+            return new Response(
+              JSON.stringify({
+                error: `Vectorization failed Iconography Brain guardrails twice (${retryReason}). Try a clearer source image.`,
+                brainGuardrail: { reason: retryReason, brainVersion: ICONOGRAPHY_BRAIN_VERSION },
+              }),
+              { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
+      } catch (e) {
+        if (e instanceof Response) return e;
+        throw e;
+      }
+    }
+
 
     // ── Single-pass attribute builder ──
     // Parse existing attributes from <svg> tag, merge defaults, rebuild
