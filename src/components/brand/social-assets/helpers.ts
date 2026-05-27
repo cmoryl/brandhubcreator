@@ -16,7 +16,7 @@ import {
   autoMatchLogosForZones as sharedAutoMatchLogosForZones,
 } from '@/lib/templateZonePipeline';
 
-const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate[] => {
+export const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate[] => {
   const generated = platform === 'General'
     ? [
         ...getTemplatesForPlatformFormat('LinkedIn', 'feed').map((template) => ({
@@ -97,7 +97,7 @@ const getGeneratedTemplatesForPlatform = (platform: string): SocialAssetTemplate
   });
 };
 
-const getResolvedTemplates = (asset: BrandSocialAssetSpec): SocialAssetTemplate[] => {
+export const getResolvedTemplates = (asset: BrandSocialAssetSpec): SocialAssetTemplate[] => {
   const generatedTemplates = getGeneratedTemplatesForPlatform(asset.platform);
   const savedTemplates = asset.templates || [];
 
@@ -129,25 +129,25 @@ const getResolvedTemplates = (asset: BrandSocialAssetSpec): SocialAssetTemplate[
   return [...resolvedSaved, ...remainingGenerated];
 };
 
-const zonePreviewStyles: Record<TemplateZoneType, string> = {
+export const zonePreviewStyles: Record<TemplateZoneType, string> = {
   image: 'border-sky-400/80 bg-sky-500/15 text-sky-50',
   text: 'border-violet-400/80 bg-violet-500/15 text-violet-50',
   logo: 'border-emerald-400/80 bg-emerald-500/15 text-emerald-50',
   cta: 'border-amber-400/80 bg-amber-500/15 text-amber-50',
 };
 
-const zoneTypeLabels: Record<TemplateZoneType, string> = {
+export const zoneTypeLabels: Record<TemplateZoneType, string> = {
   image: 'Imagery frame',
   text: 'Text layer',
   logo: 'Logo frame',
   cta: 'CTA layer',
 };
 
-const clampZoneValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+export const clampZoneValue = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-const getZoneMediaFit = sharedGetZoneMediaFit;
+export const getZoneMediaFit = sharedGetZoneMediaFit;
 
-const getTemplateFormat = (template: Pick<SocialAssetTemplate, 'sourceTemplateFormat' | 'sizeCategory'>) => (
+export const getTemplateFormat = (template: Pick<SocialAssetTemplate, 'sourceTemplateFormat' | 'sizeCategory'>) => (
   template.sourceTemplateFormat || (template.sizeCategory === 'story'
     ? 'story'
     : template.sizeCategory === 'reel'
@@ -159,7 +159,7 @@ const getTemplateFormat = (template: Pick<SocialAssetTemplate, 'sourceTemplateFo
           : 'feed')
 );
 
-const getSmartDefaultZoneFit = (
+export const getSmartDefaultZoneFit = (
   zone: SocialTemplateZone,
   template: Pick<SocialAssetTemplate, 'sourceTemplateFormat' | 'sizeCategory'>,
 ) => {
@@ -206,18 +206,18 @@ const getSmartDefaultZoneFit = (
 // '@/lib/templateZonePipeline'. Local aliases below preserve the original
 // (SocialTemplateZone-typed) call sites without behavioural change.
 
-const findBackgroundZoneForLogo = (
+export const findBackgroundZoneForLogo = (
   logoZone: SocialTemplateZone,
   zones: SocialTemplateZone[],
 ): SocialTemplateZone | null =>
   sharedFindBackgroundZoneForLogo(logoZone, zones);
 
-const autoMatchLogosForZones = (
+export const autoMatchLogosForZones = (
   zones: SocialTemplateZone[],
   brandLogos: BrandLogo[] | undefined,
 ) => sharedAutoMatchLogosForZones(zones, brandLogos);
 
-const getEditableZones = (
+export const getEditableZones = (
   platform: string,
   template: SocialAssetTemplate,
   brandLogos?: BrandLogo[],
@@ -251,7 +251,7 @@ const getEditableZones = (
   return (templateDefinition?.zones || []).map(hydrate);
 };
 
-type SafeAreaGuide = {
+export type SafeAreaGuide = {
   x: number;
   y: number;
   width: number;
@@ -259,7 +259,7 @@ type SafeAreaGuide = {
   label: string;
 };
 
-const getSafeAreaGuide = (platform: string, template: SocialAssetTemplate): SafeAreaGuide => {
+export const getSafeAreaGuide = (platform: string, template: SocialAssetTemplate): SafeAreaGuide => {
   const format = template.sourceTemplateFormat || (template.sizeCategory === 'story'
     ? 'story'
     : template.sizeCategory === 'reel'
