@@ -222,11 +222,28 @@ serve(async (req) => {
 
 async function runWorker(jobId: string) {
   try {
-    // Mark as processing
-    await dbFetch(`brand_intelligence_jobs?id=eq.${jobId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status: "processing", started_at: new Date().toISOString() }),
-    });
+    // Atomic claim: only one worker can transition pending → processing.
+    // PostgREST `Prefer: return=representation` returns the affected rows so we
+    // can detect when another invocation already grabbed the job (zero rows).
+    const claimRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/brand_intelligence_jobs?id=eq.${jobId}&status=eq.pending`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_SERVICE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ status: "processing", started_at: new Date().toISOString() }),
+      },
+    );
+    if (!claimRes.ok) throw new Error(`Failed to claim job ${jobId}: ${claimRes.status}`);
+    const claimed = await claimRes.json();
+    if (!Array.isArray(claimed) || claimed.length === 0) {
+      console.log(`[generate-icon-set-worker] Job ${jobId} already claimed by another worker — exiting.`);
+      return;
+    }
 
     // Load job params
     const jobs = await dbFetch(`brand_intelligence_jobs?id=eq.${jobId}&select=result`);
