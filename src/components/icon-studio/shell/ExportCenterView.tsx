@@ -179,13 +179,12 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
 
   const handleExport = async () => {
     const includeImported = selectedSetId === 'all' || selectedSetId === 'imported';
-    const scopedLibs =
-      selectedSetId === 'all' || selectedSetId === 'imported'
-        ? libraries
-        : libraries.filter((l) => l.id === selectedSetId);
     const allIcons = scopedLibs.flatMap((lib) =>
-      lib.icons.map((ic) => ({ lib, icon: ic })),
+      lib.icons
+        .filter((ic) => !excludedIds.has(String(ic.id ?? ic.name ?? '')))
+        .map((ic) => ({ lib, icon: ic })),
     );
+
 
     let importedSvgData: { name: string; slug: string; svgPath: string; viewBox: string }[] = [];
     if (includeImported && importedIcons.length > 0) {
