@@ -16,6 +16,7 @@ import { CoreSetEntry, SubSetTemplate } from './industryPresets';
 const normalizeReturnedIcon = (
   icon: BrandIconography,
   style: 'outlined' | 'filled' | 'duotone',
+  gridSize: 24 | 48 = 24,
 ): BrandIconography => {
   if (!icon?.svgPath) return icon;
   try {
@@ -26,7 +27,10 @@ const normalizeReturnedIcon = (
       // Snap the path-only string in place.
       return { ...icon, svgPath: raw.replace(/d="([^"]+)"/g, (_, d) => `d="${d}"`) };
     }
-    const normalized = normalizeIconSvg(raw, { fillMode, strokeWidth: 1.5 });
+    // Preserve the grid-aware stroke weight baked by the edge function:
+    // 24-grid → 1.5 (Lucide-grade), 48-grid → 2.4 (×1.6 to keep perceived weight).
+    const strokeWidth = gridSize === 48 ? 2.4 : 1.5;
+    const normalized = normalizeIconSvg(raw, { fillMode, strokeWidth });
     return { ...icon, svgPath: normalized };
   } catch {
     return icon;
@@ -72,6 +76,7 @@ const POLL_MAX_ATTEMPTS = 60; // ~2.5 min
 async function pollJob(
   jobId: string,
   style: 'outlined' | 'filled' | 'duotone',
+  gridSize: 24 | 48,
   signal?: AbortSignal,
 ): Promise<BrandIconography[]> {
   for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
@@ -82,7 +87,7 @@ async function pollJob(
     });
     if (error) throw new Error(error.message);
     if (data?.status === 'completed' && Array.isArray(data?.icons)) {
-      return (data.icons as BrandIconography[]).map((i) => normalizeReturnedIcon(i, style));
+      return (data.icons as BrandIconography[]).map((i) => normalizeReturnedIcon(i, style, gridSize));
     }
     if (data?.status === 'failed') {
       throw new Error(data?.error || 'Generation failed');
@@ -112,9 +117,9 @@ export async function runGenerationTask(
     },
   });
   if (error) throw new Error(error.message);
-  if (data?.jobId) return pollJob(data.jobId, style, opts.signal);
+  if (data?.jobId) return pollJob(data.jobId, style, gridSize, opts.signal);
   if (Array.isArray(data?.icons)) {
-    return (data.icons as BrandIconography[]).map((i) => normalizeReturnedIcon(i, style));
+    return (data.icons as BrandIconography[]).map((i) => normalizeReturnedIcon(i, style, gridSize));
   }
   return [];
 }

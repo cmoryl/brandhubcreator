@@ -374,6 +374,18 @@ export const scoreIcon = (icon: BrandIconography, recipe?: IconRecipe | null): Q
         message: `Stroke width ${r.strokeWidth} is thin — may disappear at 16px.`,
       });
     }
+    // Upper bound: anything heavier than 2.0 on a 24-grid (or 3.2 on 48-grid)
+    // reads as chunky/inconsistent next to Lucide-grade siblings.
+    const maxStroke = gridSize === 48 ? 3.2 : 2.0;
+    if (r && r.strokeWidth > maxStroke) {
+      smallSizeReadable -= 10;
+      findings.push({
+        id: 'stroke-too-thick',
+        category: 'smallSizeReadable',
+        severity: 'warn',
+        message: `Stroke width ${r.strokeWidth} is heavy for ${gridSize}-grid — target ≤${maxStroke}.`,
+      });
+    }
     if (svg.length > 5000) {
       smallSizeReadable -= 15;
     }

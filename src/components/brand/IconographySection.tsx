@@ -300,7 +300,7 @@ export const IconographySection = ({
     
     const innerContent = isFullContent 
       ? sanitizedPath 
-      : `<path d="${sanitizedPath}" ${icon.fillMode === 'fill' ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2"'}/>`;
+      : `<path d="${sanitizedPath}" ${icon.fillMode === 'fill' ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"'}/>`;
     
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${innerContent}</svg>`;
     
@@ -409,7 +409,7 @@ export const IconographySection = ({
     } else {
       innerContent = icon.fillMode === 'fill' 
         ? `<path d="${sanitizedPath}" fill="${exportColor}"/>`
-        : `<path d="${sanitizedPath}" fill="none" stroke="${exportColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+        : `<path d="${sanitizedPath}" fill="none" stroke="${exportColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
     }
     
     let svg = `<?xml version="1.0" encoding="UTF-8"?>
@@ -521,7 +521,7 @@ ${innerContent}
           preserveAspectRatio="xMidYMid meet"
           fill={isFillMode ? 'currentColor' : 'none'}
           stroke={isFillMode ? 'none' : 'currentColor'}
-          strokeWidth={isFillMode ? undefined : '2'}
+          strokeWidth={isFillMode ? undefined : '1.5'}
           strokeLinecap={isFillMode ? undefined : 'round'}
           strokeLinejoin={isFillMode ? undefined : 'round'}
         >

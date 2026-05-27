@@ -135,7 +135,10 @@ serve(async (req) => {
     }
 
     // Determine stroke/fill settings based on style and preset
-    const strokeWidth = style?.strokeWidth || 2;
+    // Default stroke matches generate-icon-set medium-detail 24-grid baseline.
+    // 48-grid scales ×1.6 to preserve perceived weight.
+    const isLargeGrid = (style?.gridSize ?? 24) === 48;
+    const strokeWidth = style?.strokeWidth ?? (isLargeGrid ? 2.4 : 1.5);
     const cornerStyle = style?.cornerRadius || 'rounded';
     const isFilled = style?.fill || preset === 'filled' || preset === 'sharp-filled' || preset === 'soft-filled';
     const linecap = cornerStyle === 'sharp' ? 'square' : 'round';

@@ -497,7 +497,7 @@ export const buildSvgString = (icon: { svgPath: string; viewBox?: string; fillMo
 
   const fill = icon.fillMode === 'fill' ? 'currentColor' : 'none';
   const stroke = icon.fillMode === 'stroke' ? 'currentColor' : 'none';
-  const strokeWidth = icon.fillMode === 'stroke' ? ' stroke-width="2"' : '';
+  const strokeWidth = icon.fillMode === 'stroke' ? ' stroke-width="1.5"' : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" fill="${fill}" stroke="${stroke}"${strokeWidth}><path d="${icon.svgPath}"/></svg>`;
 };
 

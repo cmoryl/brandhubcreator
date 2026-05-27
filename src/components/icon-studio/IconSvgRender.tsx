@@ -278,7 +278,7 @@ export const IconSvgRender = ({
   size,
   color = 'currentColor',
   presentation = 'outlined',
-  strokeWidth = 2,
+  strokeWidth = 1.5,
   className,
   debug,
 }: IconSvgRenderProps) => {
