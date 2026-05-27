@@ -5,7 +5,7 @@
  * look & feel users see in Style System cards.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   Package, Download, Image as ImageIcon, FileText, Code2, Layers,
   Smartphone, Library as LibraryIcon, Sparkles, Wand2, Loader2, ShieldCheck,
