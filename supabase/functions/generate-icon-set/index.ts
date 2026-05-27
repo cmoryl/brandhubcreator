@@ -8,6 +8,7 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? SUPABASE_SERVICE_KEY;
 
 const ICON_TAXONOMY: Record<string, { name: string; description: string; sections: { name: string; description: string; count: number }[] }> = {
   Foundation: {
@@ -102,9 +103,11 @@ async function dbFetch(path: string, options: RequestInit = {}) {
 }
 
 async function verifyAuth(authHeader: string) {
+  // Use anon key — service-role isn't needed for /auth/v1/user, and leaking it
+  // through the apikey header to an outbound HTTPS call widens the blast radius.
   const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: {
-      apikey: SUPABASE_SERVICE_KEY,
+      apikey: SUPABASE_ANON_KEY,
       Authorization: authHeader,
     },
   });
@@ -219,11 +222,28 @@ serve(async (req) => {
 
 async function runWorker(jobId: string) {
   try {
-    // Mark as processing
-    await dbFetch(`brand_intelligence_jobs?id=eq.${jobId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status: "processing", started_at: new Date().toISOString() }),
-    });
+    // Atomic claim: only one worker can transition pending → processing.
+    // PostgREST `Prefer: return=representation` returns the affected rows so we
+    // can detect when another invocation already grabbed the job (zero rows).
+    const claimRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/brand_intelligence_jobs?id=eq.${jobId}&status=eq.pending`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_SERVICE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ status: "processing", started_at: new Date().toISOString() }),
+      },
+    );
+    if (!claimRes.ok) throw new Error(`Failed to claim job ${jobId}: ${claimRes.status}`);
+    const claimed = await claimRes.json();
+    if (!Array.isArray(claimed) || claimed.length === 0) {
+      console.log(`[generate-icon-set-worker] Job ${jobId} already claimed by another worker — exiting.`);
+      return;
+    }
 
     // Load job params
     const jobs = await dbFetch(`brand_intelligence_jobs?id=eq.${jobId}&select=result`);
@@ -398,7 +418,6 @@ ${isFilled
 ✓ Only <path> elements, max ${maxPaths}${isDuotone ? " (≥2: back fill + front line)" : detail === "low" ? ", prefer 1" : ""}
 ✓ ALL coordinates are integers or .5 — ZERO arbitrary decimals
 ✓ No transforms, no inline ${isDuotone ? "stroke" : "fill/stroke"} colors, no ids/classes/styles
-✓ Uniform visual weight across the batch
 ✓ Uniform visual weight across the batch
 ✓ Recognizable as a silhouette at 12×12
 ✓ Reflects the brand DNA, not a generic icon-set
