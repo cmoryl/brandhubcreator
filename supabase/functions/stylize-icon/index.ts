@@ -373,7 +373,13 @@ Analyze the image semantically (form → convention → context), then produce t
           simplifyThreshold,
           brainVersion: ICONOGRAPHY_BRAIN_VERSION,
           brainContextApplied: Object.keys(context ?? {}).length > 0,
+          brainGuardrail: {
+            retried,
+            initialReason: retried ? guardrailReason : null,
+            passed: true,
+          },
         }
+
 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
