@@ -30,26 +30,16 @@ import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
-import { getTemplateDefinitionForAsset, getTemplatePreviewImage, getTemplatesForPlatformFormat, TemplateZoneType } from '@/lib/socialTemplates';
 import { SlotFitControl } from './SlotFitControl';
 import { BrandLogoVariantPicker } from './templating/BrandLogoVariantPicker';
 import { TransPerfectSocialPanel } from './identity/TransPerfectSocialPanel';
 import {
   defaultTemplatePreviewFit,
-  getZoneMediaFit as sharedGetZoneMediaFit,
-  looksLikeSvgUrl,
-  looksLikeAlphaCapableRaster,
   detectAssetTransparency,
-  resolveSvgIntrinsicSize,
   sampleImageLuminance,
-  pickDefaultBrandLogoUrl,
-  scoreLogoForBackground,
-  describeBackgroundTone,
-  pickBestBrandLogoForLuminance,
-  findBackgroundZoneForLogo as sharedFindBackgroundZoneForLogo,
-  autoMatchLogosForZones as sharedAutoMatchLogosForZones,
   renderZoneAtOriginalResolution,
 } from '@/lib/templateZonePipeline';
+
 
 interface SocialAssetsProps {
   socialAssets: BrandSocialAssetSpec[];
