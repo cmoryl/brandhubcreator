@@ -66,7 +66,9 @@ const sampleEmojisFor = (name: string): string[] => {
 export const LibraryView = ({ libraries, organizationId, canEdit = true, onOpenSet, onCreate, onRemix, autoOpenLibraryId, onAutoOpenConsumed, onViewImported, onOpenBundledPack }: Props) => {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<'all' | IconLibrary['level']>('all');
-  const [openLib, setOpenLib] = useState<IconLibrary | null>(null);
+  const [openLibId, setOpenLibId] = useState<string | null>(null);
+  const openLib = useMemo(() => libraries.find((l) => l.id === openLibId) ?? null, [libraries, openLibId]);
+  const setOpenLib = (lib: IconLibrary | null) => setOpenLibId(lib?.id ?? null);
   const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
   const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
     useIconLibraryRowActions({ organizationId, canEdit });
