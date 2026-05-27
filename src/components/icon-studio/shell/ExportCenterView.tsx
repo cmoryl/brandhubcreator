@@ -104,13 +104,18 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
 
   // Per-icon brain rubric scan (sync, cheap) — runs only over the active scope
   // so huge libraries don't pay for icons that won't be exported.
+  // Compound key (libId::iconIndex::id/name) — prevents cross-library id/name
+  // collisions from wrongly excluding or including icons in the export.
+  const iconKey = (libId: string, iconIdx: number, icon: { id?: string; name?: string }) =>
+    `${libId}::${iconIdx}::${String(icon.id ?? icon.name ?? iconIdx)}`;
+
   const brainScan = useMemo(() => {
     if (selectedSetId === 'imported') return { failing: [], worst: null as null | { axis: BrainAxis; score: number } };
-    type FailRow = { id: string; name: string; worstAxis: BrainAxis; worstScore: number };
+    type FailRow = { key: string; name: string; worstAxis: BrainAxis; worstScore: number };
     const failing: FailRow[] = [];
     let worst: { axis: BrainAxis; score: number } | null = null;
     for (const lib of scopedLibs) {
-      for (const icon of lib.icons) {
+      lib.icons.forEach((icon, idx) => {
         const r = scoreIcon(icon);
         let axis: BrainAxis = 'gridIntegrity';
         let score = 100;
@@ -122,20 +127,20 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
         }
         if (score < brainGateThreshold) {
           failing.push({
-            id: String(icon.id ?? icon.name ?? ''),
+            key: iconKey(lib.id, idx, icon),
             name: icon.name ?? 'unnamed',
             worstAxis: axis,
             worstScore: score,
           });
         }
         if (!worst || score < worst.score) worst = { axis, score };
-      }
+      });
     }
     return { failing, worst };
   }, [scopedLibs, selectedSetId, brainGateThreshold]);
 
-  const excludedIds = useMemo(
-    () => (brainGateEnabled ? new Set(brainScan.failing.map((f) => f.id)) : new Set<string>()),
+  const excludedKeys = useMemo(
+    () => (brainGateEnabled ? new Set(brainScan.failing.map((f) => f.key)) : new Set<string>()),
     [brainGateEnabled, brainScan],
   );
 
@@ -153,8 +158,8 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
   const targetIcons = useMemo(() => {
     const baseLib = scopedLibs.reduce((s, l) => s + l.icons.length, 0);
     const baseImported = selectedSetId === 'all' || selectedSetId === 'imported' ? importedIcons.length : 0;
-    return baseLib + baseImported - excludedIds.size;
-  }, [scopedLibs, selectedSetId, importedIcons, excludedIds]);
+    return baseLib + baseImported - excludedKeys.size;
+  }, [scopedLibs, selectedSetId, importedIcons, excludedKeys]);
 
 
   const fileEstimate = useMemo(() => {
@@ -181,8 +186,9 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
     const includeImported = selectedSetId === 'all' || selectedSetId === 'imported';
     const allIcons = scopedLibs.flatMap((lib) =>
       lib.icons
-        .filter((ic) => !excludedIds.has(String(ic.id ?? ic.name ?? '')))
-        .map((ic) => ({ lib, icon: ic })),
+        .map((ic, idx) => ({ lib, icon: ic, idx }))
+        .filter(({ lib: l, icon: ic, idx }) => !excludedKeys.has(iconKey(l.id, idx, ic)))
+        .map(({ lib: l, icon: ic }) => ({ lib: l, icon: ic })),
     );
 
 
@@ -757,7 +763,7 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
                 <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
                   {brainScan.failing.slice(0, 60).map((f) => (
                     <span
-                      key={f.id}
+                      key={f.key}
                       title={`${BRAIN_AXIS_LABELS[f.worstAxis]} · ${f.worstScore}`}
                       className="rounded border border-border bg-card/60 px-1.5 py-0.5 text-[10px] tabular-nums"
                     >
