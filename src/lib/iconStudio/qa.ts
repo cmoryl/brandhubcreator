@@ -495,8 +495,37 @@ export const scoreIcon = (icon: BrandIconography, recipe?: IconRecipe | null): Q
     (brandFit * 0.3 + svgHealth * 0.3 + smallSizeReadable * 0.2 + exportReady * 0.2),
   );
 
+  /* ----- Brain rubric: annotate findings & derive sub-scores ----- */
+  const brainRubric = emptyRubric();
+  for (const f of findings) {
+    const cite = BRAIN_CITATIONS[f.id];
+    if (cite) {
+      f.brainAxis = cite.axis;
+      f.brainPrinciple = cite.principle;
+      brainRubric[cite.axis] = Math.max(0, brainRubric[cite.axis] - BRAIN_AXIS_DOCK[f.severity]);
+    }
+  }
+  // Heuristic cultural-neutrality flag (model pass will refine later).
+  const slug = (icon.name ?? '').toLowerCase();
+  const culturalHit = CULTURALLY_SENSITIVE_TERMS.find((t) => slug.includes(t));
+  if (culturalHit) {
+    brainRubric.culturalNeutrality = Math.min(brainRubric.culturalNeutrality, 70);
+    findings.push({
+      id: 'cultural-review',
+      category: 'brandFit',
+      severity: 'warn',
+      message: `Metaphor "${culturalHit}" varies by culture — flag for human review.`,
+      brainAxis: 'culturalNeutrality',
+      brainPrinciple: 'Cultural Fluency: gestures/symbols read differently across regions.',
+    });
+  }
+  // Optical balance: penalise paths-out-of-grid as a proxy for visual weight drift.
+  if (findings.some((f) => f.id === 'precision-high' || f.id === 'has-transform')) {
+    brainRubric.opticalBalance = Math.max(0, brainRubric.opticalBalance - 10);
+  }
+
   return {
-    scores: { brandFit, svgHealth, smallSizeReadable, exportReady, overall },
+    scores: { brandFit, svgHealth, smallSizeReadable, exportReady, overall, brainRubric },
     findings,
     exportReady: exportReady >= 70 && svgHealth >= 70,
   };
