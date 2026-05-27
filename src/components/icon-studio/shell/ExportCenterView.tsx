@@ -88,6 +88,57 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
   const [styleId, setStyleId] = useState<string>(BASE_STYLES[0].id);
   const [accentToken, setAccentToken] = useState<string>(ACCENT_TOKENS[0].token);
   const [exporting, setExporting] = useState(false);
+  // Iconography Brain export gate — exclude icons whose worst axis falls below
+  // the threshold so bundles never ship glyphs that violate the rubric.
+  const [brainGateEnabled, setBrainGateEnabled] = useState(true);
+  const [brainGateThreshold, setBrainGateThreshold] = useState(70);
+
+  // Scoped libraries used by both the brain gate and the export pipeline.
+  const scopedLibs = useMemo(
+    () =>
+      selectedSetId === 'all' || selectedSetId === 'imported'
+        ? libraries
+        : libraries.filter((l) => l.id === selectedSetId),
+    [libraries, selectedSetId],
+  );
+
+  // Per-icon brain rubric scan (sync, cheap) — runs only over the active scope
+  // so huge libraries don't pay for icons that won't be exported.
+  const brainScan = useMemo(() => {
+    if (selectedSetId === 'imported') return { failing: [], worst: null as null | { axis: BrainAxis; score: number } };
+    type FailRow = { id: string; name: string; worstAxis: BrainAxis; worstScore: number };
+    const failing: FailRow[] = [];
+    let worst: { axis: BrainAxis; score: number } | null = null;
+    for (const lib of scopedLibs) {
+      for (const icon of lib.icons) {
+        const r = scoreIcon(icon);
+        let axis: BrainAxis = 'gridIntegrity';
+        let score = 100;
+        for (const k of Object.keys(r.scores.brainRubric) as BrainAxis[]) {
+          if (r.scores.brainRubric[k] < score) {
+            score = r.scores.brainRubric[k];
+            axis = k;
+          }
+        }
+        if (score < brainGateThreshold) {
+          failing.push({
+            id: String(icon.id ?? icon.name ?? ''),
+            name: icon.name ?? 'unnamed',
+            worstAxis: axis,
+            worstScore: score,
+          });
+        }
+        if (!worst || score < worst.score) worst = { axis, score };
+      }
+    }
+    return { failing, worst };
+  }, [scopedLibs, selectedSetId, brainGateThreshold]);
+
+  const excludedIds = useMemo(
+    () => (brainGateEnabled ? new Set(brainScan.failing.map((f) => f.id)) : new Set<string>()),
+    [brainGateEnabled, brainScan],
+  );
+
 
   const enabledCount = formats.filter((f) => f.enabled).length;
   const activeStyle: BaseStyle = useMemo(
