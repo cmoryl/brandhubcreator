@@ -193,6 +193,44 @@ export const QAView = ({ libraries, totalIcons, organizationId, organizationName
         <Counter label="Failing" value={failing} icon={XCircle} token="--destructive" />
       </section>
 
+      {/* Iconography Brain rubric */}
+      <section className="tp-card p-5">
+        <header className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-semibold">Iconography Brain rubric</h3>
+            <p className="text-[11px] text-muted-foreground">
+              Six classical axes — Panofsky · Isotype · Lucide DNA · SF Symbols — averaged across the scanned set.
+            </p>
+          </div>
+          <Badge variant="outline" className="text-[10px]">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1.5" />
+            Active
+          </Badge>
+        </header>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {(Object.keys(BRAIN_AXIS_LABELS) as BrainAxis[]).map((axis) => {
+            const value = preflight?.brainRubric[axis] ?? 0;
+            const color = value >= 85 ? '--tp-green' : value >= 70 ? '--tp-orange' : '--destructive';
+            return (
+              <div key={axis} className="rounded-lg border bg-secondary/20 p-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                  {BRAIN_AXIS_LABELS[axis]}
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-semibold tabular-nums" style={{ color: `hsl(var(${color}))` }}>
+                    {value}
+                  </span>
+                  <span className="text-xs text-muted-foreground">/ 100</span>
+                </div>
+                <div className="mt-2 h-1 w-full rounded-full overflow-hidden bg-muted">
+                  <div className="h-full rounded-full transition-all" style={{ width: `${value}%`, background: `hsl(var(${color}))` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Checklist */}
       <section className="tp-card p-5">
         <header className="flex items-center justify-between mb-4">
