@@ -79,11 +79,67 @@ export class AIGatewayError extends Error {
 /**
  * Call the Lovable AI Gateway. Returns a structured result; throws AIGatewayError
  * for 429/402 so callers can map them to user-facing toasts.
+ *
+ * Includes built-in retry with exponential backoff + jitter for:
+ *   - Network errors (fetch throws / aborts that aren't caller-initiated)
+ *   - 5xx gateway responses
+ *   - 429 rate limits (respects Retry-After when present), unless disabled
+ *
+ * 402 (payment required) is never retried — it's a hard stop.
  */
 export async function callLovableAI(
   apiKey: string,
   opts: CallOptions,
 ): Promise<CallResult> {
+  const retries = opts.retry?.retries ?? 2;
+  const baseMs = opts.retry?.baseMs ?? 500;
+  const maxMs = opts.retry?.maxMs ?? 8_000;
+  const retryOn429 = opts.retry?.retryOn429 ?? true;
+
+  let lastErr: unknown = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await attemptCall(apiKey, opts);
+    } catch (e) {
+      lastErr = e;
+      const isLast = attempt === retries;
+      if (isLast) throw e;
+
+      // Decide if this error is retryable.
+      let retryable = false;
+      let waitMs = backoffMs(attempt, baseMs, maxMs);
+      if (e instanceof AIGatewayError) {
+        if (e.code === 'payment_required') throw e;
+        if (e.code === 'rate_limited') {
+          if (!retryOn429) throw e;
+          retryable = true;
+          const ra = Number(e.raw?.headers?.['retry-after']);
+          if (Number.isFinite(ra) && ra > 0) waitMs = Math.min(ra * 1000, maxMs);
+        } else if (e.code === 'gateway_error' && (e.status === 0 || e.status >= 500)) {
+          retryable = true;
+        }
+      }
+      if (!retryable) throw e;
+      await sleep(waitMs);
+    }
+  }
+  // Should be unreachable.
+  throw lastErr instanceof Error
+    ? lastErr
+    : new AIGatewayError(0, 'gateway_error', 'Unknown gateway failure', null);
+}
+
+function backoffMs(attempt: number, baseMs: number, maxMs: number): number {
+  const exp = Math.min(maxMs, baseMs * Math.pow(2, attempt));
+  // Full jitter
+  return Math.floor(Math.random() * exp);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function attemptCall(apiKey: string, opts: CallOptions): Promise<CallResult> {
   const started = Date.now();
   const body: any = {
     model: opts.model,
@@ -123,8 +179,12 @@ export async function callLovableAI(
   const durationMs = Date.now() - started;
 
   if (res.status === 429) {
+    const retryAfter = res.headers.get('retry-after');
     void logCall(opts, { status: 429, durationMs, errorCode: 'rate_limited', usage: null });
-    throw new AIGatewayError(429, 'rate_limited', 'AI rate limit reached. Please retry shortly.', raw);
+    throw new AIGatewayError(429, 'rate_limited', 'AI rate limit reached. Please retry shortly.', {
+      ...raw,
+      headers: retryAfter ? { 'retry-after': retryAfter } : undefined,
+    });
   }
   if (res.status === 402) {
     void logCall(opts, { status: 402, durationMs, errorCode: 'payment_required', usage: null });
