@@ -5,13 +5,14 @@
  * look & feel users see in Style System cards.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Package, Download, Image as ImageIcon, FileText, Code2, Layers,
-  Smartphone, Library as LibraryIcon, Sparkles, Wand2, Loader2,
+  Smartphone, Library as LibraryIcon, Sparkles, Wand2, Loader2, ShieldCheck,
 } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import JSZip from 'jszip';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
