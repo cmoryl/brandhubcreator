@@ -107,9 +107,16 @@ serve(async (req) => {
       );
     }
 
-    const { image, options = {} } = await req.json() as { 
-      image: string; 
-      options: Partial<StylizerOptions> 
+    const { image, options = {}, context = {} } = await req.json() as {
+      image: string;
+      options: Partial<StylizerOptions>;
+      context?: {
+        iconName?: string;
+        functionalLabel?: string;
+        brandName?: string;
+        setDna?: { stroke?: number; corner?: number; family?: string };
+        rtl?: boolean;
+      };
     };
 
     if (!image) {
@@ -126,8 +133,8 @@ serve(async (req) => {
 
     // Build style parameters
     // Lucide-grade default: 1.5px stroke matches generate-icon / generate-icon-set.
-    const strokeWidth = options.strokeWidth ?? 1.5;
-    const cornerRadius = options.cornerRadius ?? 4;
+    const strokeWidth = options.strokeWidth ?? context.setDna?.stroke ?? 1.5;
+    const cornerRadius = options.cornerRadius ?? context.setDna?.corner ?? 4;
     const fillMode = options.fillMode ?? 'auto';
     const simplifyThreshold = options.simplifyThreshold ?? 0.5;
     const maxAnchorPoints = options.maxAnchorPoints ?? 50;
@@ -136,19 +143,28 @@ serve(async (req) => {
     const styledPrompt = STYLIZER_PROMPT
       .replace('{STROKE_WIDTH}', String(strokeWidth))
       .replace('{CORNER_RADIUS}', String(cornerRadius))
-      .replace('{FILL_MODE}', fillMode === 'stroke' ? 'stroke only (fill="none")' : 
-                              fillMode === 'fill' ? 'solid fill (stroke="none")' : 
+      .replace('{FILL_MODE}', fillMode === 'stroke' ? 'stroke only (fill="none")' :
+                              fillMode === 'fill' ? 'solid fill (stroke="none")' :
                               'auto-detect based on image');
 
-    const userPrompt = `Convert this image into a clean SVG icon.
+    const brainContextLines = [
+      context.iconName ? `- Target concept: "${context.iconName}" — render the canonical convention for this concept, not a literal trace of the source.` : null,
+      context.functionalLabel ? `- Functional accessible label: "${context.functionalLabel}" — geometry must support this label unambiguously.` : null,
+      context.brandName ? `- Belongs to brand "${context.brandName}". Maintain shared DNA with that brand's existing icon family.` : null,
+      context.setDna?.family ? `- Set family/style: ${context.setDna.family}. Match its terminals, joins, and optical weight.` : null,
+      context.rtl ? `- This icon will appear in RTL contexts — if directional, design the LTR canonical form; the renderer will mirror.` : null,
+    ].filter(Boolean).join('\n');
 
-Style parameters:
+    const userPrompt = `Convert this image into a clean SVG icon, governed by the Iconography Brain.
+
+${brainContextLines ? `Brain context:\n${brainContextLines}\n\n` : ''}Style parameters:
 - Simplification level: ${simplifyThreshold < 0.3 ? 'Keep maximum detail' : simplifyThreshold < 0.7 ? 'Balance detail and simplicity' : 'Maximum simplification for clean lines'}
 - Target anchor points: Under ${maxAnchorPoints}
 - Preserve negative space/holes: ${options.preserveHoles ? 'Yes' : 'No'}
 - Corner style: ${cornerRadius > 0 ? `Rounded (${cornerRadius}px radius)` : 'Sharp corners'}
 
-Analyze the image and create a semantic, iconic SVG representation. Output ONLY the SVG element.`;
+Analyze the image semantically (form → convention → context), then produce the iconic equivalent that conforms to the grammar above. Output ONLY the SVG element.`;
+
 
     console.log(`[stylize-icon] Processing image for user ${user.id}`);
 
