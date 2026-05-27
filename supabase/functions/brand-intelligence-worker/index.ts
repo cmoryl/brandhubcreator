@@ -158,7 +158,12 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    
+
+    // Fetch entity text context via server-side RPC. This extracts ONLY text
+    // fields from guide_data in PostgreSQL, preventing the 77-126MB guide_data
+    // from ever entering Edge Function memory.
+    const table = job.entity_type === 'brand' ? 'brands' : job.entity_type === 'product' ? 'products' : 'events';
+
     const contextRes = await fetch(
       `${supabaseUrl}/rest/v1/rpc/get_entity_text_context`,
       {
