@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { StatusChip } from './StatusChip';
 import type { IconLibrary } from '@/hooks/useIconLibraries';
 import { runPreflight, type PreflightSummary } from '@/lib/iconStudio/qa';
+import { BRAIN_AXIS_LABELS, type BrainAxis } from '@/lib/iconStudio/qa';
 import { AbTestPanel } from './AbTestPanel';
 import { SvgOptimizerPanel } from './SvgOptimizerPanel';
 import { SimilaritySearchPanel } from './SimilaritySearchPanel';
