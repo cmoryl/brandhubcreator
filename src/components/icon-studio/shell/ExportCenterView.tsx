@@ -93,6 +93,10 @@ export const ExportCenterView = ({ libraries, organizationName, onOpenLibrary, i
   // the threshold so bundles never ship glyphs that violate the rubric.
   const [brainGateEnabled, setBrainGateEnabled] = useState(true);
   const [brainGateThreshold, setBrainGateThreshold] = useState(70);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [activePreset, setActivePreset] = useState<PresetId | 'custom'>('designer');
+
+
 
   // Scoped libraries used by both the brain gate and the export pipeline.
   const scopedLibs = useMemo(
