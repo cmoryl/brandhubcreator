@@ -77,7 +77,7 @@ Rules:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: "Return only valid JSON. No markdown." },
+          { role: "system", content: `${ICONOGRAPHY_BRAIN_SUMMARY}\n\nReturn only valid JSON. No markdown.` },
           { role: "user", content: prompt },
         ],
         temperature: 0.4,
