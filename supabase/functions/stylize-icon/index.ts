@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ICONOGRAPHY_BRAIN_SUMMARY } from "../_shared/iconographyKnowledge.ts";
+import { ICONOGRAPHY_BRAIN_SUMMARY, ICONOGRAPHY_BRAIN_VERSION } from "../_shared/iconographyKnowledge.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
