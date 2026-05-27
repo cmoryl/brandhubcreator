@@ -12,7 +12,9 @@ const corsHeaders = {
  * Generates high-quality, professional-grade vector icons following
  * "Iconic Simplicity" principles - legible at 16px, detailed at 1024px
  */
-const SVG_ARCHITECT_PROMPT = `You are a world-class SVG icon designer with 20 years of experience at Apple, Google, and leading design studios. You create icons that rival Lucide, Phosphor, and SF Symbols in quality. Every icon you produce is portfolio-worthy.
+const SVG_ARCHITECT_PROMPT = `${ICONOGRAPHY_BRAIN_SUMMARY}
+
+You are a world-class SVG icon designer with 20 years of experience at Apple, Google, and leading design studios. You create icons that rival Lucide, Phosphor, and SF Symbols in quality. Every icon you produce is portfolio-worthy.
 
 ## GOLDEN RULES — Violating any of these is unacceptable
 
