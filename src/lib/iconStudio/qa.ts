@@ -542,23 +542,38 @@ export const scoreLibrary = (
   passing: number;
 } => {
   const reports = icons.map((icon) => ({ icon, report: scoreIcon(icon, recipe) }));
+  const zeroRubric = (): BrainRubric => ({
+    gridIntegrity: 0, strokeConsistency: 0, opticalBalance: 0,
+    squintTest: 0, metaphorClarity: 0, culturalNeutrality: 0,
+  });
   if (reports.length === 0) {
     return {
       reports,
-      average: { brandFit: 0, svgHealth: 0, smallSizeReadable: 0, exportReady: 0, overall: 0 },
+      average: { brandFit: 0, svgHealth: 0, smallSizeReadable: 0, exportReady: 0, overall: 0, brainRubric: zeroRubric() },
       failing: 0,
       passing: 0,
     };
   }
   const sum = reports.reduce(
-    (acc, { report }) => ({
-      brandFit: acc.brandFit + report.scores.brandFit,
-      svgHealth: acc.svgHealth + report.scores.svgHealth,
-      smallSizeReadable: acc.smallSizeReadable + report.scores.smallSizeReadable,
-      exportReady: acc.exportReady + report.scores.exportReady,
-      overall: acc.overall + report.scores.overall,
-    }),
-    { brandFit: 0, svgHealth: 0, smallSizeReadable: 0, exportReady: 0, overall: 0 },
+    (acc, { report }) => {
+      const r = report.scores.brainRubric;
+      return {
+        brandFit: acc.brandFit + report.scores.brandFit,
+        svgHealth: acc.svgHealth + report.scores.svgHealth,
+        smallSizeReadable: acc.smallSizeReadable + report.scores.smallSizeReadable,
+        exportReady: acc.exportReady + report.scores.exportReady,
+        overall: acc.overall + report.scores.overall,
+        brainRubric: {
+          gridIntegrity: acc.brainRubric.gridIntegrity + r.gridIntegrity,
+          strokeConsistency: acc.brainRubric.strokeConsistency + r.strokeConsistency,
+          opticalBalance: acc.brainRubric.opticalBalance + r.opticalBalance,
+          squintTest: acc.brainRubric.squintTest + r.squintTest,
+          metaphorClarity: acc.brainRubric.metaphorClarity + r.metaphorClarity,
+          culturalNeutrality: acc.brainRubric.culturalNeutrality + r.culturalNeutrality,
+        },
+      };
+    },
+    { brandFit: 0, svgHealth: 0, smallSizeReadable: 0, exportReady: 0, overall: 0, brainRubric: zeroRubric() },
   );
   const n = reports.length;
   const average: QAScores = {
@@ -567,6 +582,14 @@ export const scoreLibrary = (
     smallSizeReadable: Math.round(sum.smallSizeReadable / n),
     exportReady: Math.round(sum.exportReady / n),
     overall: Math.round(sum.overall / n),
+    brainRubric: {
+      gridIntegrity: Math.round(sum.brainRubric.gridIntegrity / n),
+      strokeConsistency: Math.round(sum.brainRubric.strokeConsistency / n),
+      opticalBalance: Math.round(sum.brainRubric.opticalBalance / n),
+      squintTest: Math.round(sum.brainRubric.squintTest / n),
+      metaphorClarity: Math.round(sum.brainRubric.metaphorClarity / n),
+      culturalNeutrality: Math.round(sum.brainRubric.culturalNeutrality / n),
+    },
   };
   return {
     reports,
