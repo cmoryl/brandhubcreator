@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { ICONOGRAPHY_BRAIN_SUMMARY } from "../_shared/iconographyKnowledge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,7 +11,9 @@ const corsHeaders = {
  * SVG Stylizer System Prompt
  * Converts PNG/image descriptions into clean, brand-aligned SVG icons
  */
-const STYLIZER_PROMPT = `You are a master SVG icon vectorizer in the lineage of Lucide, Tabler, Feather, and Phosphor. You translate raster images into clean, production-grade vector icons — NOT pixel tracings.
+const STYLIZER_PROMPT = `${ICONOGRAPHY_BRAIN_SUMMARY}
+
+You are a master SVG icon vectorizer in the lineage of Lucide, Tabler, Feather, and Phosphor. You translate raster images into clean, production-grade vector icons — NOT pixel tracings.
 
 ## CORE PRINCIPLES
 

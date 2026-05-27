@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Settings as SettingsIcon, Save } from 'lucide-react';
+import { Settings as SettingsIcon, Save, BookOpen, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -13,6 +13,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { BASE_STYLES, COLOR_MODES } from './studioData';
 
@@ -192,7 +195,78 @@ export const SettingsView = () => {
           </div>
         </Section>
       </div>
+
+      <IconographyBrainPanel />
     </div>
+  );
+};
+
+const IconographyBrainPanel = () => {
+  const [open, setOpen] = useState(false);
+  const [md, setMd] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open || md) return;
+    setLoading(true);
+    fetch('/knowledge/icon-iconography-history.md')
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+      .then(setMd)
+      .catch(() => toast.error('Could not load iconography reference'))
+      .finally(() => setLoading(false));
+  }, [open, md]);
+
+  return (
+    <section className="tp-card relative overflow-hidden p-5">
+      <div
+        className="absolute inset-0 opacity-30 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(60% 100% at 0% 0%, hsl(var(--tp-light-blue) / 0.25), transparent 70%)',
+        }}
+        aria-hidden
+      />
+      <div className="relative flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="rounded-md bg-primary/10 p-2 text-primary">
+            <Sparkles className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold">Iconography Brain</h3>
+              <Badge variant="outline" className="text-[10px] gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Active
+              </Badge>
+            </div>
+            <p className="text-[11px] text-muted-foreground max-w-2xl">
+              Generation, suggestion, semantic search, and stylization are all primed with a
+              distilled history of iconography (Panofsky · Isotype · Olympic pictograms · Material ·
+              SF Symbols) plus modern grid, weight, and licensing rules.
+            </p>
+          </div>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline" className="gap-1.5">
+              <BookOpen className="h-4 w-4" />
+              View reference
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Iconography Brain — Reference</DialogTitle>
+            </DialogHeader>
+            {loading && (
+              <div className="text-xs text-muted-foreground">Loading…</div>
+            )}
+            <pre className="whitespace-pre-wrap text-[12px] leading-relaxed font-sans text-foreground/90">
+              {md}
+            </pre>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </section>
   );
 };
 

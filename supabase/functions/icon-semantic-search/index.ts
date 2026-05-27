@@ -4,6 +4,7 @@
 // Returns tokens that the client intersects against the local icon index.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { ICONOGRAPHY_BRAIN_SUMMARY } from "../_shared/iconographyKnowledge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -76,7 +77,7 @@ Rules:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
         messages: [
-          { role: "system", content: "Return only valid JSON. No markdown." },
+          { role: "system", content: `${ICONOGRAPHY_BRAIN_SUMMARY}\n\nReturn only valid JSON. No markdown.` },
           { role: "user", content: prompt },
         ],
         temperature: 0.4,
