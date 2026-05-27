@@ -14,7 +14,9 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       target: 'es2020',
-      sourcemap: true,
+      // 'hidden' in production: maps are emitted but not referenced from JS,
+      // so they aren't served to browsers / scraped from the CDN.
+      sourcemap: mode === 'production' ? 'hidden' : true,
       cssCodeSplit: true,
       chunkSizeWarningLimit: 600,
       modulePreload: {
