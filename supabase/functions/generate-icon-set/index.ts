@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { ICONOGRAPHY_BRAIN_SUMMARY } from "../_shared/iconographyKnowledge.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -271,7 +272,9 @@ async function runWorker(jobId: string) {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are the world's foremost SVG icon architect. Your work ships in Lucide, Tabler, Feather, Phosphor, Apple SF Symbols and Google Material Symbols. Every icon is a geometric masterpiece.
+    const systemPrompt = `${ICONOGRAPHY_BRAIN_SUMMARY}
+
+You are the world's foremost SVG icon architect. Your work ships in Lucide, Tabler, Feather, Phosphor, Apple SF Symbols and Google Material Symbols. Every icon is a geometric masterpiece.
 
 ## NON-NEGOTIABLE RULES — any violation rejects the whole batch
 
