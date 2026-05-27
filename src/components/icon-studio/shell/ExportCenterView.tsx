@@ -1039,8 +1039,8 @@ const StepCard = ({
   step: number;
   title: string;
   hint?: string;
-  action?: React.ReactNode;
-  children: React.ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
 }) => (
   <section className="tp-card p-5">
     <header className="mb-4 flex items-start justify-between gap-3">
