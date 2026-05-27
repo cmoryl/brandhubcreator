@@ -74,7 +74,9 @@ export const IconSetsView = ({
   onOpenBundledPack,
 }: Props) => {
   const [q, setQ] = useState('');
-  const [activeLib, setActiveLib] = useState<IconLibrary | null>(null);
+  const [activeLibId, setActiveLibId] = useState<string | null>(null);
+  const activeLib = useMemo(() => libraries.find((l) => l.id === activeLibId) ?? null, [libraries, activeLibId]);
+  const setActiveLib = (lib: IconLibrary | null) => setActiveLibId(lib?.id ?? null);
   const [regenLib, setRegenLib] = useState<IconLibrary | null>(null);
   const [expandOpen, setExpandOpen] = useState(false);
   const { handleDuplicate, handleLockToggle, requestDelete, deleteDialog } =
