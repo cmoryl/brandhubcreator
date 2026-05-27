@@ -9,6 +9,7 @@ import { useMemo, useState } from 'react';
 import {
   Package, Download, Image as ImageIcon, FileText, Code2, Layers,
   Smartphone, Library as LibraryIcon, Sparkles, Wand2, Loader2, ShieldCheck,
+  Palette, Settings2, ChevronDown, Check, Rocket, Paintbrush, Globe, Boxes,
 } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import JSZip from 'jszip';
