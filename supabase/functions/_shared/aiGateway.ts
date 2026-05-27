@@ -28,6 +28,20 @@ export interface CallOptions {
   temperature?: number;
   timeoutMs?: number;
 
+  /**
+   * Retry config for transient gateway failures (network blips, 5xx, and
+   * — when honored — 429 rate limits). Defaults: 2 retries, 500ms base,
+   * exponential backoff with jitter, capped at 8s. Set `retries: 0` to
+   * disable.
+   */
+  retry?: {
+    retries?: number;
+    baseMs?: number;
+    maxMs?: number;
+    /** If true, also retry on 429 using Retry-After when present. Default true. */
+    retryOn429?: boolean;
+  };
+
   // Telemetry context (all optional). When supabaseUrl + serviceRoleKey are
   // provided, a row is inserted into ai_call_log.
   telemetry?: {
