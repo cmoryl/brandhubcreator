@@ -195,19 +195,11 @@ const platformPresets: BrandSocialAssetSpec[] = [
 ];
 
 import {
-  getGeneratedTemplatesForPlatform,
   getResolvedTemplates,
   zonePreviewStyles,
-  zoneTypeLabels,
-  clampZoneValue,
   getZoneMediaFit,
-  getTemplateFormat,
-  getSmartDefaultZoneFit,
-  findBackgroundZoneForLogo,
   autoMatchLogosForZones,
   getEditableZones,
-  getSafeAreaGuide,
-  type SafeAreaGuide,
 } from './social-assets/helpers';
 
 
