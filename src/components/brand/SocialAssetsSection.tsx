@@ -1,13 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye, LayoutGrid, Type, FileImage, FileArchive } from 'lucide-react';
+import { Plus, X, Pencil, Linkedin, Twitter, Instagram, Facebook, Youtube, Monitor, Smartphone, Download, ExternalLink, FileType, Figma, Upload, Image, ChevronDown, ChevronRight, Info, Maximize2, Layers, FolderOpen, Eye, LayoutGrid, Type } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { toPng } from 'html-to-image';
-import JSZip from 'jszip';
 import { BrandLogo, BrandSocialAssetSpec, SocialAssetTemplate, SocialSizeCategory, SocialTemplateZone } from '@/types/brand';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
@@ -22,24 +20,14 @@ import { LayoutPreset } from '@/types/brand';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useDropZone } from '@/components/ui/drop-zone';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
 import { TemplatePreviewDialog } from './social-assets/TemplatePreviewDialog';
-import { SlotFitControl } from './SlotFitControl';
-import { BrandLogoVariantPicker } from './templating/BrandLogoVariantPicker';
 import { TransPerfectSocialPanel } from './identity/TransPerfectSocialPanel';
-import {
-  defaultTemplatePreviewFit,
-  detectAssetTransparency,
-  sampleImageLuminance,
-  renderZoneAtOriginalResolution,
-} from '@/lib/templateZonePipeline';
+import { defaultTemplatePreviewFit } from '@/lib/templateZonePipeline';
 
 
 interface SocialAssetsProps {
