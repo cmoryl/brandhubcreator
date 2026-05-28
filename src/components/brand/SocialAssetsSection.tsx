@@ -30,6 +30,7 @@ import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
+import { TemplatePreviewDialog } from './social-assets/TemplatePreviewDialog';
 import { SlotFitControl } from './SlotFitControl';
 import { BrandLogoVariantPicker } from './templating/BrandLogoVariantPicker';
 import { TransPerfectSocialPanel } from './identity/TransPerfectSocialPanel';
