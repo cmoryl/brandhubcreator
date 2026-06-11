@@ -883,6 +883,40 @@ export default function AdminDashboard() {
             <Suspense fallback={<TabPanelFallback />}><GlobalLinkAdminSection /></Suspense>
           </TabsContent>
 
+          <TabsContent value="transperfect-canva" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <CardTitle>Canva Master Registry + Audit</CardTitle>
+                    <CardDescription>TransPerfect — shareable team report</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button asChild size="sm" variant="outline">
+                      <a href="/transperfect/canva-audit.html" target="_blank" rel="noopener noreferrer">
+                        <ArrowUpRight className="h-4 w-4 mr-1.5" />
+                        Open in new tab
+                      </a>
+                    </Button>
+                    <Button asChild size="sm" variant="outline">
+                      <a href="/transperfect/canva-audit.html" download="Canva_Master_Registry_Audit_TransPerfect.html">
+                        Download
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <iframe
+                  src="/transperfect/canva-audit.html"
+                  title="Canva Master Registry + Audit — TransPerfect"
+                  className="w-full border-0 rounded-b-lg bg-background"
+                  style={{ height: 'calc(100vh - 280px)', minHeight: 600 }}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
           </div>
         </main>
