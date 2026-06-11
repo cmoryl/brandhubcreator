@@ -1,7 +1,7 @@
 import { 
   BarChart3, UserCheck, Users, Building2, UserPlus, Palette, 
   Database, TrendingUp, Eye, Brain, FileText, Activity, 
-  Wrench, HardDrive, Shield, Menu, X, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2, Crown, Bot, Lightbulb, GraduationCap
+  Wrench, HardDrive, Shield, Menu, X, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2, Crown, Bot, Lightbulb, GraduationCap, ClipboardList
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +65,7 @@ function SidebarContent({
     { id: 'repair', label: 'Repair Tools', icon: <Wrench className="h-4 w-4" />, group: 'tools' },
     { id: 'backups', label: 'Backups', icon: <HardDrive className="h-4 w-4" />, group: 'tools' },
     { id: 'demo-pages', label: 'Demo Pages', icon: <Sparkles className="h-4 w-4" />, group: 'tools' },
+    { id: 'transperfect-canva', label: 'TP Canva Audit', icon: <ClipboardList className="h-4 w-4" />, group: 'tools' },
   ];
 
   const superAdminOnly = ['repair', 'demo-pages'];
