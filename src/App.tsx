@@ -97,7 +97,7 @@ const SocialAssetStudio = lazyWithRetry(() => import("./pages/SocialAssetStudio"
 const AdLocalizerPage = lazyWithRetry(() => import("./pages/AdLocalizerPage"));
 const ImageryHub = lazyWithRetry(() => import("./pages/ImageryHub"));
 const LogoDownloadActivity = lazyWithRetry(() => import("./pages/LogoDownloadActivity"));
-const BrandAgentPage = lazyWithRetry(() => import("./pages/BrandAgentPage"));
+const TransPerfectCanvaAudit = lazyWithRetry(() => import("./pages/TransPerfectCanvaAudit"));
 const IconStudioPage = lazyWithRetry(() => import("./pages/IconStudioPage"));
 const AttributionsView = lazyWithRetry(() => import("./pages/AttributionsView"));
 const BrandIconHubPage = lazyWithRetry(() => import("./pages/BrandIconHubPage"));
