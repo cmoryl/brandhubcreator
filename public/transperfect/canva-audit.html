@@ -1859,6 +1859,154 @@ body.light-mode .section-detail .sd-list li .sd-num{background:#FFFFFF;border-co
     });
   }
 
+  /* -------- Section detail panels -------- */
+  function buildSectionDetails(){
+    const audit = document.getElementById('view-audit');
+    if(!audit) return;
+
+    // Tally findings & roadmap
+    const findings = Array.from(document.querySelectorAll('#findings .finding'));
+    const sevCounts = {high:0, med:0, low:0};
+    findings.forEach(f => sevCounts[f.dataset.sev]++);
+
+    const roadItems = Array.from(document.querySelectorAll('#roadmap .road-item'));
+    let touchTotal = 0;
+    let quickWins = 0;
+    const effortMix = {Low:0, Medium:0, High:0};
+    roadItems.forEach(r => {
+      const chips = Array.from(r.querySelectorAll('.chip')).map(c => c.textContent.trim());
+      const touchChip = chips.find(c => /template/i.test(c)) || '';
+      const m = touchChip.match(/(\d+)/);
+      if(m) touchTotal += parseInt(m[1],10);
+      const impactChip = chips.find(c => /Impact:/i.test(c)) || '';
+      const effortChip = chips.find(c => /Effort:/i.test(c)) || '';
+      if(/Impact:\s*High/i.test(impactChip) && /Effort:\s*Low/i.test(effortChip)) quickWins++;
+      const e = effortChip.match(/Effort:\s*(\w+)/);
+      if(e && effortMix[e[1]] !== undefined) effortMix[e[1]]++;
+    });
+
+    const totalFindings = findings.length;
+    const totalActions = roadItems.length;
+    const TOTAL_TEMPLATES = (typeof TEMPLATES !== 'undefined' ? TEMPLATES.length : 293);
+
+    // Find each section's header element
+    const sectionHeaders = Array.from(audit.querySelectorAll('.section-header'));
+    const findHeader = sectionHeaders.find(h => /Findings/i.test(h.textContent));
+    const roadHeader = sectionHeaders.find(h => /Roadmap/i.test(h.textContent));
+
+    // --- Build a detail panel for the Data Integrity strip (.health) ---
+    const health = audit.querySelector('.health');
+    if(health){
+      const intro = buildPanel({
+        title: 'About this section',
+        lede: `Before drawing any conclusions, we verified the underlying registry data. <b>All ${TOTAL_TEMPLATES} templates</b> have a valid Canva ID, exact W×H, page count, and a working edit link — so every finding below is about <b>how the library is organized</b>, not about missing or broken data.`,
+        cards: [
+          {num: TOTAL_TEMPLATES, lbl:'Templates audited', sub:'Pulled from the TransPerfect Canva Team account', cls:'green'},
+          {num: '0', lbl:'Duplicate IDs', sub:'No two records share the same Canva template ID'},
+          {num: '0', lbl:'Duplicate titles', sub:'No exact-string title collisions across the library'},
+          {num: '100%', lbl:'Field completeness', sub:'Size · pages · URL filled on every record', cls:'green'},
+        ],
+      });
+      health.insertAdjacentElement('beforebegin', intro);
+    }
+
+    // --- Findings section detail ---
+    if(findHeader){
+      const panel = buildPanel({
+        title: 'About the findings',
+        lede: `Six organizational issues surfaced across the ${TOTAL_TEMPLATES}-template library, ranked by <b>cleanup value</b> (impact ÷ effort). Two are <b>high-severity</b> bloat or misfile issues you can resolve in an afternoon; the remaining four are workflow/standards questions that benefit from a team decision.`,
+        cards: [
+          {num: totalFindings, lbl:'Total findings', sub:'Click any bar in a finding to drill into the underlying templates'},
+          {num: sevCounts.high, lbl:'High severity', sub:'Material organizational debt · do these first', cls:'high'},
+          {num: sevCounts.med,  lbl:'Medium severity', sub:'Standards/consistency issues · plan a sprint', cls:'med'},
+          {num: sevCounts.low,  lbl:'Low severity', sub:'Worth a periodic review, not urgent', cls:'low'},
+        ],
+        extra: `
+          <div class="sd-cols">
+            <div class="sd-col">
+              <h5>How to read a finding</h5>
+              <ul class="sd-list">
+                <li><span class="sd-num">1</span><div><b>Severity pill</b> (High/Med/Low) at the top of the card sets the priority lens.</div></li>
+                <li><span class="sd-num">2</span><div><b>Bars or tables</b> show the supporting data. <b>Click a bar</b> to expand the matching templates inline.</div></li>
+                <li><span class="sd-num">3</span><div>The teal <b>Recommended</b> callout at the bottom is the suggested action — these flow directly into the Cleanup Roadmap below.</div></li>
+              </ul>
+            </div>
+            <div class="sd-col">
+              <h5>Tips for reviewing</h5>
+              <ul class="sd-list">
+                <li><span class="sd-num">★</span><div>Use the <b>severity chips</b> above to focus on a single tier at a time.</div></li>
+                <li><span class="sd-num">★</span><div>The <b>search bar</b> matches any text inside any finding — useful for hunting a specific brand or template.</div></li>
+                <li><span class="sd-num">★</span><div><b>Click a card header</b> to collapse it, or use <b>"Collapse all"</b> for a top-down scan.</div></li>
+              </ul>
+            </div>
+          </div>`,
+      });
+      findHeader.insertAdjacentElement('afterend', panel);
+    }
+
+    // --- Roadmap section detail ---
+    if(roadHeader){
+      const panel = buildPanel({
+        title: 'About the roadmap',
+        lede: `${totalActions} concrete actions, ordered by <b>cleanup value</b>. The first ${quickWins || 2} are <b>quick wins</b> — high impact, low effort — and together cover roughly <b>${touchTotal} template touches</b>. We recommend tackling them in order; each step assumes the previous one is done.`,
+        cards: [
+          {num: totalActions, lbl:'Cleanup actions', sub:'Each maps to one or more findings above'},
+          {num: quickWins,    lbl:'Quick wins', sub:'High impact · Low effort — start here', cls:'green'},
+          {num: touchTotal,   lbl:'Template touches', sub:'Approximate edits required if every action is completed'},
+          {num: effortMix.Low + '/' + (effortMix.Medium + (effortMix.High||0)), lbl:'Low ÷ heavier effort', sub:`${effortMix.Low} low-effort vs ${effortMix.Medium + (effortMix.High||0)} requiring a sprint`},
+        ],
+        extra: `
+          <div class="sd-cols">
+            <div class="sd-col">
+              <h5>Suggested sequencing</h5>
+              <ul class="sd-list">
+                <li><span class="sd-num">A</span><div><b>This week:</b> reassign the 5 misfiled TP Corporate copies + resolve the 15 "Copy of …" files. 20 templates, no judgement calls.</div></li>
+                <li><span class="sd-num">B</span><div><b>Next sprint:</b> split the "General" bucket into real categories — biggest single-action impact on findability.</div></li>
+                <li><span class="sd-num">C</span><div><b>Standards pass:</b> decide on brand-tag and canvas-size conventions, then normalize the library to match.</div></li>
+                <li><span class="sd-num">D</span><div><b>Periodic:</b> archive aging 2019–2020 one-offs once campaigns/clients are confirmed closed.</div></li>
+              </ul>
+            </div>
+            <div class="sd-col">
+              <h5>What "Impact" and "Effort" mean</h5>
+              <ul class="sd-list">
+                <li><span class="sd-num">I</span><div><b>Impact</b> measures library-wide visibility and search/findability gain — e.g. splitting "General" affects 34% of the catalog.</div></li>
+                <li><span class="sd-num">E</span><div><b>Effort</b> reflects person-time: <b>Low</b> = ≤1 hour of mechanical edits; <b>Medium</b> = a half-day requiring some judgement on categorization.</div></li>
+                <li><span class="sd-num">T</span><div><b>Templates touched</b> is the ceiling — many edits are batch-renames or tag adjustments, not full redesigns.</div></li>
+              </ul>
+            </div>
+          </div>`,
+      });
+      roadHeader.insertAdjacentElement('afterend', panel);
+    }
+
+    function buildPanel({title, lede, cards, extra}){
+      const wrap = document.createElement('div');
+      wrap.className = 'section-detail';
+      const cardsHtml = cards ? `<div class="sd-grid">${cards.map(c => `
+        <div class="sd-card">
+          <div class="sd-card-lbl">${c.lbl}</div>
+          <span class="sd-card-num ${c.cls||''}">${c.num}</span>
+          ${c.sub ? `<div class="sd-card-sub">${c.sub}</div>` : ''}
+        </div>`).join('')}</div>` : '';
+      wrap.innerHTML = `
+        <button class="sd-toggle" type="button">
+          <span class="sd-chev">▾</span> ${title}
+        </button>
+        <div class="sd-content">
+          ${lede ? `<div class="sd-lede">${lede}</div>` : ''}
+          ${cardsHtml}
+          ${extra || ''}
+        </div>`;
+      wrap.querySelector('.sd-toggle').addEventListener('click', () => {
+        wrap.classList.toggle('collapsed');
+      });
+      return wrap;
+    }
+  }
+
+
+
+
 
 
   if(document.readyState === 'loading'){
