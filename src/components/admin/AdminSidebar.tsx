@@ -1,7 +1,7 @@
 import { 
   BarChart3, UserCheck, Users, Building2, UserPlus, Palette, 
   Database, TrendingUp, Eye, Brain, FileText, Activity, 
-  Wrench, HardDrive, Shield, Menu, X, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2, Crown, Bot, Lightbulb, GraduationCap, ClipboardList
+  Wrench, HardDrive, Shield, Menu, X, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2, Crown, Bot, Lightbulb, GraduationCap, ClipboardList, ArrowLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface NavItem {
   id: string;
@@ -16,6 +17,7 @@ interface NavItem {
   icon: React.ReactNode;
   badge?: number;
   group: string;
+  href?: string;
 }
 
 interface AdminSidebarProps {
@@ -65,7 +67,7 @@ function SidebarContent({
     { id: 'repair', label: 'Repair Tools', icon: <Wrench className="h-4 w-4" />, group: 'tools' },
     { id: 'backups', label: 'Backups', icon: <HardDrive className="h-4 w-4" />, group: 'tools' },
     { id: 'demo-pages', label: 'Demo Pages', icon: <Sparkles className="h-4 w-4" />, group: 'tools' },
-    { id: 'transperfect-canva', label: 'TP Canva Audit', icon: <ClipboardList className="h-4 w-4" />, group: 'tools' },
+    { id: 'transperfect-canva', label: 'TP Canva Audit', icon: <ClipboardList className="h-4 w-4" />, href: '/transperfect-canva-audit', group: 'tools' },
   ];
 
   const superAdminOnly = ['repair', 'demo-pages'];
@@ -103,26 +105,48 @@ function SidebarContent({
                   {group.label}
                 </p>
                 <div className="space-y-0.5">
-                  {groupItems.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleItemClick(item.id)}
-                      className={cn(
-                        "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left",
-                        activeTab === item.id 
-                          ? "bg-primary/10 text-primary font-medium" 
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      )}
-                    >
-                      {item.icon}
-                      <span className="flex-1">{item.label}</span>
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <Badge variant="destructive" className="h-5 px-1.5 text-xs">
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </button>
-                  ))}
+                  {groupItems.map((item) => {
+                    const isActive = activeTab === item.id;
+                    const baseClasses = cn(
+                      "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left",
+                      isActive
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    );
+                    if (item.href) {
+                      return (
+                        <a
+                          key={item.id}
+                          href={item.href}
+                          className={baseClasses}
+                          onClick={() => onItemClick?.()}
+                        >
+                          {item.icon}
+                          <span className="flex-1">{item.label}</span>
+                          {item.badge !== undefined && item.badge > 0 && (
+                            <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </a>
+                      );
+                    }
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleItemClick(item.id)}
+                        className={baseClasses}
+                      >
+                        {item.icon}
+                        <span className="flex-1">{item.label}</span>
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             );

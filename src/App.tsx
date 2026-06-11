@@ -97,6 +97,7 @@ const SocialAssetStudio = lazyWithRetry(() => import("./pages/SocialAssetStudio"
 const AdLocalizerPage = lazyWithRetry(() => import("./pages/AdLocalizerPage"));
 const ImageryHub = lazyWithRetry(() => import("./pages/ImageryHub"));
 const LogoDownloadActivity = lazyWithRetry(() => import("./pages/LogoDownloadActivity"));
+const TransPerfectCanvaAudit = lazyWithRetry(() => import("./pages/TransPerfectCanvaAudit"));
 const BrandAgentPage = lazyWithRetry(() => import("./pages/BrandAgentPage"));
 const IconStudioPage = lazyWithRetry(() => import("./pages/IconStudioPage"));
 const AttributionsView = lazyWithRetry(() => import("./pages/AttributionsView"));
@@ -485,6 +486,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <BrandIconHubPage entityType="event" />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="transperfect-canva-audit"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <TransPerfectCanvaAudit />
                         </Suspense>
                       }
                     />
