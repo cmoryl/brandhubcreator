@@ -1095,7 +1095,7 @@ findings.push(`
     <div class="finding-count">Top 12 sizes shown · 41 unique W×H total</div></div>
   </div>
   <div class="finding-body">A handful of sizes dominate, but the long tail of 41 distinct dimensions adds friction. The clearest offender: two near-identical LinkedIn/Facebook sizes that should be one.</div>
-  ${bars(DATA.topSizes,75,(l)=>(l==='1200×628'||l==='1200×627')?'#E8A040':'#00C2C7')}
+  ${bars(DATA.topSizes,75,(l)=>(l==='1200×628'||l==='1200×627')?'#E8A040':'#00C2C7',null,'size')}
   <div class="callout"><b>1200×628</b> (48 templates) vs <b>1200×627</b> (14 templates) — effectively identical, should collapse to a single standard.</div>
   <div class="rec"><b>Recommended</b>Define a canonical size palette (1080×1080, 1200×628, 1080×1920, 1080×1350, 816×1056, 1600×837) and standardize the 1-px LinkedIn variants. Flag anything outside the palette for review.</div>
 </div>`);
