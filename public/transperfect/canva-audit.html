@@ -371,6 +371,24 @@ body.light-mode .road-item,body.light-mode #view-audit .road-item{border-color:#
 </div>
 
 <div id="view-audit" class="view">
+
+<!-- Interactive summary + controls (populated by enhancement script) -->
+<div id="audit-summary" class="audit-summary"></div>
+<div id="audit-controls" class="audit-controls">
+  <div class="audit-search">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="audit-search-input" placeholder="Search findings, recommendations, templates…">
+  </div>
+  <div class="audit-sev-chips" id="audit-sev-chips">
+    <button class="sev-chip active" data-sev="all">All <span class="sev-chip-count" data-count="all">·</span></button>
+    <button class="sev-chip" data-sev="high">High <span class="sev-chip-count" data-count="high">·</span></button>
+    <button class="sev-chip" data-sev="med">Medium <span class="sev-chip-count" data-count="med">·</span></button>
+    <button class="sev-chip" data-sev="low">Low <span class="sev-chip-count" data-count="low">·</span></button>
+  </div>
+  <button class="audit-collapse-btn" id="audit-collapse-toggle" type="button">Collapse all</button>
+</div>
+<div id="audit-empty" class="audit-empty" style="display:none">No findings match the current filter.</div>
+
 <div class="health">
   <span class="lbl">Data integrity</span>
   <span class="chk"><span class="dot"></span>0 duplicate template IDs</span>
@@ -1132,6 +1150,457 @@ function showView(v){
   document.getElementById('tab-audit').classList.toggle('active', v==='audit');
   window.scrollTo(0,0);
 }
+</script>
+
+<!-- ===================================================================
+     INTERACTIVE AUDIT ENHANCEMENTS
+     - Summary charts (severity donut + impact mix bar)
+     - Severity filter chips + live search
+     - Collapsible findings
+     - Sortable tables (click any <th>)
+     - Sticky table of contents (right rail)
+     =================================================================== -->
+<style>
+/* Summary panel */
+.audit-summary{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;
+  padding:22px 40px;background:#0B1F38;border-bottom:1px solid #1E3050}
+.audit-summary .donut-wrap{display:flex;align-items:center;gap:18px}
+.audit-summary .donut-legend{display:flex;flex-direction:column;gap:6px;font-size:11px;color:#A8B8D0}
+.audit-summary .donut-legend .lg{display:inline-flex;align-items:center;gap:7px}
+.audit-summary .donut-legend .lg .sw{width:9px;height:9px;border-radius:2px;display:inline-block}
+.audit-summary .donut-legend .lg b{color:#E8EDF8;font-weight:700;font-size:12px;margin-right:3px}
+.audit-summary .panel-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7A8BAA;margin-bottom:8px;font-weight:700}
+.audit-summary .impact-mix{display:flex;flex-direction:column;gap:6px}
+.audit-summary .imp-row{display:flex;align-items:center;gap:10px;font-size:12px;color:#C8D8F0}
+.audit-summary .imp-label{width:120px;flex-shrink:0;color:#A8B8D0}
+.audit-summary .imp-track{flex:1;background:#091525;border-radius:3px;height:14px;overflow:hidden;display:flex}
+.audit-summary .imp-seg{height:100%;transition:width .3s ease}
+.audit-summary .imp-val{width:120px;font-size:11px;color:#7A8BAA;font-family:'Courier New',monospace}
+
+/* Controls */
+.audit-controls{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;
+  padding:12px 40px;background:#091525;border-bottom:1px solid #1E3050;flex-wrap:wrap}
+.audit-search{position:relative;flex:1;min-width:220px;max-width:420px}
+.audit-search input{width:100%;background:#0B1628;border:1px solid #1E3050;border-radius:4px;
+  padding:8px 12px 8px 34px;color:#E8EDF8;font-size:12px;outline:none}
+.audit-search input:focus{border-color:#00C2C7}
+.audit-search .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#7A8BAA}
+.audit-sev-chips{display:flex;gap:6px;flex-wrap:wrap}
+.sev-chip{background:#0B1628;border:1px solid #1E3050;border-radius:14px;padding:5px 12px;
+  color:#7A8BAA;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;
+  display:inline-flex;align-items:center;gap:6px;letter-spacing:.3px}
+.sev-chip:hover{border-color:#2A4060;color:#C8D8F0}
+.sev-chip .sev-chip-count{font-size:10px;color:#7A8BAA;background:#122040;border-radius:10px;padding:1px 7px;font-weight:700}
+.sev-chip.active{background:#00C2C7;border-color:#00C2C7;color:#06283A}
+.sev-chip.active .sev-chip-count{background:rgba(6,40,58,.18);color:#06283A}
+.sev-chip[data-sev="high"].active{background:#E74C3C;border-color:#E74C3C;color:#fff}
+.sev-chip[data-sev="med"].active{background:#E8A040;border-color:#E8A040;color:#241A0A}
+.sev-chip[data-sev="low"].active{background:#7FA0C8;border-color:#7FA0C8;color:#0E2238}
+.audit-collapse-btn{margin-left:auto;background:transparent;border:1px solid #1E3050;border-radius:4px;
+  padding:7px 12px;color:#7A8BAA;font-size:11px;cursor:pointer;font-weight:600}
+.audit-collapse-btn:hover{border-color:#00C2C7;color:#00C2C7}
+.audit-empty{padding:60px 40px;text-align:center;color:#7A8BAA;font-size:13px;font-style:italic}
+
+/* Collapsible finding */
+.finding{transition:all .2s ease}
+.finding-top{cursor:pointer;user-select:none;position:relative;padding-right:32px}
+.finding-top:hover .finding-title{color:#00C2C7}
+.finding-chevron{position:absolute;right:0;top:4px;color:#7A8BAA;font-size:14px;
+  transition:transform .2s ease;display:inline-block}
+.finding.collapsed .finding-chevron{transform:rotate(-90deg)}
+.finding-body-wrap{overflow:hidden;transition:max-height .25s ease,opacity .2s ease,margin .2s ease}
+.finding.collapsed .finding-body-wrap{max-height:0!important;opacity:0;margin:0;pointer-events:none}
+.finding.hidden{display:none}
+
+/* Sortable tables */
+.finding th{cursor:pointer;user-select:none;position:relative;padding-right:22px}
+.finding th:hover{color:#00C2C7;background:#122040}
+.finding th.sort-asc::after{content:'▲';position:absolute;right:8px;font-size:9px;color:#00C2C7}
+.finding th.sort-desc::after{content:'▼';position:absolute;right:8px;font-size:9px;color:#00C2C7}
+.finding th.sort-none::after{content:'⇅';position:absolute;right:8px;font-size:10px;color:#3A4A60;opacity:.7}
+
+/* Sticky TOC */
+.audit-toc{position:fixed;top:120px;right:18px;width:240px;max-height:calc(100vh - 160px);
+  background:#0B1F38;border:1px solid #1E3050;border-radius:8px;padding:14px 14px 12px;
+  font-size:11px;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.35);
+  display:flex;flex-direction:column;gap:8px}
+.audit-toc-head{display:flex;align-items:center;justify-content:space-between;
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#00C2C7;font-weight:700}
+.audit-toc-toggle{background:transparent;border:none;color:#7A8BAA;cursor:pointer;font-size:14px;padding:0 2px;line-height:1}
+.audit-toc-toggle:hover{color:#00C2C7}
+.audit-toc-list{overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding-right:4px;margin:0;list-style:none}
+.audit-toc-list::-webkit-scrollbar{width:6px}
+.audit-toc-list::-webkit-scrollbar-thumb{background:#1E3050;border-radius:3px}
+.audit-toc-list a{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:4px;
+  color:#A8B8D0;text-decoration:none;line-height:1.35;border-left:2px solid transparent}
+.audit-toc-list a:hover{background:#122040;color:#E8EDF8}
+.audit-toc-list a.active{background:#0E2A38;color:#00C2C7;border-left-color:#00C2C7}
+.audit-toc-list a.is-section{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+  color:#7A8BAA;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px solid #1E3050}
+.audit-toc-list a.is-section:first-child{margin-top:0;padding-top:7px;border-top:none}
+.audit-toc-sev{flex-shrink:0;width:7px;height:7px;border-radius:50%;margin-top:5px}
+.audit-toc-sev.high{background:#E74C3C}
+.audit-toc-sev.med{background:#E8A040}
+.audit-toc-sev.low{background:#7FA0C8}
+.audit-toc.collapsed{width:42px;padding:10px 8px;align-items:center}
+.audit-toc.collapsed .audit-toc-list,.audit-toc.collapsed .audit-toc-head .lbl{display:none}
+.audit-toc.collapsed .audit-toc-toggle{font-size:16px}
+@media (max-width:1100px){.audit-toc{display:none}}
+
+/* Light-mode overrides for new components */
+body.light-mode .audit-summary{background:#FFFFFF;border-color:#D8E0EC}
+body.light-mode .audit-summary .donut-legend,
+body.light-mode .audit-summary .panel-title,
+body.light-mode .audit-summary .imp-label,
+body.light-mode .audit-summary .imp-val{color:#5A6B85}
+body.light-mode .audit-summary .donut-legend .lg b,
+body.light-mode .audit-summary .imp-row{color:#0B1628}
+body.light-mode .audit-summary .imp-track{background:#EEF3FA}
+body.light-mode .audit-controls{background:#FFFFFF;border-color:#D8E0EC}
+body.light-mode .audit-search input{background:#F5F7FA;border-color:#D8E0EC;color:#0B1628}
+body.light-mode .audit-search .search-icon{color:#5A6B85}
+body.light-mode .sev-chip{background:#F5F7FA;border-color:#D8E0EC;color:#5A6B85}
+body.light-mode .sev-chip:hover{border-color:#B8C4D6;color:#0B1628}
+body.light-mode .sev-chip .sev-chip-count{background:#EEF3FA;color:#5A6B85}
+body.light-mode .audit-collapse-btn{color:#5A6B85;border-color:#D8E0EC}
+body.light-mode .audit-collapse-btn:hover{color:#008A8E;border-color:#00C2C7}
+body.light-mode .audit-empty{color:#5A6B85}
+body.light-mode .finding-chevron{color:#5A6B85}
+body.light-mode .finding th:hover{color:#008A8E;background:#EEF3FA}
+body.light-mode .audit-toc{background:#FFFFFF;border-color:#D8E0EC;box-shadow:0 8px 24px rgba(15,30,55,.08)}
+body.light-mode .audit-toc-head{color:#008A8E}
+body.light-mode .audit-toc-toggle{color:#5A6B85}
+body.light-mode .audit-toc-list a{color:#3A4A65}
+body.light-mode .audit-toc-list a:hover{background:#EEF3FA;color:#0B1628}
+body.light-mode .audit-toc-list a.active{background:#E8F6F6;color:#008A8E;border-left-color:#00C2C7}
+body.light-mode .audit-toc-list a.is-section{color:#5A6B85;border-color:#D8E0EC}
+body.light-mode .audit-toc-list::-webkit-scrollbar-thumb{background:#D8E0EC}
+</style>
+
+<script>
+(function(){
+  function init(){
+    const audit = document.getElementById('view-audit');
+    if(!audit) return;
+    const findingsRoot = document.getElementById('findings');
+    if(!findingsRoot || !findingsRoot.children.length){
+      // Findings not rendered yet — retry on next frame
+      return requestAnimationFrame(init);
+    }
+    enhanceFindings();
+    buildSummary();
+    buildToc();
+    wireControls();
+  }
+
+  /* -------- Finding cards: collapse + sortable tables + sev tagging -------- */
+  function enhanceFindings(){
+    const findings = document.querySelectorAll('#findings .finding');
+    findings.forEach((f, i) => {
+      const sevEl = f.querySelector('.sev');
+      const sev = sevEl ? (sevEl.classList.contains('high') ? 'high'
+                         : sevEl.classList.contains('med')  ? 'med'
+                         : 'low') : 'low';
+      f.dataset.sev = sev;
+      f.dataset.idx = i;
+      const titleEl = f.querySelector('.finding-title');
+      if(titleEl){
+        const slug = 'finding-' + (i+1) + '-' + (titleEl.textContent || '')
+          .toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50);
+        f.id = slug;
+      }
+
+      // Wrap everything after .finding-top into a collapsible container
+      const top = f.querySelector('.finding-top');
+      if(top && !f.querySelector('.finding-body-wrap')){
+        const wrap = document.createElement('div');
+        wrap.className = 'finding-body-wrap';
+        let n = top.nextSibling;
+        while(n){
+          const next = n.nextSibling;
+          wrap.appendChild(n);
+          n = next;
+        }
+        f.appendChild(wrap);
+
+        // Chevron
+        const chev = document.createElement('span');
+        chev.className = 'finding-chevron';
+        chev.innerHTML = '▾';
+        top.appendChild(chev);
+
+        top.addEventListener('click', () => {
+          // Capture current height before toggle for smooth animation
+          if(!f.classList.contains('collapsed')){
+            wrap.style.maxHeight = wrap.scrollHeight + 'px';
+            requestAnimationFrame(() => { wrap.style.maxHeight = '0px'; });
+            f.classList.add('collapsed');
+          } else {
+            f.classList.remove('collapsed');
+            wrap.style.maxHeight = wrap.scrollHeight + 'px';
+            wrap.addEventListener('transitionend', function te(){
+              wrap.style.maxHeight = '';
+              wrap.removeEventListener('transitionend', te);
+            });
+          }
+        });
+      }
+
+      // Make tables sortable
+      f.querySelectorAll('table').forEach(makeSortable);
+    });
+  }
+
+  function makeSortable(table){
+    const ths = table.querySelectorAll('thead th');
+    const tbody = table.querySelector('tbody');
+    if(!ths.length || !tbody) return;
+    ths.forEach((th, ci) => {
+      th.classList.add('sort-none');
+      th.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const asc = !th.classList.contains('sort-asc');
+        ths.forEach(o => o.classList.remove('sort-asc','sort-desc','sort-none'));
+        ths.forEach(o => { if(o!==th) o.classList.add('sort-none'); });
+        th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+        const getKey = (tr) => {
+          const td = tr.children[ci];
+          if(!td) return '';
+          const t = (td.textContent || '').trim();
+          // Numeric? (ints, floats, dates as YYYY-MM-DD all sort lexically OK)
+          const n = parseFloat(t.replace(/[, ]/g,''));
+          return (!isNaN(n) && /^[-0-9.,\s]+$/.test(t)) ? n : t.toLowerCase();
+        };
+        rows.sort((a,b) => {
+          const ka = getKey(a), kb = getKey(b);
+          if(ka < kb) return asc ? -1 : 1;
+          if(ka > kb) return asc ? 1 : -1;
+          return 0;
+        });
+        rows.forEach(r => tbody.appendChild(r));
+      });
+    });
+  }
+
+  /* -------- Summary: severity donut + impact mix bars -------- */
+  function buildSummary(){
+    const findings = Array.from(document.querySelectorAll('#findings .finding'));
+    const counts = {high:0, med:0, low:0};
+    findings.forEach(f => counts[f.dataset.sev]++);
+    const total = findings.length || 1;
+
+    // Update chip counts
+    document.querySelector('[data-count="all"]').textContent = total;
+    document.querySelector('[data-count="high"]').textContent = counts.high;
+    document.querySelector('[data-count="med"]').textContent = counts.med;
+    document.querySelector('[data-count="low"]').textContent = counts.low;
+
+    // Donut SVG
+    const R = 38, C = 2 * Math.PI * R;
+    const segs = [
+      {k:'high', color:'#E74C3C', label:'High',   v:counts.high},
+      {k:'med',  color:'#E8A040', label:'Medium', v:counts.med},
+      {k:'low',  color:'#7FA0C8', label:'Low',    v:counts.low}
+    ];
+    let offset = 0;
+    const arcs = segs.map(s => {
+      const len = (s.v / total) * C;
+      const el = `<circle r="${R}" cx="50" cy="50" fill="none" stroke="${s.color}" stroke-width="14"
+                    stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-offset}"
+                    transform="rotate(-90 50 50)"/>`;
+      offset += len;
+      return el;
+    }).join('');
+    const donut = `
+      <svg width="100" height="100" viewBox="0 0 100 100" aria-label="Severity breakdown">
+        <circle r="${R}" cx="50" cy="50" fill="none" stroke="#1E3050" stroke-width="14"/>
+        ${arcs}
+        <text x="50" y="48" text-anchor="middle" fill="currentColor" font-size="22" font-weight="800">${total}</text>
+        <text x="50" y="64" text-anchor="middle" fill="#7A8BAA" font-size="9" letter-spacing="1">FINDINGS</text>
+      </svg>`;
+    const legend = segs.map(s =>
+      `<span class="lg"><span class="sw" style="background:${s.color}"></span><b>${s.v}</b> ${s.label}</span>`
+    ).join('');
+
+    // Impact-mix bar (roadmap items by impact × effort)
+    const roadItems = Array.from(document.querySelectorAll('#roadmap .road-item'));
+    const impactMix = {High:0, Medium:0, Low:0};
+    const effortMix = {Low:0, Medium:0, High:0};
+    roadItems.forEach(r => {
+      const chips = r.querySelectorAll('.chip');
+      chips.forEach(c => {
+        const t = c.textContent.trim();
+        const m = t.match(/Impact:\s*(\w+)/); if(m && impactMix[m[1]] !== undefined) impactMix[m[1]]++;
+        const e = t.match(/Effort:\s*(\w+)/); if(e && effortMix[e[1]] !== undefined) effortMix[e[1]]++;
+      });
+    });
+    const roadTotal = roadItems.length || 1;
+    const seg = (label, data, colors) => {
+      const parts = Object.entries(data).map(([k,v]) => {
+        const w = (v/roadTotal*100).toFixed(1);
+        return v ? `<div class="imp-seg" style="width:${w}%;background:${colors[k]}" title="${k}: ${v}"></div>` : '';
+      }).join('');
+      const vals = Object.entries(data).filter(([,v])=>v).map(([k,v])=>`${v} ${k.toLowerCase()}`).join(' · ');
+      return `<div class="imp-row"><div class="imp-label">${label}</div>
+        <div class="imp-track">${parts}</div>
+        <div class="imp-val">${vals}</div></div>`;
+    };
+
+    document.getElementById('audit-summary').innerHTML = `
+      <div class="donut-wrap">
+        <div>${donut}</div>
+        <div class="donut-legend">
+          <div class="panel-title">Severity mix</div>
+          ${legend}
+        </div>
+      </div>
+      <div>
+        <div class="panel-title">Cleanup roadmap · ${roadTotal} actions</div>
+        <div class="impact-mix">
+          ${seg('Impact',  impactMix, {High:'#4AE090', Medium:'#E8A040', Low:'#7FA0C8'})}
+          ${seg('Effort',  effortMix, {Low:'#4AE090', Medium:'#E8A040', High:'#E74C3C'})}
+        </div>
+      </div>`;
+  }
+
+  /* -------- Sticky table of contents -------- */
+  let tocLinks = [];
+  function buildToc(){
+    const toc = document.createElement('aside');
+    toc.className = 'audit-toc';
+    toc.innerHTML = `
+      <div class="audit-toc-head">
+        <span class="lbl">On this page</span>
+        <button class="audit-toc-toggle" type="button" title="Collapse">×</button>
+      </div>
+      <ul class="audit-toc-list"></ul>`;
+    document.getElementById('view-audit').appendChild(toc);
+    const list = toc.querySelector('.audit-toc-list');
+    const toggle = toc.querySelector('.audit-toc-toggle');
+    toggle.addEventListener('click', () => {
+      const collapsed = toc.classList.toggle('collapsed');
+      toggle.textContent = collapsed ? '☰' : '×';
+      toggle.title = collapsed ? 'Expand' : 'Collapse';
+    });
+
+    const items = [];
+    // Findings section
+    const findHeader = Array.from(document.querySelectorAll('#view-audit .section-header'))
+      .find(h => /Findings/i.test(h.textContent));
+    if(findHeader){
+      if(!findHeader.id) findHeader.id = 'toc-findings';
+      items.push({el:findHeader, label:'Findings', section:true});
+    }
+    document.querySelectorAll('#findings .finding').forEach(f => {
+      const title = f.querySelector('.finding-title');
+      if(!title) return;
+      items.push({el:f, label:title.textContent.trim(), sev:f.dataset.sev});
+    });
+    // Roadmap section
+    const roadHeader = Array.from(document.querySelectorAll('#view-audit .section-header'))
+      .find(h => /Roadmap/i.test(h.textContent));
+    if(roadHeader){
+      if(!roadHeader.id) roadHeader.id = 'toc-roadmap';
+      items.push({el:roadHeader, label:'Cleanup Roadmap', section:true});
+    }
+
+    list.innerHTML = items.map(it => {
+      if(it.section){
+        return `<li><a href="#${it.el.id}" class="is-section" data-target="${it.el.id}">${it.label}</a></li>`;
+      }
+      return `<li><a href="#${it.el.id}" data-target="${it.el.id}" data-sev="${it.sev}">
+        <span class="audit-toc-sev ${it.sev}"></span><span>${it.label}</span>
+      </a></li>`;
+    }).join('');
+
+    tocLinks = Array.from(list.querySelectorAll('a'));
+    tocLinks.forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const t = document.getElementById(a.dataset.target);
+        if(!t) return;
+        const el = document.getElementById(a.dataset.target);
+        if(el && el.classList.contains('finding') && el.classList.contains('collapsed')){
+          el.querySelector('.finding-top').click();
+        }
+        const y = t.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({top:y, behavior:'smooth'});
+      });
+    });
+
+    // Scroll spy
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if(ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY + 120;
+        let active = null;
+        items.forEach(it => {
+          const top = it.el.getBoundingClientRect().top + window.pageYOffset;
+          if(top <= y) active = it.el.id;
+        });
+        tocLinks.forEach(a => a.classList.toggle('active', a.dataset.target === active));
+        ticking = false;
+      });
+    }, {passive:true});
+  }
+
+  /* -------- Controls: filter chips + search + collapse all -------- */
+  function wireControls(){
+    const chips = document.querySelectorAll('.sev-chip');
+    const search = document.getElementById('audit-search-input');
+    const empty = document.getElementById('audit-empty');
+    const collapseBtn = document.getElementById('audit-collapse-toggle');
+    let activeSev = 'all';
+    let query = '';
+
+    function apply(){
+      const q = query.trim().toLowerCase();
+      const findings = document.querySelectorAll('#findings .finding');
+      let visible = 0;
+      findings.forEach(f => {
+        const sevOk = activeSev === 'all' || f.dataset.sev === activeSev;
+        const text = (f.textContent || '').toLowerCase();
+        const qOk = !q || text.includes(q);
+        const show = sevOk && qOk;
+        f.classList.toggle('hidden', !show);
+        if(show) visible++;
+        // Sync TOC visibility
+        const link = tocLinks.find(a => a.dataset.target === f.id);
+        if(link) link.parentElement.style.display = show ? '' : 'none';
+      });
+      empty.style.display = visible ? 'none' : 'block';
+    }
+
+    chips.forEach(c => c.addEventListener('click', () => {
+      chips.forEach(o => o.classList.remove('active'));
+      c.classList.add('active');
+      activeSev = c.dataset.sev;
+      apply();
+    }));
+    search.addEventListener('input', (e) => { query = e.target.value; apply(); });
+
+    let allCollapsed = false;
+    collapseBtn.addEventListener('click', () => {
+      allCollapsed = !allCollapsed;
+      document.querySelectorAll('#findings .finding').forEach(f => {
+        const isCollapsed = f.classList.contains('collapsed');
+        if(allCollapsed !== isCollapsed){
+          f.querySelector('.finding-top').click();
+        }
+      });
+      collapseBtn.textContent = allCollapsed ? 'Expand all' : 'Collapse all';
+    });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
 
 </body>
