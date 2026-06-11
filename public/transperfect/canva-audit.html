@@ -1034,9 +1034,9 @@ findings.push(`
     <div class="finding-count">100 of 293 templates (34%) — larger than the next 3 brands combined</div></div>
   </div>
   <div class="finding-body">"General" holds more than a third of the entire library, but most of it isn't actually general. Clustering the titles shows <b>~59 templates fall into recognizable groups</b> that could be promoted to their own category or reassigned to an existing brand. Only ~41 are true one-offs.</div>
-  ${bars(DATA.byBrand,100,(l)=>l==='General'?'#E74C3C':(BRAND_COLORS[l]||'#94A3B8'),(l)=>l==='General'?'← 34% of library':'')}
+  ${bars(DATA.byBrand,100,(l)=>l==='General'?'#E74C3C':(BRAND_COLORS[l]||'#94A3B8'),(l)=>l==='General'?'← 34% of library':'','brand')}
   <div class="finding-body" style="margin-top:18px"><b>Inside "General" — thematic clusters:</b></div>
-  ${bars(DATA.clusters,41,(l)=>l==='One-offs / uncategorized'?'#3A5070':'#00C2C7')}
+  ${bars(DATA.clusters,41,(l)=>l==='One-offs / uncategorized'?'#3A5070':'#00C2C7',null,'cluster')}
   <div class="rec"><b>Recommended</b>Split "General" into real categories (TransLanguages, Services/Solutions, Webinar, Podcast, Case Study, HR) and reassign the 5 TP Corporate copies out. Leaves a lean ~41-item "General/Misc" bucket.</div>
 </div>`);
 
