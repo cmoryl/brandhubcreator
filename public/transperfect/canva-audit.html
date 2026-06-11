@@ -1010,11 +1010,14 @@ const DATA={
 };
 
 const brandPill=b=>`<span class="brand-pill"><span class="d" style="background:${BRAND_COLORS[b]||'#94A3B8'}"></span>${b}</span>`;
-function bars(rows,max,colorFn,flagFn){
-  return `<div class="bars">`+rows.map(([label,val,extra])=>{
+function bars(rows,max,colorFn,flagFn,kind){
+  const kAttr = kind ? ` data-bar-kind="${kind}"` : '';
+  return `<div class="bars"${kAttr}>`+rows.map(([label,val,extra])=>{
     const pct=Math.max(2,(val/max)*100);
     const flag=flagFn&&flagFn(label,val)?`<span class="bar-flag">${flagFn(label,val)}</span>`:'';
-    return `<div class="bar-row"><div class="bar-label">${label}</div>
+    const safeKey = String(label).replace(/"/g,'&quot;');
+    const rowAttrs = kind ? ` class="bar-row drillable" data-bar-key="${safeKey}" data-bar-val="${val}" tabindex="0" role="button"` : ' class="bar-row"';
+    return `<div${rowAttrs}><div class="bar-label">${label}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colorFn(label,val)}"></div></div>
       <div class="bar-val">${extra!==undefined?extra:val}</div>${flag}</div>`;
   }).join('')+`</div>`;
