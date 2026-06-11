@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ExternalLink, ArrowLeft, Sun, Moon } from 'lucide-react';
+import { ExternalLink, ArrowLeft, Sun, Moon, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
@@ -36,6 +36,12 @@ export default function TransPerfectCanvaAudit() {
             <Link to="/admin">
               <ArrowLeft className="h-4 w-4" />
               <span className="sr-only">Back to Admin</span>
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0" title="BrandHub Home">
+            <Link to="/">
+              <Home className="h-4 w-4" />
+              <span className="sr-only">BrandHub Home</span>
             </Link>
           </Button>
           <div className="h-4 w-px bg-border" />
