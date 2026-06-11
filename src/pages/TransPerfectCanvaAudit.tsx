@@ -38,12 +38,6 @@ export default function TransPerfectCanvaAudit() {
               <span className="sr-only">Back to Admin</span>
             </Link>
           </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0" title="BrandHub Home">
-            <Link to="/">
-              <Home className="h-4 w-4" />
-              <span className="sr-only">BrandHub Home</span>
-            </Link>
-          </Button>
           <div className="h-4 w-px bg-border" />
           <div>
             <h1 className="text-sm font-semibold">Canva Master Registry + Audit</h1>
