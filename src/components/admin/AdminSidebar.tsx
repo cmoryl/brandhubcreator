@@ -1,7 +1,7 @@
 import { 
   BarChart3, UserCheck, Users, Building2, UserPlus, Palette, 
   Database, TrendingUp, Eye, Brain, FileText, Activity, 
-  Wrench, HardDrive, Shield, Menu, X, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2, Crown, Bot, Lightbulb, GraduationCap, ClipboardList
+  Wrench, HardDrive, Shield, Menu, X, Package, Image, Mail, Sparkles, MapPin, FileDown, Globe2, Crown, Bot, Lightbulb, GraduationCap, ClipboardList, ArrowLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface NavItem {
   id: string;
@@ -16,6 +17,7 @@ interface NavItem {
   icon: React.ReactNode;
   badge?: number;
   group: string;
+  href?: string;
 }
 
 interface AdminSidebarProps {
