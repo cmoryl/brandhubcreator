@@ -1373,6 +1373,88 @@ body.light-mode .section-detail .sd-card-sub,
 body.light-mode .section-detail .sd-list li{color:#3A4A65}
 body.light-mode .section-detail .sd-list li b{color:#0B1628}
 body.light-mode .section-detail .sd-list li .sd-num{background:#FFFFFF;border-color:#00C2C7;color:#008A8E}
+
+/* === Audit analysis enhancements: status tags, progress, quick wins, brand mix === */
+.audit-qw{margin:14px 40px 0;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.audit-qw .qw{background:linear-gradient(135deg,#0E2A1A 0%,#0B1F18 100%);border:1px solid #1F5A38;border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .15s,border-color .15s}
+.audit-qw .qw:hover{transform:translateY(-1px);border-color:#4AE090}
+.audit-qw .qw.alt{background:linear-gradient(135deg,#091525 0%,#0B1628 100%);border-color:#1E3050}
+.audit-qw .qw.alt:hover{border-color:#00C2C7}
+.audit-qw .qw .ico{width:38px;height:38px;border-radius:8px;background:#0B1628;display:flex;align-items:center;justify-content:center;color:#4AE090;font-size:18px;font-weight:800;border:1px solid #1F5A38;flex-shrink:0}
+.audit-qw .qw.alt .ico{color:#00C2C7;border-color:#1E3050}
+.audit-qw .qw .body{flex:1;min-width:0}
+.audit-qw .qw .ttl{font-size:13px;font-weight:700;color:#E8EDF8;letter-spacing:-.2px}
+.audit-qw .qw .sub{font-size:11px;color:#8A9BB8;margin-top:2px;line-height:1.4}
+.audit-qw .qw .arrow{color:#4AE090;font-size:18px;font-weight:700}
+.audit-qw .qw.alt .arrow{color:#00C2C7}
+
+.audit-progress{margin:14px 40px 0;background:#0E1E35;border:1px solid #1E3050;border-radius:8px;padding:14px 16px}
+.audit-progress .pg-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.audit-progress .pg-ttl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#7A8BAA;font-weight:700}
+.audit-progress .pg-stat{font-size:12px;color:#C8D8F0}
+.audit-progress .pg-stat b{color:#4AE090;font-weight:800}
+.audit-progress .pg-bar{height:8px;background:#091525;border-radius:4px;overflow:hidden;position:relative}
+.audit-progress .pg-fill{height:100%;background:linear-gradient(90deg,#00C2C7 0%,#4AE090 100%);border-radius:4px;transition:width .4s ease;width:0}
+.audit-progress .pg-reset{background:transparent;border:1px solid #1E3050;border-radius:4px;padding:5px 10px;color:#7A8BAA;font-size:10px;cursor:pointer;letter-spacing:.5px;text-transform:uppercase}
+.audit-progress .pg-reset:hover{border-color:#E74C3C;color:#E74C3C}
+
+.audit-status-chips{display:flex;gap:6px;flex-wrap:wrap;margin-left:8px}
+.audit-status-chips .sc{background:#091525;border:1px solid #1E3050;border-radius:14px;padding:4px 10px;color:#7A8BAA;font-size:10px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;font-weight:600;transition:all .12s}
+.audit-status-chips .sc:hover{color:#C8D8F0;border-color:#2A4060}
+.audit-status-chips .sc.active{background:#00C2C7;border-color:#00C2C7;color:#06283A}
+.audit-status-chips .sc .ct{margin-left:4px;opacity:.7;font-weight:700}
+
+.status-pill{display:inline-flex;align-items:center;gap:5px;background:#091525;border:1px solid #1E3050;border-radius:12px;padding:3px 10px;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:#7A8BAA;font-weight:700;cursor:pointer;margin-left:auto;white-space:nowrap;transition:all .12s}
+.status-pill:hover{border-color:#2A4060;color:#C8D8F0}
+.status-pill .dot{width:7px;height:7px;border-radius:50%;background:#3A4A60;display:inline-block}
+.status-pill.s-doing{background:#241A0A;border-color:#5A4520;color:#E8A040}
+.status-pill.s-doing .dot{background:#E8A040}
+.status-pill.s-done{background:#0E2A1A;border-color:#1F5A38;color:#4AE090}
+.status-pill.s-done .dot{background:#4AE090}
+.status-pill.s-skip{background:#0B1628;border-color:#2A3A50;color:#56688A;text-decoration:line-through}
+.status-pill.s-skip .dot{background:#56688A}
+.status-menu{position:absolute;z-index:200;background:#0E1E35;border:1px solid #1E3050;border-radius:6px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:140px}
+.status-menu button{display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:0;color:#C8D8F0;font-size:11px;padding:7px 10px;text-align:left;cursor:pointer;border-radius:4px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.status-menu button:hover{background:#122040;color:#fff}
+.status-menu button .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+.finding.s-done{opacity:.55}
+.finding.s-done .finding-title{text-decoration:line-through;text-decoration-color:#4AE090;text-decoration-thickness:1px}
+.finding.s-skip{opacity:.4}
+.finding.s-skip .finding-title{text-decoration:line-through;color:#7A8BAA}
+.finding.s-doing{box-shadow:inset 3px 0 0 #E8A040}
+
+.road-item.rd-done{opacity:.55}
+.road-item.rd-done .road-title{text-decoration:line-through;text-decoration-color:#4AE090}
+.road-check{flex-shrink:0;width:22px;height:22px;border-radius:5px;border:1.5px solid #2A4060;background:#091525;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#4AE090;font-size:13px;font-weight:800;transition:all .15s;margin-top:3px}
+.road-check:hover{border-color:#00C2C7}
+.road-check.checked{background:#0E2A1A;border-color:#4AE090}
+.road-check.checked::after{content:"✓"}
+
+.audit-brand-mix{background:#0E1E35;border:1px solid #1E3050;border-radius:8px;padding:14px 16px;margin-top:14px}
+.audit-brand-mix .bm-head{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7A8BAA;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.audit-brand-mix .bm-sub{color:#56688A;font-weight:600;letter-spacing:.5px;text-transform:none;font-size:10px}
+.audit-brand-mix .bm-row{display:flex;align-items:center;gap:10px;margin:5px 0;font-size:11px}
+.audit-brand-mix .bm-lbl{width:130px;flex-shrink:0;color:#C8D8F0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.audit-brand-mix .bm-track{flex:1;background:#091525;border-radius:3px;height:14px;position:relative;overflow:hidden}
+.audit-brand-mix .bm-fill{height:100%;background:linear-gradient(90deg,#00C2C7 0%,#4AE090 100%);border-radius:3px;min-width:2px;transition:width .4s ease}
+.audit-brand-mix .bm-val{width:60px;flex-shrink:0;color:#7A8BAA;font-family:'Courier New',monospace;font-size:10px}
+
+body.light-mode .audit-progress{background:#FFFFFF;border-color:#D8E0EC}
+body.light-mode .audit-progress .pg-ttl,
+body.light-mode .audit-progress .pg-reset{color:#5A6B85}
+body.light-mode .audit-progress .pg-stat{color:#0B1628}
+body.light-mode .audit-progress .pg-bar{background:#EEF3FA}
+body.light-mode .status-pill{background:#FFFFFF;border-color:#D8E0EC;color:#5A6B85}
+body.light-mode .status-menu{background:#FFFFFF;border-color:#D8E0EC}
+body.light-mode .status-menu button{color:#0B1628}
+body.light-mode .status-menu button:hover{background:#EEF3FA}
+body.light-mode .audit-status-chips .sc{background:#FFFFFF;border-color:#D8E0EC;color:#5A6B85}
+body.light-mode .audit-brand-mix{background:#FFFFFF;border-color:#D8E0EC}
+body.light-mode .audit-brand-mix .bm-lbl{color:#0B1628}
+body.light-mode .audit-brand-mix .bm-track{background:#EEF3FA}
+body.light-mode .road-check{background:#FFFFFF;border-color:#D8E0EC}
+body.light-mode .road-check.checked{background:#E8F8EE;border-color:#1F8A4A;color:#1F8A4A}
 </style>
 
 <script>
@@ -1391,6 +1473,7 @@ body.light-mode .section-detail .sd-list li .sd-num{background:#FFFFFF;border-co
     wireControls();
     wireBarDrilldowns();
     buildSectionDetails();
+    buildAnalysisLayer();
   }
 
   /* -------- Finding cards: collapse + sortable tables + sev tagging -------- */
@@ -2008,6 +2091,265 @@ body.light-mode .section-detail .sd-list li .sd-num{background:#FFFFFF;border-co
 
 
 
+
+  /* ====== Analysis layer: status tagging, progress, quick wins, brand mix ====== */
+  function buildAnalysisLayer(){
+    const audit = document.getElementById('view-audit');
+    if(!audit) return;
+    const LS_FIND = 'tp-audit-finding-status-v1';
+    const LS_ROAD = 'tp-audit-roadmap-done-v1';
+    const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || '{}'); } catch(e){ return {}; } };
+    const writeJSON = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+    let findStatus = readJSON(LS_FIND);   // {findingId: 'open'|'doing'|'done'|'skip'}
+    let roadDone   = readJSON(LS_ROAD);   // {roadIdx: true}
+
+    const STATUSES = [
+      {k:'open',  lbl:'Open',         dot:'#3A4A60'},
+      {k:'doing', lbl:'In progress',  dot:'#E8A040'},
+      {k:'done',  lbl:'Done',         dot:'#4AE090'},
+      {k:'skip',  lbl:'Skip',         dot:'#56688A'},
+    ];
+
+    /* ---- 1. Quick wins spotlight (before the summary) ---- */
+    const roadItems = Array.from(document.querySelectorAll('#roadmap .road-item'));
+    let quickWinTouches = 0;
+    const quickWinIdxs = [];
+    roadItems.forEach((r,i) => {
+      const chips = Array.from(r.querySelectorAll('.chip')).map(c => c.textContent.trim());
+      const isQW = chips.some(c => /Impact:\s*High/i.test(c)) && chips.some(c => /Effort:\s*Low/i.test(c));
+      if(isQW){
+        quickWinIdxs.push(i);
+        const tc = chips.find(c => /template/i.test(c)) || '';
+        const m = tc.match(/(\d+)/);
+        if(m) quickWinTouches += parseInt(m[1],10);
+      }
+      r.dataset.roadIdx = i;
+    });
+    const totalActions = roadItems.length;
+
+    const qwHost = document.createElement('div');
+    qwHost.className = 'audit-qw';
+    qwHost.innerHTML = `
+      <div class="qw" data-jump="roadmap">
+        <div class="ico">★</div>
+        <div class="body">
+          <div class="ttl">${quickWinIdxs.length} quick win${quickWinIdxs.length===1?'':'s'} ready to ship</div>
+          <div class="sub">High impact · low effort · ~${quickWinTouches} template touches — start here</div>
+        </div>
+        <div class="arrow">→</div>
+      </div>
+      <div class="qw alt" data-jump="findings">
+        <div class="ico">⚑</div>
+        <div class="body">
+          <div class="ttl">Jump to the findings</div>
+          <div class="sub">Browse all issues, filter by severity or status, and drill into the templates</div>
+        </div>
+        <div class="arrow">→</div>
+      </div>`;
+    const summaryEl = document.getElementById('audit-summary');
+    if(summaryEl) summaryEl.insertAdjacentElement('afterend', qwHost);
+    qwHost.addEventListener('click', (e) => {
+      const card = e.target.closest('.qw');
+      if(!card) return;
+      const tgtId = card.dataset.jump === 'roadmap' ? 'toc-roadmap' : 'toc-findings';
+      const t = document.getElementById(tgtId);
+      if(t){
+        const y = t.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({top:y, behavior:'smooth'});
+      }
+    });
+
+    /* ---- 2. Brand-mix mini chart (appended to summary) ---- */
+    if(typeof TEMPLATES !== 'undefined' && Array.isArray(TEMPLATES) && TEMPLATES.length){
+      const brandCounts = {};
+      TEMPLATES.forEach(t => { brandCounts[t.brand] = (brandCounts[t.brand]||0) + 1; });
+      const ranked = Object.entries(brandCounts).sort((a,b) => b[1]-a[1]).slice(0,8);
+      const max = ranked[0][1];
+      const bm = document.createElement('div');
+      bm.className = 'audit-brand-mix';
+      bm.innerHTML = `
+        <div class="bm-head"><span>Library volume by brand</span><span class="bm-sub">top ${ranked.length} · ${TEMPLATES.length} templates total</span></div>
+        ${ranked.map(([b,n]) => `
+          <div class="bm-row">
+            <div class="bm-lbl" title="${b}">${b}</div>
+            <div class="bm-track"><div class="bm-fill" style="width:${(n/max*100).toFixed(1)}%"></div></div>
+            <div class="bm-val">${n} · ${(n/TEMPLATES.length*100).toFixed(0)}%</div>
+          </div>`).join('')}`;
+      qwHost.insertAdjacentElement('afterend', bm);
+    }
+
+    /* ---- 3. Status pill on each finding ---- */
+    const findings = Array.from(document.querySelectorAll('#findings .finding'));
+    function statusFor(id){ return findStatus[id] || 'open'; }
+    function applyFindingStatusClass(f){
+      f.classList.remove('s-open','s-doing','s-done','s-skip');
+      f.classList.add('s-' + statusFor(f.id));
+    }
+    function renderPill(f){
+      const s = statusFor(f.id);
+      const meta = STATUSES.find(x => x.k === s);
+      let pill = f.querySelector('.status-pill');
+      if(!pill){
+        pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = 'status-pill';
+        const top = f.querySelector('.finding-top');
+        if(top) top.appendChild(pill);
+      }
+      pill.className = 'status-pill s-' + s;
+      pill.innerHTML = `<span class="dot"></span>${meta.lbl}`;
+      pill.onclick = (e) => { e.stopPropagation(); openStatusMenu(pill, f); };
+    }
+    function openStatusMenu(anchor, f){
+      document.querySelectorAll('.status-menu').forEach(m => m.remove());
+      const menu = document.createElement('div');
+      menu.className = 'status-menu';
+      menu.innerHTML = STATUSES.map(s =>
+        `<button data-st="${s.k}"><span class="dot" style="background:${s.dot}"></span>${s.lbl}</button>`
+      ).join('');
+      document.body.appendChild(menu);
+      const r = anchor.getBoundingClientRect();
+      menu.style.top  = (r.bottom + window.scrollY + 6) + 'px';
+      menu.style.left = (r.right  + window.scrollX - 150) + 'px';
+      menu.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-st]');
+        if(!btn) return;
+        findStatus[f.id] = btn.dataset.st;
+        writeJSON(LS_FIND, findStatus);
+        renderPill(f);
+        applyFindingStatusClass(f);
+        renderStatusCounts();
+        applyStatusFilter();
+        menu.remove();
+      });
+      setTimeout(() => {
+        const off = (ev) => { if(!menu.contains(ev.target)){ menu.remove(); document.removeEventListener('click', off); } };
+        document.addEventListener('click', off);
+      }, 0);
+    }
+    findings.forEach(f => { renderPill(f); applyFindingStatusClass(f); });
+
+    /* ---- 4. Status filter chips (added inside the existing controls bar) ---- */
+    const controls = document.getElementById('audit-controls');
+    if(controls){
+      const chips = document.createElement('div');
+      chips.className = 'audit-status-chips';
+      chips.id = 'audit-status-chips';
+      chips.innerHTML = `
+        <button class="sc active" data-st="all">All <span class="ct" data-ct="all"></span></button>
+        <button class="sc" data-st="open">Open <span class="ct" data-ct="open"></span></button>
+        <button class="sc" data-st="doing">Doing <span class="ct" data-ct="doing"></span></button>
+        <button class="sc" data-st="done">Done <span class="ct" data-ct="done"></span></button>
+        <button class="sc" data-st="skip">Skip <span class="ct" data-ct="skip"></span></button>`;
+      const sevChips = document.getElementById('audit-sev-chips');
+      if(sevChips) sevChips.insertAdjacentElement('afterend', chips);
+      else controls.appendChild(chips);
+      let activeStatus = 'all';
+      chips.addEventListener('click', (e) => {
+        const b = e.target.closest('.sc');
+        if(!b) return;
+        chips.querySelectorAll('.sc').forEach(o => o.classList.remove('active'));
+        b.classList.add('active');
+        activeStatus = b.dataset.st;
+        applyStatusFilter();
+      });
+      window.__applyStatusFilter = () => {
+        const empty = document.getElementById('audit-empty');
+        let visible = 0;
+        findings.forEach(f => {
+          const okSev = !f.classList.contains('hidden-sev');
+          const s = statusFor(f.id);
+          const stOk = activeStatus === 'all' || s === activeStatus;
+          // Re-evaluate visibility using existing filter state (search + sev) plus status
+          // We piggy-back on the existing .hidden class by toggling a separate hidden-status class.
+          f.classList.toggle('hidden-status', !stOk);
+          const show = !f.classList.contains('hidden') && stOk;
+          // The combined visible state respects both filters.
+          if(show) visible++;
+        });
+        if(empty){
+          const anyVis = Array.from(findings).some(f => !f.classList.contains('hidden') && !f.classList.contains('hidden-status'));
+          empty.style.display = anyVis ? 'none' : 'block';
+        }
+      };
+    }
+    function applyStatusFilter(){ if(window.__applyStatusFilter) window.__applyStatusFilter(); }
+    // Hide via class
+    const styleHide = document.createElement('style');
+    styleHide.textContent = '.finding.hidden-status{display:none !important}';
+    document.head.appendChild(styleHide);
+    function renderStatusCounts(){
+      const counts = {all:findings.length, open:0, doing:0, done:0, skip:0};
+      findings.forEach(f => counts[statusFor(f.id)]++);
+      Object.entries(counts).forEach(([k,v]) => {
+        const el = document.querySelector(`[data-ct="${k}"]`);
+        if(el) el.textContent = v;
+      });
+      renderProgress();
+    }
+
+    /* ---- 5. Roadmap checkboxes + progress bar ---- */
+    roadItems.forEach((r,i) => {
+      const num = r.querySelector('.road-num');
+      if(!num) return;
+      const check = document.createElement('button');
+      check.type = 'button';
+      check.className = 'road-check' + (roadDone[i] ? ' checked' : '');
+      check.title = 'Mark complete';
+      check.setAttribute('aria-label','Mark roadmap step ' + (i+1) + ' complete');
+      num.insertAdjacentElement('afterend', check);
+      if(roadDone[i]) r.classList.add('rd-done');
+      check.addEventListener('click', () => {
+        const now = !check.classList.contains('checked');
+        check.classList.toggle('checked', now);
+        r.classList.toggle('rd-done', now);
+        if(now) roadDone[i] = true; else delete roadDone[i];
+        writeJSON(LS_ROAD, roadDone);
+        renderProgress();
+      });
+    });
+
+    /* ---- 6. Progress strip (after the sticky controls bar) ---- */
+    const progressEl = document.createElement('div');
+    progressEl.className = 'audit-progress';
+    progressEl.innerHTML = `
+      <div class="pg-head">
+        <span class="pg-ttl">Cleanup progress</span>
+        <span class="pg-stat" id="pg-stat-text">—</span>
+        <button class="pg-reset" type="button" id="pg-reset">Reset</button>
+      </div>
+      <div class="pg-bar"><div class="pg-fill" id="pg-fill"></div></div>`;
+    if(controls) controls.insertAdjacentElement('afterend', progressEl);
+    progressEl.querySelector('#pg-reset').addEventListener('click', () => {
+      if(!confirm('Reset all status tags and roadmap progress on this device?')) return;
+      findStatus = {}; roadDone = {};
+      writeJSON(LS_FIND, findStatus); writeJSON(LS_ROAD, roadDone);
+      findings.forEach(f => { renderPill(f); applyFindingStatusClass(f); });
+      roadItems.forEach((r,i) => {
+        r.classList.remove('rd-done');
+        const c = r.querySelector('.road-check'); if(c) c.classList.remove('checked');
+      });
+      renderStatusCounts();
+      applyStatusFilter();
+    });
+
+    function renderProgress(){
+      const findingsDone = findings.filter(f => {
+        const s = statusFor(f.id); return s === 'done' || s === 'skip';
+      }).length;
+      const roadDoneCount = Object.keys(roadDone).length;
+      const totalUnits = findings.length + totalActions;
+      const doneUnits  = findingsDone + roadDoneCount;
+      const pct = totalUnits ? Math.round(doneUnits/totalUnits*100) : 0;
+      const fill = document.getElementById('pg-fill');
+      const txt  = document.getElementById('pg-stat-text');
+      if(fill) fill.style.width = pct + '%';
+      if(txt)  txt.innerHTML = `<b>${pct}%</b> · ${findingsDone}/${findings.length} findings resolved · ${roadDoneCount}/${totalActions} roadmap actions complete`;
+    }
+
+    renderStatusCounts();
+    renderProgress();
+  }
 
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', init);
