@@ -31,13 +31,7 @@ export default function TransPerfectCanvaAudit() {
       {/* Header bar */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-card/50 shrink-0">
         <div className="flex items-center gap-3">
-          <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <Link to="/admin">
-              <ArrowLeft className="h-4 w-4" />
-              <span className="sr-only">Back to Admin</span>
-            </Link>
-          </Button>
-          <div className="h-4 w-px bg-border" />
+
           <div>
             <h1 className="text-sm font-semibold">Canva Master Registry + Audit</h1>
             <p className="text-xs text-muted-foreground">TransPerfect — shareable team report</p>
