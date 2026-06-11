@@ -490,6 +490,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="transperfect-canva-audit"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <TransPerfectCanvaAudit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="*"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
