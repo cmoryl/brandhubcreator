@@ -371,6 +371,24 @@ body.light-mode .road-item,body.light-mode #view-audit .road-item{border-color:#
 </div>
 
 <div id="view-audit" class="view">
+
+<!-- Interactive summary + controls (populated by enhancement script) -->
+<div id="audit-summary" class="audit-summary"></div>
+<div id="audit-controls" class="audit-controls">
+  <div class="audit-search">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="audit-search-input" placeholder="Search findings, recommendations, templates…">
+  </div>
+  <div class="audit-sev-chips" id="audit-sev-chips">
+    <button class="sev-chip active" data-sev="all">All <span class="sev-chip-count" data-count="all">·</span></button>
+    <button class="sev-chip" data-sev="high">High <span class="sev-chip-count" data-count="high">·</span></button>
+    <button class="sev-chip" data-sev="med">Medium <span class="sev-chip-count" data-count="med">·</span></button>
+    <button class="sev-chip" data-sev="low">Low <span class="sev-chip-count" data-count="low">·</span></button>
+  </div>
+  <button class="audit-collapse-btn" id="audit-collapse-toggle" type="button">Collapse all</button>
+</div>
+<div id="audit-empty" class="audit-empty" style="display:none">No findings match the current filter.</div>
+
 <div class="health">
   <span class="lbl">Data integrity</span>
   <span class="chk"><span class="dot"></span>0 duplicate template IDs</span>
