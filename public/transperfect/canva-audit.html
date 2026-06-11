@@ -168,6 +168,87 @@ table{width:100%;border-collapse:collapse;margin-top:14px}
 #view-audit .footnote{padding:22px 40px 0;color:#56688A;font-size:11px;line-height:1.6}
 #view-audit .callout{display:inline-flex;align-items:center;gap:8px;background:#091525;border:1px solid #2A3A50;border-radius:5px;padding:8px 12px;margin-top:12px;font-size:12px;color:#C8D8F0}
 #view-audit .callout b{color:#E74C3C}
+
+/* ============================================================
+   LIGHT MODE OVERRIDES
+   Toggled by adding `.light-mode` to <body> (from parent frame).
+   Preserves teal accent (#00C2C7) and severity colors.
+   ============================================================ */
+body.light-mode{background:#F5F7FA;color:#1B2840}
+body.light-mode .header,
+body.light-mode #view-audit .header{background:linear-gradient(135deg,#FFFFFF 0%,#EEF3FA 60%,#E4ECF6 100%);border-bottom:1px solid #D8E0EC}
+body.light-mode .header::before,body.light-mode #view-audit .header::before{opacity:.08}
+body.light-mode .header::after,body.light-mode #view-audit .header::after{opacity:.05}
+body.light-mode .title,body.light-mode #view-audit .title,
+body.list-mode .topbar .brand,body.light-mode .topbar .brand{color:#0B1628}
+body.light-mode .title span,body.light-mode #view-audit .title span,body.light-mode .topbar .brand span{color:#008A8E}
+body.light-mode .eyebrow,body.light-mode #view-audit .eyebrow,
+body.light-mode .section-name,body.light-mode #view-audit .section-name{color:#008A8E}
+body.light-mode .meta-item,body.light-mode #view-audit .meta-item,
+body.light-mode .status-bar,body.light-mode .stat-label,body.light-mode #view-audit .stat-label,
+body.light-mode .section-count,body.light-mode .section-sub,body.light-mode #view-audit .section-sub,
+body.light-mode .date-text,body.light-mode .empty-state,
+body.light-mode .usehint,body.light-mode .health .lbl,body.light-mode #view-audit .health .lbl,
+body.light-mode .footnote,body.light-mode #view-audit .footnote,
+body.light-mode .finding-count,body.light-mode #view-audit .finding-count,
+body.light-mode .road-desc,body.light-mode #view-audit .road-desc,
+body.light-mode .chip,body.light-mode #view-audit .chip{color:#5A6B85}
+body.light-mode .meta-item strong,body.light-mode #view-audit .meta-item strong,
+body.light-mode .template-name,body.light-mode .chk,body.light-mode #view-audit .chk,
+body.light-mode .brand-pill,body.light-mode #view-audit .brand-pill,
+body.light-mode .road-title,body.light-mode #view-audit .road-title,
+body.light-mode .finding-title,body.light-mode #view-audit .finding-title,
+body.light-mode .usehint b,body.light-mode .chip.touch,body.light-mode #view-audit .chip.touch{color:#0B1628}
+body.light-mode .finding-body,body.light-mode #view-audit .finding-body{color:#3A4A65}
+body.light-mode .finding-body b,body.light-mode #view-audit .finding-body b{color:#0B1628}
+body.light-mode .rec,body.light-mode #view-audit .rec{background:#F0F8F8;color:#1B2840}
+body.light-mode .stat,body.light-mode #view-audit .stat,
+body.light-mode .finding,body.light-mode #view-audit .finding,
+body.light-mode .tab,body.light-mode .link-btn,body.light-mode #view-audit .link-btn,
+body.light-mode .road-num,body.light-mode #view-audit .road-num,
+body.light-mode .callout,body.light-mode #view-audit .callout{background:#FFFFFF;border-color:#D8E0EC}
+body.light-mode .stat-num,body.light-mode #view-audit .stat-num{color:#008A8E}
+body.light-mode .tab{color:#5A6B85}
+body.light-mode .tab:hover{color:#0B1628;border-color:#B8C4D6}
+body.light-mode .tab.active{background:#00C2C7;border-color:#00C2C7;color:#06283A}
+body.light-mode .usebtn,body.light-mode .export-btn{color:#5A6B85;border-color:#D8E0EC}
+body.light-mode .usebtn:hover,body.light-mode .export-btn:hover{color:#008A8E;border-color:#00C2C7}
+body.light-mode .controls,body.light-mode .topbar,body.light-mode .usehint,body.light-mode .status-bar,
+body.light-mode .health,body.light-mode #view-audit .health{background:#FFFFFF;border-color:#D8E0EC}
+body.light-mode .search-wrap input,body.light-mode select{background:#F5F7FA;border-color:#D8E0EC;color:#0B1628}
+body.light-mode select option{background:#FFFFFF;color:#0B1628}
+body.light-mode .search-icon{color:#5A6B85}
+body.light-mode .progress-bar-wrap,body.light-mode #view-audit .progress-bar-wrap{background:#E0E6F0}
+body.light-mode .section-header,body.light-mode #view-audit .section-header{background:#EEF3FA;border-color:#D8E0EC}
+body.light-mode th,body.light-mode #view-audit th{background:#F0F4F9;color:#5A6B85;border-color:#D8E0EC}
+body.light-mode td,body.light-mode #view-audit td{border-color:#E4E9F1;color:#1B2840}
+body.light-mode tr:nth-child(even) td,body.light-mode #view-audit tr:nth-child(even) td{background:#FAFBFD}
+body.light-mode tr:hover td,body.light-mode #view-audit tr:hover td{background:#EEF3FA}
+body.light-mode th[onclick]:hover{color:#0B1628;background:#E4ECF6}
+body.light-mode .template-id,body.light-mode #view-audit .template-id{color:#5A6B85}
+body.light-mode .link-btn{color:#008A8E}
+body.light-mode .link-btn:hover,body.light-mode #view-audit .link-btn:hover{background:#F0F8F8;border-color:#00C2C7}
+body.light-mode .pending{color:#A8B4C8}
+body.light-mode .bar-track,body.light-mode #view-audit .bar-track{background:#E4E9F1}
+body.light-mode .bar-label,body.light-mode #view-audit .bar-label{color:#1B2840}
+body.light-mode .bar-val,body.light-mode #view-audit .bar-val{color:#5A6B85}
+body.light-mode .sev.high,body.light-mode #view-audit .sev.high{background:#FDECEE;border-color:#E74C3C;color:#B83020}
+body.light-mode .sev.med,body.light-mode #view-audit .sev.med{background:#FBF1E0;border-color:#D88020;color:#8C5410}
+body.light-mode .sev.low,body.light-mode #view-audit .sev.low{background:#EEF3FA;border-color:#7FA0C8;color:#3A5070}
+body.light-mode .tag.redundant,body.light-mode #view-audit .tag.redundant{background:#FDECEE;border-color:#E78090;color:#B83020}
+body.light-mode .tag.orphan,body.light-mode #view-audit .tag.orphan{background:#FBF1E0;border-color:#C89A40;color:#8C5410}
+body.light-mode .tag.move,body.light-mode #view-audit .tag.move{background:#E8F7EE;border-color:#1F8050;color:#1F6038}
+body.light-mode .size-badge,body.light-mode #view-audit .size-badge{background:#E8F7EE;border-color:#1F8050;color:#1F6038}
+body.light-mode .pages-badge{background:#FBF6E0;border-color:#C8B040;color:#7A6810}
+body.light-mode .stat-num.red,body.light-mode #view-audit .stat-num.red{color:#C0341E}
+body.light-mode .stat-num.amber,body.light-mode #view-audit .stat-num.amber{color:#A06010}
+body.light-mode .stat-num.green,body.light-mode #view-audit .stat-num.green{color:#1F7040}
+body.light-mode .callout b,body.light-mode #view-audit .callout b{color:#C0341E}
+body.light-mode .chip.impact-hi,body.light-mode #view-audit .chip.impact-hi{color:#1F7040;border-color:#A6D6BA}
+body.light-mode .chip.effort-lo,body.light-mode #view-audit .chip.effort-lo{color:#3A5070;border-color:#B8C4D6}
+body.light-mode .chip.effort-md,body.light-mode #view-audit .chip.effort-md{color:#8C5410;border-color:#D8C49A}
+body.light-mode .status-dot{background:#D8E0EC}
+body.light-mode .road-item,body.light-mode #view-audit .road-item{border-color:#E4E9F1}
 </style>
 </head>
 <body>
