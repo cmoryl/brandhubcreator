@@ -1083,7 +1083,7 @@ findings.push(`
     <div class="finding-count">% of each brand's titles carrying a [bracket] tag</div></div>
   </div>
   <div class="finding-body">TP Corporate tags every title <b>[TP Corporate]</b> (100%), but Dataforce, Life Sciences, Media, and TPI are split roughly half-and-half, while six brands never tag at all. Since a dedicated brand <b>field</b> already exists, the tags are redundant metadata — but the inconsistency makes search and sorting unpredictable.</div>
-  ${bars(tagRows,100,(l,v)=>v===100?'#4AE090':v===0?'#3A5070':'#E8A040',(l,v)=>(v>0&&v<100)?'inconsistent':'')}
+  ${bars(tagRows,100,(l,v)=>v===100?'#4AE090':v===0?'#3A5070':'#E8A040',(l,v)=>(v>0&&v<100)?'inconsistent':'','tag')}
   <div class="rec"><b>Recommended</b>Pick one rule and apply it everywhere. Cleanest: drop bracket tags from titles and rely on the brand field — or, if tags aid in-Canva search, enforce them on 100% of titles per brand.</div>
 </div>`);
 
