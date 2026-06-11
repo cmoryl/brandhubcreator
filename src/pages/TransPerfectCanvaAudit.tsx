@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, ArrowLeft, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -7,10 +7,23 @@ const AUDIT_URL = '/transperfect/canva-audit.html';
 
 export default function TransPerfectCanvaAudit() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
     document.title = 'Canva Master Registry + Audit — TransPerfect';
   }, []);
+
+  // Apply the theme class inside the iframe's <body> whenever it changes
+  // or when the iframe finishes loading.
+  const applyTheme = (t: 'dark' | 'light') => {
+    const doc = iframeRef.current?.contentDocument;
+    if (!doc?.body) return;
+    doc.body.classList.toggle('light-mode', t === 'light');
+  };
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   const isLight = theme === 'light';
 
@@ -67,16 +80,12 @@ export default function TransPerfectCanvaAudit() {
         </div>
       </div>
 
-      {/* Full-height iframe — light mode uses an invert filter so the dark report renders bright without modifying the source HTML */}
       <iframe
+        ref={iframeRef}
         src={AUDIT_URL}
         title="Canva Master Registry + Audit — TransPerfect"
         className="flex-1 w-full border-0 bg-background"
-        style={
-          isLight
-            ? { filter: 'invert(1) hue-rotate(180deg)', background: '#fff' }
-            : undefined
-        }
+        onLoad={() => applyTheme(theme)}
       />
     </div>
   );
