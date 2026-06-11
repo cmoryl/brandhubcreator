@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ExternalLink, ArrowLeft, Sun, Moon } from 'lucide-react';
+import { ExternalLink, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 
 const AUDIT_URL = '/transperfect/canva-audit.html';
 
