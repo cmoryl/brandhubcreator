@@ -105,26 +105,48 @@ function SidebarContent({
                   {group.label}
                 </p>
                 <div className="space-y-0.5">
-                  {groupItems.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleItemClick(item.id)}
-                      className={cn(
-                        "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left",
-                        activeTab === item.id 
-                          ? "bg-primary/10 text-primary font-medium" 
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      )}
-                    >
-                      {item.icon}
-                      <span className="flex-1">{item.label}</span>
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <Badge variant="destructive" className="h-5 px-1.5 text-xs">
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </button>
-                  ))}
+                  {groupItems.map((item) => {
+                    const isActive = activeTab === item.id;
+                    const baseClasses = cn(
+                      "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left",
+                      isActive
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    );
+                    if (item.href) {
+                      return (
+                        <a
+                          key={item.id}
+                          href={item.href}
+                          className={baseClasses}
+                          onClick={() => onItemClick?.()}
+                        >
+                          {item.icon}
+                          <span className="flex-1">{item.label}</span>
+                          {item.badge !== undefined && item.badge > 0 && (
+                            <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </a>
+                      );
+                    }
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleItemClick(item.id)}
+                        className={baseClasses}
+                      >
+                        {item.icon}
+                        <span className="flex-1">{item.label}</span>
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             );
