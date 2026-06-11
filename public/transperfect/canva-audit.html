@@ -1639,6 +1639,172 @@ body.light-mode .bar-drill-body::-webkit-scrollbar-thumb{background:#D8E0EC}
     });
   }
 
+  /* -------- Click-through drill-down on finding bars -------- */
+  function wireBarDrilldowns(){
+    const T = (typeof window !== 'undefined' && Array.isArray(window.TEMPLATES)) ? window.TEMPLATES
+            : (typeof TEMPLATES !== 'undefined' ? TEMPLATES : []);
+    if(!T.length) return;
+
+    // Cluster matchers for the "General" bucket
+    const CLUSTERS = {
+      'TL / TransLanguages':   t => /\bTL\b|TransLanguages/i.test(t.title),
+      'Services / Solutions':  t => /Service|Solution/i.test(t.title),
+      'Race / Photo / Contest':t => /Race|Photo|Contest/i.test(t.title),
+      'Webinar':               t => /Webinar/i.test(t.title),
+      'HR / Health & Safety':  t => /\bHR\b|Health|Safety/i.test(t.title),
+      'TLS':                   t => /\bTLS\b/i.test(t.title),
+      '"Copy of … TP Corporate"': t => /^Copy of/i.test(t.title) && /TP Corporate/i.test(t.title),
+      'Case Study':            t => /Case Study/i.test(t.title),
+      'Podcast':               t => /Podcast/i.test(t.title),
+    };
+    function generalCluster(t){
+      if(t.brand !== 'General') return null;
+      for(const [name, fn] of Object.entries(CLUSTERS)){
+        if(fn(t)) return name;
+      }
+      return 'One-offs / uncategorized';
+    }
+
+    function templatesFor(kind, key){
+      switch(kind){
+        case 'brand':
+          return T.filter(t => t.brand === key);
+        case 'size':
+          return T.filter(t => `${t.w}×${t.h}` === key);
+        case 'cluster':
+          return T.filter(t => generalCluster(t) === key);
+        case 'tag': {
+          // Show all templates of that brand, marking which carry a [bracket] tag
+          return T.filter(t => t.brand === key);
+        }
+        default: return [];
+      }
+    }
+
+    function renderRows(kind, list){
+      if(!list.length) return `<div class="empty">No templates matched.</div>`;
+      const fmt = ts => ts ? new Date(ts*1000).toISOString().slice(0,10) : '—';
+      if(kind === 'tag'){
+        return `<table><thead><tr>
+          <th>Template</th><th>Tag in title</th><th>Size</th><th>ID</th><th>Open</th>
+        </tr></thead><tbody>${list.map(t => {
+          const hasTag = /\[[^\]]+\]/.test(t.title);
+          return `<tr>
+            <td class="template-name">${escapeHtml(t.title)}</td>
+            <td>${hasTag ? '<span class="pill-on">[ tagged ]</span>' : '<span class="pill-off">no tag</span>'}</td>
+            <td><span class="size-badge">${t.w}×${t.h}</span></td>
+            <td><span class="template-id">${t.id}</span></td>
+            <td><a class="link-btn" href="${t.createUrl}" target="_blank" rel="noopener">Open ↗</a></td>
+          </tr>`;
+        }).join('')}</tbody></table>`;
+      }
+      return `<table><thead><tr>
+        <th>Template</th><th>Brand</th><th>Size</th><th>Pages</th><th>Created</th><th>ID</th><th>Open</th>
+      </tr></thead><tbody>${list.map(t => `<tr>
+        <td class="template-name">${escapeHtml(t.title)}</td>
+        <td>${escapeHtml(t.brand)}</td>
+        <td><span class="size-badge">${t.w}×${t.h}</span></td>
+        <td>${t.pages || '—'}</td>
+        <td><span class="date-text">${fmt(t.created)}</span></td>
+        <td><span class="template-id">${t.id}</span></td>
+        <td><a class="link-btn" href="${t.createUrl}" target="_blank" rel="noopener">Open ↗</a></td>
+      </tr>`).join('')}</tbody></table>`;
+    }
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function kindLabel(kind, key){
+      switch(kind){
+        case 'brand':   return `Templates in <span style="color:#00C2C7">${escapeHtml(key)}</span>`;
+        case 'size':    return `Templates sized <span style="color:#00C2C7">${escapeHtml(key)}</span>`;
+        case 'cluster': return `"General" templates matching <span style="color:#00C2C7">${escapeHtml(key)}</span>`;
+        case 'tag':     return `<span style="color:#00C2C7">${escapeHtml(key)}</span> — tag usage across titles`;
+        default:        return key;
+      }
+    }
+
+    function closeDrill(barsEl){
+      const existing = barsEl.parentElement.querySelector(`.bar-drill[data-drill-for="${barsEl.dataset.barKind}"]`);
+      if(existing) existing.remove();
+      barsEl.querySelectorAll('.bar-row.drillable.active').forEach(r => r.classList.remove('active'));
+    }
+
+    function openDrill(row){
+      const barsEl = row.closest('.bars');
+      if(!barsEl) return;
+      const kind = barsEl.dataset.barKind;
+      const key = row.dataset.barKey;
+      const wasActive = row.classList.contains('active');
+      closeDrill(barsEl);
+      if(wasActive) return; // clicking active row toggles it off
+
+      row.classList.add('active');
+      const list = templatesFor(kind, key);
+      const panel = document.createElement('div');
+      panel.className = 'bar-drill';
+      panel.dataset.drillFor = kind;
+      panel.innerHTML = `
+        <div class="bar-drill-head">
+          <div>
+            <div class="bar-drill-title">${kindLabel(kind, key)}</div>
+            <div class="bar-drill-meta">${list.length} template${list.length===1?'':'s'} · click any "Open ↗" to launch in Canva</div>
+          </div>
+          <button class="bar-drill-close" type="button" aria-label="Close">Close ×</button>
+        </div>
+        <div class="bar-drill-body">${renderRows(kind, list)}</div>`;
+      barsEl.insertAdjacentElement('afterend', panel);
+
+      // Re-apply sortable behavior to the new table
+      const tbl = panel.querySelector('table');
+      if(tbl){
+        const ths = tbl.querySelectorAll('thead th');
+        const tbody = tbl.querySelector('tbody');
+        ths.forEach((th, ci) => {
+          th.classList.add('sort-none');
+          th.addEventListener('click', () => {
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const asc = !th.classList.contains('sort-asc');
+            ths.forEach(o => o.classList.remove('sort-asc','sort-desc','sort-none'));
+            ths.forEach(o => { if(o!==th) o.classList.add('sort-none'); });
+            th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+            rows.sort((a,b) => {
+              const ka = (a.children[ci]?.textContent || '').trim().toLowerCase();
+              const kb = (b.children[ci]?.textContent || '').trim().toLowerCase();
+              const na = parseFloat(ka), nb = parseFloat(kb);
+              const numeric = !isNaN(na) && !isNaN(nb) && /^[-0-9.,\s×x]+$/.test(ka) && /^[-0-9.,\s×x]+$/.test(kb);
+              if(numeric) return asc ? na-nb : nb-na;
+              if(ka < kb) return asc ? -1 : 1;
+              if(ka > kb) return asc ? 1 : -1;
+              return 0;
+            });
+            rows.forEach(r => tbody.appendChild(r));
+          });
+        });
+      }
+
+      panel.querySelector('.bar-drill-close').addEventListener('click', () => closeDrill(barsEl));
+    }
+
+    // Delegated click + keyboard activation
+    document.getElementById('findings').addEventListener('click', (e) => {
+      const row = e.target.closest('.bar-row.drillable');
+      if(!row) return;
+      if(e.target.closest('.bar-drill')) return;
+      openDrill(row);
+    });
+    document.getElementById('findings').addEventListener('keydown', (e) => {
+      if(e.key !== 'Enter' && e.key !== ' ') return;
+      const row = e.target.closest('.bar-row.drillable');
+      if(!row) return;
+      e.preventDefault();
+      openDrill(row);
+    });
+  }
+
+
+
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', init);
   } else {
