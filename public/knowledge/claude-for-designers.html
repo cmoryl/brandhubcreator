@@ -6909,13 +6909,31 @@ document.querySelectorAll('.nav-item').forEach(link => {
     console.info('[A/B palette]', { variant: active, label: LABELS[active], source: forced ? 'url' : (stored ? 'persisted' : 'assigned') });
   } catch(e){}
 
-  // Switcher UI
-  var VOTE_KEY = 'cfd-palette-votes';
-  function readVotes(){
-    try { return JSON.parse(localStorage.getItem(VOTE_KEY) || '{"a":0,"b":0,"c":0}'); }
-    catch(e){ return {a:0,b:0,c:0}; }
+  // Supabase REST endpoints (anon key is safe to expose; RLS + RPC validate input)
+  var SB_URL = 'https://nhxaijbyqfkkhhoornzy.supabase.co';
+  var SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeGFpamJ5cWZra2hob29ybnp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2NDU0ODYsImV4cCI6MjA4MzIyMTQ4Nn0.Uw6QPHoOo_15FWCfnSAZYyGZNEr-XlZ8NrVyLlcuiWk';
+  var VISITOR_KEY = 'cfd-visitor-id';
+  var VOTED_KEY = 'cfd-palette-voted';
+  function getVisitorId(){
+    var id = null;
+    try { id = localStorage.getItem(VISITOR_KEY); } catch(e){}
+    if (id && id.length >= 8) return id;
+    id = 'v_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+    try { localStorage.setItem(VISITOR_KEY, id); } catch(e){}
+    return id;
   }
-  function writeVotes(v){ try { localStorage.setItem(VOTE_KEY, JSON.stringify(v)); } catch(e){} }
+  function rpc(name, body){
+    return fetch(SB_URL + '/rest/v1/rpc/' + name, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'apikey': SB_ANON, 'Authorization':'Bearer '+SB_ANON },
+      body: JSON.stringify(body || {}),
+    }).then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); });
+  }
+  function fmtTally(t){
+    t = t || {};
+    return 'A '+(t.a||0)+' · B '+(t.b||0)+' · C '+(t.c||0);
+  }
+
   function buildSwitcher(){
     var bar = document.createElement('div');
     bar.className = 'ab-switcher';
@@ -6925,7 +6943,6 @@ document.querySelectorAll('.nav-item').forEach(link => {
     label.className = 'ab-label';
     label.textContent = 'Palette';
     bar.appendChild(label);
-    var votes = readVotes();
     VARIANTS.forEach(function(v){
       var b = document.createElement('button');
       b.type = 'button';
@@ -6945,27 +6962,38 @@ document.querySelectorAll('.nav-item').forEach(link => {
       b.dataset.variant = v;
       bar.appendChild(b);
     });
-    // Vote UI — single best-feeling pick per visitor
+    // Vote UI — one favorite per visitor, persisted server-side
     var vote = document.createElement('button');
     vote.className = 'ab-vote';
     vote.type = 'button';
-    vote.textContent = '♥ Vote';
     vote.title = 'Vote this as your favorite palette';
     var tally = document.createElement('span');
     tally.className = 'ab-tally';
-    function refreshTally(){
-      var v = readVotes();
-      tally.textContent = 'A '+v.a+' · B '+v.b+' · C '+v.c;
+    tally.textContent = '…';
+    var votedFor = null;
+    try { votedFor = localStorage.getItem(VOTED_KEY); } catch(e){}
+    function setVoteLabel(){
+      vote.textContent = votedFor ? ('✓ Voted ' + votedFor.toUpperCase()) : '♥ Vote';
     }
-    refreshTally();
+    setVoteLabel();
+    rpc('get_palette_tally').then(function(t){ tally.textContent = fmtTally(t); }).catch(function(){ tally.textContent = '—'; });
     vote.addEventListener('click', function(){
-      var v = readVotes();
-      v[active] = (v[active] || 0) + 1;
-      writeVotes(v);
-      refreshTally();
-      vote.textContent = '✓ Voted';
+      var vid = getVisitorId();
       vote.disabled = true;
-      try { console.info('[A/B palette] vote →', { variant: active, tally: v }); } catch(e){}
+      rpc('cast_palette_vote', { p_visitor_id: vid, p_variant: active, p_user_agent: navigator.userAgent })
+        .then(function(t){
+          tally.textContent = fmtTally(t);
+          votedFor = active;
+          try { localStorage.setItem(VOTED_KEY, active); } catch(e){}
+          setVoteLabel();
+          vote.disabled = false;
+          try { console.info('[A/B palette] vote cast →', { variant: active, tally: t }); } catch(e){}
+        })
+        .catch(function(err){
+          vote.disabled = false;
+          vote.textContent = '⚠ Retry';
+          console.warn('[A/B palette] vote failed', err);
+        });
     });
     bar.appendChild(vote);
     bar.appendChild(tally);
