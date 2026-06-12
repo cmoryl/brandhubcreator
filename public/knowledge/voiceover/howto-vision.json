@@ -1,0 +1,21 @@
+{
+  "duration": 17.879,
+  "beats": [
+    {
+      "label": "Open Claude, drag the file in",
+      "start": 5.77
+    },
+    {
+      "label": "Ask for structured critique",
+      "start": 9.578
+    },
+    {
+      "label": "Read the specific feedback",
+      "start": 12.783
+    },
+    {
+      "label": "Iterate with a follow-up",
+      "start": 16.184
+    }
+  ]
+}

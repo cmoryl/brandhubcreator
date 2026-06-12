@@ -1,0 +1,17 @@
+{
+  "duration": 25.542,
+  "beats": [
+    {
+      "label": "Write design rationale",
+      "start": 18.692
+    },
+    {
+      "label": "Prepare for pushback",
+      "start": 21.293
+    },
+    {
+      "label": "Write a project narrative",
+      "start": 23.765
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "duration": 36.083,
+  "beats": [
+    {
+      "label": "Rewrite an overloaded slide",
+      "start": 23.603
+    },
+    {
+      "label": "Write a data slide with insight-led title",
+      "start": 26.795
+    },
+    {
+      "label": "Write a strong opening slide",
+      "start": 30.789
+    },
+    {
+      "label": "Audit a complete deck",
+      "start": 34.435
+    }
+  ]
+}
