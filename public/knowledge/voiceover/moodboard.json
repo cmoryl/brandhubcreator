@@ -1,7 +1,7 @@
 {
   "duration": 27.016,
   "target": "clean-narration-no-production-cues",
-  "visualLeadSeconds": 0.6,
+  "visualLeadSeconds": 0.35,
   "beats": [
     {
       "label": "Describe a visual world",

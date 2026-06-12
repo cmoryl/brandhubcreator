@@ -1,7 +1,7 @@
 {
   "duration": 34.784,
   "target": "clean-narration-no-production-cues",
-  "visualLeadSeconds": 0.6,
+  "visualLeadSeconds": 0.35,
   "beats": [
     {
       "label": "Build a reusable brand prompt system",
@@ -16,7 +16,7 @@
       "start": 28.143
     },
     {
-      "label": "Skip the generator — draw it as SVG",
+      "label": "Skip the generator \u2014 draw it as SVG",
       "start": 31.394
     }
   ]

@@ -1,7 +1,7 @@
 {
   "duration": 19.296,
   "target": "clean-narration-no-production-cues",
-  "visualLeadSeconds": 0.6,
+  "visualLeadSeconds": 0.35,
   "beats": [
     {
       "label": "Plain-English definitions for every piece of jargon used in these chapters. Skim it once; ...",

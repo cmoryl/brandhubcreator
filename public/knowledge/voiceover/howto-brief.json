@@ -1,7 +1,7 @@
 {
   "duration": 33.901,
   "target": "clean-narration-no-production-cues",
-  "visualLeadSeconds": 0.6,
+  "visualLeadSeconds": 0.35,
   "beats": [
     {
       "label": "Start with the vague ask",
@@ -13,7 +13,7 @@
     },
     {
       "label": "Convert gaps into questions",
-      "start": 0
+      "start": 22.686
     },
     {
       "label": "Get the rewritten brief",
