@@ -6268,6 +6268,283 @@ document.querySelectorAll('.nav-item').forEach(link => {
 })();
 </script>
 
+<style>
+/* ─── HOW-TO WALKTHROUGH PLAYERS ────────────────────────────── */
+.howto{margin:22px 0 26px;border-radius:16px;overflow:hidden;background:#0c0e16;border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 60px rgba(0,0,0,.45);position:relative}
+.howto__header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);border-bottom:1px solid rgba(255,255,255,.06)}
+.howto__dots{display:inline-flex;gap:5px}
+.howto__dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.18);display:inline-block}
+.howto__dots i:nth-child(1){background:#ff6058}
+.howto__dots i:nth-child(2){background:#ffbe2f}
+.howto__dots i:nth-child(3){background:#28ca42}
+.howto__chip{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#ffb199;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(255,111,94,.12);border:1px solid rgba(255,111,94,.28)}
+.howto__title{font-size:13px;color:#e9ecf3;font-weight:600;margin:0}
+.howto__steps-count{margin-left:auto;font-size:11.5px;color:#9aa0b0}
+.howto__body{display:grid;grid-template-columns:1fr 280px;min-height:360px}
+@media (max-width:820px){.howto__body{grid-template-columns:1fr}}
+.howto__stage{position:relative;background:radial-gradient(800px circle at 20% 0%,rgba(99,102,241,.10),transparent 50%),#0a0c14;overflow:hidden;min-height:340px}
+.howto__screen{position:absolute;inset:24px;border-radius:12px;background:#f6f7fb;color:#0c0e16;font-family:-apple-system,system-ui,'Inter',sans-serif;font-size:12px;opacity:0;transform:translateY(12px) scale(.98);transition:opacity .45s ease, transform .45s ease;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.howto__screen.is-active{opacity:1;transform:translateY(0) scale(1)}
+.howto__win-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#eceef4;border-bottom:1px solid rgba(0,0,0,.08);font-size:11px;color:#5a6173}
+.howto__win-bar .d{width:9px;height:9px;border-radius:50%;background:#cdd2dc}
+.howto__win-content{flex:1;padding:14px 16px;overflow:hidden}
+.howto__msg{padding:8px 12px;border-radius:10px;margin-bottom:8px;max-width:88%;line-height:1.5;font-size:11.5px}
+.howto__msg--user{background:#0c0e16;color:#fff;margin-left:auto}
+.howto__msg--bot{background:#fff;border:1px solid rgba(0,0,0,.06);color:#0c0e16}
+.howto__msg b{color:#ff6f5e}
+.howto__caret{display:inline-block;width:1px;height:11px;background:#0c0e16;margin-left:1px;animation:howto-caret 1s steps(2) infinite;vertical-align:middle}
+@keyframes howto-caret{50%{opacity:0}}
+.howto__upload{display:flex;align-items:center;gap:10px;padding:10px;border:1.5px dashed #c8cdd9;border-radius:8px;background:#fafbfd;margin-bottom:10px;font-size:11px;color:#5a6173}
+.howto__upload-thumb{width:44px;height:32px;border-radius:5px;background:linear-gradient(135deg,#ffb199,#ff6f5e,#6366f1)}
+.howto__pill{display:inline-block;padding:3px 9px;border-radius:999px;background:#0c0e16;color:#fff;font-size:10px;font-weight:600;margin-right:5px}
+.howto__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.howto__grid div{aspect-ratio:1;border-radius:6px;background:linear-gradient(135deg,var(--c1,#ffb199),var(--c2,#6366f1))}
+.howto__caption{position:absolute;left:24px;right:24px;bottom:24px;padding:10px 14px;border-radius:10px;background:rgba(12,14,22,.78);backdrop-filter:blur(8px);color:#fff;font-size:12.5px;line-height:1.5;border:1px solid rgba(255,255,255,.1);opacity:0;transform:translateY(6px);transition:opacity .35s ease, transform .35s ease}
+.howto__caption.is-active{opacity:1;transform:translateY(0)}
+.howto__caption b{color:#ffb199}
+.howto__side{background:#0a0c14;border-left:1px solid rgba(255,255,255,.06);padding:14px;display:flex;flex-direction:column;gap:6px}
+@media (max-width:820px){.howto__side{border-left:0;border-top:1px solid rgba(255,255,255,.06)}}
+.howto__step{display:grid;grid-template-columns:24px 1fr;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;transition:background .15s ease;align-items:flex-start}
+.howto__step:hover{background:rgba(255,255,255,.04)}
+.howto__step.is-active{background:rgba(255,111,94,.10)}
+.howto__step.is-seen{opacity:.55}
+.howto__step-num{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#9aa0b0;flex-shrink:0;margin-top:1px}
+.howto__step.is-active .howto__step-num{background:linear-gradient(135deg,#ff6f5e,#ffb199);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(255,111,94,.35)}
+.howto__step-title{font-size:12.5px;font-weight:600;color:#e9ecf3;line-height:1.35;margin-bottom:2px}
+.howto__step-sub{font-size:11px;color:#9aa0b0;line-height:1.4}
+.howto__controls{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
+.howto__btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:background .15s}
+.howto__btn:hover{background:rgba(255,255,255,.16)}
+.howto__progress{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;cursor:pointer;position:relative}
+.howto__progress-bar{height:100%;width:0%;background:linear-gradient(90deg,#ff6f5e,#ffb199);box-shadow:0 0 8px rgba(255,111,94,.5)}
+.howto__progress-ticks{position:absolute;inset:0;display:flex}
+.howto__progress-ticks i{flex:1;border-right:1px solid rgba(12,14,22,.5);display:inline-block}
+.howto__progress-ticks i:last-child{border-right:0}
+.howto__time{font-size:11px;color:#9aa0b0;font-variant-numeric:tabular-nums;min-width:70px;text-align:right}
+@media print{.howto{display:none}}
+</style>
+
+<script>
+/* ─── HOW-TO WALKTHROUGH PLAYERS ───────────────────────────────
+   Injects an interactive, animated step-by-step "screen recording"
+   into select chapters. Each step renders a mock Claude UI screen
+   and a caption. Auto-advances when scrolled into view; users can
+   pause, scrub, or click a step in the sidebar.
+*/
+(function(){
+  var STEP_MS = 4200;
+
+  var WALKTHROUGHS = [
+    {
+      match: /sharper briefs/i,
+      title: 'How to pressure-test a vague brief',
+      steps: [
+        { title: 'Start with the vague ask', sub: 'Paste exactly what the client wrote.',
+          caption: 'Open a new Claude chat and paste the raw brief — no cleanup.',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span style="margin-left:6px">Claude</span></div><div class="howto__win-content"><div class="howto__msg howto__msg--user">"We need a refresh. Make it modern but classic. Something that feels like us, but new."<span class="howto__caret"></span></div></div>' },
+        { title: 'Ask Claude to interrogate it', sub: 'Use the "what\u2019s missing" prompt.',
+          caption: 'Add: <b>"Act as a strategist. List every decision this brief leaves unanswered."</b>',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--user">Act as a strategist. List every decision this brief leaves unanswered.</div><div class="howto__msg howto__msg--bot">I count 11 unresolved decisions:<br>1. Audience — current vs. aspirational?<br>2. "Modern" — minimal, maximal, kinetic?<br>3. Scope — logo only, or full system?<span class="howto__caret"></span></div></div>' },
+        { title: 'Convert gaps into questions', sub: 'A list you can take to the client.',
+          caption: 'Ask: <b>"Turn each gap into a question I can ask the client in one meeting."</b>',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--bot"><span class="howto__pill">Q1</span>Who is the audience today vs. who do you want it to be in 2 years?<br><br><span class="howto__pill">Q2</span>Name 3 brands that feel "modern" to you — and 1 that doesn\u2019t.<br><br><span class="howto__pill">Q3</span>Is the wordmark sacred, or fair game?<span class="howto__caret"></span></div></div>' },
+        { title: 'Get the rewritten brief', sub: 'A version the team can actually act on.',
+          caption: 'Final step: <b>"Now rewrite the brief as if the client answered all of those."</b>',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--bot"><b style="color:#ff6f5e">Brief v2 — sharpened</b><br><br>Reposition a 12-year-old heritage brand for a Gen-Z founder audience. Keep the wordmark; redesign the system around it. "Modern" = kinetic, editorial, confident — not minimal. Deliverables: logo lockups, motion identity, brand guidelines.<span class="howto__caret"></span></div></div>' }
+      ]
+    },
+    {
+      match: /Claude can see|Upload it/i,
+      title: 'How to get critique from an uploaded design',
+      steps: [
+        { title: 'Open Claude, drag the file in', sub: 'PNG, JPG, or screenshot — straight from Figma.',
+          caption: 'Drag-and-drop directly into the chat input. Claude reads pixels, not descriptions.',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__upload"><div class="howto__upload-thumb"></div><div><div style="font-weight:600;color:#0c0e16">homepage-hero-v3.png</div><div>1.2 MB · Uploaded just now</div></div></div><div class="howto__msg howto__msg--user">Ready when you are.<span class="howto__caret"></span></div></div>' },
+        { title: 'Ask for structured critique', sub: 'Tell Claude what role to take.',
+          caption: 'Prompt: <b>"You\u2019re a design director. Critique this on hierarchy, type, color, and emotional tone."</b>',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--user">You\u2019re a design director. Critique this on hierarchy, type, color, and emotional tone. Be direct.</div><div class="howto__msg howto__msg--bot">Looking at the comp now…<span class="howto__caret"></span></div></div>' },
+        { title: 'Read the specific feedback', sub: 'Claude points at actual elements.',
+          caption: 'Notice it cites the <b>headline weight</b>, <b>CTA contrast</b>, and <b>image–text rhythm</b> — not vague platitudes.',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--bot"><b>Hierarchy:</b> the headline competes with the photo — same visual weight. Drop weight from 800 to 600, or shrink 12%.<br><br><b>Color:</b> the CTA blue passes contrast but feels generic. Try the accent coral from your palette.<br><br><b>Tone:</b> reads "agency 2019" — soften corners or commit to harder ones.<span class="howto__caret"></span></div></div>' },
+        { title: 'Iterate with a follow-up', sub: 'Don\u2019t accept the first answer.',
+          caption: 'Follow up: <b>"Show me 3 alternative hierarchies, ranked by how confident each one feels."</b>',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--bot"><span class="howto__pill">1</span><b>Headline-led</b> — type at 88px, image as supporting frame. Most confident.<br><br><span class="howto__pill">2</span><b>Image-led</b> — full-bleed hero, type bottom-aligned, smaller.<br><br><span class="howto__pill">3</span><b>Split</b> — 60/40 type/image, current direction tightened.<span class="howto__caret"></span></div></div>' }
+        ]
+    },
+    {
+      match: /image generation|moodboarding/i,
+      title: 'How to turn a brief into a Midjourney prompt',
+      steps: [
+        { title: 'Describe the visual world', sub: 'Not the picture — the world it lives in.',
+          caption: 'Start abstract: <b>materials, light, era, emotion</b>. Don\u2019t list objects yet.',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--user">Describe a visual world for a premium electric bike brand: confident, Scandinavian, slightly futuristic, never sterile.<span class="howto__caret"></span></div></div>' },
+        { title: 'Let Claude write the prompt', sub: 'It will translate vibe into Midjourney syntax.',
+          caption: 'Claude returns a complete, well-weighted prompt with style, lens, lighting, and aspect ratio.',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--bot" style="font-family:ui-monospace,monospace;font-size:11px">premium electric bike on wet cobblestone street, low morning fog, brushed aluminum + warm leather details, cinematic Nordic light, shot on Hasselblad 80mm, shallow depth of field, editorial color grade, muted teal-and-ochre palette --ar 16:9 --style raw --s 250<span class="howto__caret"></span></div></div>' },
+        { title: 'Paste into Midjourney', sub: 'Run the prompt as-is. No edits yet.',
+          caption: 'Generate the first batch. The point is to see if Claude\u2019s reading of the brief matches yours.',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span style="margin-left:6px">Midjourney</span></div><div class="howto__win-content"><div style="font-size:11px;color:#5a6173;margin-bottom:6px">/imagine prompt:</div><div style="font-family:ui-monospace,monospace;font-size:10.5px;color:#0c0e16;margin-bottom:8px;line-height:1.4">premium electric bike on wet cobblestone…</div><div class="howto__grid"><div style="--c1:#9ca8b3;--c2:#3a4754"></div><div style="--c1:#c9a87a;--c2:#5a4633"></div><div style="--c1:#7a8c93;--c2:#2c3a45"></div><div style="--c1:#b8a584;--c2:#6b5b3f"></div><div style="--c1:#8a9ba3;--c2:#3f5058"></div><div style="--c1:#d4b896;--c2:#7a6347"></div></div></div>' },
+        { title: 'Refine through Claude, not Midjourney', sub: 'Tell Claude what went wrong.',
+          caption: 'Reply: <b>"Too muted. Push contrast, more drama in the sky, keep the palette."</b> Claude updates the prompt.',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--user">Results are too muted. Push contrast and add sky drama. Keep palette + lens.</div><div class="howto__msg howto__msg--bot" style="font-family:ui-monospace,monospace;font-size:11px">…stormlight breaking through clouds, high-contrast cinematic grade, deep shadows + bright highlights, dramatic backlight, teal-ochre split-tone --ar 16:9 --style raw --s 400<span class="howto__caret"></span></div></div>' }
+      ]
+    },
+    {
+      match: /Canva/i,
+      title: 'How to make Claude produce on-brand Canva slides',
+      steps: [
+        { title: 'Build a brand-locked prompt', sub: 'Colors, fonts, voice — all in one block.',
+          caption: 'Paste your brand rules into a system prompt. This is the foundation everything else inherits.',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--user" style="font-family:ui-monospace,monospace;font-size:10.5px">SYSTEM: You write copy for Acme.<br>Voice: confident, plainspoken, never corporate.<br>Colors: #FF6F5E coral, #0C0E16 ink.<br>Fonts: Söhne (display), Inter (body).<br>Never use exclamation marks.<span class="howto__caret"></span></div></div>' },
+        { title: 'Ask for a deck outline', sub: 'Slide titles + one-line body each.',
+          caption: 'Prompt: <b>"Outline a 6-slide investor update. Title + 1-line summary per slide."</b>',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--bot"><b>1. The quarter in one line</b> — Q3 beat plan by 18%.<br><br><b>2. What worked</b> — Enterprise renewals up 2x.<br><br><b>3. What didn\u2019t</b> — Self-serve funnel still leaks at step 3.<br><br><b>4. The bet for Q4</b> — Rebuild onboarding, not pricing.<span class="howto__caret"></span></div></div>' },
+        { title: 'Paste into Canva, run a Skill', sub: 'A Claude Skill applies the template.',
+          caption: 'Open Canva → use your brand template → trigger the Skill. Each slide is auto-styled with brand tokens.',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span style="margin-left:6px">Canva</span></div><div class="howto__win-content"><div style="background:#0c0e16;color:#fff;border-radius:8px;padding:14px;font-family:\'Inter\',sans-serif"><div style="font-size:9px;letter-spacing:.2em;color:#ff6f5e;font-weight:700;margin-bottom:8px">SLIDE 01 · Q3 OVERVIEW</div><div style="font-size:18px;font-weight:700;line-height:1.2;margin-bottom:8px">The quarter in one line.</div><div style="font-size:11px;color:#9aa0b0">Q3 beat plan by 18%, driven by enterprise renewals.</div></div></div>' },
+        { title: 'Iterate without breaking brand', sub: 'Every change still passes the lock.',
+          caption: 'Ask: <b>"Rewrite slide 2 for a more skeptical audience."</b> Voice, colors, and type stay intact.',
+          screen: '<div class="howto__win-bar"><span class="d"></span><span class="d"></span><span class="d"></span></div><div class="howto__win-content"><div class="howto__msg howto__msg--user">Rewrite slide 2 — assume the room is skeptical about the renewals number.</div><div class="howto__msg howto__msg--bot"><b>2. The renewals number, with context</b><br><br>2x renewals sounds big — and it is. But the base was small. Here\u2019s what it means for next year.<span class="howto__caret"></span></div></div>' }
+        ]
+    }
+  ];
+
+  function fmt(s){ var m=Math.floor(s/60), x=Math.floor(s%60); return m+':'+(x<10?'0':'')+x; }
+
+  function mount(chapter, walk){
+    if (chapter.querySelector(':scope > .howto')) return;
+    var n = walk.steps.length;
+    var totalMs = n * STEP_MS;
+    var el = document.createElement('div');
+    el.className = 'howto';
+    el.setAttribute('role','region');
+    el.setAttribute('aria-label','Walkthrough: '+walk.title);
+    el.innerHTML =
+      '<div class="howto__header">'+
+        '<span class="howto__dots"><i></i><i></i><i></i></span>'+
+        '<span class="howto__chip">▶ Walkthrough</span>'+
+        '<h4 class="howto__title">'+walk.title+'</h4>'+
+        '<span class="howto__steps-count">'+n+' steps · ~'+Math.round(totalMs/1000)+'s</span>'+
+      '</div>'+
+      '<div class="howto__body">'+
+        '<div class="howto__stage" data-stage>'+
+          walk.steps.map(function(s,i){
+            return '<div class="howto__screen" data-screen="'+i+'">'+s.screen+'</div>';
+          }).join('')+
+          walk.steps.map(function(s,i){
+            return '<div class="howto__caption" data-cap="'+i+'">'+s.caption+'</div>';
+          }).join('')+
+        '</div>'+
+        '<div class="howto__side">'+
+          walk.steps.map(function(s,i){
+            return '<div class="howto__step" data-step="'+i+'">'+
+              '<div class="howto__step-num">'+(i+1)+'</div>'+
+              '<div><div class="howto__step-title">'+s.title+'</div><div class="howto__step-sub">'+s.sub+'</div></div>'+
+            '</div>';
+          }).join('')+
+        '</div>'+
+      '</div>'+
+      '<div class="howto__controls">'+
+        '<button class="howto__btn" data-prev aria-label="Previous step">‹</button>'+
+        '<button class="howto__btn" data-play aria-label="Play">▶</button>'+
+        '<button class="howto__btn" data-next aria-label="Next step">›</button>'+
+        '<div class="howto__progress" data-track>'+
+          '<div class="howto__progress-bar" data-bar></div>'+
+          '<div class="howto__progress-ticks">'+ walk.steps.map(function(){return '<i></i>';}).join('') +'</div>'+
+        '</div>'+
+        '<div class="howto__time" data-time>0:00 / '+fmt(totalMs/1000)+'</div>'+
+      '</div>';
+
+    // Insert after overview-video + edu-meta if present, else after premise
+    var anchor = chapter.querySelector(':scope > .edu-meta') ||
+                 chapter.querySelector(':scope > .overview-video') ||
+                 chapter.querySelector('.chapter-premise') ||
+                 chapter.querySelector('.chapter-title');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(el, anchor.nextSibling);
+    else chapter.insertBefore(el, chapter.firstChild);
+
+    var screens = el.querySelectorAll('[data-screen]');
+    var caps = el.querySelectorAll('[data-cap]');
+    var steps = el.querySelectorAll('[data-step]');
+    var bar = el.querySelector('[data-bar]');
+    var time = el.querySelector('[data-time]');
+    var btnPlay = el.querySelector('[data-play]');
+    var track = el.querySelector('[data-track]');
+
+    var elapsed = 0, startedAt = 0, raf = null, playing = false;
+
+    function setActive(idx){
+      screens.forEach(function(s,i){ s.classList.toggle('is-active', i===idx); });
+      caps.forEach(function(s,i){ s.classList.toggle('is-active', i===idx); });
+      steps.forEach(function(s,i){
+        s.classList.toggle('is-active', i===idx);
+        s.classList.toggle('is-seen', i<idx);
+      });
+    }
+    function render(now){
+      var t = (elapsed + (playing ? (now - startedAt) : 0)) % totalMs;
+      var idx = Math.floor(t / STEP_MS);
+      setActive(idx);
+      bar.style.width = ((t/totalMs)*100).toFixed(2)+'%';
+      time.textContent = fmt(t/1000)+' / '+fmt(totalMs/1000);
+      if (playing) raf = requestAnimationFrame(render);
+    }
+    function play(){
+      if (playing) return;
+      playing = true; startedAt = performance.now();
+      btnPlay.textContent = '❚❚'; btnPlay.setAttribute('aria-label','Pause');
+      raf = requestAnimationFrame(render);
+    }
+    function pause(){
+      if (!playing) return;
+      elapsed += performance.now() - startedAt;
+      playing = false;
+      btnPlay.textContent = '▶'; btnPlay.setAttribute('aria-label','Play');
+      if (raf) cancelAnimationFrame(raf);
+    }
+    function jump(idx){
+      pause();
+      elapsed = idx * STEP_MS;
+      setActive(idx);
+      bar.style.width = ((elapsed/totalMs)*100).toFixed(2)+'%';
+      time.textContent = fmt(elapsed/1000)+' / '+fmt(totalMs/1000);
+    }
+
+    setActive(0);
+    btnPlay.addEventListener('click', function(){ playing ? pause() : play(); });
+    el.querySelector('[data-prev]').addEventListener('click', function(){
+      var cur = Math.floor((elapsed % totalMs) / STEP_MS);
+      jump((cur - 1 + n) % n);
+    });
+    el.querySelector('[data-next]').addEventListener('click', function(){
+      var cur = Math.floor((elapsed % totalMs) / STEP_MS);
+      jump((cur + 1) % n);
+    });
+    steps.forEach(function(s,i){ s.addEventListener('click', function(){ jump(i); }); });
+    track.addEventListener('click', function(e){
+      var r = track.getBoundingClientRect();
+      var pct = (e.clientX - r.left) / r.width;
+      jump(Math.min(n-1, Math.max(0, Math.floor(pct * n))));
+    });
+
+    if ('IntersectionObserver' in window){
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if (e.isIntersecting) play(); else pause();
+        });
+      }, { threshold: 0.3 });
+      io.observe(el);
+    } else { play(); }
+  }
+
+  document.querySelectorAll('section.chapter').forEach(function(ch){
+    var title = (ch.querySelector('.chapter-title')||{}).textContent || '';
+    var walk = WALKTHROUGHS.find(function(w){ return w.match.test(title); });
+    if (walk) mount(ch, walk);
+  });
+})();
+</script>
+
 </body>
 </html>
 
