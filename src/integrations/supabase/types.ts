@@ -2214,6 +2214,33 @@ export type Database = {
           },
         ]
       }
+      cfd_palette_votes: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          user_agent: string | null
+          variant: string
+          visitor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_agent?: string | null
+          variant: string
+          visitor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_agent?: string | null
+          variant?: string
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       color_lab_reports: {
         Row: {
           colors: Json
@@ -6805,6 +6832,10 @@ export type Database = {
         Args: { _entity_id?: string; _entity_type?: string; _user_id: string }
         Returns: boolean
       }
+      cast_palette_vote: {
+        Args: { p_user_agent?: string; p_variant: string; p_visitor_id: string }
+        Returns: Json
+      }
       cleanup_expired_invites: { Args: never; Returns: number }
       cleanup_old_audit_logs: { Args: never; Returns: number }
       delete_email: {
@@ -6963,6 +6994,7 @@ export type Database = {
           view_date: string
         }[]
       }
+      get_palette_tally: { Args: never; Returns: Json }
       get_portal_org_safe: {
         Args: { p_slug: string }
         Returns: {
