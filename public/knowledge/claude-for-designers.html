@@ -6466,6 +6466,8 @@ document.querySelectorAll('.nav-item').forEach(link => {
   var pop = document.createElement('div');
   pop.className = 'glossary-pop';
   pop.setAttribute('role','tooltip');
+  pop.setAttribute('aria-label','Glossary definition');
+  pop.id = 'glossary-pop';
   document.body.appendChild(pop);
   var currentTarget = null;
 
