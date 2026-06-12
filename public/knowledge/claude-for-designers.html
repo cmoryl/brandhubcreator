@@ -6072,6 +6072,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
       });
       bar.style.width = '0%';
       btn.innerHTML = PLAY_SVG; btn.setAttribute('aria-label','Play narration');
+      if (ccText) ccText.textContent = 'Press play to start narration.';
     }
     function render(){
       if (!hasMeta || !audio.duration) return;
@@ -6084,6 +6085,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
       });
       bar.style.width = ((t/d)*100).toFixed(2)+'%';
       time.textContent = fmtTime(t)+' / '+fmtTime(d);
+      if (ccText && captionLabels[idx]) ccText.textContent = captionLabels[idx];
     }
     audio.addEventListener('loadedmetadata', function(){
       hasMeta = true;
