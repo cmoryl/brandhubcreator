@@ -5867,56 +5867,73 @@ document.querySelectorAll('.nav-item').forEach(link => {
       chapter.insertBefore(wrap, chapter.firstChild);
     }
 
-    // ── Playback state (paused until in view; auto-plays on visibility) ──
+    // ── Audio-driven playback (narration drives beat sync) ──
     var beatEls = wrap.querySelectorAll('[data-beat]');
     var bar = wrap.querySelector('[data-bar]');
     var time = wrap.querySelector('[data-time]');
     var btn = wrap.querySelector('[data-play]');
-    var startedAt = 0, elapsed = 0, raf = null, playing = false, hasStarted = false;
+    var audio = new Audio('/knowledge/voiceover/'+chapter.id+'.mp3');
+    audio.preload = 'metadata';
+    audio.volume = 1;
+    var hasMeta = false, hasStarted = false;
 
-    function render(now){
-      var t = (elapsed + (playing ? (now - startedAt) : 0)) % totalMs;
-      var idx = Math.floor(t / BEAT_MS);
-      beatEls.forEach(function(el, i){
-        el.classList.toggle('is-active', i === idx);
-        el.classList.toggle('is-seen', i < idx);
+    function paintIdle(){
+      beatEls.forEach(function(el,i){
+        el.classList.toggle('is-active', i===0);
+        el.classList.remove('is-seen');
       });
-      var pct = (t / totalMs) * 100;
-      bar.style.width = pct.toFixed(2)+'%';
-      time.textContent = fmtTime(t/1000)+' / '+fmtTime(totalMs/1000);
-      if (playing) raf = requestAnimationFrame(render);
+      bar.style.width = '0%';
+      btn.textContent = '▶'; btn.setAttribute('aria-label','Play narration');
     }
-    function play(){
-      if (playing) return;
-      playing = true; hasStarted = true;
-      startedAt = performance.now();
-      btn.textContent = '❚❚'; btn.setAttribute('aria-label','Pause overview');
-      raf = requestAnimationFrame(render);
+    function render(){
+      if (!hasMeta || !audio.duration) return;
+      var t = audio.currentTime;
+      var d = audio.duration;
+      var idx = Math.min(beats.length-1, Math.floor((t/d) * beats.length));
+      beatEls.forEach(function(el,i){
+        el.classList.toggle('is-active', i===idx);
+        el.classList.toggle('is-seen', i<idx);
+      });
+      bar.style.width = ((t/d)*100).toFixed(2)+'%';
+      time.textContent = fmtTime(t)+' / '+fmtTime(d);
     }
-    function pause(){
-      if (!playing) return;
-      elapsed += performance.now() - startedAt;
-      playing = false;
-      btn.textContent = '▶';  btn.setAttribute('aria-label','Play overview');
-      if (raf) cancelAnimationFrame(raf);
-    }
-    btn.addEventListener('click', function(){ playing ? pause() : play(); });
+    audio.addEventListener('loadedmetadata', function(){
+      hasMeta = true;
+      time.textContent = '0:00 / '+fmtTime(audio.duration);
+    });
+    audio.addEventListener('timeupdate', render);
+    audio.addEventListener('ended', function(){
+      audio.currentTime = 0;
+      paintIdle();
+    });
+    audio.addEventListener('play', function(){
+      btn.textContent = '❚❚'; btn.setAttribute('aria-label','Pause narration');
+    });
+    audio.addEventListener('pause', function(){
+      btn.textContent = '▶'; btn.setAttribute('aria-label','Play narration');
+    });
+    audio.addEventListener('error', function(){
+      btn.style.opacity = '0.4'; btn.title = 'Narration unavailable';
+    });
 
-    // Initial idle state
-    beatEls[0] && beatEls[0].classList.add('is-active');
-    btn.textContent = '▶'; btn.setAttribute('aria-label','Play overview');
+    btn.addEventListener('click', function(){
+      // Pause all other narrations
+      if (window.__activeNarration && window.__activeNarration !== audio){
+        try { window.__activeNarration.pause(); } catch(_){}
+      }
+      window.__activeNarration = audio;
+      if (audio.paused){ hasStarted = true; audio.play().catch(function(){}); }
+      else audio.pause();
+    });
 
-    // Auto-play when scrolled into view; pause when out
+    paintIdle();
+
+    // Pause when scrolled out of view (do NOT auto-play; respect user/browser autoplay rules)
     if ('IntersectionObserver' in window){
       var io = new IntersectionObserver(function(entries){
-        entries.forEach(function(e){
-          if (e.isIntersecting){ if (!hasStarted || !playing) play(); }
-          else { pause(); }
-        });
-      }, { threshold: 0.35 });
+        entries.forEach(function(e){ if (!e.isIntersecting && !audio.paused) audio.pause(); });
+      }, { threshold: 0.1 });
       io.observe(wrap);
-    } else {
-      play();
     }
   }
 
