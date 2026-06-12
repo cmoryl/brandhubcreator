@@ -1,7 +1,7 @@
 {
   "duration": 25.043,
   "target": "clean-narration-no-production-cues",
-  "visualLeadSeconds": 0.6,
+  "visualLeadSeconds": 0.35,
   "beats": [
     {
       "label": "Turn a vague ask into a brief",

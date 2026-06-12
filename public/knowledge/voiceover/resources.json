@@ -1,7 +1,7 @@
 {
   "duration": 21.501,
   "target": "clean-narration-no-production-cues",
-  "visualLeadSeconds": 0.6,
+  "visualLeadSeconds": 0.35,
   "beats": [
     {
       "label": "Everything a designer needs to know about Claude's official documentation, app integration...",
