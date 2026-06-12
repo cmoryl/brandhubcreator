@@ -5927,8 +5927,186 @@ document.querySelectorAll('.nav-item').forEach(link => {
   } else {
     init();
   }
+</script>
+
+<style>
+/* ─── EDUCATIONAL LAYER ─────────────────────────────────────── */
+.edu-progress{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.06);z-index:9998;pointer-events:none}
+.edu-progress__bar{height:100%;width:0%;background:linear-gradient(90deg,#ff6f5e,#ffb199);box-shadow:0 0 12px rgba(255,111,94,.6);transition:width .12s linear}
+.edu-minimap{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:9997;display:flex;flex-direction:column;gap:8px;padding:10px 8px;background:rgba(12,14,22,.72);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);border-radius:999px}
+.edu-minimap__dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.12);cursor:pointer;position:relative;transition:all .2s ease}
+.edu-minimap__dot:hover{transform:scale(1.25);background:rgba(255,255,255,.35)}
+.edu-minimap__dot.is-active{background:#ff6f5e;border-color:#ff6f5e;box-shadow:0 0 0 3px rgba(255,111,94,.25)}
+.edu-minimap__dot.is-done{background:#4ade80;border-color:#4ade80}
+.edu-minimap__dot::after{content:attr(data-label);position:absolute;right:18px;top:50%;transform:translateY(-50%);white-space:nowrap;background:#0c0e16;color:#fff;font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.08);opacity:0;pointer-events:none;transition:opacity .15s}
+.edu-minimap__dot:hover::after{opacity:1}
+@media (max-width:900px){.edu-minimap{display:none}}
+
+.edu-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0 4px;padding:10px 14px;border:1px dashed rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.02);font-size:12.5px;color:#cfd3df}
+.edu-meta__chip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.edu-meta__chip svg{width:12px;height:12px;opacity:.75}
+.edu-meta__spacer{flex:1}
+.edu-meta__btn{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:rgba(255,111,94,.12);border:1px solid rgba(255,111,94,.4);color:#ffb199;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.edu-meta__btn:hover{background:rgba(255,111,94,.2);color:#fff}
+.edu-meta__btn.is-done{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.45);color:#86efac}
+
+.edu-recap{margin:28px 0 8px;padding:22px 24px;border-radius:14px;background:linear-gradient(135deg,rgba(255,111,94,.08),rgba(99,102,241,.06));border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden}
+.edu-recap::before{content:"";position:absolute;inset:0;background:radial-gradient(600px circle at 0% 0%,rgba(255,111,94,.12),transparent 50%);pointer-events:none}
+.edu-recap__label{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:#ffb199;font-weight:700;margin-bottom:10px;position:relative}
+.edu-recap__title{font-size:18px;font-weight:700;color:#fff;margin:0 0 14px;position:relative}
+.edu-recap__list{list-style:none;padding:0;margin:0;display:grid;gap:8px;position:relative}
+.edu-recap__list li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:#dde0ea;line-height:1.55}
+.edu-recap__list li::before{content:"";flex-shrink:0;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#ff6f5e,#ffb199);margin-top:2px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(255,111,94,.35)}
+.edu-recap__next{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:#9aa0b0;position:relative}
+.edu-recap__next a{color:#ffb199;text-decoration:none;font-weight:600}
+.edu-recap__next a:hover{color:#fff}
+@media print{.edu-progress,.edu-minimap{display:none}.edu-meta__btn{display:none}}
+</style>
+
+<div class="edu-progress" aria-hidden="true"><div class="edu-progress__bar" id="eduProgressBar"></div></div>
+<nav class="edu-minimap" id="eduMinimap" aria-label="Chapter navigation"></nav>
+
+<script>
+/* ─── EDUCATIONAL LAYER ─────────────────────────────────────────
+   Adds: top reading-progress rail, floating chapter mini-map with
+   completion dots, per-chapter read-time + "mark complete" chip,
+   and an auto-generated "Key takeaways" recap card at the end of
+   each chapter. Completion state persists in localStorage.
+*/
+(function(){
+  var STORAGE_KEY = 'tp-cfd-completed-v1';
+  var WPM = 230;
+
+  function loadDone(){
+    try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')); }
+    catch(e){ return new Set(); }
+  }
+  function saveDone(set){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(set))); } catch(e){}
+  }
+
+  function readTime(chapter){
+    var words = (chapter.textContent || '').trim().split(/\s+/).length;
+    return Math.max(1, Math.round(words / WPM));
+  }
+
+  function getBeats(chapter){
+    var beats = [];
+    var labels = chapter.querySelectorAll('.prompt-card-label');
+    labels.forEach(function(l){
+      var t = (l.textContent||'').trim();
+      if (t && beats.indexOf(t) === -1) beats.push(t);
+    });
+    if (beats.length < 3){
+      chapter.querySelectorAll('.tip-content h4').forEach(function(h){
+        var t = (h.textContent||'').trim();
+        if (t && beats.indexOf(t) === -1) beats.push(t);
+      });
+    }
+    return beats.slice(0, 5);
+  }
+
+  function chapterId(chapter, idx){
+    return chapter.id || ('cfd-chapter-' + idx);
+  }
+
+  var done = loadDone();
+  var chapters = Array.from(document.querySelectorAll('section.chapter'));
+
+  // ── Build mini-map ──
+  var minimap = document.getElementById('eduMinimap');
+  chapters.forEach(function(ch, i){
+    var id = chapterId(ch, i);
+    ch.id = id;
+    var num = ((ch.querySelector('.chapter-num')||{}).textContent || (i+1)).toString().trim();
+    var title = ((ch.querySelector('.chapter-title')||{}).textContent || ('Chapter '+(i+1))).trim();
+    var dot = document.createElement('a');
+    dot.href = '#' + id;
+    dot.className = 'edu-minimap__dot';
+    dot.setAttribute('data-chapter', id);
+    dot.setAttribute('data-label', num + ' · ' + title);
+    if (done.has(id)) dot.classList.add('is-done');
+    dot.addEventListener('click', function(e){
+      e.preventDefault();
+      ch.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+    minimap.appendChild(dot);
+  });
+
+  // ── Per-chapter meta strip + recap card ──
+  chapters.forEach(function(ch, i){
+    var id = chapterId(ch, i);
+    var mins = readTime(ch);
+    var beats = getBeats(ch);
+
+    // Meta strip — inserted right after the overview-video (or premise)
+    var meta = document.createElement('div');
+    meta.className = 'edu-meta';
+    meta.innerHTML =
+      '<span class="edu-meta__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> '+mins+' min read</span>'+
+      '<span class="edu-meta__chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 7v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V7l-8-5z"/></svg> '+beats.length+' key ideas</span>'+
+      '<span class="edu-meta__spacer"></span>'+
+      '<button type="button" class="edu-meta__btn" data-mark="'+id+'">'+
+        (done.has(id) ? '✓ Completed' : 'Mark as complete')+
+      '</button>';
+    if (done.has(id)) meta.querySelector('.edu-meta__btn').classList.add('is-done');
+
+    var anchor = ch.querySelector(':scope > .overview-video') || ch.querySelector('.chapter-premise') || ch.querySelector('.chapter-title');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(meta, anchor.nextSibling);
+    else ch.insertBefore(meta, ch.firstChild);
+
+    // Recap card — appended to end of chapter
+    if (beats.length){
+      var nextCh = chapters[i+1];
+      var nextLink = nextCh
+        ? '<span>Next up</span> <a href="#'+chapterId(nextCh, i+1)+'">'+(((nextCh.querySelector('.chapter-num')||{}).textContent||'').trim()+' · '+((nextCh.querySelector('.chapter-title')||{}).textContent||'').trim())+' →</a>'
+        : '<span>That\u2019s the guide. Now go make something.</span><a href="#top">Back to top ↑</a>';
+      var recap = document.createElement('aside');
+      recap.className = 'edu-recap';
+      recap.innerHTML =
+        '<div class="edu-recap__label">★ Key takeaways</div>'+
+        '<h3 class="edu-recap__title">What to remember from this chapter</h3>'+
+        '<ul class="edu-recap__list">'+
+          beats.map(function(b){ return '<li>'+b+'</li>'; }).join('')+
+        '</ul>'+
+        '<div class="edu-recap__next">'+nextLink+'</div>';
+      ch.appendChild(recap);
+    }
+  });
+
+  // ── Mark-complete handler ──
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-mark]');
+    if (!btn) return;
+    var id = btn.getAttribute('data-mark');
+    if (done.has(id)){ done.delete(id); btn.classList.remove('is-done'); btn.textContent='Mark as complete'; }
+    else { done.add(id); btn.classList.add('is-done'); btn.textContent='✓ Completed'; }
+    saveDone(done);
+    var dot = minimap.querySelector('[data-chapter="'+id+'"]');
+    if (dot) dot.classList.toggle('is-done', done.has(id));
+  });
+
+  // ── Top reading-progress + active chapter dot ──
+  var bar = document.getElementById('eduProgressBar');
+  function onScroll(){
+    var h = document.documentElement;
+    var scrolled = h.scrollTop / Math.max(1, (h.scrollHeight - h.clientHeight));
+    bar.style.width = (scrolled * 100).toFixed(1) + '%';
+
+    var mid = window.scrollY + window.innerHeight * 0.35;
+    var activeId = null;
+    chapters.forEach(function(ch){
+      if (ch.offsetTop <= mid) activeId = ch.id;
+    });
+    minimap.querySelectorAll('.edu-minimap__dot').forEach(function(d){
+      d.classList.toggle('is-active', d.getAttribute('data-chapter') === activeId);
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 })();
 </script>
 
 </body>
 </html>
+
