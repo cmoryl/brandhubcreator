@@ -2270,12 +2270,12 @@ button:focus-visible {
 .overview-video__ctrlbtn{
   appearance:none;border:1px solid rgba(255,255,255,.1);cursor:pointer;
   width:32px;height:32px;border-radius:50%;padding:0;
-  background:rgba(255,255,255,.04);color:rgba(248,246,241,.85);
+  background:rgba(255,255,255,.04);color:var(--on-dark);
   display:inline-flex;align-items:center;justify-content:center;
   font-size:11px;line-height:1;
   transition:all .15s ease;
 }
-.overview-video__ctrlbtn:hover{ background:rgba(255,255,255,.12); color:#fff; border-color:rgba(255,255,255,.25); }
+.overview-video__ctrlbtn:hover{ background:rgba(255,255,255,.12); color:var(--on-dark); border-color:rgba(255,255,255,.25); }
 .overview-video__ctrlbtn svg{ width:13px;height:13px; }
 .overview-video__playbtn{
   appearance:none;border:0;cursor:pointer;
@@ -2312,17 +2312,17 @@ button:focus-visible {
   transform:translate(0,-50%) scale(1);
 }
 .overview-video__time{
-  font-family:var(--font-mono);font-size:11px;color:rgba(248,246,241,.7);
+  font-family:var(--font-mono);font-size:11px;color:var(--on-dark-muted);
   min-width:74px;text-align:right;tabular-nums:1;
 }
 .overview-video__speed{
   appearance:none;border:1px solid rgba(255,255,255,.12);cursor:pointer;
   height:28px;min-width:46px;padding:0 9px;border-radius:99px;
-  background:rgba(255,255,255,.05);color:rgba(248,246,241,.85);
+  background:rgba(255,255,255,.05);color:var(--on-dark);
   font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.02em;
   transition:all .15s ease;
 }
-.overview-video__speed:hover{ background:rgba(255,255,255,.12); color:#fff; }
+.overview-video__speed:hover{ background:rgba(255,255,255,.12); color:var(--on-dark); }
 .overview-video__beat{ cursor:pointer; }
 .overview-video__beat:hover{ background:rgba(255,255,255,.04); }
 .overview-video__filmstrip{
