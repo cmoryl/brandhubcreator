@@ -1,23 +1,23 @@
 {
-  "duration": 81.27,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 36.374,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Build a brand-locked prompt",
-      "start": 19.633
+      "start": 8.858
     },
     {
       "label": "Ask for a deck outline",
-      "start": 36.967
+      "start": 16.37
     },
     {
       "label": "Paste into Canva, run a Skill",
-      "start": 54.881
+      "start": 0
     },
     {
       "label": "Iterate without breaking brand",
-      "start": 72.819
+      "start": 29.71
     }
   ]
 }

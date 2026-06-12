@@ -1,23 +1,23 @@
 {
-  "duration": 83.174,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 18.042,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Design decision rationale (mid-build)",
-      "start": 27.422
+      "start": 3.437
     },
     {
       "label": "Adobe Express variant brief",
-      "start": 43.769
+      "start": 7.663
     },
     {
       "label": "Handoff documentation",
-      "start": 58.502
+      "start": 11.122
     },
     {
-      "label": "Photoshop / Illustrator action description \u2192 prompt",
-      "start": 72.678
+      "label": "Photoshop / Illustrator action description → prompt",
+      "start": 14.153
     }
   ]
 }

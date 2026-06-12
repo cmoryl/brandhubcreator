@@ -1,23 +1,23 @@
 {
-  "duration": 78.669,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 33.901,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Start with the vague ask",
-      "start": 18.1
+      "start": 8.928
     },
     {
       "label": "Ask Claude to interrogate it",
-      "start": 34.076
+      "start": 15.685
     },
     {
       "label": "Convert gaps into questions",
-      "start": 51.886
+      "start": 0
     },
     {
       "label": "Get the rewritten brief",
-      "start": 68.082
+      "start": 29.687
     }
   ]
 }

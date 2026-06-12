@@ -1,23 +1,23 @@
 {
-  "duration": 87.818,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 31.881,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Structured critique of an uploaded design",
-      "start": 31.091
+      "start": 17.287
     },
     {
       "label": "Extract a usable palette from any image",
-      "start": 48.089
+      "start": 21.118
     },
     {
       "label": "A/B test two directions against the brief",
-      "start": 63.994
+      "start": 25.205
     },
     {
       "label": "Reverse-engineer a competitor's layout",
-      "start": 79.912
+      "start": 29.686
     }
   ]
 }

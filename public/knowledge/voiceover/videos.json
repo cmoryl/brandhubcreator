@@ -1,11 +1,11 @@
 {
-  "duration": 51.641,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 19.098,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "These are the highest-signal video and written resources verified by the design community ...",
-      "start": 6.618
+      "start": 1.881
     }
   ]
 }

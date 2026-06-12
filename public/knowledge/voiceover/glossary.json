@@ -1,11 +1,11 @@
 {
-  "duration": 47.647,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 19.296,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Plain-English definitions for every piece of jargon used in these chapters. Skim it once; ...",
-      "start": 7.605
+      "start": 3.634
     }
   ]
 }
