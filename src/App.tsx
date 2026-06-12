@@ -499,6 +499,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="knowledge/claude-for-designers"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <ClaudeForDesigners />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="*"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
