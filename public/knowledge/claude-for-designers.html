@@ -6902,6 +6902,12 @@ document.querySelectorAll('.nav-item').forEach(link => {
   } catch(e){}
 
   // Switcher UI
+  var VOTE_KEY = 'cfd-palette-votes';
+  function readVotes(){
+    try { return JSON.parse(localStorage.getItem(VOTE_KEY) || '{"a":0,"b":0,"c":0}'); }
+    catch(e){ return {a:0,b:0,c:0}; }
+  }
+  function writeVotes(v){ try { localStorage.setItem(VOTE_KEY, JSON.stringify(v)); } catch(e){} }
   function buildSwitcher(){
     var bar = document.createElement('div');
     bar.className = 'ab-switcher';
@@ -6911,24 +6917,50 @@ document.querySelectorAll('.nav-item').forEach(link => {
     label.className = 'ab-label';
     label.textContent = 'Palette';
     bar.appendChild(label);
+    var votes = readVotes();
     VARIANTS.forEach(function(v){
       var b = document.createElement('button');
       b.type = 'button';
       b.textContent = v.toUpperCase();
-      b.title = LABELS[v] + ' — WCAG AA/AAA';
+      b.title = LABELS[v];
       b.setAttribute('aria-label', 'Switch to palette ' + v.toUpperCase() + ': ' + LABELS[v]);
       b.setAttribute('aria-pressed', String(v === active));
       b.addEventListener('click', function(){
         active = v;
         document.documentElement.setAttribute('data-palette', v);
         try { localStorage.setItem(KEY, v); } catch(e){}
-        bar.querySelectorAll('button').forEach(function(btn){
-          btn.setAttribute('aria-pressed', String(btn.textContent.toLowerCase() === v));
+        bar.querySelectorAll('button[data-variant]').forEach(function(btn){
+          btn.setAttribute('aria-pressed', String(btn.dataset.variant === v));
         });
         try { console.info('[A/B palette] switched →', { variant: v, label: LABELS[v] }); } catch(e){}
       });
+      b.dataset.variant = v;
       bar.appendChild(b);
     });
+    // Vote UI — single best-feeling pick per visitor
+    var vote = document.createElement('button');
+    vote.className = 'ab-vote';
+    vote.type = 'button';
+    vote.textContent = '♥ Vote';
+    vote.title = 'Vote this as your favorite palette';
+    var tally = document.createElement('span');
+    tally.className = 'ab-tally';
+    function refreshTally(){
+      var v = readVotes();
+      tally.textContent = 'A '+v.a+' · B '+v.b+' · C '+v.c;
+    }
+    refreshTally();
+    vote.addEventListener('click', function(){
+      var v = readVotes();
+      v[active] = (v[active] || 0) + 1;
+      writeVotes(v);
+      refreshTally();
+      vote.textContent = '✓ Voted';
+      vote.disabled = true;
+      try { console.info('[A/B palette] vote →', { variant: active, tally: v }); } catch(e){}
+    });
+    bar.appendChild(vote);
+    bar.appendChild(tally);
     document.body.appendChild(bar);
   }
   if (document.readyState === 'loading') {
