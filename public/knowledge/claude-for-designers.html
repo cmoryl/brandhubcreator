@@ -2176,29 +2176,68 @@ button:focus-visible {
   font-size:13.5px;line-height:1.45;color:#f8f6f1;
 }
 .overview-video__controls{
-  display:flex;align-items:center;gap:14px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 12px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
 }
+.overview-video__ctrlbtn{
+  appearance:none;border:1px solid rgba(255,255,255,.1);cursor:pointer;
+  width:32px;height:32px;border-radius:50%;padding:0;
+  background:rgba(255,255,255,.04);color:rgba(248,246,241,.85);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:11px;line-height:1;
+  transition:all .15s ease;
+}
+.overview-video__ctrlbtn:hover{ background:rgba(255,255,255,.12); color:#fff; border-color:rgba(255,255,255,.25); }
+.overview-video__ctrlbtn svg{ width:13px;height:13px; }
 .overview-video__playbtn{
   appearance:none;border:0;cursor:pointer;
-  width:36px;height:36px;border-radius:50%;
+  width:42px;height:42px;border-radius:50%;
   background:#f8f6f1;color:#111110;
   display:inline-flex;align-items:center;justify-content:center;
-  font-size:14px;line-height:1;
+  font-size:15px;line-height:1;
   transition:transform .2s ease, background .2s ease;
+  box-shadow:0 4px 14px rgba(0,0,0,.25);
 }
-.overview-video__playbtn:hover{ transform:scale(1.06); background:#fff; }
+.overview-video__playbtn:hover{ transform:scale(1.08); background:#fff; }
+.overview-video__playbtn svg{ width:15px;height:15px; }
 .overview-video__progress{
-  flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;
+  position:relative;flex:1;min-width:120px;height:18px;cursor:pointer;
+  display:flex;align-items:center;
+}
+.overview-video__progress::before{
+  content:"";position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+  height:4px;border-radius:99px;background:rgba(255,255,255,.1);
 }
 .overview-video__progress-bar{
-  display:block;height:100%;width:0%;
+  position:relative;display:block;height:4px;width:0%;border-radius:99px;
   background:linear-gradient(90deg, var(--coral), var(--indigo));
-  transition:width .25s linear;
+  transition:width .12s linear;pointer-events:none;
+}
+.overview-video__progress-bar::after{
+  content:"";position:absolute;right:-6px;top:50%;transform:translate(0,-50%) scale(0);
+  width:12px;height:12px;border-radius:50%;background:#fff;
+  box-shadow:0 0 0 3px rgba(255,111,94,.35);
+  transition:transform .15s ease;
+}
+.overview-video__progress:hover .overview-video__progress-bar::after,
+.overview-video__progress.is-scrubbing .overview-video__progress-bar::after{
+  transform:translate(0,-50%) scale(1);
 }
 .overview-video__time{
-  font-family:var(--font-mono);font-size:11px;color:rgba(248,246,241,.65);
-  min-width:46px;text-align:right;
+  font-family:var(--font-mono);font-size:11px;color:rgba(248,246,241,.7);
+  min-width:74px;text-align:right;tabular-nums:1;
 }
+.overview-video__speed{
+  appearance:none;border:1px solid rgba(255,255,255,.12);cursor:pointer;
+  height:28px;min-width:46px;padding:0 9px;border-radius:99px;
+  background:rgba(255,255,255,.05);color:rgba(248,246,241,.85);
+  font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.02em;
+  transition:all .15s ease;
+}
+.overview-video__speed:hover{ background:rgba(255,255,255,.12); color:#fff; }
+.overview-video__beat{ cursor:pointer; }
+.overview-video__beat:hover{ background:rgba(255,255,255,.04); }
 .overview-video__filmstrip{
   position:absolute;top:0;right:0;height:100%;width:14px;z-index:0;
   background:
@@ -5852,9 +5891,14 @@ document.querySelectorAll('.nav-item').forEach(link => {
             }).join('')+
           '</div>'+
           '<div class="overview-video__controls">'+
-            '<button type="button" class="overview-video__playbtn" data-play aria-label="Pause overview">❚❚</button>'+
-            '<span class="overview-video__progress"><span class="overview-video__progress-bar" data-bar></span></span>'+
+            '<button type="button" class="overview-video__ctrlbtn" data-restart aria-label="Restart" title="Restart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>'+
+            '<button type="button" class="overview-video__ctrlbtn" data-back aria-label="Back 10 seconds" title="Back 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 8H6V1.5"/><path d="M3.05 11a9 9 0 1 0 .5-4"/><text x="12" y="17" font-size="8" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">10</text></svg></button>'+
+            '<button type="button" class="overview-video__playbtn" data-play aria-label="Play narration"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>'+
+            '<button type="button" class="overview-video__ctrlbtn" data-fwd aria-label="Forward 10 seconds" title="Forward 10s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 8H18V1.5"/><path d="M20.95 11a9 9 0 1 1-.5-4"/><text x="12" y="17" font-size="8" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">10</text></svg></button>'+
+            '<button type="button" class="overview-video__speed" data-speed aria-label="Playback speed" title="Playback speed">1x</button>'+
+            '<div class="overview-video__progress" data-seek><span class="overview-video__progress-bar" data-bar></span></div>'+
             '<span class="overview-video__time" data-time>0:00 / '+fmtTime(totalMs/1000)+'</span>'+
+            '<button type="button" class="overview-video__ctrlbtn" data-mute aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>'+
           '</div>'+
         '</div>'+
       '</div>';
@@ -5869,13 +5913,24 @@ document.querySelectorAll('.nav-item').forEach(link => {
 
     // ── Audio-driven playback (narration drives beat sync) ──
     var beatEls = wrap.querySelectorAll('[data-beat]');
-    var bar = wrap.querySelector('[data-bar]');
-    var time = wrap.querySelector('[data-time]');
-    var btn = wrap.querySelector('[data-play]');
+    var bar     = wrap.querySelector('[data-bar]');
+    var time    = wrap.querySelector('[data-time]');
+    var btn     = wrap.querySelector('[data-play]');
+    var seek    = wrap.querySelector('[data-seek]');
+    var backBtn = wrap.querySelector('[data-back]');
+    var fwdBtn  = wrap.querySelector('[data-fwd]');
+    var rstBtn  = wrap.querySelector('[data-restart]');
+    var spdBtn  = wrap.querySelector('[data-speed]');
+    var muteBtn = wrap.querySelector('[data-mute]');
     var audio = new Audio('/knowledge/voiceover/'+chapter.id+'.mp3');
     audio.preload = 'metadata';
     audio.volume = 1;
-    var hasMeta = false, hasStarted = false;
+    var hasMeta = false;
+    var SPEEDS = [1, 1.25, 1.5, 0.75]; var spdIdx = 0;
+    var PLAY_SVG  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    var PAUSE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+    var VOL_SVG   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+    var MUTE_SVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>';
 
     function paintIdle(){
       beatEls.forEach(function(el,i){
@@ -5883,7 +5938,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
         el.classList.remove('is-seen');
       });
       bar.style.width = '0%';
-      btn.textContent = '▶'; btn.setAttribute('aria-label','Play narration');
+      btn.innerHTML = PLAY_SVG; btn.setAttribute('aria-label','Play narration');
     }
     function render(){
       if (!hasMeta || !audio.duration) return;
@@ -5902,33 +5957,71 @@ document.querySelectorAll('.nav-item').forEach(link => {
       time.textContent = '0:00 / '+fmtTime(audio.duration);
     });
     audio.addEventListener('timeupdate', render);
-    audio.addEventListener('ended', function(){
-      audio.currentTime = 0;
-      paintIdle();
-    });
-    audio.addEventListener('play', function(){
-      btn.textContent = '❚❚'; btn.setAttribute('aria-label','Pause narration');
-    });
-    audio.addEventListener('pause', function(){
-      btn.textContent = '▶'; btn.setAttribute('aria-label','Play narration');
-    });
+    audio.addEventListener('ended', function(){ audio.currentTime = 0; paintIdle(); });
+    audio.addEventListener('play',  function(){ btn.innerHTML = PAUSE_SVG; btn.setAttribute('aria-label','Pause narration'); });
+    audio.addEventListener('pause', function(){ btn.innerHTML = PLAY_SVG;  btn.setAttribute('aria-label','Play narration'); });
     audio.addEventListener('error', function(){
-      btn.style.opacity = '0.4'; btn.title = 'Narration unavailable';
+      [btn,backBtn,fwdBtn,rstBtn,spdBtn,muteBtn,seek].forEach(function(e){ if(e){ e.style.opacity='0.4'; e.style.pointerEvents='none';} });
+      btn.title = 'Narration unavailable';
     });
 
     btn.addEventListener('click', function(){
-      // Pause all other narrations
       if (window.__activeNarration && window.__activeNarration !== audio){
         try { window.__activeNarration.pause(); } catch(_){}
       }
       window.__activeNarration = audio;
-      if (audio.paused){ hasStarted = true; audio.play().catch(function(){}); }
+      if (audio.paused) audio.play().catch(function(){});
       else audio.pause();
+    });
+
+    backBtn.addEventListener('click', function(){
+      audio.currentTime = Math.max(0, audio.currentTime - 10);
+    });
+    fwdBtn.addEventListener('click', function(){
+      if (audio.duration) audio.currentTime = Math.min(audio.duration - 0.05, audio.currentTime + 10);
+    });
+    rstBtn.addEventListener('click', function(){
+      audio.currentTime = 0;
+      if (audio.paused) render();
+    });
+    spdBtn.addEventListener('click', function(){
+      spdIdx = (spdIdx + 1) % SPEEDS.length;
+      audio.playbackRate = SPEEDS[spdIdx];
+      spdBtn.textContent = SPEEDS[spdIdx] + 'x';
+    });
+    muteBtn.addEventListener('click', function(){
+      audio.muted = !audio.muted;
+      muteBtn.innerHTML = audio.muted ? MUTE_SVG : VOL_SVG;
+      muteBtn.setAttribute('aria-label', audio.muted ? 'Unmute' : 'Mute');
+    });
+
+    // Clickable / draggable progress bar
+    function seekTo(clientX){
+      if (!audio.duration) return;
+      var r = seek.getBoundingClientRect();
+      var p = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+      audio.currentTime = p * audio.duration;
+      bar.style.width = (p*100).toFixed(2)+'%';
+    }
+    var dragging = false;
+    seek.addEventListener('mousedown', function(e){ dragging = true; seek.classList.add('is-scrubbing'); seekTo(e.clientX); });
+    window.addEventListener('mousemove', function(e){ if (dragging) seekTo(e.clientX); });
+    window.addEventListener('mouseup',  function(){ if (dragging){ dragging=false; seek.classList.remove('is-scrubbing'); } });
+    seek.addEventListener('touchstart', function(e){ seek.classList.add('is-scrubbing'); seekTo(e.touches[0].clientX); }, {passive:true});
+    seek.addEventListener('touchmove',  function(e){ seekTo(e.touches[0].clientX); }, {passive:true});
+    seek.addEventListener('touchend',   function(){ seek.classList.remove('is-scrubbing'); });
+
+    // Click any beat to jump to its position
+    beatEls.forEach(function(el, i){
+      el.addEventListener('click', function(){
+        if (!audio.duration) return;
+        audio.currentTime = (i / beats.length) * audio.duration + 0.01;
+        if (audio.paused) audio.play().catch(function(){});
+      });
     });
 
     paintIdle();
 
-    // Pause when scrolled out of view (do NOT auto-play; respect user/browser autoplay rules)
     if ('IntersectionObserver' in window){
       var io = new IntersectionObserver(function(entries){
         entries.forEach(function(e){ if (!e.isIntersecting && !audio.paused) audio.pause(); });
