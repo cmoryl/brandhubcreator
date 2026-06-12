@@ -1,0 +1,21 @@
+{
+  "duration": 32.508,
+  "beats": [
+    {
+      "label": "Build a reusable brand prompt system",
+      "start": 19.156
+    },
+    {
+      "label": "Translate a brief into 6 visual directions",
+      "start": 22.349
+    },
+    {
+      "label": "Fix a prompt that keeps failing",
+      "start": 26.134
+    },
+    {
+      "label": "Skip the generator \u2014 draw it as SVG",
+      "start": 29.199
+    }
+  ]
+}

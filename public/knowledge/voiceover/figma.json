@@ -1,0 +1,21 @@
+{
+  "duration": 29.954,
+  "beats": [
+    {
+      "label": "Design token architecture",
+      "start": 19.888
+    },
+    {
+      "label": "Component naming convention",
+      "start": 22.245
+    },
+    {
+      "label": "Component documentation",
+      "start": 24.764
+    },
+    {
+      "label": "Figma file audit (with MCP)",
+      "start": 27.33
+    }
+  ]
+}

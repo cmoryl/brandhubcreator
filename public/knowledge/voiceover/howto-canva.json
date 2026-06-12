@@ -1,0 +1,21 @@
+{
+  "duration": 18.065,
+  "beats": [
+    {
+      "label": "Build a brand-locked prompt",
+      "start": 6.188
+    },
+    {
+      "label": "Ask for a deck outline",
+      "start": 8.766
+    },
+    {
+      "label": "Paste into Canva, run a Skill",
+      "start": 11.784
+    },
+    {
+      "label": "Iterate without breaking brand",
+      "start": 15.848
+    }
+  ]
+}
