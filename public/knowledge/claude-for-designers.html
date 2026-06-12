@@ -5823,7 +5823,8 @@ document.querySelectorAll('.nav-item').forEach(link => {
    chapter. Each "video" is built from that chapter's own content:
    - Title + premise are pulled from the section.
    - Beats cycle through 3-4 key takeaways (prompt-card labels or
-     a tip), one every ~3.2s, looping. Fully visual — no audio.
+      a tip). Narration and sidecar timestamps drive an industry-standard
+      demo cadence with readable holds before each transition.
 */
 (function(){
   function buildBeats(chapter){
@@ -5857,7 +5858,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
     var title = (chapter.querySelector('.chapter-title')||{}).textContent || '';
     var premise = (chapter.querySelector('.chapter-premise')||{}).textContent || '';
     var beats = buildBeats(chapter);
-    var BEAT_MS = 3200;
+    var BEAT_MS = 18000;
     var totalMs = beats.length * BEAT_MS;
 
     var wrap = document.createElement('div');
@@ -5926,7 +5927,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
     audio.preload = 'metadata';
     audio.volume = 1;
     var hasMeta = false;
-    var SPEEDS = [1, 1.25, 1.5, 0.75]; var spdIdx = 0;
+    var SPEEDS = [1, 0.9, 0.8, 1.1]; var spdIdx = 0;
     var PLAY_SVG  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
     var PAUSE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
     var VOL_SVG   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
@@ -5934,10 +5935,12 @@ document.querySelectorAll('.nav-item').forEach(link => {
 
     // Beat timestamp sidecar (precise sync to narration)
     var beatStarts = null;  // array of seconds, one per beat element, or null = even split fallback
+    var visualLeadSeconds = 0.8;
     fetch('/knowledge/voiceover/'+chapter.id+'.json', { cache: 'force-cache' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(j){
         if (!j || !j.beats || !j.beats.length) return;
+        if (typeof j.visualLeadSeconds === 'number') visualLeadSeconds = j.visualLeadSeconds;
         // Map sidecar beats to our visible beats (by order). Pad with even-split where missing.
         beatStarts = [];
         for (var i=0; i<beats.length; i++){
@@ -5955,7 +5958,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
       if (beatStarts && beatStarts.length){
         var idx = 0;
         for (var i=0; i<beatStarts.length; i++){
-          if (beatStarts[i] != null && t >= beatStarts[i] - 0.05) idx = i;
+          if (beatStarts[i] != null && t >= beatStarts[i] - visualLeadSeconds) idx = i;
         }
         return idx;
       }
