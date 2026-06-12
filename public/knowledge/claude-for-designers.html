@@ -5932,6 +5932,37 @@ document.querySelectorAll('.nav-item').forEach(link => {
     var VOL_SVG   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
     var MUTE_SVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>';
 
+    // Beat timestamp sidecar (precise sync to narration)
+    var beatStarts = null;  // array of seconds, one per beat element, or null = even split fallback
+    fetch('/knowledge/voiceover/'+chapter.id+'.json', { cache: 'force-cache' })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(j){
+        if (!j || !j.beats || !j.beats.length) return;
+        // Map sidecar beats to our visible beats (by order). Pad with even-split where missing.
+        beatStarts = [];
+        for (var i=0; i<beats.length; i++){
+          if (i < j.beats.length && typeof j.beats[i].start === 'number'){
+            beatStarts.push(j.beats[i].start);
+          } else if (audio.duration){
+            beatStarts.push((i / beats.length) * audio.duration);
+          } else {
+            beatStarts.push(null);
+          }
+        }
+      }).catch(function(){});
+
+    function activeBeatIndex(t){
+      if (beatStarts && beatStarts.length){
+        var idx = 0;
+        for (var i=0; i<beatStarts.length; i++){
+          if (beatStarts[i] != null && t >= beatStarts[i] - 0.05) idx = i;
+        }
+        return idx;
+      }
+      // fallback even split
+      return Math.min(beats.length-1, Math.floor((t/audio.duration) * beats.length));
+    }
+
     function paintIdle(){
       beatEls.forEach(function(el,i){
         el.classList.toggle('is-active', i===0);
@@ -5944,7 +5975,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
       if (!hasMeta || !audio.duration) return;
       var t = audio.currentTime;
       var d = audio.duration;
-      var idx = Math.min(beats.length-1, Math.floor((t/d) * beats.length));
+      var idx = activeBeatIndex(t);
       beatEls.forEach(function(el,i){
         el.classList.toggle('is-active', i===idx);
         el.classList.toggle('is-seen', i<idx);
