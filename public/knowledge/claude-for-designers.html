@@ -5913,13 +5913,24 @@ document.querySelectorAll('.nav-item').forEach(link => {
 
     // ── Audio-driven playback (narration drives beat sync) ──
     var beatEls = wrap.querySelectorAll('[data-beat]');
-    var bar = wrap.querySelector('[data-bar]');
-    var time = wrap.querySelector('[data-time]');
-    var btn = wrap.querySelector('[data-play]');
+    var bar     = wrap.querySelector('[data-bar]');
+    var time    = wrap.querySelector('[data-time]');
+    var btn     = wrap.querySelector('[data-play]');
+    var seek    = wrap.querySelector('[data-seek]');
+    var backBtn = wrap.querySelector('[data-back]');
+    var fwdBtn  = wrap.querySelector('[data-fwd]');
+    var rstBtn  = wrap.querySelector('[data-restart]');
+    var spdBtn  = wrap.querySelector('[data-speed]');
+    var muteBtn = wrap.querySelector('[data-mute]');
     var audio = new Audio('/knowledge/voiceover/'+chapter.id+'.mp3');
     audio.preload = 'metadata';
     audio.volume = 1;
-    var hasMeta = false, hasStarted = false;
+    var hasMeta = false;
+    var SPEEDS = [1, 1.25, 1.5, 0.75]; var spdIdx = 0;
+    var PLAY_SVG  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    var PAUSE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+    var VOL_SVG   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+    var MUTE_SVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>';
 
     function paintIdle(){
       beatEls.forEach(function(el,i){
@@ -5927,7 +5938,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
         el.classList.remove('is-seen');
       });
       bar.style.width = '0%';
-      btn.textContent = '▶'; btn.setAttribute('aria-label','Play narration');
+      btn.innerHTML = PLAY_SVG; btn.setAttribute('aria-label','Play narration');
     }
     function render(){
       if (!hasMeta || !audio.duration) return;
@@ -5946,33 +5957,71 @@ document.querySelectorAll('.nav-item').forEach(link => {
       time.textContent = '0:00 / '+fmtTime(audio.duration);
     });
     audio.addEventListener('timeupdate', render);
-    audio.addEventListener('ended', function(){
-      audio.currentTime = 0;
-      paintIdle();
-    });
-    audio.addEventListener('play', function(){
-      btn.textContent = '❚❚'; btn.setAttribute('aria-label','Pause narration');
-    });
-    audio.addEventListener('pause', function(){
-      btn.textContent = '▶'; btn.setAttribute('aria-label','Play narration');
-    });
+    audio.addEventListener('ended', function(){ audio.currentTime = 0; paintIdle(); });
+    audio.addEventListener('play',  function(){ btn.innerHTML = PAUSE_SVG; btn.setAttribute('aria-label','Pause narration'); });
+    audio.addEventListener('pause', function(){ btn.innerHTML = PLAY_SVG;  btn.setAttribute('aria-label','Play narration'); });
     audio.addEventListener('error', function(){
-      btn.style.opacity = '0.4'; btn.title = 'Narration unavailable';
+      [btn,backBtn,fwdBtn,rstBtn,spdBtn,muteBtn,seek].forEach(function(e){ if(e){ e.style.opacity='0.4'; e.style.pointerEvents='none';} });
+      btn.title = 'Narration unavailable';
     });
 
     btn.addEventListener('click', function(){
-      // Pause all other narrations
       if (window.__activeNarration && window.__activeNarration !== audio){
         try { window.__activeNarration.pause(); } catch(_){}
       }
       window.__activeNarration = audio;
-      if (audio.paused){ hasStarted = true; audio.play().catch(function(){}); }
+      if (audio.paused) audio.play().catch(function(){});
       else audio.pause();
+    });
+
+    backBtn.addEventListener('click', function(){
+      audio.currentTime = Math.max(0, audio.currentTime - 10);
+    });
+    fwdBtn.addEventListener('click', function(){
+      if (audio.duration) audio.currentTime = Math.min(audio.duration - 0.05, audio.currentTime + 10);
+    });
+    rstBtn.addEventListener('click', function(){
+      audio.currentTime = 0;
+      if (audio.paused) render();
+    });
+    spdBtn.addEventListener('click', function(){
+      spdIdx = (spdIdx + 1) % SPEEDS.length;
+      audio.playbackRate = SPEEDS[spdIdx];
+      spdBtn.textContent = SPEEDS[spdIdx] + 'x';
+    });
+    muteBtn.addEventListener('click', function(){
+      audio.muted = !audio.muted;
+      muteBtn.innerHTML = audio.muted ? MUTE_SVG : VOL_SVG;
+      muteBtn.setAttribute('aria-label', audio.muted ? 'Unmute' : 'Mute');
+    });
+
+    // Clickable / draggable progress bar
+    function seekTo(clientX){
+      if (!audio.duration) return;
+      var r = seek.getBoundingClientRect();
+      var p = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+      audio.currentTime = p * audio.duration;
+      bar.style.width = (p*100).toFixed(2)+'%';
+    }
+    var dragging = false;
+    seek.addEventListener('mousedown', function(e){ dragging = true; seek.classList.add('is-scrubbing'); seekTo(e.clientX); });
+    window.addEventListener('mousemove', function(e){ if (dragging) seekTo(e.clientX); });
+    window.addEventListener('mouseup',  function(){ if (dragging){ dragging=false; seek.classList.remove('is-scrubbing'); } });
+    seek.addEventListener('touchstart', function(e){ seek.classList.add('is-scrubbing'); seekTo(e.touches[0].clientX); }, {passive:true});
+    seek.addEventListener('touchmove',  function(e){ seekTo(e.touches[0].clientX); }, {passive:true});
+    seek.addEventListener('touchend',   function(){ seek.classList.remove('is-scrubbing'); });
+
+    // Click any beat to jump to its position
+    beatEls.forEach(function(el, i){
+      el.addEventListener('click', function(){
+        if (!audio.duration) return;
+        audio.currentTime = (i / beats.length) * audio.duration + 0.01;
+        if (audio.paused) audio.play().catch(function(){});
+      });
     });
 
     paintIdle();
 
-    // Pause when scrolled out of view (do NOT auto-play; respect user/browser autoplay rules)
     if ('IntersectionObserver' in window){
       var io = new IntersectionObserver(function(entries){
         entries.forEach(function(e){ if (!e.isIntersecting && !audio.paused) audio.pause(); });
