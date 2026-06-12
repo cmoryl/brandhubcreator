@@ -6480,7 +6480,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
    pause, scrub, or click a step in the sidebar.
 */
 (function(){
-  var STEP_MS = 4200;
+  var STEP_MS = 20000;
 
   var WALKTHROUGHS = [
     {
@@ -6624,12 +6624,14 @@ document.querySelectorAll('.nav-item').forEach(link => {
     if (audio) audio.preload = 'metadata';
     var hasMeta = false;
     var stepStarts = null; // precise per-step timestamps from sidecar
+    var visualLeadSeconds = 0.8;
 
     if (audio && walk.audio){
       fetch('/knowledge/voiceover/'+walk.audio+'.json', { cache: 'force-cache' })
         .then(function(r){ return r.ok ? r.json() : null; })
         .then(function(j){
           if (!j || !j.beats || !j.beats.length) return;
+          if (typeof j.visualLeadSeconds === 'number') visualLeadSeconds = j.visualLeadSeconds;
           stepStarts = [];
           for (var i=0; i<n; i++){
             if (i < j.beats.length && typeof j.beats[i].start === 'number') stepStarts.push(j.beats[i].start);
@@ -6642,7 +6644,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
       if (stepStarts){
         var idx = 0;
         for (var i=0; i<stepStarts.length; i++){
-          if (stepStarts[i] != null && t >= stepStarts[i] - 0.05) idx = i;
+          if (stepStarts[i] != null && t >= stepStarts[i] - visualLeadSeconds) idx = i;
         }
         return idx;
       }
