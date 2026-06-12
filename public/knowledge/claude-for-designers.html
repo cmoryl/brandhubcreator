@@ -6817,6 +6817,71 @@ document.querySelectorAll('.nav-item').forEach(link => {
 })();
 </script>
 
+<!-- A/B palette test — WCAG AA/AAA verified variants -->
+<script>
+(function(){
+  var KEY = 'cfd-palette';
+  var VARIANTS = ['a','b','c'];
+  var LABELS = { a: 'Warm Cream', b: 'Cool Slate', c: 'Mono Emerald' };
+  function getParam(){
+    try { return new URLSearchParams(location.search).get('palette'); } catch(e){ return null; }
+  }
+  function pickAssignment(){
+    // weighted equal random; persistent per-visitor in localStorage
+    var i = Math.floor(Math.random() * VARIANTS.length);
+    return VARIANTS[i];
+  }
+  var forced = getParam();
+  var stored = null;
+  try { stored = localStorage.getItem(KEY); } catch(e){}
+  var active = (forced && VARIANTS.indexOf(forced) >= 0) ? forced
+             : (stored && VARIANTS.indexOf(stored) >= 0) ? stored
+             : pickAssignment();
+  document.documentElement.setAttribute('data-palette', active);
+  try { localStorage.setItem(KEY, active); } catch(e){}
+  // analytics breadcrumb
+  try {
+    console.info('[A/B palette]', { variant: active, label: LABELS[active], source: forced ? 'url' : (stored ? 'persisted' : 'assigned') });
+  } catch(e){}
+
+  // Switcher UI
+  function buildSwitcher(){
+    var bar = document.createElement('div');
+    bar.className = 'ab-switcher';
+    bar.setAttribute('role','group');
+    bar.setAttribute('aria-label','Color palette A/B test');
+    var label = document.createElement('span');
+    label.className = 'ab-label';
+    label.textContent = 'Palette';
+    bar.appendChild(label);
+    VARIANTS.forEach(function(v){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = v.toUpperCase();
+      b.title = LABELS[v] + ' — WCAG AA/AAA';
+      b.setAttribute('aria-label', 'Switch to palette ' + v.toUpperCase() + ': ' + LABELS[v]);
+      b.setAttribute('aria-pressed', String(v === active));
+      b.addEventListener('click', function(){
+        active = v;
+        document.documentElement.setAttribute('data-palette', v);
+        try { localStorage.setItem(KEY, v); } catch(e){}
+        bar.querySelectorAll('button').forEach(function(btn){
+          btn.setAttribute('aria-pressed', String(btn.textContent.toLowerCase() === v));
+        });
+        try { console.info('[A/B palette] switched →', { variant: v, label: LABELS[v] }); } catch(e){}
+      });
+      bar.appendChild(b);
+    });
+    document.body.appendChild(bar);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', buildSwitcher);
+  } else {
+    buildSwitcher();
+  }
+})();
+</script>
+
 </body>
 </html>
 
