@@ -6048,8 +6048,9 @@ document.querySelectorAll('.nav-item').forEach(link => {
       .then(function(j){
         if (!j || !j.beats || !j.beats.length) return;
         if (typeof j.visualLeadSeconds === 'number') visualLeadSeconds = j.visualLeadSeconds;
-        // Map sidecar beats by order, then repair any missing/duplicate timestamps.
         beatStarts = normalizeTimedStarts(j.beats.map(function(b){ return b.start; }), beats.length, audio.duration || j.duration || 0);
+        // Prefer sidecar labels for captions when present (cleaner narrator wording)
+        j.beats.forEach(function(b,i){ if (b && b.label && i < captionLabels.length) captionLabels[i] = b.label; });
       }).catch(function(){});
 
     function activeBeatIndex(t){
