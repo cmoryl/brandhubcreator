@@ -6130,6 +6130,17 @@ document.querySelectorAll('.nav-item').forEach(link => {
       muteBtn.setAttribute('aria-label', audio.muted ? 'Unmute' : 'Mute');
     });
 
+    // CC toggle — captions on by default, persisted per visitor
+    var CC_KEY = 'cfd-cc-on';
+    try { if (localStorage.getItem(CC_KEY) === '0') { ccStrip.hidden = true; ccBtn.setAttribute('aria-pressed','false'); } } catch(_){}
+    ccBtn.addEventListener('click', function(){
+      var on = ccBtn.getAttribute('aria-pressed') !== 'true';
+      ccBtn.setAttribute('aria-pressed', String(on));
+      ccStrip.hidden = !on;
+      try { localStorage.setItem(CC_KEY, on ? '1' : '0'); } catch(_){}
+    });
+
+
     // Clickable / draggable progress bar
     function seekTo(clientX){
       if (!audio.duration) return;
