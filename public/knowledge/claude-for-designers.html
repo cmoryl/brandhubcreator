@@ -2108,6 +2108,40 @@ button:focus-visible {
 }
 </style>
 <style>
+/* ─── Live caption strip (CC) for narrated overview players ─── */
+.overview-video__cc{
+  position:relative;z-index:2;
+  margin:0 26px 14px;padding:10px 14px;
+  background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:8px;
+  font-family:var(--font-body);
+  font-size:15px;line-height:1.45;
+  color:#f8f6f1;
+  min-height:42px;
+  display:flex;align-items:center;gap:10px;
+  transition:opacity .2s ease;
+}
+.overview-video__cc[hidden]{display:none;}
+.overview-video__cc-tag{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  opacity:.6;flex-shrink:0;
+}
+.overview-video__cc-text{flex:1;}
+.overview-video__ccbtn[aria-pressed="true"]{
+  background:var(--coral);color:#fff;border-color:var(--coral);
+}
+/* A/B vote UI */
+.ab-switcher .ab-vote{
+  margin-left:6px;padding:4px 8px;border-radius:6px;
+  background:transparent;border:1px solid var(--ink);
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink);cursor:pointer;
+}
+.ab-switcher .ab-vote:hover{background:var(--ink);color:var(--bg);}
+.ab-switcher .ab-tally{
+  font-family:var(--font-mono);font-size:10px;opacity:.7;margin-left:4px;
+}
 /* ─── OVERVIEW "VIDEO" PLAYER (auto-generated per chapter) ─── */
 .overview-video{
   position:relative;
@@ -5940,7 +5974,12 @@ document.querySelectorAll('.nav-item').forEach(link => {
             '<button type="button" class="overview-video__speed" data-speed aria-label="Playback speed" title="Playback speed">1x</button>'+
             '<div class="overview-video__progress" data-seek><span class="overview-video__progress-bar" data-bar></span></div>'+
             '<span class="overview-video__time" data-time>0:00 / '+fmtTime(totalMs/1000)+'</span>'+
+            '<button type="button" class="overview-video__ctrlbtn overview-video__ccbtn" data-cc aria-label="Toggle captions" aria-pressed="true" title="Captions">CC</button>'+
             '<button type="button" class="overview-video__ctrlbtn" data-mute aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>'+
+          '</div>'+
+          '<div class="overview-video__cc" data-cc-strip aria-live="polite" aria-atomic="true">'+
+            '<span class="overview-video__cc-tag">CC</span>'+
+            '<span class="overview-video__cc-text" data-cc-text>Press play to start narration.</span>'+
           '</div>'+
         '</div>'+
       '</div>';
@@ -5964,6 +6003,10 @@ document.querySelectorAll('.nav-item').forEach(link => {
     var rstBtn  = wrap.querySelector('[data-restart]');
     var spdBtn  = wrap.querySelector('[data-speed]');
     var muteBtn = wrap.querySelector('[data-mute]');
+    var ccBtn   = wrap.querySelector('[data-cc]');
+    var ccStrip = wrap.querySelector('[data-cc-strip]');
+    var ccText  = wrap.querySelector('[data-cc-text]');
+    var captionLabels = beats.slice();  // default to DOM beat text; sidecar may override
     var audio = new Audio('/knowledge/voiceover/'+chapter.id+'.mp3');
     audio.preload = 'metadata';
     audio.volume = 1;
@@ -6005,8 +6048,9 @@ document.querySelectorAll('.nav-item').forEach(link => {
       .then(function(j){
         if (!j || !j.beats || !j.beats.length) return;
         if (typeof j.visualLeadSeconds === 'number') visualLeadSeconds = j.visualLeadSeconds;
-        // Map sidecar beats by order, then repair any missing/duplicate timestamps.
         beatStarts = normalizeTimedStarts(j.beats.map(function(b){ return b.start; }), beats.length, audio.duration || j.duration || 0);
+        // Prefer sidecar labels for captions when present (cleaner narrator wording)
+        j.beats.forEach(function(b,i){ if (b && b.label && i < captionLabels.length) captionLabels[i] = b.label; });
       }).catch(function(){});
 
     function activeBeatIndex(t){
@@ -6028,6 +6072,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
       });
       bar.style.width = '0%';
       btn.innerHTML = PLAY_SVG; btn.setAttribute('aria-label','Play narration');
+      if (ccText) ccText.textContent = 'Press play to start narration.';
     }
     function render(){
       if (!hasMeta || !audio.duration) return;
@@ -6040,6 +6085,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
       });
       bar.style.width = ((t/d)*100).toFixed(2)+'%';
       time.textContent = fmtTime(t)+' / '+fmtTime(d);
+      if (ccText && captionLabels[idx]) ccText.textContent = captionLabels[idx];
     }
     audio.addEventListener('loadedmetadata', function(){
       hasMeta = true;
@@ -6083,6 +6129,17 @@ document.querySelectorAll('.nav-item').forEach(link => {
       muteBtn.innerHTML = audio.muted ? MUTE_SVG : VOL_SVG;
       muteBtn.setAttribute('aria-label', audio.muted ? 'Unmute' : 'Mute');
     });
+
+    // CC toggle — captions on by default, persisted per visitor
+    var CC_KEY = 'cfd-cc-on';
+    try { if (localStorage.getItem(CC_KEY) === '0') { ccStrip.hidden = true; ccBtn.setAttribute('aria-pressed','false'); } } catch(_){}
+    ccBtn.addEventListener('click', function(){
+      var on = ccBtn.getAttribute('aria-pressed') !== 'true';
+      ccBtn.setAttribute('aria-pressed', String(on));
+      ccStrip.hidden = !on;
+      try { localStorage.setItem(CC_KEY, on ? '1' : '0'); } catch(_){}
+    });
+
 
     // Clickable / draggable progress bar
     function seekTo(clientX){
@@ -6817,7 +6874,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
 })();
 </script>
 
-<!-- A/B palette test — WCAG AA/AAA verified variants -->
+<!-- A/B palette test — variants pending live WCAG verification -->
 <script>
 (function(){
   var KEY = 'cfd-palette';
@@ -6845,6 +6902,12 @@ document.querySelectorAll('.nav-item').forEach(link => {
   } catch(e){}
 
   // Switcher UI
+  var VOTE_KEY = 'cfd-palette-votes';
+  function readVotes(){
+    try { return JSON.parse(localStorage.getItem(VOTE_KEY) || '{"a":0,"b":0,"c":0}'); }
+    catch(e){ return {a:0,b:0,c:0}; }
+  }
+  function writeVotes(v){ try { localStorage.setItem(VOTE_KEY, JSON.stringify(v)); } catch(e){} }
   function buildSwitcher(){
     var bar = document.createElement('div');
     bar.className = 'ab-switcher';
@@ -6854,24 +6917,50 @@ document.querySelectorAll('.nav-item').forEach(link => {
     label.className = 'ab-label';
     label.textContent = 'Palette';
     bar.appendChild(label);
+    var votes = readVotes();
     VARIANTS.forEach(function(v){
       var b = document.createElement('button');
       b.type = 'button';
       b.textContent = v.toUpperCase();
-      b.title = LABELS[v] + ' — WCAG AA/AAA';
+      b.title = LABELS[v];
       b.setAttribute('aria-label', 'Switch to palette ' + v.toUpperCase() + ': ' + LABELS[v]);
       b.setAttribute('aria-pressed', String(v === active));
       b.addEventListener('click', function(){
         active = v;
         document.documentElement.setAttribute('data-palette', v);
         try { localStorage.setItem(KEY, v); } catch(e){}
-        bar.querySelectorAll('button').forEach(function(btn){
-          btn.setAttribute('aria-pressed', String(btn.textContent.toLowerCase() === v));
+        bar.querySelectorAll('button[data-variant]').forEach(function(btn){
+          btn.setAttribute('aria-pressed', String(btn.dataset.variant === v));
         });
         try { console.info('[A/B palette] switched →', { variant: v, label: LABELS[v] }); } catch(e){}
       });
+      b.dataset.variant = v;
       bar.appendChild(b);
     });
+    // Vote UI — single best-feeling pick per visitor
+    var vote = document.createElement('button');
+    vote.className = 'ab-vote';
+    vote.type = 'button';
+    vote.textContent = '♥ Vote';
+    vote.title = 'Vote this as your favorite palette';
+    var tally = document.createElement('span');
+    tally.className = 'ab-tally';
+    function refreshTally(){
+      var v = readVotes();
+      tally.textContent = 'A '+v.a+' · B '+v.b+' · C '+v.c;
+    }
+    refreshTally();
+    vote.addEventListener('click', function(){
+      var v = readVotes();
+      v[active] = (v[active] || 0) + 1;
+      writeVotes(v);
+      refreshTally();
+      vote.textContent = '✓ Voted';
+      vote.disabled = true;
+      try { console.info('[A/B palette] vote →', { variant: active, tally: v }); } catch(e){}
+    });
+    bar.appendChild(vote);
+    bar.appendChild(tally);
     document.body.appendChild(bar);
   }
   if (document.readyState === 'loading') {
