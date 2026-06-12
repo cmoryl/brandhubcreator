@@ -6286,6 +6286,8 @@ document.querySelectorAll('.nav-item').forEach(link => {
     dot.className = 'edu-minimap__dot';
     dot.setAttribute('data-chapter', id);
     dot.setAttribute('data-label', num + ' · ' + title);
+    dot.setAttribute('aria-label', 'Jump to chapter ' + num + ': ' + title);
+    dot.setAttribute('title', num + ' · ' + title);
     if (done.has(id)) dot.classList.add('is-done');
     dot.addEventListener('click', function(e){
       e.preventDefault();
