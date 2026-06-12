@@ -1,21 +1,23 @@
 {
-  "duration": 29.954,
+  "duration": 88.329,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
   "beats": [
     {
       "label": "Design token architecture",
-      "start": 19.888
+      "start": 33.994
     },
     {
       "label": "Component naming convention",
-      "start": 22.245
+      "start": 50.921
     },
     {
       "label": "Component documentation",
-      "start": 24.764
+      "start": 13.584
     },
     {
       "label": "Figma file audit (with MCP)",
-      "start": 27.33
+      "start": 80.237
     }
   ]
 }

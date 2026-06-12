@@ -1,4 +1,11 @@
 {
-  "duration": 17.369,
-  "beats": []
+  "duration": 52.802,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
+  "beats": [
+    {
+      "label": "Reusable, on-demand prompt packages that Claude loads automatically when relevant. Anthrop...",
+      "start": 6.954
+    }
+  ]
 }

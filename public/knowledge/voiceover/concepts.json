@@ -1,17 +1,19 @@
 {
-  "duration": 22.245,
+  "duration": 68.778,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
   "beats": [
     {
       "label": "Break from the obvious",
-      "start": 15.279
+      "start": 28.398
     },
     {
       "label": "Steal from another world",
-      "start": 17.856
+      "start": 44.234
     },
     {
       "label": "Push a concept further",
-      "start": 20.492
+      "start": 58.038
     }
   ]
 }

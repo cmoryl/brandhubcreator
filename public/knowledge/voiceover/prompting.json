@@ -1,4 +1,11 @@
 {
-  "duration": 11.238,
-  "beats": []
+  "duration": 47.74,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
+  "beats": [
+    {
+      "label": "The output is only as good as the input. These principles apply everywhere \u2014 whether you'r...",
+      "start": 6.873
+    }
+  ]
 }

@@ -1,21 +1,23 @@
 {
-  "duration": 17.879,
+  "duration": 80.805,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
   "beats": [
     {
       "label": "Open Claude, drag the file in",
-      "start": 5.77
+      "start": 18.228
     },
     {
       "label": "Ask for structured critique",
-      "start": 9.578
+      "start": 37.697
     },
     {
       "label": "Read the specific feedback",
-      "start": 12.783
+      "start": 54.984
     },
     {
       "label": "Iterate with a follow-up",
-      "start": 16.184
+      "start": 70.75
     }
   ]
 }

@@ -1,17 +1,19 @@
 {
-  "duration": 26.331,
+  "duration": 72.725,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
   "beats": [
     {
       "label": "Map a category's visual conventions",
-      "start": 6.954
+      "start": 12.504
     },
     {
       "label": "Brief yourself on an unfamiliar client",
-      "start": 19.772
+      "start": 45.894
     },
     {
       "label": "Important: Verify anything time-sensitive",
-      "start": 23.243
+      "start": 61.638
     }
   ]
 }
