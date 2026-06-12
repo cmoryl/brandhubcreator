@@ -6638,7 +6638,31 @@ document.querySelectorAll('.nav-item').forEach(link => {
     if (audio) audio.preload = 'metadata';
     var hasMeta = false;
     var stepStarts = null; // precise per-step timestamps from sidecar
-    var visualLeadSeconds = 0.8;
+    var visualLeadSeconds = 0.35;
+
+    function normalizeTimedStarts(rawStarts, count, duration){
+      var out = new Array(count);
+      var last = -Infinity;
+      for (var i=0; i<count; i++){
+        var v = rawStarts && typeof rawStarts[i] === 'number' ? rawStarts[i] : null;
+        var valid = v != null && isFinite(v) && v >= 0 && (!duration || v <= duration) && (i === 0 || v > last + 0.35);
+        out[i] = valid ? v : null;
+        if (valid) last = v;
+      }
+      for (var start=0; start<count; start++){
+        if (out[start] != null) continue;
+        var end = start;
+        while (end<count && out[end] == null) end++;
+        var prevIdx = start - 1;
+        var nextIdx = end;
+        var prevTime = prevIdx >= 0 && out[prevIdx] != null ? out[prevIdx] : 0;
+        var nextTime = nextIdx < count && out[nextIdx] != null ? out[nextIdx] : (duration || prevTime + ((count - prevIdx) * STEP_MS / 1000));
+        var slots = nextIdx - prevIdx;
+        for (var j=start; j<end; j++) out[j] = prevTime + ((j - prevIdx) / slots) * (nextTime - prevTime);
+        start = end;
+      }
+      return out;
+    }
 
     if (audio && walk.audio){
       fetch('/knowledge/voiceover/'+walk.audio+'.json', { cache: 'force-cache' })
@@ -6646,11 +6670,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
         .then(function(j){
           if (!j || !j.beats || !j.beats.length) return;
           if (typeof j.visualLeadSeconds === 'number') visualLeadSeconds = j.visualLeadSeconds;
-          stepStarts = [];
-          for (var i=0; i<n; i++){
-            if (i < j.beats.length && typeof j.beats[i].start === 'number') stepStarts.push(j.beats[i].start);
-            else stepStarts.push(null);
-          }
+          stepStarts = normalizeTimedStarts(j.beats.map(function(b){ return b.start; }), n, audio.duration || j.duration || 0);
         }).catch(function(){});
     }
 
