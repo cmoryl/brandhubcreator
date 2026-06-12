@@ -6042,11 +6042,14 @@ document.querySelectorAll('.nav-item').forEach(link => {
     seek.addEventListener('touchmove',  function(e){ seekTo(e.touches[0].clientX); }, {passive:true});
     seek.addEventListener('touchend',   function(){ seek.classList.remove('is-scrubbing'); });
 
-    // Click any beat to jump to its position
+    // Click any beat to jump to its precise sidecar timestamp (or even-split fallback)
     beatEls.forEach(function(el, i){
       el.addEventListener('click', function(){
         if (!audio.duration) return;
-        audio.currentTime = (i / beats.length) * audio.duration + 0.01;
+        var target = (beatStarts && beatStarts[i] != null)
+          ? beatStarts[i]
+          : (i / beats.length) * audio.duration;
+        audio.currentTime = Math.max(0, target + 0.01);
         if (audio.paused) audio.play().catch(function(){});
       });
     });
