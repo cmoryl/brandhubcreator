@@ -1,17 +1,19 @@
 {
-  "duration": 21.827,
+  "duration": 70.96,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
   "beats": [
     {
       "label": "Turn a vague ask into a brief",
-      "start": 15.209
+      "start": 29.872
     },
     {
       "label": "Identify what's missing",
-      "start": 18.019
+      "start": 46.637
     },
     {
       "label": "Write a challenger brief",
-      "start": 20.411
+      "start": 60.058
     }
   ]
 }

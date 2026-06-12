@@ -1,17 +1,19 @@
 {
-  "duration": 25.542,
+  "duration": 74.768,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
   "beats": [
     {
       "label": "Write design rationale",
-      "start": 18.692
+      "start": 32.438
     },
     {
       "label": "Prepare for pushback",
-      "start": 21.293
+      "start": 49.005
     },
     {
       "label": "Write a project narrative",
-      "start": 23.765
+      "start": 63.344
     }
   ]
 }

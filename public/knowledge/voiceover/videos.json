@@ -1,4 +1,11 @@
 {
-  "duration": 13.328,
-  "beats": []
+  "duration": 51.641,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
+  "beats": [
+    {
+      "label": "These are the highest-signal video and written resources verified by the design community ...",
+      "start": 6.618
+    }
+  ]
 }

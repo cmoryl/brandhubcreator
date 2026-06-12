@@ -1,17 +1,19 @@
 {
-  "duration": 30.233,
+  "duration": 77.648,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
   "beats": [
     {
       "label": "Deck outline for Canva presentation",
-      "start": 22.466
+      "start": 35.955
     },
     {
       "label": "Paste-ready slide copy block",
-      "start": 26.065
+      "start": 55.019
     },
     {
       "label": "Quick template audit",
-      "start": 28.909
+      "start": 69.242
     }
   ]
 }

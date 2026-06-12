@@ -1,13 +1,15 @@
 {
-  "duration": 20.573,
+  "duration": 58.839,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
   "beats": [
     {
       "label": "Write a usage rule",
-      "start": 16.045
+      "start": 30.708
     },
     {
       "label": "Define a voice and tone section",
-      "start": 18.321
+      "start": 45.859
     }
   ]
 }

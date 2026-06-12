@@ -1,9 +1,11 @@
 {
-  "duration": 20.526,
+  "duration": 47.415,
+  "target": "industry-standard-demo-cadence",
+  "visualLeadSeconds": 0.8,
   "beats": [
     {
       "label": "The 4-line AI clause designers actually use",
-      "start": 17.067
+      "start": 29.71
     }
   ]
 }
