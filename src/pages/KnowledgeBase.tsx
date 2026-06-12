@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X, Home, Palette, Languages, Scale } from "lucide-react";
+import { ArrowLeft, BookOpen, HelpCircle, Lightbulb, Search, CreditCard, Plug, Users, Globe, Shield, Play, Video, X, Home, Palette, Languages, Scale, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
@@ -534,6 +534,40 @@ const KnowledgeBase = () => {
           </div>
         </section>
       )}
+
+      {/* In-depth Guides */}
+      <section className="py-8 sm:py-12 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="p-3 bg-accent/10 rounded-xl w-fit mx-auto mb-4">
+              <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">In-depth Guides</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Long-form references and playbooks for getting more out of AI in your design workflow.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <Link to="/knowledge/claude-for-designers" className="group">
+              <Card className="h-full overflow-hidden border-border/50 hover:shadow-lg hover:border-accent/40 transition-all">
+                <div className="aspect-video bg-gradient-to-br from-accent/20 via-accent/10 to-background flex items-center justify-center">
+                  <Sparkles className="h-10 w-10 text-accent" />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-foreground mb-1 flex items-center gap-1">
+                    Claude for Designers
+                    <ArrowRight className="h-4 w-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    A practical, design-team-focused guide to working with Claude — prompts, workflows, and use cases.
+                  </p>
+                </div>
+              </Card>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* FAQ Content */}
       <section className="py-8 sm:py-12 px-4 sm:px-6">
