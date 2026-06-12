@@ -5974,7 +5974,12 @@ document.querySelectorAll('.nav-item').forEach(link => {
             '<button type="button" class="overview-video__speed" data-speed aria-label="Playback speed" title="Playback speed">1x</button>'+
             '<div class="overview-video__progress" data-seek><span class="overview-video__progress-bar" data-bar></span></div>'+
             '<span class="overview-video__time" data-time>0:00 / '+fmtTime(totalMs/1000)+'</span>'+
+            '<button type="button" class="overview-video__ctrlbtn overview-video__ccbtn" data-cc aria-label="Toggle captions" aria-pressed="true" title="Captions">CC</button>'+
             '<button type="button" class="overview-video__ctrlbtn" data-mute aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>'+
+          '</div>'+
+          '<div class="overview-video__cc" data-cc-strip aria-live="polite" aria-atomic="true">'+
+            '<span class="overview-video__cc-tag">CC</span>'+
+            '<span class="overview-video__cc-text" data-cc-text>Press play to start narration.</span>'+
           '</div>'+
         '</div>'+
       '</div>';
