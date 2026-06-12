@@ -2563,66 +2563,6 @@ button:focus-visible {
   <h2 class="chapter-title">Writing sharper briefs</h2>
   <p class="chapter-premise">The quality of a brief determines the quality of everything downstream. Use Claude to pressure-test vague thinking, surface missing decisions, and write briefs that teams can actually act on.</p>
 
-  <!-- HOST EXPLAINER VIDEO (hyper-realistic AI creator) -->
-  <figure class="host-explainer" style="margin:28px 0 36px;max-width:760px;border-radius:18px;overflow:hidden;background:#0c0c0e;border:1px solid rgba(255,255,255,0.08);box-shadow:0 24px 60px -20px rgba(0,0,0,0.55);">
-    <div style="position:relative;aspect-ratio:1/1;background:#0c0c0e;">
-      <video
-        id="host-video-01"
-        src="/__l5e/assets-v1/11133306-ef34-4bec-9894-e3424eccdec6/host-01.mp4"
-        poster="/knowledge/influencer/host-01-frame.jpg"
-        preload="metadata"
-        playsinline
-        style="width:100%;height:100%;object-fit:cover;display:block;"
-      ></video>
-      <audio id="host-audio-01" src="/knowledge/influencer/host-01.mp3" preload="auto"></audio>
-      <button
-        id="host-play-01"
-        type="button"
-        aria-label="Play host explainer"
-        style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.45) 100%);border:0;cursor:pointer;color:#fff;font:600 13px/1 system-ui,sans-serif;letter-spacing:0.04em;transition:opacity 0.25s ease;">
-        <span style="display:flex;flex-direction:column;align-items:center;gap:14px;">
-          <span style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.92);color:#0c0c0e;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(0,0,0,0.4);">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-          </span>
-          <span style="text-transform:uppercase;background:rgba(0,0,0,0.55);padding:7px 12px;border-radius:999px;backdrop-filter:blur(6px);">Watch host intro · 30s</span>
-        </span>
-      </button>
-      <span style="position:absolute;top:12px;left:12px;font:600 10px/1 system-ui;letter-spacing:0.12em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,0.55);padding:6px 10px;border-radius:999px;backdrop-filter:blur(6px);">● AI Host · Maya</span>
-    </div>
-    <figcaption style="padding:14px 18px;font:500 13px/1.5 system-ui,sans-serif;color:rgba(255,255,255,0.7);background:#0c0c0e;border-top:1px solid rgba(255,255,255,0.06);">
-      <strong style="color:#fff;font-weight:600;">Maya, design strategist</strong> — 30-second overview of Section 01: why a sharper brief changes everything that comes after.
-    </figcaption>
-  </figure>
-  <script>
-    (function(){
-      var v = document.getElementById('host-video-01');
-      var a = document.getElementById('host-audio-01');
-      var btn = document.getElementById('host-play-01');
-      if(!v || !a || !btn) return;
-      var started = false;
-      function play(){
-        started = true;
-        btn.style.opacity = '0';
-        btn.style.pointerEvents = 'none';
-        v.muted = true; v.loop = true; v.currentTime = 0;
-        a.currentTime = 0; a.volume = 1;
-        Promise.all([v.play(), a.play()]).catch(function(){});
-      }
-      function pause(){
-        v.pause(); a.pause();
-        btn.style.opacity = '1';
-        btn.style.pointerEvents = 'auto';
-      }
-      btn.addEventListener('click', play);
-      v.addEventListener('click', function(){ if(started) pause(); });
-      a.addEventListener('ended', function(){ pause(); });
-      // Pause audio if user scrolls far away
-      var io = new IntersectionObserver(function(entries){
-        entries.forEach(function(e){ if(!e.isIntersecting && started) pause(); });
-      }, { threshold: 0.1 });
-      io.observe(v);
-    })();
-  </script>
 
   <div class="prompt-cards">
     <div class="prompt-card">
@@ -5927,56 +5867,73 @@ document.querySelectorAll('.nav-item').forEach(link => {
       chapter.insertBefore(wrap, chapter.firstChild);
     }
 
-    // ── Playback state (paused until in view; auto-plays on visibility) ──
+    // ── Audio-driven playback (narration drives beat sync) ──
     var beatEls = wrap.querySelectorAll('[data-beat]');
     var bar = wrap.querySelector('[data-bar]');
     var time = wrap.querySelector('[data-time]');
     var btn = wrap.querySelector('[data-play]');
-    var startedAt = 0, elapsed = 0, raf = null, playing = false, hasStarted = false;
+    var audio = new Audio('/knowledge/voiceover/'+chapter.id+'.mp3');
+    audio.preload = 'metadata';
+    audio.volume = 1;
+    var hasMeta = false, hasStarted = false;
 
-    function render(now){
-      var t = (elapsed + (playing ? (now - startedAt) : 0)) % totalMs;
-      var idx = Math.floor(t / BEAT_MS);
-      beatEls.forEach(function(el, i){
-        el.classList.toggle('is-active', i === idx);
-        el.classList.toggle('is-seen', i < idx);
+    function paintIdle(){
+      beatEls.forEach(function(el,i){
+        el.classList.toggle('is-active', i===0);
+        el.classList.remove('is-seen');
       });
-      var pct = (t / totalMs) * 100;
-      bar.style.width = pct.toFixed(2)+'%';
-      time.textContent = fmtTime(t/1000)+' / '+fmtTime(totalMs/1000);
-      if (playing) raf = requestAnimationFrame(render);
+      bar.style.width = '0%';
+      btn.textContent = '▶'; btn.setAttribute('aria-label','Play narration');
     }
-    function play(){
-      if (playing) return;
-      playing = true; hasStarted = true;
-      startedAt = performance.now();
-      btn.textContent = '❚❚'; btn.setAttribute('aria-label','Pause overview');
-      raf = requestAnimationFrame(render);
+    function render(){
+      if (!hasMeta || !audio.duration) return;
+      var t = audio.currentTime;
+      var d = audio.duration;
+      var idx = Math.min(beats.length-1, Math.floor((t/d) * beats.length));
+      beatEls.forEach(function(el,i){
+        el.classList.toggle('is-active', i===idx);
+        el.classList.toggle('is-seen', i<idx);
+      });
+      bar.style.width = ((t/d)*100).toFixed(2)+'%';
+      time.textContent = fmtTime(t)+' / '+fmtTime(d);
     }
-    function pause(){
-      if (!playing) return;
-      elapsed += performance.now() - startedAt;
-      playing = false;
-      btn.textContent = '▶';  btn.setAttribute('aria-label','Play overview');
-      if (raf) cancelAnimationFrame(raf);
-    }
-    btn.addEventListener('click', function(){ playing ? pause() : play(); });
+    audio.addEventListener('loadedmetadata', function(){
+      hasMeta = true;
+      time.textContent = '0:00 / '+fmtTime(audio.duration);
+    });
+    audio.addEventListener('timeupdate', render);
+    audio.addEventListener('ended', function(){
+      audio.currentTime = 0;
+      paintIdle();
+    });
+    audio.addEventListener('play', function(){
+      btn.textContent = '❚❚'; btn.setAttribute('aria-label','Pause narration');
+    });
+    audio.addEventListener('pause', function(){
+      btn.textContent = '▶'; btn.setAttribute('aria-label','Play narration');
+    });
+    audio.addEventListener('error', function(){
+      btn.style.opacity = '0.4'; btn.title = 'Narration unavailable';
+    });
 
-    // Initial idle state
-    beatEls[0] && beatEls[0].classList.add('is-active');
-    btn.textContent = '▶'; btn.setAttribute('aria-label','Play overview');
+    btn.addEventListener('click', function(){
+      // Pause all other narrations
+      if (window.__activeNarration && window.__activeNarration !== audio){
+        try { window.__activeNarration.pause(); } catch(_){}
+      }
+      window.__activeNarration = audio;
+      if (audio.paused){ hasStarted = true; audio.play().catch(function(){}); }
+      else audio.pause();
+    });
 
-    // Auto-play when scrolled into view; pause when out
+    paintIdle();
+
+    // Pause when scrolled out of view (do NOT auto-play; respect user/browser autoplay rules)
     if ('IntersectionObserver' in window){
       var io = new IntersectionObserver(function(entries){
-        entries.forEach(function(e){
-          if (e.isIntersecting){ if (!hasStarted || !playing) play(); }
-          else { pause(); }
-        });
-      }, { threshold: 0.35 });
+        entries.forEach(function(e){ if (!e.isIntersecting && !audio.paused) audio.pause(); });
+      }, { threshold: 0.1 });
       io.observe(wrap);
-    } else {
-      play();
     }
   }
 
@@ -6397,7 +6354,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
 
   var WALKTHROUGHS = [
     {
-      match: /sharper briefs/i,
+      match: /sharper briefs/i, audio: 'howto-brief',
       title: 'How to pressure-test a vague brief',
       steps: [
         { title: 'Start with the vague ask', sub: 'Paste exactly what the client wrote.',
@@ -6415,7 +6372,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
       ]
     },
     {
-      match: /Claude can see|Upload it/i,
+      match: /Claude can see|Upload it/i, audio: 'howto-vision',
       title: 'How to get critique from an uploaded design',
       steps: [
         { title: 'Open Claude, drag the file in', sub: 'PNG, JPG, or screenshot — straight from Figma.',
@@ -6433,7 +6390,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
         ]
     },
     {
-      match: /image generation|moodboarding/i,
+      match: /image generation|moodboarding/i, audio: 'howto-imagegen',
       title: 'How to turn a brief into a Midjourney prompt',
       steps: [
         { title: 'Describe the visual world', sub: 'Not the picture — the world it lives in.',
@@ -6451,7 +6408,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
       ]
     },
     {
-      match: /Canva/i,
+      match: /Canva/i, audio: 'howto-canva',
       title: 'How to make Claude produce on-brand Canva slides',
       steps: [
         { title: 'Build a brand-locked prompt', sub: 'Colors, fonts, voice — all in one block.',
@@ -6532,7 +6489,10 @@ document.querySelectorAll('.nav-item').forEach(link => {
     var btnPlay = el.querySelector('[data-play]');
     var track = el.querySelector('[data-track]');
 
-    var elapsed = 0, startedAt = 0, raf = null, playing = false;
+    // ── Audio-driven walkthrough: narration drives step progression ──
+    var audio = walk.audio ? new Audio('/knowledge/voiceover/'+walk.audio+'.mp3') : null;
+    if (audio) audio.preload = 'metadata';
+    var hasMeta = false;
 
     function setActive(idx){
       screens.forEach(function(s,i){ s.classList.toggle('is-active', i===idx); });
@@ -6542,43 +6502,63 @@ document.querySelectorAll('.nav-item').forEach(link => {
         s.classList.toggle('is-seen', i<idx);
       });
     }
-    function render(now){
-      var t = (elapsed + (playing ? (now - startedAt) : 0)) % totalMs;
-      var idx = Math.floor(t / STEP_MS);
+    function render(){
+      if (!audio || !hasMeta || !audio.duration) return;
+      var t = audio.currentTime, d = audio.duration;
+      var idx = Math.min(n-1, Math.floor((t/d) * n));
       setActive(idx);
-      bar.style.width = ((t/totalMs)*100).toFixed(2)+'%';
-      time.textContent = fmt(t/1000)+' / '+fmt(totalMs/1000);
-      if (playing) raf = requestAnimationFrame(render);
-    }
-    function play(){
-      if (playing) return;
-      playing = true; startedAt = performance.now();
-      btnPlay.textContent = '❚❚'; btnPlay.setAttribute('aria-label','Pause');
-      raf = requestAnimationFrame(render);
-    }
-    function pause(){
-      if (!playing) return;
-      elapsed += performance.now() - startedAt;
-      playing = false;
-      btnPlay.textContent = '▶'; btnPlay.setAttribute('aria-label','Play');
-      if (raf) cancelAnimationFrame(raf);
+      bar.style.width = ((t/d)*100).toFixed(2)+'%';
+      time.textContent = fmt(t)+' / '+fmt(d);
     }
     function jump(idx){
-      pause();
-      elapsed = idx * STEP_MS;
-      setActive(idx);
-      bar.style.width = ((elapsed/totalMs)*100).toFixed(2)+'%';
-      time.textContent = fmt(elapsed/1000)+' / '+fmt(totalMs/1000);
+      if (audio && hasMeta && audio.duration){
+        audio.currentTime = (idx / n) * audio.duration + 0.01;
+      } else {
+        setActive(idx);
+      }
     }
 
     setActive(0);
-    btnPlay.addEventListener('click', function(){ playing ? pause() : play(); });
+
+    if (audio){
+      audio.addEventListener('loadedmetadata', function(){
+        hasMeta = true;
+        time.textContent = '0:00 / '+fmt(audio.duration);
+      });
+      audio.addEventListener('timeupdate', render);
+      audio.addEventListener('ended', function(){
+        audio.currentTime = 0; setActive(0);
+        bar.style.width = '0%';
+        btnPlay.textContent = '▶'; btnPlay.setAttribute('aria-label','Play');
+      });
+      audio.addEventListener('play', function(){
+        btnPlay.textContent = '❚❚'; btnPlay.setAttribute('aria-label','Pause');
+      });
+      audio.addEventListener('pause', function(){
+        btnPlay.textContent = '▶'; btnPlay.setAttribute('aria-label','Play');
+      });
+      audio.addEventListener('error', function(){
+        btnPlay.style.opacity = '0.4'; btnPlay.title = 'Narration unavailable';
+      });
+      btnPlay.addEventListener('click', function(){
+        if (window.__activeNarration && window.__activeNarration !== audio){
+          try { window.__activeNarration.pause(); } catch(_){}
+        }
+        window.__activeNarration = audio;
+        if (audio.paused) audio.play().catch(function(){});
+        else audio.pause();
+      });
+    } else {
+      // Fallback when no narration: keep manual step controls only
+      btnPlay.style.opacity = '0.4';
+    }
+
     el.querySelector('[data-prev]').addEventListener('click', function(){
-      var cur = Math.floor((elapsed % totalMs) / STEP_MS);
+      var cur = audio && hasMeta ? Math.min(n-1, Math.floor((audio.currentTime/audio.duration) * n)) : 0;
       jump((cur - 1 + n) % n);
     });
     el.querySelector('[data-next]').addEventListener('click', function(){
-      var cur = Math.floor((elapsed % totalMs) / STEP_MS);
+      var cur = audio && hasMeta ? Math.min(n-1, Math.floor((audio.currentTime/audio.duration) * n)) : 0;
       jump((cur + 1) % n);
     });
     steps.forEach(function(s,i){ s.addEventListener('click', function(){ jump(i); }); });
@@ -6588,14 +6568,12 @@ document.querySelectorAll('.nav-item').forEach(link => {
       jump(Math.min(n-1, Math.max(0, Math.floor(pct * n))));
     });
 
-    if ('IntersectionObserver' in window){
+    if (audio && 'IntersectionObserver' in window){
       var io = new IntersectionObserver(function(entries){
-        entries.forEach(function(e){
-          if (e.isIntersecting) play(); else pause();
-        });
-      }, { threshold: 0.3 });
+        entries.forEach(function(e){ if (!e.isIntersecting && !audio.paused) audio.pause(); });
+      }, { threshold: 0.1 });
       io.observe(el);
-    } else { play(); }
+    }
   }
 
   document.querySelectorAll('section.chapter').forEach(function(ch){
