@@ -6107,6 +6107,167 @@ document.querySelectorAll('.nav-item').forEach(link => {
 })();
 </script>
 
+<style>
+/* ─── GLOSSARY + DIFFICULTY ─────────────────────────────────── */
+.glossary-term{position:relative;border-bottom:1px dashed rgba(255,178,153,.55);cursor:help;color:#ffc7b3;font-weight:500}
+.glossary-term::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:linear-gradient(90deg,#ff6f5e,#ffb199);transform:scaleX(0);transform-origin:left;transition:transform .25s ease}
+.glossary-term:hover::after{transform:scaleX(1)}
+.glossary-pop{position:fixed;z-index:10000;max-width:300px;padding:12px 14px;background:#0c0e16;color:#e9ecf3;font-size:12.5px;line-height:1.55;border:1px solid rgba(255,255,255,.1);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.55);opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity .15s ease, transform .15s ease}
+.glossary-pop.is-open{opacity:1;transform:translateY(0)}
+.glossary-pop__label{display:inline-block;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#ffb199;font-weight:700;margin-bottom:6px}
+.glossary-pop__term{font-weight:700;color:#fff;font-size:13.5px;margin-bottom:4px}
+.glossary-pop__def{color:#c8ccd8}
+.edu-difficulty{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:11.5px;font-weight:600}
+.edu-difficulty[data-level="1"]{color:#86efac;border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.08)}
+.edu-difficulty[data-level="2"]{color:#fcd34d;border-color:rgba(252,211,77,.35);background:rgba(252,211,77,.08)}
+.edu-difficulty[data-level="3"]{color:#fda4af;border-color:rgba(253,164,175,.35);background:rgba(253,164,175,.08)}
+.edu-difficulty__bars{display:inline-flex;gap:2px}
+.edu-difficulty__bars i{width:3px;height:9px;background:currentColor;border-radius:1px;opacity:.3;display:inline-block}
+.edu-difficulty__bars i.on{opacity:1}
+</style>
+
+<script>
+/* ─── GLOSSARY TOOLTIPS + DIFFICULTY CHIPS ─────────────────────
+   Scans chapter prose for known AI/design terms and wraps them in
+   interactive tooltip triggers. Adds a difficulty chip to each
+   chapter's meta strip based on word count + technical density.
+*/
+(function(){
+  var GLOSSARY = {
+    'system prompt': 'The persistent instructions you set at the start of a conversation that tell Claude how to behave, what role to play, and what rules to follow throughout.',
+    'context window': "How much text Claude can keep in mind at once. Claude's window is large, but stuffing it with irrelevant content still degrades quality.",
+    'hallucination': 'When an AI confidently invents something untrue — a fake statistic, source, or capability. Always verify factual claims.',
+    'few-shot': 'A prompting technique where you give Claude 2\u20133 examples of the input \u2192 output you want, so it learns the pattern before the real ask.',
+    'zero-shot': 'Asking Claude to do something with no examples, only instructions. Works well when the task is common and clearly described.',
+    'vision': "Claude's ability to read images you upload \u2014 designs, screenshots, sketches, moodboards \u2014 and respond to what it actually sees.",
+    'artifact': 'A self-contained piece of generated content (code, document, SVG, HTML) that Claude renders in its own panel so you can preview and iterate.',
+    'skill': 'A reusable, packaged set of instructions and files that teach Claude to perform a specific workflow consistently \u2014 like producing a branded Canva deck.',
+    'token': 'The unit of text Claude reads and writes. Roughly 4 characters or 0.75 words per token. Limits and pricing are token-based.',
+    'temperature': "A dial that controls how creative vs. predictable Claude's output is. Lower = safer and more consistent; higher = more surprising.",
+    'prompt chaining': "Breaking a complex task into a sequence of smaller prompts, where each step's output feeds the next.",
+    'rationale': 'The written reasoning behind a design decision \u2014 what you chose, why, and what it solves. Claude is exceptionally good at drafting this.',
+    'moodboard': 'A curated collection of images, textures, and references that establishes the visual direction for a project before any design work begins.',
+    'voice and tone': "A brand's consistent personality in language. Voice is who the brand is; tone is how it sounds in a given situation.",
+    'design system': 'The documented set of components, tokens, and rules that keep a brand or product visually consistent across every surface.',
+    'critique': "Structured feedback on a design \u2014 what works, what doesn't, and why. Claude can simulate a creative director's critique in seconds.",
+    'midjourney': "A popular image-generation AI. Claude doesn't render images itself but writes precise prompts you can paste into Midjourney or Firefly.",
+    'firefly': "Adobe's image-generation AI, integrated into Photoshop and Illustrator. Pairs well with Claude-written prompts."
+  };
+
+  var terms = Object.keys(GLOSSARY).sort(function(a,b){ return b.length - a.length; });
+  var pattern = new RegExp('\\b(' + terms.map(function(t){
+    return t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  }).join('|') + ')\\b', 'i');
+
+  function wrapTermsIn(scopeEl){
+    var seen = {};
+    var walker = document.createTreeWalker(scopeEl, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(node){
+        if (!node.nodeValue || node.nodeValue.length < 4) return NodeFilter.FILTER_REJECT;
+        var p = node.parentNode; if (!p) return NodeFilter.FILTER_REJECT;
+        var tag = p.nodeName;
+        if (['SCRIPT','STYLE','CODE','PRE','A','BUTTON','H1','H2','H3','H4'].indexOf(tag) !== -1) return NodeFilter.FILTER_REJECT;
+        if (p.closest && (p.closest('.glossary-term') || p.closest('.glossary-pop') || p.closest('.overview-video') || p.closest('.edu-meta') || p.closest('.edu-recap') || p.closest('.prompt-card') || p.closest('.copy-btn'))) return NodeFilter.FILTER_REJECT;
+        return pattern.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    var nodes = []; var n; while ((n = walker.nextNode())) nodes.push(n);
+    nodes.forEach(function(node){
+      var text = node.nodeValue;
+      var frag = document.createDocumentFragment();
+      var g = new RegExp(pattern.source, 'gi');
+      var m, lastIndex = 0, matched = false;
+      while ((m = g.exec(text)) !== null){
+        var key = m[1].toLowerCase();
+        if (seen[key]) continue;
+        seen[key] = true; matched = true;
+        frag.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+        var span = document.createElement('span');
+        span.className = 'glossary-term';
+        span.setAttribute('data-term', key);
+        span.setAttribute('tabindex','0');
+        span.textContent = m[1];
+        frag.appendChild(span);
+        lastIndex = m.index + m[1].length;
+      }
+      if (!matched) return;
+      frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  document.querySelectorAll('section.chapter').forEach(wrapTermsIn);
+
+  var pop = document.createElement('div');
+  pop.className = 'glossary-pop';
+  pop.setAttribute('role','tooltip');
+  document.body.appendChild(pop);
+  var currentTarget = null;
+
+  function showPop(el){
+    var key = el.getAttribute('data-term');
+    var def = GLOSSARY[key]; if (!def) return;
+    pop.innerHTML =
+      '<div class="glossary-pop__label">Glossary</div>'+
+      '<div class="glossary-pop__term">'+el.textContent+'</div>'+
+      '<div class="glossary-pop__def">'+def+'</div>';
+    var r = el.getBoundingClientRect();
+    pop.style.top = '-9999px'; pop.style.left = '-9999px';
+    pop.classList.add('is-open');
+    requestAnimationFrame(function(){
+      var ph = pop.offsetHeight;
+      var top = r.bottom + 8;
+      if (top + ph > window.innerHeight - 8) top = Math.max(8, r.top - 8 - ph);
+      var left = Math.min(window.innerWidth - 316, Math.max(8, r.left));
+      pop.style.top = top + 'px';
+      pop.style.left = left + 'px';
+    });
+    currentTarget = el;
+  }
+  function hidePop(){ pop.classList.remove('is-open'); currentTarget = null; }
+
+  document.addEventListener('mouseover', function(e){
+    var t = e.target.closest && e.target.closest('.glossary-term');
+    if (t) showPop(t);
+  });
+  document.addEventListener('mouseout', function(e){
+    var t = e.target.closest && e.target.closest('.glossary-term');
+    if (t && t === currentTarget) hidePop();
+  });
+  document.addEventListener('focusin', function(e){
+    var t = e.target.closest && e.target.closest('.glossary-term');
+    if (t) showPop(t);
+  });
+  document.addEventListener('focusout', function(e){
+    var t = e.target.closest && e.target.closest('.glossary-term');
+    if (t) hidePop();
+  });
+  window.addEventListener('scroll', hidePop, { passive: true });
+
+  document.querySelectorAll('section.chapter').forEach(function(ch){
+    var meta = ch.querySelector(':scope > .edu-meta');
+    if (!meta || meta.querySelector('.edu-difficulty')) return;
+    var words = (ch.textContent||'').trim().split(/\s+/).length;
+    var hits = ch.querySelectorAll('.glossary-term').length;
+    var score = (words / 400) + (hits * 0.6);
+    var level = score > 9 ? 3 : score > 5 ? 2 : 1;
+    var label = level === 3 ? 'Advanced' : level === 2 ? 'Intermediate' : 'Foundational';
+    var chip = document.createElement('span');
+    chip.className = 'edu-difficulty';
+    chip.setAttribute('data-level', String(level));
+    chip.innerHTML =
+      '<span class="edu-difficulty__bars">'+
+        '<i class="on"></i>'+
+        '<i class="'+(level>=2?'on':'')+'"></i>'+
+        '<i class="'+(level>=3?'on':'')+'"></i>'+
+      '</span> '+label;
+    var spacer = meta.querySelector('.edu-meta__spacer');
+    if (spacer) meta.insertBefore(chip, spacer);
+    else meta.appendChild(chip);
+  });
+})();
+</script>
+
 </body>
 </html>
 
