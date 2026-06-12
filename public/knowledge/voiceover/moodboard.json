@@ -1,19 +1,19 @@
 {
-  "duration": 74.443,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 27.016,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Describe a visual world",
-      "start": 31.3
+      "start": 18.32
     },
     {
       "label": "Name three directions",
-      "start": 47.658
+      "start": 21.443
     },
     {
       "label": "Use Claude to write your moodboard rationale",
-      "start": 62.868
+      "start": 24.323
     }
   ]
 }

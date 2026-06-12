@@ -1,23 +1,23 @@
 {
-  "duration": 89.49,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 15.523,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Rewrite an overloaded slide",
-      "start": 38.394
+      "start": 3.901
     },
     {
       "label": "Write a data slide with insight-led title",
-      "start": 53.661
+      "start": 7.129
     },
     {
       "label": "Write a strong opening slide",
-      "start": 68.336
+      "start": 10.995
     },
     {
       "label": "Audit a complete deck",
-      "start": 83.789
+      "start": 14.245
     }
   ]
 }

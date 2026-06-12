@@ -1,23 +1,23 @@
 {
-  "duration": 81.038,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 41.285,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Describe the visual world",
-      "start": 17.426
+      "start": 9.462
     },
     {
       "label": "Let Claude write the prompt",
-      "start": 35.863
+      "start": 18.75
     },
     {
       "label": "Paste into Midjourney",
-      "start": 54.682
+      "start": 0
     },
     {
       "label": "Refine through Claude, not Midjourney",
-      "start": 71.552
+      "start": 35.898
     }
   ]
 }

@@ -1,11 +1,11 @@
 {
-  "duration": 47.74,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 18.506,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
-      "label": "The output is only as good as the input. These principles apply everywhere \u2014 whether you'r...",
-      "start": 6.873
+      "label": "The output is only as good as the input. These principles apply everywhere — whether you'r...",
+      "start": 2.09
     }
   ]
 }

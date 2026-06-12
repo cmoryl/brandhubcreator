@@ -1,19 +1,19 @@
 {
-  "duration": 74.722,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 23.754,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Brand name generation",
-      "start": 33.657
+      "start": 16.904
     },
     {
       "label": "Tagline variations",
-      "start": 50.178
+      "start": 19.412
     },
     {
       "label": "Rewrite for a specific voice",
-      "start": 63.855
+      "start": 22.036
     }
   ]
 }

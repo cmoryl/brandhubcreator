@@ -1,11 +1,11 @@
 {
-  "duration": 54.01,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 21.501,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Everything a designer needs to know about Claude's official documentation, app integration...",
-      "start": 7.047
+      "start": 1.985
     }
   ]
 }

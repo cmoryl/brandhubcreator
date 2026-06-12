@@ -1,19 +1,19 @@
 {
-  "duration": 71.564,
-  "target": "industry-standard-demo-cadence",
-  "visualLeadSeconds": 0.8,
+  "duration": 24.056,
+  "target": "clean-narration-no-production-cues",
+  "visualLeadSeconds": 0.6,
   "beats": [
     {
       "label": "Structural critique",
-      "start": 30.001
+      "start": 17.055
     },
     {
       "label": "Ask from the client's perspective",
-      "start": 45.895
+      "start": 19.923
     },
     {
       "label": "Compare two directions",
-      "start": 61.081
+      "start": 22.837
     }
   ]
 }
