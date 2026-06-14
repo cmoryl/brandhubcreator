@@ -2453,7 +2453,9 @@ button:focus-visible {
 }
 .overview-video__speed:hover{ background:rgba(255,255,255,.12); color:var(--on-dark); }
 .overview-video__beat{ cursor:pointer; }
-.overview-video__beat:hover{ background:rgba(255,255,255,.04); }
+.overview-video__beat:hover .overview-video__beat-text{ color:var(--on-dark); }
+.overview-video__stage{ --flow-progress: 0%; }
+.overview-video__stage::after{ width: var(--flow-progress); }
 .overview-video__filmstrip{
   position:absolute;top:0;right:0;height:100%;width:14px;z-index:0;
   background:
