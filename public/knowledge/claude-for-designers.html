@@ -5116,16 +5116,17 @@ Generate a complete SKILL.md I can save and use immediately. Then show me how to
   <div class="video-infographic reveal" aria-label="Video library at a glance">
     <div class="vi-stats">
       <div class="vi-stat">
-        <span class="vi-stat-num count" style="--vi-target: 12;" data-suffix=""></span>
+        <span class="vi-stat-num count" style="--vi-target: 15;" data-suffix=""></span>
         <span class="vi-stat-label">Embedded videos</span>
       </div>
       <div class="vi-stat">
-        <span class="vi-stat-num count" style="--vi-target: 5;" data-suffix="h+"></span>
+        <span class="vi-stat-num count" style="--vi-target: 6;" data-suffix="h+"></span>
         <span class="vi-stat-label">Total runtime</span>
       </div>
       <div class="vi-stat">
-        <span class="vi-stat-num count" style="--vi-target: 48;" data-suffix=""></span>
+        <span class="vi-stat-num count" style="--vi-target: 60;" data-suffix=""></span>
         <span class="vi-stat-label">Timestamped chapters</span>
+
       </div>
     </div>
     <div class="vi-bars">
@@ -5412,6 +5413,183 @@ Generate a complete SKILL.md I can save and use immediately. Then show me how to
     </div>
 
   </div><!-- end skill-creation embed-section -->
+
+  <!-- ── Skill anatomy reference ── -->
+  <div class="edu-recap reveal" style="margin-top:40px;">
+    <span class="edu-recap__label">Reference · 60 seconds</span>
+    <h4 class="edu-recap__title">Skill anatomy — what every SKILL.md needs</h4>
+    <p style="font-size:13.5px;color:var(--slate);line-height:1.75;margin:0 0 14px;">A skill is just a folder with a <code style="background:var(--rule);padding:1px 6px;border-radius:4px;font-size:12.5px;">SKILL.md</code> file at the root. Claude reads the frontmatter to decide <em>when</em> to load it, and the body for <em>how</em> to execute. Optional <code style="background:var(--rule);padding:1px 6px;border-radius:4px;font-size:12.5px;">references/</code>, <code style="background:var(--rule);padding:1px 6px;border-radius:4px;font-size:12.5px;">scripts/</code>, and <code style="background:var(--rule);padding:1px 6px;border-radius:4px;font-size:12.5px;">assets/</code> directories hold supporting files.</p>
+    <table class="skill-table" style="margin:8px 0 0;">
+      <thead>
+        <tr><th>Field</th><th>Required</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>name</code></td><td>Yes</td><td>Lowercase, hyphens, max 64 chars. Acts as the skill's filename and identifier.</td></tr>
+        <tr><td><code>description</code></td><td>Yes</td><td>Highest-leverage line. Describes <em>what</em> the skill does AND <em>when</em> Claude should reach for it. Drives retrieval.</td></tr>
+        <tr><td>Body (markdown)</td><td>Yes</td><td>Concise instructions, examples, output format rules. Keep under ~5K tokens; split into <code>references/</code> for anything heavier.</td></tr>
+        <tr><td><code>references/</code></td><td>No</td><td>Long docs loaded on demand. Linked from the body via <code>knowledge://</code> or relative paths.</td></tr>
+        <tr><td><code>scripts/</code></td><td>No</td><td>Executable helpers (.sh, .py, .ts). Copied then run — useful for asset transforms, exports, validators.</td></tr>
+        <tr><td><code>assets/</code></td><td>No</td><td>Fixed files Claude reads but does not execute — templates, fonts, brand tokens, fixture data.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="section-h3" style="margin-top:48px;">More skill-building tutorials</h3>
+  <p style="font-size:14px;color:var(--slate);max-width:680px;line-height:1.75;margin-bottom:28px;">Once you've watched the four step-by-step builds above, these three deepen specific patterns: a full beginner foundation, a real production skill (slide decks), and the share/distribute workflow for putting your skill in front of teammates.</p>
+
+  <div class="embed-section">
+
+    <!-- VIDEO 13 — Full beginner -->
+    <div class="embed-block">
+      <div class="embed-meta">
+        <span class="embed-tag">Beginner · Full deep dive</span>
+        <h3 class="embed-title">Full Claude Skills Tutorial for Beginners (2026) — Become a PRO</h3>
+        <p class="embed-desc">The most-watched comprehensive Claude Skills tutorial of 2026 — 47 minutes covering everything from "what is a skill" to advanced composition and triggering rules. The reference video to send anyone on your team before they author their first template skill.</p>
+        <div class="embed-chapters">
+          <strong>Covers</strong>
+          <span>Skills 2.0 — what changed</span>
+          <span>Cowork vs. Code skills</span>
+          <span>Authoring SKILL.md from scratch</span>
+          <span>When to chain skills together</span>
+          <span>Triggering rules and retrieval</span>
+        </div>
+        <div class="embed-by">AI Foundations · Mar 2026 · 47 min · 130K views</div>
+      </div>
+      <div class="embed-wrap">
+        <iframe src="https://www.youtube.com/embed/YkpEX_jlb04" title="Full Claude Skills Tutorial for Beginners 2026" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+      </div>
+    </div>
+
+    <!-- VIDEO 14 — Slide deck skill -->
+    <div class="embed-block">
+      <div class="embed-meta">
+        <span class="embed-tag">Production skill · Slide decks</span>
+        <h3 class="embed-title">I Stopped Using PowerPoint After Building This Claude Code Skill (Full Tutorial + 3 Templates)</h3>
+        <p class="embed-desc">The clearest example of a real, production-grade template-creation skill. Peter Yang walks through the exact <code>/slides</code> skill he built — turning a rough outline into a fully animated HTML deck. Steal the structure for any branded document template skill you want to build next.</p>
+        <div class="embed-chapters">
+          <strong>Chapters</strong>
+          <span>0:00 Why decks with AI beats PowerPoint</span>
+          <span>2:30 The /slides skill structure</span>
+          <span>5:40 Three deck templates</span>
+          <span>9:15 Brand styling rules in SKILL.md</span>
+        </div>
+        <div class="embed-by">Peter Yang · 2026 · 12 min</div>
+      </div>
+      <div class="embed-wrap">
+        <iframe src="https://www.youtube.com/embed/vbChRIIlSPE" title="Claude Code Slide Deck Skill Tutorial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+      </div>
+    </div>
+
+    <!-- VIDEO 15 — Build, run, share -->
+    <div class="embed-block">
+      <div class="embed-meta">
+        <span class="embed-tag">Distribution · Sharing skills</span>
+        <h3 class="embed-title">Claude Skills Tutorial (2026): Build, Run, and Share</h3>
+        <p class="embed-desc">The missing piece most tutorials skip — how to package and distribute a skill to your team or organisation. Kevin Stratvert covers the build → run → share lifecycle, plus the workspace and personal skill folders that determine who sees what.</p>
+        <div class="embed-chapters">
+          <strong>Chapters</strong>
+          <span>1:50 Build your first skill</span>
+          <span>5:20 Running and debugging</span>
+          <span>9:40 Sharing with your team</span>
+          <span>12:30 Personal vs. workspace skills</span>
+        </div>
+        <div class="embed-by">Kevin Stratvert · May 2026 · 14 min · 38K views</div>
+      </div>
+      <div class="embed-wrap">
+        <iframe src="https://www.youtube.com/embed/O_z9vDLgvoY" title="Claude Skills Tutorial 2026 Build Run Share" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+      </div>
+    </div>
+
+  </div><!-- end more-skills embed-section -->
+
+  <h3 class="section-h3" style="margin-top:48px;">Skill-authoring reference library</h3>
+  <p style="font-size:14px;color:var(--slate);max-width:680px;line-height:1.75;margin-bottom:24px;">Official documentation and high-signal written guides for authoring, sharing, and governing skills across a design team.</p>
+
+  <div class="resource-grid">
+
+    <div class="resource-card">
+      <div class="resource-card-top">
+        <span class="resource-card-icon"><svg class="icon"><use href="#i-folder"></use></svg></span>
+        <span class="resource-card-badge">Anthropic · Official</span>
+      </div>
+      <h4>The Complete Guide to Building Skills for Claude (PDF)</h4>
+      <p>Anthropic's official 30-page guide covering Fundamentals, Planning &amp; Design, Testing &amp; Iteration, Distribution, and Troubleshooting. The single most authoritative source — keep it open while writing your first skill.</p>
+      <span class="resource-card-link">resources.anthropic.com — Complete-Guide-to-Building-Skill-for-Claude.pdf</span>
+    </div>
+
+    <div class="resource-card">
+      <div class="resource-card-top">
+        <span class="resource-card-icon"><svg class="icon"><use href="#i-link"></use></svg></span>
+        <span class="resource-card-badge">Docs · Authoring</span>
+      </div>
+      <h4>Creating Custom Skills — Claude Documentation</h4>
+      <p>Step-by-step official walkthrough on how to create, structure, and test custom skills. Covers the SKILL.md format, frontmatter fields, and progressive disclosure for multi-file skills.</p>
+      <span class="resource-card-link">claude.com/docs/skills/how-to</span>
+    </div>
+
+    <div class="resource-card">
+      <div class="resource-card-top">
+        <span class="resource-card-icon"><svg class="icon"><use href="#i-list"></use></svg></span>
+        <span class="resource-card-badge">Docs · Best practices</span>
+      </div>
+      <h4>Skill Authoring Best Practices — Anthropic API Docs</h4>
+      <p>The practical rules for writing skills Claude actually discovers and uses successfully. "Concise is key" — the context window is a public good. Required reading before you publish a skill to your workspace.</p>
+      <span class="resource-card-link">platform.claude.com/docs/agents-and-tools/agent-skills/best-practices</span>
+    </div>
+
+    <div class="resource-card">
+      <div class="resource-card-top">
+        <span class="resource-card-icon"><svg class="icon"><use href="#i-palette"></use></svg></span>
+        <span class="resource-card-badge">Use case · Brand</span>
+      </div>
+      <h4>Package Your Brand Guidelines in a Skill</h4>
+      <p>Anthropic's official brand-guidelines use case. Walks through packaging your visual identity into a skill so every presentation, spreadsheet, and document Claude generates matches your preferred style automatically.</p>
+      <span class="resource-card-link">claude.com/resources/use-cases/package-your-brand-guidelines-in-a-skill</span>
+    </div>
+
+    <div class="resource-card">
+      <div class="resource-card-top">
+        <span class="resource-card-icon"><svg class="icon"><use href="#i-tag"></use></svg></span>
+        <span class="resource-card-badge">Tutorial · Brand skill</span>
+      </div>
+      <h4>How I Created a Claude Skill So Every PDF, Deck &amp; Doc Comes Out On-Brand</h4>
+      <p>Step-by-step build of a working brand skill — copy-paste SKILL.md template, voice and tone rules, colour tokens, typography enforcement. The most complete real-world brand skill walkthrough on the web.</p>
+      <span class="resource-card-link">aiblewmymind.substack.com/p/how-to-create-claude-brand-skill</span>
+    </div>
+
+    <div class="resource-card">
+      <div class="resource-card-top">
+        <span class="resource-card-icon"><svg class="icon"><use href="#i-refresh"></use></svg></span>
+        <span class="resource-card-badge">Tutorial · Decks</span>
+      </div>
+      <h4>How to Generate On-Brand Decks in Minutes with a Claude Custom Skill</h4>
+      <p>The Rundown University's structured guide on building a deck-generation skill. Pairs perfectly with Peter Yang's video above — gives you the written reference to scaffold your own slide template skill.</p>
+      <span class="resource-card-link">app.therundown.ai/guides — on-brand-decks-claude-custom-skill</span>
+    </div>
+
+    <div class="resource-card">
+      <div class="resource-card-top">
+        <span class="resource-card-icon"><svg class="icon"><use href="#i-link"></use></svg></span>
+        <span class="resource-card-badge">Skills marketplace</span>
+      </div>
+      <h4>buildwithclaude.com — Canva Automation Skill</h4>
+      <p>Working, installable Canva automation skill (designs, exports, folders, brand templates, autofill) you can install with one command and use as a reference scaffold for your own Canva template skill.</p>
+      <span class="resource-card-link">buildwithclaude.com/skill/canva-automation</span>
+    </div>
+
+    <div class="resource-card">
+      <div class="resource-card-top">
+        <span class="resource-card-icon"><svg class="icon"><use href="#i-folder"></use></svg></span>
+        <span class="resource-card-badge">Deep dive</span>
+      </div>
+      <h4>Claude Agent Skills Tutorial — SitePoint</h4>
+      <p>Engineering-grade walkthrough: how skills work under the hood, SKILL.md best practices, 5 ready-to-use templates, advanced composition, and common mistakes. The best technical reference for power users.</p>
+      <span class="resource-card-link">sitepoint.com/claude-agent-skills-tutorial</span>
+    </div>
+
+  </div>
+
+
 
 
 <h3 class="section-h3">Best written tutorials — by topic</h3>
