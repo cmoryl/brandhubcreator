@@ -1452,6 +1452,117 @@ body {
   box-shadow: 0 4px 20px rgba(0,0,0,0.12);
 }
 
+/* ── Animated infographic (videos section) ── */
+.video-infographic {
+  margin: 8px 0 40px;
+  padding: 28px 28px 24px;
+  background: linear-gradient(180deg, var(--surface) 0%, rgba(255,255,255,0.4) 100%);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: 1.1fr 1.5fr;
+  gap: 32px;
+  align-items: center;
+}
+.vi-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.vi-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 10px;
+  border-left: 3px solid var(--coral);
+  background: rgba(255,255,255,0.5);
+  border-radius: 0 4px 4px 0;
+}
+.vi-stat-num {
+  font-family: var(--font-head);
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.vi-stat-num::after { content: attr(data-suffix); font-size: 16px; color: var(--coral-text); margin-left: 2px; font-weight: 700; }
+.vi-stat-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin-top: 6px;
+}
+
+@property --vi-count { syntax: '<integer>'; initial-value: 0; inherits: false; }
+.vi-stat-num.count {
+  counter-reset: vi-num var(--vi-count);
+  transition: --vi-count 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.vi-stat-num.count::before { content: counter(vi-num); }
+.video-infographic.in .vi-stat-num.count { --vi-count: var(--vi-target); }
+
+.vi-bars { display: flex; flex-direction: column; gap: 10px; }
+.vi-bars-title {
+  font-family: var(--font-head);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin-bottom: 4px;
+}
+.vi-bar-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 32px;
+  gap: 10px;
+  align-items: center;
+}
+.vi-bar-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vi-bar-track {
+  position: relative;
+  height: 8px;
+  background: var(--tag-bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.vi-bar-fill {
+  position: absolute;
+  inset: 0 100% 0 0;
+  background: linear-gradient(90deg, var(--coral) 0%, #ff8a65 100%);
+  border-radius: 4px;
+  transition: right 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--vi-delay, 0ms);
+}
+.video-infographic.in .vi-bar-fill { right: var(--vi-right, 0%); }
+.vi-bar-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--coral-text);
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  .video-infographic { grid-template-columns: 1fr; gap: 24px; padding: 20px; }
+  .vi-stat-num { font-size: 26px; }
+  .vi-bar-row { grid-template-columns: 80px 1fr 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vi-stat-num.count, .vi-bar-fill { transition: none; }
+}
+
 .embed-wrap iframe {
   position: absolute;
   top: 0; left: 0;
