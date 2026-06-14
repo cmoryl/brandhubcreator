@@ -6586,6 +6586,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
         el.classList.toggle('is-seen', i<idx);
       });
       bar.style.width = ((t/d)*100).toFixed(2)+'%';
+      if (stage){ var n = beatEls.length; var seg = n>1 ? (idx/(n-1)) : 1; stage.style.setProperty('--flow-progress', (seg*100).toFixed(1)+'%'); }
       time.textContent = fmtTime(t)+' / '+fmtTime(d);
       if (ccText && captionLabels[idx]) ccText.textContent = captionLabels[idx];
     }
