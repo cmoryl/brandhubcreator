@@ -6495,6 +6495,7 @@ document.querySelectorAll('.nav-item').forEach(link => {
 
     // ── Audio-driven playback (narration drives beat sync) ──
     var beatEls = wrap.querySelectorAll('[data-beat]');
+    var stage   = wrap.querySelector('[data-stage]');
     var bar     = wrap.querySelector('[data-bar]');
     var time    = wrap.querySelector('[data-time]');
     var btn     = wrap.querySelector('[data-play]');
