@@ -98,6 +98,7 @@ const AdLocalizerPage = lazyWithRetry(() => import("./pages/AdLocalizerPage"));
 const ImageryHub = lazyWithRetry(() => import("./pages/ImageryHub"));
 const LogoDownloadActivity = lazyWithRetry(() => import("./pages/LogoDownloadActivity"));
 const TransPerfectCanvaAudit = lazyWithRetry(() => import("./pages/TransPerfectCanvaAudit"));
+const TransPerfectLifeSciencesCanvaAudit = lazyWithRetry(() => import("./pages/TransPerfectLifeSciencesCanvaAudit"));
 const ClaudeForDesigners = lazyWithRetry(() => import("./pages/ClaudeForDesigners"));
 const BrandAgentPage = lazyWithRetry(() => import("./pages/BrandAgentPage"));
 const IconStudioPage = lazyWithRetry(() => import("./pages/IconStudioPage"));
@@ -495,6 +496,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <TransPerfectCanvaAudit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="transperfect-lifesciences-canva-audit"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <TransPerfectLifeSciencesCanvaAudit />
                         </Suspense>
                       }
                     />
