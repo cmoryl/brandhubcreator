@@ -115,10 +115,13 @@ export const BrandLayoutTemplateGallery = ({
   savedCustomizations,
   onSaveCustomization,
   onApplyToSection,
+  canvaTemplateLinks,
+  onCanvaTemplateLinkChange,
 }: BrandLayoutTemplateGalleryProps) => {
   const [activeTarget, setActiveTarget] = useState<LayoutSectionTarget | 'all'>('all');
   const [editorOpen, setEditorOpen] = useState(false);
   const [previewTpl, setPreviewTpl] = useState<{ template: BrandLayoutTemplate; resolved: ResolvedSlot[] } | null>(null);
+  const [canvaLinkDialog, setCanvaLinkDialog] = useState<{ templateId: string; templateName: string; draft: string } | null>(null);
 
   /** Pick the best brand-approved logo for use on dark imagery overlays.
    *  Preference order: reversed → monochrome → primary → first available.
