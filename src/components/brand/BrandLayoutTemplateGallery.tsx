@@ -423,6 +423,59 @@ export const BrandLayoutTemplateGallery = ({
                 </span>
               </button>
 
+              {/* Canva live embed */}
+              {canvaInfo && !canvaInfo.isFolder && (
+                <div className="relative overflow-hidden rounded-xl border border-[hsl(265_90%_75%)]/25 bg-[hsl(229_50%_5%)]">
+                  <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-white/[0.03] px-2.5 py-1.5">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[hsl(265_90%_85%)]">
+                      <span
+                        aria-hidden
+                        className="h-1.5 w-1.5 rounded-full bg-[hsl(265_90%_75%)] shadow-[0_0_8px_hsl(265_90%_75%/0.8)]"
+                      />
+                      Live in Canva
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <a
+                        href={canvaInfo.openUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium text-white/70 hover:bg-white/10 hover:text-white"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Edit
+                      </a>
+                      {canEditCanva && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCanvaLinkDialog({
+                              templateId: template.id,
+                              templateName: template.name,
+                              draft: canvaRaw ?? '',
+                            })
+                          }
+                          className="inline-flex items-center rounded-md p-0.5 text-white/50 hover:bg-white/10 hover:text-white"
+                          aria-label="Edit Canva link"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="relative" style={{ aspectRatio: '16 / 10' }}>
+                    <iframe
+                      src={canvaInfo.embedUrl}
+                      loading="lazy"
+                      allow="fullscreen"
+                      allowFullScreen
+                      className="absolute inset-0 h-full w-full border-0"
+                      title={`${template.name} — Canva preview`}
+                    />
+                  </div>
+                </div>
+              )}
+
+
               <div className="relative space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-[Poppins] text-sm font-semibold leading-tight text-white">
