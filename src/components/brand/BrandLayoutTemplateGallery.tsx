@@ -10,11 +10,13 @@
  * an editor for copy / slot swap / export / apply-to-section.
  */
 import { useEffect, useMemo, useState } from 'react';
-import { LayoutTemplate, Sparkles, Image as ImageIcon, Film, Check, Wand2, Maximize2, X } from 'lucide-react';
+import { LayoutTemplate, Sparkles, Image as ImageIcon, Film, Check, Wand2, Maximize2, X, ExternalLink, Link2, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { parseCanvaUrl } from '@/lib/canvaEmbed';
 import {
   brandLayoutTemplates,
   layoutTargets,
@@ -68,6 +70,10 @@ interface BrandLayoutTemplateGalleryProps {
   onSaveCustomization?: (customization: LayoutTemplateCustomization) => void;
   /** Apply the resolved cover into a brand section (hero / social / casestudy). */
   onApplyToSection?: (target: ApplyTarget, asset: { type: 'image' | 'video'; url: string }) => void;
+  /** Per-template Canva share URLs (template.id → URL). Renders live Canva embed in each card. */
+  canvaTemplateLinks?: Record<string, string>;
+  /** Admin callback to attach/update a Canva URL on a template card. When omitted, link UI is hidden. */
+  onCanvaTemplateLinkChange?: (templateId: string, url: string) => void;
 }
 
 const ExpressionBadge = ({ state }: { state: ExpressionState }) => (
