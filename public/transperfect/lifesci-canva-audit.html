@@ -1535,24 +1535,41 @@ document.querySelectorAll('table').forEach(table => {
     const idCell = row.querySelector('td.mono');
     const rawId = idCell ? (idCell.querySelector('a') ? idCell.querySelector('a').textContent.trim() : idCell.textContent.trim()) : '';
 
-    // Preview cell
+    // Preview cell — live Canva embed
     const tdPrev = document.createElement('td');
     tdPrev.className = 'thumb-cell';
-    const thumbUrl = THUMBS[rawId];
-    if (thumbUrl) {
-      const img = document.createElement('img');
-      img.src = thumbUrl;
-      img.alt = rawId;
-      // Use landscape class for 16:9 thumbnails
-      if (thumbUrl.includes('800w-') && !thumbUrl.includes('618w-') && !thumbUrl.includes('450w-') && !thumbUrl.includes('566w-') && !thumbUrl.includes('640w-')) {
-        img.className = 'landscape';
-      }
-      img.onerror = () => { tdPrev.innerHTML = '<div class="thumb-ph">🖼</div>'; };
-      tdPrev.appendChild(img);
+
+    // Detect orientation from nearest section heading text
+    let orient = 'landscape';
+    const sec = row.closest('section') || table.closest('section');
+    const headingText = (sec ? (sec.querySelector('h2,h3,h4')?.textContent || '') : '').toLowerCase();
+    if (/square/.test(headingText)) orient = 'square';
+    else if (/portrait|story|reel|9:16|vertical/.test(headingText)) orient = 'portrait';
+
+    if (rawId && /^EA[A-Za-z0-9_-]{8,}$/.test(rawId)) {
+      const frame = document.createElement('div');
+      frame.className = 'thumb-frame ' + orient;
+      const iframe = document.createElement('iframe');
+      iframe.loading = 'lazy';
+      iframe.referrerPolicy = 'no-referrer';
+      iframe.src = `https://www.canva.com/design/${rawId}/view?embed`;
+      iframe.allow = 'fullscreen';
+      const overlay = document.createElement('a');
+      overlay.className = 'thumb-open';
+      overlay.href = `https://www.canva.com/design/${rawId}/view`;
+      overlay.target = '_blank';
+      overlay.rel = 'noopener';
+      overlay.title = 'Open in Canva';
+      frame.appendChild(iframe);
+      frame.appendChild(overlay);
+      tdPrev.appendChild(frame);
     } else {
-      tdPrev.innerHTML = '<div class="thumb-ph">🖼</div>';
+      const frame = document.createElement('div');
+      frame.className = 'thumb-frame ' + orient;
+      tdPrev.appendChild(frame);
     }
     row.insertBefore(tdPrev, row.firstChild);
+
 
     // Autofill cell
     const tdAF = document.createElement('td');
