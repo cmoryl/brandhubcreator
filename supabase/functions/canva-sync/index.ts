@@ -1,13 +1,12 @@
 // Canva Connect — sync brand templates into the database.
-// Auto-refreshes the access token if expired. Requires an authenticated admin.
+// Uses the client_id + client_secret stored on the token row (entered in the
+// side panel during OAuth) so refresh works without backend secrets.
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-const CANVA_CLIENT_ID = Deno.env.get('CANVA_CLIENT_ID') ?? '';
-const CANVA_CLIENT_SECRET = Deno.env.get('CANVA_CLIENT_SECRET') ?? '';
 
 const CANVA_API = 'https://api.canva.com/rest/v1';
 
@@ -18,13 +17,16 @@ async function getFreshAccessToken(admin: ReturnType<typeof createClient>): Prom
     .eq('integration_name', 'default')
     .maybeSingle();
   if (error) throw new Error(`Failed to read token: ${error.message}`);
-  if (!row) throw new Error('Canva is not connected yet. Run OAuth first.');
+  if (!row) throw new Error('Canva is not connected yet. Open the panel and click Connect first.');
 
   const expiresAt = new Date(row.expires_at).getTime();
   if (expiresAt - Date.now() > 60_000) return row.access_token;
 
-  // Refresh
-  const basic = btoa(`${CANVA_CLIENT_ID}:${CANVA_CLIENT_SECRET}`);
+  if (!row.client_id || !row.client_secret) {
+    throw new Error('Stored token row is missing client credentials. Reconnect Canva from the side panel.');
+  }
+
+  const basic = btoa(`${row.client_id}:${row.client_secret}`);
   const res = await fetch(`${CANVA_API}/oauth/token`, {
     method: 'POST',
     headers: { 'Authorization': `Basic ${basic}`, 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -61,7 +63,7 @@ async function fetchAllBrandTemplates(accessToken: string) {
     all.push(...items);
     continuation = json.continuation;
     pages++;
-    if (pages > 50) break; // safety cap (5000 templates)
+    if (pages > 50) break;
   } while (continuation);
   return all;
 }
@@ -118,7 +120,6 @@ Deno.serve(async (req) => {
     const rows = templates.map(normalize);
 
     if (rows.length) {
-      // Upsert in batches of 200
       for (let i = 0; i < rows.length; i += 200) {
         const slice = rows.slice(i, i + 200);
         const { error } = await admin.from('canva_templates').upsert(slice, { onConflict: 'canva_id' });

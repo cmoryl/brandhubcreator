@@ -2217,6 +2217,8 @@ export type Database = {
       canva_oauth_tokens: {
         Row: {
           access_token: string
+          client_id: string | null
+          client_secret: string | null
           connected_at: string
           connected_by: string | null
           created_at: string
@@ -2230,6 +2232,8 @@ export type Database = {
         }
         Insert: {
           access_token: string
+          client_id?: string | null
+          client_secret?: string | null
           connected_at?: string
           connected_by?: string | null
           created_at?: string
@@ -2243,6 +2247,8 @@ export type Database = {
         }
         Update: {
           access_token?: string
+          client_id?: string | null
+          client_secret?: string | null
           connected_at?: string
           connected_by?: string | null
           created_at?: string

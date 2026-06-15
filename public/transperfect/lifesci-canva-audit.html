@@ -1986,30 +1986,15 @@ document.querySelectorAll('tbody tr.clickable-row').forEach(row => {
     }
   });
 
-  // "Connect Canva" button — opens OAuth flow
-  const connectBtn = document.createElement('button');
-  connectBtn.type = 'button';
-  connectBtn.className = 'lc-reset';
-  connectBtn.style.cssText = 'background:rgba(88,166,255,0.10);border-color:rgba(88,166,255,0.4);color:#58a6ff;';
-  connectBtn.textContent = '🔗 Connect Canva';
-  connectBtn.title = 'Authorize this app to read your Canva brand templates';
-  connectBtn.addEventListener('click', () => {
-    const returnTo = encodeURIComponent(location.pathname);
-    window.location.href = `${SUPABASE_URL}/functions/v1/canva-oauth-start?return_to=${returnTo}`;
-  });
-
-  // Show/hide Connect button based on connection status
+  // Show last-sync timestamp in the header pill if Canva is connected
   fetch(`${SUPABASE_URL}/functions/v1/canva-list`, {
     headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
   })
     .then(r => r.json())
     .then(info => {
-      if (info?.connected) {
-        connectBtn.style.display = 'none';
-        if (info.last_sync) {
-          const pill = document.getElementById('generated-pill');
-          if (pill) pill.textContent = '🕒 Last Canva sync: ' + new Date(info.last_sync).toLocaleString();
-        }
+      if (info?.connected && info.last_sync) {
+        const pill = document.getElementById('generated-pill');
+        if (pill) pill.textContent = '🕒 Last Canva sync: ' + new Date(info.last_sync).toLocaleString();
       }
     })
     .catch(() => {/* ignore */});
@@ -2018,12 +2003,10 @@ document.querySelectorAll('tbody tr.clickable-row').forEach(row => {
     reset.parentNode.insertBefore(collapseAllBtn, reset.nextSibling);
     reset.parentNode.insertBefore(csvBtn, collapseAllBtn.nextSibling);
     reset.parentNode.insertBefore(refreshBtn, csvBtn.nextSibling);
-    reset.parentNode.insertBefore(connectBtn, refreshBtn.nextSibling);
   } else {
     bar.appendChild(collapseAllBtn);
     bar.appendChild(csvBtn);
     bar.appendChild(refreshBtn);
-    bar.appendChild(connectBtn);
   }
 })();
 </script>
@@ -2231,7 +2214,7 @@ document.querySelectorAll('tbody tr.clickable-row').forEach(row => {
       localStorage.setItem(LS_KEY, JSON.stringify({ clientId, clientSecret }));
       // Use the stored client_id for the OAuth flow (pass to edge fn as query param)
       const returnTo = encodeURIComponent(location.pathname);
-      const url = `${SUPABASE_URL}/functions/v1/canva-oauth-start?return_to=${returnTo}&client_id=${encodeURIComponent(clientId)}`;
+      const url = `${SUPABASE_URL}/functions/v1/canva-oauth-start?return_to=${returnTo}&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`;
       window.location.href = url;
     });
 
