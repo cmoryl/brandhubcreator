@@ -253,6 +253,16 @@
     top: 56px;
     z-index: 5;
   }
+  thead th.sortable { cursor: pointer; user-select: none; }
+  thead th.sortable:hover { color: var(--text); background: var(--surface3, var(--surface2)); }
+  thead th.sortable::after {
+    content: '⇅';
+    margin-left: 6px;
+    opacity: 0.35;
+    font-size: 10px;
+  }
+  thead th.sortable.sort-asc::after { content: '▲'; opacity: 1; color: var(--accent, #4a9eff); }
+  thead th.sortable.sort-desc::after { content: '▼'; opacity: 1; color: var(--accent, #4a9eff); }
   tbody tr { border-bottom: 1px solid var(--border); }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--surface2); }
