@@ -548,6 +548,24 @@ export const BrandLayoutTemplateGallery = ({
                     {isSelected ? 'Applied' : 'Apply'}
                   </Button>
                 )}
+                {canEditCanva && !canvaInfo && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 border-[hsl(265_90%_75%)]/40 bg-[hsl(265_90%_75%)]/10 px-2 text-xs text-[hsl(265_90%_85%)] hover:border-[hsl(265_90%_75%)]/70 hover:bg-[hsl(265_90%_75%)]/20"
+                    onClick={() =>
+                      setCanvaLinkDialog({
+                        templateId: template.id,
+                        templateName: template.name,
+                        draft: '',
+                      })
+                    }
+                    title="Attach a Canva share link to this template"
+                  >
+                    <Link2 className="mr-1 h-3 w-3" />
+                    Canva
+                  </Button>
+                )}
               </div>
             </div>
           );
