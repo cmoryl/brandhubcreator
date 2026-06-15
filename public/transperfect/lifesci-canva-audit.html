@@ -413,9 +413,131 @@
   .updated-badge.recent { background: var(--green); }
   .updated-badge.mid    { background: var(--amber); }
   .updated-badge.old    { background: var(--red); }
+
+  /* ── CANVA CONNECT PANEL ──────────────────── */
+  .connect-panel {
+    position: fixed;
+    top: 0; right: 0;
+    width: 380px; max-width: 90vw;
+    height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    box-shadow: -4px 0 24px rgba(0,0,0,0.5);
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    display: flex; flex-direction: column;
+  }
+  .connect-panel.open { transform: translateX(0); }
+  .connect-panel .cp-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .connect-panel .cp-header h3 {
+    font-size: 14px; font-weight: 700; margin: 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .connect-panel .cp-body {
+    flex: 1; overflow-y: auto; padding: 20px;
+  }
+  .connect-panel .cp-body label {
+    display: block; font-size: 11.5px; font-weight: 600;
+    color: var(--text-muted); margin-bottom: 5px; margin-top: 14px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .connect-panel .cp-body input,
+  .connect-panel .cp-body select {
+    width: 100%; padding: 9px 11px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); font-size: 13px; font-family: inherit;
+  }
+  .connect-panel .cp-body input:focus,
+  .connect-panel .cp-body select:focus {
+    outline: none; border-color: var(--tp-green);
+  }
+  .connect-panel .cp-body .hint {
+    font-size: 11px; color: var(--text-faint); margin-top: 4px; line-height: 1.4;
+  }
+  .connect-panel .cp-body .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; padding: 5px 10px;
+    border-radius: 6px; margin-top: 4px;
+  }
+  .status-badge.connected { background: var(--green-bg); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .status-badge.disconnected { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .connect-panel .cp-actions {
+    padding: 14px 20px; border-top: 1px solid var(--border);
+    display: flex; gap: 8px;
+  }
+  .connect-panel .cp-actions button {
+    flex: 1; padding: 9px 14px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text); font-size: 12.5px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .connect-panel .cp-actions button.primary {
+    background: var(--green); color: #fff; border-color: var(--green);
+  }
+  .connect-panel .cp-actions button:hover { opacity: 0.9; }
+  .connect-panel-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+    z-index: 999; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .connect-panel-overlay.open { opacity: 1; pointer-events: auto; }
+  .cp-toggle {
+    position: fixed; top: 14px; right: 14px; z-index: 998;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-muted); padding: 7px 12px; border-radius: 6px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .cp-toggle:hover { color: var(--text); border-color: var(--tp-green); }
 </style>
 </head>
 <body>
+
+<!-- ─── CANVA CONNECT SIDE PANEL ────────────────────── -->
+<div class="connect-panel-overlay" id="cp-overlay"></div>
+<div class="connect-panel" id="connect-panel">
+  <div class="cp-header">
+    <h3>🔌 Canva Connect</h3>
+    <button type="button" id="cp-close" style="background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;line-height:1;">×</button>
+  </div>
+  <div class="cp-body">
+    <div id="cp-status">
+      <label>Connection Status</label>
+      <div class="status-badge disconnected" id="cp-status-badge">
+        <span>●</span> Not connected
+      </div>
+      <p class="hint">Connect your Canva account to enable live template syncing.</p>
+    </div>
+
+    <label for="cp-client-id">Canva Client ID</label>
+    <input type="text" id="cp-client-id" placeholder="e.g. OA..." autocomplete="off" />
+    <p class="hint">From your Canva integration's <strong>Overview</strong> page.</p>
+
+    <label for="cp-client-secret">Canva Client Secret</label>
+    <input type="password" id="cp-client-secret" placeholder="••••••••••••••" autocomplete="off" />
+    <p class="hint">Generated in the integration's <strong>Authentication</strong> tab.</p>
+
+    <label for="cp-redirect">Redirect URI</label>
+    <input type="text" id="cp-redirect" readonly value="https://nhxaijbyqfkkhhoornzy.supabase.co/functions/v1/canva-oauth-callback" />
+    <p class="hint">Paste this exact URL into your Canva integration settings.</p>
+
+    <label for="cp-scopes">Requested Scopes</label>
+    <input type="text" readonly value="brandtemplate:meta:read, brandtemplate:content:read, design:meta:read" />
+    <p class="hint">These scopes are required to read your brand template library.</p>
+  </div>
+  <div class="cp-actions">
+    <button type="button" id="cp-save">Save</button>
+    <button type="button" class="primary" id="cp-connect">Connect Canva</button>
+  </div>
+</div>
+
+<button class="cp-toggle" id="cp-toggle" title="Canva Connection Settings">
+  🔌 <span id="cp-toggle-text">Canva</span>
+</button>
 
 <!-- ─── HEADER ──────────────────────────────────────── -->
 <div class="site-header">
