@@ -1698,6 +1698,102 @@ document.querySelectorAll('tbody tr.clickable-row').forEach(row => {
 </script>
 
 <script>
+/* ───────────── COLLAPSIBLE SECTIONS ───────────── */
+(function () {
+  const COLLAPSE_KEY = 'lc-collapsed-sections-v1';
+  let collapsed = {};
+  try { collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}'); } catch {}
+
+  document.querySelectorAll('.cat-section').forEach(sec => {
+    const header = sec.querySelector('.cat-header');
+    if (!header) return;
+    const chev = document.createElement('span');
+    chev.className = 'cat-toggle';
+    chev.textContent = '▼';
+    header.appendChild(chev);
+    if (collapsed[sec.id]) sec.classList.add('collapsed');
+    header.addEventListener('click', () => {
+      sec.classList.toggle('collapsed');
+      collapsed[sec.id] = sec.classList.contains('collapsed');
+      try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed)); } catch {}
+    });
+  });
+})();
+
+/* ───────────── CSV EXPORT + LAST-LOADED TIMESTAMP ───────────── */
+(function () {
+  const pill = document.getElementById('generated-pill');
+  if (pill) pill.textContent = '🕒 Loaded: ' + new Date().toLocaleString();
+
+  function csvEscape(v) {
+    const s = String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function exportCSV() {
+    const rows = [['Category','Type','Segment','Region','Name','Canva ID','Autofill','Comments']];
+    const store = (() => { try { return JSON.parse(localStorage.getItem('lc-asset-comments-v1') || '{}'); } catch { return {}; } })();
+    document.querySelectorAll('.cat-section').forEach(sec => {
+      const catTitle = (sec.querySelector('.cat-title')?.textContent || '').trim();
+      sec.querySelectorAll('tbody tr:not(.lc-cmt-row)').forEach(tr => {
+        if (tr.style.display === 'none') return;
+        const idEl = tr.querySelector('td.mono a, td.mono');
+        const id = idEl ? idEl.textContent.trim() : '';
+        const nameEl = tr.querySelector('.td-name');
+        const name = nameEl ? nameEl.childNodes[0].textContent.trim() : (tr.querySelector('td')?.textContent || '').trim();
+        const af = tr.querySelector('.af-badge')?.textContent.trim() || '';
+        const note = store[id]?.text || '';
+        rows.push([catTitle, tr.dataset.type || '', tr.dataset.segment || '', tr.dataset.region || '', name, id, af, note]);
+      });
+    });
+    const csv = rows.map(r => r.map(csvEscape).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'lifesci-canva-audit-' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // Add buttons into the filter bar (created by the filter script above)
+  const bar = document.querySelector('.lc-filter-bar');
+  if (!bar) return;
+  const reset = bar.querySelector('.lc-reset');
+
+  const collapseAllBtn = document.createElement('button');
+  collapseAllBtn.type = 'button';
+  collapseAllBtn.className = 'lc-reset';
+  collapseAllBtn.textContent = 'Collapse all';
+  collapseAllBtn.addEventListener('click', () => {
+    const sections = document.querySelectorAll('.cat-section');
+    const allCollapsed = Array.from(sections).every(s => s.classList.contains('collapsed'));
+    const state = {};
+    sections.forEach(s => {
+      s.classList.toggle('collapsed', !allCollapsed);
+      state[s.id] = !allCollapsed;
+    });
+    collapseAllBtn.textContent = allCollapsed ? 'Collapse all' : 'Expand all';
+    try { localStorage.setItem('lc-collapsed-sections-v1', JSON.stringify(state)); } catch {}
+  });
+
+  const csvBtn = document.createElement('button');
+  csvBtn.type = 'button';
+  csvBtn.className = 'lc-reset';
+  csvBtn.textContent = '⬇ Export CSV';
+  csvBtn.addEventListener('click', exportCSV);
+
+  if (reset) {
+    reset.parentNode.insertBefore(collapseAllBtn, reset.nextSibling);
+    reset.parentNode.insertBefore(csvBtn, collapseAllBtn.nextSibling);
+  } else {
+    bar.appendChild(collapseAllBtn);
+    bar.appendChild(csvBtn);
+  }
+})();
+</script>
+
+
+<script>
 /* ───────────── PER-ASSET COMMENTS ───────────── */
 (function () {
   const STORAGE_KEY = 'lc-asset-comments-v1';
