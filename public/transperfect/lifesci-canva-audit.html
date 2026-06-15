@@ -2231,7 +2231,7 @@ document.querySelectorAll('tbody tr.clickable-row').forEach(row => {
       localStorage.setItem(LS_KEY, JSON.stringify({ clientId, clientSecret }));
       // Use the stored client_id for the OAuth flow (pass to edge fn as query param)
       const returnTo = encodeURIComponent(location.pathname);
-      const url = `${SUPABASE_URL}/functions/v1/canva-oauth-start?return_to=${returnTo}&client_id=${encodeURIComponent(clientId)}`;
+      const url = `${SUPABASE_URL}/functions/v1/canva-oauth-start?return_to=${returnTo}&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`;
       window.location.href = url;
     });
 
