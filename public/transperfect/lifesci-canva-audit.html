@@ -1896,10 +1896,12 @@ document.querySelectorAll('tbody tr.clickable-row').forEach(row => {
     reset.parentNode.insertBefore(collapseAllBtn, reset.nextSibling);
     reset.parentNode.insertBefore(csvBtn, collapseAllBtn.nextSibling);
     reset.parentNode.insertBefore(refreshBtn, csvBtn.nextSibling);
+    reset.parentNode.insertBefore(connectBtn, refreshBtn.nextSibling);
   } else {
     bar.appendChild(collapseAllBtn);
     bar.appendChild(csvBtn);
     bar.appendChild(refreshBtn);
+    bar.appendChild(connectBtn);
   }
 })();
 </script>
