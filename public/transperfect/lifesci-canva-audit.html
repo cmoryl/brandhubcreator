@@ -1788,6 +1788,27 @@ document.querySelectorAll('tbody tr.clickable-row').forEach(row => {
   refreshBtn.style.cssText = 'background:rgba(0,200,83,0.10);';
   refreshBtn.innerHTML = '<span class="lc-refresh-icon" style="display:inline-block;transition:transform 0.6s ease;">↻</span> Refresh Canva';
   refreshBtn.title = 'Re-scrub Canva for current templates';
+  const SUPABASE_URL = 'https://nhxaijbyqfkkhhoornzy.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeGFpamJ5cWZra2hob29ybnp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2NDU0ODYsImV4cCI6MjA4MzIyMTQ4Nn0.Uw6QPHoOo_15FWCfnSAZYyGZNEr-XlZ8NrVyLlcuiWk';
+
+  function showToast(msg, kind) {
+    const toast = document.createElement('div');
+    toast.textContent = msg;
+    const border = kind === 'error' ? '#f85149' : 'var(--tp-green)';
+    toast.style.cssText = `position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0a2240;color:#fff;border:1px solid ${border};padding:10px 18px;border-radius:6px;font-size:12px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.4);max-width:560px;`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+  }
+
+  async function getAccessToken() {
+    try {
+      const raw = localStorage.getItem('sb-nhxaijbyqfkkhhoornzy-auth-token');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed?.access_token ?? null;
+    } catch { return null; }
+  }
+
   refreshBtn.addEventListener('click', async () => {
     if (refreshBtn.disabled) return;
     const icon = refreshBtn.querySelector('.lc-refresh-icon');
@@ -1798,37 +1819,78 @@ document.querySelectorAll('tbody tr.clickable-row').forEach(row => {
       icon.dataset.spin = setInterval(() => { deg += 30; icon.style.transform = `rotate(${deg}deg)`; }, 50);
     }
 
-    // Live Canva scrape requires the Canva Connect API + OAuth credentials,
-    // which haven't been wired up yet. For now, refresh re-runs the client-side
-    // filter/classification pass and bumps the "Loaded" timestamp so the table
-    // reflects any local edits (comments, filters) without a full page reload.
     try {
-      await new Promise(r => setTimeout(r, 600));
-
-      // Re-run the filter pipeline against current DOM
-      const reset = document.querySelector('.lc-filter-bar .lc-reset');
-      if (reset) {
-        // Dispatch input event on search to re-trigger applyFilters()
-        const search = document.querySelector('#lc-search');
-        if (search) search.dispatchEvent(new Event('input', { bubbles: true }));
+      const token = await getAccessToken();
+      if (!token) {
+        showToast('⚠ Sign in as an admin first, then click Refresh again.', 'error');
+        window.open('/auth', '_blank');
+        return;
       }
 
-      // Bump the timestamp pill
-      const pill = document.getElementById('generated-pill');
-      if (pill) pill.textContent = '🕒 Loaded: ' + new Date().toLocaleString();
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/canva-sync`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'apikey': SUPABASE_ANON,
+          'Content-Type': 'application/json',
+        },
+      });
+      const json = await res.json().catch(() => ({}));
 
-      // Toast
-      const toast = document.createElement('div');
-      toast.textContent = '✓ Refreshed — showing latest cached templates. Live Canva sync not yet connected.';
-      toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0a2240;color:#fff;border:1px solid var(--tp-green);padding:10px 18px;border-radius:6px;font-size:12px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.4);max-width:520px;';
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 4000);
+      if (res.status === 401 || res.status === 403) {
+        showToast('⚠ Admin role required to sync Canva.', 'error');
+        return;
+      }
+      if (!res.ok) {
+        const msg = json?.error || `HTTP ${res.status}`;
+        if (/not connected/i.test(msg)) {
+          showToast('Canva is not connected yet. Click "Connect Canva" to authorize.', 'error');
+        } else {
+          showToast(`✗ Sync failed: ${msg}`, 'error');
+        }
+        return;
+      }
+
+      const pill = document.getElementById('generated-pill');
+      if (pill) pill.textContent = '🕒 Synced: ' + new Date().toLocaleString();
+      showToast(`✓ Synced ${json.synced ?? 0} templates from Canva. Reloading…`);
+      setTimeout(() => location.reload(), 1200);
+    } catch (e) {
+      showToast(`✗ ${e.message || 'Unknown error'}`, 'error');
     } finally {
       if (icon && icon.dataset.spin) { clearInterval(Number(icon.dataset.spin)); icon.style.transform = 'rotate(0deg)'; }
       refreshBtn.disabled = false;
       refreshBtn.style.opacity = '';
     }
   });
+
+  // "Connect Canva" button — opens OAuth flow
+  const connectBtn = document.createElement('button');
+  connectBtn.type = 'button';
+  connectBtn.className = 'lc-reset';
+  connectBtn.style.cssText = 'background:rgba(88,166,255,0.10);border-color:rgba(88,166,255,0.4);color:#58a6ff;';
+  connectBtn.textContent = '🔗 Connect Canva';
+  connectBtn.title = 'Authorize this app to read your Canva brand templates';
+  connectBtn.addEventListener('click', () => {
+    const returnTo = encodeURIComponent(location.pathname);
+    window.location.href = `${SUPABASE_URL}/functions/v1/canva-oauth-start?return_to=${returnTo}`;
+  });
+
+  // Show/hide Connect button based on connection status
+  fetch(`${SUPABASE_URL}/functions/v1/canva-list`, {
+    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+  })
+    .then(r => r.json())
+    .then(info => {
+      if (info?.connected) {
+        connectBtn.style.display = 'none';
+        if (info.last_sync) {
+          const pill = document.getElementById('generated-pill');
+          if (pill) pill.textContent = '🕒 Last Canva sync: ' + new Date(info.last_sync).toLocaleString();
+        }
+      }
+    })
+    .catch(() => {/* ignore */});
 
   if (reset) {
     reset.parentNode.insertBefore(collapseAllBtn, reset.nextSibling);
