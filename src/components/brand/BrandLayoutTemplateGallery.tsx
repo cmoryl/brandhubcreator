@@ -369,6 +369,11 @@ export const BrandLayoutTemplateGallery = ({
               ? 'sm:col-span-2 lg:col-span-2'
               : 'lg:col-span-2 xl:col-span-1';
 
+          // Canva integration — per-template embed link.
+          const canvaRaw = canvaTemplateLinks?.[template.id];
+          const canvaInfo = parseCanvaUrl(canvaRaw);
+          const canEditCanva = !!onCanvaTemplateLinkChange;
+
           return (
             <div
               key={template.id}
