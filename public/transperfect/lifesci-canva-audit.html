@@ -253,6 +253,16 @@
     top: 56px;
     z-index: 5;
   }
+  thead th.sortable { cursor: pointer; user-select: none; }
+  thead th.sortable:hover { color: var(--text); background: var(--surface3, var(--surface2)); }
+  thead th.sortable::after {
+    content: '⇅';
+    margin-left: 6px;
+    opacity: 0.35;
+    font-size: 10px;
+  }
+  thead th.sortable.sort-asc::after { content: '▲'; opacity: 1; color: var(--accent, #4a9eff); }
+  thead th.sortable.sort-desc::after { content: '▼'; opacity: 1; color: var(--accent, #4a9eff); }
   tbody tr { border-bottom: 1px solid var(--border); }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--surface2); }
@@ -1585,6 +1595,52 @@ document.querySelectorAll('table').forEach(table => {
     row.appendChild(tdAF);
   });
 });
+</script>
+
+<script>
+// ── COLUMN SORTING ────────────────────────────────────────────────────────────
+(function initTableSorting() {
+  const parseCell = (td) => {
+    if (!td) return '';
+    const raw = (td.textContent || '').trim();
+    // Date detection (e.g. "Jan 5, 2025" or "2025-01-05")
+    const d = Date.parse(raw);
+    if (!isNaN(d) && /\d{4}|\d{1,2}[\/\-\s]/.test(raw)) return { type: 'date', v: d, s: raw };
+    // Numeric
+    const n = parseFloat(raw.replace(/[, ]/g, ''));
+    if (!isNaN(n) && /^[\-+]?[\d,. ]+$/.test(raw)) return { type: 'num', v: n, s: raw };
+    return { type: 'str', v: raw.toLowerCase(), s: raw };
+  };
+
+  document.querySelectorAll('table').forEach(table => {
+    const headRow = table.querySelector('thead tr');
+    const tbody = table.querySelector('tbody');
+    if (!headRow || !tbody) return;
+    const ths = Array.from(headRow.children);
+    ths.forEach((th, idx) => {
+      th.classList.add('sortable');
+      th.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const current = th.classList.contains('sort-asc') ? 'asc'
+                      : th.classList.contains('sort-desc') ? 'desc' : null;
+        const next = current === 'asc' ? 'desc' : 'asc';
+        ths.forEach(o => o.classList.remove('sort-asc', 'sort-desc'));
+        th.classList.add(next === 'asc' ? 'sort-asc' : 'sort-desc');
+
+        const rows = Array.from(tbody.querySelectorAll(':scope > tr'));
+        rows.sort((a, b) => {
+          const av = parseCell(a.children[idx]);
+          const bv = parseCell(b.children[idx]);
+          let cmp;
+          if (av.type === bv.type && av.type !== 'str') cmp = av.v - bv.v;
+          else cmp = String(av.v).localeCompare(String(bv.v), undefined, { numeric: true });
+          return next === 'asc' ? cmp : -cmp;
+        });
+        rows.forEach(r => tbody.appendChild(r));
+      });
+    });
+  });
+})();
 </script>
 
 <script>
