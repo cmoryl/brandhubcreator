@@ -1789,6 +1789,150 @@ document.querySelectorAll('tbody tr.clickable-row').forEach(row => {
   applyFilters();
 })();
 </script>
+
+<script>
+/* ───────────── PER-ASSET COMMENTS ───────────── */
+(function () {
+  const STORAGE_KEY = 'lc-asset-comments-v1';
+  function loadAll() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+    catch { return {}; }
+  }
+  function saveAll(data) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+  }
+  const store = loadAll();
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .lc-cmt-btn {
+      background: transparent; color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 999px;
+      padding: 3px 9px; font-size: 11px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center;
+      gap: 4px; transition: all 0.15s ease; white-space: nowrap;
+      margin-top: 6px;
+    }
+    .lc-cmt-btn:hover { color: var(--tp-green); border-color: var(--tp-green); }
+    .lc-cmt-btn.has-notes {
+      color: var(--tp-green); border-color: rgba(0,200,83,0.45);
+      background: rgba(0,200,83,0.08);
+    }
+    .lc-cmt-row > td {
+      background: rgba(0,200,83,0.04);
+      padding: 14px 24px !important;
+      border-top: 1px dashed var(--border);
+    }
+    .lc-cmt-wrap { display: flex; flex-direction: column; gap: 8px; max-width: 900px; }
+    .lc-cmt-wrap > label {
+      font-size: 10.5px; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text-muted); font-weight: 700;
+    }
+    .lc-cmt-wrap textarea {
+      width: 100%; min-height: 80px;
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 12px; font: inherit; font-size: 13px;
+      line-height: 1.5; resize: vertical;
+    }
+    .lc-cmt-wrap textarea:focus { outline: none; border-color: var(--tp-green); }
+    .lc-cmt-actions { display: flex; gap: 8px; align-items: center; }
+    .lc-cmt-save {
+      background: var(--tp-green); color: #001a0a; border: none;
+      border-radius: 6px; padding: 6px 14px; font-size: 12px;
+      font-weight: 700; cursor: pointer;
+    }
+    .lc-cmt-clear {
+      background: transparent; color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .lc-cmt-clear:hover { color: #ff6b6b; border-color: #ff6b6b; }
+    .lc-cmt-meta { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+  `;
+  document.head.appendChild(style);
+
+  const canvaIdRx = /^EA[A-Za-z0-9_\-]{6,}$/;
+
+  document.querySelectorAll('.cat-section tbody tr').forEach(tr => {
+    let id = '';
+    tr.querySelectorAll('td').forEach(td => {
+      const t = (td.textContent || '').trim();
+      if (!id && canvaIdRx.test(t)) id = t;
+    });
+    if (!id) return;
+
+    const existing = store[id];
+    const colCount = tr.children.length;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'lc-cmt-btn' + (existing && existing.text ? ' has-notes' : '');
+    btn.innerHTML = `💬 <span class="lc-cmt-label">${existing && existing.text ? 'Notes' : 'Add note'}</span>`;
+    btn.title = 'Add or view comments for this asset';
+    const lastTd = tr.lastElementChild;
+    if (lastTd) lastTd.appendChild(btn);
+
+    const cmtRow = document.createElement('tr');
+    cmtRow.className = 'lc-cmt-row';
+    cmtRow.style.display = 'none';
+    const cmtTd = document.createElement('td');
+    cmtTd.colSpan = colCount;
+    const safeText = existing ? (existing.text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;') : '';
+    cmtTd.innerHTML = `
+      <div class="lc-cmt-wrap">
+        <label>Comments for <code>${id}</code></label>
+        <textarea placeholder="Notes, status, owner, review feedback…">${safeText}</textarea>
+        <div class="lc-cmt-actions">
+          <button type="button" class="lc-cmt-save">Save</button>
+          <button type="button" class="lc-cmt-clear">Clear</button>
+          <span class="lc-cmt-meta">${existing && existing.updated ? 'Last saved ' + new Date(existing.updated).toLocaleString() : ''}</span>
+        </div>
+      </div>
+    `;
+    cmtRow.appendChild(cmtTd);
+    tr.insertAdjacentElement('afterend', cmtRow);
+
+    const textarea = cmtTd.querySelector('textarea');
+    const meta = cmtTd.querySelector('.lc-cmt-meta');
+    const label = btn.querySelector('.lc-cmt-label');
+
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = cmtRow.style.display !== 'none';
+      cmtRow.style.display = open ? 'none' : '';
+      if (!open) setTimeout(() => textarea.focus(), 30);
+    });
+    cmtRow.addEventListener('click', e => e.stopPropagation());
+
+    cmtTd.querySelector('.lc-cmt-save').addEventListener('click', () => {
+      const txt = textarea.value.trim();
+      const all = loadAll();
+      if (txt) {
+        all[id] = { text: txt, updated: Date.now() };
+        btn.classList.add('has-notes');
+        label.textContent = 'Notes';
+      } else {
+        delete all[id];
+        btn.classList.remove('has-notes');
+        label.textContent = 'Add note';
+      }
+      saveAll(all);
+      meta.textContent = txt ? 'Last saved ' + new Date().toLocaleString() : '';
+    });
+
+    cmtTd.querySelector('.lc-cmt-clear').addEventListener('click', () => {
+      textarea.value = '';
+      const all = loadAll();
+      delete all[id];
+      saveAll(all);
+      btn.classList.remove('has-notes');
+      label.textContent = 'Add note';
+      meta.textContent = '';
+    });
+  });
+})();
+</script>
 </body>
 </html>
 
