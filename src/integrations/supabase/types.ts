@@ -2214,6 +2214,102 @@ export type Database = {
           },
         ]
       }
+      canva_oauth_tokens: {
+        Row: {
+          access_token: string
+          connected_at: string
+          connected_by: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          integration_name: string
+          refresh_token: string
+          scope: string | null
+          token_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token: string
+          connected_at?: string
+          connected_by?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          integration_name?: string
+          refresh_token: string
+          scope?: string | null
+          token_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          connected_at?: string
+          connected_by?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          integration_name?: string
+          refresh_token?: string
+          scope?: string | null
+          token_type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      canva_templates: {
+        Row: {
+          canva_id: string
+          canva_updated_at: string | null
+          created_at: string
+          design_type: string | null
+          edit_url: string | null
+          height: number | null
+          id: string
+          raw: Json | null
+          synced_at: string
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string | null
+          updated_at: string
+          view_url: string | null
+          width: number | null
+        }
+        Insert: {
+          canva_id: string
+          canva_updated_at?: string | null
+          created_at?: string
+          design_type?: string | null
+          edit_url?: string | null
+          height?: number | null
+          id?: string
+          raw?: Json | null
+          synced_at?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string
+          view_url?: string | null
+          width?: number | null
+        }
+        Update: {
+          canva_id?: string
+          canva_updated_at?: string | null
+          created_at?: string
+          design_type?: string | null
+          edit_url?: string | null
+          height?: number | null
+          id?: string
+          raw?: Json | null
+          synced_at?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string
+          view_url?: string | null
+          width?: number | null
+        }
+        Relationships: []
+      }
       cfd_palette_votes: {
         Row: {
           created_at: string
@@ -6831,6 +6927,15 @@ export type Database = {
       can_use_ai_features: {
         Args: { _entity_id?: string; _entity_type?: string; _user_id: string }
         Returns: boolean
+      }
+      canva_connection_status: {
+        Args: never
+        Returns: {
+          connected: boolean
+          connected_at: string
+          expires_at: string
+          scope: string
+        }[]
       }
       cast_palette_vote: {
         Args: { p_user_agent?: string; p_variant: string; p_visitor_id: string }
