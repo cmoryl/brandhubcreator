@@ -323,7 +323,24 @@ export const FullBrandPage = ({
           approvedImagery: (brand as any).approvedImagery,
         });
         const isDerived = !((explicitVisuals?.staticAssets?.length ?? 0) + (explicitVisuals?.motionAssets?.length ?? 0));
-        return <LayoutTemplatesSection brandVisuals={derivedVisuals} brandLogos={brand.logos} isDerived={isDerived} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
+        return <LayoutTemplatesSection
+          brandVisuals={derivedVisuals}
+          brandLogos={brand.logos}
+          isDerived={isDerived}
+          customSubtitle={customSubtitle}
+          onSubtitleChange={onSubtitleChange}
+          canvaFolderUrl={(brand as any).canvaFolderUrl}
+          canvaTemplateLinks={(brand as any).canvaTemplateLinks || {}}
+          onCanvaFolderUrlChange={canEdit ? (url: string) => {
+            onBrandUpdate({ ...(brand as any), canvaFolderUrl: url } as any);
+          } : undefined}
+          onCanvaTemplateLinkChange={canEdit ? (templateId: string, url: string) => {
+            const existing = { ...((brand as any).canvaTemplateLinks || {}) };
+            if (!url) delete existing[templateId];
+            else existing[templateId] = url;
+            onBrandUpdate({ ...(brand as any), canvaTemplateLinks: existing } as any);
+          } : undefined}
+        />;
       }
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => onBrandUpdate({ patterns }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} brandSlug={brand.slug} customShapes={brand.customShapes} onCustomShapesChange={canEdit ? (customShapes) => onBrandUpdate({ customShapes }) : undefined} />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => onBrandUpdate({ typography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandSlug={brand.slug} />;

@@ -817,6 +817,20 @@ const BrandEditor = () => {
           brandLogos={brand.logos}
           isDerived={isDerived}
           savedCustomizations={(brand as any).layoutTemplateCustomizations || []}
+          canvaFolderUrl={(brand as any).canvaFolderUrl}
+          canvaTemplateLinks={(brand as any).canvaTemplateLinks || {}}
+          onCanvaFolderUrlChange={canEdit ? (url: string) => {
+            updateBrand({ ...(brand as any), canvaFolderUrl: url } as any);
+          } : undefined}
+          onCanvaTemplateLinkChange={canEdit ? (templateId: string, url: string) => {
+            const existing = { ...((brand as any).canvaTemplateLinks || {}) };
+            if (!url) {
+              delete existing[templateId];
+            } else {
+              existing[templateId] = url;
+            }
+            updateBrand({ ...(brand as any), canvaTemplateLinks: existing } as any);
+          } : undefined}
           onSaveCustomization={canEdit ? (variant) => {
             const existing = (brand as any).layoutTemplateCustomizations || [];
             const next = [...existing.filter((v: any) => v.id !== variant.id), variant];
