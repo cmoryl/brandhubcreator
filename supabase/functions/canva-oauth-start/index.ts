@@ -1,8 +1,9 @@
 // Canva Connect OAuth — initiate authorization
-// Redirects the admin to Canva's consent screen with our requested scopes.
+// Reads client_id + client_secret from query params (entered in the side panel),
+// encodes both into the OAuth state so the callback can complete the exchange
+// without needing backend secrets.
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
-const CANVA_CLIENT_ID = Deno.env.get('CANVA_CLIENT_ID') ?? '';
 const SCOPES = [
   'brandtemplate:meta:read',
   'brandtemplate:content:read',
@@ -12,21 +13,31 @@ const SCOPES = [
 Deno.serve((req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  if (!CANVA_CLIENT_ID) {
+  const url = new URL(req.url);
+  const clientId = url.searchParams.get('client_id') ?? '';
+  const clientSecret = url.searchParams.get('client_secret') ?? '';
+
+  if (!clientId || !clientSecret) {
     return new Response(
-      JSON.stringify({ error: 'CANVA_CLIENT_ID not configured' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      'Missing client_id or client_secret in query string. Open the Canva Connect panel and enter both, then click Connect.',
+      { status: 400, headers: { 'Content-Type': 'text/plain' } },
     );
   }
 
-  const url = new URL(req.url);
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const redirectUri = `${supabaseUrl}/functions/v1/canva-oauth-callback`;
   const returnTo = url.searchParams.get('return_to') ?? '/transperfect/lifesci-canva-audit.html';
-  const state = btoa(JSON.stringify({ returnTo, nonce: crypto.randomUUID() }));
+
+  // Pack client credentials into state so the callback can exchange the code.
+  const state = btoa(JSON.stringify({
+    returnTo,
+    cid: clientId,
+    csec: clientSecret,
+    nonce: crypto.randomUUID(),
+  }));
 
   const authorize = new URL('https://www.canva.com/api/oauth/authorize');
-  authorize.searchParams.set('client_id', CANVA_CLIENT_ID);
+  authorize.searchParams.set('client_id', clientId);
   authorize.searchParams.set('redirect_uri', redirectUri);
   authorize.searchParams.set('response_type', 'code');
   authorize.searchParams.set('scope', SCOPES);
