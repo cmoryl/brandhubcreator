@@ -199,7 +199,21 @@
     margin-bottom: 14px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
   }
+  .cat-header:hover { border-bottom-color: var(--tp-green); }
+  .cat-toggle {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+  }
+  .cat-section.collapsed .cat-toggle { transform: rotate(-90deg); }
+  .cat-section.collapsed .cat-desc,
+  .cat-section.collapsed .t-wrap,
+  .cat-section.collapsed > p,
+  .cat-section.collapsed > div:not(.cat-header) { display: none; }
   .cat-icon { font-size: 18px; }
   .cat-title { font-size: 16px; font-weight: 700; color: var(--text); }
   .cat-count {
