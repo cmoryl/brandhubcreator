@@ -2170,8 +2170,86 @@ document.querySelectorAll('tbody tr.clickable-row').forEach(row => {
       meta.textContent = '';
     });
   });
-})();
-</script>
+  // ── CANVA CONNECT PANEL ─────────────────────────────────────────────────
+  (function () {
+    const panel = document.getElementById('connect-panel');
+    const overlay = document.getElementById('cp-overlay');
+    const toggle = document.getElementById('cp-toggle');
+    const closeBtn = document.getElementById('cp-close');
+    const clientIdInput = document.getElementById('cp-client-id');
+    const clientSecretInput = document.getElementById('cp-client-secret');
+    const statusBadge = document.getElementById('cp-status-badge');
+    const saveBtn = document.getElementById('cp-save');
+    const connectBtn = document.getElementById('cp-connect');
+    const toggleText = document.getElementById('cp-toggle-text');
+
+    const LS_KEY = 'lc-canva-connect-v1';
+
+    function open() { panel.classList.add('open'); overlay.classList.add('open'); }
+    function close() { panel.classList.remove('open'); overlay.classList.remove('open'); }
+    toggle.addEventListener('click', open);
+    closeBtn.addEventListener('click', close);
+    overlay.addEventListener('click', close);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+    // Load saved credentials
+    try {
+      const saved = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+      if (saved.clientId) clientIdInput.value = saved.clientId;
+      if (saved.clientSecret) clientSecretInput.value = saved.clientSecret;
+    } catch {}
+
+    function updateStatus(connected, msg) {
+      if (connected) {
+        statusBadge.className = 'status-badge connected';
+        statusBadge.innerHTML = '<span>●</span> ' + (msg || 'Connected');
+        toggleText.textContent = 'Canva ✓';
+        toggle.style.borderColor = 'var(--green)';
+        toggle.style.color = 'var(--green)';
+      } else {
+        statusBadge.className = 'status-badge disconnected';
+        statusBadge.innerHTML = '<span>●</span> ' + (msg || 'Not connected');
+        toggleText.textContent = 'Canva';
+        toggle.style.borderColor = '';
+        toggle.style.color = '';
+      }
+    }
+
+    saveBtn.addEventListener('click', () => {
+      const payload = { clientId: clientIdInput.value.trim(), clientSecret: clientSecretInput.value.trim() };
+      localStorage.setItem(LS_KEY, JSON.stringify(payload));
+      showToast('✓ Credentials saved locally.');
+    });
+
+    connectBtn.addEventListener('click', () => {
+      const clientId = clientIdInput.value.trim();
+      const clientSecret = clientSecretInput.value.trim();
+      if (!clientId || !clientSecret) {
+        showToast('⚠ Enter both Client ID and Client Secret first.', 'error');
+        return;
+      }
+      localStorage.setItem(LS_KEY, JSON.stringify({ clientId, clientSecret }));
+      // Use the stored client_id for the OAuth flow (pass to edge fn as query param)
+      const returnTo = encodeURIComponent(location.pathname);
+      const url = `${SUPABASE_URL}/functions/v1/canva-oauth-start?return_to=${returnTo}&client_id=${encodeURIComponent(clientId)}`;
+      window.location.href = url;
+    });
+
+    // Check connection status on load
+    fetch(`${SUPABASE_URL}/functions/v1/canva-list`, {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` },
+    })
+      .then(r => r.json())
+      .then(info => {
+        if (info?.connected) {
+          updateStatus(true, 'Connected · ' + (info.last_sync ? new Date(info.last_sync).toLocaleDateString() : 'unknown date'));
+        } else {
+          updateStatus(false, 'Not connected');
+        }
+      })
+      .catch(() => updateStatus(false, 'Not connected'));
+  })();
+  </script>
 </body>
 </html>
 
