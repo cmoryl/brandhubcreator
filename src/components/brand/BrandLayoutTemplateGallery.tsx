@@ -649,6 +649,87 @@ export const BrandLayoutTemplateGallery = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Per-template Canva link dialog */}
+      <Dialog
+        open={!!canvaLinkDialog}
+        onOpenChange={(o) => !o && setCanvaLinkDialog(null)}
+      >
+        <DialogContent className="max-w-md border-white/10 bg-[hsl(229_45%_8%)] text-white">
+          <DialogHeader>
+            <DialogTitle className="font-[Poppins] text-base text-white">
+              Link Canva design
+            </DialogTitle>
+            <p className="text-xs text-white/60">
+              Paste a Canva share, view, or edit URL. The template card will render a live
+              embed of <span className="font-medium text-white">{canvaLinkDialog?.templateName}</span> and
+              an "Edit in Canva" CTA.
+            </p>
+          </DialogHeader>
+          {canvaLinkDialog && (
+            <div className="space-y-2">
+              <Input
+                value={canvaLinkDialog.draft}
+                onChange={(e) =>
+                  setCanvaLinkDialog({ ...canvaLinkDialog, draft: e.target.value })
+                }
+                placeholder="https://www.canva.com/design/DAF…/view"
+                className="h-9 border-white/15 bg-white/5 text-xs text-white placeholder:text-white/30"
+                autoFocus
+              />
+              {canvaLinkDialog.draft.trim() !== '' && !parseCanvaUrl(canvaLinkDialog.draft) && (
+                <p className="text-[11px] text-[hsl(15_90%_75%)]">
+                  Not a recognized Canva URL.
+                </p>
+              )}
+              <p className="text-[10px] text-white/40">
+                Tip: in Canva, click <span className="text-white/70">Share → More → Embed</span> and copy the link.
+              </p>
+            </div>
+          )}
+          <DialogFooter className="gap-2 sm:gap-2">
+            {canvaLinkDialog && canvaTemplateLinks?.[canvaLinkDialog.templateId] && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-white/15 bg-white/5 text-xs text-white hover:border-[hsl(15_90%_65%)]/60 hover:bg-[hsl(15_90%_65%)]/10"
+                onClick={() => {
+                  onCanvaTemplateLinkChange?.(canvaLinkDialog.templateId, '');
+                  setCanvaLinkDialog(null);
+                }}
+              >
+                Remove link
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCanvaLinkDialog(null)}
+              className="border-white/15 bg-white/5 text-xs text-white hover:border-white/30 hover:bg-white/10"
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              disabled={
+                !canvaLinkDialog ||
+                (canvaLinkDialog.draft.trim() !== '' && !parseCanvaUrl(canvaLinkDialog.draft))
+              }
+              className="bg-white text-xs text-[hsl(229_45%_8%)] hover:bg-white/90"
+              onClick={() => {
+                if (!canvaLinkDialog) return;
+                onCanvaTemplateLinkChange?.(
+                  canvaLinkDialog.templateId,
+                  canvaLinkDialog.draft.trim(),
+                );
+                setCanvaLinkDialog(null);
+              }}
+            >
+              Save link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
