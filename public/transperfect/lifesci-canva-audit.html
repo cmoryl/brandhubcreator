@@ -1562,7 +1562,8 @@ document.querySelectorAll('table').forEach(table => {
 });
 </script>
 
-
+<script>
+// Linkify Canva IDs in td.mono cells
 document.querySelectorAll('td.mono').forEach(td => {
   const id = td.textContent.trim();
   if (id && !td.querySelector('a')) {
