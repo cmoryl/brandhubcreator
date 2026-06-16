@@ -582,7 +582,7 @@ const PlatformDetailModal = ({
             <div className="relative h-48">
               {asset.previewImageUrl ? (
                 <>
-                  <img src={asset.previewImageUrl} alt={asset.platform} className="w-full h-full object-cover" />
+                  <LazyImage src={asset.previewImageUrl} alt={asset.platform} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button size="sm" variant="secondary" onClick={openFilePicker}>
                       <Upload className="h-3.5 w-3.5 mr-1.5" />
