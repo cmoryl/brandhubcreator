@@ -50,6 +50,7 @@ import { PresentationTemplatesSection } from './PresentationTemplatesSection';
 const ApprovedImagerySection = lazy(() => import('./approved-imagery/ApprovedImagerySection').then(m => ({ default: m.ApprovedImagerySection })));
 const StudiosSection = lazy(() => import('./StudiosSection').then(m => ({ default: m.StudiosSection })));
 const CanvaAuditsSection = lazy(() => import('./CanvaAuditsSection').then(m => ({ default: m.CanvaAuditsSection })));
+import { AuditCardSkeleton } from './CanvaAuditSkeletons';
 import { Separator } from '@/components/ui/separator';
 import { BrandSectionSkeleton } from './BrandSectionSkeleton';
 
@@ -496,7 +497,15 @@ export const FullBrandPage = ({
           />
         </Suspense>;
       case 'canvaaudits':
-        return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading audits…</div>}>
+        return <Suspense fallback={
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <AuditCardSkeleton key={i} delayMs={i * 80} />
+              ))}
+            </div>
+          </div>
+        }>
           <CanvaAuditsSection
             brandSlug={brand.slug}
             brandName={brand.hero?.name}

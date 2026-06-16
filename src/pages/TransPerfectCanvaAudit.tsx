@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AuditDetailLoader } from '@/components/brand/CanvaAuditSkeletons';
 
 const AUDIT_URL = '/transperfect/canva-audit.html';
 
 export default function TransPerfectCanvaAudit() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [loaded, setLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
@@ -73,13 +75,18 @@ export default function TransPerfectCanvaAudit() {
         </div>
       </div>
 
-      <iframe
-        ref={iframeRef}
-        src={AUDIT_URL}
-        title="Canva Master Registry + Audit — TransPerfect"
-        className="flex-1 w-full border-0 bg-background"
-        onLoad={() => applyTheme(theme)}
-      />
+      <AuditDetailLoader loaded={loaded}>
+        <iframe
+          ref={iframeRef}
+          src={AUDIT_URL}
+          title="Canva Master Registry + Audit — TransPerfect"
+          className="absolute inset-0 h-full w-full border-0 bg-background"
+          onLoad={() => {
+            applyTheme(theme);
+            setLoaded(true);
+          }}
+        />
+      </AuditDetailLoader>
     </div>
   );
 }
