@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { LazyImage } from '@/components/ui/lazy-image';
 import { Video, Plus, Trash2, ExternalLink, Play, Link2, ImagePlus, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
