@@ -343,12 +343,37 @@ export const CanvaAuditsSection = ({
                 <AuditCardSkeleton key={i} delayMs={i * 80} />
               ))
             : audits.map((audit, i) => (
-                <AuditCard key={audit.slug} audit={audit} delayMs={i * 80} />
+                <AuditCard
+                  key={audit.slug}
+                  audit={audit}
+                  delayMs={i * 80}
+                  analysis={analysisBySlug.get(audit.slug)}
+                  onSync={() => handleSync(audit.slug)}
+                  syncing={syncing === audit.slug || syncing === 'all'}
+                  canSync={canSync}
+                />
               ))}
         </div>
 
-        {/* Hub link */}
-        <div className="mt-6 flex justify-end">
+        {/* Hub link + bulk sync */}
+        <div className="mt-6 flex items-center justify-between gap-3">
+          {canSync ? (
+            <button
+              type="button"
+              onClick={() => handleSync()}
+              disabled={Boolean(syncing)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-60"
+            >
+              {syncing === 'all' ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Brain className="h-3.5 w-3.5" />
+              )}
+              {syncing === 'all' ? 'Syncing all to Brain…' : 'Sync all audits to Brain'}
+            </button>
+          ) : (
+            <span />
+          )}
           <Link
             to="/brand-canva-audits"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
