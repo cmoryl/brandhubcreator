@@ -525,19 +525,25 @@ export const useBrandStorage = () => {
           ]);
 
         // Fetch in parallel for faster loading
+        // Scope to the active organization to keep payloads small and
+        // avoid full-table scans (RLS allows multi-org reads, but the
+        // PostgREST planner still pages through every row without a filter).
+        const brandsQuery = supabase
+          .from('brands')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(250);
+        const productsQuery = supabase
+          .from('products')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(250);
+        if (currentOrgId) {
+          brandsQuery.eq('organization_id', currentOrgId);
+          productsQuery.eq('organization_id', currentOrgId);
+        }
         const [brandsRes, productsRes] = await withTimeout(
-          Promise.all([
-            supabase
-              .from('brands')
-              .select('*')
-              .order('updated_at', { ascending: false })
-              .limit(250),
-            supabase
-              .from('products')
-              .select('*')
-              .order('updated_at', { ascending: false })
-              .limit(250),
-          ]),
+          Promise.all([brandsQuery, productsQuery]),
           60000
         );
 
