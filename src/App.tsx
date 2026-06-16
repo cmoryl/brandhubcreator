@@ -99,6 +99,7 @@ const ImageryHub = lazyWithRetry(() => import("./pages/ImageryHub"));
 const LogoDownloadActivity = lazyWithRetry(() => import("./pages/LogoDownloadActivity"));
 const TransPerfectCanvaAudit = lazyWithRetry(() => import("./pages/TransPerfectCanvaAudit"));
 const TransPerfectLifeSciencesCanvaAudit = lazyWithRetry(() => import("./pages/TransPerfectLifeSciencesCanvaAudit"));
+const TransPerfectDataforceTemplateInventory = lazyWithRetry(() => import("./pages/TransPerfectDataforceTemplateInventory"));
 const ClaudeForDesigners = lazyWithRetry(() => import("./pages/ClaudeForDesigners"));
 const BrandAgentPage = lazyWithRetry(() => import("./pages/BrandAgentPage"));
 const IconStudioPage = lazyWithRetry(() => import("./pages/IconStudioPage"));
