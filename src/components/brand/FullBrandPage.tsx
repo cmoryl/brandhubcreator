@@ -508,6 +508,8 @@ export const FullBrandPage = ({
         }>
           <CanvaAuditsSection
             brandSlug={brand.slug}
+            brandId={brandId}
+            organizationId={organizationId}
             brandName={brand.hero?.name}
             brandColors={brand.colors}
             customSubtitle={customSubtitle}
