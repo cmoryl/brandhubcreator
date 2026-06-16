@@ -23,6 +23,8 @@ interface CanvaAuditsSectionProps {
   brandColors?: Array<{ hex: string; name?: string }>;
   customSubtitle?: string;
   onSubtitleChange?: (subtitle: string) => void;
+  /** When true, render the skeleton variant instead of real cards. */
+  loading?: boolean;
 }
 
 function formatDate(iso: string) {
