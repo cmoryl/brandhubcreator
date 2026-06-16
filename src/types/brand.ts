@@ -1234,7 +1234,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'iconography', 'socialicons', 'imagery', 
   'social', 'socialassets', 'socialmetrics', 'website', 'signatures', 'qr', 
   'videos', 'assets', 'imageassets', 'misuse',
-  'brochures', 'templatespecs', 'presentations', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage', 'approvedimagery', 'studios'
+  'brochures', 'templatespecs', 'presentations', 'canvaaudits', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage', 'approvedimagery', 'studios'
 ];
 
 // Section IDs for navigation
