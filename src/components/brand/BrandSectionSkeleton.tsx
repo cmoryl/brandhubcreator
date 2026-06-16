@@ -148,9 +148,9 @@ const TextSkeleton = () => (
 
 const RENDERERS: Record<Variant, () => JSX.Element> = {
   hero: HeroSkeleton,
-  grid: GridSkeleton,
-  gallery: GallerySkeleton,
-  list: ListSkeleton,
+  grid: () => <GridSkeleton />,
+  gallery: () => <GallerySkeleton />,
+  list: () => <ListSkeleton />,
   chart: ChartSkeleton,
   text: TextSkeleton,
 };
