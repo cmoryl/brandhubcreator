@@ -50,6 +50,7 @@ import { PresentationTemplatesSection } from './PresentationTemplatesSection';
 const ApprovedImagerySection = lazy(() => import('./approved-imagery/ApprovedImagerySection').then(m => ({ default: m.ApprovedImagerySection })));
 const StudiosSection = lazy(() => import('./StudiosSection').then(m => ({ default: m.StudiosSection })));
 import { Separator } from '@/components/ui/separator';
+import { BrandSectionSkeleton } from './BrandSectionSkeleton';
 
 // Framer motion variants for smooth section animations
 const sectionVariants = {
