@@ -404,8 +404,11 @@ function renderRows(rows) {
     noResults.style.display = 'block';
   } else {
     noResults.style.display = 'none';
-    tbody.innerHTML = rows.map(r => `
-      <tr>
+    tbody.innerHTML = rows.map(r => {
+      const note = (NOTES[r.id]?.text || '').trim();
+      const hasNote = !!note;
+      return `
+      <tr data-id="${r.id}">
         <td class="name">${escapeHtml(r.title)}</td>
         <td class="size">${escapeHtml(r.sizeLabel)}</td>
         <td>${escapeHtml(r.type)}</td>
@@ -413,9 +416,11 @@ function renderRows(rows) {
         <td class="id">${r.id}</td>
         <td class="date">${r.created}</td>
         <td class="date">${r.updated}</td>
+        <td><button class="lc-cmt-btn ${hasNote ? 'has-notes' : ''}" data-cmt-id="${r.id}">💬 ${hasNote ? 'Edit note' : 'Add note'}</button></td>
         <td class="action"><a class="edit-btn" href="${r.url}" target="_blank" rel="noopener">Edit in Canva →</a></td>
       </tr>
-    `).join('');
+    `;}).join('');
+
   }
   document.getElementById('lc-count').textContent = `${rows.length} / ${DATA.length} templates`;
 }
