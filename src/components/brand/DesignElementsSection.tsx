@@ -38,7 +38,6 @@ const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
     variants.push({
       id: 'brand-primary',
       name: primaryColor.name || 'Primary',
-      gradient: `from-[${primaryColor.hex}] to-[${adjustBrightness(primaryColor.hex, 30)}]`,
       colors: [primaryColor.hex, adjustBrightness(primaryColor.hex, 30)],
     });
   }
