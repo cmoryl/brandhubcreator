@@ -205,25 +205,43 @@ export const CanvaAuditsSection = ({
 
         {/* Summary strip */}
         <div className="mb-6 grid grid-cols-2 gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-4">
-          <SummaryStat label="Audits" value={summary.auditCount} icon={FileStack} />
-          <SummaryStat label="Templates" value={summary.templateCount} />
-          <SummaryStat
-            label="Findings"
-            value={summary.flagCount}
-            highlight={summary.flagCount > 0}
-          />
-          <SummaryStat
-            label="Live Sync"
-            value={`${summary.liveSyncCount}/${summary.auditCount}`}
-            icon={Sparkles}
-          />
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-9 w-9 rounded-lg" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-5 w-12" />
+                  <Skeleton className="h-2.5 w-16" />
+                </div>
+              </div>
+            ))
+          ) : (
+            <>
+              <SummaryStat label="Audits" value={summary.auditCount} icon={FileStack} />
+              <SummaryStat label="Templates" value={summary.templateCount} />
+              <SummaryStat
+                label="Findings"
+                value={summary.flagCount}
+                highlight={summary.flagCount > 0}
+              />
+              <SummaryStat
+                label="Live Sync"
+                value={`${summary.liveSyncCount}/${summary.auditCount}`}
+                icon={Sparkles}
+              />
+            </>
+          )}
         </div>
 
-        {/* Audit cards grid */}
+        {/* Audit cards grid — progressive stagger fade-in */}
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {audits.map((audit) => (
-            <AuditCard key={audit.slug} audit={audit} />
-          ))}
+          {loading
+            ? Array.from({ length: skeletonCount }).map((_, i) => (
+                <AuditCardSkeleton key={i} delayMs={i * 80} />
+              ))
+            : audits.map((audit, i) => (
+                <AuditCard key={audit.slug} audit={audit} delayMs={i * 80} />
+              ))}
         </div>
 
         {/* Hub link */}
