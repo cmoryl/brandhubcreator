@@ -13,7 +13,6 @@ import { ShapeManager } from './ShapeManager';
 interface ColorVariant {
   id: string;
   name: string;
-  gradient: string;
   colors: string[];
 }
 
