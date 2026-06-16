@@ -461,24 +461,28 @@ export const FullBrandPage = ({
           isEditable={canEdit}
         />;
       case 'approvedimagery':
-        return <ApprovedImagerySection
-          approvedImagery={brand.approvedImagery}
-          onApprovedImageryChange={editHandler((approvedImagery) => onBrandUpdate({ approvedImagery }))}
-          customSubtitle={customSubtitle}
-          onSubtitleChange={onSubtitleChange}
-          canEdit={canEdit}
-          entityId={brandId}
-          entityType={entityType}
-          organizationId={organizationId}
-        />;
+        return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading imagery…</div>}>
+          <ApprovedImagerySection
+            approvedImagery={brand.approvedImagery}
+            onApprovedImageryChange={editHandler((approvedImagery) => onBrandUpdate({ approvedImagery }))}
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            canEdit={canEdit}
+            entityId={brandId}
+            entityType={entityType}
+            organizationId={organizationId}
+          />
+        </Suspense>;
       case 'studios':
-        return <StudiosSection
-          studios={brand.studios || []}
-          onStudiosChange={editHandler((studios) => onBrandUpdate({ studios }))}
-          customSubtitle={customSubtitle}
-          onSubtitleChange={onSubtitleChange}
-          entityId={brandId}
-        />;
+        return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading studios…</div>}>
+          <StudiosSection
+            studios={brand.studios || []}
+            onStudiosChange={editHandler((studios) => onBrandUpdate({ studios }))}
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            entityId={brandId}
+          />
+        </Suspense>;
       case 'brief':
       case 'socialmetrics':
         // These sections are either not yet implemented or excluded from rendering
