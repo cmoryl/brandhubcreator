@@ -73,4 +73,5 @@ export const eventSectionMeta: Record<EventSectionId, { label: string; icon: Rea
   eventprint: { label: 'Print Collateral', icon: Printer, category: 'Event Assets' },
   approvedimagery: { label: 'Approved Imagery', icon: ImageIcon, category: 'Assets' },
   studios: { label: 'Our Studios', icon: Building2, category: 'Ecosystem' },
+  canvaaudits: { label: 'Canva Audits', icon: FileText, category: 'Operations' },
 };
