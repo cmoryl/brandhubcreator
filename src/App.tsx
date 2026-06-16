@@ -518,6 +518,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="brand-canva-audits"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <TransPerfectCanvaAuditsHub />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="knowledge/claude-for-designers"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
