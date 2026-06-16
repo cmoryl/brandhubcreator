@@ -345,7 +345,7 @@ export const FullBrandPage = ({
       case 'patterns': return <PatternsSection patterns={brand.patterns} onPatternsChange={editHandler((patterns) => onBrandUpdate({ patterns }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} layout={layout} onLayoutChange={onLayoutChange} brandName={brand.hero.name} brandColors={brand.colors} brandTagline={brand.tagline?.primary} brandArchetype={brand.identity?.archetype} brandSlug={brand.slug} customShapes={brand.customShapes} onCustomShapesChange={canEdit ? (customShapes) => onBrandUpdate({ customShapes }) : undefined} />;
       case 'typography': return <TypographySection typography={brand.typography} onTypographyChange={editHandler((typography) => onBrandUpdate({ typography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} brandSlug={brand.slug} />;
       case 'textstyles': return <TextStylesSection textStyles={brand.textStyles} onTextStylesChange={editHandler((textStyles) => onBrandUpdate({ textStyles }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} adminCustomStyle={brand.adminCustomStyle} onAdminCustomStyleChange={canEdit ? (adminCustomStyle) => onBrandUpdate({ adminCustomStyle }) : undefined} canEdit={canEdit} />;
-      case 'iconography': return <IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => onBrandUpdate({ iconography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} defaultIconColor={brand.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => onBrandUpdate({ defaultIconColor }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organizationId} brandId={brandId} entityType={entityType || 'brand'} entityName={brand.hero?.name} entitySlug={brand.slug} industry={brand.identity?.archetype} />;
+      case 'iconography': return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading icons…</div>}><IconographySection iconography={brand.iconography} onIconographyChange={editHandler((iconography) => onBrandUpdate({ iconography }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} defaultIconColor={brand.defaultIconColor} onDefaultIconColorChange={editHandler((defaultIconColor) => onBrandUpdate({ defaultIconColor }))} brandColors={brand.colors?.map(c => ({ hex: c.hex, name: c.name })) || []} organizationId={organizationId} brandId={brandId} entityType={entityType || 'brand'} entityName={brand.hero?.name} entitySlug={brand.slug} industry={brand.identity?.archetype} /></Suspense>;
       case 'socialicons': return <SocialIconsSection socialIcons={brand.socialIcons} onSocialIconsChange={editHandler((socialIcons) => onBrandUpdate({ socialIcons }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} />;
       case 'imagery': return <ImagerySection imagery={brand.imagery} onImageryChange={editHandler((imagery) => onBrandUpdate({ imagery }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityId={brandId} entityType={entityType as 'brand' | 'product' | 'event' || 'brand'} isAdmin={canEdit} brandSlug={brand.slug} brandVisuals={(brand as any).brandVisuals} />;
       case 'social': return <SocialSection social={brand.social} onSocialChange={editHandler((social) => onBrandUpdate({ social }))} customSubtitle={customSubtitle} onSubtitleChange={onSubtitleChange} entityId={brandId} entityType={entityType || 'brand'} organizationId={organizationId} entityName={brand.hero?.name} />;
@@ -461,24 +461,28 @@ export const FullBrandPage = ({
           isEditable={canEdit}
         />;
       case 'approvedimagery':
-        return <ApprovedImagerySection
-          approvedImagery={brand.approvedImagery}
-          onApprovedImageryChange={editHandler((approvedImagery) => onBrandUpdate({ approvedImagery }))}
-          customSubtitle={customSubtitle}
-          onSubtitleChange={onSubtitleChange}
-          canEdit={canEdit}
-          entityId={brandId}
-          entityType={entityType}
-          organizationId={organizationId}
-        />;
+        return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading imagery…</div>}>
+          <ApprovedImagerySection
+            approvedImagery={brand.approvedImagery}
+            onApprovedImageryChange={editHandler((approvedImagery) => onBrandUpdate({ approvedImagery }))}
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            canEdit={canEdit}
+            entityId={brandId}
+            entityType={entityType}
+            organizationId={organizationId}
+          />
+        </Suspense>;
       case 'studios':
-        return <StudiosSection
-          studios={brand.studios || []}
-          onStudiosChange={editHandler((studios) => onBrandUpdate({ studios }))}
-          customSubtitle={customSubtitle}
-          onSubtitleChange={onSubtitleChange}
-          entityId={brandId}
-        />;
+        return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading studios…</div>}>
+          <StudiosSection
+            studios={brand.studios || []}
+            onStudiosChange={editHandler((studios) => onBrandUpdate({ studios }))}
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+            entityId={brandId}
+          />
+        </Suspense>;
       case 'brief':
       case 'socialmetrics':
         // These sections are either not yet implemented or excluded from rendering

@@ -1169,15 +1169,17 @@ const ProductEditor = () => {
       </div>
       
       {/* Mobile Section Navigation */}
-      <MobileSectionNav
-        sectionOrder={sectionOrder}
-        hiddenSections={hiddenSections}
-        activeSection={activeSection}
-        onSectionSelect={handleSectionChange}
-        brandName={currentProduct.hero.name}
-        isAdmin={isGuideAdmin}
-        onHiddenSectionsChange={handleHiddenSectionsChange}
-      />
+      <Suspense fallback={null}>
+        <MobileSectionNav
+          sectionOrder={sectionOrder}
+          hiddenSections={hiddenSections}
+          activeSection={activeSection}
+          onSectionSelect={handleSectionChange}
+          brandName={currentProduct.hero.name}
+          isAdmin={isGuideAdmin}
+          onHiddenSectionsChange={handleHiddenSectionsChange}
+        />
+      </Suspense>
       
       {/* Back to top button */}
       <BackToTopButton />
