@@ -1295,7 +1295,8 @@ export type SectionId =
   | 'presentations'
   | 'socialmetrics'
   | 'approvedimagery'
-  | 'studios';
+  | 'studios'
+  | 'canvaaudits';
 
 // Insight item for the Insights & Updates section
 export interface InsightItem {
