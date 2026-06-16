@@ -260,6 +260,8 @@ AuditCard.displayName = 'AuditCard';
 
 export const CanvaAuditsSection = ({
   brandSlug,
+  brandId,
+  organizationId,
   brandName,
   customSubtitle,
   onSubtitleChange,
@@ -267,11 +269,23 @@ export const CanvaAuditsSection = ({
 }: CanvaAuditsSectionProps) => {
   const audits = getCanvaAuditsForBrand(brandSlug);
   const summary = summarizeCanvaAudits(brandSlug);
+  const { analyses, refresh } = useCanvaAuditAnalyses(brandSlug);
+  const { sync, syncing } = useCanvaAuditSync();
+  const { canEdit } = useGuideAdmin({ entityOrgId: organizationId });
 
   if (!loading && audits.length === 0) return null;
 
   const defaultSubtitle = `Every Canva template audit conducted for ${brandName ?? 'this brand'} — sortable inventories, automated findings, per-asset notes, and live Canva Connect sync.`;
   const skeletonCount = Math.max(audits.length, 3);
+  const analysisBySlug = new Map(analyses.map((a) => [a.audit_slug, a]));
+  const canSync = Boolean(canEdit && organizationId);
+
+  const handleSync = async (auditSlug?: string) => {
+    if (!organizationId || !brandSlug) return;
+    await sync({ organizationId, brandSlug, brandId, auditSlug, force: true });
+    await refresh();
+  };
+
 
   return (
     <section className="w-full" aria-labelledby="canva-audits-heading">
