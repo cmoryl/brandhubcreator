@@ -53,7 +53,7 @@ export function useCanvaAuditAnalyses(brandSlug?: string | null) {
       if (error) throw error;
       setAnalyses((data ?? []) as unknown as CanvaAuditAnalysis[]);
     } catch (e) {
-      logger.warn('[useCanvaAuditAnalyses] load failed', e);
+      console.warn('[useCanvaAuditAnalyses] load failed', e);
     } finally {
       setLoading(false);
     }
