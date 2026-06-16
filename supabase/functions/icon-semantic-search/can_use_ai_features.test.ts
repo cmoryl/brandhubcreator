@@ -65,13 +65,23 @@ Deno.test("can_use_ai_features(_user_id, _entity_id, _entity_type) overload is r
       error.code,
       SCHEMA_CACHE_MISS,
       `Schema cache miss — the 3-arg overload is not registered. ` +
-        `Error: ${JSON.stringify(error)}`,
+        `This would reintroduce the 503 regression. Error: ${JSON.stringify(error)}`,
     );
-    throw new Error(`Unexpected RPC error: ${JSON.stringify(error)}`);
+    // 42501 (permission denied) is acceptable: it proves the function was
+    // RESOLVED in the schema cache. Anon callers are not granted EXECUTE on
+    // this overload by design — it's invoked server-side from edge functions
+    // running as service_role. The regression we care about is schema-cache
+    // resolution, not anon permissions.
+    assert(
+      error.code === "42501",
+      `Unexpected RPC error (expected resolvable or 42501): ${JSON.stringify(error)}`,
+    );
+    return;
   }
 
   assertEquals(typeof data, "boolean", "RPC should return a boolean");
 });
+
 
 Deno.test("icon-semantic-search edge function never returns 503 at the AI gate", async () => {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/icon-semantic-search`, {
