@@ -495,6 +495,16 @@ export const FullBrandPage = ({
             entityId={brandId}
           />
         </Suspense>;
+      case 'canvaaudits':
+        return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading audits…</div>}>
+          <CanvaAuditsSection
+            brandSlug={brand.slug}
+            brandName={brand.hero?.name}
+            brandColors={brand.colors}
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
+          />
+        </Suspense>;
       case 'brief':
       case 'socialmetrics':
         // These sections are either not yet implemented or excluded from rendering
