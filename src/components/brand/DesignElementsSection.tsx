@@ -18,11 +18,11 @@ interface ColorVariant {
 
 // Default fallback variants if no brand colors provided
 const DEFAULT_VARIANTS: ColorVariant[] = [
-  { id: 'teal', name: 'Teal', gradient: 'from-teal-400 to-emerald-500', colors: ['#2dd4bf', '#10b981'] },
-  { id: 'sunset', name: 'Sunset', gradient: 'from-yellow-300 via-pink-400 to-pink-500', colors: ['#fde047', '#f472b6', '#ec4899'] },
-  { id: 'rainbow', name: 'Rainbow', gradient: 'from-yellow-400 via-pink-500 to-purple-600', colors: ['#facc15', '#ec4899', '#9333ea'] },
-  { id: 'purple', name: 'Purple', gradient: 'from-purple-400 to-blue-500', colors: ['#c084fc', '#3b82f6'] },
-  { id: 'navy', name: 'Navy', gradient: 'from-slate-700 to-slate-900', colors: ['#334155', '#0f172a'] },
+  { id: 'teal', name: 'Teal', colors: ['#2dd4bf', '#10b981'] },
+  { id: 'sunset', name: 'Sunset', colors: ['#fde047', '#f472b6', '#ec4899'] },
+  { id: 'rainbow', name: 'Rainbow', colors: ['#facc15', '#ec4899', '#9333ea'] },
+  { id: 'purple', name: 'Purple', colors: ['#c084fc', '#3b82f6'] },
+  { id: 'navy', name: 'Navy', colors: ['#334155', '#0f172a'] },
 ];
 
 // Generate brand-based color variants from brand colors
