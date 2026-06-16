@@ -13,17 +13,16 @@ import { ShapeManager } from './ShapeManager';
 interface ColorVariant {
   id: string;
   name: string;
-  gradient: string;
   colors: string[];
 }
 
 // Default fallback variants if no brand colors provided
 const DEFAULT_VARIANTS: ColorVariant[] = [
-  { id: 'teal', name: 'Teal', gradient: 'from-teal-400 to-emerald-500', colors: ['#2dd4bf', '#10b981'] },
-  { id: 'sunset', name: 'Sunset', gradient: 'from-yellow-300 via-pink-400 to-pink-500', colors: ['#fde047', '#f472b6', '#ec4899'] },
-  { id: 'rainbow', name: 'Rainbow', gradient: 'from-yellow-400 via-pink-500 to-purple-600', colors: ['#facc15', '#ec4899', '#9333ea'] },
-  { id: 'purple', name: 'Purple', gradient: 'from-purple-400 to-blue-500', colors: ['#c084fc', '#3b82f6'] },
-  { id: 'navy', name: 'Navy', gradient: 'from-slate-700 to-slate-900', colors: ['#334155', '#0f172a'] },
+  { id: 'teal', name: 'Teal', colors: ['#2dd4bf', '#10b981'] },
+  { id: 'sunset', name: 'Sunset', colors: ['#fde047', '#f472b6', '#ec4899'] },
+  { id: 'rainbow', name: 'Rainbow', colors: ['#facc15', '#ec4899', '#9333ea'] },
+  { id: 'purple', name: 'Purple', colors: ['#c084fc', '#3b82f6'] },
+  { id: 'navy', name: 'Navy', colors: ['#334155', '#0f172a'] },
 ];
 
 // Generate brand-based color variants from brand colors
@@ -39,7 +38,6 @@ const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
     variants.push({
       id: 'brand-primary',
       name: primaryColor.name || 'Primary',
-      gradient: `from-[${primaryColor.hex}] to-[${adjustBrightness(primaryColor.hex, 30)}]`,
       colors: [primaryColor.hex, adjustBrightness(primaryColor.hex, 30)],
     });
   }
@@ -50,7 +48,6 @@ const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
     variants.push({
       id: 'brand-secondary',
       name: secondaryColor.name || 'Secondary',
-      gradient: `from-[${secondaryColor.hex}] to-[${adjustBrightness(secondaryColor.hex, 20)}]`,
       colors: [secondaryColor.hex, adjustBrightness(secondaryColor.hex, 20)],
     });
   }
@@ -61,7 +58,6 @@ const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
     variants.push({
       id: 'brand-accent',
       name: accentColor.name || 'Accent',
-      gradient: `from-[${accentColor.hex}] to-[${adjustBrightness(accentColor.hex, 25)}]`,
       colors: [accentColor.hex, adjustBrightness(accentColor.hex, 25)],
     });
   }
@@ -71,7 +67,6 @@ const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
     variants.push({
       id: 'brand-gradient',
       name: 'Brand Gradient',
-      gradient: `from-[${primaryColor.hex}] to-[${secondaryColor.hex}]`,
       colors: [primaryColor.hex, secondaryColor.hex],
     });
   }
@@ -82,7 +77,6 @@ const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
     variants.push({
       id: 'brand-spectrum',
       name: 'Brand Spectrum',
-      gradient: `from-[${top3[0].hex}] via-[${top3[1].hex}] to-[${top3[2].hex}]`,
       colors: top3.map(c => c.hex),
     });
   }
