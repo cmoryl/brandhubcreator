@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AuditDetailLoader } from '@/components/brand/CanvaAuditSkeletons';
 
 const AUDIT_URL = '/transperfect/dataforce-template-inventory.html';
 
 export default function TransPerfectDataforceTemplateInventory() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [loaded, setLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
