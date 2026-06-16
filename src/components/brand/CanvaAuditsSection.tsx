@@ -16,6 +16,8 @@ import {
   type CanvaAuditEntry,
 } from '@/data/canvaAudits';
 import { SectionHeader } from './SectionHeader';
+import { AuditCardSkeleton } from './CanvaAuditSkeletons';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface CanvaAuditsSectionProps {
   brandSlug?: string | null;
