@@ -71,13 +71,18 @@ export default function TransPerfectDataforceTemplateInventory() {
         </div>
       </div>
 
-      <iframe
-        ref={iframeRef}
-        src={AUDIT_URL}
-        title="Dataforce Template Inventory — TransPerfect"
-        className="flex-1 w-full border-0 bg-background"
-        onLoad={() => applyTheme(theme)}
-      />
+      <AuditDetailLoader loaded={loaded}>
+        <iframe
+          ref={iframeRef}
+          src={AUDIT_URL}
+          title="Dataforce Template Inventory — TransPerfect"
+          className="absolute inset-0 h-full w-full border-0 bg-background"
+          onLoad={() => {
+            applyTheme(theme);
+            setLoaded(true);
+          }}
+        />
+      </AuditDetailLoader>
     </div>
   );
 }
