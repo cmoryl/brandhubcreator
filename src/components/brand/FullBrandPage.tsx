@@ -496,7 +496,7 @@ export const FullBrandPage = ({
           />
         </Suspense>;
       case 'canvaaudits':
-        return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading audits…</div>}>
+        return <Suspense fallback={<CanvaAuditsSection brandSlug={brand.slug} brandName={brand.hero?.name} loading />}>
           <CanvaAuditsSection
             brandSlug={brand.slug}
             brandName={brand.hero?.name}
