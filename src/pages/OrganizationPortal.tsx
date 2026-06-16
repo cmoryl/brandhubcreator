@@ -361,6 +361,10 @@ const OrganizationPortal = () => {
                           <Sparkles className="h-4 w-4" />
                           Icon Studio
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/brand-canva-audits')} className="gap-2 cursor-pointer">
+                          <LayoutGrid className="h-4 w-4" />
+                          Canva Audits Hub
+                        </DropdownMenuItem>
                       </>
                     )}
                     
