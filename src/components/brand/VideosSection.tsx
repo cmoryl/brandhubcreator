@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { LazyImage } from '@/components/ui/lazy-image';
 import { Video, Plus, Trash2, ExternalLink, Play, Link2, ImagePlus, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -346,7 +347,7 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
                 <div className="relative aspect-video bg-muted">
                   {video.thumbnail ? (
                     <div className="relative w-full h-full">
-                      <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                      <LazyImage src={video.thumbnail} alt={video.title} className="w-full h-full object-cover" />
                       <button
                         onClick={() => openVideo(video)}
                         className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"
@@ -363,7 +364,7 @@ export const VideosSection = ({ videos, onVideosChange, customSubtitle, onSubtit
                     />
                   ) : thumbnail ? (
                     <div className="relative w-full h-full">
-                      <img src={thumbnail} alt={video.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                      <LazyImage src={thumbnail} alt={video.title} className="w-full h-full object-cover" />
                       <button
                         onClick={() => openVideo(video)}
                         className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"

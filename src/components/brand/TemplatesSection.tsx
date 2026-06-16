@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { LazyImage } from '@/components/ui/lazy-image';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { X, Pencil, Upload, Download, FileType, Link, ExternalLink, Image, FileText, FolderOpen, Maximize2, Minimize2 } from 'lucide-react';
 import { BrandTemplate } from '@/types/brand';
@@ -548,12 +549,10 @@ export const TemplatesSection = ({ templates: templatesProp, onTemplatesChange, 
                     {/* Thumbnail or placeholder */}
                     <div className="relative h-32 bg-muted/50 flex items-center justify-center overflow-hidden">
                       {template.thumbnailUrl ? (
-                        <img 
-                          src={template.thumbnailUrl} 
+                        <LazyImage
+                          src={template.thumbnailUrl}
                           alt={template.name}
                           className="w-full h-full object-cover"
-                          loading="lazy"
-                          decoding="async"
                         />
                       ) : (
                         <span className="text-5xl">{getFileTypeIcon(template.fileType)}</span>

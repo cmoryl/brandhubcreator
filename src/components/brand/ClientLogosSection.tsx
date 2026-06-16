@@ -13,6 +13,7 @@ import { SectionHeader } from './SectionHeader';
 import { GlobalLogoPickerDialog } from './GlobalLogoPickerDialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { LazyImage } from '@/components/ui/lazy-image';
 import JSZip from 'jszip';
 import {
   DropdownMenu,
@@ -313,11 +314,11 @@ export const ClientLogosSection = ({
         <div className="grid grid-cols-3 divide-x divide-border border-b">
           {/* Color Preview */}
           <div 
-            className="aspect-[4/3] bg-white flex items-center justify-center p-4 cursor-pointer"
+            className="relative aspect-[4/3] bg-white flex items-center justify-center p-4 cursor-pointer overflow-hidden"
             onClick={() => colorPreview && setPreviewLogo(logo)}
           >
             {colorPreview ? (
-              <img src={colorPreview} alt={`${logo.name} color`} className="max-h-full max-w-full object-contain" />
+              <LazyImage src={colorPreview} alt={`${logo.name} color`} className="max-h-full max-w-full object-contain relative z-10" />
             ) : (
               <span className="text-xs text-muted-foreground">No Color</span>
             )}
@@ -325,11 +326,11 @@ export const ClientLogosSection = ({
           
           {/* White Preview */}
           <div 
-            className="aspect-[4/3] bg-slate-900 flex items-center justify-center p-4 cursor-pointer"
+            className="relative aspect-[4/3] bg-slate-900 flex items-center justify-center p-4 cursor-pointer overflow-hidden"
             onClick={() => whitePreview && setPreviewLogo(logo)}
           >
             {whitePreview ? (
-              <img src={whitePreview} alt={`${logo.name} white`} className="max-h-full max-w-full object-contain" />
+              <LazyImage src={whitePreview} alt={`${logo.name} white`} className="max-h-full max-w-full object-contain relative z-10" />
             ) : (
               <span className="text-xs text-slate-500">No White</span>
             )}
@@ -337,16 +338,17 @@ export const ClientLogosSection = ({
           
           {/* Black Preview */}
           <div 
-            className="aspect-[4/3] bg-white flex items-center justify-center p-4 cursor-pointer"
+            className="relative aspect-[4/3] bg-white flex items-center justify-center p-4 cursor-pointer overflow-hidden"
             onClick={() => blackPreview && setPreviewLogo(logo)}
           >
             {blackPreview ? (
-              <img src={blackPreview} alt={`${logo.name} black`} className="max-h-full max-w-full object-contain" />
+              <LazyImage src={blackPreview} alt={`${logo.name} black`} className="max-h-full max-w-full object-contain relative z-10" />
             ) : (
               <span className="text-xs text-muted-foreground">No Black</span>
             )}
           </div>
         </div>
+        
         
         {/* Variant Labels */}
         <div className="grid grid-cols-3 text-center text-[10px] font-medium text-muted-foreground border-b divide-x divide-border">

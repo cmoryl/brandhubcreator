@@ -13,6 +13,7 @@ import { safeUUID } from '@/lib/safeUUID';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 import { useDownloadTracking } from '@/hooks/useDownloadTracking';
+import { LazyImage } from '@/components/ui/lazy-image';
 
 // Item the AI should learn to AVOID generating in this style/direction
 export interface ImageryAvoidItem {
@@ -317,8 +318,8 @@ export const ImageAssetsSection = ({
               onMouseEnter={() => setHoveredId(asset.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
-              <div className="h-14 w-14 shrink-0 overflow-hidden bg-muted/30">
-                <img src={asset.url} alt={asset.name} className="w-full h-full object-cover" />
+              <div className="h-14 w-14 shrink-0 overflow-hidden bg-muted/30 relative">
+                <LazyImage src={asset.url} alt={asset.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{asset.name}</p>
@@ -350,7 +351,7 @@ export const ImageAssetsSection = ({
               onMouseLeave={() => setHoveredId(null)}
             >
               <div className="aspect-square relative overflow-hidden bg-muted/30">
-                <img src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                <LazyImage src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 <div className={cn(
                   "absolute inset-0 bg-black/60 flex items-center justify-center gap-1.5 transition-opacity duration-200",
                   hoveredId === asset.id ? 'opacity-100' : 'opacity-0'

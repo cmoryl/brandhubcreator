@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { LazyImage } from '@/components/ui/lazy-image';
 import { X, Pencil, Upload, Download, Package, Maximize2, Sparkles, Loader2, FolderOpen, Shapes } from 'lucide-react';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { BrandPattern, BrandColor, LayoutPreset, CustomDesignShape } from '@/types/brand';
@@ -392,8 +393,8 @@ export const PatternsSection = ({
               className="h-32 relative cursor-pointer flex items-center justify-center bg-muted/30"
               onClick={() => setPreviewPattern(pattern)}
             >
-              <img 
-                src={pattern.url} 
+              <LazyImage
+                src={pattern.url}
                 alt={pattern.name}
                 className="w-24 h-24 object-contain rounded-lg shadow-sm"
               />

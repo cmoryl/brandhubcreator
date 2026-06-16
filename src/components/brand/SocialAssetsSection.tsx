@@ -24,6 +24,7 @@ import { useDropZone } from '@/components/ui/drop-zone';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
+import { LazyImage } from '@/components/ui/lazy-image';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
 import { TemplatePreviewDialog } from './social-assets/TemplatePreviewDialog';
 import { TransPerfectSocialPanel } from './identity/TransPerfectSocialPanel';
@@ -581,7 +582,7 @@ const PlatformDetailModal = ({
             <div className="relative h-48">
               {asset.previewImageUrl ? (
                 <>
-                  <img src={asset.previewImageUrl} alt={asset.platform} className="w-full h-full object-cover" />
+                  <LazyImage src={asset.previewImageUrl} alt={asset.platform} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button size="sm" variant="secondary" onClick={openFilePicker}>
                       <Upload className="h-3.5 w-3.5 mr-1.5" />
@@ -1523,7 +1524,7 @@ export const SocialAssetsSection = ({
                 {/* Hero area */}
                 <div className="relative h-32 bg-gradient-to-br from-primary/15 via-primary/5 to-accent/10 overflow-hidden">
                   {activePlatform.previewImageUrl && (
-                    <img src={activePlatform.previewImageUrl} alt={activePlatform.platform} className="w-full h-full object-cover opacity-40" />
+                    <LazyImage src={activePlatform.previewImageUrl} alt={activePlatform.platform} className="w-full h-full object-cover opacity-40" />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
                   <div className="absolute bottom-3 left-4 flex items-center gap-3">
