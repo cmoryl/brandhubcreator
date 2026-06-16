@@ -351,7 +351,7 @@ export const ImageAssetsSection = ({
               onMouseLeave={() => setHoveredId(null)}
             >
               <div className="aspect-square relative overflow-hidden bg-muted/30">
-                <img src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                <LazyImage src={asset.url} alt={asset.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                 <div className={cn(
                   "absolute inset-0 bg-black/60 flex items-center justify-center gap-1.5 transition-opacity duration-200",
                   hoveredId === asset.id ? 'opacity-100' : 'opacity-0'
