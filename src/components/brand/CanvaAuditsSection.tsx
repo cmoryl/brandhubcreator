@@ -191,6 +191,8 @@ export const CanvaAuditsSection = ({
             defaultSubtitle={defaultSubtitle}
             customSubtitle={customSubtitle}
             onSubtitleChange={onSubtitleChange}
+            isEditing={false}
+            onEditToggle={() => {}}
           />
         </div>
 
