@@ -48,7 +48,6 @@ const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
     variants.push({
       id: 'brand-secondary',
       name: secondaryColor.name || 'Secondary',
-      gradient: `from-[${secondaryColor.hex}] to-[${adjustBrightness(secondaryColor.hex, 20)}]`,
       colors: [secondaryColor.hex, adjustBrightness(secondaryColor.hex, 20)],
     });
   }
@@ -59,7 +58,6 @@ const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
     variants.push({
       id: 'brand-accent',
       name: accentColor.name || 'Accent',
-      gradient: `from-[${accentColor.hex}] to-[${adjustBrightness(accentColor.hex, 25)}]`,
       colors: [accentColor.hex, adjustBrightness(accentColor.hex, 25)],
     });
   }
@@ -69,7 +67,6 @@ const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
     variants.push({
       id: 'brand-gradient',
       name: 'Brand Gradient',
-      gradient: `from-[${primaryColor.hex}] to-[${secondaryColor.hex}]`,
       colors: [primaryColor.hex, secondaryColor.hex],
     });
   }
@@ -80,7 +77,6 @@ const generateBrandVariants = (brandColors: BrandColor[]): ColorVariant[] => {
     variants.push({
       id: 'brand-spectrum',
       name: 'Brand Spectrum',
-      gradient: `from-[${top3[0].hex}] via-[${top3[1].hex}] to-[${top3[2].hex}]`,
       colors: top3.map(c => c.hex),
     });
   }
