@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 const AUDIT_URL = '/transperfect/dataforce-template-inventory.html';
 
 export default function TransPerfectDataforceTemplateInventory() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('light');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
