@@ -2214,6 +2214,80 @@ export type Database = {
           },
         ]
       }
+      canva_audit_analyses: {
+        Row: {
+          audit_slug: string
+          audit_title: string | null
+          brand_id: string | null
+          brand_slug: string
+          category_breakdown: Json
+          category_count: number
+          created_at: string
+          findings: Json
+          flag_count: number
+          health_score: number
+          id: string
+          last_analyzed_at: string
+          model_used: string | null
+          organization_id: string
+          recommendations: Json
+          source_hash: string | null
+          summary: string | null
+          template_count: number
+          updated_at: string
+        }
+        Insert: {
+          audit_slug: string
+          audit_title?: string | null
+          brand_id?: string | null
+          brand_slug: string
+          category_breakdown?: Json
+          category_count?: number
+          created_at?: string
+          findings?: Json
+          flag_count?: number
+          health_score?: number
+          id?: string
+          last_analyzed_at?: string
+          model_used?: string | null
+          organization_id: string
+          recommendations?: Json
+          source_hash?: string | null
+          summary?: string | null
+          template_count?: number
+          updated_at?: string
+        }
+        Update: {
+          audit_slug?: string
+          audit_title?: string | null
+          brand_id?: string | null
+          brand_slug?: string
+          category_breakdown?: Json
+          category_count?: number
+          created_at?: string
+          findings?: Json
+          flag_count?: number
+          health_score?: number
+          id?: string
+          last_analyzed_at?: string
+          model_used?: string | null
+          organization_id?: string
+          recommendations?: Json
+          source_hash?: string | null
+          summary?: string | null
+          template_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canva_audit_analyses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       canva_oauth_tokens: {
         Row: {
           access_token: string
