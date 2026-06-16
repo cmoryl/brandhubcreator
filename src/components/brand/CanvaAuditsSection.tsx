@@ -181,23 +181,16 @@ export const CanvaAuditsSection = ({
     <section className="w-full" aria-labelledby="canva-audits-heading">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8 flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        <div className="mb-8">
+          <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             <LayoutGrid className="h-3.5 w-3.5" />
             Brand Operations
           </div>
-          <h2
-            id="canva-audits-heading"
-            className="text-3xl font-bold tracking-tight text-foreground md:text-4xl"
-          >
-            Canva Template Audits
-          </h2>
-          <Editable
-            value={customSubtitle || defaultSubtitle}
-            onChange={onSubtitleChange ?? (() => {})}
-            multiline
-            className="max-w-3xl text-sm leading-relaxed text-muted-foreground md:text-base"
-            placeholder="Section description…"
+          <SectionHeader
+            title="Canva Template Audits"
+            defaultSubtitle={defaultSubtitle}
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
           />
         </div>
 
