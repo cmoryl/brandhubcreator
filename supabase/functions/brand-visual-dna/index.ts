@@ -27,8 +27,8 @@ const corsHeaders = {
 const GATEWAY_BASE = "https://ai.gateway.lovable.dev/v1";
 const CHAT_URL = `${GATEWAY_BASE}/chat/completions`;
 const EMBED_URL = `${GATEWAY_BASE}/embeddings`;
-const VISION_MODEL = "google/gemini-2.5-flash";
-const SYNTH_MODEL = "google/gemini-2.5-flash";
+const VISION_MODEL = "google/gemini-3-flash-preview";
+const SYNTH_MODEL = "google/gemini-3-flash-preview";
 const EMBED_MODEL = "openai/text-embedding-3-small";
 const MAX_IMAGES = 60; // hard cap per training run
 
