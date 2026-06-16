@@ -50,6 +50,7 @@ import { PresentationTemplatesSection } from './PresentationTemplatesSection';
 const ApprovedImagerySection = lazy(() => import('./approved-imagery/ApprovedImagerySection').then(m => ({ default: m.ApprovedImagerySection })));
 const StudiosSection = lazy(() => import('./StudiosSection').then(m => ({ default: m.StudiosSection })));
 import { Separator } from '@/components/ui/separator';
+import { BrandSectionSkeleton } from './BrandSectionSkeleton';
 
 // Framer motion variants for smooth section animations
 const sectionVariants = {
@@ -105,6 +106,16 @@ const SectionWrapper = memo(({
 }: SectionWrapperProps) => {
   const localRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(localRef, { once: true, margin: '-60px' as any });
+  // Progressive hydration: only mount the real section once it's near the
+  // viewport. Until then we render a lightweight skeleton so the page is
+  // interactive immediately and heavy children don't block initial paint.
+  // The first section (hero) always renders eagerly.
+  const shouldRenderContent = useInView(localRef, {
+    once: true,
+    margin: '600px 0px 600px 0px' as any,
+  });
+  const isEager = index === 0;
+  const renderReal = isEager || shouldRenderContent;
   
   // Hero section should be full-width, other sections get content container
   const isHeroSection = sectionId === 'hero';
@@ -138,7 +149,7 @@ const SectionWrapper = memo(({
         variants={sectionVariants}
         transition={{ ...sectionTransition, delay: index * 0.05 }}
       >
-        {children}
+        {renderReal ? children : <BrandSectionSkeleton sectionId={sectionId} />}
       </motion.div>
       {!isLast && (
         <motion.div
