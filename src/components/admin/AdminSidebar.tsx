@@ -68,6 +68,7 @@ function SidebarContent({
     { id: 'backups', label: 'Backups', icon: <HardDrive className="h-4 w-4" />, group: 'tools' },
     { id: 'demo-pages', label: 'Demo Pages', icon: <Sparkles className="h-4 w-4" />, group: 'tools' },
     { id: 'transperfect-canva', label: 'TP Canva Audit', icon: <ClipboardList className="h-4 w-4" />, href: '/transperfect-canva-audit', group: 'tools' },
+    { id: 'brand-canva-audits', label: 'Canva Audits Hub', icon: <LayoutGrid className="h-4 w-4" />, href: '/brand-canva-audits', group: 'tools' },
   ];
 
   const superAdminOnly = ['repair', 'demo-pages'];
