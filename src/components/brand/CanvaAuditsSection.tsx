@@ -69,13 +69,14 @@ const StatusPill = ({ status }: { status: CanvaAuditEntry['status'] }) => {
   );
 };
 
-const AuditCard = memo(({ audit }: { audit: CanvaAuditEntry }) => {
+const AuditCard = memo(({ audit, delayMs = 0 }: { audit: CanvaAuditEntry; delayMs?: number }) => {
   const Icon = audit.icon;
   return (
     <Link
       to={audit.slug}
+      style={{ animationDelay: `${delayMs}ms` }}
       className={cn(
-        'group relative flex flex-col overflow-hidden rounded-2xl border bg-card p-6 transition-all',
+        'group relative flex flex-col overflow-hidden rounded-2xl border bg-card p-6 transition-all animate-fade-in',
         'hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5',
         'bg-gradient-to-br',
         audit.accent,
