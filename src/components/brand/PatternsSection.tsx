@@ -393,8 +393,8 @@ export const PatternsSection = ({
               className="h-32 relative cursor-pointer flex items-center justify-center bg-muted/30"
               onClick={() => setPreviewPattern(pattern)}
             >
-              <img 
-                src={pattern.url} 
+              <LazyImage
+                src={pattern.url}
                 alt={pattern.name}
                 className="w-24 h-24 object-contain rounded-lg shadow-sm"
               />
