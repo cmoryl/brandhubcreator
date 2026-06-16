@@ -413,7 +413,7 @@ function renderRows(rows) {
         <td class="size">${escapeHtml(r.sizeLabel)}</td>
         <td>${escapeHtml(r.type)}</td>
         <td class="pages">${r.pages}</td>
-        <td class="id">${r.id}</td>
+        <td class="id"><a href="${r.url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;">${r.id}</a></td>
         <td class="date">${r.created}</td>
         <td class="date">${r.updated}</td>
         <td><button class="lc-cmt-btn ${hasNote ? 'has-notes' : ''}" data-cmt-id="${r.id}">💬 ${hasNote ? 'Edit note' : 'Add note'}</button></td>
