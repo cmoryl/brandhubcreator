@@ -57,4 +57,5 @@ export const sectionMeta: Record<SectionId, { label: string; icon: React.Element
   casestudies: { label: 'Digital Collateral', icon: BookOpen, category: 'Collateral' },
   templates: { label: 'Presentation Templates', icon: Presentation, category: 'Collateral' },
   studios: { label: 'Our Studios', icon: Building2, category: 'Ecosystem' },
+  canvaaudits: { label: 'Canva Audits', icon: FileText, category: 'Operations' },
 };

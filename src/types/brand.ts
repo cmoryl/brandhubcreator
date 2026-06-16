@@ -1234,7 +1234,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'iconography', 'socialicons', 'imagery', 
   'social', 'socialassets', 'socialmetrics', 'website', 'signatures', 'qr', 
   'videos', 'assets', 'imageassets', 'misuse',
-  'brochures', 'templatespecs', 'presentations', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage', 'approvedimagery', 'studios'
+  'brochures', 'templatespecs', 'presentations', 'canvaaudits', 'sponsorlogos', 'clientlogos', 'universe', 'products', 'events', 'eventsignage', 'approvedimagery', 'studios'
 ];
 
 // Section IDs for navigation
@@ -1295,7 +1295,8 @@ export type SectionId =
   | 'presentations'
   | 'socialmetrics'
   | 'approvedimagery'
-  | 'studios';
+  | 'studios'
+  | 'canvaaudits';
 
 // Insight item for the Insights & Updates section
 export interface InsightItem {

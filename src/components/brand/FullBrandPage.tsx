@@ -49,6 +49,7 @@ import { SponsorLogosSection } from './SponsorLogosSection';
 import { PresentationTemplatesSection } from './PresentationTemplatesSection';
 const ApprovedImagerySection = lazy(() => import('./approved-imagery/ApprovedImagerySection').then(m => ({ default: m.ApprovedImagerySection })));
 const StudiosSection = lazy(() => import('./StudiosSection').then(m => ({ default: m.StudiosSection })));
+const CanvaAuditsSection = lazy(() => import('./CanvaAuditsSection').then(m => ({ default: m.CanvaAuditsSection })));
 import { Separator } from '@/components/ui/separator';
 import { BrandSectionSkeleton } from './BrandSectionSkeleton';
 
@@ -492,6 +493,16 @@ export const FullBrandPage = ({
             customSubtitle={customSubtitle}
             onSubtitleChange={onSubtitleChange}
             entityId={brandId}
+          />
+        </Suspense>;
+      case 'canvaaudits':
+        return <Suspense fallback={<div className="h-64 flex items-center justify-center text-muted-foreground">Loading audits…</div>}>
+          <CanvaAuditsSection
+            brandSlug={brand.slug}
+            brandName={brand.hero?.name}
+            brandColors={brand.colors}
+            customSubtitle={customSubtitle}
+            onSubtitleChange={onSubtitleChange}
           />
         </Suspense>;
       case 'brief':

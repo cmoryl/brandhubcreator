@@ -49,6 +49,7 @@ const VARIANT_BY_SECTION: Partial<Record<SectionId, Variant>> = {
   templates: 'gallery',
   templatespecs: 'list',
   presentations: 'gallery',
+  canvaaudits: 'grid',
   products: 'gallery',
   events: 'gallery',
   insights: 'list',
