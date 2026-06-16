@@ -426,7 +426,7 @@ ${isFilled
 ✓ Zero decorative sparkles/stars/dots that don't carry meaning
 ✓ Would make an art director screenshot it`;
 
-    console.log(`[generate-icon-set-worker] Generating ${iconCount} icons via gemini-2.5-pro for ${category}/${currentSection.name}`);
+    console.log(`[generate-icon-set-worker] Generating ${iconCount} icons via gemini-3.1-pro for ${category}/${currentSection.name}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
