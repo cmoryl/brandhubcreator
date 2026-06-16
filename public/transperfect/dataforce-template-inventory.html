@@ -652,8 +652,161 @@ fetch(`${SUPABASE_URL}/functions/v1/canva-list`, {
     .catch(() => updateStatus(false, 'Not connected'));
 })();
 
+/* ───────────── COMMENTS / NOTES (localStorage) ───────────── */
+const NOTES_KEY = 'df-asset-notes-v1';
+let NOTES = {};
+try { NOTES = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}'); } catch {}
+function saveNotes() { try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {} }
+
+document.getElementById('tableBody').addEventListener('click', (e) => {
+  const btn = e.target.closest('.lc-cmt-btn');
+  if (!btn) return;
+  const id = btn.getAttribute('data-cmt-id');
+  const tr = btn.closest('tr');
+  const existing = tr.nextElementSibling;
+  if (existing && existing.classList.contains('lc-cmt-row')) { existing.remove(); return; }
+  // close any other open
+  document.querySelectorAll('.lc-cmt-row').forEach(n => n.remove());
+  const row = document.createElement('tr');
+  row.className = 'lc-cmt-row';
+  const note = NOTES[id] || { text: '', updated: 0 };
+  row.innerHTML = `
+    <td colspan="9">
+      <textarea placeholder="Add an audit note for this template…">${escapeHtml(note.text)}</textarea>
+      <div class="lc-cmt-actions">
+        <button class="save">Save note</button>
+        <button class="clear">Clear</button>
+        <span class="lc-cmt-meta">${note.updated ? 'Updated ' + new Date(note.updated).toLocaleString() : ''}</span>
+      </div>
+    </td>`;
+  tr.parentNode.insertBefore(row, tr.nextSibling);
+  const ta = row.querySelector('textarea');
+  ta.focus();
+  row.querySelector('.save').addEventListener('click', () => {
+    const text = ta.value.trim();
+    if (text) NOTES[id] = { text, updated: Date.now() };
+    else delete NOTES[id];
+    saveNotes();
+    showToast(text ? '✓ Note saved' : '✓ Note cleared');
+    row.remove();
+    applySort();
+  });
+  row.querySelector('.clear').addEventListener('click', () => {
+    ta.value = '';
+    delete NOTES[id];
+    saveNotes();
+    row.remove();
+    applySort();
+  });
+});
+
+/* ───────────── AUDIT FINDINGS (computed from DATA) ───────────── */
+function computeFindings() {
+  const findings = [];
+  const copyOf = DATA.filter(r => /^copy of/i.test(r.title));
+  if (copyOf.length) findings.push({
+    level: 'amber', icon: '📝',
+    title: `${copyOf.length} templates start with "Copy of…"`,
+    desc: 'Legacy duplicates cluttering the library. Rename to a canonical title or archive after merging.',
+    ids: copyOf.map(r => r.id).slice(0, 8).join(', ') + (copyOf.length > 8 ? `, +${copyOf.length - 8} more` : '')
+  });
+  const typo = DATA.filter(r => /CHALLENCE/i.test(r.title));
+  if (typo.length) findings.push({
+    level: 'red', icon: '⚠️',
+    title: `Misspelling: "CHALLENCE" appears in ${typo.length} titles`,
+    desc: 'Should be spelled "CHALLENGE". Update titles for searchability and brand polish.',
+    ids: typo.map(r => r.id).join(', ')
+  });
+  const casings = new Set(DATA.map(r => (r.title.match(/dataforce/gi) || []).join('|')).filter(Boolean));
+  const variants = new Set();
+  DATA.forEach(r => {
+    const m = r.title.match(/dataforce/gi);
+    if (m) m.forEach(v => variants.add(v));
+  });
+  if (variants.size > 1) findings.push({
+    level: 'amber', icon: '🔤',
+    title: `Inconsistent "DataForce" capitalization (${variants.size} variants)`,
+    desc: `Found: ${Array.from(variants).join(', ')}. Pick one canonical brand-mark casing and apply across the library.`,
+    ids: ''
+  });
+  const brackets = new Set();
+  DATA.forEach(r => {
+    const m = r.title.match(/\[([^\]]+)\]/);
+    if (m && /dataforce/i.test(m[1])) brackets.add(m[1]);
+  });
+  if (brackets.size > 1) findings.push({
+    level: 'blue', icon: '🔖',
+    title: `Bracket suffix inconsistency (${brackets.size} styles)`,
+    desc: `Suffixes seen: ${Array.from(brackets).map(b => '['+b+']').join(', ')}. Standardize on one.`,
+    ids: ''
+  });
+  const stale = DATA.filter(r => r.created_ts < new Date('2023-01-01').getTime() / 1000);
+  if (stale.length) findings.push({
+    level: 'amber', icon: '🕰️',
+    title: `${stale.length} pre-2023 template${stale.length > 1 ? 's' : ''} still in active library`,
+    desc: 'Legacy assets that predate the current visual system. Audit for relevance and refresh or retire.',
+    ids: stale.map(r => `${r.title} (${r.id})`).join(' · ')
+  });
+  const bulkUpdate = DATA.filter(r => r.updated === 'Apr 29, 2025');
+  if (bulkUpdate.length > 30) findings.push({
+    level: 'blue', icon: '🔁',
+    title: `${bulkUpdate.length} templates share a bulk-update date (Apr 29, 2025)`,
+    desc: 'Likely a mass migration / re-save event. Confirm whether real content edits occurred or only metadata touched.',
+    ids: ''
+  });
+  const allSinglePage = DATA.every(r => r.pages === 1);
+  if (allSinglePage) findings.push({
+    level: 'blue', icon: '📄',
+    title: 'All 49 templates are single-page',
+    desc: 'Consider authoring multi-page master templates for case studies and campaigns to standardize narrative flow.',
+    ids: ''
+  });
+  // Duplicate concepts across formats
+  const concepts = {};
+  DATA.forEach(r => {
+    const m = r.title.match(/B2C\s+([A-Z' ]+?)(?:\s+\d|\s+\(|\s+INSTAGRAM|\s+Instagram|\s+Facebook|\s+FACT|$)/i);
+    if (m) {
+      const k = m[1].trim().toUpperCase().replace(/CHALLENCE/, 'CHALLENGE');
+      concepts[k] = (concepts[k] || 0) + 1;
+    }
+  });
+  const dupes = Object.entries(concepts).filter(([_, n]) => n >= 3);
+  if (dupes.length) findings.push({
+    level: 'amber', icon: '🧩',
+    title: `${dupes.length} B2C concept${dupes.length > 1 ? 's' : ''} duplicated across formats`,
+    desc: `Same concept exists in 3+ sizes: ${dupes.map(([k, n]) => `${k} (×${n})`).join(', ')}. Consider Canva Resize-from-master to keep variants in sync.`,
+    ids: ''
+  });
+  const recentNew = DATA.filter(r => r.created_ts > new Date('2025-01-01').getTime() / 1000);
+  if (recentNew.length) findings.push({
+    level: 'green', icon: '✨',
+    title: `${recentNew.length} new template${recentNew.length > 1 ? 's' : ''} added in 2025-2026`,
+    desc: 'Active library growth. Recent additions: ' + recentNew.map(r => r.title).slice(0, 4).join('; ') + (recentNew.length > 4 ? '…' : ''),
+    ids: ''
+  });
+  return findings;
+}
+
+function renderFindings() {
+  const findings = computeFindings();
+  document.getElementById('stat-flags').textContent = findings.filter(f => f.level === 'red' || f.level === 'amber').length;
+  const grid = document.getElementById('flag-grid');
+  grid.innerHTML = findings.map(f => `
+    <div class="flag-item ${f.level}">
+      <div class="flag-icon">${f.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <span class="flag-title">${escapeHtml(f.title)}</span>
+        <div class="flag-desc">${escapeHtml(f.desc)}</div>
+        ${f.ids ? `<div class="flag-ids">${escapeHtml(f.ids)}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+renderFindings();
+
 /* initial */
 applySort();
+
 </script>
 </body>
 </html>
