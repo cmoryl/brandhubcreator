@@ -13,6 +13,7 @@ import { safeUUID } from '@/lib/safeUUID';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { toast } from 'sonner';
 import { useDownloadTracking } from '@/hooks/useDownloadTracking';
+import { LazyImage } from '@/components/ui/lazy-image';
 
 // Item the AI should learn to AVOID generating in this style/direction
 export interface ImageryAvoidItem {
