@@ -8,6 +8,8 @@ import {
   RefreshCw,
   Sparkles,
   LayoutGrid,
+  Brain,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -18,9 +20,17 @@ import {
 import { SectionHeader } from './SectionHeader';
 import { AuditCardSkeleton } from './CanvaAuditSkeletons';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  useCanvaAuditAnalyses,
+  useCanvaAuditSync,
+  type CanvaAuditAnalysis,
+} from '@/hooks/useCanvaAuditAnalyses';
+import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 
 interface CanvaAuditsSectionProps {
   brandSlug?: string | null;
+  brandId?: string | null;
+  organizationId?: string | null;
   brandName?: string;
   brandColors?: Array<{ hex: string; name?: string }>;
   customSubtitle?: string;
