@@ -1524,7 +1524,7 @@ export const SocialAssetsSection = ({
                 {/* Hero area */}
                 <div className="relative h-32 bg-gradient-to-br from-primary/15 via-primary/5 to-accent/10 overflow-hidden">
                   {activePlatform.previewImageUrl && (
-                    <img src={activePlatform.previewImageUrl} alt={activePlatform.platform} className="w-full h-full object-cover opacity-40" />
+                    <LazyImage src={activePlatform.previewImageUrl} alt={activePlatform.platform} className="w-full h-full object-cover opacity-40" />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
                   <div className="absolute bottom-3 left-4 flex items-center gap-3">
