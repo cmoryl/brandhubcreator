@@ -24,6 +24,7 @@ import { useDropZone } from '@/components/ui/drop-zone';
 import { ImageLibraryPicker } from '@/components/ui/ImageLibraryPicker';
 import { safeUUID } from '@/lib/safeUUID';
 import { cn } from '@/lib/utils';
+import { LazyImage } from '@/components/ui/lazy-image';
 import { SocialMockupPreviewDialog } from './social-mockups/SocialMockupPreviewDialog';
 import { TemplatePreviewDialog } from './social-assets/TemplatePreviewDialog';
 import { TransPerfectSocialPanel } from './identity/TransPerfectSocialPanel';
