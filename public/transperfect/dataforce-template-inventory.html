@@ -98,6 +98,61 @@
   .no-results { text-align: center; padding: 48px 20px; color: var(--text-muted); display: none; }
   footer { padding: 18px 40px 30px; font-size: 11.5px; color: var(--text-faint); text-align: center; line-height: 1.6; }
 
+  /* ── FLAGS / AUDIT FINDINGS ─────────────── */
+  .flags-section {
+    padding: 22px 40px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .flags-section h2 {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 12px;
+  }
+  .flag-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px;
+  }
+  .flag-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 14px; border-radius: 8px; border: 1px solid;
+    font-size: 12.5px; line-height: 1.4;
+  }
+  .flag-item.red   { background: rgba(248,81,73,0.10); border-color: rgba(248,81,73,0.25); color: #f4a4a1; }
+  .flag-item.amber { background: rgba(210,153,34,0.12); border-color: rgba(210,153,34,0.25); color: #e3bc5a; }
+  .flag-item.blue  { background: rgba(88,166,255,0.10); border-color: rgba(88,166,255,0.25); color: #88c4ff; }
+  .flag-item.green { background: var(--green-bg); border-color: rgba(63,185,80,0.25); color: #7ee787; }
+  .flag-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .flag-title { font-weight: 700; display: block; margin-bottom: 2px; color: inherit; }
+  .flag-desc { font-size: 11.5px; opacity: 0.9; }
+  .flag-ids { font-family: var(--mono); font-size: 10.5px; opacity: 0.75; margin-top: 4px; word-break: break-all; }
+
+  /* ── COMMENTS ───────────────────────────── */
+  .lc-cmt-btn {
+    background: transparent; color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 3px 9px; font-size: 11px; font-weight: 600;
+    cursor: pointer; display: inline-flex; gap: 4px;
+    transition: all 0.15s; white-space: nowrap; font-family: inherit;
+  }
+  .lc-cmt-btn:hover { color: var(--tp-green); border-color: var(--tp-green); }
+  .lc-cmt-btn.has-notes { color: var(--tp-green); border-color: rgba(0,200,83,0.45); background: rgba(0,200,83,0.08); }
+  .lc-cmt-row > td { background: rgba(0,200,83,0.04); padding: 10px 16px 14px; }
+  .lc-cmt-row textarea {
+    width: 100%; min-height: 60px; padding: 8px 10px;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    font-family: inherit; font-size: 12px; resize: vertical;
+  }
+  .lc-cmt-row textarea:focus { outline: none; border-color: var(--tp-green); }
+  .lc-cmt-actions { margin-top: 6px; display: flex; gap: 8px; align-items: center; }
+  .lc-cmt-actions button {
+    background: var(--surface2); color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 5px;
+    padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: inherit;
+  }
+  .lc-cmt-actions button.save { background: var(--tp-green); color: #fff; border-color: var(--tp-green); }
+  .lc-cmt-meta { font-size: 10.5px; color: var(--text-faint); margin-left: auto; }
+
+
   /* ── FILTER BAR ─────────────────────────── */
   .lc-filter-bar {
     position: sticky; top: 0; z-index: 50;
@@ -260,9 +315,17 @@
   <div class="stat-box"><span class="val" id="stat-story">0</span><span class="lbl">Stories (9:16)</span></div>
   <div class="stat-box amber"><span class="val" id="stat-fb">0</span><span class="lbl">Facebook</span></div>
   <div class="stat-box"><span class="val" id="stat-other">0</span><span class="lbl">Other</span></div>
+  <div class="stat-box amber"><span class="val" id="stat-flags">0</span><span class="lbl">Audit Flags</span></div>
+</div>
+
+<!-- ─── FLAGS / AUDIT FINDINGS ──────────────────────── -->
+<div class="flags-section">
+  <h2>🚩 Audit Findings &amp; Recommendations</h2>
+  <div class="flag-grid" id="flag-grid"></div>
 </div>
 
 <!-- ─── FILTER BAR ──────────────────────────────────── -->
+
 <div class="lc-filter-bar">
   <label for="lc-type">Type</label>
   <select id="lc-type"><option value="">All types</option></select>
@@ -288,7 +351,9 @@
           <th data-key="id" data-type="string">Template ID <span class="arrow">▲</span></th>
           <th data-key="created_ts" data-type="number">Created <span class="arrow">▲</span></th>
           <th data-key="updated_ts" data-type="number">Last Updated <span class="arrow">▲</span></th>
+          <th>Notes</th>
           <th></th>
+
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -339,8 +404,11 @@ function renderRows(rows) {
     noResults.style.display = 'block';
   } else {
     noResults.style.display = 'none';
-    tbody.innerHTML = rows.map(r => `
-      <tr>
+    tbody.innerHTML = rows.map(r => {
+      const note = (NOTES[r.id]?.text || '').trim();
+      const hasNote = !!note;
+      return `
+      <tr data-id="${r.id}">
         <td class="name">${escapeHtml(r.title)}</td>
         <td class="size">${escapeHtml(r.sizeLabel)}</td>
         <td>${escapeHtml(r.type)}</td>
@@ -348,9 +416,11 @@ function renderRows(rows) {
         <td class="id">${r.id}</td>
         <td class="date">${r.created}</td>
         <td class="date">${r.updated}</td>
+        <td><button class="lc-cmt-btn ${hasNote ? 'has-notes' : ''}" data-cmt-id="${r.id}">💬 ${hasNote ? 'Edit note' : 'Add note'}</button></td>
         <td class="action"><a class="edit-btn" href="${r.url}" target="_blank" rel="noopener">Edit in Canva →</a></td>
       </tr>
-    `).join('');
+    `;}).join('');
+
   }
   document.getElementById('lc-count').textContent = `${rows.length} / ${DATA.length} templates`;
 }
@@ -582,8 +652,161 @@ fetch(`${SUPABASE_URL}/functions/v1/canva-list`, {
     .catch(() => updateStatus(false, 'Not connected'));
 })();
 
+/* ───────────── COMMENTS / NOTES (localStorage) ───────────── */
+const NOTES_KEY = 'df-asset-notes-v1';
+let NOTES = {};
+try { NOTES = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}'); } catch {}
+function saveNotes() { try { localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); } catch {} }
+
+document.getElementById('tableBody').addEventListener('click', (e) => {
+  const btn = e.target.closest('.lc-cmt-btn');
+  if (!btn) return;
+  const id = btn.getAttribute('data-cmt-id');
+  const tr = btn.closest('tr');
+  const existing = tr.nextElementSibling;
+  if (existing && existing.classList.contains('lc-cmt-row')) { existing.remove(); return; }
+  // close any other open
+  document.querySelectorAll('.lc-cmt-row').forEach(n => n.remove());
+  const row = document.createElement('tr');
+  row.className = 'lc-cmt-row';
+  const note = NOTES[id] || { text: '', updated: 0 };
+  row.innerHTML = `
+    <td colspan="9">
+      <textarea placeholder="Add an audit note for this template…">${escapeHtml(note.text)}</textarea>
+      <div class="lc-cmt-actions">
+        <button class="save">Save note</button>
+        <button class="clear">Clear</button>
+        <span class="lc-cmt-meta">${note.updated ? 'Updated ' + new Date(note.updated).toLocaleString() : ''}</span>
+      </div>
+    </td>`;
+  tr.parentNode.insertBefore(row, tr.nextSibling);
+  const ta = row.querySelector('textarea');
+  ta.focus();
+  row.querySelector('.save').addEventListener('click', () => {
+    const text = ta.value.trim();
+    if (text) NOTES[id] = { text, updated: Date.now() };
+    else delete NOTES[id];
+    saveNotes();
+    showToast(text ? '✓ Note saved' : '✓ Note cleared');
+    row.remove();
+    applySort();
+  });
+  row.querySelector('.clear').addEventListener('click', () => {
+    ta.value = '';
+    delete NOTES[id];
+    saveNotes();
+    row.remove();
+    applySort();
+  });
+});
+
+/* ───────────── AUDIT FINDINGS (computed from DATA) ───────────── */
+function computeFindings() {
+  const findings = [];
+  const copyOf = DATA.filter(r => /^copy of/i.test(r.title));
+  if (copyOf.length) findings.push({
+    level: 'amber', icon: '📝',
+    title: `${copyOf.length} templates start with "Copy of…"`,
+    desc: 'Legacy duplicates cluttering the library. Rename to a canonical title or archive after merging.',
+    ids: copyOf.map(r => r.id).slice(0, 8).join(', ') + (copyOf.length > 8 ? `, +${copyOf.length - 8} more` : '')
+  });
+  const typo = DATA.filter(r => /CHALLENCE/i.test(r.title));
+  if (typo.length) findings.push({
+    level: 'red', icon: '⚠️',
+    title: `Misspelling: "CHALLENCE" appears in ${typo.length} titles`,
+    desc: 'Should be spelled "CHALLENGE". Update titles for searchability and brand polish.',
+    ids: typo.map(r => r.id).join(', ')
+  });
+  const casings = new Set(DATA.map(r => (r.title.match(/dataforce/gi) || []).join('|')).filter(Boolean));
+  const variants = new Set();
+  DATA.forEach(r => {
+    const m = r.title.match(/dataforce/gi);
+    if (m) m.forEach(v => variants.add(v));
+  });
+  if (variants.size > 1) findings.push({
+    level: 'amber', icon: '🔤',
+    title: `Inconsistent "DataForce" capitalization (${variants.size} variants)`,
+    desc: `Found: ${Array.from(variants).join(', ')}. Pick one canonical brand-mark casing and apply across the library.`,
+    ids: ''
+  });
+  const brackets = new Set();
+  DATA.forEach(r => {
+    const m = r.title.match(/\[([^\]]+)\]/);
+    if (m && /dataforce/i.test(m[1])) brackets.add(m[1]);
+  });
+  if (brackets.size > 1) findings.push({
+    level: 'blue', icon: '🔖',
+    title: `Bracket suffix inconsistency (${brackets.size} styles)`,
+    desc: `Suffixes seen: ${Array.from(brackets).map(b => '['+b+']').join(', ')}. Standardize on one.`,
+    ids: ''
+  });
+  const stale = DATA.filter(r => r.created_ts < new Date('2023-01-01').getTime() / 1000);
+  if (stale.length) findings.push({
+    level: 'amber', icon: '🕰️',
+    title: `${stale.length} pre-2023 template${stale.length > 1 ? 's' : ''} still in active library`,
+    desc: 'Legacy assets that predate the current visual system. Audit for relevance and refresh or retire.',
+    ids: stale.map(r => `${r.title} (${r.id})`).join(' · ')
+  });
+  const bulkUpdate = DATA.filter(r => r.updated === 'Apr 29, 2025');
+  if (bulkUpdate.length > 30) findings.push({
+    level: 'blue', icon: '🔁',
+    title: `${bulkUpdate.length} templates share a bulk-update date (Apr 29, 2025)`,
+    desc: 'Likely a mass migration / re-save event. Confirm whether real content edits occurred or only metadata touched.',
+    ids: ''
+  });
+  const allSinglePage = DATA.every(r => r.pages === 1);
+  if (allSinglePage) findings.push({
+    level: 'blue', icon: '📄',
+    title: 'All 49 templates are single-page',
+    desc: 'Consider authoring multi-page master templates for case studies and campaigns to standardize narrative flow.',
+    ids: ''
+  });
+  // Duplicate concepts across formats
+  const concepts = {};
+  DATA.forEach(r => {
+    const m = r.title.match(/B2C\s+([A-Z' ]+?)(?:\s+\d|\s+\(|\s+INSTAGRAM|\s+Instagram|\s+Facebook|\s+FACT|$)/i);
+    if (m) {
+      const k = m[1].trim().toUpperCase().replace(/CHALLENCE/, 'CHALLENGE');
+      concepts[k] = (concepts[k] || 0) + 1;
+    }
+  });
+  const dupes = Object.entries(concepts).filter(([_, n]) => n >= 3);
+  if (dupes.length) findings.push({
+    level: 'amber', icon: '🧩',
+    title: `${dupes.length} B2C concept${dupes.length > 1 ? 's' : ''} duplicated across formats`,
+    desc: `Same concept exists in 3+ sizes: ${dupes.map(([k, n]) => `${k} (×${n})`).join(', ')}. Consider Canva Resize-from-master to keep variants in sync.`,
+    ids: ''
+  });
+  const recentNew = DATA.filter(r => r.created_ts > new Date('2025-01-01').getTime() / 1000);
+  if (recentNew.length) findings.push({
+    level: 'green', icon: '✨',
+    title: `${recentNew.length} new template${recentNew.length > 1 ? 's' : ''} added in 2025-2026`,
+    desc: 'Active library growth. Recent additions: ' + recentNew.map(r => r.title).slice(0, 4).join('; ') + (recentNew.length > 4 ? '…' : ''),
+    ids: ''
+  });
+  return findings;
+}
+
+function renderFindings() {
+  const findings = computeFindings();
+  document.getElementById('stat-flags').textContent = findings.filter(f => f.level === 'red' || f.level === 'amber').length;
+  const grid = document.getElementById('flag-grid');
+  grid.innerHTML = findings.map(f => `
+    <div class="flag-item ${f.level}">
+      <div class="flag-icon">${f.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <span class="flag-title">${escapeHtml(f.title)}</span>
+        <div class="flag-desc">${escapeHtml(f.desc)}</div>
+        ${f.ids ? `<div class="flag-ids">${escapeHtml(f.ids)}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+renderFindings();
+
 /* initial */
 applySort();
+
 </script>
 </body>
 </html>
