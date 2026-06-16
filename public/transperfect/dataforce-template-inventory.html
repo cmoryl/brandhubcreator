@@ -787,6 +787,15 @@ function computeFindings() {
   return findings;
 }
 
+function linkifyIds(str) {
+  // Replace any Canva template ID (EA + alphanumerics/_-) with a link to its template URL.
+  return escapeHtml(str).replace(/EA[A-Za-z0-9_-]{6,}/g, (id) => {
+    const row = DATA.find(d => d.id === id);
+    const url = row ? row.url : `https://www.canva.com/design?create=true&template=${id}`;
+    return `<a href="${url}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;">${id}</a>`;
+  });
+}
+
 function renderFindings() {
   const findings = computeFindings();
   document.getElementById('stat-flags').textContent = findings.filter(f => f.level === 'red' || f.level === 'amber').length;
@@ -797,7 +806,7 @@ function renderFindings() {
       <div style="flex:1;min-width:0;">
         <span class="flag-title">${escapeHtml(f.title)}</span>
         <div class="flag-desc">${escapeHtml(f.desc)}</div>
-        ${f.ids ? `<div class="flag-ids">${escapeHtml(f.ids)}</div>` : ''}
+        ${f.ids ? `<div class="flag-ids">${linkifyIds(f.ids)}</div>` : ''}
       </div>
     </div>
   `).join('');
