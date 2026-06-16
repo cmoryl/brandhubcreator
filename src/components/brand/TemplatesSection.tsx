@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { LazyImage } from '@/components/ui/lazy-image';
 import { useStorageUpload } from '@/hooks/useStorageUpload';
 import { X, Pencil, Upload, Download, FileType, Link, ExternalLink, Image, FileText, FolderOpen, Maximize2, Minimize2 } from 'lucide-react';
 import { BrandTemplate } from '@/types/brand';
