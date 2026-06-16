@@ -44,8 +44,8 @@ const VARIANT_BY_SECTION: Partial<Record<SectionId, Variant>> = {
   assets: 'list',
   imageassets: 'gallery',
   misuse: 'grid',
-  digitalcollateral: 'list',
   casestudies: 'gallery',
+  brochures: 'gallery',
   templates: 'gallery',
   templatespecs: 'list',
   presentations: 'gallery',
@@ -57,7 +57,7 @@ const VARIANT_BY_SECTION: Partial<Record<SectionId, Variant>> = {
   clientlogos: 'gallery',
   sponsorlogos: 'gallery',
   studios: 'gallery',
-  globallinkuniverse: 'chart',
+  universe: 'chart',
 };
 
 const SectionHeader = () => (
