@@ -174,13 +174,15 @@ export const CanvaAuditsSection = ({
   brandName,
   customSubtitle,
   onSubtitleChange,
+  loading = false,
 }: CanvaAuditsSectionProps) => {
   const audits = getCanvaAuditsForBrand(brandSlug);
   const summary = summarizeCanvaAudits(brandSlug);
 
-  if (audits.length === 0) return null;
+  if (!loading && audits.length === 0) return null;
 
   const defaultSubtitle = `Every Canva template audit conducted for ${brandName ?? 'this brand'} — sortable inventories, automated findings, per-asset notes, and live Canva Connect sync.`;
+  const skeletonCount = Math.max(audits.length, 3);
 
   return (
     <section className="w-full" aria-labelledby="canva-audits-heading">
