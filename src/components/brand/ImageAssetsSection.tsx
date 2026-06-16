@@ -317,8 +317,8 @@ export const ImageAssetsSection = ({
               onMouseEnter={() => setHoveredId(asset.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
-              <div className="h-14 w-14 shrink-0 overflow-hidden bg-muted/30">
-                <img src={asset.url} alt={asset.name} className="w-full h-full object-cover" />
+              <div className="h-14 w-14 shrink-0 overflow-hidden bg-muted/30 relative">
+                <LazyImage src={asset.url} alt={asset.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{asset.name}</p>
