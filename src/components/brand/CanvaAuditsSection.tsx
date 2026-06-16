@@ -15,7 +15,7 @@ import {
   summarizeCanvaAudits,
   type CanvaAuditEntry,
 } from '@/data/canvaAudits';
-import { Editable } from '@/components/ui/editable';
+import { SectionHeader } from './SectionHeader';
 
 interface CanvaAuditsSectionProps {
   brandSlug?: string | null;
