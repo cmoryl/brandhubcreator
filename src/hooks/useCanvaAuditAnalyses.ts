@@ -103,7 +103,7 @@ export function useCanvaAuditSync() {
     } catch (e) {
       const msg = (e as Error).message;
       if (!args.silent) toast.error(`Canva audit sync failed: ${msg}`);
-      logger.error('[useCanvaAuditSync]', e);
+      console.error('[useCanvaAuditSync]', e);
       throw e;
     } finally {
       setSyncing(null);
