@@ -497,7 +497,15 @@ export const FullBrandPage = ({
           />
         </Suspense>;
       case 'canvaaudits':
-        return <Suspense fallback={<CanvaAuditsSection brandSlug={brand.slug} brandName={brand.hero?.name} loading />}>
+        return <Suspense fallback={
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <AuditCardSkeleton key={i} delayMs={i * 80} />
+              ))}
+            </div>
+          </div>
+        }>
           <CanvaAuditsSection
             brandSlug={brand.slug}
             brandName={brand.hero?.name}
