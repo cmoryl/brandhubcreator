@@ -13,6 +13,7 @@ import { SectionHeader } from './SectionHeader';
 import { GlobalLogoPickerDialog } from './GlobalLogoPickerDialog';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { LazyImage } from '@/components/ui/lazy-image';
 import JSZip from 'jszip';
 import {
   DropdownMenu,
