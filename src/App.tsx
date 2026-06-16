@@ -509,6 +509,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="transperfect-dataforce-template-inventory"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <TransPerfectDataforceTemplateInventory />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="knowledge/claude-for-designers"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
