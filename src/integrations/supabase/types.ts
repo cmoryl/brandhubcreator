@@ -6930,10 +6930,16 @@ export type Database = {
     }
     Functions: {
       admin_delete_user: { Args: { target_user_id: string }; Returns: boolean }
-      can_use_ai_features: {
-        Args: { _entity_id?: string; _entity_type?: string; _user_id: string }
-        Returns: boolean
-      }
+      can_use_ai_features:
+        | { Args: never; Returns: boolean }
+        | {
+            Args: {
+              _entity_id?: string
+              _entity_type?: string
+              _user_id: string
+            }
+            Returns: boolean
+          }
       canva_connection_status: {
         Args: never
         Returns: {
