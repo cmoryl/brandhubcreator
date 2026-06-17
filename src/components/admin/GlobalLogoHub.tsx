@@ -734,38 +734,45 @@ export function GlobalLogoHub() {
               </Button>
             </div>
 
-            {/* File uploads per variant */}
-            <div className="space-y-2">
-              <Label>Logo Files</Label>
-              <p className="text-xs text-muted-foreground">Discovered logos appear above, or upload/pick manually below</p>
-              <div className="grid grid-cols-3 gap-4">
-                {(['color', 'white', 'black'] as ClientLogoVariant[]).map(variant => (
-                  <div key={variant} className="space-y-2">
-                    <div className="text-sm font-medium text-center">{VARIANT_LABELS[variant]}</div>
-                    <div className={cn("rounded-lg p-2 space-y-1.5", VARIANT_BG[variant])}>
-                      {/* Preview */}
-                      {getPreviewUrl(formData.files, variant) && (
-                        <div className="aspect-[4/3] flex items-center justify-center p-2 mb-1">
-                          <img src={getPreviewUrl(formData.files, variant)!} alt={variant} className="max-h-full max-w-full object-contain" />
-                        </div>
-                      )}
-                      {(['png', 'svg', 'eps'] as ClientLogoFormat[]).map(format => (
-                        <FileUploadCell key={`${variant}-${format}`} variant={variant} format={format} />
-                      ))}
+            {/* File uploads per variant — Icon + Wordmark */}
+            {(['icon', 'wordmark'] as const).map(lockup => (
+              <div key={lockup} className="space-y-2">
+                <Label>{lockup === 'icon' ? 'Icon / Logomark Files' : 'Wordmark / Full Logo Files'}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {lockup === 'icon'
+                    ? 'Square symbol or logomark (e.g. the Salesforce cloud).'
+                    : 'Full horizontal logo with brand name (e.g. "salesforce" wordmark).'}
+                </p>
+                <div className="grid grid-cols-3 gap-4">
+                  {(['color', 'white', 'black'] as ClientLogoVariant[]).map(variant => (
+                    <div key={`${lockup}-${variant}`} className="space-y-2">
+                      <div className="text-sm font-medium text-center">{VARIANT_LABELS[variant]}</div>
+                      <div className={cn("rounded-lg p-2 space-y-1.5", VARIANT_BG[variant])}>
+                        {/* Preview */}
+                        {getPreviewUrl(formData.files, variant, lockup) && (
+                          <div className="aspect-[4/3] flex items-center justify-center p-2 mb-1">
+                            <img src={getPreviewUrl(formData.files, variant, lockup)!} alt={`${lockup} ${variant}`} className="max-h-full max-w-full object-contain" />
+                          </div>
+                        )}
+                        {(['png', 'svg', 'eps'] as ClientLogoFormat[]).map(format => (
+                          <FileUploadCell key={`${lockup}-${variant}-${format}`} variant={variant} lockup={lockup} format={format} />
+                        ))}
+                      </div>
+                      <ImageLibraryPicker
+                        onSelect={(url) => handleFileUploadFromLibrary(variant, lockup, url)}
+                        trigger={
+                          <Button variant="outline" size="sm" className="w-full text-xs gap-1">
+                            <FolderArchive className="h-3 w-3" />
+                            From Library
+                          </Button>
+                        }
+                      />
                     </div>
-                    <ImageLibraryPicker
-                      onSelect={(url) => handleFileUploadFromLibrary(variant, url)}
-                      trigger={
-                        <Button variant="outline" size="sm" className="w-full text-xs gap-1">
-                          <FolderArchive className="h-3 w-3" />
-                          From Library
-                        </Button>
-                      }
-                    />
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            ))}
+
             
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={resetForm}>Cancel</Button>
