@@ -219,6 +219,7 @@ serve(async (req) => {
     const summary = {
       total: PARTNERS.length,
       inserted: results.filter((r) => r.status === "inserted").length,
+      updated: results.filter((r) => r.status === "updated").length,
       withoutLogo: results.filter((r) => r.status === "no-logo").length,
       skipped: results.filter((r) => r.status === "skipped").length,
       results,
