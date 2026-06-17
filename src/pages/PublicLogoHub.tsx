@@ -402,19 +402,8 @@ export default function PublicLogoHub() {
             className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className={cn(
-                'flex items-center justify-center p-8 min-h-[320px]',
-                preview.file.variant === 'white' ? 'bg-neutral-900' : 'bg-white',
-              )}
-            >
-              <img
-                src={preview.file.url}
-                alt={`${preview.logo.name} preview`}
-                className="h-[400px] w-full object-contain"
-              />
+            <PreviewStage logo={preview.logo} file={preview.file} />
 
-            </div>
             <div className="p-6 space-y-4">
               <h2 className="text-lg font-semibold">{preview.logo.name}</h2>
               {(() => {
