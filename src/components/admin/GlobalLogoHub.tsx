@@ -573,6 +573,11 @@ export function GlobalLogoHub() {
                           logo={logo}
                           validation={validation}
                           isValidating={isThisValidating || (!validation && isValidatingAll)}
+                          isExempt={exemptIds.has(logo.id)}
+                          isResyncing={resyncingId === logo.id}
+                          onResync={() => handleResyncOne(logo)}
+                          onEdit={() => openEdit(logo)}
+                          onToggleExempt={() => toggleExempt(logo.id)}
                         />
 
                         <div className="text-xs text-muted-foreground">
