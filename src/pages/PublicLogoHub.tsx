@@ -62,6 +62,10 @@ export default function PublicLogoHub() {
   const [category, setCategory] = useState<string>('all');
   const [variant, setVariant] = useState<VariantFilter>('all');
   const [lockup, setLockup] = useState<LockupFilter>('all');
+  const [preview, setPreview] = useState<{
+    logo: GlobalLogoRow;
+    file: ClientLogoFile;
+  } | null>(null);
 
   useEffect(() => {
     (async () => {
