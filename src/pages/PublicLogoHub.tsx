@@ -351,8 +351,9 @@ export default function PublicLogoHub() {
                               src={file.url}
                               alt={`${logo.name} ${lk} ${v}`}
                               loading="lazy"
-                              className="max-h-full max-w-full object-contain"
+                              className="w-full h-full object-contain"
                             />
+
                             <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none">
                               <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition-opacity" />
                             </div>
@@ -419,8 +420,9 @@ export default function PublicLogoHub() {
               <img
                 src={preview.file.url}
                 alt={`${preview.logo.name} preview`}
-                className="max-h-[400px] max-w-full object-contain"
+                className="h-[400px] w-full object-contain"
               />
+
             </div>
             <div className="p-6 space-y-4">
               <h2 className="text-lg font-semibold">{preview.logo.name}</h2>
