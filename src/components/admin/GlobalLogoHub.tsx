@@ -410,9 +410,9 @@ export function GlobalLogoHub() {
     return acc;
   }, {});
 
-  const FileUploadCell = ({ variant, format }: { variant: ClientLogoVariant; format: ClientLogoFormat }) => {
+  const FileUploadCell = ({ variant, lockup, format }: { variant: ClientLogoVariant; lockup: 'icon' | 'wordmark'; format: ClientLogoFormat }) => {
     const inputRef = useRef<HTMLInputElement>(null);
-    const existingUrl = formData.files.find(f => f.variant === variant && f.format === format)?.url;
+    const existingUrl = formData.files.find(f => f.variant === variant && f.format === format && (f.lockup ?? 'icon') === lockup)?.url;
     
     return (
       <div>
@@ -422,7 +422,7 @@ export function GlobalLogoHub() {
           accept={format === 'eps' ? '.eps' : format === 'svg' ? '.svg,image/svg+xml' : 'image/png'}
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) handleLocalFileUpload(variant, format, file);
+            if (file) handleLocalFileUpload(variant, lockup, format, file);
           }}
           className="hidden"
         />
@@ -446,6 +446,7 @@ export function GlobalLogoHub() {
       </div>
     );
   };
+
 
   return (
     <div className="space-y-6">
