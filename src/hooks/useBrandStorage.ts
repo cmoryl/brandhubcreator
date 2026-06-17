@@ -461,150 +461,161 @@ export const useBrandStorage = () => {
   // Fetch brands and products - depends on user auth state for RLS
   const fetchData = useCallback(
     async (force = false) => {
-      const currentUserId = user?.id ?? null;
-      const currentOrgId = organization?.id ?? null;
-
-      // If signed out, clear immediately (don’t hit the backend)
-      if (!currentUserId) {
-        hasFetchedRef.current = true;
-        lastUserIdRef.current = null;
-        lastOrgIdRef.current = null;
-        lastFetchFailedAtRef.current = null;
-        setBrands([]);
-        setProducts([]);
-        setIsLoading(false);
-        setSyncStatus('idle');
-        setLastSyncError(null);
-        return;
+      // Dedupe concurrent in-flight fetches so transient backend slowness
+      // doesn't queue up dozens of overlapping timeouts (which causes
+      // toast spam and a flickering sync indicator).
+      if (inFlightFetchRef.current) {
+        return inFlightFetchRef.current;
       }
 
-      // Offline: don't clear; just mark and avoid request spam
-      if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        setIsOnline(false);
-        setSyncStatus('offline');
-        lastFetchFailedAtRef.current = Date.now();
-        hasFetchedRef.current = true;
-        lastUserIdRef.current = currentUserId;
-        lastOrgIdRef.current = currentOrgId;
-        setIsLoading(false);
-        return;
-      }
+      const run = async () => {
+        const currentUserId = user?.id ?? null;
+        const currentOrgId = organization?.id ?? null;
 
-      const now = Date.now();
-      const retryCooldown = getRetryCooldown();
-      const inFailureCooldown =
-        !force &&
-        lastFetchFailedAtRef.current != null &&
-        now - lastFetchFailedAtRef.current < retryCooldown;
-
-      // If we recently failed, avoid retry-spam; the effect below will retry after cooldown.
-      if (inFailureCooldown) {
-        setIsLoading(false);
-        return;
-      }
-
-      // Skip if already fetched for same user/org (unless forced).
-      if (
-        !force &&
-        hasFetchedRef.current &&
-        lastUserIdRef.current === currentUserId &&
-        lastOrgIdRef.current === currentOrgId
-      ) {
-        return;
-      }
-
-      setIsLoading(true);
-      setSyncStatus('syncing');
-      setLastSyncError(null);
-
-      try {
-        const withTimeout = <T,>(p: Promise<T>, ms: number) =>
-          Promise.race([
-            p,
-            new Promise<T>((_, reject) =>
-              setTimeout(() => reject(new Error('Request timeout')), ms)
-            ),
-          ]);
-
-        // Fetch in parallel for faster loading
-        // Scope to the active organization to keep payloads small and
-        // avoid full-table scans (RLS allows multi-org reads, but the
-        // PostgREST planner still pages through every row without a filter).
-        const brandsQuery = supabase
-          .from('brands')
-          .select('*')
-          .order('updated_at', { ascending: false })
-          .limit(250);
-        const productsQuery = supabase
-          .from('products')
-          .select('*')
-          .order('updated_at', { ascending: false })
-          .limit(250);
-        if (currentOrgId) {
-          brandsQuery.eq('organization_id', currentOrgId);
-          productsQuery.eq('organization_id', currentOrgId);
+        // If signed out, clear immediately (don't hit the backend)
+        if (!currentUserId) {
+          hasFetchedRef.current = true;
+          lastUserIdRef.current = null;
+          lastOrgIdRef.current = null;
+          lastFetchFailedAtRef.current = null;
+          setBrands([]);
+          setProducts([]);
+          setIsLoading(false);
+          setSyncStatus('idle');
+          setLastSyncError(null);
+          return;
         }
-        const [brandsRes, productsRes] = await withTimeout(
-          Promise.all([brandsQuery, productsQuery]),
-          60000
-        );
 
-        if (brandsRes.error) throw brandsRes.error;
-        if (productsRes.error) throw productsRes.error;
+        // Offline: don't clear; just mark and avoid request spam
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          setIsOnline(false);
+          setSyncStatus('offline');
+          lastFetchFailedAtRef.current = Date.now();
+          hasFetchedRef.current = true;
+          lastUserIdRef.current = currentUserId;
+          lastOrgIdRef.current = currentOrgId;
+          setIsLoading(false);
+          return;
+        }
 
-        const nextBrands = (brandsRes.data as DbBrand[]).map(dbToBrandGuide);
-        const nextProducts = (productsRes.data as DbProduct[]).map(dbToProductGuide);
+        const now = Date.now();
+        const retryCooldown = getRetryCooldown();
+        const inFailureCooldown =
+          !force &&
+          lastFetchFailedAtRef.current != null &&
+          now - lastFetchFailedAtRef.current < retryCooldown;
 
-        setBrands(nextBrands);
-        setProducts(nextProducts);
-        saveCache(nextBrands, nextProducts);
+        // If we recently failed, avoid retry-spam; the effect below will retry after cooldown.
+        if (inFailureCooldown) {
+          setIsLoading(false);
+          return;
+        }
 
-        setIsOnline(true);
-        setSyncStatus('idle');
+        // Skip if already fetched for same user/org (unless forced).
+        if (
+          !force &&
+          hasFetchedRef.current &&
+          lastUserIdRef.current === currentUserId &&
+          lastOrgIdRef.current === currentOrgId
+        ) {
+          return;
+        }
+
+        setIsLoading(true);
+        setSyncStatus('syncing');
         setLastSyncError(null);
-        setLastSyncedAt(new Date());
 
-        // Mark as fetched and reset failure tracking
-        hasFetchedRef.current = true;
-        lastUserIdRef.current = currentUserId;
-        lastOrgIdRef.current = currentOrgId;
-        lastFetchFailedAtRef.current = null;
-        failureCountRef.current = 0; // Reset on success
-      } catch (err) {
-        console.error('Error fetching data:', err);
+        try {
+          const withTimeout = <T,>(p: Promise<T>, ms: number) =>
+            Promise.race([
+              p,
+              new Promise<T>((_, reject) =>
+                setTimeout(() => reject(new Error('Request timeout')), ms)
+              ),
+            ]);
 
-        const msg = err instanceof Error ? err.message : 'Unknown error';
-        const isTimeout = isConnectivityLikeError(msg);
-        setSyncFailure(err, 'fetchData');
-
-        // If we have nothing in memory yet, try a last-known-good cache so the UI isn't blank.
-        if (brandsRef.current.length === 0 && productsRef.current.length === 0) {
-          const cached = loadCache();
-          if (cached && (cached.brands.length > 0 || cached.products.length > 0)) {
-            setBrands(cached.brands);
-            setProducts(cached.products);
-            logger.storage('Loaded from cache during backend outage');
+          const brandsQuery = supabase
+            .from('brands')
+            .select('*')
+            .order('updated_at', { ascending: false })
+            .limit(250);
+          const productsQuery = supabase
+            .from('products')
+            .select('*')
+            .order('updated_at', { ascending: false })
+            .limit(250);
+          if (currentOrgId) {
+            brandsQuery.eq('organization_id', currentOrgId);
+            productsQuery.eq('organization_id', currentOrgId);
           }
-        }
-
-        // IMPORTANT: Do NOT clear existing data on transient failures.
-        // Just record failure time and increment counter for exponential backoff.
-        lastFetchFailedAtRef.current = Date.now();
-        failureCountRef.current = Math.min(failureCountRef.current + 1, 5); // Cap at 5 for max 60s backoff
-
-        // Only show toast on first failure, not on every retry
-        if (!hasFetchedRef.current) {
-          toast.error(isTimeout 
-            ? 'Backend is temporarily unreachable. Using cached data.' 
-            : 'Could not load your data. Will retry automatically.'
+          const [brandsRes, productsRes] = await withTimeout(
+            Promise.all([brandsQuery, productsQuery]),
+            60000
           );
-        }
 
-        // Allow a retry soon; don't lock into an empty state.
-        hasFetchedRef.current = false;
-      } finally {
-        setIsLoading(false);
-      }
+          if (brandsRes.error) throw brandsRes.error;
+          if (productsRes.error) throw productsRes.error;
+
+          const nextBrands = (brandsRes.data as DbBrand[]).map(dbToBrandGuide);
+          const nextProducts = (productsRes.data as DbProduct[]).map(dbToProductGuide);
+
+          setBrands(nextBrands);
+          setProducts(nextProducts);
+          saveCache(nextBrands, nextProducts);
+
+          setIsOnline(true);
+          setSyncStatus('idle');
+          setLastSyncError(null);
+          setLastSyncedAt(new Date());
+
+          hasFetchedRef.current = true;
+          lastUserIdRef.current = currentUserId;
+          lastOrgIdRef.current = currentOrgId;
+          lastFetchFailedAtRef.current = null;
+          failureCountRef.current = 0;
+          hasShownConnectivityToastRef.current = false;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Unknown error';
+          const isTimeout = isConnectivityLikeError(msg);
+
+          // Log once per failure, not per concurrent overlap
+          if (!hasShownConnectivityToastRef.current) {
+            console.error('Error fetching data:', err);
+          }
+          setSyncFailure(err, 'fetchData');
+
+          if (brandsRef.current.length === 0 && productsRef.current.length === 0) {
+            const cached = loadCache();
+            if (cached && (cached.brands.length > 0 || cached.products.length > 0)) {
+              setBrands(cached.brands);
+              setProducts(cached.products);
+              logger.storage('Loaded from cache during backend outage');
+            }
+          }
+
+          lastFetchFailedAtRef.current = Date.now();
+          failureCountRef.current = Math.min(failureCountRef.current + 1, 5);
+
+          // Only show toast once per outage window
+          if (!hasShownConnectivityToastRef.current) {
+            hasShownConnectivityToastRef.current = true;
+            toast.error(isTimeout
+              ? 'Backend is temporarily unreachable. Using cached data.'
+              : 'Could not load your data. Will retry automatically.'
+            );
+          }
+
+          hasFetchedRef.current = false;
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      const promise = run().finally(() => {
+        inFlightFetchRef.current = null;
+      });
+      inFlightFetchRef.current = promise;
+      return promise;
     },
     [user?.id, organization?.id, saveCache, loadCache, getRetryCooldown]
   );
