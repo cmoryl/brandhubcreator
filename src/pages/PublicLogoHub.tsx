@@ -359,31 +359,139 @@ export default function PublicLogoHub() {
             </div>
             <div className="p-6 space-y-4">
               <h2 className="text-lg font-semibold">{preview.logo.name}</h2>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">
-                  {(preview.file.lockup || 'icon') === 'icon' ? 'Icon' : 'Wordmark'}
-                </Badge>
-                <Badge variant="secondary">{preview.file.variant}</Badge>
-                <Badge variant="secondary">{preview.file.format?.toUpperCase()}</Badge>
-                <Badge variant="outline">{preview.logo.category}</Badge>
-              </div>
-              <div className="flex gap-2">
-                <Button asChild size="sm">
-                  <a
-                    href={preview.file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download
+              {(() => {
+                const files = preview.logo.files;
+                const currentLockup = (preview.file.lockup || 'icon') as ClientLogoLockup;
+                const currentVariant = preview.file.variant as ClientLogoVariant;
+                const currentFormat = preview.file.format;
+
+                const switchTo = (next: Partial<{ lockup: ClientLogoLockup; variant: ClientLogoVariant; format: string }>) => {
+                  const lk = next.lockup ?? currentLockup;
+                  const vr = next.variant ?? currentVariant;
+                  const fmt = next.format ?? currentFormat;
+                  const exact = files.find(
+                    (f) => (f.lockup || 'icon') === lk && f.variant === vr && f.format === fmt,
+                  );
+                  if (exact) return setPreview({ logo: preview.logo, file: exact });
+                  const anyFmt = files.find(
+                    (f) => (f.lockup || 'icon') === lk && f.variant === vr,
+                  );
+                  if (anyFmt) return setPreview({ logo: preview.logo, file: anyFmt });
+                };
+
+                const has = (opts: Partial<{ lockup: ClientLogoLockup; variant: ClientLogoVariant; format: string }>) =>
+                  files.some(
+                    (f) =>
+                      (opts.lockup === undefined || (f.lockup || 'icon') === opts.lockup) &&
+                      (opts.variant === undefined || f.variant === opts.variant) &&
+                      (opts.format === undefined || f.format === opts.format),
+                  );
+
+                const formatsAvailable = Array.from(
+                  new Set(
+                    files
+                      .filter(
+                        (f) =>
+                          (f.lockup || 'icon') === currentLockup && f.variant === currentVariant,
+                      )
+                      .map((f) => f.format),
+                  ),
+                );
+
+                const Chip = ({
+                  active,
+                  disabled,
+                  onClick,
+                  children,
+                }: {
+                  active: boolean;
+                  disabled?: boolean;
+                  onClick: () => void;
+                  children: React.ReactNode;
+                }) => (
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={onClick}
+                    className={cn(
+                      'px-3 py-1 rounded-full text-xs font-medium border transition-colors',
+                      active
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-background text-foreground border-border hover:border-primary/50',
+                      disabled && 'opacity-40 cursor-not-allowed hover:border-border',
+                    )}
                   >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download {preview.file.format?.toUpperCase()}
-                  </a>
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setPreview(null)}>
-                  <X className="h-4 w-4 mr-2" />
-                  Close
-                </Button>
-              </div>
+                    {children}
+                  </button>
+                );
+
+                return (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Lockup</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(['icon', 'wordmark'] as ClientLogoLockup[]).map((lk) => (
+                          <Chip
+                            key={lk}
+                            active={currentLockup === lk}
+                            disabled={!has({ lockup: lk })}
+                            onClick={() => switchTo({ lockup: lk })}
+                          >
+                            {lk === 'icon' ? 'Icon' : 'Wordmark'}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Color</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(['color', 'black', 'white'] as ClientLogoVariant[]).map((v) => (
+                          <Chip
+                            key={v}
+                            active={currentVariant === v}
+                            disabled={!has({ lockup: currentLockup, variant: v })}
+                            onClick={() => switchTo({ variant: v })}
+                          >
+                            {v.charAt(0).toUpperCase() + v.slice(1)}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Format</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(['png', 'svg'] as const).map((fmt) => (
+                          <Chip
+                            key={fmt}
+                            active={currentFormat === fmt}
+                            disabled={!formatsAvailable.includes(fmt)}
+                            onClick={() => switchTo({ format: fmt })}
+                          >
+                            {fmt.toUpperCase()}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button asChild size="sm">
+                        <a
+                          href={preview.file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download {preview.file.format?.toUpperCase()}
+                        </a>
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setPreview(null)}>
+                        <X className="h-4 w-4 mr-2" />
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
             <button
               onClick={() => setPreview(null)}
