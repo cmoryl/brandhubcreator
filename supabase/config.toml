@@ -206,3 +206,6 @@ verify_jwt = false
 
 [functions.scrape-brand-logos]
 verify_jwt = false
+
+[functions.repair-brand-logos]
+verify_jwt = false
