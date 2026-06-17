@@ -70,6 +70,9 @@ export function GlobalLogoHub() {
   const [isValidatingAll, setIsValidatingAll] = useState(false);
   const [exemptIds, setExemptIds] = useState<Set<string>>(new Set());
   const [resyncingId, setResyncingId] = useState<string | null>(null);
+  // Per-slot upload validation results, keyed by `${lockup}-${variant}-${format}`
+  const [uploadValidations, setUploadValidations] = useState<Record<string, UploadValidationResult>>({});
+
 
   useEffect(() => {
     if (organization?.id) setExemptIds(getExemptions(organization.id));
