@@ -160,7 +160,7 @@ export function useUnifiedActions({ entityId, entityType, organizationId }: Opti
     }
   }, []);
 
-  const openCount = useMemo(() => actions.filter(a => a.status === 'open' || a.status === 'in_progress').length, [actions]);
+  const openCount = useMemo(() => actions.filter(a => (a.status === 'open' || a.status === 'in_progress') && a.severity !== 'info').length, [actions]);
 
   return { actions, isLoading, openCount, refetch: fetchAll, markDone };
 }
