@@ -238,18 +238,8 @@ export default function PublicLogoHub() {
                       <h2 className="text-sm font-semibold truncate" title={logo.name}>
                         {logo.name}
                       </h2>
-                      {logo.website_url && (
-                        <a
-                          href={logo.website_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary shrink-0"
-                          aria-label={`Visit ${logo.name} website`}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      )}
                     </div>
+
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                       <span className="truncate">{logo.category}</span>
                       <span>{logo.files.length} files</span>
