@@ -110,6 +110,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrder';
 import { scrollToSection as scrollToSectionRobust } from '@/lib/scrollToSection';
+import { ScrollDebugOverlay } from '@/components/brand/ScrollDebugOverlay';
 import { useAutoBiasMonitoring } from '@/hooks/useAutoBiasMonitoring';
 type ViewMode = 'sections' | 'full' | 'cards';
 
@@ -1563,6 +1564,8 @@ const BrandEditor = () => {
           primaryColor={brand.colors?.[0]?.hex}
         />
       </Suspense>
+      {/* Scroll alignment debug overlay */}
+      <ScrollDebugOverlay />
     </TooltipProvider>
   );
 };

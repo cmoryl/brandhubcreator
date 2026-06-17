@@ -12,6 +12,30 @@
  *  2. Re-checks the element's position over ~1.2s and re-scrolls if it drifts.
  *  3. Optionally applies a highlight flash once the scroll is stable.
  */
+
+export interface ScrollDebugSnapshot {
+  sectionId: string;
+  headerHeight: number;
+  topOffsetPx: number;
+  drift: number;
+  timestamp: number;
+}
+
+export const scrollDebug = {
+  last: null as ScrollDebugSnapshot | null,
+  listeners: [] as Array<(s: ScrollDebugSnapshot) => void>,
+  emit(s: ScrollDebugSnapshot) {
+    this.last = s;
+    this.listeners.forEach((fn) => fn(s));
+  },
+  on(fn: (s: ScrollDebugSnapshot) => void) {
+    this.listeners.push(fn);
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== fn);
+    };
+  },
+};
+
 export interface ScrollToSectionOptions {
   flash?: boolean;
   durationMs?: number;
@@ -27,13 +51,15 @@ export interface ScrollToSectionOptions {
 const DEFAULT_FALLBACK_OFFSET = 96;
 
 /** Resolve the offset to leave above the target section. */
-function resolveOffset(el: HTMLElement, explicit?: number): number {
-  if (typeof explicit === 'number' && Number.isFinite(explicit)) return Math.max(0, explicit);
+function resolveOffset(el: HTMLElement, explicit?: number): { offset: number; headerHeight: number } {
+  if (typeof explicit === 'number' && Number.isFinite(explicit)) {
+    return { offset: Math.max(0, explicit), headerHeight: 0 };
+  }
 
   // 1. Respect the element's own scroll-margin-top (Tailwind's scroll-mt-* utility).
   const cs = window.getComputedStyle(el);
   const scrollMarginTop = parseFloat(cs.scrollMarginTop || '0');
-  if (scrollMarginTop > 0) return scrollMarginTop;
+  if (scrollMarginTop > 0) return { offset: scrollMarginTop, headerHeight: 0 };
 
   // 2. Auto-detect the tallest sticky/fixed header at the top of the page.
   let headerHeight = 0;
@@ -46,9 +72,9 @@ function resolveOffset(el: HTMLElement, explicit?: number): number {
     const rect = node.getBoundingClientRect();
     if (rect.top <= 1 && rect.height > headerHeight) headerHeight = rect.height;
   });
-  if (headerHeight > 0) return headerHeight + 8;
+  if (headerHeight > 0) return { offset: headerHeight + 8, headerHeight };
 
-  return DEFAULT_FALLBACK_OFFSET;
+  return { offset: DEFAULT_FALLBACK_OFFSET, headerHeight: 0 };
 }
 
 export function scrollToSection(
@@ -64,7 +90,7 @@ export function scrollToSection(
   const align = () => {
     const el = lookup();
     if (!el) return;
-    const offset = offsetFor(el);
+    const { offset } = offsetFor(el);
     const targetY = el.getBoundingClientRect().top + window.scrollY - offset;
     window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
   };
@@ -78,10 +104,12 @@ export function scrollToSection(
   const tick = () => {
     const el = lookup();
     if (!el) return;
-    const offset = offsetFor(el);
+    const { offset, headerHeight } = offsetFor(el);
     const rect = el.getBoundingClientRect();
     // Desired: rect.top === offset (heading sits just under the sticky header).
     const drift = Math.abs(rect.top - offset);
+
+    scrollDebug.emit({ sectionId, headerHeight, topOffsetPx: offset, drift, timestamp: performance.now() });
 
     if (drift > toleranceFromTopPx) {
       align();
