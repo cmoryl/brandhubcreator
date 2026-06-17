@@ -1,4 +1,31 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { analyzeSvgContrast, type SvgContrastResult } from '@/lib/svgContrast';
+
+// Hook: analyze an SVG URL and return whether it appears to be light artwork
+// on a transparent background. Returns null until detection resolves, and null
+// for non-SVG files. Results are cached globally by URL.
+function useSvgContrast(url: string | undefined, format: string | undefined) {
+  const [result, setResult] = useState<SvgContrastResult | null>(null);
+  const lastUrl = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!url || format !== 'svg') {
+      setResult(null);
+      lastUrl.current = undefined;
+      return;
+    }
+    if (lastUrl.current === url) return;
+    lastUrl.current = url;
+    let cancelled = false;
+    analyzeSvgContrast(url).then((r) => {
+      if (!cancelled && lastUrl.current === url) setResult(r);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [url, format]);
+  return result;
+}
+
 
 const setMeta = (name: string, content: string) => {
   let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
