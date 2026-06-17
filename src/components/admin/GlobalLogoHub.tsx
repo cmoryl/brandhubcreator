@@ -45,7 +45,7 @@ const FORMAT_LABELS: Record<ClientLogoFormat, string> = {
   eps: 'EPS',
 };
 
-const DEFAULT_CATEGORIES = ['Technology', 'Retail', 'Healthcare', 'Finance', 'Media', 'Automotive', 'Consumer Goods', 'Hospitality', 'Gaming', 'Studios', 'General'];
+const DEFAULT_CATEGORIES = ['PartnerLink Logos', 'Technology', 'Retail', 'Healthcare', 'Finance', 'Media', 'Automotive', 'Consumer Goods', 'Hospitality', 'Gaming', 'Studios', 'General'];
 
 export function GlobalLogoHub() {
   const { organization } = useOrganization();
@@ -60,6 +60,30 @@ export function GlobalLogoHub() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingVariant, setGeneratingVariant] = useState<string | null>(null);
   const [generateProgress, setGenerateProgress] = useState(0);
+  const [isSeedingPartners, setIsSeedingPartners] = useState(false);
+
+  const handleSeedPartnerLink = async () => {
+    if (!organization?.id) return;
+    if (!confirm('Seed ~46 PartnerLink Logos into this organization? Existing entries with the same name will be skipped.')) return;
+    setIsSeedingPartners(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('seed-partnerlink-logos', {
+        body: { organizationId: organization.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(
+        `PartnerLink seed complete — ${data.inserted} with logos, ${data.withoutLogo} without, ${data.skipped} skipped`,
+      );
+      await fetchLogos();
+      setCategoryFilter('PartnerLink Logos');
+    } catch (err) {
+      console.error('Failed to seed PartnerLink logos:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to seed PartnerLink logos');
+    } finally {
+      setIsSeedingPartners(false);
+    }
+  };
 
   const fetchLogos = useCallback(async () => {
     if (!organization?.id) return;
@@ -336,10 +360,22 @@ export function GlobalLogoHub() {
           <h2 className="text-xl font-semibold">Global Logo Hub</h2>
           <p className="text-sm text-muted-foreground">Master library of client logos — brands and products can import from here</p>
         </div>
-        <Button onClick={() => { resetForm(); setAddDialogOpen(true); }} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Logo
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSeedPartnerLink}
+            disabled={isSeedingPartners}
+            className="gap-2"
+            title="Bulk-import the curated PartnerLink integration partners with white + black SVG/PNG assets"
+          >
+            {isSeedingPartners ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Seed PartnerLink Logos
+          </Button>
+          <Button onClick={() => { resetForm(); setAddDialogOpen(true); }} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Logo
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

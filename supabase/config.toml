@@ -197,3 +197,6 @@ verify_jwt = false
 
 [functions.brand-imagery-similar]
 verify_jwt = false
+
+[functions.seed-partnerlink-logos]
+verify_jwt = false
