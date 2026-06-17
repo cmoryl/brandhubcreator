@@ -7,7 +7,8 @@
  * the target grows after the scroll completes.
  *
  * This helper:
- *  1. Scrolls to the target element.
+ *  1. Scrolls to the target element with a configurable top offset so the
+ *     section heading clears the sticky header.
  *  2. Re-checks the element's position over ~1.2s and re-scrolls if it drifts.
  *  3. Optionally applies a highlight flash once the scroll is stable.
  */
@@ -15,20 +16,57 @@ export interface ScrollToSectionOptions {
   flash?: boolean;
   durationMs?: number;
   toleranceFromTopPx?: number;
+  /**
+   * Pixels of empty space to leave between the viewport top and the section.
+   * Defaults to the section's computed `scroll-margin-top`, falling back to
+   * the height of the first sticky/fixed header found in the DOM, then 96px.
+   */
+  topOffsetPx?: number;
+}
+
+const DEFAULT_FALLBACK_OFFSET = 96;
+
+/** Resolve the offset to leave above the target section. */
+function resolveOffset(el: HTMLElement, explicit?: number): number {
+  if (typeof explicit === 'number' && Number.isFinite(explicit)) return Math.max(0, explicit);
+
+  // 1. Respect the element's own scroll-margin-top (Tailwind's scroll-mt-* utility).
+  const cs = window.getComputedStyle(el);
+  const scrollMarginTop = parseFloat(cs.scrollMarginTop || '0');
+  if (scrollMarginTop > 0) return scrollMarginTop;
+
+  // 2. Auto-detect the tallest sticky/fixed header at the top of the page.
+  let headerHeight = 0;
+  const candidates = document.querySelectorAll<HTMLElement>(
+    'header, [data-app-header], [role="banner"], .sticky-header',
+  );
+  candidates.forEach((node) => {
+    const pos = window.getComputedStyle(node).position;
+    if (pos !== 'sticky' && pos !== 'fixed') return;
+    const rect = node.getBoundingClientRect();
+    if (rect.top <= 1 && rect.height > headerHeight) headerHeight = rect.height;
+  });
+  if (headerHeight > 0) return headerHeight + 8;
+
+  return DEFAULT_FALLBACK_OFFSET;
 }
 
 export function scrollToSection(
   sectionId: string,
-  { flash = true, durationMs = 1200, toleranceFromTopPx = 8 }: ScrollToSectionOptions = {},
+  { flash = true, durationMs = 1200, toleranceFromTopPx = 8, topOffsetPx }: ScrollToSectionOptions = {},
 ): void {
   const lookup = () => document.getElementById(sectionId);
   const initial = lookup();
   if (!initial) return;
 
+  const offsetFor = (el: HTMLElement) => resolveOffset(el, topOffsetPx);
+
   const align = () => {
     const el = lookup();
     if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const offset = offsetFor(el);
+    const targetY = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
   };
 
   align();
@@ -40,15 +78,15 @@ export function scrollToSection(
   const tick = () => {
     const el = lookup();
     if (!el) return;
+    const offset = offsetFor(el);
     const rect = el.getBoundingClientRect();
-    const drift = Math.abs(rect.top);
+    // Desired: rect.top === offset (heading sits just under the sticky header).
+    const drift = Math.abs(rect.top - offset);
 
     if (drift > toleranceFromTopPx) {
-      // Re-align — content above likely hydrated and shifted the target.
       align();
       stableSince = 0;
     } else if (rect.top === lastTop) {
-      // Position stable for two consecutive frames; consider scroll settled.
       stableSince ||= performance.now();
       if (performance.now() - stableSince > 200) {
         if (flash) {
@@ -65,7 +103,6 @@ export function scrollToSection(
     if (performance.now() - start < durationMs) {
       window.requestAnimationFrame(tick);
     } else if (flash) {
-      // Final flash even if not perfectly stable.
       const el2 = lookup();
       el2?.classList.add('section-highlight-flash');
       window.setTimeout(() => el2?.classList.remove('section-highlight-flash'), 1300);
