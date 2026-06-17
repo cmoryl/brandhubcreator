@@ -80,6 +80,36 @@ async function fetchSimpleIconSvg(slug: string): Promise<string | null> {
 // Cache the Simple Icons bundle for hex lookup (per cold start).
 let brandHexBySlug: Map<string, string> | null = null;
 
+// Simple Icons' current metadata intentionally omits some icons that are still
+// available as SVG assets, so keep authoritative fallbacks for the curated set.
+const BRAND_HEX_FALLBACKS: Record<string, string> = {
+  adobe: "#FF0000",
+  marketo: "#5C4C9F",
+  oracle: "#F80000",
+  microsoftazure: "#0078D4",
+  microsoftsharepoint: "#0078D4",
+  hubspot: "#FF7A59",
+  salesforce: "#00A1E0",
+  sitecore: "#EB1F1F",
+  contentful: "#2478CC",
+  contentstack: "#E74C3D",
+  drupal: "#0678BE",
+  github: "#181717",
+  google: "#4285F4",
+  sap: "#0FAAFF",
+  shopify: "#7AB55C",
+  wordpress: "#21759B",
+  zendesk: "#03363D",
+  figma: "#F24E1E",
+  informatica: "#FF4D00",
+  pimcore: "#6428B4",
+  prismic: "#5163BA",
+  sanity: "#F03E2F",
+  storyblok: "#09B3AF",
+  umbraco: "#3544B1",
+  webflow: "#146EF5",
+};
+
 function titleToSlug(title: string): string {
   // Mirrors simple-icons' slug algorithm.
   const replacements: Record<string, string> = { "+": "plus", ".": "dot", "&": "and", "đ": "d", "ħ": "h", "ı": "i", "ĸ": "k", "ŀ": "l", "ł": "l", "ß": "ss", "ŧ": "t" };
@@ -93,34 +123,38 @@ async function loadBrandHexMap(): Promise<Map<string, string>> {
   if (brandHexBySlug) return brandHexBySlug;
   const urls = [
     "https://cdn.jsdelivr.net/npm/simple-icons@latest/_data/simple-icons.json",
-    "https://unpkg.com/simple-icons@latest/_data/simple-icons.json",
+    // Pinned metadata versions retain hex values for several still-hosted icons
+    // that were removed from the latest metadata bundle (Adobe, Oracle, Azure, etc.).
+    "https://cdn.jsdelivr.net/npm/simple-icons@13.21.0/_data/simple-icons.json",
+    "https://cdn.jsdelivr.net/npm/simple-icons@12.4.0/_data/simple-icons.json",
   ];
+  const map = new Map<string, string>();
   for (const url of urls) {
     try {
       const res = await fetch(url, { redirect: "follow" });
       if (!res.ok) continue;
       const data = await res.json();
-      if (!Array.isArray(data)) continue;
-      const map = new Map<string, string>();
-      for (const entry of data) {
+      const entries = Array.isArray(data) ? data : Array.isArray(data?.icons) ? data.icons : [];
+      for (const entry of entries) {
         if (!entry?.hex || !entry?.title) continue;
         const slug = (entry.slug && typeof entry.slug === "string") ? entry.slug : titleToSlug(entry.title);
         const hex = entry.hex.startsWith("#") ? entry.hex : `#${entry.hex}`;
-        map.set(slug, hex);
+        if (!map.has(slug)) map.set(slug, hex);
       }
-      brandHexBySlug = map;
-      return map;
     } catch {
       // try next url
     }
   }
-  brandHexBySlug = new Map();
+  for (const [slug, hex] of Object.entries(BRAND_HEX_FALLBACKS)) {
+    if (!map.has(slug)) map.set(slug, hex);
+  }
+  brandHexBySlug = map;
   return brandHexBySlug;
 }
 
 async function fetchSimpleIconBrandHex(slug: string): Promise<string | null> {
   const map = await loadBrandHexMap();
-  return map.get(slug) ?? null;
+  return map.get(slug) ?? BRAND_HEX_FALLBACKS[slug] ?? null;
 }
 
 function colorizeSvg(svg: string, hex: string): string {
