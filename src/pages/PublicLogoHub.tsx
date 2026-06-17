@@ -9,7 +9,8 @@ const setMeta = (name: string, content: string) => {
   }
   el.setAttribute('content', content);
 };
-import { Search, Filter, Globe2, Loader2, Download, X, ZoomIn } from 'lucide-react';
+import { Search, Filter, Globe2, Loader2, Download, X, ZoomIn, Package } from 'lucide-react';
+import JSZip from 'jszip';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +18,75 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
+
+const slugify = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'logo';
+
+const extFromUrl = (url: string, fallback?: string) => {
+  try {
+    const p = new URL(url).pathname;
+    const m = p.match(/\.([a-z0-9]+)$/i);
+    if (m) return m[1].toLowerCase();
+  } catch { /* noop */ }
+  return (fallback || 'png').toLowerCase();
+};
+
+async function downloadFilesAsZip(brandName: string, files: ClientLogoFile[]) {
+  if (!files.length) {
+    toast.error('No files to download');
+    return;
+  }
+  const zip = new JSZip();
+  const folder = zip.folder(slugify(brandName))!;
+  const used = new Set<string>();
+  toast.loading(`Packaging ${files.length} files…`, { id: 'zip' });
+  try {
+    const results = await Promise.all(
+      files.map(async (f) => {
+        try {
+          const res = await fetch(f.url, { mode: 'cors' });
+          if (!res.ok) throw new Error(String(res.status));
+          return { f, blob: await res.blob() };
+        } catch {
+          return { f, blob: null as Blob | null };
+        }
+      }),
+    );
+    let ok = 0;
+    for (const { f, blob } of results) {
+      if (!blob) continue;
+      const lk = (f.lockup || 'icon');
+      const ext = extFromUrl(f.url, f.format);
+      let base = `${slugify(brandName)}-${lk}-${f.variant}.${ext}`;
+      let i = 2;
+      while (used.has(base)) {
+        base = `${slugify(brandName)}-${lk}-${f.variant}-${i}.${ext}`;
+        i++;
+      }
+      used.add(base);
+      folder.file(base, blob);
+      ok++;
+    }
+    if (!ok) {
+      toast.error('Could not download any files (CORS)', { id: 'zip' });
+      return;
+    }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${slugify(brandName)}-logos.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${ok} file${ok === 1 ? '' : 's'}`, { id: 'zip' });
+  } catch (e) {
+    toast.error('Failed to build ZIP', { id: 'zip' });
+  }
+}
 
 interface GlobalLogoRow {
   id: string;
