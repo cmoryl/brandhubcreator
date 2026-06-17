@@ -547,29 +547,53 @@ export function GlobalLogoHub() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {catLogos.map(logo => {
-                  const colorPreview = getPreviewUrl(logo.files, 'color');
-                  const whitePreview = getPreviewUrl(logo.files, 'white');
-                  const blackPreview = getPreviewUrl(logo.files, 'black');
+                  const colorPreview = getPreviewUrl(logo.files, 'color', 'icon');
+                  const whitePreview = getPreviewUrl(logo.files, 'white', 'icon');
+                  const blackPreview = getPreviewUrl(logo.files, 'black', 'icon');
+                  const wmColorPreview = getPreviewUrl(logo.files, 'color', 'wordmark');
+                  const wmWhitePreview = getPreviewUrl(logo.files, 'white', 'wordmark');
+                  const wmBlackPreview = getPreviewUrl(logo.files, 'black', 'wordmark');
+                  const hasWordmark = !!(wmColorPreview || wmWhitePreview || wmBlackPreview);
                   const validation = validations[logo.id];
                   const isThisValidating = validatingId === logo.id;
 
                   return (
                     <Card key={logo.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
-                      {/* 3-variant preview */}
+                      {/* Icon row */}
+                      <div className="px-2 pt-1 text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Icon</div>
                       <div className="grid grid-cols-3 divide-x divide-border border-b">
                         <div className="aspect-[4/3] bg-white flex items-center justify-center p-3">
                           {colorPreview ? (
-                            <img src={colorPreview} alt={`${logo.name} color`} className="max-h-full max-w-full object-contain" />
+                            <img src={colorPreview} alt={`${logo.name} color icon`} className="max-h-full max-w-full object-contain" />
                           ) : <span className="text-[10px] text-muted-foreground">—</span>}
                         </div>
                         <div className="aspect-[4/3] bg-slate-900 flex items-center justify-center p-3">
                           {whitePreview ? (
-                            <img src={whitePreview} alt={`${logo.name} white`} className="max-h-full max-w-full object-contain" />
+                            <img src={whitePreview} alt={`${logo.name} white icon`} className="max-h-full max-w-full object-contain" />
                           ) : <span className="text-[10px] text-slate-500">—</span>}
                         </div>
                         <div className="aspect-[4/3] bg-white flex items-center justify-center p-3">
                           {blackPreview ? (
-                            <img src={blackPreview} alt={`${logo.name} black`} className="max-h-full max-w-full object-contain" />
+                            <img src={blackPreview} alt={`${logo.name} black icon`} className="max-h-full max-w-full object-contain" />
+                          ) : <span className="text-[10px] text-muted-foreground">—</span>}
+                        </div>
+                      </div>
+                      {/* Wordmark row */}
+                      <div className="px-2 pt-1 text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Wordmark{!hasWordmark && <span className="ml-1 normal-case text-muted-foreground/60">— add via Edit</span>}</div>
+                      <div className="grid grid-cols-3 divide-x divide-border border-b">
+                        <div className="aspect-[4/3] bg-white flex items-center justify-center p-3">
+                          {wmColorPreview ? (
+                            <img src={wmColorPreview} alt={`${logo.name} color wordmark`} className="max-h-full max-w-full object-contain" />
+                          ) : <span className="text-[10px] text-muted-foreground">—</span>}
+                        </div>
+                        <div className="aspect-[4/3] bg-slate-900 flex items-center justify-center p-3">
+                          {wmWhitePreview ? (
+                            <img src={wmWhitePreview} alt={`${logo.name} white wordmark`} className="max-h-full max-w-full object-contain" />
+                          ) : <span className="text-[10px] text-slate-500">—</span>}
+                        </div>
+                        <div className="aspect-[4/3] bg-white flex items-center justify-center p-3">
+                          {wmBlackPreview ? (
+                            <img src={wmBlackPreview} alt={`${logo.name} black wordmark`} className="max-h-full max-w-full object-contain" />
                           ) : <span className="text-[10px] text-muted-foreground">—</span>}
                         </div>
                       </div>
@@ -578,6 +602,7 @@ export function GlobalLogoHub() {
                         <span className="py-1">White</span>
                         <span className="py-1">Black</span>
                       </div>
+
 
                       <CardContent className="p-3 space-y-2">
                         <div className="flex items-start justify-between gap-2">
