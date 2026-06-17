@@ -460,7 +460,7 @@ export default function PublicLogoHub() {
                     <div>
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Format</p>
                       <div className="flex flex-wrap gap-2">
-                        {['png', 'svg'].map((fmt) => (
+                        {(['png', 'svg'] as const).map((fmt) => (
                           <Chip
                             key={fmt}
                             active={currentFormat === fmt}
