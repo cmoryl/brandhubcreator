@@ -60,6 +60,30 @@ export function GlobalLogoHub() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingVariant, setGeneratingVariant] = useState<string | null>(null);
   const [generateProgress, setGenerateProgress] = useState(0);
+  const [isSeedingPartners, setIsSeedingPartners] = useState(false);
+
+  const handleSeedPartnerLink = async () => {
+    if (!organization?.id) return;
+    if (!confirm('Seed ~46 PartnerLink Logos into this organization? Existing entries with the same name will be skipped.')) return;
+    setIsSeedingPartners(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('seed-partnerlink-logos', {
+        body: { organizationId: organization.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(
+        `PartnerLink seed complete — ${data.inserted} with logos, ${data.withoutLogo} without, ${data.skipped} skipped`,
+      );
+      await fetchLogos();
+      setCategoryFilter('PartnerLink Logos');
+    } catch (err) {
+      console.error('Failed to seed PartnerLink logos:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to seed PartnerLink logos');
+    } finally {
+      setIsSeedingPartners(false);
+    }
+  };
 
   const fetchLogos = useCallback(async () => {
     if (!organization?.id) return;
