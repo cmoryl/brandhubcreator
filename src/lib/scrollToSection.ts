@@ -12,6 +12,30 @@
  *  2. Re-checks the element's position over ~1.2s and re-scrolls if it drifts.
  *  3. Optionally applies a highlight flash once the scroll is stable.
  */
+
+export interface ScrollDebugSnapshot {
+  sectionId: string;
+  headerHeight: number;
+  topOffsetPx: number;
+  drift: number;
+  timestamp: number;
+}
+
+export const scrollDebug = {
+  last: null as ScrollDebugSnapshot | null,
+  listeners: [] as Array<(s: ScrollDebugSnapshot) => void>,
+  emit(s: ScrollDebugSnapshot) {
+    this.last = s;
+    this.listeners.forEach((fn) => fn(s));
+  },
+  on(fn: (s: ScrollDebugSnapshot) => void) {
+    this.listeners.push(fn);
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== fn);
+    };
+  },
+};
+
 export interface ScrollToSectionOptions {
   flash?: boolean;
   durationMs?: number;
