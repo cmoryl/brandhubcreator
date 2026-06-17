@@ -936,6 +936,8 @@ const BrandEditor = () => {
   return (
     <TooltipProvider>
       <UnsavedChangesBlocker />
+      {/* Fixed portal container for header dropdowns so they stay visible while scrolling */}
+      <div ref={dropdownPortalRef} className="fixed top-0 left-0 h-0 w-full z-[9999]" aria-hidden="true" />
       <div className="min-h-screen bg-background flex relative">
         {/* Brand-specific Background */}
         {pageSettings.backgroundType !== 'inherit' && pageSettings.backgroundType !== 'solid' && (
