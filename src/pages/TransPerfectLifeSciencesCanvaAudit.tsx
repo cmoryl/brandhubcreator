@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AuditDetailLoader } from '@/components/brand/CanvaAuditSkeletons';
+import { useBrandContextBySlug } from '@/hooks/useBrandContextBySlug';
+import { useCanvaAuditAutoSync } from '@/hooks/useCanvaAuditAnalyses';
 
 const AUDIT_URL = '/transperfect/lifesci-canva-audit.html';
 
@@ -9,6 +11,12 @@ export default function TransPerfectLifeSciencesCanvaAudit() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [loaded, setLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const { brandId, organizationId } = useBrandContextBySlug('transperfect');
+  useCanvaAuditAutoSync(
+    organizationId
+      ? { brandSlug: 'transperfect', brandId, organizationId, auditSlug: 'transperfect-lifesciences-canva-audit' }
+      : null,
+  );
 
   useEffect(() => {
     document.title = 'Life Sciences Canva Template Audit — TransPerfect';

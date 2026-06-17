@@ -1544,6 +1544,8 @@ const BrandEditor = () => {
               entityId={brand.id}
               entityName={brand.hero.name}
               organizationId={brand.organizationId}
+              brandSlug={brand.slug}
+              canEdit={canEdit}
             />
           </div>
         </SheetContent>
