@@ -421,6 +421,7 @@ serve(async (req) => {
     const organizationId: string | undefined = body.organizationId;
     const namesFilter: string[] | undefined = Array.isArray(body.names) ? body.names : undefined;
     const force: boolean = body.force === true;
+    const wordmarksOnly: boolean = body.wordmarksOnly === true;
     // Categories can be a single string or array. Defaults to PartnerLink Logos.
     const rawCategories: string[] = Array.isArray(body.categories)
       ? body.categories
@@ -497,6 +498,32 @@ serve(async (req) => {
       for (const p of partners) {
         if (namesFilterLower && !namesFilterLower.includes(p.name.toLowerCase())) continue;
 
+        const existingRow = existingByName.get(p.name.toLowerCase());
+
+        // Wordmarks-only mode: only re-scrape wordmarks and overwrite the wordmark
+        // slots on existing rows. Skip partners that don't already exist.
+        if (wordmarksOnly) {
+          if (!existingRow) {
+            allResults.push({ category, name: p.name, status: "skipped" });
+            continue;
+          }
+          const wordmarks = await discoverWordmarkLogos(p.website);
+          // Drop existing wordmark entries; keep icon entries intact.
+          const preserved = existingRow.files.filter((f: any) => f?.lockup !== "wordmark");
+          const merged = [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))];
+          if (wordmarks.length === 0) {
+            allResults.push({ category, name: p.name, status: "no-logo" });
+            continue;
+          }
+          const { error: updErr } = await admin
+            .from("global_client_logos")
+            .update({ files: merged })
+            .eq("id", existingRow.id);
+          if (updErr) throw updErr;
+          allResults.push({ category, name: p.name, status: "updated" });
+          continue;
+        }
+
         const files: any[] = [];
         let foundLogo = false;
         let hasColor = false;
@@ -538,9 +565,6 @@ serve(async (req) => {
           foundLogo = true;
         }
 
-
-
-        const existingRow = existingByName.get(p.name.toLowerCase());
         if (existingRow) {
           const shouldUpdate = foundLogo && (force || files.length > existingRow.files.length);
           if (shouldUpdate) {

@@ -173,6 +173,34 @@ export function GlobalLogoHub() {
   const handleSeedMedia = () => handleSeedCategory('Media');
   const handleSeedGeneral = () => handleSeedCategory('General');
 
+  const handleSeedWordmarksForce = async () => {
+    if (!organization?.id) return;
+    if (!confirm('Re-scrape & OVERWRITE wordmark slots for ALL partners (PartnerLink, Media, General). Icons are preserved. Continue?')) return;
+    setIsSeedingPartners(true);
+    try {
+      const categories = ['PartnerLink Logos', 'Media', 'General'];
+      let inserted = 0, updated = 0, skipped = 0, withoutLogo = 0;
+      for (const category of categories) {
+        const { data, error } = await supabase.functions.invoke('seed-partnerlink-logos', {
+          body: { organizationId: organization.id, wordmarksOnly: true, force: true, category },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        inserted += data.inserted ?? 0;
+        updated += data.updated ?? 0;
+        skipped += data.skipped ?? 0;
+        withoutLogo += data.withoutLogo ?? 0;
+      }
+      toast.success(`Wordmark seed complete — ${updated} refreshed, ${withoutLogo} without wordmarks, ${skipped} unchanged`);
+      await fetchLogos();
+    } catch (err) {
+      console.error('Failed to seed wordmarks:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to seed wordmarks');
+    } finally {
+      setIsSeedingPartners(false);
+    }
+  };
+
 
 
   const fetchLogos = useCallback(async () => {
@@ -518,6 +546,16 @@ export function GlobalLogoHub() {
           >
             {isSeedingPartners ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Seed General
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleSeedWordmarksForce}
+            disabled={isSeedingPartners}
+            className="gap-2"
+            title="Re-scrape and OVERWRITE wordmark slots for every partner across all categories. Icons are preserved."
+          >
+            {isSeedingPartners ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Seed Wordmarks (Force)
           </Button>
           <Button onClick={() => { resetForm(); setAddDialogOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" />
