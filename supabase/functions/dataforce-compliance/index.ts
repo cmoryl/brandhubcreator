@@ -336,6 +336,7 @@ Return your analysis as a JSON object with this structure:
         complianceScore: complianceResult.complianceScore,
         issuesFound: complianceResult.issues.length,
         issues: complianceResult.issues,
+        weightedBy: weightingHints.length ? { archetype, industry, hints: weightingHints } : null,
         isDemo,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
