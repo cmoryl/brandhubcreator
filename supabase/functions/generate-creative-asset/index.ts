@@ -273,12 +273,9 @@ serve(async (req) => {
     try {
       const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
       const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const [{ buildAvoidClauseForEntity }, sigClause, auditFindings] = await Promise.all([
-        import("../_shared/imagerySignals.ts"),
-        Promise.resolve().then(async () => {
-          const m = await import("../_shared/imagerySignals.ts");
-          return m.buildAvoidClauseForEntity(SUPABASE_URL, SERVICE_KEY, entityId, entityType);
-        }),
+      const sigModule = await import("../_shared/imagerySignals.ts");
+      const [sigClause, auditFindings] = await Promise.all([
+        sigModule.buildAvoidClauseForEntity(SUPABASE_URL, SERVICE_KEY, entityId, entityType),
         (async () => {
           if (entityType !== 'brand') return null;
           const r = await fetch(
