@@ -136,12 +136,15 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const organizationId: string | undefined = body.organizationId;
+    const namesFilter: string[] | undefined = Array.isArray(body.names) ? body.names : undefined;
+    const force: boolean = body.force === true;
     if (!organizationId) {
       return new Response(JSON.stringify({ error: "organizationId required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const namesFilterLower = namesFilter?.map((n) => n.toLowerCase());
 
     const admin = createClient(supabaseUrl, serviceKey);
 
@@ -186,6 +189,8 @@ serve(async (req) => {
     const rowsToInsert: any[] = [];
 
     for (const p of PARTNERS) {
+      if (namesFilterLower && !namesFilterLower.includes(p.name.toLowerCase())) continue;
+
       const files: any[] = [];
       let foundLogo = false;
       if (p.slug) {
@@ -212,8 +217,9 @@ serve(async (req) => {
 
       const existingRow = existingByName.get(p.name.toLowerCase());
       if (existingRow) {
-        // Backfill whenever we now have more (or any) files than the row currently holds.
-        if (foundLogo && files.length > existingRow.files.length) {
+        // Backfill when forced, or when we now have more files than the row currently holds.
+        const shouldUpdate = foundLogo && (force || files.length > existingRow.files.length);
+        if (shouldUpdate) {
           const { error: updErr } = await admin
             .from("global_client_logos")
             .update({ files })

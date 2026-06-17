@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Search, Trash2, Pencil, Upload, Download, ExternalLink, FolderArchive, Loader2, Filter, Sparkles, ShieldCheck, ShieldAlert, RefreshCw } from 'lucide-react';
+import { Plus, Search, Trash2, Pencil, Upload, Download, ExternalLink, FolderArchive, Loader2, Filter, Sparkles, ShieldCheck, ShieldAlert, RefreshCw, EyeOff, Eye } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { validateLogoFiles, ISSUE_LABELS, type LogoValidationResult } from '@/lib/logoValidation';
+import { getExemptions, setExempt } from '@/lib/logoValidationExemptions';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,47 @@ export function GlobalLogoHub() {
   const [validations, setValidations] = useState<Record<string, LogoValidationResult>>({});
   const [validatingId, setValidatingId] = useState<string | null>(null);
   const [isValidatingAll, setIsValidatingAll] = useState(false);
+  const [exemptIds, setExemptIds] = useState<Set<string>>(new Set());
+  const [resyncingId, setResyncingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (organization?.id) setExemptIds(getExemptions(organization.id));
+  }, [organization?.id]);
+
+  const toggleExempt = useCallback((logoId: string) => {
+    if (!organization?.id) return;
+    const wasExempt = exemptIds.has(logoId);
+    const next = setExempt(organization.id, logoId, !wasExempt);
+    setExemptIds(new Set(next));
+    toast.success(wasExempt ? 'Validation alerts re-enabled' : 'Marked as exempt — alerts hidden');
+  }, [organization?.id, exemptIds]);
+
+  const handleResyncOne = useCallback(async (logo: GlobalClientLogo) => {
+    if (!organization?.id) return;
+    setResyncingId(logo.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('seed-partnerlink-logos', {
+        body: { organizationId: organization.id, names: [logo.name], force: true },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const updated = data?.results?.find((r: any) => r.name === logo.name);
+      if (!updated || updated.status === 'no-logo') {
+        toast.error(`No source logo found for ${logo.name}. Use "Find Logos" or upload manually.`);
+      } else if (updated.status === 'skipped') {
+        toast.message(`${logo.name} is already up to date.`);
+      } else {
+        toast.success(`Re-downloaded files for ${logo.name}`);
+      }
+      await fetchLogos();
+    } catch (err) {
+      console.error('Re-sync failed:', err);
+      toast.error(err instanceof Error ? err.message : 'Re-sync failed');
+    } finally {
+      setResyncingId((curr) => (curr === logo.id ? null : curr));
+    }
+  }, [organization?.id]);
+
 
   const runValidation = useCallback(async (logo: GlobalClientLogo) => {
     setValidatingId(logo.id);
@@ -531,6 +573,11 @@ export function GlobalLogoHub() {
                           logo={logo}
                           validation={validation}
                           isValidating={isThisValidating || (!validation && isValidatingAll)}
+                          isExempt={exemptIds.has(logo.id)}
+                          isResyncing={resyncingId === logo.id}
+                          onResync={() => handleResyncOne(logo)}
+                          onEdit={() => openEdit(logo)}
+                          onToggleExempt={() => toggleExempt(logo.id)}
                         />
 
                         <div className="text-xs text-muted-foreground">
@@ -678,16 +725,35 @@ function ValidationBadge({
   logo,
   validation,
   isValidating,
+  isExempt,
+  isResyncing,
+  onResync,
+  onEdit,
+  onToggleExempt,
 }: {
   logo: GlobalClientLogo;
   validation: LogoValidationResult | undefined;
   isValidating: boolean;
+  isExempt: boolean;
+  isResyncing: boolean;
+  onResync: () => void;
+  onEdit: () => void;
+  onToggleExempt: () => void;
 }) {
   if (!logo.files.length) {
     return (
-      <div className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400">
-        <ShieldAlert className="h-3.5 w-3.5" />
-        <span>No files uploaded</span>
+      <div className="flex items-center justify-between gap-2 text-[11px] text-amber-600 dark:text-amber-400">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">No files uploaded</span>
+        </div>
+        <ActionStrip
+          isResyncing={isResyncing}
+          isExempt={isExempt}
+          onResync={onResync}
+          onEdit={onEdit}
+          onToggleExempt={onToggleExempt}
+        />
       </div>
     );
   }
@@ -712,36 +778,111 @@ function ValidationBadge({
     );
   }
   const failingFiles = validation.files.filter((f) => !f.ok);
+
+  if (isExempt) {
+    return (
+      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground italic">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <EyeOff className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">
+            {failingFiles.length} issue{failingFiles.length !== 1 ? 's' : ''} — exempt
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onToggleExempt}
+          className="p-1 rounded hover:bg-secondary"
+          title="Un-exempt — re-enable alerts"
+        >
+          <Eye className="h-3 w-3" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <TooltipProvider delayDuration={150}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            className="flex items-center gap-1.5 text-[11px] text-destructive hover:underline"
-          >
-            <ShieldAlert className="h-3.5 w-3.5" />
-            <span>
-              {failingFiles.length} file{failingFiles.length !== 1 ? 's' : ''} failed validation
-            </span>
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-xs text-xs space-y-2">
-          {failingFiles.map((f, idx) => (
-            <div key={idx} className="space-y-0.5">
-              <div className="font-medium capitalize">
-                {f.variant} · {f.format.toUpperCase()}
-                {f.width ? ` · ${f.width}×${f.height}` : ''}
+      <div className="flex items-center justify-between gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-[11px] text-destructive hover:underline min-w-0"
+            >
+              <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">
+                {failingFiles.length} file{failingFiles.length !== 1 ? 's' : ''} failed validation
+              </span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="max-w-xs text-xs space-y-2">
+            {failingFiles.map((f, idx) => (
+              <div key={idx} className="space-y-0.5">
+                <div className="font-medium capitalize">
+                  {f.variant} · {f.format.toUpperCase()}
+                  {f.width ? ` · ${f.width}×${f.height}` : ''}
+                </div>
+                <ul className="list-disc pl-4 text-muted-foreground">
+                  {f.issues.map((issue) => (
+                    <li key={issue}>{ISSUE_LABELS[issue]}</li>
+                  ))}
+                </ul>
               </div>
-              <ul className="list-disc pl-4 text-muted-foreground">
-                {f.issues.map((issue) => (
-                  <li key={issue}>{ISSUE_LABELS[issue]}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </TooltipContent>
-      </Tooltip>
+            ))}
+          </TooltipContent>
+        </Tooltip>
+        <ActionStrip
+          isResyncing={isResyncing}
+          isExempt={isExempt}
+          onResync={onResync}
+          onEdit={onEdit}
+          onToggleExempt={onToggleExempt}
+        />
+      </div>
     </TooltipProvider>
+  );
+}
+
+function ActionStrip({
+  isResyncing,
+  isExempt,
+  onResync,
+  onEdit,
+  onToggleExempt,
+}: {
+  isResyncing: boolean;
+  isExempt: boolean;
+  onResync: () => void;
+  onEdit: () => void;
+  onToggleExempt: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-0.5 shrink-0">
+      <button
+        type="button"
+        onClick={onResync}
+        disabled={isResyncing}
+        className="p-1 rounded hover:bg-secondary disabled:opacity-50"
+        title="Re-download files from source"
+      >
+        {isResyncing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+      </button>
+      <button
+        type="button"
+        onClick={onEdit}
+        className="p-1 rounded hover:bg-secondary"
+        title="Edit / upload manually"
+      >
+        <Upload className="h-3 w-3" />
+      </button>
+      <button
+        type="button"
+        onClick={onToggleExempt}
+        className="p-1 rounded hover:bg-secondary"
+        title={isExempt ? 'Re-enable alerts' : 'Mark as exempt'}
+      >
+        {isExempt ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+      </button>
+    </div>
   );
 }
