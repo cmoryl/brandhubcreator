@@ -133,10 +133,14 @@ export function GlobalLogoHub() {
         .order('name', { ascending: true });
       
       if (error) throw error;
-      setLogos((data || []).map(d => ({
+      const normalized = (data || []).map(d => ({
         ...d,
         files: (Array.isArray(d.files) ? d.files : []) as unknown as ClientLogoFile[],
-      })));
+      }));
+      setLogos(normalized);
+      setValidations({});
+      // Kick off validation in the background so failures surface on cards.
+      runValidationAll(normalized);
     } catch (err) {
       console.error('Failed to fetch global logos:', err);
       toast.error('Failed to load logo library');
