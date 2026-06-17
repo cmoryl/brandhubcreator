@@ -14,31 +14,34 @@ interface SyncStatusIndicatorProps {
 export const SyncStatusIndicator = ({ compact = false }: SyncStatusIndicatorProps) => {
   const { syncStatus, lastSyncedAt, isOnline, lastSyncError, refetch, hasPendingChanges, isLoading } = useBrands();
   
-  // Track if we have pending changes (poll every 200ms for responsiveness)
+  // Track if we have pending changes. Poll at a calmer cadence (1s) so
+  // the badge doesn't flicker between "Saving…" and idle on every keystroke.
   const [isPending, setIsPending] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
-  
+
   useEffect(() => {
     const checkPending = () => {
       const pending = hasPendingChanges();
-      
+
       // If we were pending and now we're not, show "Saved" briefly
       if (isPending && !pending) {
         setShowSaved(true);
         setTimeout(() => setShowSaved(false), 2000);
       }
-      
+
       setIsPending(pending);
     };
-    
+
     checkPending();
-    const interval = setInterval(checkPending, 200);
+    const interval = setInterval(checkPending, 1000);
     return () => clearInterval(interval);
   }, [hasPendingChanges, isPending]);
 
-  // Don't show "Saving..." during initial data load - that's just fetching, not saving
-  // Only show syncing status when there are actual pending changes being saved
-  const isActuallySaving = (isPending || syncStatus === 'syncing') && !isLoading;
+  // Only treat as "saving" when there are actually pending edits being flushed.
+  // Background fetch/refetch (syncStatus==='syncing' with no pending writes)
+  // shouldn't masquerade as a save — that's what was causing the badge to
+  // strobe between "Saving…" and idle while the page loaded.
+  const isActuallySaving = isPending && !isLoading;
 
   // Compact mode for editor headers
   if (compact) {
