@@ -1564,6 +1564,8 @@ const BrandEditor = () => {
           primaryColor={brand.colors?.[0]?.hex}
         />
       </Suspense>
+      {/* Scroll alignment debug overlay */}
+      <ScrollDebugOverlay />
     </TooltipProvider>
   );
 };
