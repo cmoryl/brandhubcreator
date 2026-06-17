@@ -180,7 +180,7 @@ export default function PublicLogoHub() {
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="icon">Icon</TabsTrigger>
-              <TabsTrigger value="wordmark">Wordmark</TabsTrigger>
+              <TabsTrigger value="wordmark">Logo</TabsTrigger>
             </TabsList>
           </Tabs>
           <Tabs value={variant} onValueChange={(v) => setVariant(v as VariantFilter)}>
