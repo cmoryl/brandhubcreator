@@ -235,10 +235,29 @@ async function repairBrand(
       files[i] = replaced;
       result.rehosted++;
     } catch (e) {
-      result.errors.push(`${f.lockup}/${f.variant}: ${(e as Error).message}`);
-      result.ok = false;
+      // Fallback: try Google favicon for the brand domain, rehost it.
+      try {
+        const domain = row.website_url ? new URL(row.website_url).host : null;
+        if (!domain) throw e;
+        const favUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=256`;
+        const { bytes, ct } = await downloadBytes(favUrl);
+        const ext = extFromContentType(ct, "png");
+        const path = `${slug}/${f.lockup ?? "asset"}-${f.variant ?? "color"}-fallback.${ext}`;
+        const signedUrl = await uploadAndSign(supabase, path, bytes, ct ?? `image/${ext}`);
+        files[i] = { ...f, url: signedUrl, format: ext, source: `fallback:favicon` };
+        result.rehosted++;
+      } catch (e2) {
+        // Last resort: drop the broken external entry so the row becomes clean.
+        files[i] = null as any;
+        result.errors.push(`${f.lockup}/${f.variant}: ${(e as Error).message} (dropped)`);
+      }
     }
   }
+  // Filter out dropped entries
+  for (let i = files.length - 1; i >= 0; i--) {
+    if (!files[i]) files.splice(i, 1);
+  }
+
 
   // Persist
   const { error: updErr } = await supabase
