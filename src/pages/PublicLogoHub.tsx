@@ -334,6 +334,66 @@ export default function PublicLogoHub() {
           </div>
         )}
       </main>
+
+      {/* Preview Modal */}
+      <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden">
+          {preview && (
+            <>
+              <div
+                className={cn(
+                  'flex items-center justify-center p-8 min-h-[320px]',
+                  preview.file.variant === 'white' ? 'bg-neutral-900' : 'bg-white',
+                )}
+              >
+                <img
+                  src={preview.file.url}
+                  alt={`${preview.logo.name} preview`}
+                  className="max-h-[400px] max-w-full object-contain"
+                />
+              </div>
+              <div className="p-6 space-y-4">
+                <DialogHeader>
+                  <DialogTitle className="text-lg">{preview.logo.name}</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">
+                    {(preview.file.lockup || 'icon') === 'icon' ? 'Icon' : 'Wordmark'}
+                  </Badge>
+                  <Badge variant="secondary">
+                    {preview.file.variant}
+                  </Badge>
+                  <Badge variant="secondary">
+                    {preview.file.format?.toUpperCase()}
+                  </Badge>
+                  <Badge variant="outline">{preview.logo.category}</Badge>
+                </div>
+                <div className="flex gap-2">
+                  <Button asChild size="sm">
+                    <a
+                      href={preview.file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download {preview.file.format?.toUpperCase()}
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPreview(null)}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
