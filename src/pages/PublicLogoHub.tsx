@@ -104,14 +104,6 @@ export default function PublicLogoHub() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>Global Logo Hub — Browse Brand & Partner Logos</title>
-        <meta
-          name="description"
-          content="Public directory of brand, partner and client logos with color, black and white variants."
-        />
-        <link rel="canonical" href={typeof window !== 'undefined' ? window.location.href : ''} />
-      </Helmet>
 
       {/* Hero */}
       <header className="border-b border-border bg-card/40">
