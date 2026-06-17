@@ -472,8 +472,8 @@ export default function PublicLogoHub() {
                         ))}
                       </div>
                     </div>
-                    <div className="flex gap-2 pt-2">
-                      <Button asChild size="sm">
+                    <div className="flex items-center gap-3 pt-2">
+                      <Button asChild size="sm" className="flex-1">
                         <a
                           href={preview.file.url}
                           target="_blank"
@@ -481,9 +481,12 @@ export default function PublicLogoHub() {
                           download
                         >
                           <Download className="h-4 w-4 mr-2" />
-                          Download {preview.file.format?.toUpperCase()}
+                          Download selected
                         </a>
                       </Button>
+                      <div className="text-[10px] text-muted-foreground whitespace-nowrap">
+                        {currentLockup === 'icon' ? 'Icon' : 'Wordmark'} · {currentVariant.charAt(0).toUpperCase() + currentVariant.slice(1)} · {currentFormat.toUpperCase()}
+                      </div>
                       <Button variant="outline" size="sm" onClick={() => setPreview(null)}>
                         <X className="h-4 w-4 mr-2" />
                         Close
