@@ -447,6 +447,8 @@ export const useBrandStorage = () => {
   // If a fetch fails (e.g., timeout), we keep current data and allow a retry after cooldown with exponential backoff.
   const lastFetchFailedAtRef = useRef<number | null>(null);
   const failureCountRef = useRef<number>(0);
+  const inFlightFetchRef = useRef<Promise<void> | null>(null);
+  const hasShownConnectivityToastRef = useRef<boolean>(false);
   const BASE_RETRY_COOLDOWN_MS = 4000;
   const MAX_RETRY_COOLDOWN_MS = 60000; // Cap at 1 minute
   
