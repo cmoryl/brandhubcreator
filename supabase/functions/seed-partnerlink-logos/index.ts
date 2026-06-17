@@ -77,26 +77,50 @@ async function fetchSimpleIconSvg(slug: string): Promise<string | null> {
   }
 }
 
-async function fetchSimpleIconBrandHex(slug: string): Promise<string | null> {
-  // simpleicons.org's _data lookup returns brand color as plain text via /color path.
-  // Fallback: fetch the npm JSON metadata which always exposes `hex`.
-  const candidates = [
-    `https://unpkg.com/simple-icons@latest/icons/${slug}.json`,
-    `https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${slug}.json`,
+// Cache the Simple Icons bundle for hex lookup (per cold start).
+let brandHexBySlug: Map<string, string> | null = null;
+
+function titleToSlug(title: string): string {
+  // Mirrors simple-icons' slug algorithm.
+  const replacements: Record<string, string> = { "+": "plus", ".": "dot", "&": "and", "đ": "d", "ħ": "h", "ı": "i", "ĸ": "k", "ŀ": "l", "ł": "l", "ß": "ss", "ŧ": "t" };
+  let s = title;
+  for (const [k, v] of Object.entries(replacements)) s = s.split(k).join(v);
+  s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+async function loadBrandHexMap(): Promise<Map<string, string>> {
+  if (brandHexBySlug) return brandHexBySlug;
+  const urls = [
+    "https://cdn.jsdelivr.net/npm/simple-icons@latest/_data/simple-icons.json",
+    "https://unpkg.com/simple-icons@latest/_data/simple-icons.json",
   ];
-  for (const url of candidates) {
+  for (const url of urls) {
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { redirect: "follow" });
       if (!res.ok) continue;
       const data = await res.json();
-      if (data?.hex && typeof data.hex === "string") {
-        return data.hex.startsWith("#") ? data.hex : `#${data.hex}`;
+      if (!Array.isArray(data)) continue;
+      const map = new Map<string, string>();
+      for (const entry of data) {
+        if (!entry?.hex || !entry?.title) continue;
+        const slug = (entry.slug && typeof entry.slug === "string") ? entry.slug : titleToSlug(entry.title);
+        const hex = entry.hex.startsWith("#") ? entry.hex : `#${entry.hex}`;
+        map.set(slug, hex);
       }
+      brandHexBySlug = map;
+      return map;
     } catch {
-      // try next
+      // try next url
     }
   }
-  return null;
+  brandHexBySlug = new Map();
+  return brandHexBySlug;
+}
+
+async function fetchSimpleIconBrandHex(slug: string): Promise<string | null> {
+  const map = await loadBrandHexMap();
+  return map.get(slug) ?? null;
 }
 
 function colorizeSvg(svg: string, hex: string): string {
