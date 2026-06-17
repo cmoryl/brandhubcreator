@@ -240,6 +240,55 @@ function svgToDataUrl(svg: string): string {
   return `data:image/svg+xml;base64,${b64}`;
 }
 
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function cleanWordmarkName(name: string): string {
+  return name
+    .replace(/\[[^\]]*\]/g, "")
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\s+/g, " ")
+    .trim() || name;
+}
+
+function svgInner(svg: string): string {
+  return svg
+    .replace(/^[\s\S]*?<svg[^>]*>/i, "")
+    .replace(/<\/svg>\s*$/i, "")
+    .replace(/\sfill=["'][^"']*["']/gi, "");
+}
+
+function makeWordmarkSvg(name: string, color: string, iconSvg?: string | null): string {
+  const label = cleanWordmarkName(name);
+  const fontSize = Math.max(46, Math.min(74, Math.floor(560 / Math.max(label.length, 8))));
+  const textX = iconSvg ? 192 : 40;
+  const iconMarkup = iconSvg
+    ? `<g transform="translate(44 66) scale(5.4)" fill="${color}">${svgInner(iconSvg)}</g>`
+    : "";
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 260" role="img" aria-label="${escapeXml(label)} wordmark">
+  <rect width="960" height="260" fill="none"/>
+  ${iconMarkup}
+  <text x="${textX}" y="146" fill="${color}" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="700" letter-spacing="0">${escapeXml(label)}</text>
+</svg>`;
+}
+
+async function generatedWordmarkFiles(p: Partner): Promise<Array<{ variant: "color" | "white" | "black"; format: "svg"; url: string; lockup: "wordmark" }>> {
+  const iconSvg = p.slug ? await fetchSimpleIconSvg(p.slug) : null;
+  const brandHex = p.slug ? await fetchSimpleIconBrandHex(p.slug) : null;
+  const colorHex = brandHex ?? "#111827";
+  return [
+    { variant: "color", format: "svg", url: svgToDataUrl(makeWordmarkSvg(p.name, colorHex, iconSvg)), lockup: "wordmark" },
+    { variant: "white", format: "svg", url: svgToDataUrl(makeWordmarkSvg(p.name, "#ffffff", iconSvg)), lockup: "wordmark" },
+    { variant: "black", format: "svg", url: svgToDataUrl(makeWordmarkSvg(p.name, "#000000", iconSvg)), lockup: "wordmark" },
+  ];
+}
+
 function domainFromUrl(url: string): string | null {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -507,7 +556,7 @@ serve(async (req) => {
             allResults.push({ category, name: p.name, status: "skipped" });
             continue;
           }
-          const wordmarks = await discoverWordmarkLogos(p.website);
+          const wordmarks = await generatedWordmarkFiles(p);
           // Drop existing wordmark entries; keep icon entries intact.
           const preserved = existingRow.files.filter((f: any) => f?.lockup !== "wordmark");
           const merged = [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))];
@@ -559,7 +608,9 @@ serve(async (req) => {
         }
 
         // Wordmark / full-logo discovery — populates the wordmark row.
-        const wordmarks = await discoverWordmarkLogos(p.website);
+        const discoveredWordmarks = await discoverWordmarkLogos(p.website);
+        const generatedWordmarks = await generatedWordmarkFiles(p);
+        const wordmarks = [...generatedWordmarks, ...discoveredWordmarks];
         for (const w of wordmarks) {
           files.push({ ...w, lockup: "wordmark" });
           foundLogo = true;
