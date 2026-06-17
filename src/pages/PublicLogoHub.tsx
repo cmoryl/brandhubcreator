@@ -537,8 +537,8 @@ export default function PublicLogoHub() {
                         ))}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 pt-2">
-                      <Button asChild size="sm" className="flex-1">
+                    <div className="flex items-center gap-3 pt-2 flex-wrap">
+                      <Button asChild size="sm" className="flex-1 min-w-[160px]">
                         <a
                           href={preview.file.url}
                           target="_blank"
@@ -549,6 +549,14 @@ export default function PublicLogoHub() {
                           Download selected
                         </a>
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => downloadFilesAsZip(preview.logo.name, preview.logo.files)}
+                      >
+                        <Package className="h-4 w-4 mr-2" />
+                        Download all ({preview.logo.files.length}) as ZIP
+                      </Button>
                       <div className="text-[10px] text-muted-foreground whitespace-nowrap">
                         {currentLockup === 'icon' ? 'Icon' : 'Wordmark'} · {currentVariant.charAt(0).toUpperCase() + currentVariant.slice(1)} · {currentFormat.toUpperCase()}
                       </div>
@@ -557,6 +565,7 @@ export default function PublicLogoHub() {
                         Close
                       </Button>
                     </div>
+
                   </div>
                 );
               })()}
