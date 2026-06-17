@@ -140,30 +140,35 @@ export function GlobalLogoHub() {
     }
   }, []);
 
-  const handleSeedPartnerLink = async () => {
+  const handleSeedCategory = async (category: 'PartnerLink Logos' | 'Media' | 'General') => {
     if (!organization?.id) return;
     const force = confirm(
-      'Seed PartnerLink Logos.\n\nOK = FORCE refresh every row (re-pull color, white & black variants from source)\nCancel = quick mode (only add missing rows / fill empty ones)',
+      `Seed ${category} Logos.\n\nOK = FORCE refresh every row (re-pull color, white & black variants from source)\nCancel = quick mode (only add missing rows / fill empty ones)`,
     );
     setIsSeedingPartners(true);
     try {
       const { data, error } = await supabase.functions.invoke('seed-partnerlink-logos', {
-        body: { organizationId: organization.id, force },
+        body: { organizationId: organization.id, force, category },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast.success(
-        `PartnerLink seed complete — ${data.inserted ?? 0} added, ${data.updated ?? 0} refreshed, ${data.withoutLogo ?? 0} without logos, ${data.skipped ?? 0} unchanged`,
+        `${category} seed complete — ${data.inserted ?? 0} added, ${data.updated ?? 0} refreshed, ${data.withoutLogo ?? 0} without logos, ${data.skipped ?? 0} unchanged`,
       );
       await fetchLogos();
-      setCategoryFilter('PartnerLink Logos');
+      setCategoryFilter(category);
     } catch (err) {
-      console.error('Failed to seed PartnerLink logos:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to seed PartnerLink logos');
+      console.error(`Failed to seed ${category} logos:`, err);
+      toast.error(err instanceof Error ? err.message : `Failed to seed ${category} logos`);
     } finally {
       setIsSeedingPartners(false);
     }
   };
+
+  const handleSeedPartnerLink = () => handleSeedCategory('PartnerLink Logos');
+  const handleSeedMedia = () => handleSeedCategory('Media');
+  const handleSeedGeneral = () => handleSeedCategory('General');
+
 
 
   const fetchLogos = useCallback(async () => {
