@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { computeActionBreakdown } from '@/lib/actionConsistency';
 
 export type ActionSource = 'competitive' | 'compliance' | 'audit' | 'alert' | 'recommendation';
 export type ActionSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info';
@@ -162,5 +163,11 @@ export function useUnifiedActions({ entityId, entityType, organizationId }: Opti
 
   const openCount = useMemo(() => actions.filter(a => (a.status === 'open' || a.status === 'in_progress') && a.severity !== 'info').length, [actions]);
 
-  return { actions, isLoading, openCount, refetch: fetchAll, markDone };
+  // Automated consistency check: flags drift between badge total and per-source openCount sources.
+  const consistency = useMemo(
+    () => computeActionBreakdown(actions, openCount, { entityId, brandLabel: entityType ?? undefined }),
+    [actions, openCount, entityId, entityType],
+  );
+
+  return { actions, isLoading, openCount, refetch: fetchAll, markDone, consistency };
 }
