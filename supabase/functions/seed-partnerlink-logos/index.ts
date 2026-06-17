@@ -189,6 +189,8 @@ serve(async (req) => {
     const rowsToInsert: any[] = [];
 
     for (const p of PARTNERS) {
+      if (namesFilterLower && !namesFilterLower.includes(p.name.toLowerCase())) continue;
+
       const files: any[] = [];
       let foundLogo = false;
       if (p.slug) {
@@ -215,8 +217,9 @@ serve(async (req) => {
 
       const existingRow = existingByName.get(p.name.toLowerCase());
       if (existingRow) {
-        // Backfill whenever we now have more (or any) files than the row currently holds.
-        if (foundLogo && files.length > existingRow.files.length) {
+        // Backfill when forced, or when we now have more files than the row currently holds.
+        const shouldUpdate = foundLogo && (force || files.length > existingRow.files.length);
+        if (shouldUpdate) {
           const { error: updErr } = await admin
             .from("global_client_logos")
             .update({ files })
