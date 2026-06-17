@@ -116,6 +116,9 @@ const PARTNERS_BY_CATEGORY: Record<string, Partner[]> = {
     { name: "FedEx", website: "https://www.fedex.com", slug: "fedex" },
     { name: "UPS", website: "https://www.ups.com", slug: "ups" },
   ],
+  "Retail": [
+    { name: "Booking.com", website: "https://www.booking.com", slug: "bookingdotcom" },
+  ],
 };
 
 const CATEGORY_DESCRIPTIONS: Record<string, { withLogo: string; withoutLogo: string }> = {
@@ -130,6 +133,10 @@ const CATEGORY_DESCRIPTIONS: Record<string, { withLogo: string; withoutLogo: str
   "General": {
     withLogo: "General consumer brand (logo via Simple Icons)",
     withoutLogo: "General consumer brand — use Find Logos to discover assets",
+  },
+  "Retail": {
+    withLogo: "Retail and travel brand (logo via source discovery)",
+    withoutLogo: "Retail and travel brand — use Find Logos to discover assets",
   },
 };
 
