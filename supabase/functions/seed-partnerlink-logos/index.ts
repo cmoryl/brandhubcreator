@@ -77,6 +77,28 @@ async function fetchSimpleIconSvg(slug: string): Promise<string | null> {
   }
 }
 
+async function fetchSimpleIconBrandHex(slug: string): Promise<string | null> {
+  // simpleicons.org's _data lookup returns brand color as plain text via /color path.
+  // Fallback: fetch the npm JSON metadata which always exposes `hex`.
+  const candidates = [
+    `https://unpkg.com/simple-icons@latest/icons/${slug}.json`,
+    `https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${slug}.json`,
+  ];
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data?.hex && typeof data.hex === "string") {
+        return data.hex.startsWith("#") ? data.hex : `#${data.hex}`;
+      }
+    } catch {
+      // try next
+    }
+  }
+  return null;
+}
+
 function colorizeSvg(svg: string, hex: string): string {
   // Simple Icons SVGs are single-path monochrome; inject fill on the root <svg>
   // and strip any inline fills on children so the override always wins.
@@ -176,13 +198,22 @@ serve(async (req) => {
           files.push({ variant: "black", format: "svg", url: svgToDataUrl(blackSvg) });
           files.push({ variant: "white", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/ffffff` });
           files.push({ variant: "black", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/000000` });
+
+          // Brand-color variant: derive the brand hex from Simple Icons metadata.
+          const hex = await fetchSimpleIconBrandHex(p.slug);
+          if (hex) {
+            const cleanHex = hex.replace("#", "");
+            const colorSvg = colorizeSvg(svg, `#${cleanHex}`);
+            files.push({ variant: "color", format: "svg", url: svgToDataUrl(colorSvg) });
+            files.push({ variant: "color", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/${cleanHex}` });
+          }
         }
       }
 
       const existingRow = existingByName.get(p.name.toLowerCase());
       if (existingRow) {
-        // Backfill only when row has no files AND we now have some.
-        if (existingRow.files.length === 0 && foundLogo) {
+        // Backfill whenever we now have more (or any) files than the row currently holds.
+        if (foundLogo && files.length > existingRow.files.length) {
           const { error: updErr } = await admin
             .from("global_client_logos")
             .update({ files })
