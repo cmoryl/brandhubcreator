@@ -386,13 +386,15 @@ export function GlobalLogoHub() {
     toast.success(`Logo discovery complete for "${formData.name.trim()}"`);
   };
 
-  const getPreviewUrl = (files: ClientLogoFile[], variant: ClientLogoVariant): string | null => {
+  const getPreviewUrl = (files: ClientLogoFile[], variant: ClientLogoVariant, lockup: 'icon' | 'wordmark' = 'icon'): string | null => {
     // Prefer seeded SVG data URLs because Simple Icons' CDN often serves SVGs
     // from PNG-looking URLs, and some branded CDN color URLs 404.
-    return files.find(f => f.variant === variant && f.format === 'svg')?.url
-      || files.find(f => f.variant === variant && f.format === 'png')?.url
+    const matches = files.filter(f => f.variant === variant && (f.lockup ?? 'icon') === lockup);
+    return matches.find(f => f.format === 'svg')?.url
+      || matches.find(f => f.format === 'png')?.url
       || null;
   };
+
 
   const categories = Array.from(new Set([...DEFAULT_CATEGORIES, ...logos.map(l => l.category)])).sort();
 
