@@ -262,6 +262,7 @@ export function GlobalLogoHub() {
     setFormData({ name: '', description: '', category: 'General', websiteUrl: '', files: [] });
     setEditingLogo(null);
     setAddDialogOpen(false);
+    setUploadValidations({});
   };
 
   const openEdit = (logo: GlobalClientLogo) => {
@@ -273,6 +274,7 @@ export function GlobalLogoHub() {
       websiteUrl: logo.website_url || '',
       files: logo.files,
     });
+    setUploadValidations({});
     setAddDialogOpen(true);
   };
 
@@ -280,19 +282,45 @@ export function GlobalLogoHub() {
     const format: ClientLogoFormat = 'png';
     const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format && (f.lockup ?? 'icon') === lockup));
     setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url, lockup }] }));
+    // Clear any stale local-upload validation for this slot — library asset wasn't measured here.
+    setUploadValidations(prev => {
+      const next = { ...prev };
+      delete next[`${lockup}-${variant}-${format}`];
+      return next;
+    });
     toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} logo added`);
   };
 
-  const handleLocalFileUpload = (variant: ClientLogoVariant, lockup: 'icon' | 'wordmark', format: ClientLogoFormat, file: File) => {
+  const handleLocalFileUpload = async (variant: ClientLogoVariant, lockup: 'icon' | 'wordmark', format: ClientLogoFormat, file: File) => {
+    const slotKey = `${lockup}-${variant}-${format}`;
+
+    // Run dimension + luminance validation in parallel with the data-URL read.
+    const validationPromise = validateWordmarkUpload(file, variant, lockup).catch(() => null);
+
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const url = e.target?.result as string;
       const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format && (f.lockup ?? 'icon') === lockup));
       setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url, lockup }] }));
-      toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
+
+      const result = await validationPromise;
+      if (result) {
+        setUploadValidations(prev => ({ ...prev, [slotKey]: result }));
+        if (result.status === 'fail') {
+          toast.error(`${VARIANT_LABELS[variant]} ${lockup}: ${result.messages[0] ?? 'Validation failed'}`);
+        } else if (result.status === 'warn') {
+          toast.warning(`${VARIANT_LABELS[variant]} ${lockup}: ${result.messages[0] ?? 'Check upload'}`);
+        } else {
+          toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
+        }
+      } else {
+        toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
+      }
     };
     reader.readAsDataURL(file);
   };
+
+
 
 
   const handleAIGenerate = async () => {
