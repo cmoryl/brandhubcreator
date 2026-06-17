@@ -150,7 +150,7 @@ export async function validateWordmarkUpload(
       status = 'fail';
       messages.push(`Aspect ratio ${aspectRatio.toFixed(2)}:1 looks like an icon, not a wordmark.`);
     } else if (aspectRatio < MIN_WORDMARK_RATIO) {
-      status = status === 'fail' ? 'fail' : 'warn';
+      if (status === 'pass') status = 'warn';
       messages.push(`Aspect ratio ${aspectRatio.toFixed(2)}:1 is square-ish — wordmarks usually run 2:1 or wider.`);
     } else if (aspectRatio < IDEAL_WORDMARK_RATIO) {
       // acceptable, no message
@@ -158,10 +158,11 @@ export async function validateWordmarkUpload(
   } else {
     // icon: warn if extremely wide (probably a wordmark uploaded into the icon slot)
     if (aspectRatio > 2.5) {
-      status = status === 'fail' ? 'fail' : 'warn';
+      if (status === 'pass') status = 'warn';
       messages.push(`Aspect ratio ${aspectRatio.toFixed(2)}:1 is wide — this looks like a wordmark, not an icon.`);
     }
   }
+
 
   // Color-variant sanity check via average luminance
   if (avgLuminance !== null) {
