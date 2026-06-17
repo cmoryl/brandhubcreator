@@ -592,6 +592,21 @@ async function discoverWordmarkLogos(p: Partner): Promise<WordmarkFile[]> {
   return sourceToWordmarkFiles(selected.candidate, selected.meta);
 }
 
+async function discoverFullCompanyLogo(p: Partner): Promise<WordmarkFile[]> {
+  const fullLogos = await discoverWordmarkLogos(p);
+  if (fullLogos.length > 0) return fullLogos;
+
+  const fallback = (await discoverColorLogo(p.website)).find((logo) => logo.source !== "google");
+  if (!fallback) return [];
+  return [{
+    variant: "color",
+    format: fallback.format,
+    url: fallback.url,
+    lockup: "wordmark",
+    source: fallback.source === "clearbit" ? "official" : fallback.source,
+  }];
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
