@@ -1,60 +1,68 @@
-## Goal
-Now that the Iconography Brain knowledge module is loaded into 5 edge functions, push it further so it measurably improves what the studio ships — not just what the model "knows."
+# Connect Underutilized Brand Data Across the Product
 
-## Where the brain is wired today
-- `generate-icon-set`, `generate-icon`, `suggest-icons`, `icon-semantic-search`, `stylize-icon`
-- Surfaced in Settings as "Iconography Brain — Active" with a reference viewer
+Five gaps, executed in priority order. Each is self-contained so we can ship incrementally.
 
-## Proposed upgrades
+## 1. Imagery preference signals → all generation surfaces
 
-### 1. Make the brain steer QA, not just generation
-Today QA is a single 0–100 IQS score + a slider in Settings. Use the brain's principles to break that into the rubric every classic icon system actually uses:
-- **Grid integrity** (24×24, snap to half-pixel)
-- **Stroke consistency** (single weight across set, matches DNA lock)
-- **Optical balance** (counter sizes, terminal alignment)
-- **Squint test** (renders at 16px)
-- **Metaphor clarity** (Panofsky pre-iconographic read)
-- **Cultural neutrality** (flags handshake/OK/etc. for review)
+**Problem:** `imagery_preference_signals` + `imageryAvoidList` + `brand_imagery_embeddings` are captured but only the thumbs-down deletion writes to them. No generator reads them back.
 
-Show these as 6 sub-scores on each icon in Library + QA views. Block export when any sub-score < threshold.
+**Build:**
+- New shared helper `src/lib/imagerySignals.ts` → `buildAvoidClause(brandSlug)` that pulls the avoid list + recent negative signals and returns a prompt fragment ("Avoid: [styles]. Do not reproduce: [URLs as references]").
+- Inject into: Creative Studio (`generate-brand-image` edge fn), Icon Studio (`generate-icon`), Social Asset gen, PDF cover gen, Layout Template gen.
+- Add a small "Learning from N rejections" badge on each generator UI surface so users see the loop is active.
 
-### 2. Brand DNA inherits the brain's axes
-Extend DNA Lock fields to include the modern variable-font axes the brain documents: `FILL`, `wght`, `GRAD`, `opsz`, `style family`. Generation + stylize already receive the prompt — also write these into the request body so the model has structured constraints, not just prose.
+## 2. Canva audit findings → Creative Studio prompts
 
-### 3. Auto-tagging on import / generation
-Run a lightweight classification pass (Lovable AI, `gemini-2.5-flash-lite`) using the brain summary to tag every icon with:
-- Style family (line / filled / duotone / glyph)
-- Metaphor category (object, action, status, brand)
-- Cultural-sensitivity flag
+**Problem:** Audit identifies typos, casing inconsistencies, stale assets — but Creative Studio doesn't bias against them.
 
-Stored on the icon JSONB. Powers better search, filtering, and the "long brand-glyph mis-classified as stroke" class of bugs we just fixed.
+**Build:**
+- Extend `get_entity_text_context` (already exists) to include `canva_audit_findings` (last analysis row's `findings` JSONB, top 5 by severity).
+- Update Creative Studio prompt template to add a "Recent audit flagged:" constraints block.
+- On every generation, if a finding matches the prompt subject (e.g., wordmark generation + casing finding), surface a one-line warning toast: "Audit flagged Brand Mark casing — using approved form."
 
-### 4. Semantic search re-ranking
-`icon-semantic-search` currently expands tokens. Add a second pass that re-ranks the client-side intersection results using the brain (concept → best-matching metaphor) so "growth" prefers `sprout`/`trend-up` over `bar-chart-3`.
+## 3. Brand intelligence → DataForce compliance weighting
 
-### 5. Stylizer guardrails
-Use the brain's "≤2KB, single path family, no pixel tracing" rules as a hard post-process: reject the model's SVG and retry once if it violates them. Today it accepts whatever comes back.
+**Problem:** Compliance scoring uses generic criteria. Archetype/voice/industry should weight what counts as a violation.
 
-### 6. Iconography Brain panel — make it actionable
-Right now Settings only views the reference. Add:
-- Toggle per-area (generation / suggest / search / stylize / QA) so power users can A/B the brain on or off
-- "Brain version" badge so we can iterate the summary without guessing what shipped
-- Inline citations: when an icon is rejected by QA, show which brain principle triggered it
+**Build:**
+- Update `dataforce-compliance` edge fn to read `brand_intelligence.brand_dna` (archetype, voice, industry) before scoring.
+- Add weighting matrix: e.g., Caregiver archetype = +20% weight on inclusive language checks; Regulated industry (LifeSciences) = +30% weight on disclaimer presence.
+- Surface "Weighted by: Caregiver archetype, Life Sciences industry" line under each compliance score in the UI.
 
-### 7. Optional: ingest more references
-The current summary is one PDF. Allow uploading additional reference docs (Material guidelines, SF Symbols notes, brand-specific style guides) into a small `iconography_knowledge` table; concatenate the active ones into the prompt with a token budget guard.
+## 4. Oracle KB → Brain panel citations
 
-## Recommended sequencing
-1. **Sub-scored QA + inline citations** — highest visible quality lift
-2. **Auto-tagging on import** — fixes a real bug class and improves search
-3. **Stylizer guardrails** — cheap, prevents bad SVGs from entering the library
-4. **DNA axes + structured constraints** — deeper, touches generation request shape
-5. **Search re-rank, per-area toggles, multi-doc ingestion** — polish
+**Problem:** `oracle_knowledge_base` rows only surface through Oracle chat.
 
-## Technical notes
-- All work stays inside existing edge functions + Icon Studio UI; no schema migration needed for items 1, 3, 5, 6. Items 2, 4, 7 add columns/tables.
-- Keep the brain summary capped (~2KB today) — any expansion should move to a retrieval step rather than growing every prompt.
-- Use `gemini-2.5-flash-lite` for tagging/QA classification to stay under the 150MB edge function limit.
+**Build:**
+- New `OracleCitationsTile` in `BrandIntelligencePanel` showing top 5 most-relevant KB entries for the brand (filtered by `brand_id` or org-level).
+- Each tile entry → click opens Oracle chat pre-seeded with that KB entry as context.
+- Inject top 3 KB summaries into `brand-intelligence-worker` prompt so refreshed intelligence cites them.
 
-## Decision needed
-Want me to start with **#1 (sub-scored QA + citations)** as the first concrete build, or pick a different entry point from the list?
+## 5. Unified Action Center
+
+**Problem:** `recommendation_actions` + `competitive_recommendation_actions` + `intelligence_alerts` are scattered across 3+ panels.
+
+**Build:**
+- New `src/components/brand/ActionCenter.tsx` — single tabbed panel (All / Compliance / Competitive / Audit / Alerts) with filters by severity, status (open/in-progress/done), and source.
+- New hook `useUnifiedActions(brandId)` parallel-fetches all 3 tables, normalizes to a common `BrandAction` shape, sorts by priority.
+- Add as the **first tile** in `BrandIntelligencePanel` (above CanvaOperationsTile).
+- Bulk-mark-done, assign-to-user, snooze actions.
+- Surface count badge in main brand editor sidebar nav ("Brain (7)").
+
+## Technical Notes
+
+- All edge function changes stay under 150MB by using `gemini-2.5-flash-lite` and lean prompts.
+- New helper `imagerySignals.ts` is shared client+edge (duplicate file in `supabase/functions/_shared/` per current pattern).
+- No schema changes needed for #1, #2, #4 — all existing tables.
+- #3 needs a `compliance_weighting_rules` JSONB column on `dataforce_config` (small migration).
+- #5 is pure UI + read-only hooks, no schema changes.
+
+## Execution order
+
+1. **#5 Unified Action Center** first — pure UI, makes existing data visible immediately, highest user-visible impact.
+2. **#1 Imagery signals** — closes the feedback loop users explicitly built (avoid list).
+3. **#4 Oracle citations** — small, makes Brain panel feel "alive".
+4. **#2 Canva → Creative Studio** — requires edge fn + context fn changes.
+5. **#3 Compliance weighting** — needs migration + scoring rewrite, most risk.
+
+Estimated: ~20 files touched, 1 small migration, 0 destructive changes.

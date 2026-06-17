@@ -268,6 +268,41 @@ serve(async (req) => {
         enhancedPrompt = `${enhancedPrompt}\n\n${avoidDirectives}`;
       }
     }
+
+    // Pull recent imagery rejection signals and Canva audit findings to bias generation
+    try {
+      const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+      const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const sigModule = await import("../_shared/imagerySignals.ts");
+      const [sigClause, auditFindings] = await Promise.all([
+        sigModule.buildAvoidClauseForEntity(SUPABASE_URL, SERVICE_KEY, entityId, entityType),
+        (async () => {
+          if (entityType !== 'brand') return null;
+          const r = await fetch(
+            `${SUPABASE_URL}/rest/v1/canva_audit_analyses?brand_id=eq.${entityId}&order=last_analyzed_at.desc&limit=1&select=findings,summary`,
+            { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } },
+          );
+          if (!r.ok) return null;
+          const rows = await r.json();
+          const row = rows?.[0];
+          if (!row) return null;
+          const findings = Array.isArray(row.findings) ? row.findings.slice(0, 5) : [];
+          return findings.length
+            ? `Recent brand audit flagged: ${findings.map((f: any) => f.title || f.description || JSON.stringify(f).slice(0, 80)).join('; ')}.`
+            : null;
+        })(),
+      ]);
+      if (sigClause?.promptFragment) {
+        enhancedPrompt = `${enhancedPrompt}\n\n${sigClause.promptFragment}`;
+      }
+      if (auditFindings) {
+        enhancedPrompt = `${enhancedPrompt}\n\nAudit context: ${auditFindings}`;
+      }
+    } catch (sigErr) {
+      console.warn('[generate-creative-asset] signals injection failed:', sigErr);
+    }
+
+
     
     // Add style modifiers
     const styleModifiers = getStyleModifiers(stylePreset);

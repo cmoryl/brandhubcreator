@@ -47,6 +47,8 @@ import { BiasAwarenessPanel } from './BiasAwarenessPanel';
 import { VisibilityGapsPanel } from './visibility/VisibilityGapsPanel';
 import { CompetitiveLandscapeSection } from './intelligence/CompetitiveLandscapeSection';
 import { CanvaOperationsTile } from './intelligence/CanvaOperationsTile';
+import { ActionCenterTile } from './intelligence/ActionCenterTile';
+import { OracleCitationsTile } from './intelligence/OracleCitationsTile';
 import { CulturalIntelligenceSection } from './intelligence/CulturalIntelligenceSection';
 import { ImportReportDialog } from './intelligence/ImportReportDialog';
 import { VisualIntelligenceCard } from './approved-imagery/VisualIntelligenceCard';
@@ -753,6 +755,22 @@ export const BrandIntelligencePanel = ({
             />
           </>
         )}
+
+        {/* Unified Action Center — first tile so open work is visible */}
+        <Separator />
+        <ActionCenterTile
+          entityId={entityId}
+          entityType={entityType}
+          organizationId={organizationId}
+          canEdit={canEdit}
+        />
+
+        {/* Oracle KB citations */}
+        <OracleCitationsTile
+          entityId={entityId}
+          entityType={entityType}
+          organizationId={organizationId}
+        />
 
         {/* Canva Operations tile */}
         {entityType === 'brand' && (

@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { Sparkles, Image, BookOpen, Code, History, Wand2, Palette } from 'lucide-react';
+import { Sparkles, Image, BookOpen, Code, History, Wand2, Palette, Brain } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ImageGenerator } from './ImageGenerator';
@@ -13,6 +13,7 @@ import { DesignTokensExport } from './DesignTokensExport';
 import { GeneratedAssetsGallery } from './GeneratedAssetsGallery';
 import { CanvaTemplateGallery } from './CanvaTemplateGallery';
 import { useCreativeStudio } from '@/hooks/useCreativeStudio';
+import { useImagerySignalsBadge } from '@/hooks/useImagerySignalsBadge';
 import { BrandBrochure } from '@/types/brand';
 
 interface CreativeStudioSectionProps {
@@ -39,6 +40,7 @@ export const CreativeStudioSection = ({
   onSubtitleChange
 }: CreativeStudioSectionProps) => {
   const [activeTab, setActiveTab] = useState('generate');
+  const learningSignals = useImagerySignalsBadge(entityId, entityType, guideData);
   
   const {
     prompts,
@@ -71,6 +73,12 @@ export const CreativeStudioSection = ({
           <h2 className="text-xl font-semibold">Creative Studio</h2>
           <p className="text-sm text-muted-foreground">{customSubtitle || defaultSubtitle}</p>
         </div>
+        {learningSignals && learningSignals.count > 0 && (
+          <Badge variant="outline" className="ml-auto gap-1 border-violet-500/30 bg-violet-500/10 text-violet-600">
+            <Brain className="h-3 w-3" />
+            Learning from {learningSignals.count} rejection{learningSignals.count === 1 ? '' : 's'}
+          </Badge>
+        )}
       </div>
 
       <div className="rounded-xl border bg-card">
