@@ -142,16 +142,18 @@ export function GlobalLogoHub() {
 
   const handleSeedPartnerLink = async () => {
     if (!organization?.id) return;
-    if (!confirm('Seed ~46 PartnerLink Logos into this organization? Existing entries with the same name will be skipped.')) return;
+    const force = confirm(
+      'Seed PartnerLink Logos.\n\nOK = FORCE refresh every row (re-pull color, white & black variants from source)\nCancel = quick mode (only add missing rows / fill empty ones)',
+    );
     setIsSeedingPartners(true);
     try {
       const { data, error } = await supabase.functions.invoke('seed-partnerlink-logos', {
-        body: { organizationId: organization.id },
+        body: { organizationId: organization.id, force },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast.success(
-        `PartnerLink seed complete — ${data.inserted} with logos, ${data.withoutLogo} without, ${data.skipped} skipped`,
+        `PartnerLink seed complete — ${data.inserted ?? 0} added, ${data.updated ?? 0} refreshed, ${data.withoutLogo ?? 0} without logos, ${data.skipped ?? 0} unchanged`,
       );
       await fetchLogos();
       setCategoryFilter('PartnerLink Logos');
@@ -162,6 +164,7 @@ export function GlobalLogoHub() {
       setIsSeedingPartners(false);
     }
   };
+
 
   const fetchLogos = useCallback(async () => {
     if (!organization?.id) return;
