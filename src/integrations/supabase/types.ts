@@ -2703,6 +2703,7 @@ export type Database = {
           issues_found: number | null
           organization_id: string | null
           status: string | null
+          weighted_by: Json | null
         }
         Insert: {
           assets_scanned?: number | null
@@ -2718,6 +2719,7 @@ export type Database = {
           issues_found?: number | null
           organization_id?: string | null
           status?: string | null
+          weighted_by?: Json | null
         }
         Update: {
           assets_scanned?: number | null
@@ -2733,6 +2735,7 @@ export type Database = {
           issues_found?: number | null
           organization_id?: string | null
           status?: string | null
+          weighted_by?: Json | null
         }
         Relationships: [
           {
