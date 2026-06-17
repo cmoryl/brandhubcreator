@@ -432,6 +432,7 @@ serve(async (req) => {
 
         const files: any[] = [];
         let foundLogo = false;
+        let hasColor = false;
         if (p.slug) {
           const svg = await fetchSimpleIconSvg(p.slug);
           if (svg) {
@@ -449,9 +450,21 @@ serve(async (req) => {
               const colorSvg = colorizeSvg(svg, `#${cleanHex}`);
               files.push({ variant: "color", format: "svg", url: svgToDataUrl(colorSvg) });
               files.push({ variant: "color", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/${cleanHex}` });
+              hasColor = true;
             }
           }
         }
+
+        // Deep discovery fallback: ALWAYS try to find real brand color logo from web
+        // (Clearbit CDN → site HTML scrape for og:image/apple-touch-icon/<img class=logo> → Google favicons)
+        if (!hasColor) {
+          const discovered = await discoverColorLogo(p.website);
+          for (const d of discovered) {
+            files.push(d);
+            foundLogo = true;
+          }
+        }
+
 
         const existingRow = existingByName.get(p.name.toLowerCase());
         if (existingRow) {
