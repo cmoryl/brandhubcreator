@@ -62,7 +62,7 @@ function SidebarContent({
     { id: 'accessibility', label: 'Accessibility', icon: <Shield className="h-4 w-4" />, group: 'tools' },
     { id: 'activity', label: 'Activity Log', icon: <Activity className="h-4 w-4" />, group: 'tools' },
     { id: 'image-library', label: 'Image Library', icon: <Image className="h-4 w-4" />, group: 'tools' },
-    { id: 'logo-hub', label: 'Logo Hub', icon: <Crown className="h-4 w-4" />, group: 'tools' },
+    { id: 'logo-hub', label: 'Logo Hub', icon: <Crown className="h-4 w-4" />, href: '/logohub', group: 'tools' },
     { id: 'inspector', label: 'Inspector', icon: <Database className="h-4 w-4" />, group: 'tools' },
     { id: 'repair', label: 'Repair Tools', icon: <Wrench className="h-4 w-4" />, group: 'tools' },
     { id: 'backups', label: 'Backups', icon: <HardDrive className="h-4 w-4" />, group: 'tools' },
