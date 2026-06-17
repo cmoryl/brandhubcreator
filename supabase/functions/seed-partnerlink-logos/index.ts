@@ -367,20 +367,22 @@ async function scrapeSiteForLogo(website: string): Promise<Array<{ url: string; 
   return found;
 }
 
-async function discoverColorLogo(website: string): Promise<Array<{ variant: "color"; format: "svg" | "png" | "jpg"; url: string }>> {
-  const out: Array<{ variant: "color"; format: "svg" | "png" | "jpg"; url: string }> = [];
+type DiscoveredColorLogo = { variant: "color"; format: "svg" | "png" | "jpg"; url: string; source?: "clearbit" | "official" | "google" };
+
+async function discoverColorLogo(website: string): Promise<DiscoveredColorLogo[]> {
+  const out: DiscoveredColorLogo[] = [];
   const domain = domainFromUrl(website);
   if (!domain) return out;
 
   const clearbit = `https://logo.clearbit.com/${domain}?size=512`;
-  if (await urlOk(clearbit)) out.push({ variant: "color", format: "png", url: clearbit });
+  if (await urlOk(clearbit)) out.push({ variant: "color", format: "png", url: clearbit, source: "clearbit" });
 
   const scraped = await scrapeSiteForLogo(website);
-  for (const s of scraped) out.push({ variant: "color", format: s.format, url: s.url });
+  for (const s of scraped) out.push({ variant: "color", format: s.format, url: s.url, source: "official" });
 
   if (out.length === 0) {
     const google = `https://www.google.com/s2/favicons?domain=${domain}&sz=256`;
-    if (await urlOk(google)) out.push({ variant: "color", format: "png", url: google });
+    if (await urlOk(google)) out.push({ variant: "color", format: "png", url: google, source: "google" });
   }
   return out;
 }
