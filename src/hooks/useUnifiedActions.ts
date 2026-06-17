@@ -31,6 +31,8 @@ interface Options {
   entityId?: string | null;
   entityType?: string | null;
   organizationId?: string | null;
+  /** When true, automatically refetch on detected drift (max once per ~10s, capped at 3 attempts per mount). */
+  autoFixDrift?: boolean;
 }
 
 const SEVERITY_RANK: Record<ActionSeverity, number> = {
