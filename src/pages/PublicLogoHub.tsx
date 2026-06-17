@@ -1,4 +1,31 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { analyzeSvgContrast, type SvgContrastResult } from '@/lib/svgContrast';
+
+// Hook: analyze an SVG URL and return whether it appears to be light artwork
+// on a transparent background. Returns null until detection resolves, and null
+// for non-SVG files. Results are cached globally by URL.
+function useSvgContrast(url: string | undefined, format: string | undefined) {
+  const [result, setResult] = useState<SvgContrastResult | null>(null);
+  const lastUrl = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!url || format !== 'svg') {
+      setResult(null);
+      lastUrl.current = undefined;
+      return;
+    }
+    if (lastUrl.current === url) return;
+    lastUrl.current = url;
+    let cancelled = false;
+    analyzeSvgContrast(url).then((r) => {
+      if (!cancelled && lastUrl.current === url) setResult(r);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [url, format]);
+  return result;
+}
+
 
 const setMeta = (name: string, content: string) => {
   let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
@@ -334,52 +361,16 @@ export default function PublicLogoHub() {
                     )}
                   >
                     {cells.map(({ lockup: lk, variant: v, file }) => (
-                      <button
+                      <LogoCell
                         key={`${lk}-${v}`}
-                        type="button"
-                        onClick={() => file && setPreview({ logo, file })}
-                        className={cn(
-                          'relative aspect-square flex items-center justify-center p-4 text-left transition-opacity',
-                          v === 'white' ? 'bg-neutral-900' : 'bg-white',
-                          file ? 'hover:opacity-90 cursor-pointer' : 'cursor-default',
-                        )}
-                        title={`${lk} • ${v}`}
-                      >
-                        {file ? (
-                          <>
-                            <img
-                              src={file.url}
-                              alt={`${logo.name} ${lk} ${v}`}
-                              loading="lazy"
-                              className="w-full h-full object-contain"
-                            />
-
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none">
-                              <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition-opacity" />
-                            </div>
-                          </>
-                        ) : (
-                          <span
-                            className={cn(
-                              'text-[10px]',
-                              v === 'white' ? 'text-neutral-600' : 'text-neutral-300',
-                            )}
-                          >
-                            —
-                          </span>
-                        )}
-                        <span
-                          className={cn(
-                            'absolute bottom-1 left-1 text-[8px] uppercase tracking-wider px-1 rounded',
-                            v === 'white'
-                              ? 'bg-white/10 text-white/60'
-                              : 'bg-black/5 text-black/50',
-                          )}
-                        >
-                          {lk === 'icon' ? 'Icon' : 'Logo'} · {v}
-                        </span>
-                      </button>
+                        brandName={logo.name}
+                        lockup={lk}
+                        variant={v}
+                        file={file}
+                        onOpen={() => file && setPreview({ logo, file })}
+                      />
                     ))}
+
                   </div>
                   <div className="p-3 flex flex-wrap items-center gap-1.5">
                     <Button
@@ -411,19 +402,8 @@ export default function PublicLogoHub() {
             className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className={cn(
-                'flex items-center justify-center p-8 min-h-[320px]',
-                preview.file.variant === 'white' ? 'bg-neutral-900' : 'bg-white',
-              )}
-            >
-              <img
-                src={preview.file.url}
-                alt={`${preview.logo.name} preview`}
-                className="h-[400px] w-full object-contain"
-              />
+            <PreviewStage logo={preview.logo} file={preview.file} />
 
-            </div>
             <div className="p-6 space-y-4">
               <h2 className="text-lg font-semibold">{preview.logo.name}</h2>
               {(() => {
@@ -584,3 +564,105 @@ export default function PublicLogoHub() {
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Cell + preview stage with automatic light-on-transparent SVG detection.
+
+function useAutoDarkBg(file: ClientLogoFile | undefined, variant: ClientLogoVariant) {
+  const contrast = useSvgContrast(file?.url, file?.format);
+  // Explicit "white" variants always use a dark canvas.
+  if (variant === 'white') return { dark: true, auto: false };
+  if (contrast?.isLightOnTransparent) return { dark: true, auto: true };
+  return { dark: false, auto: false };
+}
+
+function LogoCell({
+  brandName,
+  lockup,
+  variant,
+  file,
+  onOpen,
+}: {
+  brandName: string;
+  lockup: ClientLogoLockup;
+  variant: ClientLogoVariant;
+  file: ClientLogoFile | undefined;
+  onOpen: () => void;
+}) {
+  const { dark } = useAutoDarkBg(file, variant);
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={cn(
+        'relative aspect-square flex items-center justify-center p-4 text-left transition-opacity',
+        dark ? 'bg-neutral-900' : 'bg-white',
+        file ? 'hover:opacity-90 cursor-pointer' : 'cursor-default',
+      )}
+      title={`${lockup} • ${variant}`}
+    >
+      {file ? (
+        <>
+          <img
+            src={file.url}
+            alt={`${brandName} ${lockup} ${variant}`}
+            loading="lazy"
+            className="w-full h-full object-contain"
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none">
+            <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition-opacity" />
+          </div>
+        </>
+      ) : (
+        <span
+          className={cn(
+            'text-[10px]',
+            dark ? 'text-neutral-600' : 'text-neutral-300',
+          )}
+        >
+          —
+        </span>
+      )}
+      <span
+        className={cn(
+          'absolute bottom-1 left-1 text-[8px] uppercase tracking-wider px-1 rounded',
+          dark ? 'bg-white/10 text-white/60' : 'bg-black/5 text-black/50',
+        )}
+      >
+        {lockup === 'icon' ? 'Icon' : 'Logo'} · {variant}
+      </span>
+    </button>
+  );
+}
+
+function PreviewStage({
+  logo,
+  file,
+}: {
+  logo: { name: string };
+  file: ClientLogoFile;
+}) {
+  const { dark, auto } = useAutoDarkBg(file, file.variant as ClientLogoVariant);
+  return (
+    <div className="relative">
+      <div
+        className={cn(
+          'flex items-center justify-center p-8 min-h-[320px]',
+          dark ? 'bg-neutral-900' : 'bg-white',
+        )}
+      >
+        <img
+          src={file.url}
+          alt={`${logo.name} preview`}
+          className="h-[400px] w-full object-contain"
+        />
+      </div>
+      {auto && (
+        <div className="absolute left-3 bottom-3 text-[10px] px-2 py-1 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30 backdrop-blur-sm">
+          Auto-contrast: dark background applied for light artwork
+        </div>
+      )}
+    </div>
+  );
+}
+
