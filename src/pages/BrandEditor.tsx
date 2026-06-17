@@ -586,7 +586,10 @@ const BrandEditor = () => {
 
   // Get header style classes
   const getHeaderClasses = () => {
-    const base = 'sticky top-0 z-40 animate-fade-in-down';
+    // isolation:isolate ensures the sticky header forms its own stacking context
+    // so progressively-hydrated sections (with `will-change-transform`/motion)
+    // further down the page cannot paint over the user/admin dropdown trigger.
+    const base = 'sticky top-0 z-50 isolate animate-fade-in-down';
     switch (pageSettings.headerStyle) {
       case 'minimal': return `${base} bg-background border-b border-border`;
       case 'transparent': return `${base} bg-transparent`;
@@ -1140,7 +1143,7 @@ const BrandEditor = () => {
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuContent align="end" className="w-56 z-[100]">
                       <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                           <p className="text-sm font-medium leading-none">{user.email}</p>
