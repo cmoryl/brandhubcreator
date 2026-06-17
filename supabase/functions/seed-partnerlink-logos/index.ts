@@ -694,10 +694,6 @@ serve(async (req) => {
             website: row.website_url || curated?.website || "",
             slug: curated?.slug,
           };
-          if (!target.website) {
-            allResults.push({ category, name: row.name, status: "no-logo" });
-            continue;
-          }
           const wordmarks = await discoverWordmarkLogos(target);
           if (wordmarks.length === 0) {
             allResults.push({ category, name: row.name, status: "no-logo" });
