@@ -116,6 +116,9 @@ const PARTNERS_BY_CATEGORY: Record<string, Partner[]> = {
     { name: "FedEx", website: "https://www.fedex.com", slug: "fedex" },
     { name: "UPS", website: "https://www.ups.com", slug: "ups" },
   ],
+  "Retail": [
+    { name: "Booking.com", website: "https://www.booking.com", slug: "bookingdotcom" },
+  ],
 };
 
 const CATEGORY_DESCRIPTIONS: Record<string, { withLogo: string; withoutLogo: string }> = {
@@ -130,6 +133,10 @@ const CATEGORY_DESCRIPTIONS: Record<string, { withLogo: string; withoutLogo: str
   "General": {
     withLogo: "General consumer brand (logo via Simple Icons)",
     withoutLogo: "General consumer brand — use Find Logos to discover assets",
+  },
+  "Retail": {
+    withLogo: "Retail and travel brand (logo via source discovery)",
+    withoutLogo: "Retail and travel brand — use Find Logos to discover assets",
   },
 };
 
@@ -360,20 +367,22 @@ async function scrapeSiteForLogo(website: string): Promise<Array<{ url: string; 
   return found;
 }
 
-async function discoverColorLogo(website: string): Promise<Array<{ variant: "color"; format: "svg" | "png" | "jpg"; url: string }>> {
-  const out: Array<{ variant: "color"; format: "svg" | "png" | "jpg"; url: string }> = [];
+type DiscoveredColorLogo = { variant: "color"; format: "svg" | "png" | "jpg"; url: string; source?: "clearbit" | "official" | "google" };
+
+async function discoverColorLogo(website: string): Promise<DiscoveredColorLogo[]> {
+  const out: DiscoveredColorLogo[] = [];
   const domain = domainFromUrl(website);
   if (!domain) return out;
 
   const clearbit = `https://logo.clearbit.com/${domain}?size=512`;
-  if (await urlOk(clearbit)) out.push({ variant: "color", format: "png", url: clearbit });
+  if (await urlOk(clearbit)) out.push({ variant: "color", format: "png", url: clearbit, source: "clearbit" });
 
   const scraped = await scrapeSiteForLogo(website);
-  for (const s of scraped) out.push({ variant: "color", format: s.format, url: s.url });
+  for (const s of scraped) out.push({ variant: "color", format: s.format, url: s.url, source: "official" });
 
   if (out.length === 0) {
     const google = `https://www.google.com/s2/favicons?domain=${domain}&sz=256`;
-    if (await urlOk(google)) out.push({ variant: "color", format: "png", url: google });
+    if (await urlOk(google)) out.push({ variant: "color", format: "png", url: google, source: "google" });
   }
   return out;
 }
@@ -579,11 +588,23 @@ async function discoverWordmarkLogos(p: Partner): Promise<WordmarkFile[]> {
     ...await discoverOfficialWordmarkCandidates(p.website, p.name),
     ...await discoverWikimediaWordmarkCandidates(p.name),
   ]);
-  const generated = await generatedWordmarkFiles(p);
-  if (!selected) return generated.map((g) => ({ ...g, source: "generated" }));
-  const real = sourceToWordmarkFiles(selected.candidate, selected.meta);
-  const variants = new Set(real.map((f) => f.variant));
-  return [...real, ...generated.filter((g) => !variants.has(g.variant)).map((g) => ({ ...g, source: "generated" }))];
+  if (!selected) return [];
+  return sourceToWordmarkFiles(selected.candidate, selected.meta);
+}
+
+async function discoverFullCompanyLogo(p: Partner): Promise<WordmarkFile[]> {
+  const fullLogos = await discoverWordmarkLogos(p);
+  if (fullLogos.length > 0) return fullLogos;
+
+  const fallback = (await discoverColorLogo(p.website)).find((logo) => logo.source !== "google");
+  if (!fallback) return [];
+  return [{
+    variant: "color",
+    format: fallback.format,
+    url: fallback.url,
+    lockup: "wordmark",
+    source: fallback.source === "clearbit" ? "official" : fallback.source,
+  }];
 }
 
 serve(async (req) => {
@@ -694,12 +715,17 @@ serve(async (req) => {
             website: row.website_url || curated?.website || "",
             slug: curated?.slug,
           };
-          const wordmarks = await discoverWordmarkLogos(target);
+          const wordmarks = await discoverFullCompanyLogo(target);
+          const preserved = (Array.isArray(row.files) ? row.files : []).filter((f: any) => f?.lockup !== "wordmark");
           if (wordmarks.length === 0) {
+            const { error: updErr } = await admin
+              .from("global_client_logos")
+              .update({ files: preserved })
+              .eq("id", row.id);
+            if (updErr) throw updErr;
             allResults.push({ category, name: row.name, status: "no-logo" });
             continue;
           }
-          const preserved = (Array.isArray(row.files) ? row.files : []).filter((f: any) => f?.lockup !== "wordmark");
           const { error: updErr } = await admin
             .from("global_client_logos")
             .update({ files: [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))] })
@@ -724,7 +750,7 @@ serve(async (req) => {
             allResults.push({ category, name: p.name, status: "skipped" });
             continue;
           }
-          const wordmarks = await discoverWordmarkLogos(p);
+          const wordmarks = await discoverFullCompanyLogo(p);
           // Drop existing wordmark entries; keep icon entries intact.
           const preserved = existingRow.files.filter((f: any) => f?.lockup !== "wordmark");
           const merged = [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))];
@@ -776,7 +802,7 @@ serve(async (req) => {
         }
 
         // Wordmark / full-logo discovery — populates the wordmark row.
-        const wordmarks = await discoverWordmarkLogos(p);
+        const wordmarks = await discoverFullCompanyLogo(p);
         for (const w of wordmarks) {
           files.push({ ...w, lockup: "wordmark" });
           foundLogo = true;
