@@ -673,3 +673,74 @@ export function GlobalLogoHub() {
     </div>
   );
 }
+
+function ValidationBadge({
+  logo,
+  validation,
+  isValidating,
+}: {
+  logo: GlobalClientLogo;
+  validation: LogoValidationResult | undefined;
+  isValidating: boolean;
+}) {
+  if (!logo.files.length) {
+    return (
+      <div className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400">
+        <ShieldAlert className="h-3.5 w-3.5" />
+        <span>No files uploaded</span>
+      </div>
+    );
+  }
+  if (!validation) {
+    return (
+      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        {isValidating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 opacity-40" />}
+        <span>{isValidating ? 'Validating files…' : 'Not validated'}</span>
+      </div>
+    );
+  }
+  if (validation.ok) {
+    const sizes = validation.files
+      .filter((f) => f.format === 'png' && f.width)
+      .map((f) => `${f.width}×${f.height}`);
+    return (
+      <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+        <ShieldCheck className="h-3.5 w-3.5" />
+        <span>All files valid{sizes.length ? ` · PNG ${sizes.join(', ')}` : ''}</span>
+      </div>
+    );
+  }
+  const failingFiles = validation.files.filter((f) => !f.ok);
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className="flex items-center gap-1.5 text-[11px] text-destructive hover:underline"
+          >
+            <ShieldAlert className="h-3.5 w-3.5" />
+            <span>
+              {failingFiles.length} file{failingFiles.length !== 1 ? 's' : ''} failed validation
+            </span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-xs text-xs space-y-2">
+          {failingFiles.map((f, idx) => (
+            <div key={idx} className="space-y-0.5">
+              <div className="font-medium capitalize">
+                {f.variant} · {f.format.toUpperCase()}
+                {f.width ? ` · ${f.width}×${f.height}` : ''}
+              </div>
+              <ul className="list-disc pl-4 text-muted-foreground">
+                {f.issues.map((issue) => (
+                  <li key={issue}>{ISSUE_LABELS[issue]}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
