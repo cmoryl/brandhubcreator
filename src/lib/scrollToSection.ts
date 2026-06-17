@@ -115,7 +115,10 @@ export function scrollToSection(
     scrollDebug.emit({ sectionId, headerHeight, topOffsetPx: offset, drift, timestamp: performance.now() });
 
     if (drift > toleranceFromTopPx) {
-      align();
+      // Use instant re-align while content above is still hydrating so the
+      // target snaps to its correct position immediately.
+      const elapsed = performance.now() - start;
+      align(elapsed < 800 ? 'auto' : 'smooth');
       stableSince = 0;
     } else if (rect.top === lastTop) {
       stableSince ||= performance.now();
