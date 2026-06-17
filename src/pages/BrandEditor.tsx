@@ -22,6 +22,7 @@ import { useOrgSlug } from '@/hooks/useOrgSlug';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { useSEO } from '@/hooks/useSEO';
 import { useLatestComplianceScores } from '@/hooks/dataforce/useLatestComplianceScores';
+import { useUnifiedActions } from '@/hooks/useUnifiedActions';
 import { trackEntityView } from '@/hooks/usePageTracking';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
@@ -360,6 +361,13 @@ const BrandEditor = () => {
 
   // Compliance scores
   const { data: complianceScores } = useLatestComplianceScores(brand?.organizationId);
+
+  // Unified Action Center open count → badge on Intelligence/Brain toolbar action
+  const { openCount: brainOpenCount } = useUnifiedActions({
+    entityId: brand?.id,
+    entityType: 'brand',
+    organizationId: brand?.organizationId,
+  });
 
   // Track brand view for analytics
 
@@ -1284,6 +1292,7 @@ const BrandEditor = () => {
                 id: 'intelligence',
                 label: 'Intelligence',
                 icon: Brain,
+                badge: brainOpenCount > 0 ? brainOpenCount : undefined,
                 onClick: () => setIntelligenceOpen(true),
               },
               {
