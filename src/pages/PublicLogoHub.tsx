@@ -420,8 +420,9 @@ export default function PublicLogoHub() {
               <img
                 src={preview.file.url}
                 alt={`${preview.logo.name} preview`}
-                className="max-h-[400px] max-w-full object-contain"
+                className="h-[400px] w-full object-contain"
               />
+
             </div>
             <div className="p-6 space-y-4">
               <h2 className="text-lg font-semibold">{preview.logo.name}</h2>
