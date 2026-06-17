@@ -807,7 +807,7 @@ export function GlobalLogoHub() {
             {/* File uploads per variant — Icon + Wordmark */}
             {(['icon', 'wordmark'] as const).map(lockup => (
               <div key={lockup} className="space-y-2">
-                <Label>{lockup === 'icon' ? 'Icon / Logomark Files' : 'Wordmark / Full Logo Files'}</Label>
+                <Label>{lockup === 'icon' ? 'Icon / Logomark Files' : 'Full Logo Files'}</Label>
                 <p className="text-xs text-muted-foreground">
                   {lockup === 'icon'
                     ? 'Square symbol or logomark (e.g. the Salesforce cloud).'
