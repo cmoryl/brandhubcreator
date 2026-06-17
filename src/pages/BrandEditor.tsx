@@ -137,6 +137,8 @@ const BrandEditor = () => {
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
   
+  const dropdownPortalRef = useRef<HTMLDivElement | null>(null);
+
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('full');
@@ -934,6 +936,8 @@ const BrandEditor = () => {
   return (
     <TooltipProvider>
       <UnsavedChangesBlocker />
+      {/* Fixed portal container for header dropdowns so they stay visible while scrolling */}
+      <div ref={dropdownPortalRef} className="fixed top-0 left-0 h-0 w-full z-[9999]" aria-hidden="true" />
       <div className="min-h-screen bg-background flex relative">
         {/* Brand-specific Background */}
         {pageSettings.backgroundType !== 'inherit' && pageSettings.backgroundType !== 'solid' && (
@@ -1143,7 +1147,7 @@ const BrandEditor = () => {
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 z-[100]">
+                    <DropdownMenuContent container={dropdownPortalRef.current} align="end" className="w-56 z-[100]">
                       <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                           <p className="text-sm font-medium leading-none">{user.email}</p>
