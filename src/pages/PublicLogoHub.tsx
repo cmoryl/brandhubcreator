@@ -361,52 +361,16 @@ export default function PublicLogoHub() {
                     )}
                   >
                     {cells.map(({ lockup: lk, variant: v, file }) => (
-                      <button
+                      <LogoCell
                         key={`${lk}-${v}`}
-                        type="button"
-                        onClick={() => file && setPreview({ logo, file })}
-                        className={cn(
-                          'relative aspect-square flex items-center justify-center p-4 text-left transition-opacity',
-                          v === 'white' ? 'bg-neutral-900' : 'bg-white',
-                          file ? 'hover:opacity-90 cursor-pointer' : 'cursor-default',
-                        )}
-                        title={`${lk} • ${v}`}
-                      >
-                        {file ? (
-                          <>
-                            <img
-                              src={file.url}
-                              alt={`${logo.name} ${lk} ${v}`}
-                              loading="lazy"
-                              className="w-full h-full object-contain"
-                            />
-
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none">
-                              <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition-opacity" />
-                            </div>
-                          </>
-                        ) : (
-                          <span
-                            className={cn(
-                              'text-[10px]',
-                              v === 'white' ? 'text-neutral-600' : 'text-neutral-300',
-                            )}
-                          >
-                            —
-                          </span>
-                        )}
-                        <span
-                          className={cn(
-                            'absolute bottom-1 left-1 text-[8px] uppercase tracking-wider px-1 rounded',
-                            v === 'white'
-                              ? 'bg-white/10 text-white/60'
-                              : 'bg-black/5 text-black/50',
-                          )}
-                        >
-                          {lk === 'icon' ? 'Icon' : 'Logo'} · {v}
-                        </span>
-                      </button>
+                        brandName={logo.name}
+                        lockup={lk}
+                        variant={v}
+                        file={file}
+                        onOpen={() => file && setPreview({ logo, file })}
+                      />
                     ))}
+
                   </div>
                   <div className="p-3 flex flex-wrap items-center gap-1.5">
                     <Button
