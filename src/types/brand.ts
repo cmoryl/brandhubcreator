@@ -937,11 +937,14 @@ export interface SponsorLogo {
 // CLIENT LOGOS - Partner/Client Logo Downloads
 export type ClientLogoVariant = 'color' | 'white' | 'black';
 export type ClientLogoFormat = 'png' | 'svg' | 'eps';
+// 'icon' = logomark / symbol (default for legacy rows). 'wordmark' = full horizontal logo with brand name.
+export type ClientLogoLockup = 'icon' | 'wordmark';
 
 export interface ClientLogoFile {
   variant: ClientLogoVariant;
   format: ClientLogoFormat;
   url: string;
+  lockup?: ClientLogoLockup;
 }
 
 export interface ClientLogo {
