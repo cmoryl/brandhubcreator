@@ -22,6 +22,7 @@ import { useOrgSlug } from '@/hooks/useOrgSlug';
 import { useGuideAdmin } from '@/hooks/useGuideAdmin';
 import { useSEO } from '@/hooks/useSEO';
 import { useLatestComplianceScores } from '@/hooks/dataforce/useLatestComplianceScores';
+import { useUnifiedActions } from '@/hooks/useUnifiedActions';
 import { trackEntityView } from '@/hooks/usePageTracking';
 import { ReorderableBrandSidebar } from '@/components/brand/ReorderableBrandSidebar';
 import { FullBrandPage } from '@/components/brand/FullBrandPage';
