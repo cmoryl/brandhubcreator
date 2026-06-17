@@ -203,3 +203,6 @@ verify_jwt = false
 
 [functions.bulk-upload-assets]
 verify_jwt = false
+
+[functions.scrape-brand-logos]
+verify_jwt = false
