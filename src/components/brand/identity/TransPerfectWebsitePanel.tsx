@@ -35,7 +35,7 @@ const DONT_RULES = [
 ];
 
 export const TransPerfectWebsitePanel = () => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   return (
     <div className="border border-border rounded-xl overflow-hidden bg-card">
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors text-left">

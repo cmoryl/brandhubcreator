@@ -40,7 +40,7 @@ const DONT_RULES = [
 const SECTION_BORDER = 'border-t border-border pt-3';
 
 export const TransPerfectLogoStandardsPanel = ({ canEdit }: { canEdit?: boolean }) => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <div className="border border-border rounded-xl overflow-hidden bg-card">

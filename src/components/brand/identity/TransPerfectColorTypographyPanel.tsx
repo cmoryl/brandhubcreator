@@ -84,7 +84,7 @@ const TYPE_DONT = [
 ];
 
 export const TransPerfectColorTypographyPanel = ({ variant }: Props) => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const isColor = variant === 'color';
 
   return (

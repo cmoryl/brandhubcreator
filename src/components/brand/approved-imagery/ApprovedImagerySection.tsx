@@ -245,7 +245,6 @@ export const ApprovedImagerySection = ({
           type="multiple"
           // When searching, expand every matching section so results are immediately visible.
           value={isSearching ? filteredSections.map((s) => s.id) : undefined}
-          defaultValue={isSearching ? undefined : sections.slice(0, 2).map((s) => s.id)}
           className="space-y-3"
         >
           {filteredSections.map((section) => (

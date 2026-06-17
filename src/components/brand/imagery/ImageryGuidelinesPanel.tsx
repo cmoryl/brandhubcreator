@@ -91,7 +91,7 @@ interface ImageryGuidelinesPanelProps {
 }
 
 export const ImageryGuidelinesPanel = ({ canEdit, entityId, entityType, organizationId: propOrgId }: ImageryGuidelinesPanelProps) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { organization } = useOrganization();
   const organizationId = propOrgId || organization?.id;
   const { latestAudit, isLoading, isRunning, runAudit } = useImageryStrategyAudit(entityId, entityType);
