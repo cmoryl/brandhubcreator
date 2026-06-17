@@ -329,6 +329,73 @@ async function discoverColorLogo(website: string): Promise<Array<{ variant: "col
   return out;
 }
 
+// Wordmark discovery: scrape the brand's site for wide (>=1.6:1) logo images
+// — og:image, twitter:image, <img class=logo>, header SVG/PNGs — and return the
+// best 1-2 candidates as wordmark color assets.
+async function discoverWordmarkLogos(
+  website: string,
+): Promise<Array<{ variant: "color"; format: "svg" | "png" | "jpg"; url: string }>> {
+  const out: Array<{ variant: "color"; format: "svg" | "png" | "jpg"; url: string }> = [];
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(website, {
+      signal: ctrl.signal,
+      redirect: "follow",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml",
+      },
+    });
+    clearTimeout(t);
+    if (!res.ok) return out;
+    const html = await res.text();
+    const candidates: string[] = [];
+    const push = (u: string | null) => { if (u && !candidates.includes(u)) candidates.push(u); };
+
+    // Logo-class / alt=logo images (most likely the wordmark in the header).
+    const logoImg = [
+      /<img[^>]+(?:class|id|alt)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/gi,
+      /<img[^>]+src=["']([^"']+)["'][^>]+(?:class|id|alt)=["'][^"']*logo[^"']*["']/gi,
+      /<img[^>]+(?:class|id|alt)=["'][^"']*wordmark[^"']*["'][^>]+src=["']([^"']+)["']/gi,
+    ];
+    for (const re of logoImg) {
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(html)) !== null) push(absolutize(website, m[1]));
+    }
+    // Inline SVG header logos referenced via <use href> or external <object>.
+    const objRe = /<object[^>]+data=["']([^"']+\.svg)["']/gi;
+    let m: RegExpExecArray | null;
+    while ((m = objRe.exec(html)) !== null) push(absolutize(website, m[1]));
+    // OpenGraph fallbacks — usually full social cards, sometimes wordmarks.
+    const og = [
+      /<meta[^>]+property=["']og:logo["'][^>]+content=["']([^"']+)["']/gi,
+      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/gi,
+      /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/gi,
+    ];
+    for (const re of og) {
+      let mm: RegExpExecArray | null;
+      while ((mm = re.exec(html)) !== null) push(absolutize(website, mm[1]));
+    }
+
+    for (const u of candidates) {
+      const lower = u.toLowerCase().split("?")[0];
+      // Skip obvious sprite sheets / favicons / app icons.
+      if (/(favicon|apple-touch|sprite|icon-\d|\/icons?\/)/i.test(lower)) continue;
+      let fmt: "svg" | "png" | "jpg" = "png";
+      if (lower.endsWith(".svg")) fmt = "svg";
+      else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) fmt = "jpg";
+      else if (!lower.endsWith(".png") && !lower.endsWith(".webp")) continue;
+      if (await urlOk(u)) {
+        out.push({ variant: "color", format: fmt, url: u });
+        if (out.length >= 2) break;
+      }
+    }
+  } catch { /* ignore */ }
+  return out;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
