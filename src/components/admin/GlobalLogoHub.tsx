@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Search, Trash2, Pencil, Upload, Download, ExternalLink, FolderArchive, Loader2, Filter, Sparkles } from 'lucide-react';
+import { Plus, Search, Trash2, Pencil, Upload, Download, ExternalLink, FolderArchive, Loader2, Filter, Sparkles, ShieldCheck, ShieldAlert, RefreshCw } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { validateLogoFiles, ISSUE_LABELS, type LogoValidationResult } from '@/lib/logoValidation';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { Button } from '@/components/ui/button';
@@ -61,6 +63,40 @@ export function GlobalLogoHub() {
   const [generatingVariant, setGeneratingVariant] = useState<string | null>(null);
   const [generateProgress, setGenerateProgress] = useState(0);
   const [isSeedingPartners, setIsSeedingPartners] = useState(false);
+  const [validations, setValidations] = useState<Record<string, LogoValidationResult>>({});
+  const [validatingId, setValidatingId] = useState<string | null>(null);
+  const [isValidatingAll, setIsValidatingAll] = useState(false);
+
+  const runValidation = useCallback(async (logo: GlobalClientLogo) => {
+    setValidatingId(logo.id);
+    try {
+      const result = await validateLogoFiles(logo.files);
+      setValidations((prev) => ({ ...prev, [logo.id]: result }));
+    } finally {
+      setValidatingId((curr) => (curr === logo.id ? null : curr));
+    }
+  }, []);
+
+  const runValidationAll = useCallback(async (rows: GlobalClientLogo[]) => {
+    setIsValidatingAll(true);
+    try {
+      // Validate in small batches so we don't hammer the network or block the UI.
+      const BATCH = 6;
+      for (let i = 0; i < rows.length; i += BATCH) {
+        const slice = rows.slice(i, i + BATCH);
+        const results = await Promise.all(
+          slice.map(async (l) => [l.id, await validateLogoFiles(l.files)] as const),
+        );
+        setValidations((prev) => {
+          const next = { ...prev };
+          for (const [id, r] of results) next[id] = r;
+          return next;
+        });
+      }
+    } finally {
+      setIsValidatingAll(false);
+    }
+  }, []);
 
   const handleSeedPartnerLink = async () => {
     if (!organization?.id) return;
@@ -97,17 +133,21 @@ export function GlobalLogoHub() {
         .order('name', { ascending: true });
       
       if (error) throw error;
-      setLogos((data || []).map(d => ({
+      const normalized = (data || []).map(d => ({
         ...d,
         files: (Array.isArray(d.files) ? d.files : []) as unknown as ClientLogoFile[],
-      })));
+      }));
+      setLogos(normalized);
+      setValidations({});
+      // Kick off validation in the background so failures surface on cards.
+      runValidationAll(normalized);
     } catch (err) {
       console.error('Failed to fetch global logos:', err);
       toast.error('Failed to load logo library');
     } finally {
       setIsLoading(false);
     }
-  }, [organization?.id]);
+  }, [organization?.id, runValidationAll]);
 
   useEffect(() => { fetchLogos(); }, [fetchLogos]);
 
@@ -433,7 +473,9 @@ export function GlobalLogoHub() {
                   const colorPreview = getPreviewUrl(logo.files, 'color');
                   const whitePreview = getPreviewUrl(logo.files, 'white');
                   const blackPreview = getPreviewUrl(logo.files, 'black');
-                  
+                  const validation = validations[logo.id];
+                  const isThisValidating = validatingId === logo.id;
+
                   return (
                     <Card key={logo.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
                       {/* 3-variant preview */}
@@ -459,7 +501,7 @@ export function GlobalLogoHub() {
                         <span className="py-1">White</span>
                         <span className="py-1">Black</span>
                       </div>
-                      
+
                       <CardContent className="p-3 space-y-2">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
@@ -470,14 +512,27 @@ export function GlobalLogoHub() {
                             <Badge variant="outline" className="text-[10px] mt-1">{logo.category}</Badge>
                           </div>
                           <div className="flex gap-1 shrink-0">
-                            <button onClick={() => openEdit(logo)} className="p-1.5 rounded-md hover:bg-secondary">
+                            <button onClick={() => openEdit(logo)} className="p-1.5 rounded-md hover:bg-secondary" title="Edit">
                               <Pencil className="h-3.5 w-3.5" />
                             </button>
-                            <button onClick={() => handleDelete(logo.id)} className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground">
+                            <button onClick={() => runValidation(logo)} className="p-1.5 rounded-md hover:bg-secondary" title="Re-validate files" disabled={isThisValidating}>
+                              {isThisValidating
+                                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                : <RefreshCw className="h-3.5 w-3.5" />}
+                            </button>
+                            <button onClick={() => handleDelete(logo.id)} className="p-1.5 rounded-md hover:bg-destructive hover:text-destructive-foreground" title="Delete">
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           </div>
                         </div>
+
+                        {/* Validation status */}
+                        <ValidationBadge
+                          logo={logo}
+                          validation={validation}
+                          isValidating={isThisValidating || (!validation && isValidatingAll)}
+                        />
+
                         <div className="text-xs text-muted-foreground">
                           {logo.files.length} file{logo.files.length !== 1 ? 's' : ''}
                           {logo.website_url && (
@@ -616,5 +671,76 @@ export function GlobalLogoHub() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ValidationBadge({
+  logo,
+  validation,
+  isValidating,
+}: {
+  logo: GlobalClientLogo;
+  validation: LogoValidationResult | undefined;
+  isValidating: boolean;
+}) {
+  if (!logo.files.length) {
+    return (
+      <div className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400">
+        <ShieldAlert className="h-3.5 w-3.5" />
+        <span>No files uploaded</span>
+      </div>
+    );
+  }
+  if (!validation) {
+    return (
+      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        {isValidating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5 opacity-40" />}
+        <span>{isValidating ? 'Validating files…' : 'Not validated'}</span>
+      </div>
+    );
+  }
+  if (validation.ok) {
+    const sizes = validation.files
+      .filter((f) => f.format === 'png' && f.width)
+      .map((f) => `${f.width}×${f.height}`);
+    return (
+      <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+        <ShieldCheck className="h-3.5 w-3.5" />
+        <span>All files valid{sizes.length ? ` · PNG ${sizes.join(', ')}` : ''}</span>
+      </div>
+    );
+  }
+  const failingFiles = validation.files.filter((f) => !f.ok);
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className="flex items-center gap-1.5 text-[11px] text-destructive hover:underline"
+          >
+            <ShieldAlert className="h-3.5 w-3.5" />
+            <span>
+              {failingFiles.length} file{failingFiles.length !== 1 ? 's' : ''} failed validation
+            </span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-xs text-xs space-y-2">
+          {failingFiles.map((f, idx) => (
+            <div key={idx} className="space-y-0.5">
+              <div className="font-medium capitalize">
+                {f.variant} · {f.format.toUpperCase()}
+                {f.width ? ` · ${f.width}×${f.height}` : ''}
+              </div>
+              <ul className="list-disc pl-4 text-muted-foreground">
+                {f.issues.map((issue) => (
+                  <li key={issue}>{ISSUE_LABELS[issue]}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
