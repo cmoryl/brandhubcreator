@@ -166,14 +166,15 @@ export async function validateWordmarkUpload(
   // Color-variant sanity check via average luminance
   if (avgLuminance !== null) {
     if (variant === 'white' && avgLuminance < 0.55) {
-      status = status === 'fail' ? 'fail' : 'warn';
+      if (status === 'pass') status = 'warn';
       messages.push('Image looks dark — the "White" variant should be light/white pixels on transparent.');
     }
     if (variant === 'black' && avgLuminance > 0.45) {
-      status = status === 'fail' ? 'fail' : 'warn';
+      if (status === 'pass') status = 'warn';
       messages.push('Image looks light — the "Black" variant should be dark/black pixels on transparent.');
     }
   }
+
 
   if (status === 'pass' && messages.length === 0) {
     messages.push(`Fits cell at ${fittedWidth}×${fittedHeight}px — no cropping (object-contain).`);
