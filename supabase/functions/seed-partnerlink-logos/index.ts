@@ -77,6 +77,28 @@ async function fetchSimpleIconSvg(slug: string): Promise<string | null> {
   }
 }
 
+async function fetchSimpleIconBrandHex(slug: string): Promise<string | null> {
+  // simpleicons.org's _data lookup returns brand color as plain text via /color path.
+  // Fallback: fetch the npm JSON metadata which always exposes `hex`.
+  const candidates = [
+    `https://unpkg.com/simple-icons@latest/icons/${slug}.json`,
+    `https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${slug}.json`,
+  ];
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data?.hex && typeof data.hex === "string") {
+        return data.hex.startsWith("#") ? data.hex : `#${data.hex}`;
+      }
+    } catch {
+      // try next
+    }
+  }
+  return null;
+}
+
 function colorizeSvg(svg: string, hex: string): string {
   // Simple Icons SVGs are single-path monochrome; inject fill on the root <svg>
   // and strip any inline fills on children so the override always wins.
