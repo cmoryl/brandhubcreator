@@ -524,12 +524,11 @@ export const FullBrandPage = ({
     }
   }, [brand, brandId, onBrandUpdate, sectionSubtitles, sectionLayouts, handleSubtitleChange, handleLayoutChange, heroFullWidth, onOpenIntelligence, getPreference, setPreference]);
 
-  // Filter out hidden sections for non-admin users - memoized
-  const visibleSections = useMemo(() => 
-    isAdmin 
-      ? sectionOrder 
-      : sectionOrder.filter(id => !hiddenSections.includes(id)),
-    [isAdmin, sectionOrder, hiddenSections]
+  // Hidden sections are fully removed from the page for everyone (including admins).
+  // Admins can re-show a section via the eye toggle in the sidebar nav.
+  const visibleSections = useMemo(
+    () => sectionOrder.filter(id => !hiddenSections.includes(id)),
+    [sectionOrder, hiddenSections],
   );
 
   return (
