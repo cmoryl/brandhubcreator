@@ -9,7 +9,7 @@ const setMeta = (name: string, content: string) => {
   }
   el.setAttribute('content', content);
 };
-import { Search, Filter, Globe2, Loader2, Download, ExternalLink } from 'lucide-react';
+import { Search, Filter, Globe2, Loader2, Download, X, ZoomIn } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -61,6 +61,10 @@ export default function PublicLogoHub() {
   const [category, setCategory] = useState<string>('all');
   const [variant, setVariant] = useState<VariantFilter>('all');
   const [lockup, setLockup] = useState<LockupFilter>('all');
+  const [preview, setPreview] = useState<{
+    logo: GlobalLogoRow;
+    file: ClientLogoFile;
+  } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -261,21 +265,29 @@ export default function PublicLogoHub() {
                     )}
                   >
                     {cells.map(({ lockup: lk, variant: v, file }) => (
-                      <div
+                      <button
                         key={`${lk}-${v}`}
+                        type="button"
+                        onClick={() => file && setPreview({ logo, file })}
                         className={cn(
-                          'relative aspect-square flex items-center justify-center p-4',
+                          'relative aspect-square flex items-center justify-center p-4 text-left transition-opacity',
                           v === 'white' ? 'bg-neutral-900' : 'bg-white',
+                          file ? 'hover:opacity-90 cursor-pointer' : 'cursor-default',
                         )}
                         title={`${lk} • ${v}`}
                       >
                         {file ? (
-                          <img
-                            src={file.url}
-                            alt={`${logo.name} ${lk} ${v}`}
-                            loading="lazy"
-                            className="max-h-full max-w-full object-contain"
-                          />
+                          <>
+                            <img
+                              src={file.url}
+                              alt={`${logo.name} ${lk} ${v}`}
+                              loading="lazy"
+                              className="max-h-full max-w-full object-contain"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none">
+                              <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition-opacity" />
+                            </div>
+                          </>
                         ) : (
                           <span
                             className={cn(
@@ -296,7 +308,7 @@ export default function PublicLogoHub() {
                         >
                           {lk === 'icon' ? 'Icon' : 'Logo'} · {v}
                         </span>
-                      </div>
+                      </button>
                     ))}
                   </div>
                   <div className="p-3 flex flex-wrap gap-1.5">
@@ -321,6 +333,67 @@ export default function PublicLogoHub() {
           </div>
         )}
       </main>
+
+      {/* Preview Modal */}
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setPreview(null)}
+        >
+          <div className="absolute inset-0 bg-black/70" />
+          <div
+            className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className={cn(
+                'flex items-center justify-center p-8 min-h-[320px]',
+                preview.file.variant === 'white' ? 'bg-neutral-900' : 'bg-white',
+              )}
+            >
+              <img
+                src={preview.file.url}
+                alt={`${preview.logo.name} preview`}
+                className="max-h-[400px] max-w-full object-contain"
+              />
+            </div>
+            <div className="p-6 space-y-4">
+              <h2 className="text-lg font-semibold">{preview.logo.name}</h2>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary">
+                  {(preview.file.lockup || 'icon') === 'icon' ? 'Icon' : 'Wordmark'}
+                </Badge>
+                <Badge variant="secondary">{preview.file.variant}</Badge>
+                <Badge variant="secondary">{preview.file.format?.toUpperCase()}</Badge>
+                <Badge variant="outline">{preview.logo.category}</Badge>
+              </div>
+              <div className="flex gap-2">
+                <Button asChild size="sm">
+                  <a
+                    href={preview.file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download {preview.file.format?.toUpperCase()}
+                  </a>
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setPreview(null)}>
+                  <X className="h-4 w-4 mr-2" />
+                  Close
+                </Button>
+              </div>
+            </div>
+            <button
+              onClick={() => setPreview(null)}
+              className="absolute right-3 top-3 rounded-sm p-1 bg-black/20 text-white hover:bg-black/40 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
