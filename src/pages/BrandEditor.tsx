@@ -361,6 +361,13 @@ const BrandEditor = () => {
   // Compliance scores
   const { data: complianceScores } = useLatestComplianceScores(brand?.organizationId);
 
+  // Unified Action Center open count → badge on Intelligence/Brain toolbar action
+  const { openCount: brainOpenCount } = useUnifiedActions({
+    entityId: brand?.id,
+    entityType: 'brand',
+    organizationId: brand?.organizationId,
+  });
+
   // Track brand view for analytics
 
   useEffect(() => {
