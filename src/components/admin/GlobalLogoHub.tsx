@@ -547,6 +547,16 @@ export function GlobalLogoHub() {
             {isSeedingPartners ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Seed General
           </Button>
+          <Button
+            variant="outline"
+            onClick={handleSeedWordmarksForce}
+            disabled={isSeedingPartners}
+            className="gap-2"
+            title="Re-scrape and OVERWRITE wordmark slots for every partner across all categories. Icons are preserved."
+          >
+            {isSeedingPartners ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Seed Wordmarks (Force)
+          </Button>
           <Button onClick={() => { resetForm(); setAddDialogOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" />
             Add Logo
