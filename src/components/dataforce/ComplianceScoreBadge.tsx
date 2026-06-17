@@ -7,14 +7,21 @@ import { Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
+interface ComplianceWeightedBy {
+  archetype?: string | null;
+  industry?: string | null;
+  hints?: string[];
+}
+
 interface ComplianceScoreBadgeProps {
   score?: number | null;
   size?: 'sm' | 'md';
   showLabel?: boolean;
   className?: string;
+  weightedBy?: ComplianceWeightedBy | null;
 }
 
-export function ComplianceScoreBadge({ score, size = 'sm', showLabel = false, className }: ComplianceScoreBadgeProps) {
+export function ComplianceScoreBadge({ score, size = 'sm', showLabel = false, className, weightedBy }: ComplianceScoreBadgeProps) {
   const hasScore = score != null;
   const displayScore = hasScore ? Math.round(score) : null;
 
@@ -29,6 +36,14 @@ export function ComplianceScoreBadge({ score, size = 'sm', showLabel = false, cl
   const iconSize = size === 'sm' ? 'h-3 w-3' : 'h-4 w-4';
   const textSize = size === 'sm' ? 'text-[10px]' : 'text-xs';
   const padding = size === 'sm' ? 'px-1.5 py-0.5' : 'px-2 py-1';
+
+  const weightingLabel = (() => {
+    if (!weightedBy) return null;
+    const parts: string[] = [];
+    if (weightedBy.archetype) parts.push(`${weightedBy.archetype} archetype`);
+    if (weightedBy.industry) parts.push(`${weightedBy.industry} industry`);
+    return parts.length ? parts.join(', ') : null;
+  })();
 
   return (
     <Tooltip>
@@ -50,13 +65,18 @@ export function ComplianceScoreBadge({ score, size = 'sm', showLabel = false, cl
           )}
         </button>
       </TooltipTrigger>
-      <TooltipContent side="right" className="z-[100]">
+      <TooltipContent side="right" className="z-[100] max-w-xs">
         <p className="font-medium">
           {hasScore ? `Compliance Score: ${displayScore}%` : 'DataForce Compliance Checker'}
         </p>
         {hasScore && (
           <p className="text-xs text-muted-foreground">
             {score >= 80 ? 'Meets brand guidelines' : score >= 60 ? 'Partially compliant — review recommended' : 'Significant compliance issues detected'}
+          </p>
+        )}
+        {weightingLabel && (
+          <p className="mt-1 text-[10px] text-muted-foreground italic">
+            Weighted by: {weightingLabel}
           </p>
         )}
       </TooltipContent>
