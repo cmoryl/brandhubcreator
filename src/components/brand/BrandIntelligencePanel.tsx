@@ -754,6 +754,17 @@ export const BrandIntelligencePanel = ({
           </>
         )}
 
+        {/* Canva Operations tile */}
+        {entityType === 'brand' && (
+          <CanvaOperationsTile
+            brandId={entityId}
+            brandSlug={brandSlug}
+            organizationId={organizationId}
+            canEdit={canEdit}
+          />
+        )}
+
+
         {/* Inclusive Imagery Summary - surfaced prominently */}
         {(intelligence?.learning_context as any)?.inclusive_imagery && (
           <>
