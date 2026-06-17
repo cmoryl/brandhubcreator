@@ -421,6 +421,7 @@ serve(async (req) => {
     const organizationId: string | undefined = body.organizationId;
     const namesFilter: string[] | undefined = Array.isArray(body.names) ? body.names : undefined;
     const force: boolean = body.force === true;
+    const wordmarksOnly: boolean = body.wordmarksOnly === true;
     // Categories can be a single string or array. Defaults to PartnerLink Logos.
     const rawCategories: string[] = Array.isArray(body.categories)
       ? body.categories
