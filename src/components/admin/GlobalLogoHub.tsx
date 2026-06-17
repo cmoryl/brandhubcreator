@@ -147,7 +147,7 @@ export function GlobalLogoHub() {
     } finally {
       setIsLoading(false);
     }
-  }, [organization?.id]);
+  }, [organization?.id, runValidationAll]);
 
   useEffect(() => { fetchLogos(); }, [fetchLogos]);
 
