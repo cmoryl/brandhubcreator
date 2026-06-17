@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Search, Trash2, Pencil, Upload, Download, ExternalLink, FolderArchive, Loader2, Filter, Sparkles, ShieldCheck, ShieldAlert, RefreshCw, EyeOff, Eye } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { validateLogoFiles, ISSUE_LABELS, type LogoValidationResult } from '@/lib/logoValidation';
+import { validateWordmarkUpload, type UploadValidationResult } from '@/lib/wordmarkUploadValidation';
 import { getExemptions, setExempt } from '@/lib/logoValidationExemptions';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -69,6 +70,9 @@ export function GlobalLogoHub() {
   const [isValidatingAll, setIsValidatingAll] = useState(false);
   const [exemptIds, setExemptIds] = useState<Set<string>>(new Set());
   const [resyncingId, setResyncingId] = useState<string | null>(null);
+  // Per-slot upload validation results, keyed by `${lockup}-${variant}-${format}`
+  const [uploadValidations, setUploadValidations] = useState<Record<string, UploadValidationResult>>({});
+
 
   useEffect(() => {
     if (organization?.id) setExemptIds(getExemptions(organization.id));
@@ -258,6 +262,7 @@ export function GlobalLogoHub() {
     setFormData({ name: '', description: '', category: 'General', websiteUrl: '', files: [] });
     setEditingLogo(null);
     setAddDialogOpen(false);
+    setUploadValidations({});
   };
 
   const openEdit = (logo: GlobalClientLogo) => {
@@ -269,6 +274,7 @@ export function GlobalLogoHub() {
       websiteUrl: logo.website_url || '',
       files: logo.files,
     });
+    setUploadValidations({});
     setAddDialogOpen(true);
   };
 
@@ -276,19 +282,45 @@ export function GlobalLogoHub() {
     const format: ClientLogoFormat = 'png';
     const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format && (f.lockup ?? 'icon') === lockup));
     setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url, lockup }] }));
+    // Clear any stale local-upload validation for this slot — library asset wasn't measured here.
+    setUploadValidations(prev => {
+      const next = { ...prev };
+      delete next[`${lockup}-${variant}-${format}`];
+      return next;
+    });
     toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} logo added`);
   };
 
-  const handleLocalFileUpload = (variant: ClientLogoVariant, lockup: 'icon' | 'wordmark', format: ClientLogoFormat, file: File) => {
+  const handleLocalFileUpload = async (variant: ClientLogoVariant, lockup: 'icon' | 'wordmark', format: ClientLogoFormat, file: File) => {
+    const slotKey = `${lockup}-${variant}-${format}`;
+
+    // Run dimension + luminance validation in parallel with the data-URL read.
+    const validationPromise = validateWordmarkUpload(file, variant, lockup).catch(() => null);
+
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const url = e.target?.result as string;
       const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format && (f.lockup ?? 'icon') === lockup));
       setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url, lockup }] }));
-      toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
+
+      const result = await validationPromise;
+      if (result) {
+        setUploadValidations(prev => ({ ...prev, [slotKey]: result }));
+        if (result.status === 'fail') {
+          toast.error(`${VARIANT_LABELS[variant]} ${lockup}: ${result.messages[0] ?? 'Validation failed'}`);
+        } else if (result.status === 'warn') {
+          toast.warning(`${VARIANT_LABELS[variant]} ${lockup}: ${result.messages[0] ?? 'Check upload'}`);
+        } else {
+          toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
+        }
+      } else {
+        toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
+      }
     };
     reader.readAsDataURL(file);
   };
+
+
 
 
   const handleAIGenerate = async () => {
@@ -744,20 +776,55 @@ export function GlobalLogoHub() {
                     : 'Full horizontal logo with brand name (e.g. "salesforce" wordmark).'}
                 </p>
                 <div className="grid grid-cols-3 gap-4">
-                  {(['color', 'white', 'black'] as ClientLogoVariant[]).map(variant => (
+                  {(['color', 'white', 'black'] as ClientLogoVariant[]).map(variant => {
+                    const previewUrl = getPreviewUrl(formData.files, variant, lockup);
+                    // Find the most recently uploaded format's validation for this slot.
+                    const slotValidation = (['png', 'svg', 'eps'] as ClientLogoFormat[])
+                      .map(fmt => uploadValidations[`${lockup}-${variant}-${fmt}`])
+                      .find(Boolean);
+                    return (
                     <div key={`${lockup}-${variant}`} className="space-y-2">
                       <div className="text-sm font-medium text-center">{VARIANT_LABELS[variant]}</div>
                       <div className={cn("rounded-lg p-2 space-y-1.5", VARIANT_BG[variant])}>
-                        {/* Preview */}
-                        {getPreviewUrl(formData.files, variant, lockup) && (
-                          <div className="aspect-[4/3] flex items-center justify-center p-2 mb-1">
-                            <img src={getPreviewUrl(formData.files, variant, lockup)!} alt={`${lockup} ${variant}`} className="max-h-full max-w-full object-contain" />
+                        {/* Preview — object-contain inside the 4:3 cell. Center markers prove no cropping. */}
+                        {previewUrl && (
+                          <div className="relative aspect-[4/3] flex items-center justify-center p-2 mb-1 overflow-hidden rounded">
+                            {/* Dashed safe-area outline visualizes the contain box */}
+                            <div className="absolute inset-2 border border-dashed border-current/20 rounded pointer-events-none" />
+                            <img
+                              src={previewUrl}
+                              alt={`${lockup} ${variant}`}
+                              className="max-h-full max-w-full object-contain relative z-10"
+                            />
                           </div>
                         )}
                         {(['png', 'svg', 'eps'] as ClientLogoFormat[]).map(format => (
                           <FileUploadCell key={`${lockup}-${variant}-${format}`} variant={variant} lockup={lockup} format={format} />
                         ))}
                       </div>
+                      {/* Validation badge — confirms object-contain sizing and surfaces warnings */}
+                      {slotValidation && (
+                        <div className={cn(
+                          "text-[10px] rounded-md px-2 py-1.5 border space-y-0.5",
+                          slotValidation.status === 'pass' && "bg-green-50 dark:bg-green-950/40 border-green-200 dark:border-green-900 text-green-800 dark:text-green-300",
+                          slotValidation.status === 'warn' && "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-300",
+                          slotValidation.status === 'fail' && "bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-800 dark:text-red-300",
+                        )}>
+                          <div className="flex items-center justify-between gap-1 font-medium">
+                            <span className="uppercase tracking-wider text-[9px]">
+                              {slotValidation.status === 'pass' ? '✓ Fits' : slotValidation.status === 'warn' ? '⚠ Check' : '✕ Invalid'}
+                            </span>
+                            {slotValidation.width > 0 && (
+                              <span className="font-mono text-[9px] opacity-80">
+                                {slotValidation.width}×{slotValidation.height} → {slotValidation.fittedWidth}×{slotValidation.fittedHeight}
+                              </span>
+                            )}
+                          </div>
+                          {slotValidation.messages.map((msg, i) => (
+                            <div key={i} className="leading-snug">{msg}</div>
+                          ))}
+                        </div>
+                      )}
                       <ImageLibraryPicker
                         onSelect={(url) => handleFileUploadFromLibrary(variant, lockup, url)}
                         trigger={
@@ -768,7 +835,8 @@ export function GlobalLogoHub() {
                         }
                       />
                     </div>
-                  ))}
+                  );})}
+
                 </div>
               </div>
             ))}
