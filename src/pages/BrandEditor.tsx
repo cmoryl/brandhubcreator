@@ -109,6 +109,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrder';
+import { scrollToSection as scrollToSectionRobust } from '@/lib/scrollToSection';
 import { useAutoBiasMonitoring } from '@/hooks/useAutoBiasMonitoring';
 type ViewMode = 'sections' | 'full' | 'cards';
 
@@ -182,44 +183,17 @@ const BrandEditor = () => {
   // Handle hash anchor scrolling on page load/navigation
   useEffect(() => {
     if (location.hash && viewMode === 'full') {
-      const sectionId = location.hash.replace('#', '') as SectionId;
-      // Small delay to ensure the page has rendered
-      const scrollTimeout = setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          // Add highlight flash
-          setTimeout(() => {
-            element.classList.add('section-highlight-flash');
-            setTimeout(() => element.classList.remove('section-highlight-flash'), 1300);
-          }, 400);
-        }
-      }, 100);
-      return () => clearTimeout(scrollTimeout);
+      const sectionId = location.hash.replace('#', '');
+      const t = setTimeout(() => scrollToSectionRobust(sectionId, { flash: true }), 100);
+      return () => clearTimeout(t);
     }
   }, [location.hash, viewMode]);
 
-  // Scroll to section when sidebar nav is clicked, then flash highlight
+  // Scroll to section when sidebar nav is clicked (uses robust helper that
+  // re-checks the target position to handle progressive-hydration layout shifts).
   useEffect(() => {
     if (scrollToSection && viewMode === 'full') {
-      const element = document.getElementById(scrollToSection);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        
-        // Add highlight flash after scroll completes
-        const flashTimeout = setTimeout(() => {
-          element.classList.add('section-highlight-flash');
-          
-          // Remove the class after animation completes
-          const cleanupTimeout = setTimeout(() => {
-            element.classList.remove('section-highlight-flash');
-          }, 1300);
-          
-          return () => clearTimeout(cleanupTimeout);
-        }, 400); // Wait for scroll to mostly complete
-        
-        return () => clearTimeout(flashTimeout);
-      }
+      scrollToSectionRobust(scrollToSection, { flash: true });
     }
   }, [scrollToSection, viewMode]);
 
@@ -710,8 +684,7 @@ const BrandEditor = () => {
     navigate({ pathname: location.pathname, hash: 'layouttemplates' }, { replace: false });
 
     window.setTimeout(() => {
-      const target = document.getElementById('layouttemplates') ?? document.getElementById('layout-templates');
-      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollToSectionRobust('layouttemplates', { flash: true });
       setScrollToSection(null);
     }, 220);
   }, [location.pathname, navigate]);
