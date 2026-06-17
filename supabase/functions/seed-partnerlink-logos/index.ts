@@ -198,13 +198,22 @@ serve(async (req) => {
           files.push({ variant: "black", format: "svg", url: svgToDataUrl(blackSvg) });
           files.push({ variant: "white", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/ffffff` });
           files.push({ variant: "black", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/000000` });
+
+          // Brand-color variant: derive the brand hex from Simple Icons metadata.
+          const hex = await fetchSimpleIconBrandHex(p.slug);
+          if (hex) {
+            const cleanHex = hex.replace("#", "");
+            const colorSvg = colorizeSvg(svg, `#${cleanHex}`);
+            files.push({ variant: "color", format: "svg", url: svgToDataUrl(colorSvg) });
+            files.push({ variant: "color", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/${cleanHex}` });
+          }
         }
       }
 
       const existingRow = existingByName.get(p.name.toLowerCase());
       if (existingRow) {
-        // Backfill only when row has no files AND we now have some.
-        if (existingRow.files.length === 0 && foundLogo) {
+        // Backfill whenever we now have more (or any) files than the row currently holds.
+        if (foundLogo && files.length > existingRow.files.length) {
           const { error: updErr } = await admin
             .from("global_client_logos")
             .update({ files })
