@@ -360,10 +360,22 @@ export function GlobalLogoHub() {
           <h2 className="text-xl font-semibold">Global Logo Hub</h2>
           <p className="text-sm text-muted-foreground">Master library of client logos — brands and products can import from here</p>
         </div>
-        <Button onClick={() => { resetForm(); setAddDialogOpen(true); }} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Logo
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSeedPartnerLink}
+            disabled={isSeedingPartners}
+            className="gap-2"
+            title="Bulk-import the curated PartnerLink integration partners with white + black SVG/PNG assets"
+          >
+            {isSeedingPartners ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Seed PartnerLink Logos
+          </Button>
+          <Button onClick={() => { resetForm(); setAddDialogOpen(true); }} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Logo
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
