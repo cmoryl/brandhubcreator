@@ -90,7 +90,7 @@ export function scrollToSection(
   const align = () => {
     const el = lookup();
     if (!el) return;
-    const offset = offsetFor(el);
+    const { offset } = offsetFor(el);
     const targetY = el.getBoundingClientRect().top + window.scrollY - offset;
     window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
   };
@@ -104,10 +104,12 @@ export function scrollToSection(
   const tick = () => {
     const el = lookup();
     if (!el) return;
-    const offset = offsetFor(el);
+    const { offset, headerHeight } = offsetFor(el);
     const rect = el.getBoundingClientRect();
     // Desired: rect.top === offset (heading sits just under the sticky header).
     const drift = Math.abs(rect.top - offset);
+
+    scrollDebug.emit({ sectionId, headerHeight, topOffsetPx: offset, drift, timestamp: performance.now() });
 
     if (drift > toleranceFromTopPx) {
       align();
