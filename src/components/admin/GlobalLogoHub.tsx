@@ -45,7 +45,7 @@ const FORMAT_LABELS: Record<ClientLogoFormat, string> = {
   eps: 'EPS',
 };
 
-const DEFAULT_CATEGORIES = ['Technology', 'Retail', 'Healthcare', 'Finance', 'Media', 'Automotive', 'Consumer Goods', 'Hospitality', 'Gaming', 'Studios', 'General'];
+const DEFAULT_CATEGORIES = ['PartnerLink Logos', 'Technology', 'Retail', 'Healthcare', 'Finance', 'Media', 'Automotive', 'Consumer Goods', 'Hospitality', 'Gaming', 'Studios', 'General'];
 
 export function GlobalLogoHub() {
   const { organization } = useOrganization();
