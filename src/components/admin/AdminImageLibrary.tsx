@@ -123,7 +123,7 @@ export function AdminImageLibrary() {
         setOrganizations(data);
         if (data.length > 0 && !selectedOrgId) {
           setSelectedOrgId(data[0].id);
-          fetchImages(data[0].id);
+          fetchImages(data[0].id, { includeLegacy: true });
         }
       }
     };
