@@ -3,7 +3,7 @@
  * Normalizes recommendation_actions + competitive_recommendation_actions + intelligence_alerts
  * into a single BrandAction[] queue scoped to an entity/org.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { computeActionBreakdown } from '@/lib/actionConsistency';
@@ -31,6 +31,8 @@ interface Options {
   entityId?: string | null;
   entityType?: string | null;
   organizationId?: string | null;
+  /** When true, automatically refetch on detected drift (max once per ~10s, capped at 3 attempts per mount). */
+  autoFixDrift?: boolean;
 }
 
 const SEVERITY_RANK: Record<ActionSeverity, number> = {
@@ -55,7 +57,7 @@ function mapStatus(s: string | null | undefined): ActionStatus {
   return 'open';
 }
 
-export function useUnifiedActions({ entityId, entityType, organizationId }: Options) {
+export function useUnifiedActions({ entityId, entityType, organizationId, autoFixDrift = false }: Options) {
   const [actions, setActions] = useState<BrandAction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -169,5 +171,35 @@ export function useUnifiedActions({ entityId, entityType, organizationId }: Opti
     [actions, openCount, entityId, entityType],
   );
 
-  return { actions, isLoading, openCount, refetch: fetchAll, markDone, consistency };
+  // Optional auto-fix: when drift is detected, re-query sources to refresh counts.
+  // Guarded against infinite loops: max 3 attempts per mount, min 10s between attempts.
+  const autoFixState = useRef({ attempts: 0, lastAt: 0 });
+  useEffect(() => {
+    if (!autoFixDrift || consistency.ok || isLoading) return;
+    const now = Date.now();
+    if (autoFixState.current.attempts >= 3) return;
+    if (now - autoFixState.current.lastAt < 10_000) return;
+    autoFixState.current.attempts += 1;
+    autoFixState.current.lastAt = now;
+    console.warn('[useUnifiedActions] auto-fix refetch triggered', {
+      drift: consistency.drift,
+      attempt: autoFixState.current.attempts,
+    });
+    fetchAll();
+  }, [autoFixDrift, consistency.ok, consistency.drift, isLoading, fetchAll]);
+
+  // Reset auto-fix attempts whenever the scope changes.
+  useEffect(() => {
+    autoFixState.current = { attempts: 0, lastAt: 0 };
+  }, [entityId, entityType, organizationId]);
+
+  return {
+    actions,
+    isLoading,
+    openCount,
+    refetch: fetchAll,
+    markDone,
+    consistency,
+    autoFixAttempts: autoFixState.current.attempts,
+  };
 }
