@@ -64,7 +64,7 @@ export const ExportPdfButton = ({ guide: rawGuide }: ExportPdfButtonProps) => {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [selectedSections, setSelectedSections] = useState<Set<SectionId>>(new Set(DEFAULT_SECTION_ORDER));
   const [pageBreaksBefore, setPageBreaksBefore] = useState<Set<SectionId>>(new Set());
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['core', 'visual']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [intelligence, setIntelligence] = useState<BrandIntelligenceData | null>(null);
   const [visibilityAudit, setVisibilityAudit] = useState<any>(null);
   const [socialMetrics, setSocialMetrics] = useState<{
