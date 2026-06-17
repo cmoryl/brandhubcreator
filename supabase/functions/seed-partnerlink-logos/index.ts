@@ -136,12 +136,15 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const organizationId: string | undefined = body.organizationId;
+    const namesFilter: string[] | undefined = Array.isArray(body.names) ? body.names : undefined;
+    const force: boolean = body.force === true;
     if (!organizationId) {
       return new Response(JSON.stringify({ error: "organizationId required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const namesFilterLower = namesFilter?.map((n) => n.toLowerCase());
 
     const admin = createClient(supabaseUrl, serviceKey);
 
