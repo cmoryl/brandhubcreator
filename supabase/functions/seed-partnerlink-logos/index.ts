@@ -557,7 +557,8 @@ serve(async (req) => {
             continue;
           }
           const discoveredWordmarks = await discoverWordmarkLogos(p.website);
-          const wordmarks = discoveredWordmarks.length > 0 ? discoveredWordmarks : await generatedWordmarkFiles(p);
+          const generatedWordmarks = await generatedWordmarkFiles(p);
+          const wordmarks = [...generatedWordmarks, ...discoveredWordmarks];
           // Drop existing wordmark entries; keep icon entries intact.
           const preserved = existingRow.files.filter((f: any) => f?.lockup !== "wordmark");
           const merged = [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))];
@@ -610,7 +611,8 @@ serve(async (req) => {
 
         // Wordmark / full-logo discovery — populates the wordmark row.
         const discoveredWordmarks = await discoverWordmarkLogos(p.website);
-        const wordmarks = discoveredWordmarks.length > 0 ? discoveredWordmarks : await generatedWordmarkFiles(p);
+        const generatedWordmarks = await generatedWordmarkFiles(p);
+        const wordmarks = [...generatedWordmarks, ...discoveredWordmarks];
         for (const w of wordmarks) {
           files.push({ ...w, lockup: "wordmark" });
           foundLogo = true;
