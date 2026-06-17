@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AuditDetailLoader } from '@/components/brand/CanvaAuditSkeletons';
+import { useBrandContextBySlug } from '@/hooks/useBrandContextBySlug';
+import { useCanvaAuditAutoSync } from '@/hooks/useCanvaAuditAnalyses';
 
 const AUDIT_URL = '/transperfect/dataforce-template-inventory.html';
 
@@ -9,6 +11,12 @@ export default function TransPerfectDataforceTemplateInventory() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [loaded, setLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const { brandId, organizationId } = useBrandContextBySlug('transperfect');
+  useCanvaAuditAutoSync(
+    organizationId
+      ? { brandSlug: 'transperfect', brandId, organizationId, auditSlug: 'transperfect-dataforce-template-inventory' }
+      : null,
+  );
 
   useEffect(() => {
     document.title = 'Dataforce Template Inventory — TransPerfect';
