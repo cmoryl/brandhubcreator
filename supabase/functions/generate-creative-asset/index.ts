@@ -303,6 +303,9 @@ serve(async (req) => {
       }
     } catch (sigErr) {
       console.warn('[generate-creative-asset] signals injection failed:', sigErr);
+    }
+
+
     
     // Add style modifiers
     const styleModifiers = getStyleModifiers(stylePreset);
