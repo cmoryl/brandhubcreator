@@ -110,13 +110,29 @@ serve(async (req) => {
     const { text: fullContext, imageUrls: complianceImages } = extractCtx(guide_data, entity_name, entity_type, 3000, true, 15);
 
     // Fetch document content and social metrics for compliance checking
-    const [docResult, socialResult, oracleResult] = await Promise.all([
+    const [docResult, socialResult, oracleResult, intelResult] = await Promise.all([
       fetchDocs(supabase, entity_id, entity_type, guide_data, 1000),
       fetchSocial(supabase, entity_id, entity_type),
       fetchOracleContextForCompliance(supabase, organization_id),
+      supabase
+        .from('brand_intelligence')
+        .select('brand_voice_profile, target_audience, market_position')
+        .eq('entity_id', entity_id)
+        .eq('entity_type', entity_type)
+        .maybeSingle(),
     ]);
     const { text: docContext, imageUrls: docImages, documentCount } = docResult;
     const oracleCtx = oracleResult || '';
+    const intel = (intelResult as any)?.data || null;
+    const archetype = (intel?.brand_voice_profile as any)?.archetype || (guide_data?.identity as any)?.archetype || null;
+    const industry = (guide_data as any)?.industry || null;
+    const weightingHints: string[] = [];
+    if (archetype) weightingHints.push(`Archetype "${archetype}" — weight voice/tone alignment, personality match, and audience resonance more heavily.`);
+    if (industry && /life ?science|pharma|medical|health|finance|legal|regulat/i.test(industry)) {
+      weightingHints.push(`Regulated industry "${industry}" — heavily weight disclaimer presence, claim accuracy, and accessibility.`);
+    }
+    if (intel?.market_position) weightingHints.push(`Market position: ${intel.market_position}. Flag any messaging that contradicts this positioning.`);
+    const weightingClause = weightingHints.length ? `\n\nCONTEXTUAL WEIGHTING:\n- ${weightingHints.join('\n- ')}` : '';
     const combinedContext = [fullContext, docContext, socialResult.text, oracleCtx].filter(Boolean).join('\n');
     for (const di of docImages.slice(0, 5)) {
       if (complianceImages.length < 20) complianceImages.push(di);
@@ -164,7 +180,7 @@ Analyze the provided brand data and identify:
    - Perfect Nesting: Nested containers should follow Outer Radius = Inner Radius + Padding (concentric circles).
    - Report issues with type "layout" and reference specific UI elements.
 
-${oracleCtx ? `ORGANIZATION STRATEGIC CONTEXT (Oracle Brain):\n${oracleCtx}\n\nUse this context to also evaluate whether the entity\'s brand assets align with the organization\'s overall strategic direction, voice, and positioning.` : ''}
+${oracleCtx ? `ORGANIZATION STRATEGIC CONTEXT (Oracle Brain):\n${oracleCtx}\n\nUse this context to also evaluate whether the entity\'s brand assets align with the organization\'s overall strategic direction, voice, and positioning.` : ''}${weightingClause}
 
 Return your analysis as a JSON object with this structure:
 {
