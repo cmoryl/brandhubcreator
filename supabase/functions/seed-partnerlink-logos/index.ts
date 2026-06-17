@@ -579,11 +579,8 @@ async function discoverWordmarkLogos(p: Partner): Promise<WordmarkFile[]> {
     ...await discoverOfficialWordmarkCandidates(p.website, p.name),
     ...await discoverWikimediaWordmarkCandidates(p.name),
   ]);
-  const generated = await generatedWordmarkFiles(p);
-  if (!selected) return generated.map((g) => ({ ...g, source: "generated" }));
-  const real = sourceToWordmarkFiles(selected.candidate, selected.meta);
-  const variants = new Set(real.map((f) => f.variant));
-  return [...real, ...generated.filter((g) => !variants.has(g.variant)).map((g) => ({ ...g, source: "generated" }))];
+  if (!selected) return [];
+  return sourceToWordmarkFiles(selected.candidate, selected.meta);
 }
 
 serve(async (req) => {
@@ -695,11 +692,16 @@ serve(async (req) => {
             slug: curated?.slug,
           };
           const wordmarks = await discoverWordmarkLogos(target);
+          const preserved = (Array.isArray(row.files) ? row.files : []).filter((f: any) => f?.lockup !== "wordmark");
           if (wordmarks.length === 0) {
+            const { error: updErr } = await admin
+              .from("global_client_logos")
+              .update({ files: preserved })
+              .eq("id", row.id);
+            if (updErr) throw updErr;
             allResults.push({ category, name: row.name, status: "no-logo" });
             continue;
           }
-          const preserved = (Array.isArray(row.files) ? row.files : []).filter((f: any) => f?.lockup !== "wordmark");
           const { error: updErr } = await admin
             .from("global_client_logos")
             .update({ files: [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))] })
