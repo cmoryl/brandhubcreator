@@ -381,8 +381,10 @@ export function GlobalLogoHub() {
   };
 
   const getPreviewUrl = (files: ClientLogoFile[], variant: ClientLogoVariant): string | null => {
-    return files.find(f => f.variant === variant && f.format === 'png')?.url
-      || files.find(f => f.variant === variant && f.format === 'svg')?.url
+    // Prefer seeded SVG data URLs because Simple Icons' CDN often serves SVGs
+    // from PNG-looking URLs, and some branded CDN color URLs 404.
+    return files.find(f => f.variant === variant && f.format === 'svg')?.url
+      || files.find(f => f.variant === variant && f.format === 'png')?.url
       || null;
   };
 
