@@ -338,7 +338,7 @@ export function AdminImageLibrary() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => fetchImages(selectedOrgId)}
+                onClick={() => fetchImages(selectedOrgId, { includeLegacy: true })}
                 disabled={isLoading}
               >
                 <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
