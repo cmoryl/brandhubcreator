@@ -335,64 +335,65 @@ export default function PublicLogoHub() {
       </main>
 
       {/* Preview Modal */}
-      <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden">
-          {preview && (
-            <>
-              <div
-                className={cn(
-                  'flex items-center justify-center p-8 min-h-[320px]',
-                  preview.file.variant === 'white' ? 'bg-neutral-900' : 'bg-white',
-                )}
-              >
-                <img
-                  src={preview.file.url}
-                  alt={`${preview.logo.name} preview`}
-                  className="max-h-[400px] max-w-full object-contain"
-                />
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setPreview(null)}
+        >
+          <div className="absolute inset-0 bg-black/70" />
+          <div
+            className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className={cn(
+                'flex items-center justify-center p-8 min-h-[320px]',
+                preview.file.variant === 'white' ? 'bg-neutral-900' : 'bg-white',
+              )}
+            >
+              <img
+                src={preview.file.url}
+                alt={`${preview.logo.name} preview`}
+                className="max-h-[400px] max-w-full object-contain"
+              />
+            </div>
+            <div className="p-6 space-y-4">
+              <h2 className="text-lg font-semibold">{preview.logo.name}</h2>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary">
+                  {(preview.file.lockup || 'icon') === 'icon' ? 'Icon' : 'Wordmark'}
+                </Badge>
+                <Badge variant="secondary">{preview.file.variant}</Badge>
+                <Badge variant="secondary">{preview.file.format?.toUpperCase()}</Badge>
+                <Badge variant="outline">{preview.logo.category}</Badge>
               </div>
-              <div className="p-6 space-y-4">
-                <DialogHeader>
-                  <DialogTitle className="text-lg">{preview.logo.name}</DialogTitle>
-                </DialogHeader>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">
-                    {(preview.file.lockup || 'icon') === 'icon' ? 'Icon' : 'Wordmark'}
-                  </Badge>
-                  <Badge variant="secondary">
-                    {preview.file.variant}
-                  </Badge>
-                  <Badge variant="secondary">
-                    {preview.file.format?.toUpperCase()}
-                  </Badge>
-                  <Badge variant="outline">{preview.logo.category}</Badge>
-                </div>
-                <div className="flex gap-2">
-                  <Button asChild size="sm">
-                    <a
-                      href={preview.file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download {preview.file.format?.toUpperCase()}
-                    </a>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPreview(null)}
+              <div className="flex gap-2">
+                <Button asChild size="sm">
+                  <a
+                    href={preview.file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
                   >
-                    <X className="h-4 w-4 mr-2" />
-                    Close
-                  </Button>
-                </div>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download {preview.file.format?.toUpperCase()}
+                  </a>
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setPreview(null)}>
+                  <X className="h-4 w-4 mr-2" />
+                  Close
+                </Button>
               </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+            </div>
+            <button
+              onClick={() => setPreview(null)}
+              className="absolute right-3 top-3 rounded-sm p-1 bg-black/20 text-white hover:bg-black/40 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
