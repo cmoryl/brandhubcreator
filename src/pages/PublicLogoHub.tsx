@@ -1,4 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
+
+const setMeta = (name: string, content: string) => {
+  let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+  if (!el) {
+    el = document.createElement('meta');
+    el.setAttribute('name', name);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', content);
+};
 import { Search, Filter, Globe2, Loader2, Download, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
