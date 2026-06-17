@@ -147,23 +147,23 @@ serve(async (req) => {
       }
     }
 
-    // Existing names in this category for this org → skip duplicates.
+    // Existing rows in this category for this org → backfill if missing files, else skip.
     const { data: existing } = await admin
       .from("global_client_logos")
-      .select("name")
+      .select("id, name, files")
       .eq("organization_id", organizationId)
       .eq("category", CATEGORY);
-    const existingNames = new Set((existing || []).map((r: any) => r.name.toLowerCase()));
+    const existingByName = new Map<string, { id: string; files: any[] }>(
+      (existing || []).map((r: any) => [
+        r.name.toLowerCase(),
+        { id: r.id, files: Array.isArray(r.files) ? r.files : [] },
+      ]),
+    );
 
-    const results: Array<{ name: string; status: "inserted" | "skipped" | "no-logo"; }> = [];
+    const results: Array<{ name: string; status: "inserted" | "updated" | "skipped" | "no-logo"; }> = [];
     const rowsToInsert: any[] = [];
 
     for (const p of PARTNERS) {
-      if (existingNames.has(p.name.toLowerCase())) {
-        results.push({ name: p.name, status: "skipped" });
-        continue;
-      }
-
       const files: any[] = [];
       let foundLogo = false;
       if (p.slug) {
@@ -174,18 +174,25 @@ serve(async (req) => {
           const blackSvg = colorizeSvg(svg, "#000000");
           files.push({ variant: "white", format: "svg", url: svgToDataUrl(whiteSvg) });
           files.push({ variant: "black", format: "svg", url: svgToDataUrl(blackSvg) });
-          // Provide PNG fallbacks via Simple Icons CDN (raster proxy, hi-res)
-          files.push({
-            variant: "white",
-            format: "png",
-            url: `https://cdn.simpleicons.org/${p.slug}/ffffff`,
-          });
-          files.push({
-            variant: "black",
-            format: "png",
-            url: `https://cdn.simpleicons.org/${p.slug}/000000`,
-          });
+          files.push({ variant: "white", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/ffffff` });
+          files.push({ variant: "black", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/000000` });
         }
+      }
+
+      const existingRow = existingByName.get(p.name.toLowerCase());
+      if (existingRow) {
+        // Backfill only when row has no files AND we now have some.
+        if (existingRow.files.length === 0 && foundLogo) {
+          const { error: updErr } = await admin
+            .from("global_client_logos")
+            .update({ files })
+            .eq("id", existingRow.id);
+          if (updErr) throw updErr;
+          results.push({ name: p.name, status: "updated" });
+        } else {
+          results.push({ name: p.name, status: "skipped" });
+        }
+        continue;
       }
 
       rowsToInsert.push({
