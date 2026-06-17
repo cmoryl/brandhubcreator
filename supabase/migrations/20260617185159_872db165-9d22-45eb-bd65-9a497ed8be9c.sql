@@ -1,0 +1,2 @@
+CREATE POLICY "global-logos public read" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'global-logos');
+CREATE POLICY "global-logos service write" ON storage.objects FOR ALL TO service_role USING (bucket_id = 'global-logos') WITH CHECK (bucket_id = 'global-logos');
