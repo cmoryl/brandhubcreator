@@ -57,7 +57,7 @@ export function computeActionBreakdown(
     details.push(
       `Badge=${displayedCount} vs expected=${expected} (rec=${recommendation}, comp=${competitive}, alert=${alert})`,
     );
-    logger.warn?.('[actionConsistency] Badge total drift detected', {
+    console.warn('[actionConsistency] Badge total drift detected', {
       brand: ctx.brandLabel,
       entityId: ctx.entityId,
       displayedCount,
@@ -65,6 +65,7 @@ export function computeActionBreakdown(
       breakdown: { recommendation, competitive, alert },
       drift,
     });
+    logger.debug('actionConsistency drift', { displayedCount, expected, drift });
   }
 
   return { recommendation, competitive, alert, expected, actual: displayedCount, ok, drift, details };
