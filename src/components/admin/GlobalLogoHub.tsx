@@ -63,6 +63,40 @@ export function GlobalLogoHub() {
   const [generatingVariant, setGeneratingVariant] = useState<string | null>(null);
   const [generateProgress, setGenerateProgress] = useState(0);
   const [isSeedingPartners, setIsSeedingPartners] = useState(false);
+  const [validations, setValidations] = useState<Record<string, LogoValidationResult>>({});
+  const [validatingId, setValidatingId] = useState<string | null>(null);
+  const [isValidatingAll, setIsValidatingAll] = useState(false);
+
+  const runValidation = useCallback(async (logo: GlobalClientLogo) => {
+    setValidatingId(logo.id);
+    try {
+      const result = await validateLogoFiles(logo.files);
+      setValidations((prev) => ({ ...prev, [logo.id]: result }));
+    } finally {
+      setValidatingId((curr) => (curr === logo.id ? null : curr));
+    }
+  }, []);
+
+  const runValidationAll = useCallback(async (rows: GlobalClientLogo[]) => {
+    setIsValidatingAll(true);
+    try {
+      // Validate in small batches so we don't hammer the network or block the UI.
+      const BATCH = 6;
+      for (let i = 0; i < rows.length; i += BATCH) {
+        const slice = rows.slice(i, i + BATCH);
+        const results = await Promise.all(
+          slice.map(async (l) => [l.id, await validateLogoFiles(l.files)] as const),
+        );
+        setValidations((prev) => {
+          const next = { ...prev };
+          for (const [id, r] of results) next[id] = r;
+          return next;
+        });
+      }
+    } finally {
+      setIsValidatingAll(false);
+    }
+  }, []);
 
   const handleSeedPartnerLink = async () => {
     if (!organization?.id) return;
