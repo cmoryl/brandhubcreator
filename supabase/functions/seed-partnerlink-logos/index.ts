@@ -7,61 +7,131 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const CATEGORY = "PartnerLink Logos";
+const DEFAULT_CATEGORY = "PartnerLink Logos";
 
-// Curated PartnerLink list. `slug` is the Simple Icons slug (https://simpleicons.org).
+// Curated partner lists per category. `slug` is the Simple Icons slug (https://simpleicons.org).
 // Brands without a known Simple Icons slug are seeded with name + website only
 // so admins can run the existing "Find Logos" AI flow per-row.
 type Partner = { name: string; website: string; slug?: string };
 
-const PARTNERS: Partner[] = [
-  { name: "AEM [Adobe Experience Manager]", website: "https://business.adobe.com/products/experience-manager/adobe-experience-manager.html", slug: "adobe" },
-  { name: "Adobe Marketo", website: "https://business.adobe.com/products/marketo/adobe-marketo.html", slug: "marketo" },
-  { name: "Byner", website: "https://www.byner.com" },
-  { name: "CommerceTools", website: "https://commercetools.com" },
-  { name: "Eloqua", website: "https://www.oracle.com/cx/marketing/automation/", slug: "oracle" },
-  { name: "Hubspot", website: "https://www.hubspot.com", slug: "hubspot" },
-  { name: "Kontent AI", website: "https://kontent.ai" },
-  { name: "Salesforce", website: "https://www.salesforce.com", slug: "salesforce" },
-  { name: "Sharepoint", website: "https://www.microsoft.com/en-us/microsoft-365/sharepoint/collaboration", slug: "microsoftsharepoint" },
-  { name: "Shopify", website: "https://www.shopify.com", slug: "shopify" },
-  { name: "Sitecore", website: "https://www.sitecore.com", slug: "sitecore" },
-  { name: "Stibo Systems MDM", website: "https://www.stibosystems.com" },
-  { name: "Umbraco", website: "https://umbraco.com", slug: "umbraco" },
-  { name: "Webflow", website: "https://webflow.com", slug: "webflow" },
-  { name: "Akeneo", website: "https://www.akeneo.com", slug: "akeneo" },
-  { name: "Contentful", website: "https://www.contentful.com", slug: "contentful" },
-  { name: "Contentstack", website: "https://www.contentstack.com", slug: "contentstack" },
-  { name: "Drupal", website: "https://www.drupal.org", slug: "drupal" },
-  { name: "Github", website: "https://github.com", slug: "github" },
-  { name: "Google", website: "https://www.google.com", slug: "google" },
-  { name: "inRiver", website: "https://www.inriver.com" },
-  { name: "Optimizely Episerver", website: "https://www.optimizely.com", slug: "optimizely" },
-  { name: "SAP (Commerce Cloud)", website: "https://www.sap.com/products/crm/commerce-cloud.html", slug: "sap" },
-  { name: "Service now", website: "https://www.servicenow.com", slug: "servicenow" },
-  { name: "Tridion", website: "https://www.rws.com/content-management/tridion/" },
-  { name: "Veeva", website: "https://www.veeva.com" },
-  { name: "Wordpress", website: "https://wordpress.org", slug: "wordpress" },
-  { name: "Zendesk", website: "https://www.zendesk.com", slug: "zendesk" },
-  { name: "builder.io", website: "https://www.builder.io" },
-  { name: "Prismic.io", website: "https://prismic.io", slug: "prismic" },
-  { name: "Sanity.io", website: "https://www.sanity.io", slug: "sanity" },
-  { name: "StoryBlok", website: "https://www.storyblok.com", slug: "storyblok" },
-  { name: "Agility PIM", website: "https://agilitycms.com" },
-  { name: "Amazon", website: "https://www.amazon.com", slug: "amazon" },
-  { name: "Amplience", website: "https://amplience.com" },
-  { name: "Azure Cloud", website: "https://azure.microsoft.com", slug: "microsoftazure" },
-  { name: "Contentserv", website: "https://www.contentserv.com" },
-  { name: "Coremedia", website: "https://www.coremedia.com" },
-  { name: "Figma", website: "https://www.figma.com", slug: "figma" },
-  { name: "Informatica", website: "https://www.informatica.com", slug: "informatica" },
-  { name: "Jahia", website: "https://www.jahia.com" },
-  { name: "Knak", website: "https://knak.com" },
-  { name: "Magnolia", website: "https://www.magnolia-cms.com" },
-  { name: "Pimcore", website: "https://pimcore.com", slug: "pimcore" },
-  { name: "Salsify", website: "https://www.salsify.com" },
-  { name: "1440.io", website: "https://www.1440.io" },
-];
+const PARTNERS_BY_CATEGORY: Record<string, Partner[]> = {
+  "PartnerLink Logos": [
+    { name: "AEM [Adobe Experience Manager]", website: "https://business.adobe.com/products/experience-manager/adobe-experience-manager.html", slug: "adobe" },
+    { name: "Adobe Marketo", website: "https://business.adobe.com/products/marketo/adobe-marketo.html", slug: "marketo" },
+    { name: "Byner", website: "https://www.byner.com" },
+    { name: "CommerceTools", website: "https://commercetools.com" },
+    { name: "Eloqua", website: "https://www.oracle.com/cx/marketing/automation/", slug: "oracle" },
+    { name: "Hubspot", website: "https://www.hubspot.com", slug: "hubspot" },
+    { name: "Kontent AI", website: "https://kontent.ai" },
+    { name: "Salesforce", website: "https://www.salesforce.com", slug: "salesforce" },
+    { name: "Sharepoint", website: "https://www.microsoft.com/en-us/microsoft-365/sharepoint/collaboration", slug: "microsoftsharepoint" },
+    { name: "Shopify", website: "https://www.shopify.com", slug: "shopify" },
+    { name: "Sitecore", website: "https://www.sitecore.com", slug: "sitecore" },
+    { name: "Stibo Systems MDM", website: "https://www.stibosystems.com" },
+    { name: "Umbraco", website: "https://umbraco.com", slug: "umbraco" },
+    { name: "Webflow", website: "https://webflow.com", slug: "webflow" },
+    { name: "Akeneo", website: "https://www.akeneo.com", slug: "akeneo" },
+    { name: "Contentful", website: "https://www.contentful.com", slug: "contentful" },
+    { name: "Contentstack", website: "https://www.contentstack.com", slug: "contentstack" },
+    { name: "Drupal", website: "https://www.drupal.org", slug: "drupal" },
+    { name: "Github", website: "https://github.com", slug: "github" },
+    { name: "Google", website: "https://www.google.com", slug: "google" },
+    { name: "inRiver", website: "https://www.inriver.com" },
+    { name: "Optimizely Episerver", website: "https://www.optimizely.com", slug: "optimizely" },
+    { name: "SAP (Commerce Cloud)", website: "https://www.sap.com/products/crm/commerce-cloud.html", slug: "sap" },
+    { name: "Service now", website: "https://www.servicenow.com", slug: "servicenow" },
+    { name: "Tridion", website: "https://www.rws.com/content-management/tridion/" },
+    { name: "Veeva", website: "https://www.veeva.com" },
+    { name: "Wordpress", website: "https://wordpress.org", slug: "wordpress" },
+    { name: "Zendesk", website: "https://www.zendesk.com", slug: "zendesk" },
+    { name: "builder.io", website: "https://www.builder.io" },
+    { name: "Prismic.io", website: "https://prismic.io", slug: "prismic" },
+    { name: "Sanity.io", website: "https://www.sanity.io", slug: "sanity" },
+    { name: "StoryBlok", website: "https://www.storyblok.com", slug: "storyblok" },
+    { name: "Agility PIM", website: "https://agilitycms.com" },
+    { name: "Amazon", website: "https://www.amazon.com", slug: "amazon" },
+    { name: "Amplience", website: "https://amplience.com" },
+    { name: "Azure Cloud", website: "https://azure.microsoft.com", slug: "microsoftazure" },
+    { name: "Contentserv", website: "https://www.contentserv.com" },
+    { name: "Coremedia", website: "https://www.coremedia.com" },
+    { name: "Figma", website: "https://www.figma.com", slug: "figma" },
+    { name: "Informatica", website: "https://www.informatica.com", slug: "informatica" },
+    { name: "Jahia", website: "https://www.jahia.com" },
+    { name: "Knak", website: "https://knak.com" },
+    { name: "Magnolia", website: "https://www.magnolia-cms.com" },
+    { name: "Pimcore", website: "https://pimcore.com", slug: "pimcore" },
+    { name: "Salsify", website: "https://www.salsify.com" },
+    { name: "1440.io", website: "https://www.1440.io" },
+  ],
+  "Media": [
+    { name: "Netflix", website: "https://www.netflix.com", slug: "netflix" },
+    { name: "YouTube", website: "https://www.youtube.com", slug: "youtube" },
+    { name: "Spotify", website: "https://www.spotify.com", slug: "spotify" },
+    { name: "Hulu", website: "https://www.hulu.com", slug: "hulu" },
+    { name: "HBO", website: "https://www.hbo.com", slug: "hbo" },
+    { name: "Twitch", website: "https://www.twitch.tv", slug: "twitch" },
+    { name: "TikTok", website: "https://www.tiktok.com", slug: "tiktok" },
+    { name: "Instagram", website: "https://www.instagram.com", slug: "instagram" },
+    { name: "Facebook", website: "https://www.facebook.com", slug: "facebook" },
+    { name: "X (Twitter)", website: "https://x.com", slug: "x" },
+    { name: "LinkedIn", website: "https://www.linkedin.com", slug: "linkedin" },
+    { name: "Snapchat", website: "https://www.snapchat.com", slug: "snapchat" },
+    { name: "Reddit", website: "https://www.reddit.com", slug: "reddit" },
+    { name: "Pinterest", website: "https://www.pinterest.com", slug: "pinterest" },
+    { name: "Vimeo", website: "https://vimeo.com", slug: "vimeo" },
+    { name: "SoundCloud", website: "https://soundcloud.com", slug: "soundcloud" },
+    { name: "Apple Music", website: "https://music.apple.com", slug: "applemusic" },
+    { name: "Amazon Prime Video", website: "https://www.primevideo.com", slug: "primevideo" },
+    { name: "Disney+", website: "https://www.disneyplus.com", slug: "disneyplus" },
+    { name: "Paramount+", website: "https://www.paramountplus.com", slug: "paramountplus" },
+    { name: "Peacock", website: "https://www.peacocktv.com", slug: "peacock" },
+    { name: "BBC", website: "https://www.bbc.com", slug: "bbc" },
+    { name: "CNN", website: "https://www.cnn.com", slug: "cnn" },
+    { name: "The New York Times", website: "https://www.nytimes.com", slug: "newyorktimes" },
+  ],
+  "General": [
+    { name: "Apple", website: "https://www.apple.com", slug: "apple" },
+    { name: "Microsoft", website: "https://www.microsoft.com", slug: "microsoft" },
+    { name: "Google", website: "https://www.google.com", slug: "google" },
+    { name: "Amazon", website: "https://www.amazon.com", slug: "amazon" },
+    { name: "Meta", website: "https://about.meta.com", slug: "meta" },
+    { name: "IBM", website: "https://www.ibm.com", slug: "ibm" },
+    { name: "Intel", website: "https://www.intel.com", slug: "intel" },
+    { name: "Nvidia", website: "https://www.nvidia.com", slug: "nvidia" },
+    { name: "Samsung", website: "https://www.samsung.com", slug: "samsung" },
+    { name: "Sony", website: "https://www.sony.com", slug: "sony" },
+    { name: "LG", website: "https://www.lg.com", slug: "lg" },
+    { name: "Tesla", website: "https://www.tesla.com", slug: "tesla" },
+    { name: "Toyota", website: "https://www.toyota.com", slug: "toyota" },
+    { name: "Nike", website: "https://www.nike.com", slug: "nike" },
+    { name: "Adidas", website: "https://www.adidas.com", slug: "adidas" },
+    { name: "Coca-Cola", website: "https://www.coca-cola.com", slug: "cocacola" },
+    { name: "Pepsi", website: "https://www.pepsi.com", slug: "pepsi" },
+    { name: "Starbucks", website: "https://www.starbucks.com", slug: "starbucks" },
+    { name: "McDonald's", website: "https://www.mcdonalds.com", slug: "mcdonalds" },
+    { name: "Visa", website: "https://www.visa.com", slug: "visa" },
+    { name: "Mastercard", website: "https://www.mastercard.com", slug: "mastercard" },
+    { name: "PayPal", website: "https://www.paypal.com", slug: "paypal" },
+    { name: "Walmart", website: "https://www.walmart.com", slug: "walmart" },
+    { name: "FedEx", website: "https://www.fedex.com", slug: "fedex" },
+    { name: "UPS", website: "https://www.ups.com", slug: "ups" },
+  ],
+};
+
+const CATEGORY_DESCRIPTIONS: Record<string, { withLogo: string; withoutLogo: string }> = {
+  "PartnerLink Logos": {
+    withLogo: "PartnerLink integration partner (logo via Simple Icons)",
+    withoutLogo: "PartnerLink integration partner — use Find Logos to discover assets",
+  },
+  "Media": {
+    withLogo: "Media & entertainment brand (logo via Simple Icons)",
+    withoutLogo: "Media & entertainment brand — use Find Logos to discover assets",
+  },
+  "General": {
+    withLogo: "General consumer brand (logo via Simple Icons)",
+    withoutLogo: "General consumer brand — use Find Logos to discover assets",
+  },
+};
 
 async function fetchSimpleIconSvg(slug: string): Promise<string | null> {
   // Use Simple Icons jsDelivr CDN (raw monochrome SVG, MIT-licensed).
@@ -196,6 +266,19 @@ serve(async (req) => {
     const organizationId: string | undefined = body.organizationId;
     const namesFilter: string[] | undefined = Array.isArray(body.names) ? body.names : undefined;
     const force: boolean = body.force === true;
+    // Categories can be a single string or array. Defaults to PartnerLink Logos.
+    const rawCategories: string[] = Array.isArray(body.categories)
+      ? body.categories
+      : typeof body.category === "string"
+        ? [body.category]
+        : [DEFAULT_CATEGORY];
+    const categories = rawCategories.filter((c) => PARTNERS_BY_CATEGORY[c]);
+    if (categories.length === 0) {
+      return new Response(
+        JSON.stringify({ error: `Unknown category. Supported: ${Object.keys(PARTNERS_BY_CATEGORY).join(", ")}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
     if (!organizationId) {
       return new Response(JSON.stringify({ error: "organizationId required" }), {
         status: 400,
@@ -230,95 +313,104 @@ serve(async (req) => {
       }
     }
 
-    // Existing rows in this category for this org → backfill if missing files, else skip.
-    const { data: existing } = await admin
-      .from("global_client_logos")
-      .select("id, name, files")
-      .eq("organization_id", organizationId)
-      .eq("category", CATEGORY);
-    const existingByName = new Map<string, { id: string; files: any[] }>(
-      (existing || []).map((r: any) => [
-        r.name.toLowerCase(),
-        { id: r.id, files: Array.isArray(r.files) ? r.files : [] },
-      ]),
-    );
+    const allResults: Array<{ category: string; name: string; status: "inserted" | "updated" | "skipped" | "no-logo" }> = [];
+    let totalPartners = 0;
 
-    const results: Array<{ name: string; status: "inserted" | "updated" | "skipped" | "no-logo"; }> = [];
-    const rowsToInsert: any[] = [];
+    for (const category of categories) {
+      const partners = PARTNERS_BY_CATEGORY[category];
+      const desc = CATEGORY_DESCRIPTIONS[category] ?? {
+        withLogo: `${category} brand (logo via Simple Icons)`,
+        withoutLogo: `${category} brand — use Find Logos to discover assets`,
+      };
+      totalPartners += partners.length;
 
-    for (const p of PARTNERS) {
-      if (namesFilterLower && !namesFilterLower.includes(p.name.toLowerCase())) continue;
+      // Existing rows in this category for this org → backfill if missing files, else skip.
+      const { data: existing } = await admin
+        .from("global_client_logos")
+        .select("id, name, files")
+        .eq("organization_id", organizationId)
+        .eq("category", category);
+      const existingByName = new Map<string, { id: string; files: any[] }>(
+        (existing || []).map((r: any) => [
+          r.name.toLowerCase(),
+          { id: r.id, files: Array.isArray(r.files) ? r.files : [] },
+        ]),
+      );
 
-      const files: any[] = [];
-      let foundLogo = false;
-      if (p.slug) {
-        const svg = await fetchSimpleIconSvg(p.slug);
-        if (svg) {
-          foundLogo = true;
-          const whiteSvg = colorizeSvg(svg, "#ffffff");
-          const blackSvg = colorizeSvg(svg, "#000000");
-          files.push({ variant: "white", format: "svg", url: svgToDataUrl(whiteSvg) });
-          files.push({ variant: "black", format: "svg", url: svgToDataUrl(blackSvg) });
-          files.push({ variant: "white", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/ffffff` });
-          files.push({ variant: "black", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/000000` });
+      const rowsToInsert: any[] = [];
 
-          // Brand-color variant: derive the brand hex from Simple Icons metadata.
-          const hex = await fetchSimpleIconBrandHex(p.slug);
-          if (hex) {
-            const cleanHex = hex.replace("#", "");
-            const colorSvg = colorizeSvg(svg, `#${cleanHex}`);
-            files.push({ variant: "color", format: "svg", url: svgToDataUrl(colorSvg) });
-            files.push({ variant: "color", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/${cleanHex}` });
+      for (const p of partners) {
+        if (namesFilterLower && !namesFilterLower.includes(p.name.toLowerCase())) continue;
+
+        const files: any[] = [];
+        let foundLogo = false;
+        if (p.slug) {
+          const svg = await fetchSimpleIconSvg(p.slug);
+          if (svg) {
+            foundLogo = true;
+            const whiteSvg = colorizeSvg(svg, "#ffffff");
+            const blackSvg = colorizeSvg(svg, "#000000");
+            files.push({ variant: "white", format: "svg", url: svgToDataUrl(whiteSvg) });
+            files.push({ variant: "black", format: "svg", url: svgToDataUrl(blackSvg) });
+            files.push({ variant: "white", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/ffffff` });
+            files.push({ variant: "black", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/000000` });
+
+            const hex = await fetchSimpleIconBrandHex(p.slug);
+            if (hex) {
+              const cleanHex = hex.replace("#", "");
+              const colorSvg = colorizeSvg(svg, `#${cleanHex}`);
+              files.push({ variant: "color", format: "svg", url: svgToDataUrl(colorSvg) });
+              files.push({ variant: "color", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/${cleanHex}` });
+            }
           }
         }
-      }
 
-      const existingRow = existingByName.get(p.name.toLowerCase());
-      if (existingRow) {
-        // Backfill when forced, or when we now have more files than the row currently holds.
-        const shouldUpdate = foundLogo && (force || files.length > existingRow.files.length);
-        if (shouldUpdate) {
-          const { error: updErr } = await admin
-            .from("global_client_logos")
-            .update({ files })
-            .eq("id", existingRow.id);
-          if (updErr) throw updErr;
-          results.push({ name: p.name, status: "updated" });
-        } else {
-          results.push({ name: p.name, status: "skipped" });
+        const existingRow = existingByName.get(p.name.toLowerCase());
+        if (existingRow) {
+          const shouldUpdate = foundLogo && (force || files.length > existingRow.files.length);
+          if (shouldUpdate) {
+            const { error: updErr } = await admin
+              .from("global_client_logos")
+              .update({ files })
+              .eq("id", existingRow.id);
+            if (updErr) throw updErr;
+            allResults.push({ category, name: p.name, status: "updated" });
+          } else {
+            allResults.push({ category, name: p.name, status: "skipped" });
+          }
+          continue;
         }
-        continue;
+
+        rowsToInsert.push({
+          organization_id: organizationId,
+          name: p.name,
+          description: p.slug ? desc.withLogo : desc.withoutLogo,
+          category,
+          website_url: p.website,
+          files,
+          created_by: userData.user.id,
+        });
+        allResults.push({ category, name: p.name, status: foundLogo ? "inserted" : "no-logo" });
       }
 
-      rowsToInsert.push({
-        organization_id: organizationId,
-        name: p.name,
-        description: p.slug
-          ? "PartnerLink integration partner (logo via Simple Icons)"
-          : "PartnerLink integration partner — use Find Logos to discover assets",
-        category: CATEGORY,
-        website_url: p.website,
-        files,
-        created_by: userData.user.id,
-      });
-      results.push({ name: p.name, status: foundLogo ? "inserted" : "no-logo" });
-    }
-
-    if (rowsToInsert.length > 0) {
-      const { error: insertErr } = await admin
-        .from("global_client_logos")
-        .insert(rowsToInsert);
-      if (insertErr) throw insertErr;
+      if (rowsToInsert.length > 0) {
+        const { error: insertErr } = await admin
+          .from("global_client_logos")
+          .insert(rowsToInsert);
+        if (insertErr) throw insertErr;
+      }
     }
 
     const summary = {
-      total: PARTNERS.length,
-      inserted: results.filter((r) => r.status === "inserted").length,
-      updated: results.filter((r) => r.status === "updated").length,
-      withoutLogo: results.filter((r) => r.status === "no-logo").length,
-      skipped: results.filter((r) => r.status === "skipped").length,
-      results,
+      categories,
+      total: totalPartners,
+      inserted: allResults.filter((r) => r.status === "inserted").length,
+      updated: allResults.filter((r) => r.status === "updated").length,
+      withoutLogo: allResults.filter((r) => r.status === "no-logo").length,
+      skipped: allResults.filter((r) => r.status === "skipped").length,
+      results: allResults,
     };
+
 
     return new Response(JSON.stringify(summary), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

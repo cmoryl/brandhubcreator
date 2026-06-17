@@ -140,30 +140,35 @@ export function GlobalLogoHub() {
     }
   }, []);
 
-  const handleSeedPartnerLink = async () => {
+  const handleSeedCategory = async (category: 'PartnerLink Logos' | 'Media' | 'General') => {
     if (!organization?.id) return;
     const force = confirm(
-      'Seed PartnerLink Logos.\n\nOK = FORCE refresh every row (re-pull color, white & black variants from source)\nCancel = quick mode (only add missing rows / fill empty ones)',
+      `Seed ${category} Logos.\n\nOK = FORCE refresh every row (re-pull color, white & black variants from source)\nCancel = quick mode (only add missing rows / fill empty ones)`,
     );
     setIsSeedingPartners(true);
     try {
       const { data, error } = await supabase.functions.invoke('seed-partnerlink-logos', {
-        body: { organizationId: organization.id, force },
+        body: { organizationId: organization.id, force, category },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast.success(
-        `PartnerLink seed complete — ${data.inserted ?? 0} added, ${data.updated ?? 0} refreshed, ${data.withoutLogo ?? 0} without logos, ${data.skipped ?? 0} unchanged`,
+        `${category} seed complete — ${data.inserted ?? 0} added, ${data.updated ?? 0} refreshed, ${data.withoutLogo ?? 0} without logos, ${data.skipped ?? 0} unchanged`,
       );
       await fetchLogos();
-      setCategoryFilter('PartnerLink Logos');
+      setCategoryFilter(category);
     } catch (err) {
-      console.error('Failed to seed PartnerLink logos:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to seed PartnerLink logos');
+      console.error(`Failed to seed ${category} logos:`, err);
+      toast.error(err instanceof Error ? err.message : `Failed to seed ${category} logos`);
     } finally {
       setIsSeedingPartners(false);
     }
   };
+
+  const handleSeedPartnerLink = () => handleSeedCategory('PartnerLink Logos');
+  const handleSeedMedia = () => handleSeedCategory('Media');
+  const handleSeedGeneral = () => handleSeedCategory('General');
+
 
 
   const fetchLogos = useCallback(async () => {
@@ -447,22 +452,43 @@ export function GlobalLogoHub() {
           <h2 className="text-xl font-semibold">Global Logo Hub</h2>
           <p className="text-sm text-muted-foreground">Master library of client logos — brands and products can import from here</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             onClick={handleSeedPartnerLink}
             disabled={isSeedingPartners}
             className="gap-2"
-            title="Bulk-import the curated PartnerLink integration partners with white + black SVG/PNG assets"
+            title="Bulk-import the curated PartnerLink integration partners with color + white + black SVG/PNG assets"
           >
             {isSeedingPartners ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Seed PartnerLink Logos
+            Seed PartnerLink
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleSeedMedia}
+            disabled={isSeedingPartners}
+            className="gap-2"
+            title="Bulk-import curated Media & entertainment brands with color + white + black SVG/PNG assets"
+          >
+            {isSeedingPartners ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Seed Media
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleSeedGeneral}
+            disabled={isSeedingPartners}
+            className="gap-2"
+            title="Bulk-import curated General consumer brands with color + white + black SVG/PNG assets"
+          >
+            {isSeedingPartners ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Seed General
           </Button>
           <Button onClick={() => { resetForm(); setAddDialogOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" />
             Add Logo
           </Button>
         </div>
+
       </div>
 
       {/* Filters */}
