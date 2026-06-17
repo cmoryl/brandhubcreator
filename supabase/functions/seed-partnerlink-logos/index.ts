@@ -556,9 +556,7 @@ serve(async (req) => {
             allResults.push({ category, name: p.name, status: "skipped" });
             continue;
           }
-          const discoveredWordmarks = await discoverWordmarkLogos(p.website);
-          const generatedWordmarks = await generatedWordmarkFiles(p);
-          const wordmarks = [...generatedWordmarks, ...discoveredWordmarks];
+          const wordmarks = await generatedWordmarkFiles(p);
           // Drop existing wordmark entries; keep icon entries intact.
           const preserved = existingRow.files.filter((f: any) => f?.lockup !== "wordmark");
           const merged = [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))];
