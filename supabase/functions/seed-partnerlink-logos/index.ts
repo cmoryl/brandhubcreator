@@ -236,9 +236,97 @@ function colorizeSvg(svg: string, hex: string): string {
 }
 
 function svgToDataUrl(svg: string): string {
-  // Use base64 for safe transport in JSONB / data URLs
   const b64 = btoa(unescape(encodeURIComponent(svg)));
   return `data:image/svg+xml;base64,${b64}`;
+}
+
+function domainFromUrl(url: string): string | null {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+function absolutize(base: string, ref: string): string | null {
+  try { return new URL(ref, base).toString(); } catch { return null; }
+}
+
+async function urlOk(url: string, timeoutMs = 6000): Promise<boolean> {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    const res = await fetch(url, { method: "GET", signal: ctrl.signal, redirect: "follow" });
+    clearTimeout(t);
+    if (!res.ok) return false;
+    const ct = res.headers.get("content-type") || "";
+    return ct.startsWith("image/") || ct.includes("svg");
+  } catch { return false; }
+}
+
+async function scrapeSiteForLogo(website: string): Promise<Array<{ url: string; format: "svg" | "png" | "jpg" }>> {
+  const found: Array<{ url: string; format: "svg" | "png" | "jpg" }> = [];
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(website, {
+      signal: ctrl.signal,
+      redirect: "follow",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml",
+      },
+    });
+    clearTimeout(t);
+    if (!res.ok) return found;
+    const html = await res.text();
+    const candidates = new Set<string>();
+    const patterns = [
+      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/gi,
+      /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/gi,
+      /<link[^>]+rel=["'][^"']*apple-touch-icon[^"']*["'][^>]+href=["']([^"']+)["']/gi,
+      /<link[^>]+rel=["'][^"']*icon[^"']*["'][^>]+href=["']([^"']+)["']/gi,
+      /<link[^>]+rel=["']mask-icon["'][^>]+href=["']([^"']+)["']/gi,
+      /<img[^>]+(?:class|id|alt)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/gi,
+      /<img[^>]+src=["']([^"']+)["'][^>]+(?:class|id|alt)=["'][^"']*logo[^"']*["']/gi,
+    ];
+    for (const re of patterns) {
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(html)) !== null) {
+        const abs = absolutize(website, m[1]);
+        if (abs) candidates.add(abs);
+      }
+    }
+    for (const u of candidates) {
+      const lower = u.toLowerCase().split("?")[0];
+      let fmt: "svg" | "png" | "jpg" = "png";
+      if (lower.endsWith(".svg")) fmt = "svg";
+      else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) fmt = "jpg";
+      if (await urlOk(u)) {
+        found.push({ url: u, format: fmt });
+        if (found.length >= 3) break;
+      }
+    }
+  } catch { /* ignore */ }
+  return found;
+}
+
+async function discoverColorLogo(website: string): Promise<Array<{ variant: "color"; format: "svg" | "png" | "jpg"; url: string }>> {
+  const out: Array<{ variant: "color"; format: "svg" | "png" | "jpg"; url: string }> = [];
+  const domain = domainFromUrl(website);
+  if (!domain) return out;
+
+  const clearbit = `https://logo.clearbit.com/${domain}?size=512`;
+  if (await urlOk(clearbit)) out.push({ variant: "color", format: "png", url: clearbit });
+
+  const scraped = await scrapeSiteForLogo(website);
+  for (const s of scraped) out.push({ variant: "color", format: s.format, url: s.url });
+
+  if (out.length === 0) {
+    const google = `https://www.google.com/s2/favicons?domain=${domain}&sz=256`;
+    if (await urlOk(google)) out.push({ variant: "color", format: "png", url: google });
+  }
+  return out;
 }
 
 serve(async (req) => {
@@ -344,6 +432,7 @@ serve(async (req) => {
 
         const files: any[] = [];
         let foundLogo = false;
+        let hasColor = false;
         if (p.slug) {
           const svg = await fetchSimpleIconSvg(p.slug);
           if (svg) {
@@ -361,9 +450,21 @@ serve(async (req) => {
               const colorSvg = colorizeSvg(svg, `#${cleanHex}`);
               files.push({ variant: "color", format: "svg", url: svgToDataUrl(colorSvg) });
               files.push({ variant: "color", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/${cleanHex}` });
+              hasColor = true;
             }
           }
         }
+
+        // Deep discovery fallback: ALWAYS try to find real brand color logo from web
+        // (Clearbit CDN → site HTML scrape for og:image/apple-touch-icon/<img class=logo> → Google favicons)
+        if (!hasColor) {
+          const discovered = await discoverColorLogo(p.website);
+          for (const d of discovered) {
+            files.push(d);
+            foundLogo = true;
+          }
+        }
+
 
         const existingRow = existingByName.get(p.name.toLowerCase());
         if (existingRow) {
