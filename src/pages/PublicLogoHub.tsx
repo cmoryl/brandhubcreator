@@ -380,22 +380,18 @@ export default function PublicLogoHub() {
                       </button>
                     ))}
                   </div>
-                  <div className="p-3 flex flex-wrap gap-1.5">
-                    {logo.files.slice(0, 6).map((f, i) => (
-                      <Button
-                        key={i}
-                        asChild
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-[10px] px-2"
-                      >
-                        <a href={f.url} target="_blank" rel="noopener noreferrer" download>
-                          <Download className="h-3 w-3 mr-1" />
-                          {f.format?.toUpperCase()} · {f.variant}
-                        </a>
-                      </Button>
-                    ))}
+                  <div className="p-3 flex flex-wrap items-center gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="default"
+                      className="h-7 text-[10px] px-2"
+                      onClick={() => downloadFilesAsZip(logo.name, logo.files)}
+                    >
+                      <Package className="h-3 w-3 mr-1" />
+                      Download all ({logo.files.length})
+                    </Button>
                   </div>
+
                 </article>
               );
             })}
