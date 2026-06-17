@@ -123,7 +123,7 @@ export function AdminImageLibrary() {
         setOrganizations(data);
         if (data.length > 0 && !selectedOrgId) {
           setSelectedOrgId(data[0].id);
-          fetchImages(data[0].id);
+          fetchImages(data[0].id, { includeLegacy: true });
         }
       }
     };
@@ -134,7 +134,7 @@ export function AdminImageLibrary() {
   const handleOrgChange = useCallback((orgId: string) => {
     setSelectedOrgId(orgId);
     setSelectedImages(new Set());
-    fetchImages(orgId);
+    fetchImages(orgId, { includeLegacy: true });
   }, [fetchImages]);
 
   // Filter images
@@ -338,7 +338,7 @@ export function AdminImageLibrary() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => fetchImages(selectedOrgId)}
+                onClick={() => fetchImages(selectedOrgId, { includeLegacy: true })}
                 disabled={isLoading}
               >
                 <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
