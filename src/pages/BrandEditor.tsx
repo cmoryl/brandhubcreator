@@ -137,7 +137,7 @@ const BrandEditor = () => {
   const { user, isAdmin, isApproved, signOut, isLoading: authLoading } = useAuth();
   const { userRole: orgRole, organization, isLoading: orgLoading } = useOrganization();
   
-  const dropdownPortalRef = useRef<HTMLDivElement | null>(null);
+  const [dropdownPortalEl, setDropdownPortalEl] = useState<HTMLDivElement | null>(null);
 
   const [activeSection, setActiveSection] = useState<SectionId>('hero');
   const [sidebarOpen, setSidebarOpen] = useState(false);
