@@ -67,6 +67,47 @@ export function GlobalLogoHub() {
   const [validations, setValidations] = useState<Record<string, LogoValidationResult>>({});
   const [validatingId, setValidatingId] = useState<string | null>(null);
   const [isValidatingAll, setIsValidatingAll] = useState(false);
+  const [exemptIds, setExemptIds] = useState<Set<string>>(new Set());
+  const [resyncingId, setResyncingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (organization?.id) setExemptIds(getExemptions(organization.id));
+  }, [organization?.id]);
+
+  const toggleExempt = useCallback((logoId: string) => {
+    if (!organization?.id) return;
+    const wasExempt = exemptIds.has(logoId);
+    const next = setExempt(organization.id, logoId, !wasExempt);
+    setExemptIds(new Set(next));
+    toast.success(wasExempt ? 'Validation alerts re-enabled' : 'Marked as exempt — alerts hidden');
+  }, [organization?.id, exemptIds]);
+
+  const handleResyncOne = useCallback(async (logo: GlobalClientLogo) => {
+    if (!organization?.id) return;
+    setResyncingId(logo.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('seed-partnerlink-logos', {
+        body: { organizationId: organization.id, names: [logo.name], force: true },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const updated = data?.results?.find((r: any) => r.name === logo.name);
+      if (!updated || updated.status === 'no-logo') {
+        toast.error(`No source logo found for ${logo.name}. Use "Find Logos" or upload manually.`);
+      } else if (updated.status === 'skipped') {
+        toast.message(`${logo.name} is already up to date.`);
+      } else {
+        toast.success(`Re-downloaded files for ${logo.name}`);
+      }
+      await fetchLogos();
+    } catch (err) {
+      console.error('Re-sync failed:', err);
+      toast.error(err instanceof Error ? err.message : 'Re-sync failed');
+    } finally {
+      setResyncingId((curr) => (curr === logo.id ? null : curr));
+    }
+  }, [organization?.id]);
+
 
   const runValidation = useCallback(async (logo: GlobalClientLogo) => {
     setValidatingId(logo.id);
