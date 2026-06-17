@@ -272,23 +272,24 @@ export function GlobalLogoHub() {
     setAddDialogOpen(true);
   };
 
-  const handleFileUploadFromLibrary = (variant: ClientLogoVariant, url: string) => {
+  const handleFileUploadFromLibrary = (variant: ClientLogoVariant, lockup: 'icon' | 'wordmark', url: string) => {
     const format: ClientLogoFormat = 'png';
-    const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format));
-    setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url }] }));
-    toast.success(`${VARIANT_LABELS[variant]} logo added`);
+    const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format && (f.lockup ?? 'icon') === lockup));
+    setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url, lockup }] }));
+    toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} logo added`);
   };
 
-  const handleLocalFileUpload = (variant: ClientLogoVariant, format: ClientLogoFormat, file: File) => {
+  const handleLocalFileUpload = (variant: ClientLogoVariant, lockup: 'icon' | 'wordmark', format: ClientLogoFormat, file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const url = e.target?.result as string;
-      const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format));
-      setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url }] }));
-      toast.success(`${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
+      const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format && (f.lockup ?? 'icon') === lockup));
+      setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url, lockup }] }));
+      toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
     };
     reader.readAsDataURL(file);
   };
+
 
   const handleAIGenerate = async () => {
     if (!organization?.id || !formData.name.trim()) {
