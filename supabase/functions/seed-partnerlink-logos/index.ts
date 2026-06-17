@@ -439,31 +439,38 @@ serve(async (req) => {
             foundLogo = true;
             const whiteSvg = colorizeSvg(svg, "#ffffff");
             const blackSvg = colorizeSvg(svg, "#000000");
-            files.push({ variant: "white", format: "svg", url: svgToDataUrl(whiteSvg) });
-            files.push({ variant: "black", format: "svg", url: svgToDataUrl(blackSvg) });
-            files.push({ variant: "white", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/ffffff` });
-            files.push({ variant: "black", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/000000` });
+            files.push({ variant: "white", format: "svg", url: svgToDataUrl(whiteSvg), lockup: "icon" });
+            files.push({ variant: "black", format: "svg", url: svgToDataUrl(blackSvg), lockup: "icon" });
+            files.push({ variant: "white", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/ffffff`, lockup: "icon" });
+            files.push({ variant: "black", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/000000`, lockup: "icon" });
 
             const hex = await fetchSimpleIconBrandHex(p.slug);
             if (hex) {
               const cleanHex = hex.replace("#", "");
               const colorSvg = colorizeSvg(svg, `#${cleanHex}`);
-              files.push({ variant: "color", format: "svg", url: svgToDataUrl(colorSvg) });
-              files.push({ variant: "color", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/${cleanHex}` });
+              files.push({ variant: "color", format: "svg", url: svgToDataUrl(colorSvg), lockup: "icon" });
+              files.push({ variant: "color", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/${cleanHex}`, lockup: "icon" });
               hasColor = true;
             }
           }
         }
 
         // Deep discovery fallback: ALWAYS try to find real brand color logo from web
-        // (Clearbit CDN → site HTML scrape for og:image/apple-touch-icon/<img class=logo> → Google favicons)
         if (!hasColor) {
           const discovered = await discoverColorLogo(p.website);
           for (const d of discovered) {
-            files.push(d);
+            files.push({ ...d, lockup: "icon" });
             foundLogo = true;
           }
         }
+
+        // Wordmark / full-logo discovery — populates the wordmark row.
+        const wordmarks = await discoverWordmarkLogos(p.website);
+        for (const w of wordmarks) {
+          files.push({ ...w, lockup: "wordmark" });
+          foundLogo = true;
+        }
+
 
 
         const existingRow = existingByName.get(p.name.toLowerCase());
