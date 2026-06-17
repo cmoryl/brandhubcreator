@@ -555,7 +555,7 @@ export function GlobalLogoHub() {
             title="Re-scrape and OVERWRITE wordmark slots for every partner across all categories. Icons are preserved."
           >
             {isSeedingPartners ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Seed Wordmarks (Force)
+            Seed Logos (Force)
           </Button>
           <Button onClick={() => { resetForm(); setAddDialogOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" />
@@ -649,7 +649,7 @@ export function GlobalLogoHub() {
                         </div>
                       </div>
                       {/* Wordmark row */}
-                      <div className="px-2 pt-1 text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Wordmark{!hasWordmark && <span className="ml-1 normal-case text-muted-foreground/60">— add via Edit</span>}</div>
+                      <div className="px-2 pt-1 text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Logo{!hasWordmark && <span className="ml-1 normal-case text-muted-foreground/60">— add via Edit</span>}</div>
                       <div className="grid grid-cols-3 divide-x divide-border border-b">
                         <div className="aspect-[4/3] bg-white flex items-center justify-center p-3">
                           {wmColorPreview ? (
@@ -807,7 +807,7 @@ export function GlobalLogoHub() {
             {/* File uploads per variant — Icon + Wordmark */}
             {(['icon', 'wordmark'] as const).map(lockup => (
               <div key={lockup} className="space-y-2">
-                <Label>{lockup === 'icon' ? 'Icon / Logomark Files' : 'Wordmark / Full Logo Files'}</Label>
+                <Label>{lockup === 'icon' ? 'Icon / Logomark Files' : 'Full Logo Files'}</Label>
                 <p className="text-xs text-muted-foreground">
                   {lockup === 'icon'
                     ? 'Square symbol or logomark (e.g. the Salesforce cloud).'

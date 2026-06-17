@@ -129,7 +129,7 @@ export default function PublicLogoHub() {
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl">
             Browse every brand, partner and client logo in the library — with color, black, white,
-            icon and full wordmark variants.
+            icon and full logo variants.
           </p>
           <div className="mt-6 flex items-center gap-4 text-sm text-muted-foreground">
             <span>
@@ -180,7 +180,7 @@ export default function PublicLogoHub() {
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="icon">Icon</TabsTrigger>
-              <TabsTrigger value="wordmark">Wordmark</TabsTrigger>
+              <TabsTrigger value="wordmark">Logo</TabsTrigger>
             </TabsList>
           </Tabs>
           <Tabs value={variant} onValueChange={(v) => setVariant(v as VariantFilter)}>
