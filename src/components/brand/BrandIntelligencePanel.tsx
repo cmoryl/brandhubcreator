@@ -46,6 +46,7 @@ import { InsightActionTracker } from './intelligence/InsightActionTracker';
 import { BiasAwarenessPanel } from './BiasAwarenessPanel';
 import { VisibilityGapsPanel } from './visibility/VisibilityGapsPanel';
 import { CompetitiveLandscapeSection } from './intelligence/CompetitiveLandscapeSection';
+import { CanvaOperationsTile } from './intelligence/CanvaOperationsTile';
 import { CulturalIntelligenceSection } from './intelligence/CulturalIntelligenceSection';
 import { ImportReportDialog } from './intelligence/ImportReportDialog';
 import { VisualIntelligenceCard } from './approved-imagery/VisualIntelligenceCard';
@@ -162,6 +163,8 @@ interface BrandIntelligencePanelProps {
   entityName: string;
   organizationId?: string;
   parentBrandName?: string;
+  brandSlug?: string;
+  canEdit?: boolean;
 }
 
 const entryTypeIcons: Record<string, React.ReactNode> = {
@@ -184,7 +187,9 @@ export const BrandIntelligencePanel = ({
   entityId, 
   entityName,
   organizationId,
-  parentBrandName 
+  parentBrandName,
+  brandSlug,
+  canEdit,
 }: BrandIntelligencePanelProps) => {
   const [intelligence, setIntelligence] = useState<BrandIntelligence | null>(null);
   const [visibilityAuditForExport, setVisibilityAuditForExport] = useState<any>(null);
