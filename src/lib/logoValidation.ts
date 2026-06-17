@@ -110,6 +110,15 @@ const validateSvgString = (
   if (variant === 'black' && !/fill="?#000(000)?"?/i.test(svg)) {
     issues.push('fill-not-applied');
   }
+  if (variant === 'color') {
+    // Brand-color SVG must carry a fill, and it must NOT be pure white/black.
+    const fillMatch = svg.match(/fill="(#[0-9a-fA-F]{3,8})"/);
+    const fill = fillMatch?.[1]?.toLowerCase();
+    const isMonochrome = fill === '#fff' || fill === '#ffffff' || fill === '#000' || fill === '#000000';
+    if (!fill || isMonochrome) {
+      issues.push('fill-not-applied');
+    }
+  }
   return issues;
 };
 
