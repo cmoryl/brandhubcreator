@@ -106,6 +106,7 @@ const BrandAgentPage = lazyWithRetry(() => import("./pages/BrandAgentPage"));
 const IconStudioPage = lazyWithRetry(() => import("./pages/IconStudioPage"));
 const AttributionsView = lazyWithRetry(() => import("./pages/AttributionsView"));
 const BrandIconHubPage = lazyWithRetry(() => import("./pages/BrandIconHubPage"));
+const PublicLogoHub = lazyWithRetry(() => import("./pages/PublicLogoHub"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -530,6 +531,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <ClaudeForDesigners />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="logohub"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHub />
                         </Suspense>
                       }
                     />
