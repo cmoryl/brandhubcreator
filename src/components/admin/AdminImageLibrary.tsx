@@ -134,7 +134,7 @@ export function AdminImageLibrary() {
   const handleOrgChange = useCallback((orgId: string) => {
     setSelectedOrgId(orgId);
     setSelectedImages(new Set());
-    fetchImages(orgId);
+    fetchImages(orgId, { includeLegacy: true });
   }, [fetchImages]);
 
   // Filter images
