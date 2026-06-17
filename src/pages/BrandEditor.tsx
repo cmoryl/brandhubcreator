@@ -588,10 +588,9 @@ const BrandEditor = () => {
 
   // Get header style classes
   const getHeaderClasses = () => {
-    // isolation:isolate ensures the sticky header forms its own stacking context
-    // so progressively-hydrated sections (with `will-change-transform`/motion)
-    // further down the page cannot paint over the user/admin dropdown trigger.
-    const base = 'sticky top-0 z-50 isolate animate-fade-in-down';
+    // Keep the editor navigation fixed to the viewport. Sticky positioning can be
+    // constrained by long editable sections, which made the user dropdown scroll away.
+    const base = `fixed top-0 left-0 ${viewMode !== 'cards' ? 'lg:left-72' : 'lg:left-0'} right-0 z-[80] isolate`;
     switch (pageSettings.headerStyle) {
       case 'minimal': return `${base} bg-background border-b border-border`;
       case 'transparent': return `${base} bg-transparent`;
@@ -937,7 +936,7 @@ const BrandEditor = () => {
     <TooltipProvider>
       <UnsavedChangesBlocker />
       {/* Fixed portal container for header dropdowns so they stay visible while scrolling */}
-      <div ref={setDropdownPortalEl} className="fixed top-0 left-0 h-0 w-full z-[9999]" aria-hidden="true" />
+      <div ref={setDropdownPortalEl} className="fixed inset-0 z-[9999] pointer-events-none" />
       <div className="min-h-screen bg-background flex relative">
         {/* Brand-specific Background */}
         {pageSettings.backgroundType !== 'inherit' && pageSettings.backgroundType !== 'solid' && (
@@ -1147,7 +1146,7 @@ const BrandEditor = () => {
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent container={dropdownPortalEl} align="end" sideOffset={8} collisionPadding={8} className="w-56 z-[100]">
+                    <DropdownMenuContent container={dropdownPortalEl} align="end" sideOffset={8} collisionPadding={8} className="w-56 z-[10000] pointer-events-auto">
                       <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                           <p className="text-sm font-medium leading-none">{user.email}</p>
@@ -1238,6 +1237,7 @@ const BrandEditor = () => {
               </div>
             </div>
           </header>
+          <div className="h-16 flex-shrink-0" aria-hidden="true" />
 
           {/* Admin Toolbar - visible to members (analytics) and admins (full) */}
           <AdminToolbar
