@@ -378,71 +378,212 @@ async function discoverColorLogo(website: string): Promise<Array<{ variant: "col
   return out;
 }
 
-// Wordmark discovery: scrape the brand's site for wide (>=1.6:1) logo images
-// — og:image, twitter:image, <img class=logo>, header SVG/PNGs — and return the
-// best 1-2 candidates as wordmark color assets.
-async function discoverWordmarkLogos(
-  website: string,
-): Promise<Array<{ variant: "color"; format: "svg" | "png" | "jpg"; url: string }>> {
-  const out: Array<{ variant: "color"; format: "svg" | "png" | "jpg"; url: string }> = [];
+type LogoFormat = "svg" | "png" | "jpg";
+type WordmarkFile = { variant: "color" | "white" | "black"; format: LogoFormat; url: string; lockup: "wordmark"; source?: string };
+type LogoCandidate = { url: string; source: "official" | "wikimedia"; context: string; score: number };
+type AssetMeta = { ok: boolean; format: LogoFormat; width?: number; height?: number; aspect?: number; svg?: string; contentType?: string };
+
+function inferFormat(url: string, contentType = ""): LogoFormat | null {
+  const lower = url.toLowerCase().split("?")[0];
+  if (contentType.includes("svg") || lower.endsWith(".svg")) return "svg";
+  if (contentType.includes("jpeg") || contentType.includes("jpg") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "jpg";
+  if (contentType.includes("png") || lower.endsWith(".png")) return "png";
+  return null;
+}
+
+function logoCandidateScore(url: string, context: string, brandName: string, source: "official" | "wikimedia"): number {
+  const hay = `${url} ${context}`.toLowerCase();
+  const brand = cleanWordmarkName(brandName).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  let score = source === "official" ? 55 : 48;
+  if (hay.includes("wordmark")) score += 35;
+  if (hay.includes("full-logo") || hay.includes("full_logo") || hay.includes("lockup")) score += 28;
+  if (hay.includes("horizontal")) score += 22;
+  if (hay.includes("logo")) score += 18;
+  if (hay.includes("brand") || hay.includes("navbar") || hay.includes("header")) score += 10;
+  for (const part of brand.split(" ").filter((p) => p.length > 2)) if (hay.includes(part)) score += 5;
+  if (/favicon|apple-touch|touch-icon|mask-icon|sprite|app-icon|icon[-_]?\d|symbol|glyph|avatar|badge|social|og-image|opengraph/i.test(hay)) score -= 35;
+  if (/old|former|previous|legacy|obsolete|deprecated/i.test(hay)) score -= 18;
+  if (/\.svg(?:\?|$)/i.test(url)) score += 12;
+  return score;
+}
+
+function decodeHtmlEntities(value: string): string {
+  return value.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+}
+
+function getAttr(tag: string, attr: string): string | null {
+  const m = new RegExp(`${attr}=["']([^"']+)["']`, "i").exec(tag);
+  return m?.[1] ? decodeHtmlEntities(m[1]) : null;
+}
+
+function urlsFromSrcset(srcset: string): string[] {
+  return srcset.split(",").map((part) => part.trim().split(/\s+/)[0]).filter(Boolean);
+}
+
+function parseSvgDimensions(svg: string): { width?: number; height?: number; aspect?: number } {
+  const tag = /<svg\b[^>]*>/i.exec(svg)?.[0] ?? "";
+  const num = (v: string | null) => {
+    if (!v) return undefined;
+    const n = Number.parseFloat(v.replace(/px$/i, ""));
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  };
+  let width = num(getAttr(tag, "width"));
+  let height = num(getAttr(tag, "height"));
+  const vb = /viewBox=["']\s*[-\d.]+\s+[-\d.]+\s+([\d.]+)\s+([\d.]+)\s*["']/i.exec(tag);
+  if ((!width || !height) && vb) {
+    width = width ?? Number.parseFloat(vb[1]);
+    height = height ?? Number.parseFloat(vb[2]);
+  }
+  return width && height ? { width, height, aspect: width / height } : { width, height };
+}
+
+function parsePngDimensions(bytes: Uint8Array): { width?: number; height?: number; aspect?: number } {
+  if (bytes.length < 24 || bytes[0] !== 0x89 || bytes[1] !== 0x50 || bytes[2] !== 0x4e || bytes[3] !== 0x47) return {};
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const width = view.getUint32(16);
+  const height = view.getUint32(20);
+  return width && height ? { width, height, aspect: width / height } : {};
+}
+
+function parseJpegDimensions(bytes: Uint8Array): { width?: number; height?: number; aspect?: number } {
+  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) return {};
+  let offset = 2;
+  while (offset + 9 < bytes.length) {
+    if (bytes[offset] !== 0xff) break;
+    const marker = bytes[offset + 1];
+    const len = (bytes[offset + 2] << 8) + bytes[offset + 3];
+    if (marker >= 0xc0 && marker <= 0xc3) {
+      const height = (bytes[offset + 5] << 8) + bytes[offset + 6];
+      const width = (bytes[offset + 7] << 8) + bytes[offset + 8];
+      return width && height ? { width, height, aspect: width / height } : {};
+    }
+    offset += 2 + len;
+  }
+  return {};
+}
+
+function sanitizeSvg(svg: string): string {
+  return svg.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, "").replace(/\son\w+=["'][^"']*["']/gi, "").replace(/\sxmlns:xlink=["'][^"']*["']/gi, "");
+}
+
+function monochromeSvg(svg: string, color: string): string {
+  return sanitizeSvg(svg).replace(/<svg([^>]*)>/i, `<svg$1><style>*{fill:${color}!important} [fill="none"],[fill="transparent"]{fill:none!important} [stroke]:not([stroke="none"]){stroke:${color}!important}</style>`);
+}
+
+async function fetchAssetMeta(url: string, timeoutMs = 9000): Promise<AssetMeta | null> {
   try {
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 8000);
-    const res = await fetch(website, {
-      signal: ctrl.signal,
-      redirect: "follow",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml",
-      },
-    });
+    const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    const res = await fetch(url, { signal: ctrl.signal, redirect: "follow" });
     clearTimeout(t);
-    if (!res.ok) return out;
-    const html = await res.text();
-    const candidates: string[] = [];
-    const push = (u: string | null) => { if (u && !candidates.includes(u)) candidates.push(u); };
-
-    // Logo-class / alt=logo images (most likely the wordmark in the header).
-    const logoImg = [
-      /<img[^>]+(?:class|id|alt)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/gi,
-      /<img[^>]+src=["']([^"']+)["'][^>]+(?:class|id|alt)=["'][^"']*logo[^"']*["']/gi,
-      /<img[^>]+(?:class|id|alt)=["'][^"']*wordmark[^"']*["'][^>]+src=["']([^"']+)["']/gi,
-    ];
-    for (const re of logoImg) {
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(html)) !== null) push(absolutize(website, m[1]));
+    if (!res.ok) return null;
+    const contentType = res.headers.get("content-type") || "";
+    const format = inferFormat(url, contentType);
+    if (!format) return null;
+    if (format === "svg") {
+      const svg = sanitizeSvg(await res.text());
+      if (!svg.includes("<svg")) return null;
+      return { ok: true, format, ...parseSvgDimensions(svg), svg, contentType };
     }
-    // Inline SVG header logos referenced via <use href> or external <object>.
-    const objRe = /<object[^>]+data=["']([^"']+\.svg)["']/gi;
-    let m: RegExpExecArray | null;
-    while ((m = objRe.exec(html)) !== null) push(absolutize(website, m[1]));
-    // OpenGraph fallbacks — usually full social cards, sometimes wordmarks.
-    const og = [
-      /<meta[^>]+property=["']og:logo["'][^>]+content=["']([^"']+)["']/gi,
-      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/gi,
-      /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/gi,
-    ];
-    for (const re of og) {
-      let mm: RegExpExecArray | null;
-      while ((mm = re.exec(html)) !== null) push(absolutize(website, mm[1]));
-    }
+    const buf = new Uint8Array(await res.arrayBuffer());
+    const dims = format === "png" ? parsePngDimensions(buf) : parseJpegDimensions(buf);
+    return { ok: true, format, ...dims, contentType };
+  } catch { return null; }
+}
 
-    for (const u of candidates) {
-      const lower = u.toLowerCase().split("?")[0];
-      // Skip obvious sprite sheets / favicons / app icons.
-      if (/(favicon|apple-touch|sprite|icon-\d|\/icons?\/)/i.test(lower)) continue;
-      let fmt: "svg" | "png" | "jpg" = "png";
-      if (lower.endsWith(".svg")) fmt = "svg";
-      else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) fmt = "jpg";
-      else if (!lower.endsWith(".png") && !lower.endsWith(".webp")) continue;
-      if (await urlOk(u)) {
-        out.push({ variant: "color", format: fmt, url: u });
-        if (out.length >= 2) break;
+function pushUniqueCandidate(candidates: LogoCandidate[], candidate: LogoCandidate) {
+  if (candidate.url && !candidates.some((c) => c.url === candidate.url)) candidates.push(candidate);
+}
+
+function officialLogoCandidatesFromHtml(website: string, html: string, brandName: string): LogoCandidate[] {
+  const candidates: LogoCandidate[] = [];
+  const tags = [...html.matchAll(/<(?:img|source|link|meta|object|embed|a|use)\b[^>]*>/gi)].map((m) => m[0]);
+  for (const tag of tags) {
+    if (!/logo|wordmark|brand|navbar|header|masthead/i.test(tag)) continue;
+    const urls = [getAttr(tag, "src"), getAttr(tag, "href"), getAttr(tag, "data"), getAttr(tag, "content"), getAttr(tag, "data-src"), getAttr(tag, "data-lazy-src"), getAttr(tag, "data-original"), ...urlsFromSrcset(getAttr(tag, "srcset") ?? ""), ...urlsFromSrcset(getAttr(tag, "data-srcset") ?? "")].filter(Boolean) as string[];
+    for (const raw of urls) {
+      const abs = absolutize(website, raw);
+      if (!abs) continue;
+      const score = logoCandidateScore(abs, tag, brandName, "official");
+      if (score > 35) pushUniqueCandidate(candidates, { url: abs, source: "official", context: tag, score });
+    }
+  }
+  for (const m of html.matchAll(/url\((['"]?)([^)'" ]+)\1\)/gi)) {
+    if (!/logo|wordmark|brand/i.test(m[2])) continue;
+    const abs = absolutize(website, m[2]);
+    if (abs) pushUniqueCandidate(candidates, { url: abs, source: "official", context: m[2], score: logoCandidateScore(abs, m[2], brandName, "official") });
+  }
+  return candidates;
+}
+
+async function discoverOfficialWordmarkCandidates(website: string, brandName: string): Promise<LogoCandidate[]> {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 10000);
+    const res = await fetch(website, { signal: ctrl.signal, redirect: "follow", headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36", Accept: "text/html,application/xhtml+xml" } });
+    clearTimeout(t);
+    if (!res.ok) return [];
+    return officialLogoCandidatesFromHtml(res.url || website, await res.text(), brandName);
+  } catch { return []; }
+}
+
+async function discoverWikimediaWordmarkCandidates(brandName: string): Promise<LogoCandidate[]> {
+  const out: LogoCandidate[] = [];
+  const base = cleanWordmarkName(brandName);
+  for (const search of [`${base} logo svg`, `${base} wordmark svg`, `${base} horizontal logo svg`]) {
+    try {
+      const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=12&gsrsearch=${encodeURIComponent(search)}&prop=imageinfo&iiprop=url|mime|size&format=json&origin=*`;
+      const res = await fetch(url, { redirect: "follow", headers: { Accept: "application/json" } });
+      if (!res.ok) continue;
+      const pages = Object.values((await res.json())?.query?.pages ?? {}) as any[];
+      for (const page of pages) {
+        const image = page?.imageinfo?.[0];
+        if (!image?.url) continue;
+        const context = `${page.title ?? ""} ${image.mime ?? ""}`;
+        const score = logoCandidateScore(image.url, context, brandName, "wikimedia");
+        if (score > 32) pushUniqueCandidate(out, { url: image.url, source: "wikimedia", context, score });
       }
-    }
-  } catch { /* ignore */ }
+    } catch { /* continue */ }
+  }
   return out;
+}
+
+async function selectBestWordmarkCandidate(candidates: LogoCandidate[]): Promise<{ candidate: LogoCandidate; meta: AssetMeta } | null> {
+  let best: { candidate: LogoCandidate; meta: AssetMeta; score: number } | null = null;
+  for (const candidate of [...candidates].sort((a, b) => b.score - a.score).slice(0, 18)) {
+    const meta = await fetchAssetMeta(candidate.url);
+    if (!meta?.ok) continue;
+    const aspect = meta.aspect ?? 0;
+    let score = candidate.score + (meta.format === "svg" ? 20 : 0) + (((meta.width ?? 0) >= 220 || meta.format === "svg") ? 8 : 0);
+    if (aspect >= 1.8 && aspect <= 10) score += 45;
+    else if (aspect >= 1.35) score += 22;
+    else if (aspect > 0 && aspect < 1.15) score -= 38;
+    if (!best || score > best.score) best = { candidate, meta, score };
+  }
+  return best ? { candidate: best.candidate, meta: best.meta } : null;
+}
+
+function sourceToWordmarkFiles(candidate: LogoCandidate, meta: AssetMeta): WordmarkFile[] {
+  if (meta.format === "svg" && meta.svg) {
+    return [
+      { variant: "color", format: "svg", url: svgToDataUrl(meta.svg), lockup: "wordmark", source: candidate.source },
+      { variant: "white", format: "svg", url: svgToDataUrl(monochromeSvg(meta.svg, "#ffffff")), lockup: "wordmark", source: candidate.source },
+      { variant: "black", format: "svg", url: svgToDataUrl(monochromeSvg(meta.svg, "#000000")), lockup: "wordmark", source: candidate.source },
+    ];
+  }
+  return [{ variant: "color", format: meta.format, url: candidate.url, lockup: "wordmark", source: candidate.source }];
+}
+
+async function discoverWordmarkLogos(p: Partner): Promise<WordmarkFile[]> {
+  const selected = await selectBestWordmarkCandidate([
+    ...await discoverOfficialWordmarkCandidates(p.website, p.name),
+    ...await discoverWikimediaWordmarkCandidates(p.name),
+  ]);
+  const generated = await generatedWordmarkFiles(p);
+  if (!selected) return generated.map((g) => ({ ...g, source: "generated" }));
+  const real = sourceToWordmarkFiles(selected.candidate, selected.meta);
+  const variants = new Set(real.map((f) => f.variant));
+  return [...real, ...generated.filter((g) => !variants.has(g.variant)).map((g) => ({ ...g, source: "generated" }))];
 }
 
 serve(async (req) => {
@@ -532,15 +673,42 @@ serve(async (req) => {
       // Existing rows in this category for this org → backfill if missing files, else skip.
       const { data: existing } = await admin
         .from("global_client_logos")
-        .select("id, name, files")
+        .select("id, name, website_url, files")
         .eq("organization_id", organizationId)
         .eq("category", category);
-      const existingByName = new Map<string, { id: string; files: any[] }>(
+      const existingByName = new Map<string, { id: string; website_url?: string | null; files: any[] }>(
         (existing || []).map((r: any) => [
           r.name.toLowerCase(),
-          { id: r.id, files: Array.isArray(r.files) ? r.files : [] },
+          { id: r.id, website_url: r.website_url, files: Array.isArray(r.files) ? r.files : [] },
         ]),
       );
+
+      if (wordmarksOnly) {
+        const curatedByName = new Map(partners.map((p) => [p.name.toLowerCase(), p]));
+        totalPartners += Math.max(0, (existing || []).length - partners.length);
+        for (const row of existing || []) {
+          if (namesFilterLower && !namesFilterLower.includes(row.name.toLowerCase())) continue;
+          const curated = curatedByName.get(row.name.toLowerCase());
+          const target: Partner = {
+            name: row.name,
+            website: row.website_url || curated?.website || "",
+            slug: curated?.slug,
+          };
+          const wordmarks = await discoverWordmarkLogos(target);
+          if (wordmarks.length === 0) {
+            allResults.push({ category, name: row.name, status: "no-logo" });
+            continue;
+          }
+          const preserved = (Array.isArray(row.files) ? row.files : []).filter((f: any) => f?.lockup !== "wordmark");
+          const { error: updErr } = await admin
+            .from("global_client_logos")
+            .update({ files: [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))] })
+            .eq("id", row.id);
+          if (updErr) throw updErr;
+          allResults.push({ category, name: row.name, status: "updated" });
+        }
+        continue;
+      }
 
       const rowsToInsert: any[] = [];
 
@@ -556,7 +724,7 @@ serve(async (req) => {
             allResults.push({ category, name: p.name, status: "skipped" });
             continue;
           }
-          const wordmarks = await generatedWordmarkFiles(p);
+          const wordmarks = await discoverWordmarkLogos(p);
           // Drop existing wordmark entries; keep icon entries intact.
           const preserved = existingRow.files.filter((f: any) => f?.lockup !== "wordmark");
           const merged = [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))];
@@ -608,9 +776,7 @@ serve(async (req) => {
         }
 
         // Wordmark / full-logo discovery — populates the wordmark row.
-        const discoveredWordmarks = await discoverWordmarkLogos(p.website);
-        const generatedWordmarks = await generatedWordmarkFiles(p);
-        const wordmarks = [...generatedWordmarks, ...discoveredWordmarks];
+        const wordmarks = await discoverWordmarkLogos(p);
         for (const w of wordmarks) {
           files.push({ ...w, lockup: "wordmark" });
           foundLogo = true;
