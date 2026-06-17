@@ -85,7 +85,7 @@ describe('scrollToSection', () => {
     expect(scrollToSpy).toHaveBeenCalled();
     const firstCall = scrollToSpy.mock.calls[0][0];
     expect(firstCall.top).toBe(800 + 0 - 120); // 680
-    expect(firstCall.behavior).toBe('smooth');
+    expect(firstCall.behavior).toBe('auto');
   });
 
   it('emits debug snapshots that include the resolved topOffsetPx', () => {

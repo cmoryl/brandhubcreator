@@ -79,7 +79,7 @@ function resolveOffset(el: HTMLElement, explicit?: number): { offset: number; he
 
 export function scrollToSection(
   sectionId: string,
-  { flash = true, durationMs = 1200, toleranceFromTopPx = 8, topOffsetPx }: ScrollToSectionOptions = {},
+  { flash = true, durationMs = 3500, toleranceFromTopPx = 6, topOffsetPx }: ScrollToSectionOptions = {},
 ): void {
   const lookup = () => document.getElementById(sectionId);
   const initial = lookup();
@@ -87,15 +87,18 @@ export function scrollToSection(
 
   const offsetFor = (el: HTMLElement) => resolveOffset(el, topOffsetPx);
 
-  const align = () => {
+  const align = (behavior: ScrollBehavior = 'smooth') => {
     const el = lookup();
     if (!el) return;
     const { offset } = offsetFor(el);
     const targetY = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+    window.scrollTo({ top: Math.max(0, targetY), behavior });
   };
 
-  align();
+  // Instant jump first so progressive-hydration sections above the target
+  // mount and reach their real heights before we settle. Without this the
+  // smooth scroll keeps overshooting/undershooting as content grows.
+  align('auto');
 
   const start = performance.now();
   let lastTop = Number.NaN;
@@ -112,7 +115,10 @@ export function scrollToSection(
     scrollDebug.emit({ sectionId, headerHeight, topOffsetPx: offset, drift, timestamp: performance.now() });
 
     if (drift > toleranceFromTopPx) {
-      align();
+      // Use instant re-align while content above is still hydrating so the
+      // target snaps to its correct position immediately.
+      const elapsed = performance.now() - start;
+      align(elapsed < 800 ? 'auto' : 'smooth');
       stableSince = 0;
     } else if (rect.top === lastTop) {
       stableSince ||= performance.now();
