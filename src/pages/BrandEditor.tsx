@@ -109,6 +109,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { normalizeHiddenSections, normalizeSectionOrder } from '@/lib/sectionOrder';
+import { scrollToSection as scrollToSectionRobust } from '@/lib/scrollToSection';
 import { useAutoBiasMonitoring } from '@/hooks/useAutoBiasMonitoring';
 type ViewMode = 'sections' | 'full' | 'cards';
 
