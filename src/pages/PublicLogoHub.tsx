@@ -285,7 +285,7 @@ export default function PublicLogoHub() {
                               loading="lazy"
                               className="max-h-full max-w-full object-contain"
                             />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors">
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none">
                               <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition-opacity" />
                             </div>
                           </>
