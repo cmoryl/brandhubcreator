@@ -266,6 +266,19 @@ serve(async (req) => {
     const organizationId: string | undefined = body.organizationId;
     const namesFilter: string[] | undefined = Array.isArray(body.names) ? body.names : undefined;
     const force: boolean = body.force === true;
+    // Categories can be a single string or array. Defaults to PartnerLink Logos.
+    const rawCategories: string[] = Array.isArray(body.categories)
+      ? body.categories
+      : typeof body.category === "string"
+        ? [body.category]
+        : [DEFAULT_CATEGORY];
+    const categories = rawCategories.filter((c) => PARTNERS_BY_CATEGORY[c]);
+    if (categories.length === 0) {
+      return new Response(
+        JSON.stringify({ error: `Unknown category. Supported: ${Object.keys(PARTNERS_BY_CATEGORY).join(", ")}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
     if (!organizationId) {
       return new Response(JSON.stringify({ error: "organizationId required" }), {
         status: 400,
@@ -300,95 +313,104 @@ serve(async (req) => {
       }
     }
 
-    // Existing rows in this category for this org → backfill if missing files, else skip.
-    const { data: existing } = await admin
-      .from("global_client_logos")
-      .select("id, name, files")
-      .eq("organization_id", organizationId)
-      .eq("category", CATEGORY);
-    const existingByName = new Map<string, { id: string; files: any[] }>(
-      (existing || []).map((r: any) => [
-        r.name.toLowerCase(),
-        { id: r.id, files: Array.isArray(r.files) ? r.files : [] },
-      ]),
-    );
+    const allResults: Array<{ category: string; name: string; status: "inserted" | "updated" | "skipped" | "no-logo" }> = [];
+    let totalPartners = 0;
 
-    const results: Array<{ name: string; status: "inserted" | "updated" | "skipped" | "no-logo"; }> = [];
-    const rowsToInsert: any[] = [];
+    for (const category of categories) {
+      const partners = PARTNERS_BY_CATEGORY[category];
+      const desc = CATEGORY_DESCRIPTIONS[category] ?? {
+        withLogo: `${category} brand (logo via Simple Icons)`,
+        withoutLogo: `${category} brand — use Find Logos to discover assets`,
+      };
+      totalPartners += partners.length;
 
-    for (const p of PARTNERS) {
-      if (namesFilterLower && !namesFilterLower.includes(p.name.toLowerCase())) continue;
+      // Existing rows in this category for this org → backfill if missing files, else skip.
+      const { data: existing } = await admin
+        .from("global_client_logos")
+        .select("id, name, files")
+        .eq("organization_id", organizationId)
+        .eq("category", category);
+      const existingByName = new Map<string, { id: string; files: any[] }>(
+        (existing || []).map((r: any) => [
+          r.name.toLowerCase(),
+          { id: r.id, files: Array.isArray(r.files) ? r.files : [] },
+        ]),
+      );
 
-      const files: any[] = [];
-      let foundLogo = false;
-      if (p.slug) {
-        const svg = await fetchSimpleIconSvg(p.slug);
-        if (svg) {
-          foundLogo = true;
-          const whiteSvg = colorizeSvg(svg, "#ffffff");
-          const blackSvg = colorizeSvg(svg, "#000000");
-          files.push({ variant: "white", format: "svg", url: svgToDataUrl(whiteSvg) });
-          files.push({ variant: "black", format: "svg", url: svgToDataUrl(blackSvg) });
-          files.push({ variant: "white", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/ffffff` });
-          files.push({ variant: "black", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/000000` });
+      const rowsToInsert: any[] = [];
 
-          // Brand-color variant: derive the brand hex from Simple Icons metadata.
-          const hex = await fetchSimpleIconBrandHex(p.slug);
-          if (hex) {
-            const cleanHex = hex.replace("#", "");
-            const colorSvg = colorizeSvg(svg, `#${cleanHex}`);
-            files.push({ variant: "color", format: "svg", url: svgToDataUrl(colorSvg) });
-            files.push({ variant: "color", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/${cleanHex}` });
+      for (const p of partners) {
+        if (namesFilterLower && !namesFilterLower.includes(p.name.toLowerCase())) continue;
+
+        const files: any[] = [];
+        let foundLogo = false;
+        if (p.slug) {
+          const svg = await fetchSimpleIconSvg(p.slug);
+          if (svg) {
+            foundLogo = true;
+            const whiteSvg = colorizeSvg(svg, "#ffffff");
+            const blackSvg = colorizeSvg(svg, "#000000");
+            files.push({ variant: "white", format: "svg", url: svgToDataUrl(whiteSvg) });
+            files.push({ variant: "black", format: "svg", url: svgToDataUrl(blackSvg) });
+            files.push({ variant: "white", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/ffffff` });
+            files.push({ variant: "black", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/000000` });
+
+            const hex = await fetchSimpleIconBrandHex(p.slug);
+            if (hex) {
+              const cleanHex = hex.replace("#", "");
+              const colorSvg = colorizeSvg(svg, `#${cleanHex}`);
+              files.push({ variant: "color", format: "svg", url: svgToDataUrl(colorSvg) });
+              files.push({ variant: "color", format: "png", url: `https://cdn.simpleicons.org/${p.slug}/${cleanHex}` });
+            }
           }
         }
-      }
 
-      const existingRow = existingByName.get(p.name.toLowerCase());
-      if (existingRow) {
-        // Backfill when forced, or when we now have more files than the row currently holds.
-        const shouldUpdate = foundLogo && (force || files.length > existingRow.files.length);
-        if (shouldUpdate) {
-          const { error: updErr } = await admin
-            .from("global_client_logos")
-            .update({ files })
-            .eq("id", existingRow.id);
-          if (updErr) throw updErr;
-          results.push({ name: p.name, status: "updated" });
-        } else {
-          results.push({ name: p.name, status: "skipped" });
+        const existingRow = existingByName.get(p.name.toLowerCase());
+        if (existingRow) {
+          const shouldUpdate = foundLogo && (force || files.length > existingRow.files.length);
+          if (shouldUpdate) {
+            const { error: updErr } = await admin
+              .from("global_client_logos")
+              .update({ files })
+              .eq("id", existingRow.id);
+            if (updErr) throw updErr;
+            allResults.push({ category, name: p.name, status: "updated" });
+          } else {
+            allResults.push({ category, name: p.name, status: "skipped" });
+          }
+          continue;
         }
-        continue;
+
+        rowsToInsert.push({
+          organization_id: organizationId,
+          name: p.name,
+          description: p.slug ? desc.withLogo : desc.withoutLogo,
+          category,
+          website_url: p.website,
+          files,
+          created_by: userData.user.id,
+        });
+        allResults.push({ category, name: p.name, status: foundLogo ? "inserted" : "no-logo" });
       }
 
-      rowsToInsert.push({
-        organization_id: organizationId,
-        name: p.name,
-        description: p.slug
-          ? "PartnerLink integration partner (logo via Simple Icons)"
-          : "PartnerLink integration partner — use Find Logos to discover assets",
-        category: CATEGORY,
-        website_url: p.website,
-        files,
-        created_by: userData.user.id,
-      });
-      results.push({ name: p.name, status: foundLogo ? "inserted" : "no-logo" });
-    }
-
-    if (rowsToInsert.length > 0) {
-      const { error: insertErr } = await admin
-        .from("global_client_logos")
-        .insert(rowsToInsert);
-      if (insertErr) throw insertErr;
+      if (rowsToInsert.length > 0) {
+        const { error: insertErr } = await admin
+          .from("global_client_logos")
+          .insert(rowsToInsert);
+        if (insertErr) throw insertErr;
+      }
     }
 
     const summary = {
-      total: PARTNERS.length,
-      inserted: results.filter((r) => r.status === "inserted").length,
-      updated: results.filter((r) => r.status === "updated").length,
-      withoutLogo: results.filter((r) => r.status === "no-logo").length,
-      skipped: results.filter((r) => r.status === "skipped").length,
-      results,
+      categories,
+      total: totalPartners,
+      inserted: allResults.filter((r) => r.status === "inserted").length,
+      updated: allResults.filter((r) => r.status === "updated").length,
+      withoutLogo: allResults.filter((r) => r.status === "no-logo").length,
+      skipped: allResults.filter((r) => r.status === "skipped").length,
+      results: allResults,
     };
+
 
     return new Response(JSON.stringify(summary), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
