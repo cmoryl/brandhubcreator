@@ -1292,6 +1292,7 @@ const BrandEditor = () => {
                 id: 'intelligence',
                 label: 'Intelligence',
                 icon: Brain,
+                badge: brainOpenCount > 0 ? brainOpenCount : undefined,
                 onClick: () => setIntelligenceOpen(true),
               },
               {
