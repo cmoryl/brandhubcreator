@@ -83,6 +83,14 @@ export default function PublicLogoHub() {
     })();
   }, []);
 
+  useEffect(() => {
+    document.title = 'Global Logo Hub — Browse Brand & Partner Logos';
+    setMeta(
+      'description',
+      'Public directory of brand, partner and client logos with color, black, white, icon and wordmark variants.',
+    );
+  }, []);
+
   const categories = useMemo(
     () => Array.from(new Set(logos.map((l) => l.category))).sort(),
     [logos],
