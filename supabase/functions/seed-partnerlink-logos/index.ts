@@ -593,7 +593,7 @@ async function discoverWordmarkLogos(p: Partner): Promise<WordmarkFile[]> {
 }
 
 async function discoverFullCompanyLogo(p: Partner): Promise<WordmarkFile[]> {
-  const fullLogos = await discoverWordmarkLogos(p);
+  const fullLogos = await discoverFullCompanyLogo(p);
   if (fullLogos.length > 0) return fullLogos;
 
   const fallback = (await discoverColorLogo(p.website)).find((logo) => logo.source !== "google");
@@ -715,7 +715,7 @@ serve(async (req) => {
             website: row.website_url || curated?.website || "",
             slug: curated?.slug,
           };
-          const wordmarks = await discoverWordmarkLogos(target);
+          const wordmarks = await discoverFullCompanyLogo(target);
           const preserved = (Array.isArray(row.files) ? row.files : []).filter((f: any) => f?.lockup !== "wordmark");
           if (wordmarks.length === 0) {
             const { error: updErr } = await admin
@@ -750,7 +750,7 @@ serve(async (req) => {
             allResults.push({ category, name: p.name, status: "skipped" });
             continue;
           }
-          const wordmarks = await discoverWordmarkLogos(p);
+          const wordmarks = await discoverFullCompanyLogo(p);
           // Drop existing wordmark entries; keep icon entries intact.
           const preserved = existingRow.files.filter((f: any) => f?.lockup !== "wordmark");
           const merged = [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))];
@@ -802,7 +802,7 @@ serve(async (req) => {
         }
 
         // Wordmark / full-logo discovery — populates the wordmark row.
-        const wordmarks = await discoverWordmarkLogos(p);
+        const wordmarks = await discoverFullCompanyLogo(p);
         for (const w of wordmarks) {
           files.push({ ...w, lockup: "wordmark" });
           foundLogo = true;
