@@ -649,7 +649,7 @@ export function GlobalLogoHub() {
                         </div>
                       </div>
                       {/* Wordmark row */}
-                      <div className="px-2 pt-1 text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Wordmark{!hasWordmark && <span className="ml-1 normal-case text-muted-foreground/60">— add via Edit</span>}</div>
+                      <div className="px-2 pt-1 text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Logo{!hasWordmark && <span className="ml-1 normal-case text-muted-foreground/60">— add via Edit</span>}</div>
                       <div className="grid grid-cols-3 divide-x divide-border border-b">
                         <div className="aspect-[4/3] bg-white flex items-center justify-center p-3">
                           {wmColorPreview ? (
