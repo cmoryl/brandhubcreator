@@ -700,13 +700,14 @@ function ValidationBadge({
     );
   }
   if (validation.ok) {
+    const variants = Array.from(new Set(validation.files.map((f) => f.variant))).sort();
     const sizes = validation.files
       .filter((f) => f.format === 'png' && f.width)
-      .map((f) => `${f.width}×${f.height}`);
+      .map((f) => `${f.variant} ${f.width}×${f.height}`);
     return (
-      <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+      <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400" title={sizes.join(' · ')}>
         <ShieldCheck className="h-3.5 w-3.5" />
-        <span>All files valid{sizes.length ? ` · PNG ${sizes.join(', ')}` : ''}</span>
+        <span>All {validation.files.length} files valid · {variants.join(' / ')}</span>
       </div>
     );
   }
