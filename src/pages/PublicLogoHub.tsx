@@ -206,57 +206,114 @@ export default function PublicLogoHub() {
             <p className="text-sm mt-1">Try adjusting your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((logo) => {
-              const preview = getPreview(logo.files, variant, lockup)!;
-              const primaryFile =
-                logo.files.find(
-                  (f) =>
-                    f.url === preview.url ||
-                    (variant !== 'all' && f.variant === variant && f.format === 'svg'),
-                ) || logo.files[0];
+              const lockups: ClientLogoLockup[] =
+                lockup === 'all' ? ['icon', 'wordmark'] : [lockup as ClientLogoLockup];
+              const variants: ClientLogoVariant[] =
+                variant === 'all'
+                  ? ['color', 'black', 'white']
+                  : [variant as ClientLogoVariant];
+
+              const cells = lockups.flatMap((lk) =>
+                variants.map((v) => {
+                  const match =
+                    logo.files.find(
+                      (f) =>
+                        (f.lockup || 'icon') === lk &&
+                        f.variant === v &&
+                        f.format === 'png',
+                    ) ||
+                    logo.files.find(
+                      (f) =>
+                        (f.lockup || 'icon') === lk &&
+                        f.variant === v &&
+                        f.format === 'svg',
+                    ) ||
+                    logo.files.find(
+                      (f) => (f.lockup || 'icon') === lk && f.variant === v,
+                    );
+                  return { lockup: lk, variant: v, file: match };
+                }),
+              );
+
               return (
                 <article
                   key={logo.id}
                   className="group border border-border rounded-xl overflow-hidden bg-card hover:border-primary/50 hover:shadow-lg transition-all"
                 >
-                  <div
-                    className={cn(
-                      'aspect-square flex items-center justify-center p-6',
-                      preview.isWhite ? 'bg-neutral-900' : 'bg-white',
-                    )}
-                  >
-                    <img
-                      src={preview.url}
-                      alt={`${logo.name} logo`}
-                      loading="lazy"
-                      className="max-h-full max-w-full object-contain"
-                    />
-                  </div>
-                  <div className="p-3 border-t border-border space-y-2">
-                    <div className="flex items-start justify-between gap-2">
+                  <div className="p-4 border-b border-border flex items-start justify-between gap-2">
+                    <div className="min-w-0">
                       <h2 className="text-sm font-semibold truncate" title={logo.name}>
                         {logo.name}
                       </h2>
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        {logo.category} • {logo.files.length} files
+                      </p>
                     </div>
-
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span className="truncate">{logo.category}</span>
-                      <span>{logo.files.length} files</span>
-                    </div>
-                    {primaryFile && (
+                  </div>
+                  <div
+                    className={cn(
+                      'grid gap-px bg-border',
+                      lockups.length === 1 || variants.length === 1
+                        ? `grid-cols-${Math.max(lockups.length, variants.length)}`
+                        : 'grid-cols-3',
+                    )}
+                  >
+                    {cells.map(({ lockup: lk, variant: v, file }) => (
+                      <div
+                        key={`${lk}-${v}`}
+                        className={cn(
+                          'relative aspect-square flex items-center justify-center p-4',
+                          v === 'white' ? 'bg-neutral-900' : 'bg-white',
+                        )}
+                        title={`${lk} • ${v}`}
+                      >
+                        {file ? (
+                          <img
+                            src={file.url}
+                            alt={`${logo.name} ${lk} ${v}`}
+                            loading="lazy"
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        ) : (
+                          <span
+                            className={cn(
+                              'text-[10px]',
+                              v === 'white' ? 'text-neutral-600' : 'text-neutral-300',
+                            )}
+                          >
+                            —
+                          </span>
+                        )}
+                        <span
+                          className={cn(
+                            'absolute bottom-1 left-1 text-[8px] uppercase tracking-wider px-1 rounded',
+                            v === 'white'
+                              ? 'bg-white/10 text-white/60'
+                              : 'bg-black/5 text-black/50',
+                          )}
+                        >
+                          {lk === 'icon' ? 'Icon' : 'Logo'} · {v}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 flex flex-wrap gap-1.5">
+                    {logo.files.slice(0, 6).map((f, i) => (
                       <Button
+                        key={i}
                         asChild
                         size="sm"
                         variant="outline"
-                        className="w-full h-7 text-[11px]"
+                        className="h-7 text-[10px] px-2"
                       >
-                        <a href={primaryFile.url} target="_blank" rel="noopener noreferrer" download>
+                        <a href={f.url} target="_blank" rel="noopener noreferrer" download>
                           <Download className="h-3 w-3 mr-1" />
-                          Download
+                          {f.format?.toUpperCase()} · {f.variant}
                         </a>
                       </Button>
-                    )}
+                    ))}
                   </div>
                 </article>
               );
