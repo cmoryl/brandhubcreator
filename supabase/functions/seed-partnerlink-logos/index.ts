@@ -593,7 +593,7 @@ async function discoverWordmarkLogos(p: Partner): Promise<WordmarkFile[]> {
 }
 
 async function discoverFullCompanyLogo(p: Partner): Promise<WordmarkFile[]> {
-  const fullLogos = await discoverFullCompanyLogo(p);
+  const fullLogos = await discoverWordmarkLogos(p);
   if (fullLogos.length > 0) return fullLogos;
 
   const fallback = (await discoverColorLogo(p.website)).find((logo) => logo.source !== "google");
