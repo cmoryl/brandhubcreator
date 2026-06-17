@@ -272,23 +272,24 @@ export function GlobalLogoHub() {
     setAddDialogOpen(true);
   };
 
-  const handleFileUploadFromLibrary = (variant: ClientLogoVariant, url: string) => {
+  const handleFileUploadFromLibrary = (variant: ClientLogoVariant, lockup: 'icon' | 'wordmark', url: string) => {
     const format: ClientLogoFormat = 'png';
-    const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format));
-    setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url }] }));
-    toast.success(`${VARIANT_LABELS[variant]} logo added`);
+    const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format && (f.lockup ?? 'icon') === lockup));
+    setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url, lockup }] }));
+    toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} logo added`);
   };
 
-  const handleLocalFileUpload = (variant: ClientLogoVariant, format: ClientLogoFormat, file: File) => {
+  const handleLocalFileUpload = (variant: ClientLogoVariant, lockup: 'icon' | 'wordmark', format: ClientLogoFormat, file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const url = e.target?.result as string;
-      const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format));
-      setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url }] }));
-      toast.success(`${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
+      const filtered = formData.files.filter(f => !(f.variant === variant && f.format === format && (f.lockup ?? 'icon') === lockup));
+      setFormData(prev => ({ ...prev, files: [...filtered, { variant, format, url, lockup }] }));
+      toast.success(`${lockup === 'wordmark' ? 'Wordmark ' : ''}${VARIANT_LABELS[variant]} ${FORMAT_LABELS[format]} added`);
     };
     reader.readAsDataURL(file);
   };
+
 
   const handleAIGenerate = async () => {
     if (!organization?.id || !formData.name.trim()) {
@@ -385,13 +386,15 @@ export function GlobalLogoHub() {
     toast.success(`Logo discovery complete for "${formData.name.trim()}"`);
   };
 
-  const getPreviewUrl = (files: ClientLogoFile[], variant: ClientLogoVariant): string | null => {
+  const getPreviewUrl = (files: ClientLogoFile[], variant: ClientLogoVariant, lockup: 'icon' | 'wordmark' = 'icon'): string | null => {
     // Prefer seeded SVG data URLs because Simple Icons' CDN often serves SVGs
     // from PNG-looking URLs, and some branded CDN color URLs 404.
-    return files.find(f => f.variant === variant && f.format === 'svg')?.url
-      || files.find(f => f.variant === variant && f.format === 'png')?.url
+    const matches = files.filter(f => f.variant === variant && (f.lockup ?? 'icon') === lockup);
+    return matches.find(f => f.format === 'svg')?.url
+      || matches.find(f => f.format === 'png')?.url
       || null;
   };
+
 
   const categories = Array.from(new Set([...DEFAULT_CATEGORIES, ...logos.map(l => l.category)])).sort();
 
@@ -407,9 +410,9 @@ export function GlobalLogoHub() {
     return acc;
   }, {});
 
-  const FileUploadCell = ({ variant, format }: { variant: ClientLogoVariant; format: ClientLogoFormat }) => {
+  const FileUploadCell = ({ variant, lockup, format }: { variant: ClientLogoVariant; lockup: 'icon' | 'wordmark'; format: ClientLogoFormat }) => {
     const inputRef = useRef<HTMLInputElement>(null);
-    const existingUrl = formData.files.find(f => f.variant === variant && f.format === format)?.url;
+    const existingUrl = formData.files.find(f => f.variant === variant && f.format === format && (f.lockup ?? 'icon') === lockup)?.url;
     
     return (
       <div>
@@ -419,7 +422,7 @@ export function GlobalLogoHub() {
           accept={format === 'eps' ? '.eps' : format === 'svg' ? '.svg,image/svg+xml' : 'image/png'}
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) handleLocalFileUpload(variant, format, file);
+            if (file) handleLocalFileUpload(variant, lockup, format, file);
           }}
           className="hidden"
         />
@@ -443,6 +446,7 @@ export function GlobalLogoHub() {
       </div>
     );
   };
+
 
   return (
     <div className="space-y-6">
@@ -543,29 +547,53 @@ export function GlobalLogoHub() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {catLogos.map(logo => {
-                  const colorPreview = getPreviewUrl(logo.files, 'color');
-                  const whitePreview = getPreviewUrl(logo.files, 'white');
-                  const blackPreview = getPreviewUrl(logo.files, 'black');
+                  const colorPreview = getPreviewUrl(logo.files, 'color', 'icon');
+                  const whitePreview = getPreviewUrl(logo.files, 'white', 'icon');
+                  const blackPreview = getPreviewUrl(logo.files, 'black', 'icon');
+                  const wmColorPreview = getPreviewUrl(logo.files, 'color', 'wordmark');
+                  const wmWhitePreview = getPreviewUrl(logo.files, 'white', 'wordmark');
+                  const wmBlackPreview = getPreviewUrl(logo.files, 'black', 'wordmark');
+                  const hasWordmark = !!(wmColorPreview || wmWhitePreview || wmBlackPreview);
                   const validation = validations[logo.id];
                   const isThisValidating = validatingId === logo.id;
 
                   return (
                     <Card key={logo.id} className="group overflow-hidden hover:border-primary/50 transition-colors">
-                      {/* 3-variant preview */}
+                      {/* Icon row */}
+                      <div className="px-2 pt-1 text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Icon</div>
                       <div className="grid grid-cols-3 divide-x divide-border border-b">
                         <div className="aspect-[4/3] bg-white flex items-center justify-center p-3">
                           {colorPreview ? (
-                            <img src={colorPreview} alt={`${logo.name} color`} className="max-h-full max-w-full object-contain" />
+                            <img src={colorPreview} alt={`${logo.name} color icon`} className="max-h-full max-w-full object-contain" />
                           ) : <span className="text-[10px] text-muted-foreground">—</span>}
                         </div>
                         <div className="aspect-[4/3] bg-slate-900 flex items-center justify-center p-3">
                           {whitePreview ? (
-                            <img src={whitePreview} alt={`${logo.name} white`} className="max-h-full max-w-full object-contain" />
+                            <img src={whitePreview} alt={`${logo.name} white icon`} className="max-h-full max-w-full object-contain" />
                           ) : <span className="text-[10px] text-slate-500">—</span>}
                         </div>
                         <div className="aspect-[4/3] bg-white flex items-center justify-center p-3">
                           {blackPreview ? (
-                            <img src={blackPreview} alt={`${logo.name} black`} className="max-h-full max-w-full object-contain" />
+                            <img src={blackPreview} alt={`${logo.name} black icon`} className="max-h-full max-w-full object-contain" />
+                          ) : <span className="text-[10px] text-muted-foreground">—</span>}
+                        </div>
+                      </div>
+                      {/* Wordmark row */}
+                      <div className="px-2 pt-1 text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Wordmark{!hasWordmark && <span className="ml-1 normal-case text-muted-foreground/60">— add via Edit</span>}</div>
+                      <div className="grid grid-cols-3 divide-x divide-border border-b">
+                        <div className="aspect-[4/3] bg-white flex items-center justify-center p-3">
+                          {wmColorPreview ? (
+                            <img src={wmColorPreview} alt={`${logo.name} color wordmark`} className="max-h-full max-w-full object-contain" />
+                          ) : <span className="text-[10px] text-muted-foreground">—</span>}
+                        </div>
+                        <div className="aspect-[4/3] bg-slate-900 flex items-center justify-center p-3">
+                          {wmWhitePreview ? (
+                            <img src={wmWhitePreview} alt={`${logo.name} white wordmark`} className="max-h-full max-w-full object-contain" />
+                          ) : <span className="text-[10px] text-slate-500">—</span>}
+                        </div>
+                        <div className="aspect-[4/3] bg-white flex items-center justify-center p-3">
+                          {wmBlackPreview ? (
+                            <img src={wmBlackPreview} alt={`${logo.name} black wordmark`} className="max-h-full max-w-full object-contain" />
                           ) : <span className="text-[10px] text-muted-foreground">—</span>}
                         </div>
                       </div>
@@ -574,6 +602,7 @@ export function GlobalLogoHub() {
                         <span className="py-1">White</span>
                         <span className="py-1">Black</span>
                       </div>
+
 
                       <CardContent className="p-3 space-y-2">
                         <div className="flex items-start justify-between gap-2">
@@ -705,38 +734,45 @@ export function GlobalLogoHub() {
               </Button>
             </div>
 
-            {/* File uploads per variant */}
-            <div className="space-y-2">
-              <Label>Logo Files</Label>
-              <p className="text-xs text-muted-foreground">Discovered logos appear above, or upload/pick manually below</p>
-              <div className="grid grid-cols-3 gap-4">
-                {(['color', 'white', 'black'] as ClientLogoVariant[]).map(variant => (
-                  <div key={variant} className="space-y-2">
-                    <div className="text-sm font-medium text-center">{VARIANT_LABELS[variant]}</div>
-                    <div className={cn("rounded-lg p-2 space-y-1.5", VARIANT_BG[variant])}>
-                      {/* Preview */}
-                      {getPreviewUrl(formData.files, variant) && (
-                        <div className="aspect-[4/3] flex items-center justify-center p-2 mb-1">
-                          <img src={getPreviewUrl(formData.files, variant)!} alt={variant} className="max-h-full max-w-full object-contain" />
-                        </div>
-                      )}
-                      {(['png', 'svg', 'eps'] as ClientLogoFormat[]).map(format => (
-                        <FileUploadCell key={`${variant}-${format}`} variant={variant} format={format} />
-                      ))}
+            {/* File uploads per variant — Icon + Wordmark */}
+            {(['icon', 'wordmark'] as const).map(lockup => (
+              <div key={lockup} className="space-y-2">
+                <Label>{lockup === 'icon' ? 'Icon / Logomark Files' : 'Wordmark / Full Logo Files'}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {lockup === 'icon'
+                    ? 'Square symbol or logomark (e.g. the Salesforce cloud).'
+                    : 'Full horizontal logo with brand name (e.g. "salesforce" wordmark).'}
+                </p>
+                <div className="grid grid-cols-3 gap-4">
+                  {(['color', 'white', 'black'] as ClientLogoVariant[]).map(variant => (
+                    <div key={`${lockup}-${variant}`} className="space-y-2">
+                      <div className="text-sm font-medium text-center">{VARIANT_LABELS[variant]}</div>
+                      <div className={cn("rounded-lg p-2 space-y-1.5", VARIANT_BG[variant])}>
+                        {/* Preview */}
+                        {getPreviewUrl(formData.files, variant, lockup) && (
+                          <div className="aspect-[4/3] flex items-center justify-center p-2 mb-1">
+                            <img src={getPreviewUrl(formData.files, variant, lockup)!} alt={`${lockup} ${variant}`} className="max-h-full max-w-full object-contain" />
+                          </div>
+                        )}
+                        {(['png', 'svg', 'eps'] as ClientLogoFormat[]).map(format => (
+                          <FileUploadCell key={`${lockup}-${variant}-${format}`} variant={variant} lockup={lockup} format={format} />
+                        ))}
+                      </div>
+                      <ImageLibraryPicker
+                        onSelect={(url) => handleFileUploadFromLibrary(variant, lockup, url)}
+                        trigger={
+                          <Button variant="outline" size="sm" className="w-full text-xs gap-1">
+                            <FolderArchive className="h-3 w-3" />
+                            From Library
+                          </Button>
+                        }
+                      />
                     </div>
-                    <ImageLibraryPicker
-                      onSelect={(url) => handleFileUploadFromLibrary(variant, url)}
-                      trigger={
-                        <Button variant="outline" size="sm" className="w-full text-xs gap-1">
-                          <FolderArchive className="h-3 w-3" />
-                          From Library
-                        </Button>
-                      }
-                    />
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            ))}
+
             
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={resetForm}>Cancel</Button>
