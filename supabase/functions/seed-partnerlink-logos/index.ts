@@ -673,15 +673,46 @@ serve(async (req) => {
       // Existing rows in this category for this org → backfill if missing files, else skip.
       const { data: existing } = await admin
         .from("global_client_logos")
-        .select("id, name, files")
+        .select("id, name, website_url, files")
         .eq("organization_id", organizationId)
         .eq("category", category);
-      const existingByName = new Map<string, { id: string; files: any[] }>(
+      const existingByName = new Map<string, { id: string; website_url?: string | null; files: any[] }>(
         (existing || []).map((r: any) => [
           r.name.toLowerCase(),
-          { id: r.id, files: Array.isArray(r.files) ? r.files : [] },
+          { id: r.id, website_url: r.website_url, files: Array.isArray(r.files) ? r.files : [] },
         ]),
       );
+
+      if (wordmarksOnly) {
+        const curatedByName = new Map(partners.map((p) => [p.name.toLowerCase(), p]));
+        totalPartners += Math.max(0, (existing || []).length - partners.length);
+        for (const row of existing || []) {
+          if (namesFilterLower && !namesFilterLower.includes(row.name.toLowerCase())) continue;
+          const curated = curatedByName.get(row.name.toLowerCase());
+          const target: Partner = {
+            name: row.name,
+            website: row.website_url || curated?.website || "",
+            slug: curated?.slug,
+          };
+          if (!target.website) {
+            allResults.push({ category, name: row.name, status: "no-logo" });
+            continue;
+          }
+          const wordmarks = await discoverWordmarkLogos(target);
+          if (wordmarks.length === 0) {
+            allResults.push({ category, name: row.name, status: "no-logo" });
+            continue;
+          }
+          const preserved = (Array.isArray(row.files) ? row.files : []).filter((f: any) => f?.lockup !== "wordmark");
+          const { error: updErr } = await admin
+            .from("global_client_logos")
+            .update({ files: [...preserved, ...wordmarks.map((w) => ({ ...w, lockup: "wordmark" }))] })
+            .eq("id", row.id);
+          if (updErr) throw updErr;
+          allResults.push({ category, name: row.name, status: "updated" });
+        }
+        continue;
+      }
 
       const rowsToInsert: any[] = [];
 
