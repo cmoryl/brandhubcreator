@@ -266,21 +266,29 @@ export default function PublicLogoHub() {
                     )}
                   >
                     {cells.map(({ lockup: lk, variant: v, file }) => (
-                      <div
+                      <button
                         key={`${lk}-${v}`}
+                        type="button"
+                        onClick={() => file && setPreview({ logo, file })}
                         className={cn(
-                          'relative aspect-square flex items-center justify-center p-4',
+                          'relative aspect-square flex items-center justify-center p-4 text-left transition-opacity',
                           v === 'white' ? 'bg-neutral-900' : 'bg-white',
+                          file ? 'hover:opacity-90 cursor-pointer' : 'cursor-default',
                         )}
                         title={`${lk} • ${v}`}
                       >
                         {file ? (
-                          <img
-                            src={file.url}
-                            alt={`${logo.name} ${lk} ${v}`}
-                            loading="lazy"
-                            className="max-h-full max-w-full object-contain"
-                          />
+                          <>
+                            <img
+                              src={file.url}
+                              alt={`${logo.name} ${lk} ${v}`}
+                              loading="lazy"
+                              className="max-h-full max-w-full object-contain"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors">
+                              <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition-opacity" />
+                            </div>
+                          </>
                         ) : (
                           <span
                             className={cn(
@@ -301,7 +309,7 @@ export default function PublicLogoHub() {
                         >
                           {lk === 'icon' ? 'Icon' : 'Logo'} · {v}
                         </span>
-                      </div>
+                      </button>
                     ))}
                   </div>
                   <div className="p-3 flex flex-wrap gap-1.5">
