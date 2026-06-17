@@ -25,7 +25,7 @@ const PARTNERS: Partner[] = [
   { name: "Salesforce", website: "https://www.salesforce.com", slug: "salesforce" },
   { name: "Sharepoint", website: "https://www.microsoft.com/en-us/microsoft-365/sharepoint/collaboration", slug: "microsoftsharepoint" },
   { name: "Shopify", website: "https://www.shopify.com", slug: "shopify" },
-  { name: "Sitecore", website: "https://www.sitecore.com" },
+  { name: "Sitecore", website: "https://www.sitecore.com", slug: "sitecore" },
   { name: "Stibo Systems MDM", website: "https://www.stibosystems.com" },
   { name: "Umbraco", website: "https://umbraco.com", slug: "umbraco" },
   { name: "Webflow", website: "https://webflow.com", slug: "webflow" },
