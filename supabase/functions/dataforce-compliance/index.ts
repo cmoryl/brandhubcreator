@@ -317,6 +317,7 @@ Return your analysis as a JSON object with this structure:
     }
 
     // Update job with results
+    const weightedByPayload = weightingHints.length ? { archetype, industry, hints: weightingHints } : null;
     await supabase
       .from('dataforce_compliance_jobs')
       .update({
@@ -326,6 +327,7 @@ Return your analysis as a JSON object with this structure:
         issues_data: complianceResult.issues,
         assets_scanned: countAssets(guide_data),
         completed_at: new Date().toISOString(),
+        weighted_by: weightedByPayload,
       })
       .eq('id', job.id);
 
