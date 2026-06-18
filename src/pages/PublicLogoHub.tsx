@@ -590,7 +590,7 @@ function LogoCell({
   file: ClientLogoFile | undefined;
   onOpen: () => void;
 }) {
-  const { dark } = useAutoDarkBg(file, variant);
+  const { dark, isStrokeOnly } = useAutoDarkBg(file, variant);
   return (
     <button
       type="button"
