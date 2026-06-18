@@ -10,6 +10,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
 import { auditBrand } from '@/lib/logoAuditChecks';
+import { OrphanedFilesSection } from '@/components/logohub/OrphanedFilesSection';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Row {
   id: string;
