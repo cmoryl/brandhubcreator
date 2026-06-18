@@ -640,6 +640,9 @@ function FileRow({
       <td className="px-3 py-3 align-top text-center">
         <VisualAuditCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
         {file.format === 'svg' && <SvgLintCell url={file.url} />}
+        {file.format === 'svg' && <SvgQualityCell url={file.url} />}
+        <ContrastMatrixCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
+        <ColorBlindCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
         {file.format === 'svg' && (
           <SvgSnapshotCell
             url={file.url}
