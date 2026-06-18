@@ -8,6 +8,9 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
 import { auditBrand, type CheckResult, type FileAudit, type SlotAudit } from '@/lib/logoAuditChecks';
+import { useLogoAuditReviews } from '@/hooks/useLogoAuditReviews';
+import { ReviewControl } from '@/components/logohub/ReviewControl';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Row {
   id: string;
