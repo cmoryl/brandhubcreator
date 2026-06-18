@@ -656,7 +656,7 @@ function PreviewStage({
   logo: { name: string };
   file: ClientLogoFile;
 }) {
-  const { dark, auto } = useAutoDarkBg(file, file.variant as ClientLogoVariant);
+  const { dark, auto, isStrokeOnly } = useAutoDarkBg(file, file.variant as ClientLogoVariant);
   return (
     <div className="relative">
       <div
@@ -671,11 +671,21 @@ function PreviewStage({
           className="h-[400px] w-full object-contain"
         />
       </div>
-      {auto && (
-        <div className="absolute left-3 bottom-3 text-[10px] px-2 py-1 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30 backdrop-blur-sm">
-          Auto-contrast: dark background applied for light artwork
-        </div>
-      )}
+      <div className="absolute left-3 bottom-3 flex flex-wrap gap-2">
+        {auto && (
+          <span className="text-[10px] px-2 py-1 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/30 backdrop-blur-sm">
+            Auto-contrast: dark background applied for light artwork
+          </span>
+        )}
+        {isStrokeOnly && (
+          <span
+            title="The source SVG is drawn with strokes and no fills, so it renders as an outline at every size."
+            className="text-[10px] px-2 py-1 rounded-full bg-amber-500/20 text-amber-100 border border-amber-400/30 backdrop-blur-sm"
+          >
+            Outline artwork · source is stroke-only
+          </span>
+        )}
+      </div>
     </div>
   );
 }
