@@ -10,6 +10,7 @@ import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/type
 import { auditBrand, type CheckResult, type FileAudit, type SlotAudit } from '@/lib/logoAuditChecks';
 import { useLogoAuditReviews } from '@/hooks/useLogoAuditReviews';
 import { ReviewControl } from '@/components/logohub/ReviewControl';
+import { VisualAuditCell } from '@/components/logohub/VisualAuditCell';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Row {
