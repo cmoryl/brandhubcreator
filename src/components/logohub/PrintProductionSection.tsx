@@ -76,7 +76,7 @@ export function PrintProductionSection({ files, brandDescription }: Props) {
         ? 'Clear-space guidance referenced'
         : 'No clear-space rule declared — typical is 1× cap-height or x-width',
     },
-  ] as const;
+  ] as Array<{ id: string; label: string; status: 'pass' | 'warn' | 'fail' | 'info'; detail: string }>;
 
   return (
     <section>
