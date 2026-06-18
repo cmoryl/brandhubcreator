@@ -12,6 +12,10 @@ export type SvgContrastResult = {
   isLightOnTransparent: boolean;
   /** Number of color tokens analyzed. */
   sampleCount: number;
+  /** True when the source artwork is composed mostly of strokes with no fills. */
+  isStrokeOnly: boolean;
+  /** Fraction of shape elements rendered as fill="none" (0-1). */
+  strokeRatio: number;
 };
 
 const cache = new Map<string, Promise<SvgContrastResult | null>>();
