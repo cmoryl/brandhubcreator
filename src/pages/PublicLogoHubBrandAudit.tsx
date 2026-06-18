@@ -517,6 +517,9 @@ function FileRow({
           </details>
         </div>
       </td>
+      <td className="px-3 py-3 align-top text-center">
+        <VisualAuditCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
+      </td>
       <td className="px-3 py-3 align-top max-w-md">
         <code className="text-[10px] font-mono break-all text-muted-foreground block leading-relaxed">
           {file.url}
