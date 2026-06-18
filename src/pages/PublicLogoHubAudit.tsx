@@ -276,9 +276,13 @@ export default function PublicLogoHubAudit() {
                 {filtered.map((r) => (
                   <tr key={r.id} className="border-t border-border hover:bg-muted/20">
                     <td className="px-4 py-3 align-top">
-                      <div className="font-medium truncate max-w-[200px]" title={r.name}>
+                      <Link
+                        to={`/logohub/audit/${r.id}`}
+                        className="font-medium truncate max-w-[200px] block hover:text-primary hover:underline"
+                        title={r.name}
+                      >
                         {r.name}
-                      </div>
+                      </Link>
                       {r.website_url && (
                         <a
                           href={r.website_url}

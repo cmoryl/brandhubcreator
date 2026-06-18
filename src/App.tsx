@@ -108,6 +108,7 @@ const AttributionsView = lazyWithRetry(() => import("./pages/AttributionsView"))
 const BrandIconHubPage = lazyWithRetry(() => import("./pages/BrandIconHubPage"));
 const PublicLogoHub = lazyWithRetry(() => import("./pages/PublicLogoHub"));
 const PublicLogoHubAudit = lazyWithRetry(() => import("./pages/PublicLogoHubAudit"));
+const PublicLogoHubBrandAudit = lazyWithRetry(() => import("./pages/PublicLogoHubBrandAudit"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -548,6 +549,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <PublicLogoHubAudit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="logohub/audit/:id"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubBrandAudit />
                         </Suspense>
                       }
                     />
