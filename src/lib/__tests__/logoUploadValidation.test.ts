@@ -11,7 +11,10 @@ function svgFile(body: string, name = 'logo.svg', type = 'image/svg+xml') {
 }
 
 function pngFile(bytes: Uint8Array, name = 'logo.png', type = 'image/png') {
-  return new File([bytes], name, { type });
+  // Copy into a plain ArrayBuffer-backed Uint8Array so TS accepts it as BlobPart.
+  const buf = new Uint8Array(bytes.length);
+  buf.set(bytes);
+  return new File([buf.buffer], name, { type });
 }
 
 const PNG_MAGIC = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
