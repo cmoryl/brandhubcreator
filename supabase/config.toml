@@ -218,3 +218,6 @@ verify_jwt = false
 
 [functions.derive-mono-svgs]
 verify_jwt = false
+
+[functions.vectorize-mono-pngs]
+verify_jwt = false
