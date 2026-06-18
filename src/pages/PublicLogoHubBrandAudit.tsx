@@ -111,6 +111,8 @@ export default function PublicLogoHubBrandAudit() {
   }, [id]);
 
   const audit = useMemo(() => (row ? auditBrand(row.files) : null), [row]);
+  const { isAdmin } = useAuth();
+  const { getReview, upsert, remove } = useLogoAuditReviews(row?.id);
 
   const copy = async (text: string, key: string) => {
     try {
