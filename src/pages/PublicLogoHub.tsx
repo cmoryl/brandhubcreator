@@ -583,10 +583,20 @@ export default function PublicLogoHub() {
 function useAutoDarkBg(file: ClientLogoFile | undefined, variant: ClientLogoVariant) {
   const contrast = useSvgContrast(file?.url, file?.format);
   const isStrokeOnly = !!contrast?.isStrokeOnly;
+  const hasForcedStrokeOutline = !!contrast?.hasForcedStrokeOutline;
+  const hasTextNodes = !!contrast?.hasTextNodes;
+  const usesCurrentColor = !!contrast?.usesCurrentColor;
   // Explicit "white" variants always use a dark canvas.
-  if (variant === 'white') return { dark: true, auto: false, isStrokeOnly };
-  if (contrast?.isLightOnTransparent) return { dark: true, auto: true, isStrokeOnly };
-  return { dark: false, auto: false, isStrokeOnly };
+  const base = {
+    isStrokeOnly,
+    hasForcedStrokeOutline,
+    hasTextNodes,
+    usesCurrentColor,
+    safePreviewUrl: contrast?.safePreviewUrl,
+  };
+  if (variant === 'white') return { dark: true, auto: false, ...base };
+  if (contrast?.isLightOnTransparent) return { dark: true, auto: true, ...base };
+  return { dark: false, auto: false, ...base };
 }
 
 function LogoCell({
@@ -610,7 +620,18 @@ function LogoCell({
   // (the one that gets downloaded / previewed). This lets us swap to a
   // color PNG with a CSS tint when the exact variant SVG renders badly.
   const shown = displayFile ?? file;
-  const { dark, isStrokeOnly } = useAutoDarkBg(file, variant);
+  const {
+    dark,
+    isStrokeOnly,
+    hasForcedStrokeOutline,
+    hasTextNodes,
+    usesCurrentColor,
+    safePreviewUrl,
+  } = useAutoDarkBg(file, variant);
+  const isDisplayFallback = !!displayFile && displayFile.url !== file?.url;
+  const shownUrl = shown
+    ? (!isDisplayFallback && shown.format === 'svg' && safePreviewUrl ? safePreviewUrl : shown.url)
+    : undefined;
   return (
     <button
       type="button"
@@ -622,10 +643,10 @@ function LogoCell({
       )}
       title={`${lockup} • ${variant}`}
     >
-      {shown ? (
+      {shownUrl ? (
         <>
           <img
-            src={shown.url}
+            src={shownUrl}
             alt={`${brandName} ${lockup} ${variant}`}
             loading="lazy"
             className="w-full h-full object-contain"
@@ -672,6 +693,32 @@ function LogoCell({
           Outline
         </span>
       )}
+      {file && !isStrokeOnly && hasForcedStrokeOutline && (
+        <span
+          title="Preview fixed: this SVG had forced stroke paint that made filled artwork look thick and outlined. Downloads keep the original file."
+          className={cn(
+            'absolute top-1 right-1 text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded border',
+            dark
+              ? 'bg-primary/20 text-primary-foreground border-primary/40'
+              : 'bg-primary/10 text-primary border-primary/30',
+          )}
+        >
+          Cleaned
+        </span>
+      )}
+      {file && !isStrokeOnly && !hasForcedStrokeOutline && (hasTextNodes || usesCurrentColor) && (
+        <span
+          title={hasTextNodes ? 'This SVG contains live text and may render differently if its font is unavailable.' : 'This SVG uses currentColor and can inherit an unintended color.'}
+          className={cn(
+            'absolute top-1 right-1 text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded border',
+            dark
+              ? 'bg-amber-400/15 text-amber-200 border-amber-300/30'
+              : 'bg-amber-50 text-amber-700 border-amber-200',
+          )}
+        >
+          SVG issue
+        </span>
+      )}
     </button>
   );
 }
@@ -683,7 +730,16 @@ function PreviewStage({
   logo: { name: string };
   file: ClientLogoFile;
 }) {
-  const { dark, auto, isStrokeOnly } = useAutoDarkBg(file, file.variant as ClientLogoVariant);
+  const {
+    dark,
+    auto,
+    isStrokeOnly,
+    hasForcedStrokeOutline,
+    hasTextNodes,
+    usesCurrentColor,
+    safePreviewUrl,
+  } = useAutoDarkBg(file, file.variant as ClientLogoVariant);
+  const previewUrl = file.format === 'svg' && safePreviewUrl ? safePreviewUrl : file.url;
   return (
     <div className="relative">
       <div
@@ -693,7 +749,7 @@ function PreviewStage({
         )}
       >
         <img
-          src={file.url}
+          src={previewUrl}
           alt={`${logo.name} preview`}
           className="h-[400px] w-full object-contain"
         />
@@ -710,6 +766,22 @@ function PreviewStage({
             className="text-[10px] px-2 py-1 rounded-full bg-amber-500/20 text-amber-100 border border-amber-400/30 backdrop-blur-sm"
           >
             Outline artwork · source is stroke-only
+          </span>
+        )}
+        {!isStrokeOnly && hasForcedStrokeOutline && (
+          <span
+            title="The preview removes forced SVG stroke paint that was making the logo look thick and outlined. The downloaded SVG remains unchanged."
+            className="text-[10px] px-2 py-1 rounded-full bg-primary/20 text-primary-foreground border border-primary/30 backdrop-blur-sm"
+          >
+            Clean preview · forced outline removed
+          </span>
+        )}
+        {!isStrokeOnly && !hasForcedStrokeOutline && (hasTextNodes || usesCurrentColor) && (
+          <span
+            title={hasTextNodes ? 'This source SVG contains live text and depends on external fonts.' : 'This source SVG uses currentColor and may inherit an unintended color.'}
+            className="text-[10px] px-2 py-1 rounded-full bg-amber-500/20 text-amber-100 border border-amber-400/30 backdrop-blur-sm"
+          >
+            SVG source issue detected
           </span>
         )}
       </div>

@@ -49,19 +49,65 @@ function isInternal(url: string): boolean {
   }
 }
 
-// Force-tint an SVG to a flat color (black or white) by stripping fills/strokes
-// and wrapping in a CSS rule. Preserves the artwork shape.
+// Force-tint an SVG to a flat color (black or white). Earlier versions applied
+// both fill and stroke globally, which made filled artwork look thick/outlined.
+// Keep existing stroke-only artwork stroked, but do not add strokes to filled paths.
 function monochromeSvg(svgText: string, color: "#000000" | "#ffffff"): string {
   let s = svgText;
-  // Drop inline style fills/strokes and named fill attributes
-  s = s.replace(/\s(fill|stroke)="(?!none)[^"]*"/gi, "");
-  s = s.replace(/(fill|stroke)\s*:\s*[^;"']+/gi, "");
+  // Drop explicit paint values; preserve fill="none"/stroke="none" structure.
+  s = s.replace(/\sfill="(?!none|transparent)[^"]*"/gi, "");
+  s = s.replace(/\sstroke="(?!none|transparent)[^"]*"/gi, "");
+  s = s.replace(/fill\s*:\s*(?!none|transparent)[^;"']+/gi, "");
+  s = s.replace(/stroke\s*:\s*(?!none|transparent)[^;"']+/gi, "");
   // Inject a global style at the top of the root svg tag
-  const styleBlock = `<style>*{fill:${color} !important;stroke:${color} !important;}</style>`;
+  const styleBlock = `<style>*{fill:${color} !important;color:${color} !important} [fill="none"],[fill="transparent"]{fill:none!important} [stroke]:not([stroke="none"]):not([stroke="transparent"]){stroke:${color}!important}</style>`;
   if (/<svg[^>]*>/i.test(s)) {
     s = s.replace(/<svg([^>]*)>/i, `<svg$1>${styleBlock}`);
   }
   return s;
+}
+
+function sanitizeSvg(svg: string): string {
+  return svg
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, "")
+    .replace(/\son\w+=["'][^"']*["']/gi, "")
+    .replace(/\sxmlns:xlink=["'][^"']*["']/gi, "");
+}
+
+function analyzeStrokeOnly(svg: string): boolean {
+  const root = /<svg\b[^>]*>/i.exec(svg)?.[0] ?? "";
+  const rootFill = /\bfill=["']([^"']+)["']/i.exec(root)?.[1]?.toLowerCase().trim() ?? "";
+  const rootStroke = /\bstroke=["']([^"']+)["']/i.exec(root)?.[1]?.toLowerCase().trim() ?? "";
+  const shapeRe = /<(path|circle|rect|polygon|polyline|line|ellipse)\b[^>]*>/gi;
+  let shapes = 0;
+  let strokedNoFill = 0;
+  let m: RegExpExecArray | null;
+  while ((m = shapeRe.exec(svg))) {
+    const tag = m[0];
+    shapes++;
+    const fill = /\bfill=["']([^"']+)["']/i.exec(tag)?.[1]?.toLowerCase().trim() ?? rootFill;
+    const stroke = /\bstroke=["']([^"']+)["']/i.exec(tag)?.[1]?.toLowerCase().trim() ?? rootStroke;
+    if ((fill === "none" || fill === "transparent") && stroke && stroke !== "none" && stroke !== "transparent") strokedNoFill++;
+  }
+  return shapes >= 2 && strokedNoFill / shapes >= 0.7;
+}
+
+function hasForcedStrokeOutline(svg: string): boolean {
+  const root = /<svg\b[^>]*>/i.exec(svg)?.[0] ?? "";
+  const rootHasFillAndStroke = /\bfill=["'](?!none|transparent)[^"']+["']/i.test(root) && /\bstroke=["'](?!none|transparent)[^"']+["']/i.test(root);
+  const globalStrokeStyle = /<style\b[^>]*>[\s\S]*?\*\s*\{[^}]*\bstroke\s*:\s*(?!none|transparent)[^;}]+[\s\S]*?<\/style>/i.test(svg);
+  return rootHasFillAndStroke || globalStrokeStyle;
+}
+
+function repairForcedStrokeOutlineSvg(svgText: string): { svg: string; repaired: boolean } {
+  const svg = sanitizeSvg(svgText);
+  if (!hasForcedStrokeOutline(svg) || analyzeStrokeOnly(svg)) return { svg, repaired: false };
+  let repaired = svg.replace(/(<svg\b[^>]*?)\s+stroke=["'](?!none|transparent)[^"']+["']/gi, "$1");
+  repaired = repaired.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, (block) =>
+    /\*\s*\{/i.test(block) ? block.replace(/\bstroke\s*:\s*(?!none|transparent)[^;}]+;?/gi, "") : block,
+  );
+  return { svg: repaired, repaired: repaired !== svg };
 }
 
 async function downloadBytes(url: string): Promise<{ bytes: Uint8Array; ct: string | null }> {
@@ -191,6 +237,22 @@ async function repairBrand(
     const f = files[i];
     if (!f?.url) continue;
     if (isInternal(f.url)) {
+      if ((f.format ?? "").toLowerCase() === "svg") {
+        try {
+          const { bytes } = await downloadBytes(f.url);
+          const text = new TextDecoder().decode(bytes);
+          const repaired = repairForcedStrokeOutlineSvg(text);
+          if (repaired.repaired) {
+            const fileName = `${f.lockup ?? "asset"}-${f.variant ?? "color"}.svg`;
+            const signedUrl = await uploadAndSign(supabase, `${slug}/${fileName}`, new TextEncoder().encode(repaired.svg), "image/svg+xml");
+            files[i] = { ...f, url: signedUrl, format: "svg", source: `repaired:${f.source ?? "internal"}` };
+            result.rehosted++;
+            continue;
+          }
+        } catch (e) {
+          result.errors.push(`${f.lockup}/${f.variant}: internal svg audit failed: ${(e as Error).message}`);
+        }
+      }
       result.skipped++;
       continue;
     }
@@ -219,6 +281,13 @@ async function repairBrand(
         );
         bytes = new TextEncoder().encode(tinted);
         ct = "image/svg+xml";
+      } else if (ext === "svg") {
+        const txt = new TextDecoder().decode(bytes);
+        const repaired = repairForcedStrokeOutlineSvg(txt);
+        if (repaired.repaired) {
+          bytes = new TextEncoder().encode(repaired.svg);
+          ct = "image/svg+xml";
+        }
       }
 
       const fileName = `${f.lockup ?? "asset"}-${f.variant ?? "color"}.${ext}`;

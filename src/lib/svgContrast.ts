@@ -16,6 +16,14 @@ export type SvgContrastResult = {
   isStrokeOnly: boolean;
   /** Fraction of shape elements rendered as fill="none" (0-1). */
   strokeRatio: number;
+  /** True when SVG CSS/attributes force stroke onto filled artwork, causing thick outlines. */
+  hasForcedStrokeOutline: boolean;
+  /** True when the SVG still contains live text and depends on installed fonts. */
+  hasTextNodes: boolean;
+  /** True when SVG paint uses currentColor and may inherit an unintended color. */
+  usesCurrentColor: boolean;
+  /** Data URL used for display only when a forced outline can be safely removed. */
+  safePreviewUrl?: string;
 };
 
 const cache = new Map<string, Promise<SvgContrastResult | null>>();
@@ -80,6 +88,32 @@ function extractColors(svg: string): string[] {
   while ((m = styleRe.exec(svg))) {
     if (m[1]) out.push(m[1]);
   }
+  return out;
+}
+
+function svgToDataUrl(svg: string): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+function hasForcedStrokeOutline(svg: string): boolean {
+  const root = svg.match(/<svg\b[^>]*>/i)?.[0] ?? '';
+  const rootHasFillAndStroke = /\bfill\s*=\s*(["'])(?!none|transparent)[^"']+\1/i.test(root)
+    && /\bstroke\s*=\s*(["'])(?!none|transparent)[^"']+\1/i.test(root);
+  const globalStyleStroke = /<style\b[^>]*>[\s\S]*?(?:\*|path|rect|circle|polygon|polyline|ellipse|line)\s*\{[^}]*\bstroke\s*:\s*(?!none|transparent)[^;}]+!?important?[^}]*\}[\s\S]*?<\/style>/i.test(svg)
+    || /<style\b[^>]*>[\s\S]*?\*\s*\{[^}]*\bfill\s*:\s*[^;}]+;?[^}]*\bstroke\s*:\s*(?!none|transparent)[^;}]+[\s\S]*?<\/style>/i.test(svg);
+  return rootHasFillAndStroke || globalStyleStroke;
+}
+
+function stripForcedStrokeForPreview(svg: string): string {
+  let out = svg;
+  // Generated repairs previously injected universal stroke paint, which makes
+  // filled logo paths look like thick outlines. Keep fills intact and remove
+  // only those blanket stroke rules for the display preview.
+  out = out.replace(/(<svg\b[^>]*?)\s+stroke\s*=\s*(["'])(?!none|transparent)[^"']+\2/gi, '$1');
+  out = out.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, (block) => {
+    if (!/(?:\*|path|rect|circle|polygon|polyline|ellipse|line)\s*\{/i.test(block)) return block;
+    return block.replace(/\bstroke\s*:\s*(?!none|transparent)[^;}]+;?/gi, '');
+  });
   return out;
 }
 
@@ -160,11 +194,17 @@ export function analyzeSvgContrast(url: string): Promise<SvgContrastResult | nul
         lums.push(luminance(c));
       }
       const stroke = analyzeStrokeUsage(text);
+      const forcedStrokeOutline = hasForcedStrokeOutline(text);
+      const hasTextNodes = /<text\b/i.test(text);
+      const usesCurrentColor = /currentcolor/i.test(text);
       // Stroke-only when at least 2 shapes and >=70% of them render as
       // stroke without fill. Small shape counts get a stricter check to
       // avoid false positives on single-glyph marks.
       const isStrokeOnly =
         stroke.shapes >= 2 && stroke.ratio >= 0.7;
+      const safePreviewUrl = forcedStrokeOutline && !isStrokeOnly
+        ? svgToDataUrl(stripForcedStrokeForPreview(text))
+        : undefined;
 
       if (!lums.length) {
         return {
@@ -173,6 +213,10 @@ export function analyzeSvgContrast(url: string): Promise<SvgContrastResult | nul
           sampleCount: 0,
           isStrokeOnly,
           strokeRatio: stroke.ratio,
+          hasForcedStrokeOutline: forcedStrokeOutline,
+          hasTextNodes,
+          usesCurrentColor,
+          safePreviewUrl,
         };
       }
       const mean = lums.reduce((a, b) => a + b, 0) / lums.length;
@@ -184,6 +228,10 @@ export function analyzeSvgContrast(url: string): Promise<SvgContrastResult | nul
         isLightOnTransparent: !opaqueBg && mean > 0.85,
         isStrokeOnly,
         strokeRatio: stroke.ratio,
+        hasForcedStrokeOutline: forcedStrokeOutline,
+        hasTextNodes,
+        usesCurrentColor,
+        safePreviewUrl,
       };
     } catch {
       return null;
