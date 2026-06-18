@@ -570,10 +570,11 @@ export default function PublicLogoHub() {
 
 function useAutoDarkBg(file: ClientLogoFile | undefined, variant: ClientLogoVariant) {
   const contrast = useSvgContrast(file?.url, file?.format);
+  const isStrokeOnly = !!contrast?.isStrokeOnly;
   // Explicit "white" variants always use a dark canvas.
-  if (variant === 'white') return { dark: true, auto: false };
-  if (contrast?.isLightOnTransparent) return { dark: true, auto: true };
-  return { dark: false, auto: false };
+  if (variant === 'white') return { dark: true, auto: false, isStrokeOnly };
+  if (contrast?.isLightOnTransparent) return { dark: true, auto: true, isStrokeOnly };
+  return { dark: false, auto: false, isStrokeOnly };
 }
 
 function LogoCell({
