@@ -159,6 +159,7 @@ async function processRow(
   row: { id: string; name: string; files: FileEntry[] },
   lockups: ("wordmark"|"icon")[],
   dryRun: boolean,
+  force: boolean,
 ) {
   const slug = slugify(row.name);
   const files: FileEntry[] = Array.isArray(row.files) ? [...row.files] : [];
@@ -184,7 +185,8 @@ async function processRow(
     const src = candidates[0];
 
     let needRebuild = false;
-    if (!white) needRebuild = true;
+    if (force) needRebuild = true;
+    else if (!white) needRebuild = true;
     else if (color && white.url === color.url) needRebuild = true;
     else if (src?.svg && white.format !== "svg") needRebuild = true;
     else {
@@ -241,6 +243,7 @@ Deno.serve(async (req) => {
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const body = await req.json().catch(()=>({} as any));
     const dryRun = body.dryRun === true;
+    const force = body.force === true;
     const lockupArg = (body.lockup ?? "both") as "wordmark"|"icon"|"both";
     const lockups: ("wordmark"|"icon")[] = lockupArg === "both" ? ["wordmark","icon"] : [lockupArg];
     let q = sb.from("global_client_logos").select("id, name, files").order("name");
@@ -251,7 +254,7 @@ Deno.serve(async (req) => {
     let rebuilt = 0, okCount = 0, errors = 0;
     for (const r of (data ?? [])) {
       try {
-        const out = await processRow(sb, r as any, lockups, dryRun);
+        const out = await processRow(sb, r as any, lockups, dryRun, force);
         if (out.actions?.length) rebuilt++;
         else okCount++;
         if ((out as any).error) errors++;
