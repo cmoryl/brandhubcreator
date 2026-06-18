@@ -370,13 +370,15 @@ export default function PublicLogoHub() {
                         : 'grid-cols-3',
                     )}
                   >
-                    {cells.map(({ lockup: lk, variant: v, file }) => (
+                    {cells.map(({ lockup: lk, variant: v, file, display, tint }) => (
                       <LogoCell
                         key={`${lk}-${v}`}
                         brandName={logo.name}
                         lockup={lk}
                         variant={v}
                         file={file}
+                        displayFile={display}
+                        tint={tint}
                         onOpen={() => file && setPreview({ logo, file })}
                       />
                     ))}
