@@ -12,6 +12,7 @@ import { useLogoAuditReviews } from '@/hooks/useLogoAuditReviews';
 import { ReviewControl } from '@/components/logohub/ReviewControl';
 import { VisualAuditCell } from '@/components/logohub/VisualAuditCell';
 import { UploadLogoVersion } from '@/components/logohub/UploadLogoVersion';
+import { SvgLintCell } from '@/components/logohub/SvgLintCell';
 import { useAuth } from '@/contexts/AuthContext';
 import { Upload } from 'lucide-react';
 
@@ -565,6 +566,7 @@ function FileRow({
       </td>
       <td className="px-3 py-3 align-top text-center">
         <VisualAuditCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
+        {file.format === 'svg' && <SvgLintCell url={file.url} />}
       </td>
       <td className="px-3 py-3 align-top max-w-md">
         <code className="text-[10px] font-mono break-all text-muted-foreground block leading-relaxed">

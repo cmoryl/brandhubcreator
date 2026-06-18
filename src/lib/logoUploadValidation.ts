@@ -241,10 +241,28 @@ async function validateSvg(file: File): Promise<LogoValidationResult> {
     warnings.push(`Stripped ${removedAttrs.length} inline event handler(s)`);
   }
 
-  const serialized = new XMLSerializer().serializeToString(doc);
-  const sanitized = serialized.startsWith('<?xml')
-    ? serialized
-    : `<?xml version="1.0" encoding="UTF-8"?>\n${serialized}`;
+  // Run structural lint on the security-sanitized document.
+  // We import lazily to keep this module independent.
+  const { lintSvgDocument } = await import('./svgStructuralLint');
+  const lint = lintSvgDocument(doc);
+  if (!lint.ok) {
+    const failed = lint.findings.filter((f) => f.severity === 'fail');
+    const summary = failed
+      .map((f) => f.label.replace(/^[A-Z]/, (c) => c.toLowerCase()).replace(/^no /, ''))
+      .slice(0, 3)
+      .join('; ');
+    return {
+      ok: false,
+      error: `SVG structural lint failed: ${summary}${failed.length > 3 ? '…' : ''}`,
+    };
+  }
+  for (const f of lint.findings) {
+    if (f.severity === 'warn') {
+      warnings.push(`Lint: ${f.label}${f.detail ? ` — ${f.detail}` : ''}`);
+    }
+  }
+
+  const sanitized = lint.sanitized;
 
   const blob = new Blob([sanitized], { type: 'image/svg+xml' });
   if (blob.size > MAX_SVG_BYTES) {
