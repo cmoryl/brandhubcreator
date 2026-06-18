@@ -82,7 +82,7 @@ export function UploadLogoVersion({
     setUploading(true);
     try {
       const result = await validateLogoUpload(file);
-      if (!result.ok) {
+      if (result.ok !== true) {
         toast.error(result.error);
         return;
       }
