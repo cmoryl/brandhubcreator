@@ -165,10 +165,6 @@ async function svglFind(rawName: string): Promise<SvglEntry | null> {
   }
   return best;
 }
-    } catch { /* ignore */ }
-  }
-  return null;
-}
 
 async function fetchSvglAsset(entry: SvglEntry, lockup: "wordmark"|"icon"): Promise<{ svg: string; usedField: string } | null> {
   const candidates: Array<{ field: string; url: string|null }> = lockup === "wordmark"
