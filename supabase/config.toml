@@ -209,3 +209,6 @@ verify_jwt = false
 
 [functions.repair-brand-logos]
 verify_jwt = false
+
+[functions.enrich-logo-variants]
+verify_jwt = false
