@@ -116,6 +116,9 @@ export default function PublicLogoHubAudit() {
       audited.filter((r) => {
         if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
         if (category !== 'all' && r.category !== category) return false;
+        if (status === 'audit-fail') return r.audit.overall === 'fail';
+        if (status === 'audit-warn') return r.audit.overall === 'warn';
+        if (status === 'audit-pass') return r.audit.overall === 'pass';
         if (status !== 'all' && r.bucket !== status) return false;
         return true;
       }),
