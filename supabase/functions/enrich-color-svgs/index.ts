@@ -86,49 +86,97 @@ function svgHasColor(svgText: string): boolean {
 }
 
 // ============ Source 1: gilbarbara/logos (jsdelivr) ============
-// Catalog only loaded once per invocation.
-let GB_CACHE: Set<string> | null = null;
-async function loadGilbarbara(): Promise<Set<string>> {
+// Catalog has `shortname` (kebab) and `files` array of svg filenames.
+interface GbEntry { name: string; shortname: string; files: string[]; url?: string }
+let GB_CACHE: { byShort: Map<string, GbEntry>; byName: Map<string, GbEntry> } | null = null;
+async function loadGilbarbara() {
   if (GB_CACHE) return GB_CACHE;
   try {
     const r = await fetch("https://cdn.jsdelivr.net/gh/gilbarbara/logos@main/logos.json");
     if (!r.ok) throw new Error(`${r.status}`);
-    const list = await r.json() as Array<{ name: string; files: string[]; url?: string }>;
-    GB_CACHE = new Set(list.map(e => e.name.toLowerCase()));
-  } catch { GB_CACHE = new Set(); }
+    const list = await r.json() as GbEntry[];
+    const byShort = new Map<string, GbEntry>();
+    const byName = new Map<string, GbEntry>();
+    for (const e of list) {
+      if (e.shortname) byShort.set(e.shortname.toLowerCase(), e);
+      if (e.name) byName.set(e.name.toLowerCase().trim(), e);
+    }
+    GB_CACHE = { byShort, byName };
+  } catch { GB_CACHE = { byShort: new Map(), byName: new Map() }; }
   return GB_CACHE;
 }
 
-// brand-name overrides into gilbarbara slugs
+// brand-name overrides into gilbarbara shortnames
 const GB_OVERRIDES: Record<string, string> = {
   "coca-cola": "coca-cola",
-  "mcdonald's": "mcdonalds",
+  "mcdonald's": "mc-donalds",
   "x (twitter)": "twitter",
   "service now": "servicenow",
   "azure cloud": "azure",
-  "the new york times": "nytimes",
-  "amazon prime video": "amazon-prime-video",
+  "the new york times": "the-new-york-times",
+  "amazon prime video": "prime-video",
   "1440.io": "1440",
   "agility pim": "agility",
+  "amazon": "amazon",
+  "intel": "intel",
+  "samsung": "samsung",
+  "sony": "sony",
+  "fedex": "fedex",
+  "ups": "ups",
+  "visa": "visa",
+  "mastercard": "mastercard",
+  "ibm": "ibm",
+  "pepsi": "pepsi",
+  "coca cola": "coca-cola",
+  "lg": "lg",
+  "toyota": "toyota",
+  "walmart": "walmart",
+  "bbc": "bbc",
+  "cnn": "cnn",
+  "vimeo": "vimeo",
+  "disney": "disney",
+  "hilton": "hilton",
+  "hyatt": "hyatt",
+  "ihg": "ihg",
+  "mandarin oriental": "mandarin-oriental",
+  "marina bay sands": "marina-bay-sands",
+  "fairmont": "fairmont",
+  "iberostar": "iberostar",
+  "paramount+": "paramount-plus",
+  "peacock": "peacock",
+  "haas": "haas",
   "azure": "azure",
 };
 
 async function gbCandidates(rawName: string, lockup: "wordmark"|"icon"): Promise<string[]> {
-  const set = await loadGilbarbara();
-  if (!set.size) return [];
+  const cache = await loadGilbarbara();
+  if (!cache.byShort.size) return [];
   const norm = rawName.toLowerCase().trim();
-  const slug = GB_OVERRIDES[norm] ?? slugify(rawName);
-  const base = `https://cdn.jsdelivr.net/gh/gilbarbara/logos@main/logos`;
-  const urls: string[] = [];
-  // gilbarbara naming: <slug>.svg (wordmark/full), <slug>-icon.svg (icon only)
-  if (lockup === "icon") {
-    if (set.has(`${slug}-icon`)) urls.push(`${base}/${slug}-icon.svg`);
-    if (set.has(slug)) urls.push(`${base}/${slug}.svg`);
-  } else {
-    if (set.has(`${slug}-wordmark`)) urls.push(`${base}/${slug}-wordmark.svg`);
-    if (set.has(slug)) urls.push(`${base}/${slug}.svg`);
+  const tryKeys = [
+    GB_OVERRIDES[norm],
+    slugify(rawName),
+    norm.replace(/[^a-z0-9]+/g, ""),
+  ].filter(Boolean) as string[];
+  let entry: GbEntry | undefined;
+  for (const k of tryKeys) {
+    entry = cache.byShort.get(k);
+    if (entry) break;
   }
-  return urls;
+  if (!entry) entry = cache.byName.get(norm);
+  if (!entry) return [];
+  const base = `https://cdn.jsdelivr.net/gh/gilbarbara/logos@main/logos`;
+  const files = entry.files || [];
+  // gilbarbara naming: wordmark = bare <shortname>.svg; icon = -icon variant if present
+  const iconFile = files.find(f => /-icon(?:-.*)?\.svg$/i.test(f));
+  const tileFile = files.find(f => /-tile\.svg$/i.test(f));
+  const wordFile = files.find(f => f.toLowerCase() === `${entry!.shortname.toLowerCase()}.svg`) ?? files[0];
+  if (lockup === "icon") {
+    const ordered = [iconFile, tileFile, wordFile].filter(Boolean) as string[];
+    return ordered.map(f => `${base}/${f}`);
+  } else {
+    const ordered = [wordFile, iconFile].filter(Boolean) as string[];
+    return ordered.map(f => `${base}/${f}`);
+  }
 }
 
 // ============ Source 2/3: Firecrawl ============
