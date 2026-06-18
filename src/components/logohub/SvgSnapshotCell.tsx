@@ -134,6 +134,21 @@ export function SvgSnapshotCell({
           Render snapshot {expanded ? '▾' : '▸'}
         </button>
         <div className="flex items-center gap-1.5">
+          {loading && (
+            <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground inline-flex items-center gap-1">
+              <Loader2 className="h-2.5 w-2.5 animate-spin" /> rendering
+            </span>
+          )}
+          {!loading && error && (
+            <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium inline-flex items-center gap-1">
+              <AlertCircle className="h-2.5 w-2.5" /> render FAIL
+            </span>
+          )}
+          {!loading && !error && current && !baseline && (
+            <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium inline-flex items-center gap-1">
+              <CheckCircle2 className="h-2.5 w-2.5" /> renders
+            </span>
+          )}
           {baseline && (
             <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
               baseline set
@@ -145,6 +160,7 @@ export function SvgSnapshotCell({
             </span>
           )}
         </div>
+
       </div>
 
       {expanded && (
