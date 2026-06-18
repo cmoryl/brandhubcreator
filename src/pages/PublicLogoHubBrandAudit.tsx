@@ -15,7 +15,13 @@ import { VisualAuditCell } from '@/components/logohub/VisualAuditCell';
 import { UploadLogoVersion } from '@/components/logohub/UploadLogoVersion';
 import { SvgLintCell } from '@/components/logohub/SvgLintCell';
 import { SvgSnapshotCell } from '@/components/logohub/SvgSnapshotCell';
+import { SvgQualityCell } from '@/components/logohub/SvgQualityCell';
+import { ColorBlindCell } from '@/components/logohub/ColorBlindCell';
+import { ContrastMatrixCell } from '@/components/logohub/ContrastMatrixCell';
 import { IndustryStandardsSection } from '@/components/logohub/IndustryStandardsSection';
+import { SlotCompletenessSection } from '@/components/logohub/SlotCompletenessSection';
+import { PrintProductionSection } from '@/components/logohub/PrintProductionSection';
+import { AppIconCoverageSection } from '@/components/logohub/AppIconCoverageSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { Upload } from 'lucide-react';
 
