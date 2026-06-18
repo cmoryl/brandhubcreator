@@ -11,7 +11,9 @@ import { auditBrand, type CheckResult, type FileAudit, type SlotAudit } from '@/
 import { useLogoAuditReviews } from '@/hooks/useLogoAuditReviews';
 import { ReviewControl } from '@/components/logohub/ReviewControl';
 import { VisualAuditCell } from '@/components/logohub/VisualAuditCell';
+import { UploadLogoVersion } from '@/components/logohub/UploadLogoVersion';
 import { useAuth } from '@/contexts/AuthContext';
+import { Upload } from 'lucide-react';
 
 interface Row {
   id: string;
@@ -190,13 +192,23 @@ export default function PublicLogoHubBrandAudit() {
                 </a>
               )}
             </div>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <Stat label="Files" value={row.files.length} />
-              <Stat label="SVG" value={row.files.filter((f) => f.format === 'svg').length} />
-              <Stat label="Raster" value={row.files.filter((f) => f.format !== 'svg').length} />
-              <Stat label="Pass" value={audit.totals.brandPass + audit.totals.slotPass + audit.totals.filePass} tone="success" />
-              <Stat label="Warn" value={audit.totals.brandWarn + audit.totals.slotWarn + audit.totals.fileWarn} tone="warning" />
-              <Stat label="Fail" value={audit.totals.brandFail + audit.totals.slotFail + audit.totals.fileFail} tone="danger" />
+            <div className="flex flex-col items-end gap-3">
+              {isAdmin && (
+                <UploadLogoVersion
+                  logoId={row.id}
+                  logoName={row.name}
+                  existingFiles={row.files}
+                  onUploaded={(files) => setRow((r) => (r ? { ...r, files } : r))}
+                />
+              )}
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <Stat label="Files" value={row.files.length} />
+                <Stat label="SVG" value={row.files.filter((f) => f.format === 'svg').length} />
+                <Stat label="Raster" value={row.files.filter((f) => f.format !== 'svg').length} />
+                <Stat label="Pass" value={audit.totals.brandPass + audit.totals.slotPass + audit.totals.filePass} tone="success" />
+                <Stat label="Warn" value={audit.totals.brandWarn + audit.totals.slotWarn + audit.totals.fileWarn} tone="warning" />
+                <Stat label="Fail" value={audit.totals.brandFail + audit.totals.slotFail + audit.totals.fileFail} tone="danger" />
+              </div>
             </div>
           </div>
         </div>
@@ -248,7 +260,12 @@ export default function PublicLogoHubBrandAudit() {
                     getReview={getReview}
                     upsert={upsert}
                     remove={remove}
+                    logoId={row.id}
+                    logoName={row.name}
+                    allFiles={row.files}
+                    onUploaded={(files) => setRow((r) => (r ? { ...r, files } : r))}
                   />
+
                 ))}
               </tbody>
             </table>
@@ -340,11 +357,19 @@ function SlotRows({
   getReview,
   upsert,
   remove,
+  logoId,
+  logoName,
+  allFiles,
+  onUploaded,
 }: {
   slot: SlotAudit;
   websiteUrl: string | null;
   copied: string | null;
   onCopy: (url: string, key: string) => void;
+  logoId: string;
+  logoName: string;
+  allFiles: ClientLogoFile[];
+  onUploaded: (files: ClientLogoFile[]) => void;
 } & ReviewProps) {
   if (slot.files.length === 0) {
     const review = getReview(slot.lockup, slot.variant, null);
@@ -372,7 +397,23 @@ function SlotRows({
             onClear={review ? () => remove(review.id) : undefined}
           />
         </td>
-        <td />
+        <td className="px-3 py-3 text-right">
+          {isAdmin && (
+            <UploadLogoVersion
+              logoId={logoId}
+              logoName={logoName}
+              existingFiles={allFiles}
+              defaultLockup={slot.lockup}
+              defaultVariant={slot.variant}
+              onUploaded={onUploaded}
+              trigger={
+                <Button size="sm" variant="outline" className="h-7 gap-1 text-xs">
+                  <Upload className="h-3 w-3" /> Upload
+                </Button>
+              }
+            />
+          )}
+        </td>
       </tr>
     );
   }
