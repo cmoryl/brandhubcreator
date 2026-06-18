@@ -11,7 +11,9 @@ import { auditBrand, type CheckResult, type FileAudit, type SlotAudit } from '@/
 import { useLogoAuditReviews } from '@/hooks/useLogoAuditReviews';
 import { ReviewControl } from '@/components/logohub/ReviewControl';
 import { VisualAuditCell } from '@/components/logohub/VisualAuditCell';
+import { UploadLogoVersion } from '@/components/logohub/UploadLogoVersion';
 import { useAuth } from '@/contexts/AuthContext';
+import { Upload } from 'lucide-react';
 
 interface Row {
   id: string;
@@ -190,13 +192,23 @@ export default function PublicLogoHubBrandAudit() {
                 </a>
               )}
             </div>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <Stat label="Files" value={row.files.length} />
-              <Stat label="SVG" value={row.files.filter((f) => f.format === 'svg').length} />
-              <Stat label="Raster" value={row.files.filter((f) => f.format !== 'svg').length} />
-              <Stat label="Pass" value={audit.totals.brandPass + audit.totals.slotPass + audit.totals.filePass} tone="success" />
-              <Stat label="Warn" value={audit.totals.brandWarn + audit.totals.slotWarn + audit.totals.fileWarn} tone="warning" />
-              <Stat label="Fail" value={audit.totals.brandFail + audit.totals.slotFail + audit.totals.fileFail} tone="danger" />
+            <div className="flex flex-col items-end gap-3">
+              {isAdmin && (
+                <UploadLogoVersion
+                  logoId={row.id}
+                  logoName={row.name}
+                  existingFiles={row.files}
+                  onUploaded={(files) => setRow((r) => (r ? { ...r, files } : r))}
+                />
+              )}
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <Stat label="Files" value={row.files.length} />
+                <Stat label="SVG" value={row.files.filter((f) => f.format === 'svg').length} />
+                <Stat label="Raster" value={row.files.filter((f) => f.format !== 'svg').length} />
+                <Stat label="Pass" value={audit.totals.brandPass + audit.totals.slotPass + audit.totals.filePass} tone="success" />
+                <Stat label="Warn" value={audit.totals.brandWarn + audit.totals.slotWarn + audit.totals.fileWarn} tone="warning" />
+                <Stat label="Fail" value={audit.totals.brandFail + audit.totals.slotFail + audit.totals.fileFail} tone="danger" />
+              </div>
             </div>
           </div>
         </div>
