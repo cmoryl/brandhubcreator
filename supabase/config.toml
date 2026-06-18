@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.audit-color-logos]
 verify_jwt = false
 
+[functions.enrich-color-svgs]
+verify_jwt = false
+
 [functions.brand-audit-worker]
 verify_jwt = false
 
