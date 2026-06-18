@@ -224,13 +224,23 @@ export default function PublicLogoHub() {
               Public Library
             </Badge>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
-            Global Logo Hub
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl">
-            Browse every brand, partner and client logo in the library — with color, black, white,
-            icon and full logo variants.
-          </p>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+                Global Logo Hub
+              </h1>
+              <p className="text-muted-foreground text-lg max-w-2xl">
+                Browse every brand, partner and client logo in the library — with color, black, white,
+                icon and full logo variants.
+              </p>
+            </div>
+            <a
+              href="/logohub/audit"
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/50 hover:bg-accent transition-colors"
+            >
+              View full audit →
+            </a>
+          </div>
           <div className="mt-6 flex items-center gap-4 text-sm text-muted-foreground">
             <span>
               <span className="font-semibold text-foreground">{logos.length}</span> brands
