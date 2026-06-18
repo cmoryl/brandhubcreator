@@ -252,6 +252,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(()=>({} as any));
     const dryRun = body.dryRun === true;
     const onlyMissingSvg = body.onlyMissingSvg !== false; // default true
+    const useFirecrawl = body.useFirecrawl !== false; // default true
     const lockupArg = (body.lockup ?? "both") as "wordmark"|"icon"|"both";
     const lockups: ("wordmark"|"icon")[] = lockupArg === "both" ? ["wordmark","icon"] : [lockupArg];
     const limit: number = typeof body.limit === "number" ? body.limit : 0;
