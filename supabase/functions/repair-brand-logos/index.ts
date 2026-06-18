@@ -49,15 +49,18 @@ function isInternal(url: string): boolean {
   }
 }
 
-// Force-tint an SVG to a flat color (black or white) by stripping fills/strokes
-// and wrapping in a CSS rule. Preserves the artwork shape.
+// Force-tint an SVG to a flat color (black or white). Earlier versions applied
+// both fill and stroke globally, which made filled artwork look thick/outlined.
+// Keep existing stroke-only artwork stroked, but do not add strokes to filled paths.
 function monochromeSvg(svgText: string, color: "#000000" | "#ffffff"): string {
   let s = svgText;
-  // Drop inline style fills/strokes and named fill attributes
-  s = s.replace(/\s(fill|stroke)="(?!none)[^"]*"/gi, "");
-  s = s.replace(/(fill|stroke)\s*:\s*[^;"']+/gi, "");
+  // Drop explicit paint values; preserve fill="none"/stroke="none" structure.
+  s = s.replace(/\sfill="(?!none|transparent)[^"]*"/gi, "");
+  s = s.replace(/\sstroke="(?!none|transparent)[^"]*"/gi, "");
+  s = s.replace(/fill\s*:\s*(?!none|transparent)[^;"']+/gi, "");
+  s = s.replace(/stroke\s*:\s*(?!none|transparent)[^;"']+/gi, "");
   // Inject a global style at the top of the root svg tag
-  const styleBlock = `<style>*{fill:${color} !important;stroke:${color} !important;}</style>`;
+  const styleBlock = `<style>*{fill:${color} !important;color:${color} !important} [fill="none"],[fill="transparent"]{fill:none!important} [stroke]:not([stroke="none"]):not([stroke="transparent"]){stroke:${color}!important}</style>`;
   if (/<svg[^>]*>/i.test(s)) {
     s = s.replace(/<svg([^>]*)>/i, `<svg$1>${styleBlock}`);
   }
