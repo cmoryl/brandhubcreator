@@ -159,7 +159,7 @@ function isSvgUrl(u: string): boolean {
   try { return new URL(u).pathname.toLowerCase().endsWith(".svg"); } catch { return false; }
 }
 
-async function trySources(rawName: string, website: string | null, lockup: "wordmark"|"icon"):
+async function trySources(rawName: string, website: string | null, lockup: "wordmark"|"icon", useFirecrawl: boolean):
   Promise<{ svg: string; source: string } | null> {
   // 1. gilbarbara
   for (const u of await gbCandidates(rawName, lockup)) {
