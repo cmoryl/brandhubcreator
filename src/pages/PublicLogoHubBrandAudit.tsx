@@ -15,6 +15,7 @@ import { VisualAuditCell } from '@/components/logohub/VisualAuditCell';
 import { UploadLogoVersion } from '@/components/logohub/UploadLogoVersion';
 import { SvgLintCell } from '@/components/logohub/SvgLintCell';
 import { SvgSnapshotCell } from '@/components/logohub/SvgSnapshotCell';
+import { IndustryStandardsSection } from '@/components/logohub/IndustryStandardsSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { Upload } from 'lucide-react';
 
@@ -229,6 +230,14 @@ export default function PublicLogoHubBrandAudit() {
             ))}
           </div>
         </section>
+
+        {/* Industry-standard registry comparison */}
+        <IndustryStandardsSection
+          brandName={row.name}
+          storedSvgUrls={row.files.filter((f) => f.format === 'svg').map((f) => f.url)}
+        />
+
+
 
         {/* Per-slot pass/fail table */}
         <section>
