@@ -213,23 +213,31 @@ async function processRow(
     const colorIdx = files.findIndex(f => f?.lockup===lockup && f?.variant==="color");
     const color = colorIdx >= 0 ? files[colorIdx] : null;
     const colorIsSvg = color ? (color.format === "svg" || color.url.toLowerCase().includes(".svg")) : false;
+    const fromSvgl = !!color?.source?.startsWith("svgl:");
 
     // Audit existing color
     let auditOk = false;
     let auditNote = "";
     if (color) {
-      try {
-        const { bytes } = await dl(color.url);
-        if (colorIsSvg) {
-          const text = new TextDecoder().decode(bytes);
-          auditOk = svgHasColor(text);
-          if (!auditOk) auditNote = "svg-is-mono";
-        } else {
-          auditOk = await pngHasColor(bytes);
-          if (!auditOk) auditNote = "raster-mostly-mono";
+      if (fromSvgl && colorIsSvg) {
+        // svgl is the authoritative brand catalog — accept its assets (including
+        // intentionally monochrome marks like Apple/Nike) without re-checking colorfulness.
+        auditOk = true;
+        auditNote = "svgl-trusted";
+      } else {
+        try {
+          const { bytes } = await dl(color.url);
+          if (colorIsSvg) {
+            const text = new TextDecoder().decode(bytes);
+            auditOk = svgHasColor(text);
+            if (!auditOk) auditNote = "svg-is-mono";
+          } else {
+            auditOk = await pngHasColor(bytes);
+            if (!auditOk) auditNote = "raster-mostly-mono";
+          }
+        } catch (e) {
+          auditNote = `dl-fail:${(e as Error).message}`;
         }
-      } catch (e) {
-        auditNote = `dl-fail:${(e as Error).message}`;
       }
     } else {
       auditNote = "missing";
@@ -237,7 +245,8 @@ async function processRow(
 
     const shouldUpgrade = !color || !colorIsSvg || forceUpgrade || !auditOk;
 
-    if (!shouldUpgrade) { issues.push(`${lockup}:ok-svg`); continue; }
+    if (!shouldUpgrade) { issues.push(`${lockup}:${fromSvgl ? "ok-svgl" : "ok-svg"}`); continue; }
+
 
     // Attempt SVG sourcing via svgl
     const entry = await getSvgl();
