@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { visualAuditFile, type VisualAuditResult } from '@/lib/logoVisualAudit';
 
 type Variant = 'color' | 'black' | 'white';
@@ -13,6 +13,15 @@ export function useVisualAudit(url: string | null | undefined, variant: Variant,
     return cache.get(`${variant}::${url}`) ?? null;
   });
   const [loading, setLoading] = useState(false);
+  const [tick, setTick] = useState(0);
+
+  const rerun = useCallback(() => {
+    if (!url) return;
+    const key = `${variant}::${url}`;
+    cache.delete(key);
+    inflight.delete(key);
+    setTick((t) => t + 1);
+  }, [url, variant]);
 
   useEffect(() => {
     if (!enabled || !url) return;
@@ -36,7 +45,7 @@ export function useVisualAudit(url: string | null | undefined, variant: Variant,
       if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
-  }, [url, variant, enabled]);
+  }, [url, variant, enabled, tick]);
 
-  return { result, loading };
+  return { result, loading, rerun };
 }
