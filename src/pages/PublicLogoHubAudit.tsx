@@ -44,6 +44,7 @@ const extOf = (url: string, fallback?: string) => {
 type StatusFilter = 'all' | 'complete' | 'partial' | 'raster' | 'missing' | 'audit-fail' | 'audit-warn' | 'audit-pass';
 
 export default function PublicLogoHubAudit() {
+  const { isAdmin, isSuperAdmin } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
