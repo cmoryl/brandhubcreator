@@ -6641,6 +6641,66 @@ export type Database = {
         }
         Relationships: []
       }
+      svg_render_snapshots: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_url: string
+          file_url_hash: string
+          height: number
+          id: string
+          png_black: string
+          png_transparent: string
+          png_white: string
+          sha_black: string
+          sha_transparent: string
+          sha_white: string
+          sig_black: string
+          sig_transparent: string
+          sig_white: string
+          updated_at: string
+          width: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_url: string
+          file_url_hash: string
+          height: number
+          id?: string
+          png_black: string
+          png_transparent: string
+          png_white: string
+          sha_black: string
+          sha_transparent: string
+          sha_white: string
+          sig_black: string
+          sig_transparent: string
+          sig_white: string
+          updated_at?: string
+          width: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_url?: string
+          file_url_hash?: string
+          height?: number
+          id?: string
+          png_black?: string
+          png_transparent?: string
+          png_white?: string
+          sha_black?: string
+          sha_transparent?: string
+          sha_white?: string
+          sig_black?: string
+          sig_transparent?: string
+          sig_white?: string
+          updated_at?: string
+          width?: number
+        }
+        Relationships: []
+      }
       universe_backups: {
         Row: {
           backup_data: Json
