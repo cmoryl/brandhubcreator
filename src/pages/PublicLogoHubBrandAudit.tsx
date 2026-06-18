@@ -266,6 +266,11 @@ export default function PublicLogoHubBrandAudit() {
             <li><strong>Vector format (SVG)</strong> — raster formats warn; SVG is preferred.</li>
             <li><strong>Slot has at least one file</strong> — fails if missing.</li>
             <li><strong>Slot has an SVG</strong> — warns if only raster is present.</li>
+            <li><strong>Visual: Image loads</strong> — fetches the file from the browser; fails if blocked or 404.</li>
+            <li><strong>Visual: Dimensions & aspect</strong> — flags tiny or extreme aspect-ratio assets.</li>
+            <li><strong>Visual: Contains ink / transparency</strong> — flags blank files and missing transparent backgrounds.</li>
+            <li><strong>Visual: Variant pixels</strong> — black variants must read dark, white variants light, color variants must contain chroma.</li>
+            <li><strong>Visual: Contrast vs background</strong> — ensures the logo is visible on its intended slot background.</li>
           </ul>
         </section>
       </main>
