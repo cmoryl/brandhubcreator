@@ -368,6 +368,12 @@ export default function PublicLogoHubAudit() {
             </table>
           </div>
         )}
+
+        {(isAdmin || isSuperAdmin) && (
+          <div className="mt-10">
+            <OrphanedFilesSection canDelete={isSuperAdmin} />
+          </div>
+        )}
       </main>
     </div>
   );
