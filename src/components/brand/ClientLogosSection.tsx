@@ -238,12 +238,12 @@ export const ClientLogosSection = ({
   };
 
   const getPreviewUrl = (logo: ClientLogo, variant: ClientLogoVariant): string | null => {
-    // Prefer PNG, then SVG for preview
-    const pngFile = (logo.files || []).find(f => f.variant === variant && f.format === 'png');
-    if (pngFile) return pngFile.url;
-    
+    // Prefer SVG, then PNG for preview so audited vector monochrome assets are shown first.
     const svgFile = (logo.files || []).find(f => f.variant === variant && f.format === 'svg');
     if (svgFile) return svgFile.url;
+
+    const pngFile = (logo.files || []).find(f => f.variant === variant && f.format === 'png');
+    if (pngFile) return pngFile.url;
     
     return null;
   };
