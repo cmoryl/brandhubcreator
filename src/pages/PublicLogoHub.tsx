@@ -594,15 +594,24 @@ function LogoCell({
   lockup,
   variant,
   file,
+  displayFile,
+  tint = 'none',
   onOpen,
 }: {
   brandName: string;
   lockup: ClientLogoLockup;
   variant: ClientLogoVariant;
   file: ClientLogoFile | undefined;
+  displayFile?: ClientLogoFile | undefined;
+  tint?: 'none' | 'black' | 'white';
   onOpen: () => void;
 }) {
+  // Use displayFile for rendering only; `file` remains the canonical asset
+  // (the one that gets downloaded / previewed). This lets us swap to a
+  // color PNG with a CSS tint when the exact variant SVG renders badly.
+  const shown = displayFile ?? file;
   const { dark, isStrokeOnly } = useAutoDarkBg(file, variant);
+  const tinted = tint !== 'none' && shown !== file;
   return (
     <button
       type="button"
@@ -614,13 +623,20 @@ function LogoCell({
       )}
       title={`${lockup} • ${variant}`}
     >
-      {file ? (
+      {shown ? (
         <>
           <img
-            src={file.url}
+            src={shown.url}
             alt={`${brandName} ${lockup} ${variant}`}
             loading="lazy"
             className="w-full h-full object-contain"
+            style={
+              tint === 'black'
+                ? { filter: 'brightness(0) saturate(100%)' }
+                : tint === 'white'
+                  ? { filter: 'brightness(0) saturate(100%) invert(1)' }
+                  : undefined
+            }
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none">
             <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition-opacity" />
