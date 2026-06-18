@@ -67,6 +67,14 @@ function monochromeSvg(svgText: string, color: "#000000" | "#ffffff"): string {
   return s;
 }
 
+function sanitizeSvg(svg: string): string {
+  return svg
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, "")
+    .replace(/\son\w+=["'][^"']*["']/gi, "")
+    .replace(/\sxmlns:xlink=["'][^"']*["']/gi, "");
+}
+
 function analyzeStrokeOnly(svg: string): boolean {
   const root = /<svg\b[^>]*>/i.exec(svg)?.[0] ?? "";
   const rootFill = /\bfill=["']([^"']+)["']/i.exec(root)?.[1]?.toLowerCase().trim() ?? "";
