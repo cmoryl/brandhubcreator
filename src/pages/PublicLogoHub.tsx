@@ -611,7 +611,6 @@ function LogoCell({
   // color PNG with a CSS tint when the exact variant SVG renders badly.
   const shown = displayFile ?? file;
   const { dark, isStrokeOnly } = useAutoDarkBg(file, variant);
-  const tinted = tint !== 'none' && shown !== file;
   return (
     <button
       type="button"
