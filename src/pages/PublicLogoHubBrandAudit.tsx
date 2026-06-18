@@ -8,6 +8,9 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
 import { auditBrand, type CheckResult, type FileAudit, type SlotAudit } from '@/lib/logoAuditChecks';
+import { useLogoAuditReviews } from '@/hooks/useLogoAuditReviews';
+import { ReviewControl } from '@/components/logohub/ReviewControl';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Row {
   id: string;
@@ -108,6 +111,8 @@ export default function PublicLogoHubBrandAudit() {
   }, [id]);
 
   const audit = useMemo(() => (row ? auditBrand(row.files) : null), [row]);
+  const { isAdmin } = useAuth();
+  const { getReview, upsert, remove } = useLogoAuditReviews(row?.id);
 
   const copy = async (text: string, key: string) => {
     try {
@@ -225,6 +230,7 @@ export default function PublicLogoHubBrandAudit() {
                   <th className="text-left px-3 py-3 font-medium">Source</th>
                   <th className="text-center px-3 py-3 font-medium">Checks</th>
                   <th className="text-left px-3 py-3 font-medium">URL</th>
+                  <th className="text-left px-3 py-3 font-medium">Review</th>
                   <th className="text-right px-3 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
@@ -236,6 +242,10 @@ export default function PublicLogoHubBrandAudit() {
                     websiteUrl={row.website_url}
                     copied={copied}
                     onCopy={copy}
+                    isAdmin={isAdmin}
+                    getReview={getReview}
+                    upsert={upsert}
+                    remove={remove}
                   />
                 ))}
               </tbody>
@@ -307,18 +317,30 @@ function CheckRow({ check }: { check: CheckResult }) {
   );
 }
 
+type ReviewProps = {
+  isAdmin: boolean;
+  getReview: ReturnType<typeof useLogoAuditReviews>['getReview'];
+  upsert: ReturnType<typeof useLogoAuditReviews>['upsert'];
+  remove: ReturnType<typeof useLogoAuditReviews>['remove'];
+};
+
 function SlotRows({
   slot,
   websiteUrl,
   copied,
   onCopy,
+  isAdmin,
+  getReview,
+  upsert,
+  remove,
 }: {
   slot: SlotAudit;
   websiteUrl: string | null;
   copied: string | null;
   onCopy: (url: string, key: string) => void;
-}) {
+} & ReviewProps) {
   if (slot.files.length === 0) {
+    const review = getReview(slot.lockup, slot.variant, null);
     return (
       <tr className="border-t border-border bg-red-500/5">
         <td className="px-4 py-3 capitalize font-medium">{slot.lockup}</td>
@@ -331,8 +353,16 @@ function SlotRows({
         <td className="px-3 py-3 text-center">
           <StatusPill status="fail" />
         </td>
-        <td className="px-3 py-3 text-xs text-muted-foreground italic">
-          No file in this slot
+        <td className="px-3 py-3 text-xs text-muted-foreground italic">No file in this slot</td>
+        <td className="px-3 py-3 align-top">
+          <ReviewControl
+            review={review}
+            canEdit={isAdmin}
+            onSave={({ status, notes }) =>
+              upsert({ lockup: slot.lockup, variant: slot.variant, fileUrl: null, status, notes })
+            }
+            onClear={review ? () => remove(review.id) : undefined}
+          />
         </td>
         <td />
       </tr>
@@ -351,6 +381,10 @@ function SlotRows({
           rowKey={`${slot.lockup}-${slot.variant}-${idx}`}
           copied={copied}
           onCopy={onCopy}
+          isAdmin={isAdmin}
+          getReview={getReview}
+          upsert={upsert}
+          remove={remove}
         />
       ))}
     </>
@@ -366,6 +400,10 @@ function FileRow({
   rowKey,
   copied,
   onCopy,
+  isAdmin,
+  getReview,
+  upsert,
+  remove,
 }: {
   fileAudit: FileAudit;
   slot: SlotAudit;
@@ -375,13 +413,14 @@ function FileRow({
   rowKey: string;
   copied: string | null;
   onCopy: (url: string, key: string) => void;
-}) {
+} & ReviewProps) {
   const file = fileAudit.file;
   const source = detectSource(file.url, websiteUrl);
   const ext = extOf(file.url, file.format) || file.format;
   const isSvg = file.format === 'svg';
   const Icon = isSvg ? FileType2 : FileImage;
   const isWhite = slot.variant === 'white';
+  const review = getReview(slot.lockup, slot.variant, file.url);
 
   return (
     <tr
@@ -479,6 +518,22 @@ function FileRow({
         <code className="text-[10px] font-mono break-all text-muted-foreground block leading-relaxed">
           {file.url}
         </code>
+      </td>
+      <td className="px-3 py-3 align-top">
+        <ReviewControl
+          review={review}
+          canEdit={isAdmin}
+          onSave={({ status, notes }) =>
+            upsert({
+              lockup: slot.lockup,
+              variant: slot.variant,
+              fileUrl: file.url,
+              status,
+              notes,
+            })
+          }
+          onClear={review ? () => remove(review.id) : undefined}
+        />
       </td>
       <td className="px-3 py-3 align-top text-right whitespace-nowrap">
         <div className="inline-flex items-center gap-1">

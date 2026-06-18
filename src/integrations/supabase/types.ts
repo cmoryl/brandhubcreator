@@ -4613,6 +4613,56 @@ export type Database = {
           },
         ]
       }
+      logo_audit_reviews: {
+        Row: {
+          created_at: string
+          file_url: string | null
+          id: string
+          lockup: string
+          logo_id: string
+          notes: string | null
+          reviewed_at: string
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          variant: string
+        }
+        Insert: {
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          lockup: string
+          logo_id: string
+          notes?: string | null
+          reviewed_at?: string
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          variant: string
+        }
+        Update: {
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          lockup?: string
+          logo_id?: string
+          notes?: string | null
+          reviewed_at?: string
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          variant?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logo_audit_reviews_logo_id_fkey"
+            columns: ["logo_id"]
+            isOneToOne: false
+            referencedRelation: "global_client_logos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_intelligence: {
         Row: {
           bias_awareness_insights: Json | null
