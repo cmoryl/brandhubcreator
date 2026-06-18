@@ -1,6 +1,7 @@
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { useVisualAudit } from '@/hooks/useVisualAudit';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 type Variant = 'color' | 'black' | 'white';
 
@@ -13,7 +14,7 @@ function pill(status: 'pass' | 'warn' | 'fail') {
 }
 
 export function VisualAuditCell({ url, variant }: { url: string; variant: Variant }) {
-  const { result, loading } = useVisualAudit(url, variant);
+  const { result, loading, rerun } = useVisualAudit(url, variant);
 
   if (loading && !result) {
     return (
@@ -28,9 +29,21 @@ export function VisualAuditCell({ url, variant }: { url: string; variant: Varian
 
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className={cn('inline-block px-2 py-0.5 rounded text-[10px] font-bold tracking-wider', pill(result.status))}>
-        {result.status.toUpperCase()}
-      </span>
+      <div className="flex items-center gap-1">
+        <span className={cn('inline-block px-2 py-0.5 rounded text-[10px] font-bold tracking-wider', pill(result.status))}>
+          {result.status.toUpperCase()}
+        </span>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-5 w-5 p-0"
+          title="Rerun visual audit"
+          onClick={rerun}
+          disabled={loading}
+        >
+          <RefreshCw className={cn('h-3 w-3', loading && 'animate-spin')} />
+        </Button>
+      </div>
       <div className="text-[10px] text-muted-foreground">
         {result.passCount}✓ · {result.warnCount}⚠ · {result.failCount}✗
       </div>
