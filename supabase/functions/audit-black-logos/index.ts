@@ -175,18 +175,20 @@ async function processRow(
 
     if (!color && !black && !white) continue;
 
-    // Source priority for black regen: SVG white > SVG color > PNG white > PNG color
-    const candidates: Array<{ e: FileEntry; svg: boolean; isWhite: boolean }> = [];
-    for (const e of [white, color]) {
+    // Source priority for black regen: prefer any SVG source, then PNG white/color.
+    const candidates: Array<{ e: FileEntry; svg: boolean; priority: number }> = [];
+    for (const e of [color, white]) {
       if (!e) continue;
-      candidates.push({ e, svg: e.format === "svg", isWhite: e === white });
+      const svg = e.format === "svg" || e.url.toLowerCase().includes(".svg");
+      candidates.push({ e, svg, priority: (svg ? 100 : 0) + (e === color ? 20 : 10) });
     }
-    candidates.sort((a,b) => (b.svg?2:0)+(b.isWhite?1:0) - ((a.svg?2:0)+(a.isWhite?1:0)));
+    candidates.sort((a,b) => b.priority - a.priority);
     const src = candidates[0];
 
     let needRebuild = false;
     if (!black) needRebuild = true;
     else if (color && black.url === color.url) needRebuild = true;
+    else if (src?.svg && black.format !== "svg") needRebuild = true;
     else {
       try {
         const bytes = await dl(black.url);
@@ -217,8 +219,10 @@ async function processRow(
       if (dryRun) { actions.push(`would-rebuild:${lockup}-black (${ext}, src=${src.e.variant})`); continue; }
       const url = await uploadSign(sb, path, newBytes, ct);
       const entry: FileEntry = { url, format: ext, lockup, variant: "black", source: `audit-rebuilt:${src.e.variant}-${src.e.format ?? "?"}` };
-      const i = files.findIndex(f => f?.lockup===lockup && f?.variant==="black");
-      if (i>=0) files[i] = entry; else files.push(entry);
+      for (let i = files.length - 1; i >= 0; i--) {
+        if (files[i]?.lockup===lockup && files[i]?.variant==="black") files.splice(i, 1);
+      }
+      files.push(entry);
       actions.push(`rebuilt:${lockup}-black.${ext}`);
     } catch (e) {
       issues.push(`${lockup}:err:${(e as Error).message}`);
