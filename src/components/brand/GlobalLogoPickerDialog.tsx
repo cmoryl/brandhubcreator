@@ -37,12 +37,12 @@ interface GlobalClientLogo {
 }
 
 const getPreviewUrl = (files: ClientLogoFile[]): { url: string; isWhite: boolean } | null => {
-  // Prefer color, then black, then white variant; prefer png over svg
+  // Prefer color, then black, then white variant; prefer SVG over PNG.
   for (const variant of ['color', 'black', 'white'] as ClientLogoVariant[]) {
-    const png = files.find(f => f.variant === variant && f.format === 'png');
-    if (png) return { url: png.url, isWhite: variant === 'white' };
     const svg = files.find(f => f.variant === variant && f.format === 'svg');
     if (svg) return { url: svg.url, isWhite: variant === 'white' };
+    const png = files.find(f => f.variant === variant && f.format === 'png');
+    if (png) return { url: png.url, isWhite: variant === 'white' };
   }
   // Fallback: any file
   if (files.length > 0) return { url: files[0].url, isWhite: /white/i.test(files[0].variant) };

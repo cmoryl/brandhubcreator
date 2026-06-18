@@ -48,36 +48,54 @@ function sanitizeSvg(s: string) {
 
 function monoSvg(svgText: string, color: "#000000"|"#ffffff") {
   let s = sanitizeSvg(svgText);
+  s = s.replace(/<style[\s\S]*?<\/style>/gi, "");
   s = s.replace(/<(linear|radial)Gradient[\s\S]*?<\/\1Gradient>/gi, "");
-  s = s.replace(/url\(#[^)]+\)/gi, color);
-  s = s.replace(/\sfill="(?!none|transparent)[^"]*"/gi,"");
-  s = s.replace(/\sstroke="(?!none|transparent)[^"]*"/gi,"");
-  s = s.replace(/fill\s*:\s*(?!none|transparent)[^;"']+/gi,"");
-  s = s.replace(/stroke\s*:\s*(?!none|transparent)[^;"']+/gi,"");
-  const style = `<style>*{fill:${color} !important;color:${color} !important}[fill="none"],[fill="transparent"]{fill:none!important}[stroke]:not([stroke="none"]):not([stroke="transparent"]){stroke:${color}!important}</style>`;
+  s = s.replace(/<image\b[\s\S]*?>/gi, "");
+  s = s.replace(/\sstyle="[^"]*fill\s*:\s*none[^"]*stroke\s*:\s*(?!none|transparent)[^"]*"/gi, ' fill="none" data-mono-stroke="1"');
+  s = s.replace(/\sstyle="[^"]*stroke\s*:\s*(?!none|transparent)[^"]*fill\s*:\s*none[^"]*"/gi, ' fill="none" data-mono-stroke="1"');
+  s = s.replace(/\sstyle="[^"]*"/gi, "");
+  s = s.replace(/\sclass="[^"]*"/gi, "");
+  s = s.replace(/\sstroke="(?!none|transparent)[^"]*"/gi, ' data-mono-stroke="1"');
+  s = s.replace(/\sfill="(?!none|transparent)[^"]*"/gi, "");
+  s = s.replace(/\s(?:stop-color|flood-color|lighting-color|color)="[^"]*"/gi, "");
+  s = s.replace(/<\s*(line|polyline)\b(?![^>]*data-mono-stroke)/gi, '<$1 data-mono-stroke="1"');
+  const style = `<style>svg,svg *{color:${color}!important;fill:${color}!important}svg [fill="none"],svg [fill="transparent"]{fill:none!important}svg [data-mono-stroke],svg [stroke]:not([stroke="none"]):not([stroke="transparent"]){stroke:${color}!important}</style>`;
   return s.replace(/<svg([^>]*)>/i, `<svg$1>${style}`);
 }
 
-// Audit svg text: returns true if it appears truly white.
+function paintTokens(svgText: string): string[] {
+  const tokens: string[] = [];
+  const attr = /\b(?:fill|stroke|color|stop-color|flood-color|lighting-color)\s*=\s*["']([^"']+)["']/gi;
+  const css = /(?:fill|stroke|color|stop-color|flood-color|lighting-color)\s*:\s*([^;}"]+)/gi;
+  for (const re of [attr, css]) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(svgText))) tokens.push(m[1].trim().toLowerCase().replace(/!important/g, "").trim());
+  }
+  return tokens;
+}
+
+function tokenIsWhite(token: string): boolean {
+  if (!token || token === "none" || token === "transparent") return true;
+  if (token.startsWith("url(") || token.startsWith("var(")) return false;
+  if (token === "white") return true;
+  if (token === "black" || token === "currentcolor" || token === "inherit") return false;
+  const hex = token.match(/^#([0-9a-f]{3,8})$/i)?.[1];
+  if (hex) {
+    const full = hex.length === 3 ? hex.split("").map(c => c + c).join("") : hex.slice(0, 6);
+    const r = parseInt(full.slice(0,2),16), g = parseInt(full.slice(2,4),16), b = parseInt(full.slice(4,6),16);
+    return r >= 235 && g >= 235 && b >= 235;
+  }
+  const nums = token.match(/rgba?\(([^)]+)\)/i)?.[1].split(/[,\s/]+/).filter(Boolean).map(Number) ?? [];
+  if (nums.length >= 3) return nums[0] >= 235 && nums[1] >= 235 && nums[2] >= 235;
+  return false;
+}
+
 function svgIsWhite(svgText: string): boolean {
-  const s = svgText.toLowerCase();
-  // any non-white explicit color reference disqualifies
-  const colorRefs = s.match(/#[0-9a-f]{3,8}\b/g) ?? [];
-  for (const c of colorRefs) {
-    const hex = c.length === 4
-      ? `#${c[1]}${c[1]}${c[2]}${c[2]}${c[3]}${c[3]}`
-      : c.slice(0,7);
-    if (!/^#f[ef][ef]f[ef]f[ef]$/i.test(hex) && !/^#ffffff$/i.test(hex)) return false;
-  }
-  // rgb(...) other than white
-  const rgbs = s.match(/rgb\([^)]+\)/g) ?? [];
-  for (const r of rgbs) {
-    const nums = r.match(/\d+/g)?.map(n => parseInt(n,10)) ?? [];
-    if (nums.length >= 3 && nums.slice(0,3).some(n => n < 240)) return false;
-  }
-  // named colors
-  if (/(?:fill|stroke|color)\s*[:=]\s*["']?(black|#000|red|blue|green|yellow|orange|purple|gray|grey)/i.test(s)) return false;
-  return true;
+  if (/<image\b/i.test(svgText)) return false;
+  const tokens = paintTokens(svgText);
+  const meaningful = tokens.filter(t => t !== "none" && t !== "transparent");
+  if (!meaningful.length) return false;
+  return tokens.every(tokenIsWhite);
 }
 
 async function pngIsWhite(bytes: Uint8Array): Promise<boolean> {
@@ -141,6 +159,7 @@ async function processRow(
   row: { id: string; name: string; files: FileEntry[] },
   lockups: ("wordmark"|"icon")[],
   dryRun: boolean,
+  force: boolean,
 ) {
   const slug = slugify(row.name);
   const files: FileEntry[] = Array.isArray(row.files) ? [...row.files] : [];
@@ -155,18 +174,21 @@ async function processRow(
 
     if (!color && !black && !white) continue; // nothing to do for this lockup
 
-    // Choose source for white regen: prefer SVG black > SVG color > PNG black > PNG color
-    const candidates: Array<{ e: FileEntry; svg: boolean; isBlack: boolean }> = [];
-    for (const e of [black, color]) {
+    // Choose source for white regen: prefer any SVG source, then PNG black/color.
+    const candidates: Array<{ e: FileEntry; svg: boolean; priority: number }> = [];
+    for (const e of [color, black]) {
       if (!e) continue;
-      candidates.push({ e, svg: e.format === "svg", isBlack: e === black });
+      const svg = e.format === "svg" || e.url.toLowerCase().includes(".svg");
+      candidates.push({ e, svg, priority: (svg ? 100 : 0) + (e === color ? 20 : 10) });
     }
-    candidates.sort((a,b) => (b.svg?2:0)+(b.isBlack?1:0) - ((a.svg?2:0)+(a.isBlack?1:0)));
+    candidates.sort((a,b) => b.priority - a.priority);
     const src = candidates[0];
 
     let needRebuild = false;
-    if (!white) needRebuild = true;
+    if (force) needRebuild = true;
+    else if (!white) needRebuild = true;
     else if (color && white.url === color.url) needRebuild = true;
+    else if (src?.svg && white.format !== "svg") needRebuild = true;
     else {
       try {
         const bytes = await dl(white.url);
@@ -197,8 +219,10 @@ async function processRow(
       if (dryRun) { actions.push(`would-rebuild:${lockup}-white (${ext}, src=${src.e.variant})`); continue; }
       const url = await uploadSign(sb, path, newBytes, ct);
       const entry: FileEntry = { url, format: ext, lockup, variant: "white", source: `audit-rebuilt:${src.e.variant}-${src.e.format ?? "?"}` };
-      const i = files.findIndex(f => f?.lockup===lockup && f?.variant==="white");
-      if (i>=0) files[i] = entry; else files.push(entry);
+      for (let i = files.length - 1; i >= 0; i--) {
+        if (files[i]?.lockup===lockup && files[i]?.variant==="white") files.splice(i, 1);
+      }
+      files.push(entry);
       actions.push(`rebuilt:${lockup}-white.${ext}`);
     } catch (e) {
       issues.push(`${lockup}:err:${(e as Error).message}`);
@@ -219,6 +243,7 @@ Deno.serve(async (req) => {
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const body = await req.json().catch(()=>({} as any));
     const dryRun = body.dryRun === true;
+    const force = body.force === true;
     const lockupArg = (body.lockup ?? "both") as "wordmark"|"icon"|"both";
     const lockups: ("wordmark"|"icon")[] = lockupArg === "both" ? ["wordmark","icon"] : [lockupArg];
     let q = sb.from("global_client_logos").select("id, name, files").order("name");
@@ -229,7 +254,7 @@ Deno.serve(async (req) => {
     let rebuilt = 0, okCount = 0, errors = 0;
     for (const r of (data ?? [])) {
       try {
-        const out = await processRow(sb, r as any, lockups, dryRun);
+        const out = await processRow(sb, r as any, lockups, dryRun, force);
         if (out.actions?.length) rebuilt++;
         else okCount++;
         if ((out as any).error) errors++;

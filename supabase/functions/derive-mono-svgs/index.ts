@@ -33,16 +33,18 @@ function sanitizeSvg(s: string) {
 
 function monoSvg(svgText: string, color: "#000000"|"#ffffff") {
   let s = sanitizeSvg(svgText);
-  // Strip explicit fills/strokes that aren't none/transparent
-  s = s.replace(/\sfill="(?!none|transparent)[^"]*"/gi,"");
-  s = s.replace(/\sstroke="(?!none|transparent)[^"]*"/gi,"");
-  s = s.replace(/fill\s*:\s*(?!none|transparent)[^;"']+/gi,"");
-  s = s.replace(/stroke\s*:\s*(?!none|transparent)[^;"']+/gi,"");
-  // Strip <linearGradient>/<radialGradient> defs so url(#...) fills collapse to currentColor
-  s = s.replace(/<(linearGradient|radialGradient)[\s\S]*?<\/\1>/gi, "");
-  s = s.replace(/fill="url\(#[^)]+\)"/gi, "");
-  s = s.replace(/stroke="url\(#[^)]+\)"/gi, "");
-  const style = `<style>*{fill:${color} !important;color:${color} !important}[fill="none"],[fill="transparent"]{fill:none!important}[stroke]:not([stroke="none"]):not([stroke="transparent"]){stroke:${color}!important}</style>`;
+  s = s.replace(/<style[\s\S]*?<\/style>/gi, "");
+  s = s.replace(/<(linear|radial)Gradient[\s\S]*?<\/\1Gradient>/gi, "");
+  s = s.replace(/<image\b[\s\S]*?>/gi, "");
+  s = s.replace(/\sstyle="[^"]*fill\s*:\s*none[^"]*stroke\s*:\s*(?!none|transparent)[^"]*"/gi, ' fill="none" data-mono-stroke="1"');
+  s = s.replace(/\sstyle="[^"]*stroke\s*:\s*(?!none|transparent)[^"]*fill\s*:\s*none[^"]*"/gi, ' fill="none" data-mono-stroke="1"');
+  s = s.replace(/\sstyle="[^"]*"/gi, "");
+  s = s.replace(/\sclass="[^"]*"/gi, "");
+  s = s.replace(/\sstroke="(?!none|transparent)[^"]*"/gi, ' data-mono-stroke="1"');
+  s = s.replace(/\sfill="(?!none|transparent)[^"]*"/gi, "");
+  s = s.replace(/\s(?:stop-color|flood-color|lighting-color|color)="[^"]*"/gi, "");
+  s = s.replace(/<\s*(line|polyline)\b(?![^>]*data-mono-stroke)/gi, '<$1 data-mono-stroke="1"');
+  const style = `<style>svg,svg *{color:${color}!important;fill:${color}!important}svg [fill="none"],svg [fill="transparent"]{fill:none!important}svg [data-mono-stroke],svg [stroke]:not([stroke="none"]):not([stroke="transparent"]){stroke:${color}!important}</style>`;
   return s.replace(/<svg([^>]*)>/i, `<svg$1>${style}`);
 }
 

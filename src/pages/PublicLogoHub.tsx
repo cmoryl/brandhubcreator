@@ -141,10 +141,10 @@ const getPreview = (
   const order: ClientLogoVariant[] =
     variant === 'all' ? ['color', 'black', 'white'] : [variant as ClientLogoVariant];
   for (const v of order) {
-    const png = matches.find((f) => f.variant === v && f.format === 'png');
-    if (png) return { url: png.url, isWhite: v === 'white' };
     const svg = matches.find((f) => f.variant === v && f.format === 'svg');
     if (svg) return { url: svg.url, isWhite: v === 'white' };
+    const png = matches.find((f) => f.variant === v && f.format === 'png');
+    if (png) return { url: png.url, isWhite: v === 'white' };
   }
   if (matches[0]) return { url: matches[0].url, isWhite: matches[0].variant === 'white' };
   return null;
@@ -320,28 +320,16 @@ export default function PublicLogoHub() {
                   const inLockup = logo.files.filter(
                     (f) => (f.lockup || 'icon') === lk,
                   );
-                  const exactPng = inLockup.find(
-                    (f) => f.variant === v && f.format === 'png',
-                  );
                   const exactSvg = inLockup.find(
                     (f) => f.variant === v && f.format === 'svg',
                   );
-                  const exactAny = inLockup.find((f) => f.variant === v);
-                  const file = exactPng || exactSvg || exactAny;
-
-                  // Display fallback: when the exact variant is SVG-only
-                  // (which often renders badly because the SVG references
-                  // fonts the browser doesn't have), prefer a color PNG in
-                  // the same lockup and tint it via CSS for black/white.
-                  const colorPng = inLockup.find(
-                    (f) => f.variant === 'color' && f.format === 'png',
+                  const exactPng = inLockup.find(
+                    (f) => f.variant === v && f.format === 'png',
                   );
-                  let display = file;
-                  let tint: 'none' | 'black' | 'white' = 'none';
-                  if (!exactPng && exactSvg && colorPng) {
-                    display = colorPng;
-                    tint = v === 'black' ? 'black' : v === 'white' ? 'white' : 'none';
-                  }
+                  const exactAny = inLockup.find((f) => f.variant === v);
+                  const file = exactSvg || exactPng || exactAny;
+                  const display = file;
+                  const tint: 'none' | 'black' | 'white' = 'none';
                   return { lockup: lk, variant: v, file, display, tint };
                 }),
               );
