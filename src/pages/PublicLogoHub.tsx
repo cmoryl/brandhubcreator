@@ -632,6 +632,19 @@ function LogoCell({
       >
         {lockup === 'icon' ? 'Icon' : 'Logo'} · {variant}
       </span>
+      {file && isStrokeOnly && (
+        <span
+          title="Source artwork is a stroke-only outline — this is how the file is drawn, not a rendering issue."
+          className={cn(
+            'absolute top-1 right-1 text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded border',
+            dark
+              ? 'bg-amber-400/15 text-amber-200 border-amber-300/30'
+              : 'bg-amber-50 text-amber-700 border-amber-200',
+          )}
+        >
+          Outline
+        </span>
+      )}
     </button>
   );
 }
