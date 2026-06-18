@@ -144,26 +144,26 @@ function pickSvglUrl(u: SvglUrl | undefined): string | null {
 async function svglFind(rawName: string): Promise<SvglEntry | null> {
   const norm = rawName.toLowerCase().trim();
   const queryName = SVGL_NAME_OVERRIDES[norm] ?? norm;
-  const searchTerms = Array.from(new Set([queryName, norm, queryName.split(/[\s\-]/)[0]].filter(Boolean)));
-  let best: SvglEntry | null = null;
+  const searchTerms = Array.from(new Set([queryName, norm].filter(Boolean)));
   for (const term of searchTerms) {
-    try {
-      const r = await fetch(`https://api.svgl.app?search=${encodeURIComponent(term)}`);
-      if (!r.ok) continue;
-      const list = (await r.json()) as SvglEntry[];
-      if (!Array.isArray(list) || !list.length) continue;
-      const exact = list.find(e => e.title.toLowerCase() === queryName)
-                 || list.find(e => e.title.toLowerCase() === norm);
-      if (exact) return exact;
-      if (!best) {
-        // Tolerant: startsWith / contains the full normalized name
-        best = list.find(e => e.title.toLowerCase().startsWith(queryName))
-            || list.find(e => e.title.toLowerCase().includes(queryName))
-            || null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const r = await fetch(`https://api.svgl.app?search=${encodeURIComponent(term)}`);
+        if (!r.ok) { await new Promise(res => setTimeout(res, 250)); continue; }
+        const body = await r.json();
+        if (!Array.isArray(body)) break; // {error: ...} → no match for this term
+        const list = body as SvglEntry[];
+        // Strict: exact (case-insensitive) title match against override-normalized or raw name.
+        const exact = list.find(e => e.title.toLowerCase() === queryName)
+                   || list.find(e => e.title.toLowerCase() === norm);
+        if (exact) return exact;
+        break; // got list, no match — try next term
+      } catch {
+        await new Promise(res => setTimeout(res, 250));
       }
-    } catch { /* ignore */ }
+    }
   }
-  return best;
+  return null;
 }
 
 async function fetchSvglAsset(entry: SvglEntry, lockup: "wordmark"|"icon"): Promise<{ svg: string; usedField: string } | null> {
