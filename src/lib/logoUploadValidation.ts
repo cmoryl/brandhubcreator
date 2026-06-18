@@ -67,7 +67,8 @@ const URL_BEARING_ATTRS = new Set([
 ]);
 
 function detectFormat(file: File): { format: LogoFormat | null; reason?: string } {
-  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const hasDot = file.name.includes('.');
+  const ext = hasDot ? (file.name.split('.').pop() || '').toLowerCase() : '';
   const mime = (file.type || '').toLowerCase();
 
   if (ext === 'svg' || mime === 'image/svg+xml') {
