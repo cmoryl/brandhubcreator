@@ -48,33 +48,54 @@ function sanitizeSvg(s: string) {
 
 function monoSvg(svgText: string, color: "#000000"|"#ffffff") {
   let s = sanitizeSvg(svgText);
+  s = s.replace(/<style[\s\S]*?<\/style>/gi, "");
   s = s.replace(/<(linear|radial)Gradient[\s\S]*?<\/\1Gradient>/gi, "");
-  s = s.replace(/url\(#[^)]+\)/gi, color);
-  s = s.replace(/\sfill="(?!none|transparent)[^"]*"/gi,"");
-  s = s.replace(/\sstroke="(?!none|transparent)[^"]*"/gi,"");
-  s = s.replace(/fill\s*:\s*(?!none|transparent)[^;"']+/gi,"");
-  s = s.replace(/stroke\s*:\s*(?!none|transparent)[^;"']+/gi,"");
-  const style = `<style>*{fill:${color} !important;color:${color} !important}[fill="none"],[fill="transparent"]{fill:none!important}[stroke]:not([stroke="none"]):not([stroke="transparent"]){stroke:${color}!important}</style>`;
+  s = s.replace(/<image\b[\s\S]*?>/gi, "");
+  s = s.replace(/\sstyle="[^"]*fill\s*:\s*none[^"]*stroke\s*:\s*(?!none|transparent)[^"]*"/gi, ' fill="none" data-mono-stroke="1"');
+  s = s.replace(/\sstyle="[^"]*stroke\s*:\s*(?!none|transparent)[^"]*fill\s*:\s*none[^"]*"/gi, ' fill="none" data-mono-stroke="1"');
+  s = s.replace(/\sstyle="[^"]*"/gi, "");
+  s = s.replace(/\sclass="[^"]*"/gi, "");
+  s = s.replace(/\sstroke="(?!none|transparent)[^"]*"/gi, ' data-mono-stroke="1"');
+  s = s.replace(/\sfill="(?!none|transparent)[^"]*"/gi, "");
+  s = s.replace(/\s(?:stop-color|flood-color|lighting-color|color)="[^"]*"/gi, "");
+  s = s.replace(/<\s*(line|polyline)\b(?![^>]*data-mono-stroke)/gi, '<$1 data-mono-stroke="1"');
+  const style = `<style>svg,svg *{color:${color}!important;fill:${color}!important}svg [fill="none"],svg [fill="transparent"]{fill:none!important}svg [data-mono-stroke],svg [stroke]:not([stroke="none"]):not([stroke="transparent"]){stroke:${color}!important}</style>`;
   return s.replace(/<svg([^>]*)>/i, `<svg$1>${style}`);
 }
 
-// Audit svg text: returns true if it appears truly black.
+function paintTokens(svgText: string): string[] {
+  const tokens: string[] = [];
+  const attr = /\b(?:fill|stroke|color|stop-color|flood-color|lighting-color)\s*=\s*["']([^"']+)["']/gi;
+  const css = /(?:fill|stroke|color|stop-color|flood-color|lighting-color)\s*:\s*([^;}"]+)/gi;
+  for (const re of [attr, css]) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(svgText))) tokens.push(m[1].trim().toLowerCase().replace(/!important/g, "").trim());
+  }
+  return tokens;
+}
+
+function tokenIsBlack(token: string): boolean {
+  if (!token || token === "none" || token === "transparent") return true;
+  if (token.startsWith("url(") || token.startsWith("var(")) return false;
+  if (token === "black") return true;
+  if (token === "white" || token === "currentcolor" || token === "inherit") return false;
+  const hex = token.match(/^#([0-9a-f]{3,8})$/i)?.[1];
+  if (hex) {
+    const full = hex.length === 3 ? hex.split("").map(c => c + c).join("") : hex.slice(0, 6);
+    const r = parseInt(full.slice(0,2),16), g = parseInt(full.slice(2,4),16), b = parseInt(full.slice(4,6),16);
+    return r <= 20 && g <= 20 && b <= 20;
+  }
+  const nums = token.match(/rgba?\(([^)]+)\)/i)?.[1].split(/[,\s/]+/).filter(Boolean).map(Number) ?? [];
+  if (nums.length >= 3) return nums[0] <= 20 && nums[1] <= 20 && nums[2] <= 20;
+  return false;
+}
+
 function svgIsBlack(svgText: string): boolean {
-  const s = svgText.toLowerCase();
-  const colorRefs = s.match(/#[0-9a-f]{3,8}\b/g) ?? [];
-  for (const c of colorRefs) {
-    const hex = c.length === 4
-      ? `#${c[1]}${c[1]}${c[2]}${c[2]}${c[3]}${c[3]}`
-      : c.slice(0,7);
-    if (!/^#0[0-1][0-1]0[0-1][0-1]0[0-1][0-1]$/i.test(hex) && !/^#000000$/i.test(hex)) return false;
-  }
-  const rgbs = s.match(/rgb\([^)]+\)/g) ?? [];
-  for (const r of rgbs) {
-    const nums = r.match(/\d+/g)?.map(n => parseInt(n,10)) ?? [];
-    if (nums.length >= 3 && nums.slice(0,3).some(n => n > 20)) return false;
-  }
-  if (/(?:fill|stroke|color)\s*[:=]\s*["']?(white|#fff|red|blue|green|yellow|orange|purple|gray|grey)/i.test(s)) return false;
-  return true;
+  if (/<image\b/i.test(svgText)) return false;
+  const tokens = paintTokens(svgText);
+  const meaningful = tokens.filter(t => t !== "none" && t !== "transparent");
+  if (!meaningful.length) return false;
+  return tokens.every(tokenIsBlack);
 }
 
 async function pngIsBlack(bytes: Uint8Array): Promise<boolean> {
