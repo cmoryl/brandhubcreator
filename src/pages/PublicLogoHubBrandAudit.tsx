@@ -355,6 +355,7 @@ function SlotRows({
         <td className="px-3 py-3 text-center">
           <StatusPill status="fail" />
         </td>
+        <td className="px-3 py-3 text-center text-xs text-muted-foreground">—</td>
         <td className="px-3 py-3 text-xs text-muted-foreground italic">No file in this slot</td>
         <td className="px-3 py-3 align-top">
           <ReviewControl
