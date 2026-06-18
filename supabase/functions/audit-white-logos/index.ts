@@ -217,8 +217,10 @@ async function processRow(
       if (dryRun) { actions.push(`would-rebuild:${lockup}-white (${ext}, src=${src.e.variant})`); continue; }
       const url = await uploadSign(sb, path, newBytes, ct);
       const entry: FileEntry = { url, format: ext, lockup, variant: "white", source: `audit-rebuilt:${src.e.variant}-${src.e.format ?? "?"}` };
-      const i = files.findIndex(f => f?.lockup===lockup && f?.variant==="white");
-      if (i>=0) files[i] = entry; else files.push(entry);
+      for (let i = files.length - 1; i >= 0; i--) {
+        if (files[i]?.lockup===lockup && files[i]?.variant==="white") files.splice(i, 1);
+      }
+      files.push(entry);
       actions.push(`rebuilt:${lockup}-white.${ext}`);
     } catch (e) {
       issues.push(`${lockup}:err:${(e as Error).message}`);
