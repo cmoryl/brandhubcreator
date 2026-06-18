@@ -118,7 +118,7 @@ type SvglUrl = string | { light?: string; dark?: string };
 interface SvglEntry { id: number; title: string; route?: SvglUrl; wordmark?: SvglUrl }
 
 const SVGL_NAME_OVERRIDES: Record<string,string> = {
-  "x (twitter)": "x",
+  "x (twitter)": "x (formerly twitter)",
   "wordpress": "wordpress",
   "service now": "servicenow",
   "sap (commerce cloud)": "sap",
