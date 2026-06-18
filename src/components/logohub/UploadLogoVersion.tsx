@@ -183,7 +183,10 @@ export function UploadLogoVersion({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs">File (SVG or PNG · max 10MB)</Label>
+            <Label className="text-xs">
+              File (SVG ≤ {(LOGO_UPLOAD_LIMITS.MAX_SVG_BYTES / 1024 / 1024).toFixed(0)}MB · PNG ≤{' '}
+              {(LOGO_UPLOAD_LIMITS.MAX_PNG_BYTES / 1024 / 1024).toFixed(0)}MB)
+            </Label>
             <input
               ref={inputRef}
               type="file"
