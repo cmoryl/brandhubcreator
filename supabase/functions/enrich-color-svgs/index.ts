@@ -139,16 +139,20 @@ interface FirecrawlBranding {
 }
 async function firecrawlBrand(website: string): Promise<{ branding?: FirecrawlBranding; links?: string[] }> {
   if (!FIRECRAWL_KEY) return {};
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 20000);
   try {
     const r = await fetch("https://api.firecrawl.dev/v2/scrape", {
       method: "POST",
       headers: { "Authorization": `Bearer ${FIRECRAWL_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url: website, formats: ["branding", "links"], onlyMainContent: false, waitFor: 1500 }),
+      body: JSON.stringify({ url: website, formats: ["branding", "links"], onlyMainContent: false, timeout: 15000 }),
+      signal: ctl.signal,
     });
     if (!r.ok) return {};
     const data = await r.json();
     return { branding: data?.branding ?? data?.data?.branding, links: data?.links ?? data?.data?.links };
   } catch { return {}; }
+  finally { clearTimeout(t); }
 }
 
 function isSvgUrl(u: string): boolean {
