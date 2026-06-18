@@ -26,6 +26,7 @@ import type {
   ClientLogoLockup,
   ClientLogoVariant,
 } from '@/types/brand';
+import { validateLogoUpload, LOGO_UPLOAD_LIMITS } from '@/lib/logoUploadValidation';
 
 const BUCKET = 'organization-assets';
 const FOLDER = 'client-logos';
@@ -40,13 +41,6 @@ interface Props {
   trigger?: React.ReactNode;
 }
 
-function detectFormat(file: File): ClientLogoFormat | null {
-  const ext = file.name.split('.').pop()?.toLowerCase() || '';
-  if (ext === 'svg' || file.type === 'image/svg+xml') return 'svg';
-  if (ext === 'png' || file.type === 'image/png') return 'png';
-  return null;
-}
-
 function safeSlug(input: string): string {
   return input
     .toLowerCase()
@@ -54,6 +48,9 @@ function safeSlug(input: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, 60) || 'logo';
 }
+
+
+
 
 export function UploadLogoVersion({
   logoId,
@@ -81,27 +78,25 @@ export function UploadLogoVersion({
       toast.error('Choose a file first');
       return;
     }
-    const format = detectFormat(file);
-    if (!format) {
-      toast.error('Only SVG or PNG files are supported');
-      return;
-    }
-    // 10MB safety cap
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('File is larger than 10MB');
-      return;
-    }
 
     setUploading(true);
     try {
+      const result = await validateLogoUpload(file);
+      if (!result.ok) {
+        toast.error((result as { error: string }).error);
+        return;
+      }
+      const { format, blob, contentType, warnings } = result;
+      warnings.forEach((w) => toast.warning(w));
+
       const ts = Date.now();
       const path = `${FOLDER}/${logoId}/${lockup}-${variant}-${ts}-${safeSlug(logoName)}.${format}`;
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
-        .upload(path, file, {
+        .upload(path, blob, {
           cacheControl: '3600',
           upsert: false,
-          contentType: format === 'svg' ? 'image/svg+xml' : 'image/png',
+          contentType,
         });
       if (upErr) throw upErr;
 
@@ -110,7 +105,7 @@ export function UploadLogoVersion({
 
       const newFile: ClientLogoFile = {
         variant,
-        format,
+        format: format as ClientLogoFormat,
         url: publicUrl,
         lockup,
       };
@@ -188,7 +183,10 @@ export function UploadLogoVersion({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs">File (SVG or PNG · max 10MB)</Label>
+            <Label className="text-xs">
+              File (SVG ≤ {(LOGO_UPLOAD_LIMITS.MAX_SVG_BYTES / 1024 / 1024).toFixed(0)}MB · PNG ≤{' '}
+              {(LOGO_UPLOAD_LIMITS.MAX_PNG_BYTES / 1024 / 1024).toFixed(0)}MB)
+            </Label>
             <input
               ref={inputRef}
               type="file"
