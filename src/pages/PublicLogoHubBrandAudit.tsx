@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, Loader2, XCircle, FileImage, FileType2, Copy, Check, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -472,6 +473,15 @@ function FileRow({
   const Icon = isSvg ? FileType2 : FileImage;
   const isWhite = slot.variant === 'white';
   const review = getReview(slot.lockup, slot.variant, file.url);
+  const [renderStatus, setRenderStatus] = useState<'pending' | 'ok' | 'fail' | 'idle'>(
+    isSvg ? 'pending' : 'idle',
+  );
+  const [renderError, setRenderError] = useState<string | null>(null);
+  const renderFailed = renderStatus === 'fail';
+  const effectiveStatus: 'pass' | 'warn' | 'fail' = renderFailed
+    ? 'fail'
+    : fileAudit.status;
+
 
   return (
     <tr
@@ -528,10 +538,17 @@ function FileRow({
       </td>
       <td className="px-3 py-3 align-top text-center">
         <div className="flex flex-col items-center gap-1">
-          <StatusPill status={fileAudit.status} />
+          <StatusPill status={effectiveStatus} />
           <div className="text-[10px] text-muted-foreground">
-            {fileAudit.passCount}✓ · {fileAudit.warnCount}⚠ · {fileAudit.failCount}✗
+            {fileAudit.passCount}✓ · {fileAudit.warnCount}⚠ ·{' '}
+            {fileAudit.failCount + (renderFailed ? 1 : 0)}✗
           </div>
+          {renderFailed && (
+            <div className="text-[9px] font-medium text-red-600 max-w-[200px]">
+              SVG failed to render server-side
+              {renderError ? `: ${renderError}` : ''}
+            </div>
+          )}
           <details className="text-[10px] text-left">
             <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
               details
@@ -561,6 +578,35 @@ function FileRow({
                   </span>
                 </li>
               ))}
+              {isSvg && (
+                <li className="flex items-start gap-1">
+                  <span
+                    className={cn(
+                      'mt-0.5',
+                      renderStatus === 'ok'
+                        ? 'text-emerald-500'
+                        : renderStatus === 'fail'
+                          ? 'text-red-500'
+                          : 'text-muted-foreground',
+                    )}
+                  >
+                    {renderStatus === 'ok'
+                      ? '✓'
+                      : renderStatus === 'fail'
+                        ? '✗'
+                        : '…'}
+                  </span>
+                  <span>
+                    <span className="font-medium">Server-side render</span>
+                    <span className="block text-muted-foreground text-[9px]">
+                      {renderStatus === 'ok' && 'resvg produced PNGs on all variants'}
+                      {renderStatus === 'fail' &&
+                        (renderError || 'resvg could not rasterize this SVG')}
+                      {renderStatus === 'pending' && 'rendering…'}
+                    </span>
+                  </span>
+                </li>
+              )}
             </ul>
           </details>
         </div>
@@ -568,8 +614,18 @@ function FileRow({
       <td className="px-3 py-3 align-top text-center">
         <VisualAuditCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
         {file.format === 'svg' && <SvgLintCell url={file.url} />}
-        {file.format === 'svg' && <SvgSnapshotCell url={file.url} canEdit={isAdmin} />}
+        {file.format === 'svg' && (
+          <SvgSnapshotCell
+            url={file.url}
+            canEdit={isAdmin}
+            onRenderStatus={(status, detail) => {
+              setRenderStatus(status);
+              setRenderError(status === 'fail' ? detail ?? null : null);
+            }}
+          />
+        )}
       </td>
+
       <td className="px-3 py-3 align-top max-w-md">
         <code className="text-[10px] font-mono break-all text-muted-foreground block leading-relaxed">
           {file.url}

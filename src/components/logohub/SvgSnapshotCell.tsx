@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Camera, Loader2, Save, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AlertCircle, Camera, CheckCircle2, Loader2, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -8,10 +8,22 @@ import {
   type SnapshotVariant,
 } from '@/hooks/useSvgRenderSnapshot';
 
+export type SnapshotRenderStatus = 'pending' | 'ok' | 'fail';
+
 interface Props {
   url: string;
   canEdit?: boolean;
+  /** Auto-trigger a render once per session (cached per URL). Defaults to true. */
+  autoRender?: boolean;
+  /** Notified whenever the deterministic server-side render state changes. */
+  onRenderStatus?: (status: SnapshotRenderStatus, detail?: string) => void;
 }
+
+// Module-level cache so the audit page doesn't re-render every SVG on every
+// remount. Each URL is rendered at most once per session unless the user
+// manually clicks "Re-render".
+const sessionRendered = new Set<string>();
+
 
 const VARIANTS: { key: SnapshotVariant; label: string; bg: string }[] = [
   { key: 'transparent', label: 'Transparent', bg: 'bg-[conic-gradient(at_25%_25%,#ddd_25%,#fff_0_50%,#ddd_0_75%,#fff_0)] bg-[length:12px_12px]' },
@@ -27,7 +39,12 @@ function diffTone(pct: number) {
   return 'text-red-600';
 }
 
-export function SvgSnapshotCell({ url, canEdit = false }: Props) {
+export function SvgSnapshotCell({
+  url,
+  canEdit = false,
+  autoRender = true,
+  onRenderStatus,
+}: Props) {
   const [expanded, setExpanded] = useState(false);
   const {
     baseline,
@@ -39,6 +56,28 @@ export function SvgSnapshotCell({ url, canEdit = false }: Props) {
     saveBaseline,
     clearBaseline,
   } = useSvgRenderSnapshot(url);
+
+  // Auto-render once per session per URL so failures surface in the audit
+  // without the user having to click "Render" on every row.
+  const autoTriggered = useRef(false);
+  useEffect(() => {
+    if (!autoRender || !url) return;
+    if (autoTriggered.current) return;
+    if (sessionRendered.has(url)) return;
+    autoTriggered.current = true;
+    sessionRendered.add(url);
+    void render();
+  }, [autoRender, url, render]);
+
+  // Propagate the render status upward so the row-level audit can fail when
+  // the deterministic renderer can't produce an image.
+  useEffect(() => {
+    if (!onRenderStatus) return;
+    if (loading) onRenderStatus('pending');
+    else if (error) onRenderStatus('fail', error);
+    else if (current) onRenderStatus('ok');
+  }, [loading, error, current, onRenderStatus]);
+
 
   const diffs = useMemo(() => {
     if (!current || !baseline) return null;
@@ -95,6 +134,21 @@ export function SvgSnapshotCell({ url, canEdit = false }: Props) {
           Render snapshot {expanded ? '▾' : '▸'}
         </button>
         <div className="flex items-center gap-1.5">
+          {loading && (
+            <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground inline-flex items-center gap-1">
+              <Loader2 className="h-2.5 w-2.5 animate-spin" /> rendering
+            </span>
+          )}
+          {!loading && error && (
+            <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium inline-flex items-center gap-1">
+              <AlertCircle className="h-2.5 w-2.5" /> render FAIL
+            </span>
+          )}
+          {!loading && !error && current && !baseline && (
+            <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium inline-flex items-center gap-1">
+              <CheckCircle2 className="h-2.5 w-2.5" /> renders
+            </span>
+          )}
           {baseline && (
             <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
               baseline set
@@ -106,6 +160,7 @@ export function SvgSnapshotCell({ url, canEdit = false }: Props) {
             </span>
           )}
         </div>
+
       </div>
 
       {expanded && (
