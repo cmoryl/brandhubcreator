@@ -260,7 +260,12 @@ export default function PublicLogoHubBrandAudit() {
                     getReview={getReview}
                     upsert={upsert}
                     remove={remove}
+                    logoId={row.id}
+                    logoName={row.name}
+                    allFiles={row.files}
+                    onUploaded={(files) => setRow((r) => (r ? { ...r, files } : r))}
                   />
+
                 ))}
               </tbody>
             </table>
