@@ -231,6 +231,14 @@ export default function PublicLogoHubBrandAudit() {
           </div>
         </section>
 
+        {/* Industry-standard registry comparison */}
+        <IndustryStandardsSection
+          brandName={row.name}
+          storedSvgUrls={row.files.filter((f) => f.format === 'svg').map((f) => f.url)}
+        />
+
+
+
         {/* Per-slot pass/fail table */}
         <section>
           <h2 className="text-sm uppercase tracking-wider text-muted-foreground mb-3">
