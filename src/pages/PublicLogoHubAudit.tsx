@@ -291,6 +291,7 @@ export default function PublicLogoHubAudit() {
                     Wordmark
                   </th>
                   <th className="text-right px-3 py-3 font-medium">Coverage</th>
+                  <th className="text-right px-3 py-3 font-medium">Audit</th>
                 </tr>
                 <tr className="bg-muted/20 text-[10px]">
                   <th />
@@ -302,6 +303,7 @@ export default function PublicLogoHubAudit() {
                   <th className="text-center py-1.5 font-normal border-l border-border">Color</th>
                   <th className="text-center py-1.5 font-normal">Black</th>
                   <th className="text-center py-1.5 font-normal">White</th>
+                  <th />
                   <th />
                 </tr>
               </thead>
