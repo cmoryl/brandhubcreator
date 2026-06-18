@@ -37,43 +37,68 @@ function sanitizeSvg(s: string) {
 // the mark becomes an unreadable blob.
 function isWhiteish(v: string): boolean {
   if (!v) return false;
-  const t = v.trim().toLowerCase().replace(/\s+/g, "");
-  if (t === "white" || t === "#fff" || t === "#ffffff") return true;
-  let m = t.match(/^#([0-9a-f]{6})$/);
+  const t = v.trim().toLowerCase();
+  const c = t.replace(/\s+/g, "");
+  if (c === "white" || c === "#fff" || c === "#ffffff") return true;
+  let m = c.match(/^#([0-9a-f]{6})$/);
   if (m) {
     const n = parseInt(m[1], 16);
-    return ((n>>16)&0xff) > 240 && ((n>>8)&0xff) > 240 && (n&0xff) > 240;
+    return ((n>>16)&0xff) > 235 && ((n>>8)&0xff) > 235 && (n&0xff) > 235;
   }
-  m = t.match(/^#([0-9a-f]{3})$/);
+  m = c.match(/^#([0-9a-f]{3})$/);
   if (m) {
-    const ex = m[1].split("").map(c => c+c).join("");
+    const ex = m[1].split("").map(ch => ch+ch).join("");
     const n = parseInt(ex, 16);
-    return ((n>>16)&0xff) > 240 && ((n>>8)&0xff) > 240 && (n&0xff) > 240;
+    return ((n>>16)&0xff) > 235 && ((n>>8)&0xff) > 235 && (n&0xff) > 235;
   }
-  m = t.match(/^rgba?\((\d+),(\d+),(\d+)/);
-  if (m) return +m[1] > 240 && +m[2] > 240 && +m[3] > 240;
+  // rgb(255,255,255) OR rgb(255 255 255) OR rgba(...)
+  m = t.match(/^rgba?\(\s*(\d+(?:\.\d+)?)\s*[, ]\s*(\d+(?:\.\d+)?)\s*[, ]\s*(\d+(?:\.\d+)?)/);
+  if (m) return +m[1] > 235 && +m[2] > 235 && +m[3] > 235;
+  // hsl(h s l) or hsl(h,s,l)
   if (t.startsWith("hsl")) {
-    const hm = t.match(/^hsla?\(\s*[^,]+,\s*[^,]+,\s*(\d+(?:\.\d+)?)%/);
-    if (hm) return parseFloat(hm[1]) > 94;
+    const hm = t.match(/^hsla?\(\s*[\d.]+\s*[, ]\s*[\d.]+%\s*[, ]\s*([\d.]+)%/);
+    if (hm) return parseFloat(hm[1]) > 92;
+  }
+  return false;
+}
+
+// True if `attrs` has a fill/style declaring white (or fill-opacity=0).
+function hasWhiteFill(attrs: string): boolean {
+  const fAttr = attrs.match(/\sfill\s*=\s*"([^"]*)"/i);
+  if (fAttr && isWhiteish(fAttr[1])) return true;
+  const fop = attrs.match(/\sfill-opacity\s*=\s*"([^"]*)"/i);
+  if (fop && parseFloat(fop[1]) === 0) return true;
+  const op = attrs.match(/\sopacity\s*=\s*"([^"]*)"/i);
+  if (op && parseFloat(op[1]) === 0) return true;
+  const sAttr = attrs.match(/\sstyle\s*=\s*"([^"]*)"/i);
+  if (sAttr) {
+    const s = sAttr[1];
+    const fm = s.match(/(?:^|;)\s*fill\s*:\s*([^;]+)/i);
+    if (fm && isWhiteish(fm[1])) return true;
+    const fom = s.match(/(?:^|;)\s*fill-opacity\s*:\s*([^;]+)/i);
+    if (fom && parseFloat(fom[1]) === 0) return true;
+    const om = s.match(/(?:^|;)\s*opacity\s*:\s*([^;]+)/i);
+    if (om && parseFloat(om[1]) === 0) return true;
   }
   return false;
 }
 
 // Walk every tag and mark shapes whose fill (attr or style) is white as
-// cutouts via data-mono-cutout="1". CSS below renders those as transparent
-// so holes stay holes for both black and white variants.
+// cutouts via data-mono-cutout="1". Also propagate cutout to descendants of
+// any cutout container (e.g. <g fill="#fff">…</g>) since children inherit.
 function tagCutouts(svg: string): string {
-  return svg.replace(/<([a-zA-Z][\w:-]*)\b([^/>]*)(\/?)>/g, (_full, name, attrs, slash) => {
-    let cutout = false;
-    const fAttr = attrs.match(/\sfill\s*=\s*"([^"]*)"/i);
-    if (fAttr && isWhiteish(fAttr[1])) cutout = true;
-    if (!cutout) {
-      const sAttr = attrs.match(/\sstyle\s*=\s*"([^"]*)"/i);
-      if (sAttr) {
-        const fm = sAttr[1].match(/(?:^|;)\s*fill\s*:\s*([^;]+)/i);
-        if (fm && isWhiteish(fm[1])) cutout = true;
-      }
+  const stack: boolean[] = [];
+  return svg.replace(/<\/?([a-zA-Z][\w:-]*)\b([^>]*?)(\/?)>/g, (_full, name, attrs, slash, _off, full) => {
+    const isClose = full.startsWith("</");
+    if (isClose) {
+      stack.pop();
+      return `</${name}>`;
     }
+    const selfClose = !!slash;
+    const inheritedCutout = stack.length > 0 && stack[stack.length - 1];
+    const ownWhite = hasWhiteFill(attrs);
+    const cutout = inheritedCutout || ownWhite;
+    if (!selfClose) stack.push(cutout);
     return cutout
       ? `<${name}${attrs} data-mono-cutout="1"${slash}>`
       : `<${name}${attrs}${slash}>`;
@@ -85,7 +110,8 @@ function monoSvg(svgText: string, color: "#000000"|"#ffffff") {
   s = s.replace(/<style[\s\S]*?<\/style>/gi, "");
   s = s.replace(/<(linear|radial)Gradient[\s\S]*?<\/\1Gradient>/gi, "");
   s = s.replace(/<image\b[\s\S]*?>/gi, "");
-  // Tag white-filled shapes as cutouts BEFORE we strip fill attributes.
+  // Tag white-filled shapes (and their descendants) as cutouts BEFORE we
+  // strip fill attributes — otherwise the inheritance signal is lost.
   s = tagCutouts(s);
   s = s.replace(/\sstyle="[^"]*fill\s*:\s*none[^"]*stroke\s*:\s*(?!none|transparent)[^"]*"/gi, ' fill="none" data-mono-stroke="1"');
   s = s.replace(/\sstyle="[^"]*stroke\s*:\s*(?!none|transparent)[^"]*fill\s*:\s*none[^"]*"/gi, ' fill="none" data-mono-stroke="1"');
@@ -93,13 +119,15 @@ function monoSvg(svgText: string, color: "#000000"|"#ffffff") {
   s = s.replace(/\sclass="[^"]*"/gi, "");
   s = s.replace(/\sstroke="(?!none|transparent)[^"]*"/gi, ' data-mono-stroke="1"');
   s = s.replace(/\sfill="(?!none|transparent)[^"]*"/gi, "");
+  s = s.replace(/\sfill-opacity="[^"]*"/gi, "");
+  s = s.replace(/\sopacity="[^"]*"/gi, "");
   s = s.replace(/\s(?:stop-color|flood-color|lighting-color|color)="[^"]*"/gi, "");
   s = s.replace(/<\s*(line|polyline)\b(?![^>]*data-mono-stroke)/gi, '<$1 data-mono-stroke="1"');
   const style = `<style>`
-    + `svg,svg *{color:${color}!important;fill:${color}!important}`
+    + `svg,svg *{color:${color}!important;fill:${color}!important;fill-opacity:1!important;opacity:1!important}`
     + `svg [fill="none"],svg [fill="transparent"]{fill:none!important}`
-    // Cutouts must paint transparent and NOT inherit the ink stroke.
-    + `svg [data-mono-cutout="1"]{fill:transparent!important;stroke:none!important}`
+    // Cutouts (and everything inside them) paint transparent and drop strokes.
+    + `svg [data-mono-cutout="1"],svg [data-mono-cutout="1"] *{fill:transparent!important;stroke:none!important}`
     + `svg [data-mono-stroke]:not([data-mono-cutout="1"]),`
     + `svg [stroke]:not([stroke="none"]):not([stroke="transparent"]):not([data-mono-cutout="1"]){stroke:${color}!important}`
     + `</style>`;
