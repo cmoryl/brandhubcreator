@@ -356,6 +356,9 @@ export default function PublicLogoHubAudit() {
                         {r.rasterCount === 0 && r.missingCount === 0 && 'complete'}
                       </div>
                     </td>
+                    <td className="px-3 py-3 align-top text-right whitespace-nowrap">
+                      <AuditCell audit={r.audit} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
