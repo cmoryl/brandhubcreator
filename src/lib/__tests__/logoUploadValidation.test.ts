@@ -94,11 +94,16 @@ describe('validateLogoUpload — SVG security sanitization', () => {
     expect(r.ok).toBe(false);
   });
 
-  it('rejects onload handler', async () => {
+  it('strips onload handler from root SVG (sanitize, not reject)', async () => {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" onload="alert(1)"><rect width="10" height="10"/></svg>`;
     const r = await validateLogoUpload(svgFile(svg));
-    expect(r.ok).toBe(false);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(await r.blob.text()).not.toMatch(/onload/i);
+      expect(r.warnings.some((w) => /event handler/i.test(w))).toBe(true);
+    }
   });
+
 
   it('rejects javascript: in href', async () => {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><a href="javascript:alert(1)"><rect width="10" height="10"/></a></svg>`;
