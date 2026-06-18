@@ -175,6 +175,7 @@ export function ReviewControl({ review, canEdit, compact, onSave, onClear }: Pro
           </PopoverContent>
         </Popover>
       </div>
+      {meta}
       {review?.notes && !open && (
         <p className="text-[10px] text-muted-foreground max-w-[220px] line-clamp-3">
           {review.notes}
