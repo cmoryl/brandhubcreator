@@ -137,6 +137,13 @@ export default function PublicLogoHubAudit() {
       slotsSvg: 0,
       slotsRaster: 0,
       slotsMissing: 0,
+      auditPass: 0,
+      auditWarn: 0,
+      auditFail: 0,
+      checkTotal: 0,
+      checkPass: 0,
+      checkFail: 0,
+      checkWarn: 0,
     };
     for (const r of audited) {
       totals[r.bucket]++;
@@ -145,6 +152,14 @@ export default function PublicLogoHubAudit() {
       totals.slotsSvg += r.svgCount;
       totals.slotsRaster += r.rasterCount;
       totals.slotsMissing += r.missingCount;
+      if (r.audit.overall === 'pass') totals.auditPass++;
+      else if (r.audit.overall === 'warn') totals.auditWarn++;
+      else totals.auditFail++;
+      const t = r.audit.totals;
+      totals.checkTotal += t.fileChecks + r.audit.checks.length + r.audit.slots.length * 2;
+      totals.checkPass += t.filePass + t.brandPass + t.slotPass;
+      totals.checkFail += t.fileFail + t.brandFail + t.slotFail;
+      totals.checkWarn += t.fileWarn + t.brandWarn + t.slotWarn;
     }
     return totals;
   }, [audited]);
