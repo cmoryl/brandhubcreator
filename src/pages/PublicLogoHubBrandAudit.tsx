@@ -519,6 +519,22 @@ function FileRow({
           {file.url}
         </code>
       </td>
+      <td className="px-3 py-3 align-top">
+        <ReviewControl
+          review={review}
+          canEdit={isAdmin}
+          onSave={({ status, notes }) =>
+            upsert({
+              lockup: slot.lockup,
+              variant: slot.variant,
+              fileUrl: file.url,
+              status,
+              notes,
+            })
+          }
+          onClear={review ? () => remove(review.id) : undefined}
+        />
+      </td>
       <td className="px-3 py-3 align-top text-right whitespace-nowrap">
         <div className="inline-flex items-center gap-1">
           <Button
