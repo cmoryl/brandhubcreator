@@ -568,6 +568,7 @@ function FileRow({
       <td className="px-3 py-3 align-top text-center">
         <VisualAuditCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
         {file.format === 'svg' && <SvgLintCell url={file.url} />}
+        {file.format === 'svg' && <SvgSnapshotCell url={file.url} canEdit={isAdmin} />}
       </td>
       <td className="px-3 py-3 align-top max-w-md">
         <code className="text-[10px] font-mono break-all text-muted-foreground block leading-relaxed">
