@@ -12,6 +12,10 @@ export type SvgContrastResult = {
   isLightOnTransparent: boolean;
   /** Number of color tokens analyzed. */
   sampleCount: number;
+  /** True when the source artwork is composed mostly of strokes with no fills. */
+  isStrokeOnly: boolean;
+  /** Fraction of shape elements rendered as fill="none" (0-1). */
+  strokeRatio: number;
 };
 
 const cache = new Map<string, Promise<SvgContrastResult | null>>();
@@ -98,6 +102,43 @@ function hasOpaqueBackground(svg: string): boolean {
   return false;
 }
 
+// Detect stroke-only artwork. We look at common shape elements and decide,
+// for each one, whether it would render as a stroke with no fill. Defaults
+// follow SVG: if no fill is declared, the element is painted black; an
+// ancestor (typically the root <svg>) can override that default.
+function analyzeStrokeUsage(svg: string): { ratio: number; shapes: number } {
+  // Root-level fill / stroke (covers the common "fill='none' on root" pattern).
+  const rootMatch = svg.match(/<svg\b[^>]*>/i);
+  const rootTag = rootMatch?.[0] ?? '';
+  const rootFill = (rootTag.match(/\bfill\s*=\s*"([^"]+)"/i)?.[1]
+    ?? rootTag.match(/fill\s*:\s*([^;"']+)/i)?.[1]
+    ?? '').toLowerCase().trim();
+  const rootStroke = (rootTag.match(/\bstroke\s*=\s*"([^"]+)"/i)?.[1]
+    ?? rootTag.match(/stroke\s*:\s*([^;"']+)/i)?.[1]
+    ?? '').toLowerCase().trim();
+
+  const shapeRe = /<(path|circle|rect|polygon|polyline|line|ellipse)\b[^>]*>/gi;
+  let m: RegExpExecArray | null;
+  let shapes = 0;
+  let noFill = 0;
+  while ((m = shapeRe.exec(svg))) {
+    const tag = m[0];
+    shapes++;
+    const fillAttr = (tag.match(/\bfill\s*=\s*"([^"]+)"/i)?.[1]
+      ?? tag.match(/fill\s*:\s*([^;"']+)/i)?.[1]
+      ?? '').toLowerCase().trim();
+    const strokeAttr = (tag.match(/\bstroke\s*=\s*"([^"]+)"/i)?.[1]
+      ?? tag.match(/stroke\s*:\s*([^;"']+)/i)?.[1]
+      ?? '').toLowerCase().trim();
+    const effectiveFill = fillAttr || rootFill; // empty => SVG default = black
+    const effectiveStroke = strokeAttr || rootStroke;
+    const fillIsNone = effectiveFill === 'none' || effectiveFill === 'transparent';
+    const hasStroke = !!effectiveStroke && effectiveStroke !== 'none';
+    if (fillIsNone && hasStroke) noFill++;
+  }
+  return { shapes, ratio: shapes ? noFill / shapes : 0 };
+}
+
 export function analyzeSvgContrast(url: string): Promise<SvgContrastResult | null> {
   if (!url) return Promise.resolve(null);
   const cached = cache.get(url);
@@ -118,8 +159,21 @@ export function analyzeSvgContrast(url: string): Promise<SvgContrastResult | nul
         if (!c) continue;
         lums.push(luminance(c));
       }
+      const stroke = analyzeStrokeUsage(text);
+      // Stroke-only when at least 2 shapes and >=70% of them render as
+      // stroke without fill. Small shape counts get a stricter check to
+      // avoid false positives on single-glyph marks.
+      const isStrokeOnly =
+        stroke.shapes >= 2 && stroke.ratio >= 0.7;
+
       if (!lums.length) {
-        return { lightness: 0, isLightOnTransparent: false, sampleCount: 0 };
+        return {
+          lightness: 0,
+          isLightOnTransparent: false,
+          sampleCount: 0,
+          isStrokeOnly,
+          strokeRatio: stroke.ratio,
+        };
       }
       const mean = lums.reduce((a, b) => a + b, 0) / lums.length;
       const opaqueBg = hasOpaqueBackground(text);
@@ -128,6 +182,8 @@ export function analyzeSvgContrast(url: string): Promise<SvgContrastResult | nul
         sampleCount: lums.length,
         // Threshold tuned to flag near-white artwork (mean > 0.85) with no bg.
         isLightOnTransparent: !opaqueBg && mean > 0.85,
+        isStrokeOnly,
+        strokeRatio: stroke.ratio,
       };
     } catch {
       return null;
