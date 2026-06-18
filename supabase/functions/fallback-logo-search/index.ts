@@ -103,14 +103,20 @@ function scoreTitle(title: string, brand: string): number {
   return s;
 }
 
-async function pickBestSvg(brand: string): Promise<{ title: string; url: string; bytes: Uint8Array } | null> {
-  const titles = await commonsSearch(brand);
-  if (!titles.length) return null;
-  const ranked = titles
-    .map(t => ({ t, s: scoreTitle(t, brand) }))
-    .sort((a,b) => b.s - a.s)
-    .slice(0, 4);
-  for (const { t } of ranked) {
+async function pickBestSvg(brand: string, override?: string): Promise<{ title: string; url: string; bytes: Uint8Array } | null> {
+  let titles: string[];
+  if (override) {
+    titles = [override.startsWith("File:") ? override : `File:${override}`];
+  } else {
+    titles = await commonsSearch(brand);
+    if (!titles.length) return null;
+    titles = titles
+      .map(t => ({ t, s: scoreTitle(t, brand) }))
+      .sort((a,b) => b.s - a.s)
+      .slice(0, 4)
+      .map(x => x.t);
+  }
+  for (const t of titles) {
     try {
       const url = await commonsFileUrl(t);
       if (!url) continue;
