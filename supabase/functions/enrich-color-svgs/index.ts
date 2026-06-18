@@ -170,7 +170,7 @@ async function trySources(rawName: string, website: string | null, lockup: "word
     } catch { /* next */ }
   }
   // 2. Firecrawl on official site
-  if (website && FIRECRAWL_KEY) {
+  if (useFirecrawl && website && FIRECRAWL_KEY) {
     const { branding, links } = await firecrawlBrand(website);
     const candidates: string[] = [];
     const push = (u?: string) => { if (u && isSvgUrl(u)) candidates.push(u); };
