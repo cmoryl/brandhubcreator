@@ -10,6 +10,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
 import { auditBrand } from '@/lib/logoAuditChecks';
+import { OrphanedFilesSection } from '@/components/logohub/OrphanedFilesSection';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Row {
   id: string;
@@ -42,6 +44,7 @@ const extOf = (url: string, fallback?: string) => {
 type StatusFilter = 'all' | 'complete' | 'partial' | 'raster' | 'missing' | 'audit-fail' | 'audit-warn' | 'audit-pass';
 
 export default function PublicLogoHubAudit() {
+  const { isAdmin, isSuperAdmin } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -363,6 +366,12 @@ export default function PublicLogoHubAudit() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {(isAdmin || isSuperAdmin) && (
+          <div className="mt-10">
+            <OrphanedFilesSection canDelete={isSuperAdmin} />
           </div>
         )}
       </main>
