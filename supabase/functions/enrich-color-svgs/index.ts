@@ -277,7 +277,7 @@ Deno.serve(async (req) => {
     let upgraded = 0, errors = 0;
     for (const r of work) {
       try {
-        const out = await processRow(sb, r as any, lockups, dryRun, onlyMissingSvg);
+        const out = await processRow(sb, r as any, lockups, dryRun, onlyMissingSvg, useFirecrawl);
         if (out.actions?.length) upgraded++;
         if ((out as any).error) errors++;
         results.push(out);
