@@ -26,6 +26,7 @@ import type {
   ClientLogoLockup,
   ClientLogoVariant,
 } from '@/types/brand';
+import { validateLogoUpload, LOGO_UPLOAD_LIMITS } from '@/lib/logoUploadValidation';
 
 const BUCKET = 'organization-assets';
 const FOLDER = 'client-logos';
@@ -48,7 +49,8 @@ function safeSlug(input: string): string {
     .slice(0, 60) || 'logo';
 }
 
-import { validateLogoUpload, LOGO_UPLOAD_LIMITS } from '@/lib/logoUploadValidation';
+
+
 
 export function UploadLogoVersion({
   logoId,
