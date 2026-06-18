@@ -90,6 +90,7 @@ export function ReviewControl({ review, canEdit, compact, onSave, onClear }: Pro
     return (
       <div className={cn('flex flex-col items-start gap-0.5', compact && 'text-[10px]')}>
         {badge}
+        {meta}
         {review?.notes && (
           <p className="text-[10px] text-muted-foreground max-w-[200px] line-clamp-3">
             {review.notes}
