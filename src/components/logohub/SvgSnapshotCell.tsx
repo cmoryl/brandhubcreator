@@ -39,7 +39,12 @@ function diffTone(pct: number) {
   return 'text-red-600';
 }
 
-export function SvgSnapshotCell({ url, canEdit = false }: Props) {
+export function SvgSnapshotCell({
+  url,
+  canEdit = false,
+  autoRender = true,
+  onRenderStatus,
+}: Props) {
   const [expanded, setExpanded] = useState(false);
   const {
     baseline,
@@ -51,6 +56,28 @@ export function SvgSnapshotCell({ url, canEdit = false }: Props) {
     saveBaseline,
     clearBaseline,
   } = useSvgRenderSnapshot(url);
+
+  // Auto-render once per session per URL so failures surface in the audit
+  // without the user having to click "Render" on every row.
+  const autoTriggered = useRef(false);
+  useEffect(() => {
+    if (!autoRender || !url) return;
+    if (autoTriggered.current) return;
+    if (sessionRendered.has(url)) return;
+    autoTriggered.current = true;
+    sessionRendered.add(url);
+    void render();
+  }, [autoRender, url, render]);
+
+  // Propagate the render status upward so the row-level audit can fail when
+  // the deterministic renderer can't produce an image.
+  useEffect(() => {
+    if (!onRenderStatus) return;
+    if (loading) onRenderStatus('pending');
+    else if (error) onRenderStatus('fail', error);
+    else if (current) onRenderStatus('ok');
+  }, [loading, error, current, onRenderStatus]);
+
 
   const diffs = useMemo(() => {
     if (!current || !baseline) return null;
