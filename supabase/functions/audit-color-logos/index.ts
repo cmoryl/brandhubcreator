@@ -144,17 +144,27 @@ function pickSvglUrl(u: SvglUrl | undefined): string | null {
 async function svglFind(rawName: string): Promise<SvglEntry | null> {
   const norm = rawName.toLowerCase().trim();
   const queryName = SVGL_NAME_OVERRIDES[norm] ?? norm;
-  const searchTerms = [queryName, queryName.split(/[\s\-]/)[0]].filter(Boolean);
+  const searchTerms = Array.from(new Set([queryName, norm, queryName.split(/[\s\-]/)[0]].filter(Boolean)));
+  let best: SvglEntry | null = null;
   for (const term of searchTerms) {
     try {
       const r = await fetch(`https://api.svgl.app?search=${encodeURIComponent(term)}`);
       if (!r.ok) continue;
       const list = (await r.json()) as SvglEntry[];
       if (!Array.isArray(list) || !list.length) continue;
-      // Exact title match first
       const exact = list.find(e => e.title.toLowerCase() === queryName)
                  || list.find(e => e.title.toLowerCase() === norm);
       if (exact) return exact;
+      if (!best) {
+        // Tolerant: startsWith / contains the full normalized name
+        best = list.find(e => e.title.toLowerCase().startsWith(queryName))
+            || list.find(e => e.title.toLowerCase().includes(queryName))
+            || null;
+      }
+    } catch { /* ignore */ }
+  }
+  return best;
+}
     } catch { /* ignore */ }
   }
   return null;
