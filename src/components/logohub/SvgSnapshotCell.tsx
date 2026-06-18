@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Camera, Loader2, Save, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AlertCircle, Camera, CheckCircle2, Loader2, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -8,10 +8,22 @@ import {
   type SnapshotVariant,
 } from '@/hooks/useSvgRenderSnapshot';
 
+export type SnapshotRenderStatus = 'pending' | 'ok' | 'fail';
+
 interface Props {
   url: string;
   canEdit?: boolean;
+  /** Auto-trigger a render once per session (cached per URL). Defaults to true. */
+  autoRender?: boolean;
+  /** Notified whenever the deterministic server-side render state changes. */
+  onRenderStatus?: (status: SnapshotRenderStatus, detail?: string) => void;
 }
+
+// Module-level cache so the audit page doesn't re-render every SVG on every
+// remount. Each URL is rendered at most once per session unless the user
+// manually clicks "Re-render".
+const sessionRendered = new Set<string>();
+
 
 const VARIANTS: { key: SnapshotVariant; label: string; bg: string }[] = [
   { key: 'transparent', label: 'Transparent', bg: 'bg-[conic-gradient(at_25%_25%,#ddd_25%,#fff_0_50%,#ddd_0_75%,#fff_0)] bg-[length:12px_12px]' },
