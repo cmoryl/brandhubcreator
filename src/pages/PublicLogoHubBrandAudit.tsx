@@ -13,6 +13,7 @@ import { ReviewControl } from '@/components/logohub/ReviewControl';
 import { VisualAuditCell } from '@/components/logohub/VisualAuditCell';
 import { UploadLogoVersion } from '@/components/logohub/UploadLogoVersion';
 import { SvgLintCell } from '@/components/logohub/SvgLintCell';
+import { SvgSnapshotCell } from '@/components/logohub/SvgSnapshotCell';
 import { useAuth } from '@/contexts/AuthContext';
 import { Upload } from 'lucide-react';
 
