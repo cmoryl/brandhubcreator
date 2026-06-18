@@ -137,12 +137,13 @@ async function processOne(
   row: { id: string; name: string; files: FileEntry[] },
   lockup: "wordmark"|"icon",
   dryRun: boolean,
+  override?: string,
 ) {
   const actions: string[] = [];
   const slug = slugify(row.name);
   const files: FileEntry[] = Array.isArray(row.files) ? [...row.files] : [];
 
-  const pick = await pickBestSvg(row.name);
+  const pick = await pickBestSvg(row.name, override);
   if (!pick) return { name: row.name, skipped: "no-commons-match" };
   actions.push(`commons:${pick.title}`);
 
@@ -180,6 +181,7 @@ Deno.serve(async (req) => {
     if (!names.length) throw new Error("names required");
     const dryRun = body.dryRun === true;
     const lockup = (body.lockup ?? "wordmark") as "wordmark"|"icon";
+    const overrides: Record<string,string> = (body.overrides && typeof body.overrides === "object") ? body.overrides : {};
 
     const { data, error } = await supabase
       .from("global_client_logos").select("id, name, files").in("name", names);
@@ -187,8 +189,9 @@ Deno.serve(async (req) => {
 
     const results: any[] = [];
     for (const r of (data ?? [])) {
-      try { results.push(await processOne(supabase, r as any, lockup, dryRun)); }
-      catch (e) { results.push({ name:(r as any).name, error:(e as Error).message }); }
+      const row = r as any;
+      try { results.push(await processOne(supabase, row, lockup, dryRun, overrides[row.name])); }
+      catch (e) { results.push({ name: row.name, error:(e as Error).message }); }
     }
     return new Response(JSON.stringify({ ok:true, processed: results.length, results }),
       { headers:{ ...corsHeaders, "Content-Type":"application/json" } });
