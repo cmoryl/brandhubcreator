@@ -215,6 +215,16 @@ export default function PublicLogoHubAudit() {
               subtle
             />
           </div>
+          <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <StatCard label="Brands passing audit" value={summary.auditPass} tone="success" />
+            <StatCard label="Brands with warnings" value={summary.auditWarn} tone="warning" />
+            <StatCard label="Brands failing audit" value={summary.auditFail} tone="danger" />
+            <StatCard
+              label="Check pass rate"
+              value={`${pct(summary.checkPass, summary.checkTotal)}%`}
+              subtle
+            />
+          </div>
         </div>
       </header>
 
