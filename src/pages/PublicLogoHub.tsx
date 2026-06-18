@@ -317,25 +317,35 @@ export default function PublicLogoHub() {
 
               const cells = lockups.flatMap((lk) =>
                 variants.map((v) => {
-                  const match =
-                    logo.files.find(
-                      (f) =>
-                        (f.lockup || 'icon') === lk &&
-                        f.variant === v &&
-                        f.format === 'png',
-                    ) ||
-                    logo.files.find(
-                      (f) =>
-                        (f.lockup || 'icon') === lk &&
-                        f.variant === v &&
-                        f.format === 'svg',
-                    ) ||
-                    logo.files.find(
-                      (f) => (f.lockup || 'icon') === lk && f.variant === v,
-                    );
-                  return { lockup: lk, variant: v, file: match };
+                  const inLockup = logo.files.filter(
+                    (f) => (f.lockup || 'icon') === lk,
+                  );
+                  const exactPng = inLockup.find(
+                    (f) => f.variant === v && f.format === 'png',
+                  );
+                  const exactSvg = inLockup.find(
+                    (f) => f.variant === v && f.format === 'svg',
+                  );
+                  const exactAny = inLockup.find((f) => f.variant === v);
+                  const file = exactPng || exactSvg || exactAny;
+
+                  // Display fallback: when the exact variant is SVG-only
+                  // (which often renders badly because the SVG references
+                  // fonts the browser doesn't have), prefer a color PNG in
+                  // the same lockup and tint it via CSS for black/white.
+                  const colorPng = inLockup.find(
+                    (f) => f.variant === 'color' && f.format === 'png',
+                  );
+                  let display = file;
+                  let tint: 'none' | 'black' | 'white' = 'none';
+                  if (!exactPng && exactSvg && colorPng) {
+                    display = colorPng;
+                    tint = v === 'black' ? 'black' : v === 'white' ? 'white' : 'none';
+                  }
+                  return { lockup: lk, variant: v, file, display, tint };
                 }),
               );
+
 
               return (
                 <article
@@ -360,13 +370,15 @@ export default function PublicLogoHub() {
                         : 'grid-cols-3',
                     )}
                   >
-                    {cells.map(({ lockup: lk, variant: v, file }) => (
+                    {cells.map(({ lockup: lk, variant: v, file, display, tint }) => (
                       <LogoCell
                         key={`${lk}-${v}`}
                         brandName={logo.name}
                         lockup={lk}
                         variant={v}
                         file={file}
+                        displayFile={display}
+                        tint={tint}
                         onOpen={() => file && setPreview({ logo, file })}
                       />
                     ))}
@@ -582,14 +594,22 @@ function LogoCell({
   lockup,
   variant,
   file,
+  displayFile,
+  tint = 'none',
   onOpen,
 }: {
   brandName: string;
   lockup: ClientLogoLockup;
   variant: ClientLogoVariant;
   file: ClientLogoFile | undefined;
+  displayFile?: ClientLogoFile | undefined;
+  tint?: 'none' | 'black' | 'white';
   onOpen: () => void;
 }) {
+  // Use displayFile for rendering only; `file` remains the canonical asset
+  // (the one that gets downloaded / previewed). This lets us swap to a
+  // color PNG with a CSS tint when the exact variant SVG renders badly.
+  const shown = displayFile ?? file;
   const { dark, isStrokeOnly } = useAutoDarkBg(file, variant);
   return (
     <button
@@ -602,13 +622,20 @@ function LogoCell({
       )}
       title={`${lockup} • ${variant}`}
     >
-      {file ? (
+      {shown ? (
         <>
           <img
-            src={file.url}
+            src={shown.url}
             alt={`${brandName} ${lockup} ${variant}`}
             loading="lazy"
             className="w-full h-full object-contain"
+            style={
+              tint === 'black'
+                ? { filter: 'brightness(0) saturate(100%)' }
+                : tint === 'white'
+                  ? { filter: 'brightness(0) saturate(100%) invert(1)' }
+                  : undefined
+            }
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none">
             <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 drop-shadow-md transition-opacity" />
