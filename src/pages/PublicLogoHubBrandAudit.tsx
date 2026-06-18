@@ -400,6 +400,10 @@ function FileRow({
   rowKey,
   copied,
   onCopy,
+  isAdmin,
+  getReview,
+  upsert,
+  remove,
 }: {
   fileAudit: FileAudit;
   slot: SlotAudit;
@@ -409,13 +413,14 @@ function FileRow({
   rowKey: string;
   copied: string | null;
   onCopy: (url: string, key: string) => void;
-}) {
+} & ReviewProps) {
   const file = fileAudit.file;
   const source = detectSource(file.url, websiteUrl);
   const ext = extOf(file.url, file.format) || file.format;
   const isSvg = file.format === 'svg';
   const Icon = isSvg ? FileType2 : FileImage;
   const isWhite = slot.variant === 'white';
+  const review = getReview(slot.lockup, slot.variant, file.url);
 
   return (
     <tr
