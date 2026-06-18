@@ -56,7 +56,7 @@ describe('validateLogoUpload — PNG', () => {
     const fakeJpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0]);
     const r = await validateLogoUpload(pngFile(fakeJpeg));
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error).toMatch(/header signature/i);
+    if (!r.ok) expect((r as { error: string }).error).toMatch(/header signature/i);
   });
 
   it('rejects oversized PNG', async () => {
@@ -107,7 +107,7 @@ describe('validateLogoUpload — SVG security sanitization', () => {
     const svg = `<?xml version="1.0"?><!DOCTYPE svg [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">&xxe;</svg>`;
     const r = await validateLogoUpload(svgFile(svg));
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error).toMatch(/entity/i);
+    if (!r.ok) expect((r as { error: string }).error).toMatch(/entity/i);
   });
 
   it('rejects <foreignObject> embedded HTML', async () => {
@@ -122,7 +122,7 @@ describe('validateLogoUpload — SVG structural lint integration', () => {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><rect width="10" height="10"/></svg>`;
     const r = await validateLogoUpload(svgFile(svg));
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error).toMatch(/lint/i);
+    if (!r.ok) expect((r as { error: string }).error).toMatch(/lint/i);
   });
 
   it('rejects preserveAspectRatio="none"', async () => {
@@ -162,7 +162,7 @@ describe('validateLogoUpload — SVG size limits', () => {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><!-- ${padding} --><rect/></svg>`;
     const r = await validateLogoUpload(svgFile(svg));
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error).toMatch(/exceeds/i);
+    if (!r.ok) expect((r as { error: string }).error).toMatch(/exceeds/i);
   });
 
   it('rejects empty SVG file', async () => {
