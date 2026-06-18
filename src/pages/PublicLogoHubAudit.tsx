@@ -106,7 +106,8 @@ export default function PublicLogoHubAudit() {
       else if (missingCount === total) bucket = 'missing';
       else if (rasterCount > 0 && missingCount === 0) bucket = 'raster';
       else bucket = 'partial';
-      return { ...r, slots, total, present, svgCount, rasterCount, missingCount, bucket };
+      const audit = auditBrand(r.files);
+      return { ...r, slots, total, present, svgCount, rasterCount, missingCount, bucket, audit };
     });
   }, [rows]);
 
