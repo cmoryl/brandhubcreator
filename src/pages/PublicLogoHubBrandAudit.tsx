@@ -15,6 +15,7 @@ import { VisualAuditCell } from '@/components/logohub/VisualAuditCell';
 import { UploadLogoVersion } from '@/components/logohub/UploadLogoVersion';
 import { SvgLintCell } from '@/components/logohub/SvgLintCell';
 import { SvgSnapshotCell } from '@/components/logohub/SvgSnapshotCell';
+import { IndustryStandardsSection } from '@/components/logohub/IndustryStandardsSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { Upload } from 'lucide-react';
 
