@@ -39,7 +39,7 @@ const extOf = (url: string, fallback?: string) => {
   return (fallback || '').toLowerCase();
 };
 
-type StatusFilter = 'all' | 'complete' | 'partial' | 'raster' | 'missing';
+type StatusFilter = 'all' | 'complete' | 'partial' | 'raster' | 'missing' | 'audit-fail' | 'audit-warn' | 'audit-pass';
 
 export default function PublicLogoHubAudit() {
   const [rows, setRows] = useState<Row[]>([]);
