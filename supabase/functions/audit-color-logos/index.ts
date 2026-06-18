@@ -183,7 +183,7 @@ async function fetchSvglAsset(entry: SvglEntry, lockup: "wordmark"|"icon"): Prom
       const text = new TextDecoder().decode(bytes);
       if (!text.includes("<svg")) continue;
       if (!(ct?.includes("svg") || c.url.toLowerCase().endsWith(".svg"))) continue;
-      if (!svgHasColor(text)) continue;
+      // svgl is authoritative for brand assets — accept mono official marks (Apple, Nike, etc.)
       return { svg: text, usedField: c.field };
     } catch { /* try next */ }
   }
