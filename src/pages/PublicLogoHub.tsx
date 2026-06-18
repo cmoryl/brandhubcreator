@@ -317,25 +317,35 @@ export default function PublicLogoHub() {
 
               const cells = lockups.flatMap((lk) =>
                 variants.map((v) => {
-                  const match =
-                    logo.files.find(
-                      (f) =>
-                        (f.lockup || 'icon') === lk &&
-                        f.variant === v &&
-                        f.format === 'png',
-                    ) ||
-                    logo.files.find(
-                      (f) =>
-                        (f.lockup || 'icon') === lk &&
-                        f.variant === v &&
-                        f.format === 'svg',
-                    ) ||
-                    logo.files.find(
-                      (f) => (f.lockup || 'icon') === lk && f.variant === v,
-                    );
-                  return { lockup: lk, variant: v, file: match };
+                  const inLockup = logo.files.filter(
+                    (f) => (f.lockup || 'icon') === lk,
+                  );
+                  const exactPng = inLockup.find(
+                    (f) => f.variant === v && f.format === 'png',
+                  );
+                  const exactSvg = inLockup.find(
+                    (f) => f.variant === v && f.format === 'svg',
+                  );
+                  const exactAny = inLockup.find((f) => f.variant === v);
+                  const file = exactPng || exactSvg || exactAny;
+
+                  // Display fallback: when the exact variant is SVG-only
+                  // (which often renders badly because the SVG references
+                  // fonts the browser doesn't have), prefer a color PNG in
+                  // the same lockup and tint it via CSS for black/white.
+                  const colorPng = inLockup.find(
+                    (f) => f.variant === 'color' && f.format === 'png',
+                  );
+                  let display = file;
+                  let tint: 'none' | 'black' | 'white' = 'none';
+                  if (!exactPng && exactSvg && colorPng) {
+                    display = colorPng;
+                    tint = v === 'black' ? 'black' : v === 'white' ? 'white' : 'none';
+                  }
+                  return { lockup: lk, variant: v, file, display, tint };
                 }),
               );
+
 
               return (
                 <article
