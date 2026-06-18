@@ -259,6 +259,9 @@ export default function PublicLogoHubAudit() {
               <TabsTrigger value="partial">Partial</TabsTrigger>
               <TabsTrigger value="raster">Raster only</TabsTrigger>
               <TabsTrigger value="missing">Missing</TabsTrigger>
+              <TabsTrigger value="audit-pass">Audit ✓</TabsTrigger>
+              <TabsTrigger value="audit-warn">Audit ⚠</TabsTrigger>
+              <TabsTrigger value="audit-fail">Audit ✗</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
