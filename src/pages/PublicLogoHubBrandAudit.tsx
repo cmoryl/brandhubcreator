@@ -473,6 +473,15 @@ function FileRow({
   const Icon = isSvg ? FileType2 : FileImage;
   const isWhite = slot.variant === 'white';
   const review = getReview(slot.lockup, slot.variant, file.url);
+  const [renderStatus, setRenderStatus] = useState<'pending' | 'ok' | 'fail' | 'idle'>(
+    isSvg ? 'pending' : 'idle',
+  );
+  const [renderError, setRenderError] = useState<string | null>(null);
+  const renderFailed = renderStatus === 'fail';
+  const effectiveStatus: 'pass' | 'warn' | 'fail' = renderFailed
+    ? 'fail'
+    : fileAudit.status;
+
 
   return (
     <tr
