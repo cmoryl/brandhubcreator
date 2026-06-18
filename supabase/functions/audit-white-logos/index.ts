@@ -173,18 +173,20 @@ async function processRow(
 
     if (!color && !black && !white) continue; // nothing to do for this lockup
 
-    // Choose source for white regen: prefer SVG black > SVG color > PNG black > PNG color
-    const candidates: Array<{ e: FileEntry; svg: boolean; isBlack: boolean }> = [];
-    for (const e of [black, color]) {
+    // Choose source for white regen: prefer any SVG source, then PNG black/color.
+    const candidates: Array<{ e: FileEntry; svg: boolean; priority: number }> = [];
+    for (const e of [color, black]) {
       if (!e) continue;
-      candidates.push({ e, svg: e.format === "svg", isBlack: e === black });
+      const svg = e.format === "svg" || e.url.toLowerCase().includes(".svg");
+      candidates.push({ e, svg, priority: (svg ? 100 : 0) + (e === color ? 20 : 10) });
     }
-    candidates.sort((a,b) => (b.svg?2:0)+(b.isBlack?1:0) - ((a.svg?2:0)+(a.isBlack?1:0)));
+    candidates.sort((a,b) => b.priority - a.priority);
     const src = candidates[0];
 
     let needRebuild = false;
     if (!white) needRebuild = true;
     else if (color && white.url === color.url) needRebuild = true;
+    else if (src?.svg && white.format !== "svg") needRebuild = true;
     else {
       try {
         const bytes = await dl(white.url);
