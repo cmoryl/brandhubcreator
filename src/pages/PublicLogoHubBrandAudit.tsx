@@ -230,6 +230,7 @@ export default function PublicLogoHubBrandAudit() {
                   <th className="text-left px-3 py-3 font-medium">Source</th>
                   <th className="text-center px-3 py-3 font-medium">Checks</th>
                   <th className="text-left px-3 py-3 font-medium">URL</th>
+                  <th className="text-left px-3 py-3 font-medium">Review</th>
                   <th className="text-right px-3 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
@@ -241,6 +242,10 @@ export default function PublicLogoHubBrandAudit() {
                     websiteUrl={row.website_url}
                     copied={copied}
                     onCopy={copy}
+                    isAdmin={isAdmin}
+                    getReview={getReview}
+                    upsert={upsert}
+                    remove={remove}
                   />
                 ))}
               </tbody>
