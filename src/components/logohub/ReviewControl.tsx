@@ -40,6 +40,12 @@ export function ReviewControl({ review, canEdit, compact, onSave, onClear }: Pro
     setNotes(review?.notes ?? '');
   }, [review?.id, review?.status, review?.notes]);
 
+  const reviewedAt = review?.reviewed_at ? new Date(review.reviewed_at) : null;
+  const ageDays = reviewedAt
+    ? Math.floor((Date.now() - reviewedAt.getTime()) / 86_400_000)
+    : null;
+  const isStale = ageDays !== null && ageDays >= 90;
+
   const badge = review ? (
     <span
       className={cn(
@@ -56,6 +62,29 @@ export function ReviewControl({ review, canEdit, compact, onSave, onClear }: Pro
       No review
     </span>
   );
+
+  const meta = review ? (
+    <div className="flex flex-col gap-0.5 text-[9px] text-muted-foreground">
+      {ageDays !== null && (
+        <span
+          className={cn(
+            isStale && 'text-amber-600 dark:text-amber-400 font-medium',
+          )}
+          title={reviewedAt?.toISOString()}
+        >
+          {ageDays === 0
+            ? 'reviewed today'
+            : `reviewed ${ageDays}d ago`}
+          {isStale && ' · stale, re-review'}
+        </span>
+      )}
+      {review.reviewed_by && (
+        <span title={review.reviewed_by}>
+          by {review.reviewed_by.slice(0, 8)}…
+        </span>
+      )}
+    </div>
+  ) : null;
 
   if (!canEdit) {
     return (
