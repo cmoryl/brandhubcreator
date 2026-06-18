@@ -10,6 +10,7 @@ import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/type
 import { auditBrand, type CheckResult, type FileAudit, type SlotAudit } from '@/lib/logoAuditChecks';
 import { useLogoAuditReviews } from '@/hooks/useLogoAuditReviews';
 import { ReviewControl } from '@/components/logohub/ReviewControl';
+import { VisualAuditCell } from '@/components/logohub/VisualAuditCell';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Row {
@@ -229,6 +230,7 @@ export default function PublicLogoHubBrandAudit() {
                   <th className="text-left px-3 py-3 font-medium">Format</th>
                   <th className="text-left px-3 py-3 font-medium">Source</th>
                   <th className="text-center px-3 py-3 font-medium">Checks</th>
+                  <th className="text-center px-3 py-3 font-medium">Visual</th>
                   <th className="text-left px-3 py-3 font-medium">URL</th>
                   <th className="text-left px-3 py-3 font-medium">Review</th>
                   <th className="text-right px-3 py-3 font-medium">Actions</th>
@@ -264,6 +266,11 @@ export default function PublicLogoHubBrandAudit() {
             <li><strong>Vector format (SVG)</strong> — raster formats warn; SVG is preferred.</li>
             <li><strong>Slot has at least one file</strong> — fails if missing.</li>
             <li><strong>Slot has an SVG</strong> — warns if only raster is present.</li>
+            <li><strong>Visual: Image loads</strong> — fetches the file from the browser; fails if blocked or 404.</li>
+            <li><strong>Visual: Dimensions & aspect</strong> — flags tiny or extreme aspect-ratio assets.</li>
+            <li><strong>Visual: Contains ink / transparency</strong> — flags blank files and missing transparent backgrounds.</li>
+            <li><strong>Visual: Variant pixels</strong> — black variants must read dark, white variants light, color variants must contain chroma.</li>
+            <li><strong>Visual: Contrast vs background</strong> — ensures the logo is visible on its intended slot background.</li>
           </ul>
         </section>
       </main>
@@ -353,6 +360,7 @@ function SlotRows({
         <td className="px-3 py-3 text-center">
           <StatusPill status="fail" />
         </td>
+        <td className="px-3 py-3 text-center text-xs text-muted-foreground">—</td>
         <td className="px-3 py-3 text-xs text-muted-foreground italic">No file in this slot</td>
         <td className="px-3 py-3 align-top">
           <ReviewControl
@@ -513,6 +521,9 @@ function FileRow({
             </ul>
           </details>
         </div>
+      </td>
+      <td className="px-3 py-3 align-top text-center">
+        <VisualAuditCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
       </td>
       <td className="px-3 py-3 align-top max-w-md">
         <code className="text-[10px] font-mono break-all text-muted-foreground block leading-relaxed">
