@@ -317,18 +317,30 @@ function CheckRow({ check }: { check: CheckResult }) {
   );
 }
 
+type ReviewProps = {
+  isAdmin: boolean;
+  getReview: ReturnType<typeof useLogoAuditReviews>['getReview'];
+  upsert: ReturnType<typeof useLogoAuditReviews>['upsert'];
+  remove: ReturnType<typeof useLogoAuditReviews>['remove'];
+};
+
 function SlotRows({
   slot,
   websiteUrl,
   copied,
   onCopy,
+  isAdmin,
+  getReview,
+  upsert,
+  remove,
 }: {
   slot: SlotAudit;
   websiteUrl: string | null;
   copied: string | null;
   onCopy: (url: string, key: string) => void;
-}) {
+} & ReviewProps) {
   if (slot.files.length === 0) {
+    const review = getReview(slot.lockup, slot.variant, null);
     return (
       <tr className="border-t border-border bg-red-500/5">
         <td className="px-4 py-3 capitalize font-medium">{slot.lockup}</td>
@@ -341,8 +353,16 @@ function SlotRows({
         <td className="px-3 py-3 text-center">
           <StatusPill status="fail" />
         </td>
-        <td className="px-3 py-3 text-xs text-muted-foreground italic">
-          No file in this slot
+        <td className="px-3 py-3 text-xs text-muted-foreground italic">No file in this slot</td>
+        <td className="px-3 py-3 align-top">
+          <ReviewControl
+            review={review}
+            canEdit={isAdmin}
+            onSave={({ status, notes }) =>
+              upsert({ lockup: slot.lockup, variant: slot.variant, fileUrl: null, status, notes })
+            }
+            onClear={review ? () => remove(review.id) : undefined}
+          />
         </td>
         <td />
       </tr>
@@ -361,6 +381,10 @@ function SlotRows({
           rowKey={`${slot.lockup}-${slot.variant}-${idx}`}
           copied={copied}
           onCopy={onCopy}
+          isAdmin={isAdmin}
+          getReview={getReview}
+          upsert={upsert}
+          remove={remove}
         />
       ))}
     </>
