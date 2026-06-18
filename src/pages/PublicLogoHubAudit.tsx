@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, Search, ArrowLeft, CheckCircle2, XCircle, AlertTriangle, FileImage, FileType2, Globe2 } from 'lucide-react';
+import { Loader2, Search, ArrowLeft, XCircle, FileImage, FileType2, Globe2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
