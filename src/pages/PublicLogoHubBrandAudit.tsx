@@ -357,11 +357,19 @@ function SlotRows({
   getReview,
   upsert,
   remove,
+  logoId,
+  logoName,
+  allFiles,
+  onUploaded,
 }: {
   slot: SlotAudit;
   websiteUrl: string | null;
   copied: string | null;
   onCopy: (url: string, key: string) => void;
+  logoId: string;
+  logoName: string;
+  allFiles: ClientLogoFile[];
+  onUploaded: (files: ClientLogoFile[]) => void;
 } & ReviewProps) {
   if (slot.files.length === 0) {
     const review = getReview(slot.lockup, slot.variant, null);
@@ -389,7 +397,23 @@ function SlotRows({
             onClear={review ? () => remove(review.id) : undefined}
           />
         </td>
-        <td />
+        <td className="px-3 py-3 text-right">
+          {isAdmin && (
+            <UploadLogoVersion
+              logoId={logoId}
+              logoName={logoName}
+              existingFiles={allFiles}
+              defaultLockup={slot.lockup}
+              defaultVariant={slot.variant}
+              onUploaded={onUploaded}
+              trigger={
+                <Button size="sm" variant="outline" className="h-7 gap-1 text-xs">
+                  <Upload className="h-3 w-3" /> Upload
+                </Button>
+              }
+            />
+          )}
+        </td>
       </tr>
     );
   }
