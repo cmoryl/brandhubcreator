@@ -15,7 +15,13 @@ import { VisualAuditCell } from '@/components/logohub/VisualAuditCell';
 import { UploadLogoVersion } from '@/components/logohub/UploadLogoVersion';
 import { SvgLintCell } from '@/components/logohub/SvgLintCell';
 import { SvgSnapshotCell } from '@/components/logohub/SvgSnapshotCell';
+import { SvgQualityCell } from '@/components/logohub/SvgQualityCell';
+import { ColorBlindCell } from '@/components/logohub/ColorBlindCell';
+import { ContrastMatrixCell } from '@/components/logohub/ContrastMatrixCell';
 import { IndustryStandardsSection } from '@/components/logohub/IndustryStandardsSection';
+import { SlotCompletenessSection } from '@/components/logohub/SlotCompletenessSection';
+import { PrintProductionSection } from '@/components/logohub/PrintProductionSection';
+import { AppIconCoverageSection } from '@/components/logohub/AppIconCoverageSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { Upload } from 'lucide-react';
 
@@ -231,11 +237,22 @@ export default function PublicLogoHubBrandAudit() {
           </div>
         </section>
 
+        {/* Slot completeness, dark-mode pairing, naming convention */}
+        <SlotCompletenessSection brandName={row.name} files={row.files} />
+
         {/* Industry-standard registry comparison */}
         <IndustryStandardsSection
           brandName={row.name}
           storedSvgUrls={row.files.filter((f) => f.format === 'svg').map((f) => f.url)}
         />
+
+        {/* Print & production readiness */}
+        <PrintProductionSection files={row.files} brandDescription={row.description} />
+
+        {/* Favicon / app-icon coverage */}
+        <AppIconCoverageSection files={row.files} />
+
+
 
 
 
@@ -623,6 +640,9 @@ function FileRow({
       <td className="px-3 py-3 align-top text-center">
         <VisualAuditCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
         {file.format === 'svg' && <SvgLintCell url={file.url} />}
+        {file.format === 'svg' && <SvgQualityCell url={file.url} />}
+        <ContrastMatrixCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
+        <ColorBlindCell url={file.url} variant={slot.variant as 'color' | 'black' | 'white'} />
         {file.format === 'svg' && (
           <SvgSnapshotCell
             url={file.url}
