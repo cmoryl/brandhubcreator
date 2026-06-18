@@ -462,3 +462,32 @@ function SlotCell({
     </a>
   );
 }
+
+function AuditCell({
+  audit,
+}: {
+  audit: { overall: 'pass' | 'warn' | 'fail'; passRate: number; totals: { fileFail: number; fileWarn: number; brandFail: number; brandWarn: number; slotFail: number; slotWarn: number } };
+}) {
+  const map = {
+    pass: { label: 'Pass', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+    warn: { label: 'Warn', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
+    fail: { label: 'Fail', cls: 'bg-red-500/15 text-red-700 dark:text-red-300' },
+  } as const;
+  const { label, cls } = map[audit.overall];
+  const failCount = audit.totals.fileFail + audit.totals.brandFail + audit.totals.slotFail;
+  const warnCount = audit.totals.fileWarn + audit.totals.brandWarn + audit.totals.slotWarn;
+  return (
+    <div className="flex flex-col items-end gap-0.5">
+      <span className={cn('inline-block px-2 py-0.5 rounded text-[10px] font-medium', cls)}>
+        {label} · {audit.passRate}%
+      </span>
+      {(failCount > 0 || warnCount > 0) && (
+        <span className="text-[10px] text-muted-foreground">
+          {failCount > 0 && <>{failCount} fail</>}
+          {failCount > 0 && warnCount > 0 && ' · '}
+          {warnCount > 0 && <>{warnCount} warn</>}
+        </span>
+      )}
+    </div>
+  );
+}
