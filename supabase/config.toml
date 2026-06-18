@@ -212,3 +212,6 @@ verify_jwt = false
 
 [functions.enrich-logo-variants]
 verify_jwt = false
+
+[functions.generate-mono-png]
+verify_jwt = false
