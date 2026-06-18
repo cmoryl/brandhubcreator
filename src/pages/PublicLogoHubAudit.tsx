@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
+import { auditBrand } from '@/lib/logoAuditChecks';
 
 interface Row {
   id: string;
@@ -38,7 +39,7 @@ const extOf = (url: string, fallback?: string) => {
   return (fallback || '').toLowerCase();
 };
 
-type StatusFilter = 'all' | 'complete' | 'partial' | 'raster' | 'missing';
+type StatusFilter = 'all' | 'complete' | 'partial' | 'raster' | 'missing' | 'audit-fail' | 'audit-warn' | 'audit-pass';
 
 export default function PublicLogoHubAudit() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -105,7 +106,8 @@ export default function PublicLogoHubAudit() {
       else if (missingCount === total) bucket = 'missing';
       else if (rasterCount > 0 && missingCount === 0) bucket = 'raster';
       else bucket = 'partial';
-      return { ...r, slots, total, present, svgCount, rasterCount, missingCount, bucket };
+      const audit = auditBrand(r.files);
+      return { ...r, slots, total, present, svgCount, rasterCount, missingCount, bucket, audit };
     });
   }, [rows]);
 
@@ -114,6 +116,9 @@ export default function PublicLogoHubAudit() {
       audited.filter((r) => {
         if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
         if (category !== 'all' && r.category !== category) return false;
+        if (status === 'audit-fail') return r.audit.overall === 'fail';
+        if (status === 'audit-warn') return r.audit.overall === 'warn';
+        if (status === 'audit-pass') return r.audit.overall === 'pass';
         if (status !== 'all' && r.bucket !== status) return false;
         return true;
       }),
@@ -132,6 +137,13 @@ export default function PublicLogoHubAudit() {
       slotsSvg: 0,
       slotsRaster: 0,
       slotsMissing: 0,
+      auditPass: 0,
+      auditWarn: 0,
+      auditFail: 0,
+      checkTotal: 0,
+      checkPass: 0,
+      checkFail: 0,
+      checkWarn: 0,
     };
     for (const r of audited) {
       totals[r.bucket]++;
@@ -140,6 +152,14 @@ export default function PublicLogoHubAudit() {
       totals.slotsSvg += r.svgCount;
       totals.slotsRaster += r.rasterCount;
       totals.slotsMissing += r.missingCount;
+      if (r.audit.overall === 'pass') totals.auditPass++;
+      else if (r.audit.overall === 'warn') totals.auditWarn++;
+      else totals.auditFail++;
+      const t = r.audit.totals;
+      totals.checkTotal += t.fileChecks + r.audit.checks.length + r.audit.slots.length * 2;
+      totals.checkPass += t.filePass + t.brandPass + t.slotPass;
+      totals.checkFail += t.fileFail + t.brandFail + t.slotFail;
+      totals.checkWarn += t.fileWarn + t.brandWarn + t.slotWarn;
     }
     return totals;
   }, [audited]);
@@ -195,6 +215,16 @@ export default function PublicLogoHubAudit() {
               subtle
             />
           </div>
+          <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <StatCard label="Brands passing audit" value={summary.auditPass} tone="success" />
+            <StatCard label="Brands with warnings" value={summary.auditWarn} tone="warning" />
+            <StatCard label="Brands failing audit" value={summary.auditFail} tone="danger" />
+            <StatCard
+              label="Check pass rate"
+              value={`${pct(summary.checkPass, summary.checkTotal)}%`}
+              subtle
+            />
+          </div>
         </div>
       </header>
 
@@ -229,6 +259,9 @@ export default function PublicLogoHubAudit() {
               <TabsTrigger value="partial">Partial</TabsTrigger>
               <TabsTrigger value="raster">Raster only</TabsTrigger>
               <TabsTrigger value="missing">Missing</TabsTrigger>
+              <TabsTrigger value="audit-pass">Audit ✓</TabsTrigger>
+              <TabsTrigger value="audit-warn">Audit ⚠</TabsTrigger>
+              <TabsTrigger value="audit-fail">Audit ✗</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -258,6 +291,7 @@ export default function PublicLogoHubAudit() {
                     Wordmark
                   </th>
                   <th className="text-right px-3 py-3 font-medium">Coverage</th>
+                  <th className="text-right px-3 py-3 font-medium">Audit</th>
                 </tr>
                 <tr className="bg-muted/20 text-[10px]">
                   <th />
@@ -269,6 +303,7 @@ export default function PublicLogoHubAudit() {
                   <th className="text-center py-1.5 font-normal border-l border-border">Color</th>
                   <th className="text-center py-1.5 font-normal">Black</th>
                   <th className="text-center py-1.5 font-normal">White</th>
+                  <th />
                   <th />
                 </tr>
               </thead>
@@ -320,6 +355,9 @@ export default function PublicLogoHubAudit() {
                         {r.missingCount > 0 && <>{r.missingCount} missing</>}
                         {r.rasterCount === 0 && r.missingCount === 0 && 'complete'}
                       </div>
+                    </td>
+                    <td className="px-3 py-3 align-top text-right whitespace-nowrap">
+                      <AuditCell audit={r.audit} />
                     </td>
                   </tr>
                 ))}
@@ -422,5 +460,34 @@ function SlotCell({
         {ext}
       </span>
     </a>
+  );
+}
+
+function AuditCell({
+  audit,
+}: {
+  audit: { overall: 'pass' | 'warn' | 'fail'; passRate: number; totals: { fileFail: number; fileWarn: number; brandFail: number; brandWarn: number; slotFail: number; slotWarn: number } };
+}) {
+  const map = {
+    pass: { label: 'Pass', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+    warn: { label: 'Warn', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
+    fail: { label: 'Fail', cls: 'bg-red-500/15 text-red-700 dark:text-red-300' },
+  } as const;
+  const { label, cls } = map[audit.overall];
+  const failCount = audit.totals.fileFail + audit.totals.brandFail + audit.totals.slotFail;
+  const warnCount = audit.totals.fileWarn + audit.totals.brandWarn + audit.totals.slotWarn;
+  return (
+    <div className="flex flex-col items-end gap-0.5">
+      <span className={cn('inline-block px-2 py-0.5 rounded text-[10px] font-medium', cls)}>
+        {label} · {audit.passRate}%
+      </span>
+      {(failCount > 0 || warnCount > 0) && (
+        <span className="text-[10px] text-muted-foreground">
+          {failCount > 0 && <>{failCount} fail</>}
+          {failCount > 0 && warnCount > 0 && ' · '}
+          {warnCount > 0 && <>{warnCount} warn</>}
+        </span>
+      )}
+    </div>
   );
 }

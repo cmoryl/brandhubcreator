@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Loader2, XCircle, FileImage, FileType2, Copy, Check } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Loader2, XCircle, FileImage, FileType2, Copy, Check, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
+import { auditBrand, type CheckResult, type FileAudit, type SlotAudit } from '@/lib/logoAuditChecks';
 
 interface Row {
   id: string;
@@ -16,9 +17,6 @@ interface Row {
   website_url: string | null;
   files: ClientLogoFile[];
 }
-
-const LOCKUPS: ClientLogoLockup[] = ['icon', 'wordmark'];
-const VARIANTS: ClientLogoVariant[] = ['color', 'black', 'white'];
 
 type SourceKind =
   | 'gilbarbara'
@@ -58,7 +56,6 @@ function detectSource(url: string, brandWebsite?: string | null): SourceInfo {
   if (host.endsWith('supabase.co') || host.endsWith('supabase.in')) {
     return { kind: 'supabase', label: 'Manual upload / rehosted', tone: 'info' };
   }
-  // Brand-owned site (Firecrawl-scraped or direct)
   if (brandWebsite) {
     try {
       const brandHost = new URL(brandWebsite).hostname.toLowerCase().replace(/^www\./, '');
@@ -110,28 +107,7 @@ export default function PublicLogoHubBrandAudit() {
     })();
   }, [id]);
 
-  const slots = useMemo(() => {
-    if (!row) return [];
-    return LOCKUPS.flatMap((lk) =>
-      VARIANTS.map((v) => {
-        const inSlot = row.files.filter(
-          (f) => (f.lockup || 'icon') === lk && f.variant === v,
-        );
-        // Sort: SVG first, then PNG, then EPS
-        const order: Record<string, number> = { svg: 0, png: 1, eps: 2 };
-        const sorted = [...inSlot].sort(
-          (a, b) => (order[a.format] ?? 9) - (order[b.format] ?? 9),
-        );
-        const primary = sorted[0];
-        return {
-          lockup: lk,
-          variant: v,
-          files: sorted,
-          primary,
-        };
-      }),
-    );
-  }, [row]);
+  const audit = useMemo(() => (row ? auditBrand(row.files) : null), [row]);
 
   const copy = async (text: string, key: string) => {
     try {
@@ -152,7 +128,7 @@ export default function PublicLogoHubBrandAudit() {
     );
   }
 
-  if (!row) {
+  if (!row || !audit) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3">
         <p className="text-muted-foreground">Brand not found.</p>
@@ -162,6 +138,13 @@ export default function PublicLogoHubBrandAudit() {
       </div>
     );
   }
+
+  const overallMap = {
+    pass: { label: 'PASS', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+    warn: { label: 'WARN', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
+    fail: { label: 'FAIL', cls: 'bg-red-500/15 text-red-700 dark:text-red-300' },
+  } as const;
+  const overall = overallMap[audit.overall];
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,6 +165,9 @@ export default function PublicLogoHubBrandAudit() {
                 <Badge variant="outline" className="text-[10px]">
                   {row.category}
                 </Badge>
+                <span className={cn('px-2 py-0.5 rounded text-[10px] font-bold tracking-wider', overall.cls)}>
+                  {overall.label} · {audit.passRate}%
+                </span>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">{row.name}</h1>
               {row.description && (
@@ -198,177 +184,339 @@ export default function PublicLogoHubBrandAudit() {
                 </a>
               )}
             </div>
-            <div className="text-right text-xs text-muted-foreground">
-              <div>
-                <span className="font-semibold text-foreground">{row.files.length}</span> total files
-              </div>
-              <div>
-                <span className="font-semibold text-foreground">
-                  {row.files.filter((f) => f.format === 'svg').length}
-                </span>{' '}
-                SVG
-              </div>
-              <div>
-                <span className="font-semibold text-foreground">
-                  {row.files.filter((f) => f.format !== 'svg').length}
-                </span>{' '}
-                raster
-              </div>
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <Stat label="Files" value={row.files.length} />
+              <Stat label="SVG" value={row.files.filter((f) => f.format === 'svg').length} />
+              <Stat label="Raster" value={row.files.filter((f) => f.format !== 'svg').length} />
+              <Stat label="Pass" value={audit.totals.brandPass + audit.totals.slotPass + audit.totals.filePass} tone="success" />
+              <Stat label="Warn" value={audit.totals.brandWarn + audit.totals.slotWarn + audit.totals.fileWarn} tone="warning" />
+              <Stat label="Fail" value={audit.totals.brandFail + audit.totals.slotFail + audit.totals.fileFail} tone="danger" />
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto max-w-7xl px-6 py-8">
-        <div className="overflow-x-auto rounded-xl border border-border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">Lockup</th>
-                <th className="text-left px-3 py-3 font-medium">Variant</th>
-                <th className="text-center px-3 py-3 font-medium">Preview</th>
-                <th className="text-left px-3 py-3 font-medium">Format</th>
-                <th className="text-left px-3 py-3 font-medium">Source</th>
-                <th className="text-left px-3 py-3 font-medium">Resolved URL</th>
-                <th className="text-right px-3 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {slots.map((slot) => {
-                if (!slot.files.length) {
-                  return (
-                    <tr
-                      key={`${slot.lockup}-${slot.variant}-empty`}
-                      className="border-t border-border bg-red-500/5"
-                    >
-                      <td className="px-4 py-3 capitalize font-medium">{slot.lockup}</td>
-                      <td className="px-3 py-3 capitalize">{slot.variant}</td>
-                      <td className="px-3 py-3 text-center">
-                        <XCircle className="h-5 w-5 text-red-500 inline" />
-                      </td>
-                      <td className="px-3 py-3 text-xs text-red-600 dark:text-red-400">
-                        Missing
-                      </td>
-                      <td className="px-3 py-3 text-xs text-muted-foreground">—</td>
-                      <td className="px-3 py-3 text-xs text-muted-foreground italic">
-                        No file in this slot
-                      </td>
-                      <td />
-                    </tr>
-                  );
-                }
-                return slot.files.map((file, idx) => {
-                  const source = detectSource(file.url, row.website_url);
-                  const ext = extOf(file.url, file.format) || file.format;
-                  const isSvg = file.format === 'svg';
-                  const Icon = isSvg ? FileType2 : FileImage;
-                  const key = `${slot.lockup}-${slot.variant}-${idx}`;
-                  const isPrimary = idx === 0;
-                  const isWhite = slot.variant === 'white';
-                  return (
-                    <tr
-                      key={key}
-                      className={cn(
-                        'border-t border-border hover:bg-muted/20',
-                        !isPrimary && 'bg-muted/5',
-                      )}
-                    >
-                      <td className="px-4 py-3 align-top">
-                        {isPrimary ? (
-                          <span className="capitalize font-medium">{slot.lockup}</span>
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground pl-3">↳ alt</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 align-top capitalize">
-                        {isPrimary ? slot.variant : ''}
-                      </td>
-                      <td className="px-3 py-3 align-top">
-                        <div
-                          className={cn(
-                            'mx-auto h-12 w-16 rounded border border-border flex items-center justify-center overflow-hidden',
-                            isWhite ? 'bg-neutral-800' : 'bg-white',
-                          )}
-                        >
-                          <img
-                            src={file.url}
-                            alt=""
-                            className="max-h-10 max-w-14 object-contain"
-                            loading="lazy"
-                          />
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 align-top">
-                        <div className="flex items-center gap-1.5">
-                          <Icon
-                            className={cn(
-                              'h-4 w-4',
-                              isSvg
-                                ? 'text-emerald-600 dark:text-emerald-400'
-                                : 'text-amber-600 dark:text-amber-400',
-                            )}
-                          />
-                          <span className="text-xs font-medium uppercase tracking-wider">
-                            {ext}
-                          </span>
-                          {isPrimary && slot.files.length > 1 && (
-                            <Badge variant="outline" className="text-[9px] h-4 px-1">
-                              primary
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 align-top">
-                        <SourceBadge source={source} />
-                      </td>
-                      <td className="px-3 py-3 align-top max-w-md">
-                        <code className="text-[10px] font-mono break-all text-muted-foreground block leading-relaxed">
-                          {file.url}
-                        </code>
-                      </td>
-                      <td className="px-3 py-3 align-top text-right whitespace-nowrap">
-                        <div className="inline-flex items-center gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 w-7 p-0"
-                            onClick={() => copy(file.url, key)}
-                            title="Copy URL"
-                          >
-                            {copied === key ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-500" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" asChild>
-                            <a href={file.url} target="_blank" rel="noreferrer" title="Open">
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                });
-              })}
-            </tbody>
-          </table>
-        </div>
+      <main className="container mx-auto max-w-7xl px-6 py-8 space-y-8">
+        {/* Brand-level checks */}
+        <section>
+          <h2 className="text-sm uppercase tracking-wider text-muted-foreground mb-3">
+            Brand-level checks
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {audit.checks.map((c) => (
+              <CheckRow key={c.id} check={c} />
+            ))}
+          </div>
+        </section>
 
-        <div className="mt-6 text-xs text-muted-foreground space-y-1">
-          <p className="font-medium text-foreground">How sources are detected</p>
+        {/* Per-slot pass/fail table */}
+        <section>
+          <h2 className="text-sm uppercase tracking-wider text-muted-foreground mb-3">
+            Per-file pass / fail
+          </h2>
+          <div className="overflow-x-auto rounded-xl border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium">Lockup</th>
+                  <th className="text-left px-3 py-3 font-medium">Variant</th>
+                  <th className="text-center px-3 py-3 font-medium">Preview</th>
+                  <th className="text-left px-3 py-3 font-medium">Format</th>
+                  <th className="text-left px-3 py-3 font-medium">Source</th>
+                  <th className="text-center px-3 py-3 font-medium">Checks</th>
+                  <th className="text-left px-3 py-3 font-medium">URL</th>
+                  <th className="text-right px-3 py-3 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {audit.slots.map((slot) => (
+                  <SlotRows
+                    key={`${slot.lockup}-${slot.variant}`}
+                    slot={slot}
+                    websiteUrl={row.website_url}
+                    copied={copied}
+                    onCopy={copy}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="text-xs text-muted-foreground space-y-1">
+          <p className="font-medium text-foreground">What each check does</p>
           <ul className="list-disc pl-5 space-y-0.5">
-            <li><strong>gilbarbara/logos</strong> — jsDelivr URLs under /gilbarbara/</li>
-            <li><strong>svgl.app</strong> — svgl CDN hostnames</li>
-            <li><strong>Simple Icons / Wikimedia</strong> — recognized public catalogs</li>
-            <li><strong>Brand site (Firecrawl)</strong> — URL host matches the brand's website domain</li>
-            <li><strong>Manual upload / rehosted</strong> — *.supabase.co storage</li>
-            <li><strong>External / Firecrawl</strong> — anything else scraped from third-party hosts</li>
+            <li><strong>URL is valid</strong> — URL must parse as a valid http(s) URL.</li>
+            <li><strong>Served over HTTPS</strong> — http:// URLs fail.</li>
+            <li><strong>Extension matches format</strong> — file extension must match declared format.</li>
+            <li><strong>Variant label looks correct</strong> — filename hints (black/white/dark/light) match declared variant.</li>
+            <li><strong>Lockup label looks correct</strong> — filename hints (icon/wordmark/symbol) match declared lockup.</li>
+            <li><strong>Vector format (SVG)</strong> — raster formats warn; SVG is preferred.</li>
+            <li><strong>Slot has at least one file</strong> — fails if missing.</li>
+            <li><strong>Slot has an SVG</strong> — warns if only raster is present.</li>
           </ul>
-        </div>
+        </section>
       </main>
     </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone?: 'success' | 'warning' | 'danger';
+}) {
+  const cls =
+    tone === 'success'
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : tone === 'warning'
+        ? 'text-amber-600 dark:text-amber-400'
+        : tone === 'danger'
+          ? 'text-red-600 dark:text-red-400'
+          : 'text-foreground';
+  return (
+    <div className="rounded border border-border px-3 py-1.5 bg-card text-right min-w-[68px]">
+      <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={cn('text-sm font-semibold', cls)}>{value}</div>
+    </div>
+  );
+}
+
+function CheckRow({ check }: { check: CheckResult }) {
+  const Icon = check.status === 'pass' ? CheckCircle2 : check.status === 'warn' ? AlertTriangle : XCircle;
+  const color =
+    check.status === 'pass'
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : check.status === 'warn'
+        ? 'text-amber-600 dark:text-amber-400'
+        : 'text-red-600 dark:text-red-400';
+  return (
+    <div className="flex items-start gap-2 rounded-lg border border-border bg-card/50 px-3 py-2">
+      <Icon className={cn('h-4 w-4 mt-0.5 flex-shrink-0', color)} />
+      <div className="min-w-0">
+        <div className="text-sm font-medium">{check.label}</div>
+        {check.detail && (
+          <div className="text-[11px] text-muted-foreground mt-0.5">{check.detail}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SlotRows({
+  slot,
+  websiteUrl,
+  copied,
+  onCopy,
+}: {
+  slot: SlotAudit;
+  websiteUrl: string | null;
+  copied: string | null;
+  onCopy: (url: string, key: string) => void;
+}) {
+  if (slot.files.length === 0) {
+    return (
+      <tr className="border-t border-border bg-red-500/5">
+        <td className="px-4 py-3 capitalize font-medium">{slot.lockup}</td>
+        <td className="px-3 py-3 capitalize">{slot.variant}</td>
+        <td className="px-3 py-3 text-center">
+          <XCircle className="h-5 w-5 text-red-500 inline" />
+        </td>
+        <td className="px-3 py-3 text-xs text-red-600 dark:text-red-400">Missing</td>
+        <td className="px-3 py-3 text-xs text-muted-foreground">—</td>
+        <td className="px-3 py-3 text-center">
+          <StatusPill status="fail" />
+        </td>
+        <td className="px-3 py-3 text-xs text-muted-foreground italic">
+          No file in this slot
+        </td>
+        <td />
+      </tr>
+    );
+  }
+  return (
+    <>
+      {slot.files.map((fa, idx) => (
+        <FileRow
+          key={`${slot.lockup}-${slot.variant}-${idx}`}
+          fileAudit={fa}
+          slot={slot}
+          isPrimary={idx === 0}
+          totalInSlot={slot.files.length}
+          websiteUrl={websiteUrl}
+          rowKey={`${slot.lockup}-${slot.variant}-${idx}`}
+          copied={copied}
+          onCopy={onCopy}
+        />
+      ))}
+    </>
+  );
+}
+
+function FileRow({
+  fileAudit,
+  slot,
+  isPrimary,
+  totalInSlot,
+  websiteUrl,
+  rowKey,
+  copied,
+  onCopy,
+}: {
+  fileAudit: FileAudit;
+  slot: SlotAudit;
+  isPrimary: boolean;
+  totalInSlot: number;
+  websiteUrl: string | null;
+  rowKey: string;
+  copied: string | null;
+  onCopy: (url: string, key: string) => void;
+}) {
+  const file = fileAudit.file;
+  const source = detectSource(file.url, websiteUrl);
+  const ext = extOf(file.url, file.format) || file.format;
+  const isSvg = file.format === 'svg';
+  const Icon = isSvg ? FileType2 : FileImage;
+  const isWhite = slot.variant === 'white';
+
+  return (
+    <tr
+      className={cn(
+        'border-t border-border hover:bg-muted/20',
+        !isPrimary && 'bg-muted/5',
+      )}
+    >
+      <td className="px-4 py-3 align-top">
+        {isPrimary ? (
+          <span className="capitalize font-medium">{slot.lockup}</span>
+        ) : (
+          <span className="text-[10px] text-muted-foreground pl-3">↳ alt</span>
+        )}
+      </td>
+      <td className="px-3 py-3 align-top capitalize">
+        {isPrimary ? slot.variant : ''}
+      </td>
+      <td className="px-3 py-3 align-top">
+        <div
+          className={cn(
+            'mx-auto h-12 w-16 rounded border border-border flex items-center justify-center overflow-hidden',
+            isWhite ? 'bg-neutral-800' : 'bg-white',
+          )}
+        >
+          <img
+            src={file.url}
+            alt=""
+            className="max-h-10 max-w-14 object-contain"
+            loading="lazy"
+          />
+        </div>
+      </td>
+      <td className="px-3 py-3 align-top">
+        <div className="flex items-center gap-1.5">
+          <Icon
+            className={cn(
+              'h-4 w-4',
+              isSvg
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-amber-600 dark:text-amber-400',
+            )}
+          />
+          <span className="text-xs font-medium uppercase tracking-wider">{ext}</span>
+          {isPrimary && totalInSlot > 1 && (
+            <Badge variant="outline" className="text-[9px] h-4 px-1">
+              primary
+            </Badge>
+          )}
+        </div>
+      </td>
+      <td className="px-3 py-3 align-top">
+        <SourceBadge source={source} />
+      </td>
+      <td className="px-3 py-3 align-top text-center">
+        <div className="flex flex-col items-center gap-1">
+          <StatusPill status={fileAudit.status} />
+          <div className="text-[10px] text-muted-foreground">
+            {fileAudit.passCount}✓ · {fileAudit.warnCount}⚠ · {fileAudit.failCount}✗
+          </div>
+          <details className="text-[10px] text-left">
+            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+              details
+            </summary>
+            <ul className="mt-1 space-y-0.5 min-w-[200px]">
+              {fileAudit.checks.map((c) => (
+                <li key={c.id} className="flex items-start gap-1">
+                  <span
+                    className={cn(
+                      'mt-0.5',
+                      c.status === 'pass'
+                        ? 'text-emerald-500'
+                        : c.status === 'warn'
+                          ? 'text-amber-500'
+                          : 'text-red-500',
+                    )}
+                  >
+                    {c.status === 'pass' ? '✓' : c.status === 'warn' ? '⚠' : '✗'}
+                  </span>
+                  <span>
+                    <span className="font-medium">{c.label}</span>
+                    {c.detail && (
+                      <span className="block text-muted-foreground text-[9px]">
+                        {c.detail}
+                      </span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </div>
+      </td>
+      <td className="px-3 py-3 align-top max-w-md">
+        <code className="text-[10px] font-mono break-all text-muted-foreground block leading-relaxed">
+          {file.url}
+        </code>
+      </td>
+      <td className="px-3 py-3 align-top text-right whitespace-nowrap">
+        <div className="inline-flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 w-7 p-0"
+            onClick={() => onCopy(file.url, rowKey)}
+            title="Copy URL"
+          >
+            {copied === rowKey ? (
+              <Check className="h-3.5 w-3.5 text-emerald-500" />
+            ) : (
+              <Copy className="h-3.5 w-3.5" />
+            )}
+          </Button>
+          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" asChild>
+            <a href={file.url} target="_blank" rel="noreferrer" title="Open">
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </Button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function StatusPill({ status }: { status: 'pass' | 'warn' | 'fail' }) {
+  const map = {
+    pass: { label: 'PASS', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+    warn: { label: 'WARN', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' },
+    fail: { label: 'FAIL', cls: 'bg-red-500/15 text-red-700 dark:text-red-300' },
+  } as const;
+  const { label, cls } = map[status];
+  return (
+    <span className={cn('inline-block px-2 py-0.5 rounded text-[10px] font-bold tracking-wider', cls)}>
+      {label}
+    </span>
   );
 }
 
