@@ -31,11 +31,62 @@ function sanitizeSvg(s: string) {
           .replace(/\son\w+=["'][^"']*["']/gi,"");
 }
 
+// Is this fill value "white-ish"? Such shapes are typically cutouts/negative
+// space in chunky color logos (Amex letters, LEGO inner blocks, etc.) and
+// must remain transparent in monochrome — otherwise the holes fill in and
+// the mark becomes an unreadable blob.
+function isWhiteish(v: string): boolean {
+  if (!v) return false;
+  const t = v.trim().toLowerCase().replace(/\s+/g, "");
+  if (t === "white" || t === "#fff" || t === "#ffffff") return true;
+  let m = t.match(/^#([0-9a-f]{6})$/);
+  if (m) {
+    const n = parseInt(m[1], 16);
+    return ((n>>16)&0xff) > 240 && ((n>>8)&0xff) > 240 && (n&0xff) > 240;
+  }
+  m = t.match(/^#([0-9a-f]{3})$/);
+  if (m) {
+    const ex = m[1].split("").map(c => c+c).join("");
+    const n = parseInt(ex, 16);
+    return ((n>>16)&0xff) > 240 && ((n>>8)&0xff) > 240 && (n&0xff) > 240;
+  }
+  m = t.match(/^rgba?\((\d+),(\d+),(\d+)/);
+  if (m) return +m[1] > 240 && +m[2] > 240 && +m[3] > 240;
+  if (t.startsWith("hsl")) {
+    const hm = t.match(/^hsla?\(\s*[^,]+,\s*[^,]+,\s*(\d+(?:\.\d+)?)%/);
+    if (hm) return parseFloat(hm[1]) > 94;
+  }
+  return false;
+}
+
+// Walk every tag and mark shapes whose fill (attr or style) is white as
+// cutouts via data-mono-cutout="1". CSS below renders those as transparent
+// so holes stay holes for both black and white variants.
+function tagCutouts(svg: string): string {
+  return svg.replace(/<([a-zA-Z][\w:-]*)\b([^/>]*)(\/?)>/g, (_full, name, attrs, slash) => {
+    let cutout = false;
+    const fAttr = attrs.match(/\sfill\s*=\s*"([^"]*)"/i);
+    if (fAttr && isWhiteish(fAttr[1])) cutout = true;
+    if (!cutout) {
+      const sAttr = attrs.match(/\sstyle\s*=\s*"([^"]*)"/i);
+      if (sAttr) {
+        const fm = sAttr[1].match(/(?:^|;)\s*fill\s*:\s*([^;]+)/i);
+        if (fm && isWhiteish(fm[1])) cutout = true;
+      }
+    }
+    return cutout
+      ? `<${name}${attrs} data-mono-cutout="1"${slash}>`
+      : `<${name}${attrs}${slash}>`;
+  });
+}
+
 function monoSvg(svgText: string, color: "#000000"|"#ffffff") {
   let s = sanitizeSvg(svgText);
   s = s.replace(/<style[\s\S]*?<\/style>/gi, "");
   s = s.replace(/<(linear|radial)Gradient[\s\S]*?<\/\1Gradient>/gi, "");
   s = s.replace(/<image\b[\s\S]*?>/gi, "");
+  // Tag white-filled shapes as cutouts BEFORE we strip fill attributes.
+  s = tagCutouts(s);
   s = s.replace(/\sstyle="[^"]*fill\s*:\s*none[^"]*stroke\s*:\s*(?!none|transparent)[^"]*"/gi, ' fill="none" data-mono-stroke="1"');
   s = s.replace(/\sstyle="[^"]*stroke\s*:\s*(?!none|transparent)[^"]*fill\s*:\s*none[^"]*"/gi, ' fill="none" data-mono-stroke="1"');
   s = s.replace(/\sstyle="[^"]*"/gi, "");
@@ -44,7 +95,14 @@ function monoSvg(svgText: string, color: "#000000"|"#ffffff") {
   s = s.replace(/\sfill="(?!none|transparent)[^"]*"/gi, "");
   s = s.replace(/\s(?:stop-color|flood-color|lighting-color|color)="[^"]*"/gi, "");
   s = s.replace(/<\s*(line|polyline)\b(?![^>]*data-mono-stroke)/gi, '<$1 data-mono-stroke="1"');
-  const style = `<style>svg,svg *{color:${color}!important;fill:${color}!important}svg [fill="none"],svg [fill="transparent"]{fill:none!important}svg [data-mono-stroke],svg [stroke]:not([stroke="none"]):not([stroke="transparent"]){stroke:${color}!important}</style>`;
+  const style = `<style>`
+    + `svg,svg *{color:${color}!important;fill:${color}!important}`
+    + `svg [fill="none"],svg [fill="transparent"]{fill:none!important}`
+    // Cutouts must paint transparent and NOT inherit the ink stroke.
+    + `svg [data-mono-cutout="1"]{fill:transparent!important;stroke:none!important}`
+    + `svg [data-mono-stroke]:not([data-mono-cutout="1"]),`
+    + `svg [stroke]:not([stroke="none"]):not([stroke="transparent"]):not([data-mono-cutout="1"]){stroke:${color}!important}`
+    + `</style>`;
   return s.replace(/<svg([^>]*)>/i, `<svg$1>${style}`);
 }
 
