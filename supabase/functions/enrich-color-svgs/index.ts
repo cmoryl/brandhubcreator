@@ -203,6 +203,7 @@ async function processRow(
   lockups: ("wordmark"|"icon")[],
   dryRun: boolean,
   onlyMissingSvg: boolean,
+  useFirecrawl: boolean,
 ) {
   const slug = slugify(row.name);
   const files: FileEntry[] = Array.isArray(row.files) ? [...row.files] : [];
@@ -215,8 +216,9 @@ async function processRow(
     const colorIsSvg = color ? (color.format === "svg" || color.url.toLowerCase().includes(".svg")) : false;
     if (onlyMissingSvg && colorIsSvg) { issues.push(`${lockup}:already-svg`); continue; }
 
-    const found = await trySources(row.name, row.website_url, lockup);
+    const found = await trySources(row.name, row.website_url, lockup, useFirecrawl);
     if (!found) { issues.push(`${lockup}:no-source-found`); continue; }
+
 
     if (dryRun) { actions.push(`would-upgrade:${lockup}-color.svg (${found.source})`); continue; }
 
