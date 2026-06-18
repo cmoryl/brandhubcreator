@@ -7,7 +7,9 @@ export type LogoFileIssue =
   | 'load-failed'
   | 'too-small'            // png natural size below MIN_PX
   | 'not-transparent'      // png with opaque corner pixels
-  | 'fill-not-applied';    // svg variant didn't end up white/black
+  | 'fill-not-applied'     // svg variant didn't end up white/black
+  | 'forced-stroke-outline' // svg forces stroke paint onto filled artwork
+  | 'svg-text-nodes';      // svg depends on live text/font rendering
 
 export interface LogoFileValidation {
   variant: ClientLogoVariant;
@@ -103,6 +105,16 @@ const validateSvgString = (
   if (!trimmed.startsWith('<svg') && !trimmed.startsWith('<?xml')) {
     issues.push('unparseable-svg');
     return issues;
+  }
+  const rootTag = svg.match(/<svg\b[^>]*>/i)?.[0] ?? '';
+  const rootHasFillAndStroke = /\bfill\s*=\s*(["'])(?!none|transparent)[^"']+\1/i.test(rootTag)
+    && /\bstroke\s*=\s*(["'])(?!none|transparent)[^"']+\1/i.test(rootTag);
+  const globalStrokeStyle = /<style\b[^>]*>[\s\S]*?\*\s*\{[^}]*\bstroke\s*:\s*(?!none|transparent)[^;}]+[\s\S]*?<\/style>/i.test(svg);
+  if (rootHasFillAndStroke || globalStrokeStyle) {
+    issues.push('forced-stroke-outline');
+  }
+  if (/<text\b/i.test(svg)) {
+    issues.push('svg-text-nodes');
   }
   if (variant === 'white' && !/fill="?#fff(fff)?"?/i.test(svg)) {
     issues.push('fill-not-applied');
@@ -203,4 +215,6 @@ export const ISSUE_LABELS: Record<LogoFileIssue, string> = {
   'too-small': `PNG below ${MIN_PNG_PX}px on its shortest edge`,
   'not-transparent': 'PNG has an opaque background',
   'fill-not-applied': 'SVG fill colour does not match its variant',
+  'forced-stroke-outline': 'SVG forces strokes onto filled artwork, causing thick outlines',
+  'svg-text-nodes': 'SVG contains live text; convert text to paths for consistent logo rendering',
 };
