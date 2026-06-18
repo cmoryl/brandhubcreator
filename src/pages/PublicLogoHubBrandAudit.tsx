@@ -237,11 +237,22 @@ export default function PublicLogoHubBrandAudit() {
           </div>
         </section>
 
+        {/* Slot completeness, dark-mode pairing, naming convention */}
+        <SlotCompletenessSection brandName={row.name} files={row.files} />
+
         {/* Industry-standard registry comparison */}
         <IndustryStandardsSection
           brandName={row.name}
           storedSvgUrls={row.files.filter((f) => f.format === 'svg').map((f) => f.url)}
         />
+
+        {/* Print & production readiness */}
+        <PrintProductionSection files={row.files} brandDescription={row.description} />
+
+        {/* Favicon / app-icon coverage */}
+        <AppIconCoverageSection files={row.files} />
+
+
 
 
 
