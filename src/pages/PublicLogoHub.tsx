@@ -36,7 +36,7 @@ const setMeta = (name: string, content: string) => {
   }
   el.setAttribute('content', content);
 };
-import { Search, Filter, Globe2, Loader2, Download, X, ZoomIn, Package } from 'lucide-react';
+import { Search, Filter, Globe2, Loader2, Download, X, ZoomIn, Package, Trash2 } from 'lucide-react';
 import JSZip from 'jszip';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
@@ -44,6 +44,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
@@ -162,6 +174,26 @@ export default function PublicLogoHub() {
     logo: GlobalLogoRow;
     file: ClientLogoFile;
   } | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { isAdmin } = useAuth();
+
+  const handleDeleteLogo = async (logo: GlobalLogoRow) => {
+    setDeletingId(logo.id);
+    try {
+      const { error } = await supabase
+        .from('global_client_logos')
+        .delete()
+        .eq('id', logo.id);
+      if (error) throw error;
+      setLogos((prev) => prev.filter((l) => l.id !== logo.id));
+      toast.success(`Deleted ${logo.name}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to delete logo');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
 
   const loadLogos = async () => {
     setLoading(true);
@@ -398,7 +430,47 @@ export default function PublicLogoHub() {
                       <Package className="h-3 w-3 mr-1" />
                       Download all ({logo.files.length})
                     </Button>
+                    {isAdmin && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 px-2 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
+                            disabled={deletingId === logo.id}
+                            aria-label={`Delete ${logo.name}`}
+                          >
+                            {deletingId === logo.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete {logo.name}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This permanently removes the brand entry and unlinks its{' '}
+                              {logo.files.length} file{logo.files.length === 1 ? '' : 's'} from the
+                              hub. The underlying files in storage are not deleted and can be
+                              cleaned up from the audit page if orphaned.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteLogo(logo)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
+
 
                 </article>
               );
