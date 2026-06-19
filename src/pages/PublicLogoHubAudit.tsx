@@ -394,7 +394,7 @@ export default function PublicLogoHubAudit() {
             <OrphanedFilesSection canDelete={isSuperAdmin} />
           </div>
         )}
-      </main>
+      </section>
     </div>
   );
 }
