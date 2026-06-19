@@ -244,7 +244,7 @@ export default function PublicLogoHubAudit() {
               />
             </div>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-[130px] sm:w-[180px] shrink-0">
+              <SelectTrigger aria-label="Filter by category" className="w-[130px] sm:w-[180px] shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -274,7 +274,7 @@ export default function PublicLogoHubAudit() {
         </div>
       </section>
 
-      <main className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+      <section aria-label="Audit report" className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -301,17 +301,17 @@ export default function PublicLogoHubAudit() {
                   <th className="text-right px-3 py-3 font-medium">Audit</th>
                 </tr>
                 <tr className="bg-muted/20 text-[10px]">
-                  <th />
-                  <th />
-                  <th />
+                  <th aria-hidden="true"><span className="sr-only">Brand</span></th>
+                  <th aria-hidden="true"><span className="sr-only">Category</span></th>
+                  <th aria-hidden="true"><span className="sr-only">Status</span></th>
                   <th className="text-center py-1.5 font-normal">Color</th>
                   <th className="text-center py-1.5 font-normal">Black</th>
                   <th className="text-center py-1.5 font-normal">White</th>
                   <th className="text-center py-1.5 font-normal border-l border-border">Color</th>
                   <th className="text-center py-1.5 font-normal">Black</th>
                   <th className="text-center py-1.5 font-normal">White</th>
-                  <th />
-                  <th />
+                  <th aria-hidden="true"><span className="sr-only">Coverage</span></th>
+                  <th aria-hidden="true"><span className="sr-only">Audit</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -394,7 +394,7 @@ export default function PublicLogoHubAudit() {
             <OrphanedFilesSection canDelete={isSuperAdmin} />
           </div>
         )}
-      </main>
+      </section>
     </div>
   );
 }

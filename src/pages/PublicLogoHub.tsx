@@ -353,7 +353,7 @@ export default function PublicLogoHub() {
               />
             </div>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-[130px] sm:w-[180px] shrink-0">
+              <SelectTrigger aria-label="Filter by category" className="w-[130px] sm:w-[180px] shrink-0">
                 <Filter className="h-4 w-4 mr-1 sm:mr-2 shrink-0" />
                 <SelectValue />
               </SelectTrigger>
@@ -388,7 +388,7 @@ export default function PublicLogoHub() {
       </section>
 
       {/* Grid */}
-      <main className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+      <section aria-label="Logos" className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -568,7 +568,7 @@ export default function PublicLogoHub() {
             })}
           </div>
         )}
-      </main>
+      </section>
 
       {/* Preview Modal */}
       {preview && (
@@ -857,7 +857,7 @@ function LogoCell({
       <span
         className={cn(
           'absolute bottom-1 left-1 text-[8px] uppercase tracking-wider px-1 rounded',
-          dark ? 'bg-white/10 text-white/60' : 'bg-black/5 text-black/50',
+          dark ? 'bg-black/70 text-white' : 'bg-white/90 text-black',
         )}
       >
         {lockup === 'icon' ? 'Icon' : 'Logo'} · {variant}

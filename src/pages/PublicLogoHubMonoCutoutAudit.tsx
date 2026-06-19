@@ -403,7 +403,7 @@ export default function PublicLogoHubMonoCutoutAudit() {
         )}
       </section>
 
-      <main className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      <section aria-label="Audit results" className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {filtered.length === 0 && !loading && !analyzing && (
           <div className="text-center py-24 text-muted-foreground">
             <CheckCircle2 className="h-10 w-10 mx-auto mb-3 text-emerald-500" />
@@ -417,7 +417,7 @@ export default function PublicLogoHubMonoCutoutAudit() {
         {filtered.map((b) => (
           <BrandCard key={b.id} brand={b} filters={{ lockupFilter, failureTypeFilter }} />
         ))}
-      </main>
+      </section>
     </div>
   );
 }
@@ -590,7 +590,7 @@ function Preview({
             className="max-h-full max-w-full object-contain p-3"
           />
         ) : (
-          <span className="text-xs text-muted-foreground">missing</span>
+          <span className="text-xs font-medium text-neutral-700">missing</span>
         )}
       </div>
       {/* PNG rasterization: browser already renders SVG; downloading as PNG would
@@ -599,7 +599,7 @@ function Preview({
       {check && (
         <div className="text-[10px] text-muted-foreground leading-snug">
           <div>{check.note}</div>
-          <div className="opacity-70">
+          <div className="text-foreground/70">
             white-fills: {check.whiteCandidates} · tagged cutouts: {check.taggedCutouts}
             {!check.hasMonoStyleBlock && url && ' · ⚠ no mono markers'}
           </div>
