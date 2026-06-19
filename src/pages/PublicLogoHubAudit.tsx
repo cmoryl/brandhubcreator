@@ -301,17 +301,17 @@ export default function PublicLogoHubAudit() {
                   <th className="text-right px-3 py-3 font-medium">Audit</th>
                 </tr>
                 <tr className="bg-muted/20 text-[10px]">
-                  <th />
-                  <th />
-                  <th />
+                  <th aria-hidden="true"><span className="sr-only">Brand</span></th>
+                  <th aria-hidden="true"><span className="sr-only">Category</span></th>
+                  <th aria-hidden="true"><span className="sr-only">Status</span></th>
                   <th className="text-center py-1.5 font-normal">Color</th>
                   <th className="text-center py-1.5 font-normal">Black</th>
                   <th className="text-center py-1.5 font-normal">White</th>
                   <th className="text-center py-1.5 font-normal border-l border-border">Color</th>
                   <th className="text-center py-1.5 font-normal">Black</th>
                   <th className="text-center py-1.5 font-normal">White</th>
-                  <th />
-                  <th />
+                  <th aria-hidden="true"><span className="sr-only">Coverage</span></th>
+                  <th aria-hidden="true"><span className="sr-only">Audit</span></th>
                 </tr>
               </thead>
               <tbody>
