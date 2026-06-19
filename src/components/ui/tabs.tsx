@@ -6,22 +6,34 @@ import { cn } from "@/lib/utils";
 // Radix Tabs builds aria-controls / aria-labelledby from React's useId(),
 // which emits IDs containing ":" (e.g. "radix-:r1:"). Those IDs are valid
 // HTML5, but axe-core's aria-valid-attr-value rule still flags them. We
-// transparently rewrite colons to dashes inside the Tabs subtree so both
-// the attribute value and the referenced element id stay in sync.
+// also drop aria-controls when the referenced TabsContent isn't rendered
+// (common when Tabs is used purely as a filter switch with no panels).
 const SANITIZED_ATTRS = ["id", "aria-controls", "aria-labelledby"] as const;
 
-function sanitizeColonIds(root: HTMLElement) {
-  const candidates = root.querySelectorAll<HTMLElement>(
-    '[id*=":"], [aria-controls*=":"], [aria-labelledby*=":"]',
-  );
-  candidates.forEach((el) => {
-    for (const attr of SANITIZED_ATTRS) {
-      const value = el.getAttribute(attr);
-      if (value && value.includes(":")) {
-        el.setAttribute(attr, value.replace(/:/g, "-"));
+function sanitizeTabsA11y(root: HTMLElement) {
+  // 1. Replace colons in id / aria-controls / aria-labelledby.
+  root
+    .querySelectorAll<HTMLElement>(
+      '[id*=":"], [aria-controls*=":"], [aria-labelledby*=":"]',
+    )
+    .forEach((el) => {
+      for (const attr of SANITIZED_ATTRS) {
+        const value = el.getAttribute(attr);
+        if (value && value.includes(":")) {
+          el.setAttribute(attr, value.replace(/:/g, "-"));
+        }
       }
-    }
-  });
+    });
+
+  // 2. Drop aria-controls on triggers whose panel is not in the document.
+  root.querySelectorAll<HTMLElement>('[role="tab"][aria-controls]').forEach(
+    (trigger) => {
+      const target = trigger.getAttribute("aria-controls");
+      if (target && !document.getElementById(target)) {
+        trigger.removeAttribute("aria-controls");
+      }
+    },
+  );
 }
 
 const Tabs = React.forwardRef<
