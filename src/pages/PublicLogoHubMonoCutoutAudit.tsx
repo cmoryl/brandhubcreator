@@ -481,17 +481,17 @@ function BrandCard({ brand, filters }: { brand: BrandResult; filters: FilterStat
   }
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
-      <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
+      <div className="px-4 sm:px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="min-w-0">
           <div className="font-semibold truncate">{brand.name}</div>
           <div className="text-xs text-muted-foreground">{brand.category}</div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <StatusIcon status={brand.worst} />
           <span className="text-xs uppercase tracking-wider text-muted-foreground">{brand.worst}</span>
           <Link
             to={`/logohub/audit/${brand.id}`}
-            className="text-xs text-primary hover:underline ml-3"
+            className="text-xs text-primary hover:underline sm:ml-3"
           >
             Open brand audit →
           </Link>
