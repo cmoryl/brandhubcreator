@@ -481,10 +481,11 @@ function SlotCell({
       href={slot.file.url}
       target="_blank"
       rel="noreferrer"
-      className="flex flex-col items-center gap-0.5 group"
+      aria-label={`Open ${slot.lockup} ${slot.variant} ${ext.toUpperCase()} in a new tab`}
+      className="inline-flex flex-col items-center gap-0.5 group min-h-9 min-w-9 justify-center rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       title={slot.file.url}
     >
-      <Icon className={cn('h-4 w-4', color)} />
+      <Icon className={cn('h-4 w-4', color)} aria-hidden="true" />
       <span className="text-[9px] uppercase font-medium tracking-wider text-muted-foreground group-hover:text-foreground">
         {ext}
       </span>
