@@ -287,7 +287,7 @@ export default function PublicLogoHub() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
 
       {/* Hero */}
       <header className="border-b border-border bg-card/40">
