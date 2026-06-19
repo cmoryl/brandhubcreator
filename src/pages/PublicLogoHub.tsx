@@ -547,18 +547,18 @@ export default function PublicLogoHub() {
       {/* Preview Modal */}
       {preview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setPreview(null)}
         >
           <div className="absolute inset-0 bg-black/70" />
           <div
-            className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden"
+            className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <PreviewStage logo={preview.logo} file={preview.file} />
 
-            <div className="p-6 space-y-4">
-              <h2 className="text-lg font-semibold">{preview.logo.name}</h2>
+            <div className="p-4 sm:p-6 space-y-4">
+              <h2 className="text-lg font-semibold pr-8">{preview.logo.name}</h2>
               {(() => {
                 const files = preview.logo.files;
                 const currentLockup = (preview.file.lockup || 'icon') as ClientLogoLockup;
