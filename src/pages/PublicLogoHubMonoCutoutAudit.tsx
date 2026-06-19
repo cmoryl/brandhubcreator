@@ -257,7 +257,7 @@ export default function PublicLogoHubMonoCutoutAudit() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/40">
-        <div className="container mx-auto max-w-7xl px-6 py-10">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-10">
           <Link
             to="/logohub/audit"
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-4"
@@ -267,10 +267,10 @@ export default function PublicLogoHubMonoCutoutAudit() {
           <Badge variant="secondary" className="uppercase tracking-wider text-[10px] mb-3">
             Mono Cutout QA
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
             Mono Cutout Audit
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl">
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl">
             Detects brands whose derived black &amp; white monochrome SVGs lost their inner
             transparent cutouts (Amex letters, LEGO inner blocks, etc.). Shows the source
             color SVG side-by-side with each mono variant.
