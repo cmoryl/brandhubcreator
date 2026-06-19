@@ -886,7 +886,7 @@ function PreviewStage({
     <div className="relative">
       <div
         className={cn(
-          'flex items-center justify-center p-8 min-h-[320px]',
+          'flex items-center justify-center p-4 sm:p-8 min-h-[200px] sm:min-h-[320px]',
           dark ? 'bg-neutral-900' : 'bg-white',
         )}
       >
