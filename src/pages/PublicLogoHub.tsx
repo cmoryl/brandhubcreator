@@ -446,7 +446,22 @@ export default function PublicLogoHub() {
                       Download all ({logo.files.length})
                     </Button>
                     {isAdmin && (
-                      <AlertDialog>
+                      <AlertDialog
+                        open={deleteDialogOpenId === logo.id}
+                        onOpenChange={(open) => {
+                          if (!open) {
+                            setDeleteDialogOpenId(null);
+                            setDeleteError((prev) =>
+                              prev?.logoId === logo.id ? null : prev,
+                            );
+                          } else {
+                            setDeleteDialogOpenId(logo.id);
+                            setDeleteError((prev) =>
+                              prev?.logoId === logo.id ? null : prev,
+                            );
+                          }
+                        }}
+                      >
                         <AlertDialogTrigger asChild>
                           <Button
                             size="sm"
@@ -454,6 +469,12 @@ export default function PublicLogoHub() {
                             className="h-7 px-2 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
                             disabled={deletingId === logo.id}
                             aria-label={`Delete ${logo.name}`}
+                            onClick={() => {
+                              setDeleteDialogOpenId(logo.id);
+                              setDeleteError((prev) =>
+                                prev?.logoId === logo.id ? null : prev,
+                              );
+                            }}
                           >
                             {deletingId === logo.id ? (
                               <Loader2 className="h-3 w-3 animate-spin" />
@@ -472,14 +493,39 @@ export default function PublicLogoHub() {
                               cleaned up from the audit page if orphaned.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
+                          {deleteError?.logoId === logo.id && (
+                            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+                              <div className="flex items-start gap-2">
+                                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                                <div className="space-y-1">
+                                  <p className="font-medium">{deleteError.title}</p>
+                                  <p className="text-destructive/80 text-xs">{deleteError.message}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
+                            <AlertDialogCancel
+                              onClick={() => {
+                                setDeleteDialogOpenId(null);
+                                setDeleteError((prev) =>
+                                  prev?.logoId === logo.id ? null : prev,
+                                );
+                              }}
+                            >
+                              Cancel
+                            </AlertDialogCancel>
+                            <Button
+                              variant="destructive"
                               onClick={() => handleDeleteLogo(logo)}
+                              disabled={deletingId === logo.id}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
+                              {deletingId === logo.id && (
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              )}
                               Delete
-                            </AlertDialogAction>
+                            </Button>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
