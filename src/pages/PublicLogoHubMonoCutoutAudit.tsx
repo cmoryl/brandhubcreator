@@ -590,7 +590,7 @@ function Preview({
             className="max-h-full max-w-full object-contain p-3"
           />
         ) : (
-          <span className="text-xs text-muted-foreground">missing</span>
+          <span className="text-xs text-foreground/70">missing</span>
         )}
       </div>
       {/* PNG rasterization: browser already renders SVG; downloading as PNG would
