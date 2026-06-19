@@ -255,7 +255,7 @@ export default function PublicLogoHubMonoCutoutAudit() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <header className="border-b border-border bg-card/40">
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-10">
           <Link
@@ -350,10 +350,11 @@ export default function PublicLogoHubMonoCutoutAudit() {
 
         {showFilters && (
           <div className="container mx-auto max-w-7xl px-4 sm:px-6 pb-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3">
-            <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2">
               <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Lockup</span>
               <select
-                className="text-xs rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+                aria-label="Filter by lockup"
+                className="text-xs min-h-9 rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={lockupFilter}
                 onChange={(e) => setLockupFilter(e.target.value as typeof lockupFilter)}
               >
@@ -361,11 +362,12 @@ export default function PublicLogoHubMonoCutoutAudit() {
                 <option value="icon">Icon</option>
                 <option value="wordmark">Wordmark</option>
               </select>
-            </div>
-            <div className="flex items-center gap-2">
+            </label>
+            <label className="flex items-center gap-2">
               <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Failure</span>
               <select
-                className="text-xs rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+                aria-label="Filter by failure type"
+                className="text-xs min-h-9 rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={failureTypeFilter}
                 onChange={(e) => setFailureTypeFilter(e.target.value as typeof failureTypeFilter)}
               >
@@ -376,11 +378,12 @@ export default function PublicLogoHubMonoCutoutAudit() {
                 <option value="incomplete">Incomplete cutouts</option>
                 <option value="fetch-error">Fetch error</option>
               </select>
-            </div>
-            <div className="flex items-center gap-2">
+            </label>
+            <label className="flex items-center gap-2">
               <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Category</span>
               <select
-                className="text-xs rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+                aria-label="Filter by category"
+                className="text-xs min-h-9 rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
               >
@@ -390,9 +393,9 @@ export default function PublicLogoHubMonoCutoutAudit() {
                   </option>
                 ))}
               </select>
-            </div>
+            </label>
             {(lockupFilter !== 'all' || failureTypeFilter !== 'all' || categoryFilter !== 'all') && (
-              <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => { setLockupFilter('all'); setFailureTypeFilter('all'); setCategoryFilter('all'); }}>
+              <Button variant="ghost" size="sm" className="text-xs min-h-9 px-3" onClick={() => { setLockupFilter('all'); setFailureTypeFilter('all'); setCategoryFilter('all'); }}>
                 Reset
               </Button>
             )}

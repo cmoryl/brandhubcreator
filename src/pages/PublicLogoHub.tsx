@@ -182,6 +182,32 @@ export default function PublicLogoHub() {
     message: string;
   } | null>(null);
   const { isAdmin } = useAuth();
+  const previewCloseRef = useRef<HTMLButtonElement | null>(null);
+  const previewReturnFocusRef = useRef<HTMLElement | null>(null);
+
+  // Escape-to-close, focus close button on open, restore focus on close,
+  // and lock body scroll while the custom preview modal is open.
+  useEffect(() => {
+    if (!preview) return;
+    previewReturnFocusRef.current = (document.activeElement as HTMLElement) ?? null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setPreview(null);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    // Defer focus until the dialog is mounted.
+    const t = window.setTimeout(() => previewCloseRef.current?.focus(), 0);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+      window.clearTimeout(t);
+      previewReturnFocusRef.current?.focus?.();
+    };
+  }, [preview]);
 
   const handleDeleteLogo = async (logo: GlobalLogoRow) => {
     setDeletingId(logo.id);
@@ -261,7 +287,7 @@ export default function PublicLogoHub() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
 
       {/* Hero */}
       <header className="border-b border-border bg-card/40">
@@ -443,10 +469,10 @@ export default function PublicLogoHub() {
                     <Button
                       size="sm"
                       variant="default"
-                      className="h-7 text-[10px] px-2"
+                      className="min-h-9 text-xs px-3"
                       onClick={() => downloadFilesAsZip(logo.name, logo.files)}
                     >
-                      <Package className="h-3 w-3 mr-1" />
+                      <Package className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
                       Download all ({logo.files.length})
                     </Button>
                     {isAdmin && (
@@ -470,7 +496,7 @@ export default function PublicLogoHub() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-7 px-2 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
+                            className="min-h-9 min-w-9 px-3 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
                             disabled={deletingId === logo.id}
                             aria-label={`Delete ${logo.name}`}
                             onClick={() => {
@@ -481,9 +507,9 @@ export default function PublicLogoHub() {
                             }}
                           >
                             {deletingId === logo.id ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
+                              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                             ) : (
-                              <Trash2 className="h-3 w-3" />
+                              <Trash2 className="h-4 w-4" aria-hidden="true" />
                             )}
                           </Button>
                         </AlertDialogTrigger>
@@ -549,16 +575,20 @@ export default function PublicLogoHub() {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setPreview(null)}
+          role="presentation"
         >
-          <div className="absolute inset-0 bg-black/70" />
+          <div className="absolute inset-0 bg-black/70" aria-hidden="true" />
           <div
             className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logo-preview-title"
           >
             <PreviewStage logo={preview.logo} file={preview.file} />
 
             <div className="p-4 sm:p-6 space-y-4">
-              <h2 className="text-lg font-semibold pr-8">{preview.logo.name}</h2>
+              <h2 id="logo-preview-title" className="text-lg font-semibold pr-12">{preview.logo.name}</h2>
               {(() => {
                 const files = preview.logo.files;
                 const currentLockup = (preview.file.lockup || 'icon') as ClientLogoLockup;
@@ -614,7 +644,7 @@ export default function PublicLogoHub() {
                     disabled={disabled}
                     onClick={onClick}
                     className={cn(
-                      'px-3 py-1 rounded-full text-xs font-medium border transition-colors',
+                      'min-h-9 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                       active
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'bg-background text-foreground border-border hover:border-primary/50',
@@ -707,10 +737,13 @@ export default function PublicLogoHub() {
               })()}
             </div>
             <button
+              type="button"
+              ref={previewCloseRef}
               onClick={() => setPreview(null)}
-              className="absolute right-3 top-3 rounded-sm p-1 bg-black/20 text-white hover:bg-black/40 transition-colors"
+              aria-label="Close preview"
+              className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-md bg-black/30 text-white hover:bg-black/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -778,8 +811,15 @@ function LogoCell({
     <button
       type="button"
       onClick={onOpen}
+      disabled={!file}
+      aria-label={
+        file
+          ? `Preview ${brandName} ${lockup === 'icon' ? 'icon' : 'wordmark'} ${variant}`
+          : `${brandName} ${lockup === 'icon' ? 'icon' : 'wordmark'} ${variant} not available`
+      }
       className={cn(
         'relative aspect-square flex items-center justify-center p-4 text-left transition-opacity',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:z-10',
         dark ? 'bg-neutral-900' : 'bg-white',
         file ? 'hover:opacity-90 cursor-pointer' : 'cursor-default',
       )}
