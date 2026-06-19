@@ -928,14 +928,16 @@ function PreviewStage({
     <div className="relative">
       <div
         className={cn(
-          'flex items-center justify-center p-4 sm:p-8 min-h-[200px] sm:min-h-[320px]',
+          'flex items-center justify-center p-4 sm:p-8 min-h-[180px] sm:min-h-[320px]',
           dark ? 'bg-neutral-900' : 'bg-white',
         )}
       >
         <img
           src={previewUrl}
           alt={`${logo.name} preview`}
-          className="h-[400px] w-full object-contain"
+          decoding="async"
+          draggable={false}
+          className="max-h-[240px] sm:max-h-[400px] w-full object-contain select-none"
         />
       </div>
       <div className="absolute left-3 bottom-3 flex flex-wrap gap-2">
