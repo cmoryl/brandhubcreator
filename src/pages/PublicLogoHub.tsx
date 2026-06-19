@@ -469,7 +469,7 @@ export default function PublicLogoHub() {
                     <Button
                       size="sm"
                       variant="default"
-                      className="h-7 text-[10px] px-2"
+                      className="min-h-9 text-xs px-3"
                       onClick={() => downloadFilesAsZip(logo.name, logo.files)}
                     >
                       <Package className="h-3 w-3 mr-1" />
