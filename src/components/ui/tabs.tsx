@@ -45,8 +45,8 @@ const Tabs = React.forwardRef<
   React.useLayoutEffect(() => {
     const node = containerRef.current;
     if (!node) return;
-    sanitizeColonIds(node);
-    const observer = new MutationObserver(() => sanitizeColonIds(node));
+    sanitizeTabsA11y(node);
+    const observer = new MutationObserver(() => sanitizeTabsA11y(node));
     observer.observe(node, {
       childList: true,
       subtree: true,
