@@ -575,16 +575,20 @@ export default function PublicLogoHub() {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setPreview(null)}
+          role="presentation"
         >
-          <div className="absolute inset-0 bg-black/70" />
+          <div className="absolute inset-0 bg-black/70" aria-hidden="true" />
           <div
             className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logo-preview-title"
           >
             <PreviewStage logo={preview.logo} file={preview.file} />
 
             <div className="p-4 sm:p-6 space-y-4">
-              <h2 className="text-lg font-semibold pr-8">{preview.logo.name}</h2>
+              <h2 id="logo-preview-title" className="text-lg font-semibold pr-12">{preview.logo.name}</h2>
               {(() => {
                 const files = preview.logo.files;
                 const currentLockup = (preview.file.lockup || 'icon') as ClientLogoLockup;
