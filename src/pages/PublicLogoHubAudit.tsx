@@ -170,7 +170,7 @@ export default function PublicLogoHubAudit() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/40">
-        <div className="container mx-auto max-w-7xl px-6 py-10">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-10">
           <Link
             to="/logohub"
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-4"
@@ -185,10 +185,10 @@ export default function PublicLogoHubAudit() {
               Audit
             </Badge>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
             Logo Hub Audit
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl">
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl">
             Detailed coverage report for every brand — checks all 6 slots (icon and wordmark in
             color, black, and white) for presence, format quality, and source.
           </p>
@@ -232,45 +232,49 @@ export default function PublicLogoHubAudit() {
       </header>
 
       <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="container mx-auto max-w-7xl px-6 py-4 flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[220px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search brand name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 space-y-3 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
+          <div className="flex gap-2 md:flex-1 md:min-w-[220px]">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search brand name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-[130px] sm:w-[180px] shrink-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {categories.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Tabs value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="complete">Complete</TabsTrigger>
-              <TabsTrigger value="partial">Partial</TabsTrigger>
-              <TabsTrigger value="raster">Raster only</TabsTrigger>
-              <TabsTrigger value="missing">Missing</TabsTrigger>
-              <TabsTrigger value="audit-pass">Audit ✓</TabsTrigger>
-              <TabsTrigger value="audit-warn">Audit ⚠</TabsTrigger>
-              <TabsTrigger value="audit-fail">Audit ✗</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 md:overflow-visible">
+            <Tabs value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
+              <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="complete">Complete</TabsTrigger>
+                <TabsTrigger value="partial">Partial</TabsTrigger>
+                <TabsTrigger value="raster">Raster</TabsTrigger>
+                <TabsTrigger value="missing">Missing</TabsTrigger>
+                <TabsTrigger value="audit-pass">Audit ✓</TabsTrigger>
+                <TabsTrigger value="audit-warn">Audit ⚠</TabsTrigger>
+                <TabsTrigger value="audit-fail">Audit ✗</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
       </section>
 
-      <main className="container mx-auto max-w-7xl px-6 py-8">
+      <main className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -369,7 +373,7 @@ export default function PublicLogoHubAudit() {
           </div>
         )}
 
-        <div className="mt-10 rounded-xl border border-border bg-card p-5 flex items-center justify-between gap-4">
+        <div className="mt-10 rounded-xl border border-border bg-card p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="font-semibold">Mono cutout audit</div>
             <p className="text-sm text-muted-foreground">

@@ -257,7 +257,7 @@ export default function PublicLogoHubMonoCutoutAudit() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/40">
-        <div className="container mx-auto max-w-7xl px-6 py-10">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-10">
           <Link
             to="/logohub/audit"
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-4"
@@ -267,10 +267,10 @@ export default function PublicLogoHubMonoCutoutAudit() {
           <Badge variant="secondary" className="uppercase tracking-wider text-[10px] mb-3">
             Mono Cutout QA
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
             Mono Cutout Audit
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl">
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl">
             Detects brands whose derived black &amp; white monochrome SVGs lost their inner
             transparent cutouts (Amex letters, LEGO inner blocks, etc.). Shows the source
             color SVG side-by-side with each mono variant.
@@ -318,36 +318,38 @@ export default function PublicLogoHubMonoCutoutAudit() {
       </header>
 
       <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="container mx-auto max-w-7xl px-6 py-4 flex flex-wrap items-center gap-3">
-          <div className="relative">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 space-y-3 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
+          <div className="relative w-full md:w-auto">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder="Search brand name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 max-w-[260px]"
+              className="pl-8 w-full md:max-w-[260px]"
             />
           </div>
-          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-            <TabsList>
-              <TabsTrigger value="fail-only">Failing ({summary.fail})</TabsTrigger>
-              <TabsTrigger value="pass">Passing ({summary.pass})</TabsTrigger>
-              <TabsTrigger value="error">Errors ({summary.error})</TabsTrigger>
-              <TabsTrigger value="all">All</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn('gap-1', showFilters && 'bg-accent')}
-            onClick={() => setShowFilters((v) => !v)}
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
-          </Button>
+          <div className="flex items-center gap-2 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 md:overflow-visible">
+            <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+              <TabsList>
+                <TabsTrigger value="fail-only">Failing ({summary.fail})</TabsTrigger>
+                <TabsTrigger value="pass">Passing ({summary.pass})</TabsTrigger>
+                <TabsTrigger value="error">Errors ({summary.error})</TabsTrigger>
+                <TabsTrigger value="all">All</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn('gap-1 shrink-0', showFilters && 'bg-accent')}
+              onClick={() => setShowFilters((v) => !v)}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
+            </Button>
+          </div>
         </div>
 
         {showFilters && (
-          <div className="container mx-auto max-w-7xl px-6 pb-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3">
+          <div className="container mx-auto max-w-7xl px-4 sm:px-6 pb-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3">
             <div className="flex items-center gap-2">
               <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Lockup</span>
               <select
@@ -398,7 +400,7 @@ export default function PublicLogoHubMonoCutoutAudit() {
         )}
       </section>
 
-      <main className="container mx-auto max-w-7xl px-6 py-8 space-y-6">
+      <main className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {filtered.length === 0 && !loading && !analyzing && (
           <div className="text-center py-24 text-muted-foreground">
             <CheckCircle2 className="h-10 w-10 mx-auto mb-3 text-emerald-500" />
@@ -479,17 +481,17 @@ function BrandCard({ brand, filters }: { brand: BrandResult; filters: FilterStat
   }
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
-      <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
+      <div className="px-4 sm:px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="min-w-0">
           <div className="font-semibold truncate">{brand.name}</div>
           <div className="text-xs text-muted-foreground">{brand.category}</div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <StatusIcon status={brand.worst} />
           <span className="text-xs uppercase tracking-wider text-muted-foreground">{brand.worst}</span>
           <Link
             to={`/logohub/audit/${brand.id}`}
-            className="text-xs text-primary hover:underline ml-3"
+            className="text-xs text-primary hover:underline sm:ml-3"
           >
             Open brand audit →
           </Link>
@@ -516,7 +518,7 @@ function BrandCard({ brand, filters }: { brand: BrandResult; filters: FilterStat
 function LockupRow({ lockup, visible }: { lockup: LockupSet; visible: boolean }) {
   if (!visible) return null;
   return (
-    <div className="p-5">
+    <div className="p-4 sm:p-5">
       <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
         {lockup.lockup}
       </div>

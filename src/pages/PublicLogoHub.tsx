@@ -265,7 +265,7 @@ export default function PublicLogoHub() {
 
       {/* Hero */}
       <header className="border-b border-border bg-card/40">
-        <div className="container mx-auto max-w-7xl px-6 py-12">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Globe2 className="h-5 w-5 text-primary" />
@@ -275,37 +275,37 @@ export default function PublicLogoHub() {
             </Badge>
           </div>
           <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+            <div className="min-w-0">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
                 Global Logo Hub
               </h1>
-              <p className="text-muted-foreground text-lg max-w-2xl">
+              <p className="text-muted-foreground text-base sm:text-lg max-w-2xl">
                 Browse every brand, partner and client logo in the library — with color, black, white,
                 icon and full logo variants.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
               <AddLogoDialog categories={categories} onAdded={loadLogos} />
               <a
                 href="/logohub/audit"
-                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/50 hover:bg-accent transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium hover:border-primary/50 hover:bg-accent transition-colors"
               >
                 View full audit →
               </a>
             </div>
           </div>
-          <div className="mt-6 flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
             <span>
               <span className="font-semibold text-foreground">{logos.length}</span> brands
             </span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>
               <span className="font-semibold text-foreground">
                 {logos.reduce((sum, l) => sum + l.files.length, 0)}
               </span>{' '}
               files
             </span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>
               <span className="font-semibold text-foreground">{categories.length}</span> categories
             </span>
@@ -315,50 +315,54 @@ export default function PublicLogoHub() {
 
       {/* Filters */}
       <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="container mx-auto max-w-7xl px-6 py-4 flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[220px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name or description..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 space-y-3 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
+          <div className="flex gap-2 md:flex-1 md:min-w-[220px]">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-[130px] sm:w-[180px] shrink-0">
+                <Filter className="h-4 w-4 mr-1 sm:mr-2 shrink-0" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-[180px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {categories.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Tabs value={lockup} onValueChange={(v) => setLockup(v as LockupFilter)}>
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="icon">Icon</TabsTrigger>
-              <TabsTrigger value="wordmark">Logo</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Tabs value={variant} onValueChange={(v) => setVariant(v as VariantFilter)}>
-            <TabsList>
-              <TabsTrigger value="all">All colors</TabsTrigger>
-              <TabsTrigger value="color">Color</TabsTrigger>
-              <TabsTrigger value="black">Black</TabsTrigger>
-              <TabsTrigger value="white">White</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex gap-2 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 md:overflow-visible">
+            <Tabs value={lockup} onValueChange={(v) => setLockup(v as LockupFilter)}>
+              <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="icon">Icon</TabsTrigger>
+                <TabsTrigger value="wordmark">Logo</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Tabs value={variant} onValueChange={(v) => setVariant(v as VariantFilter)}>
+              <TabsList>
+                <TabsTrigger value="all">All colors</TabsTrigger>
+                <TabsTrigger value="color">Color</TabsTrigger>
+                <TabsTrigger value="black">Black</TabsTrigger>
+                <TabsTrigger value="white">White</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
       </section>
 
       {/* Grid */}
-      <main className="container mx-auto max-w-7xl px-6 py-8">
+      <main className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -543,18 +547,18 @@ export default function PublicLogoHub() {
       {/* Preview Modal */}
       {preview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setPreview(null)}
         >
           <div className="absolute inset-0 bg-black/70" />
           <div
-            className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden"
+            className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <PreviewStage logo={preview.logo} file={preview.file} />
 
-            <div className="p-6 space-y-4">
-              <h2 className="text-lg font-semibold">{preview.logo.name}</h2>
+            <div className="p-4 sm:p-6 space-y-4">
+              <h2 className="text-lg font-semibold pr-8">{preview.logo.name}</h2>
               {(() => {
                 const files = preview.logo.files;
                 const currentLockup = (preview.file.lockup || 'icon') as ClientLogoLockup;
@@ -668,8 +672,8 @@ export default function PublicLogoHub() {
                         ))}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 pt-2 flex-wrap">
-                      <Button asChild size="sm" className="flex-1 min-w-[160px]">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pt-2 sm:flex-wrap">
+                      <Button asChild size="sm" className="w-full sm:w-auto sm:flex-1 sm:min-w-[160px]">
                         <a
                           href={preview.file.url}
                           target="_blank"
@@ -683,6 +687,7 @@ export default function PublicLogoHub() {
                       <Button
                         size="sm"
                         variant="secondary"
+                        className="w-full sm:w-auto"
                         onClick={() => downloadFilesAsZip(preview.logo.name, preview.logo.files)}
                       >
                         <Package className="h-4 w-4 mr-2" />
@@ -691,7 +696,7 @@ export default function PublicLogoHub() {
                       <div className="text-[10px] text-muted-foreground whitespace-nowrap">
                         {currentLockup === 'icon' ? 'Icon' : 'Wordmark'} · {currentVariant.charAt(0).toUpperCase() + currentVariant.slice(1)} · {currentFormat.toUpperCase()}
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => setPreview(null)}>
+                      <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => setPreview(null)}>
                         <X className="h-4 w-4 mr-2" />
                         Close
                       </Button>
@@ -881,7 +886,7 @@ function PreviewStage({
     <div className="relative">
       <div
         className={cn(
-          'flex items-center justify-center p-8 min-h-[320px]',
+          'flex items-center justify-center p-4 sm:p-8 min-h-[200px] sm:min-h-[320px]',
           dark ? 'bg-neutral-900' : 'bg-white',
         )}
       >
