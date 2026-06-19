@@ -36,7 +36,7 @@ const setMeta = (name: string, content: string) => {
   }
   el.setAttribute('content', content);
 };
-import { Search, Filter, Globe2, Loader2, Download, X, ZoomIn, Package, Trash2 } from 'lucide-react';
+import { Search, Filter, Globe2, Loader2, Download, X, ZoomIn, Package, Trash2, AlertCircle } from 'lucide-react';
 import JSZip from 'jszip';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
@@ -175,20 +175,35 @@ export default function PublicLogoHub() {
     file: ClientLogoFile;
   } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteDialogOpenId, setDeleteDialogOpenId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<{
+    logoId: string;
+    title: string;
+    message: string;
+  } | null>(null);
   const { isAdmin } = useAuth();
 
   const handleDeleteLogo = async (logo: GlobalLogoRow) => {
     setDeletingId(logo.id);
+    setDeleteError(null);
     try {
       const { error } = await supabase
         .from('global_client_logos')
         .delete()
         .eq('id', logo.id);
-      if (error) throw error;
+      if (error) {
+        const detail = [error.code && `Code: ${error.code}`, error.hint, error.details]
+          .filter(Boolean)
+          .join(' | ');
+        throw new Error(detail || error.message);
+      }
       setLogos((prev) => prev.filter((l) => l.id !== logo.id));
+      setDeleteDialogOpenId(null);
+      setDeleteError(null);
       toast.success(`Deleted ${logo.name}`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to delete logo');
+      const msg = e instanceof Error ? e.message : 'Failed to delete logo';
+      setDeleteError({ logoId: logo.id, title: `Could not delete ${logo.name}`, message: msg });
     } finally {
       setDeletingId(null);
     }
@@ -431,7 +446,22 @@ export default function PublicLogoHub() {
                       Download all ({logo.files.length})
                     </Button>
                     {isAdmin && (
-                      <AlertDialog>
+                      <AlertDialog
+                        open={deleteDialogOpenId === logo.id}
+                        onOpenChange={(open) => {
+                          if (!open) {
+                            setDeleteDialogOpenId(null);
+                            setDeleteError((prev) =>
+                              prev?.logoId === logo.id ? null : prev,
+                            );
+                          } else {
+                            setDeleteDialogOpenId(logo.id);
+                            setDeleteError((prev) =>
+                              prev?.logoId === logo.id ? null : prev,
+                            );
+                          }
+                        }}
+                      >
                         <AlertDialogTrigger asChild>
                           <Button
                             size="sm"
@@ -439,6 +469,12 @@ export default function PublicLogoHub() {
                             className="h-7 px-2 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
                             disabled={deletingId === logo.id}
                             aria-label={`Delete ${logo.name}`}
+                            onClick={() => {
+                              setDeleteDialogOpenId(logo.id);
+                              setDeleteError((prev) =>
+                                prev?.logoId === logo.id ? null : prev,
+                              );
+                            }}
                           >
                             {deletingId === logo.id ? (
                               <Loader2 className="h-3 w-3 animate-spin" />
@@ -457,14 +493,39 @@ export default function PublicLogoHub() {
                               cleaned up from the audit page if orphaned.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
+                          {deleteError?.logoId === logo.id && (
+                            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+                              <div className="flex items-start gap-2">
+                                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                                <div className="space-y-1">
+                                  <p className="font-medium">{deleteError.title}</p>
+                                  <p className="text-destructive/80 text-xs">{deleteError.message}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
+                            <AlertDialogCancel
+                              onClick={() => {
+                                setDeleteDialogOpenId(null);
+                                setDeleteError((prev) =>
+                                  prev?.logoId === logo.id ? null : prev,
+                                );
+                              }}
+                            >
+                              Cancel
+                            </AlertDialogCancel>
+                            <Button
+                              variant="destructive"
                               onClick={() => handleDeleteLogo(logo)}
+                              disabled={deletingId === logo.id}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
+                              {deletingId === logo.id && (
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              )}
                               Delete
-                            </AlertDialogAction>
+                            </Button>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
