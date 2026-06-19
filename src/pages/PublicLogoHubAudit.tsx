@@ -170,7 +170,7 @@ export default function PublicLogoHubAudit() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/40">
-        <div className="container mx-auto max-w-7xl px-6 py-10">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-10">
           <Link
             to="/logohub"
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-4"
@@ -185,10 +185,10 @@ export default function PublicLogoHubAudit() {
               Audit
             </Badge>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
             Logo Hub Audit
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl">
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl">
             Detailed coverage report for every brand — checks all 6 slots (icon and wordmark in
             color, black, and white) for presence, format quality, and source.
           </p>
