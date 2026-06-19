@@ -811,8 +811,15 @@ function LogoCell({
     <button
       type="button"
       onClick={onOpen}
+      disabled={!file}
+      aria-label={
+        file
+          ? `Preview ${brandName} ${lockup === 'icon' ? 'icon' : 'wordmark'} ${variant}`
+          : `${brandName} ${lockup === 'icon' ? 'icon' : 'wordmark'} ${variant} not available`
+      }
       className={cn(
         'relative aspect-square flex items-center justify-center p-4 text-left transition-opacity',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:z-10',
         dark ? 'bg-neutral-900' : 'bg-white',
         file ? 'hover:opacity-90 cursor-pointer' : 'cursor-default',
       )}
