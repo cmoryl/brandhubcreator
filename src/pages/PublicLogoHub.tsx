@@ -47,6 +47,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
+import { AddLogoDialog } from '@/components/logohub/AddLogoDialog';
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'logo';
@@ -162,25 +163,27 @@ export default function PublicLogoHub() {
     file: ClientLogoFile;
   } | null>(null);
 
+  const loadLogos = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('global_client_logos')
+      .select('id, name, description, category, website_url, files')
+      .order('category')
+      .order('name')
+      .limit(2000);
+    if (!error) {
+      setLogos(
+        (data || []).map((d) => ({
+          ...d,
+          files: (Array.isArray(d.files) ? d.files : []) as unknown as ClientLogoFile[],
+        })),
+      );
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('global_client_logos')
-        .select('id, name, description, category, website_url, files')
-        .order('category')
-        .order('name')
-        .limit(2000);
-      if (!error) {
-        setLogos(
-          (data || []).map((d) => ({
-            ...d,
-            files: (Array.isArray(d.files) ? d.files : []) as unknown as ClientLogoFile[],
-          })),
-        );
-      }
-      setLoading(false);
-    })();
+    loadLogos();
   }, []);
 
   useEffect(() => {
@@ -234,12 +237,15 @@ export default function PublicLogoHub() {
                 icon and full logo variants.
               </p>
             </div>
-            <a
-              href="/logohub/audit"
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/50 hover:bg-accent transition-colors"
-            >
-              View full audit →
-            </a>
+            <div className="flex items-center gap-2">
+              <AddLogoDialog categories={categories} onAdded={loadLogos} />
+              <a
+                href="/logohub/audit"
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/50 hover:bg-accent transition-colors"
+              >
+                View full audit →
+              </a>
+            </div>
           </div>
           <div className="mt-6 flex items-center gap-4 text-sm text-muted-foreground">
             <span>
