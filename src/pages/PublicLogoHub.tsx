@@ -182,6 +182,32 @@ export default function PublicLogoHub() {
     message: string;
   } | null>(null);
   const { isAdmin } = useAuth();
+  const previewCloseRef = useRef<HTMLButtonElement | null>(null);
+  const previewReturnFocusRef = useRef<HTMLElement | null>(null);
+
+  // Escape-to-close, focus close button on open, restore focus on close,
+  // and lock body scroll while the custom preview modal is open.
+  useEffect(() => {
+    if (!preview) return;
+    previewReturnFocusRef.current = (document.activeElement as HTMLElement) ?? null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setPreview(null);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    // Defer focus until the dialog is mounted.
+    const t = window.setTimeout(() => previewCloseRef.current?.focus(), 0);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+      window.clearTimeout(t);
+      previewReturnFocusRef.current?.focus?.();
+    };
+  }, [preview]);
 
   const handleDeleteLogo = async (logo: GlobalLogoRow) => {
     setDeletingId(logo.id);
