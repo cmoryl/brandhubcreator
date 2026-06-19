@@ -318,32 +318,34 @@ export default function PublicLogoHubMonoCutoutAudit() {
       </header>
 
       <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="container mx-auto max-w-7xl px-6 py-4 flex flex-wrap items-center gap-3">
-          <div className="relative">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 space-y-3 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
+          <div className="relative w-full md:w-auto">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder="Search brand name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 max-w-[260px]"
+              className="pl-8 w-full md:max-w-[260px]"
             />
           </div>
-          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-            <TabsList>
-              <TabsTrigger value="fail-only">Failing ({summary.fail})</TabsTrigger>
-              <TabsTrigger value="pass">Passing ({summary.pass})</TabsTrigger>
-              <TabsTrigger value="error">Errors ({summary.error})</TabsTrigger>
-              <TabsTrigger value="all">All</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn('gap-1', showFilters && 'bg-accent')}
-            onClick={() => setShowFilters((v) => !v)}
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
-          </Button>
+          <div className="flex items-center gap-2 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 md:overflow-visible">
+            <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+              <TabsList>
+                <TabsTrigger value="fail-only">Failing ({summary.fail})</TabsTrigger>
+                <TabsTrigger value="pass">Passing ({summary.pass})</TabsTrigger>
+                <TabsTrigger value="error">Errors ({summary.error})</TabsTrigger>
+                <TabsTrigger value="all">All</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn('gap-1 shrink-0', showFilters && 'bg-accent')}
+              onClick={() => setShowFilters((v) => !v)}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
+            </Button>
+          </div>
         </div>
 
         {showFilters && (
