@@ -430,7 +430,47 @@ export default function PublicLogoHub() {
                       <Package className="h-3 w-3 mr-1" />
                       Download all ({logo.files.length})
                     </Button>
+                    {isAdmin && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 px-2 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
+                            disabled={deletingId === logo.id}
+                            aria-label={`Delete ${logo.name}`}
+                          >
+                            {deletingId === logo.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete {logo.name}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This permanently removes the brand entry and unlinks its{' '}
+                              {logo.files.length} file{logo.files.length === 1 ? '' : 's'} from the
+                              hub. The underlying files in storage are not deleted and can be
+                              cleaned up from the audit page if orphaned.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteLogo(logo)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
+
 
                 </article>
               );
