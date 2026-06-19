@@ -291,7 +291,7 @@ export default function PublicLogoHub() {
 
       {/* Hero */}
       <header className="border-b border-border bg-card/40">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-12">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Globe2 className="h-5 w-5 text-primary" />
