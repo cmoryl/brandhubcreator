@@ -163,25 +163,27 @@ export default function PublicLogoHub() {
     file: ClientLogoFile;
   } | null>(null);
 
+  const loadLogos = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('global_client_logos')
+      .select('id, name, description, category, website_url, files')
+      .order('category')
+      .order('name')
+      .limit(2000);
+    if (!error) {
+      setLogos(
+        (data || []).map((d) => ({
+          ...d,
+          files: (Array.isArray(d.files) ? d.files : []) as unknown as ClientLogoFile[],
+        })),
+      );
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('global_client_logos')
-        .select('id, name, description, category, website_url, files')
-        .order('category')
-        .order('name')
-        .limit(2000);
-      if (!error) {
-        setLogos(
-          (data || []).map((d) => ({
-            ...d,
-            files: (Array.isArray(d.files) ? d.files : []) as unknown as ClientLogoFile[],
-          })),
-        );
-      }
-      setLoading(false);
-    })();
+    loadLogos();
   }, []);
 
   useEffect(() => {
