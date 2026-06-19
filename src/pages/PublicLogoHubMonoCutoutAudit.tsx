@@ -349,7 +349,7 @@ export default function PublicLogoHubMonoCutoutAudit() {
         </div>
 
         {showFilters && (
-          <div className="container mx-auto max-w-7xl px-6 pb-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3">
+          <div className="container mx-auto max-w-7xl px-4 sm:px-6 pb-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3">
             <div className="flex items-center gap-2">
               <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Lockup</span>
               <select
