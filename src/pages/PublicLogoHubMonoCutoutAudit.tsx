@@ -599,7 +599,7 @@ function Preview({
       {check && (
         <div className="text-[10px] text-muted-foreground leading-snug">
           <div>{check.note}</div>
-          <div className="opacity-70">
+          <div className="text-foreground/70">
             white-fills: {check.whiteCandidates} · tagged cutouts: {check.taggedCutouts}
             {!check.hasMonoStyleBlock && url && ' · ⚠ no mono markers'}
           </div>
