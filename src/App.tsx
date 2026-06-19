@@ -554,6 +554,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="logohub/audit/mono-cutouts"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubMonoCutoutAudit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="logohub/audit/:id"
                       element={
                         <Suspense fallback={<PageSkeleton />}>
