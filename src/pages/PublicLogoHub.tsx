@@ -174,6 +174,26 @@ export default function PublicLogoHub() {
     logo: GlobalLogoRow;
     file: ClientLogoFile;
   } | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { isAdmin } = useAuth();
+
+  const handleDeleteLogo = async (logo: GlobalLogoRow) => {
+    setDeletingId(logo.id);
+    try {
+      const { error } = await supabase
+        .from('global_client_logos')
+        .delete()
+        .eq('id', logo.id);
+      if (error) throw error;
+      setLogos((prev) => prev.filter((l) => l.id !== logo.id));
+      toast.success(`Deleted ${logo.name}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to delete logo');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
 
   const loadLogos = async () => {
     setLoading(true);
