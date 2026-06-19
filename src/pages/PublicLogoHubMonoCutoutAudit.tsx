@@ -518,7 +518,7 @@ function BrandCard({ brand, filters }: { brand: BrandResult; filters: FilterStat
 function LockupRow({ lockup, visible }: { lockup: LockupSet; visible: boolean }) {
   if (!visible) return null;
   return (
-    <div className="p-5">
+    <div className="p-4 sm:p-5">
       <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
         {lockup.lockup}
       </div>
