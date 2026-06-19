@@ -475,7 +475,8 @@ function BrandCard({ brand }: { brand: BrandResult }) {
   );
 }
 
-function LockupRow({ lockup }: { lockup: LockupSet }) {
+function LockupRow({ lockup, visible }: { lockup: LockupSet; visible: boolean }) {
+  if (!visible) return null;
   return (
     <div className="p-5">
       <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
