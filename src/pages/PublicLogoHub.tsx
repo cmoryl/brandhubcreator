@@ -340,8 +340,8 @@ export default function PublicLogoHub() {
       </header>
 
       {/* Filters */}
-      <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 space-y-3 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
+      <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-2 sm:py-4 space-y-2 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
           <div className="flex gap-2 md:flex-1 md:min-w-[220px]">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
