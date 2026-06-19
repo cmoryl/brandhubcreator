@@ -439,6 +439,11 @@ function StatusIcon({ status }: { status: CutoutStatus }) {
 }
 
 function BrandCard({ brand }: { brand: BrandResult }) {
+  function lockupVisible(lk: LockupSet): boolean {
+    if (lockupFilter !== 'all' && lk.lockup !== lockupFilter) return false;
+    if (failureTypeFilter !== 'all' && !failureTypeMatches(lk)) return false;
+    return true;
+  }
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
@@ -464,7 +469,7 @@ function BrandCard({ brand }: { brand: BrandResult }) {
       ) : (
         <div className="divide-y divide-border">
           {brand.lockups.map((lk) => (
-            <LockupRow key={lk.lockup} lockup={lk} />
+            <LockupRow key={lk.lockup} lockup={lk} visible={lockupVisible(lk)} />
           ))}
           {brand.lockups.length === 0 && (
             <div className="p-5 text-sm text-muted-foreground">No color SVG to derive monochrome variants from.</div>
