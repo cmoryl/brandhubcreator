@@ -417,7 +417,7 @@ export default function PublicLogoHubMonoCutoutAudit() {
         {filtered.map((b) => (
           <BrandCard key={b.id} brand={b} filters={{ lockupFilter, failureTypeFilter }} />
         ))}
-      </main>
+      </section>
     </div>
   );
 }
