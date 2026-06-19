@@ -227,3 +227,9 @@ verify_jwt = false
 
 [functions.vectorize-mono-pngs]
 verify_jwt = false
+
+[functions.discover-brand-logos]
+verify_jwt = false
+
+[functions.commit-brand-logos]
+verify_jwt = false

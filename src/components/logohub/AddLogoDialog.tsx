@@ -1,5 +1,16 @@
 import { useRef, useState } from 'react';
-import { Plus, Upload, Sparkles, Loader2, FilePlus2 } from 'lucide-react';
+import {
+  Plus,
+  Upload,
+  Sparkles,
+  Loader2,
+  FilePlus2,
+  ArrowLeft,
+  Check,
+  Search,
+  CheckCircle2,
+  Circle,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +35,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import {
   validateLogoUpload,
   LOGO_UPLOAD_LIMITS,
@@ -47,6 +59,22 @@ interface Props {
 }
 
 type Mode = 'manual' | 'upload' | 'ai';
+type AiStep = 'form' | 'discovering' | 'preview' | 'committing';
+
+interface Candidate {
+  url: string;
+  source: string;
+  format?: string;
+  suggestedLockup?: ClientLogoLockup;
+  suggestedVariant?: ClientLogoVariant;
+}
+
+interface Selection {
+  url: string;
+  lockup: ClientLogoLockup;
+  variant: ClientLogoVariant;
+  enabled: boolean;
+}
 
 export function AddLogoDialog({ categories, onAdded }: Props) {
   const { organization } = useOrganization();
@@ -68,6 +96,12 @@ export function AddLogoDialog({ categories, onAdded }: Props) {
   const [variant, setVariant] = useState<ClientLogoVariant>('color');
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // AI discovery state
+  const [aiStep, setAiStep] = useState<AiStep>('form');
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [selections, setSelections] = useState<Selection[]>([]);
+  const [discoveredColors, setDiscoveredColors] = useState<Record<string, string> | null>(null);
+
   if (!isAdmin) return null;
 
   const resetAll = () => {
@@ -81,12 +115,13 @@ export function AddLogoDialog({ categories, onAdded }: Props) {
     setVariant('color');
     if (fileRef.current) fileRef.current.value = '';
     setMode('manual');
+    setAiStep('form');
+    setCandidates([]);
+    setSelections([]);
+    setDiscoveredColors(null);
   };
 
-  const resolveCategory = () => {
-    const c = newCategory.trim() || category;
-    return c || 'General';
-  };
+  const resolveCategory = () => (newCategory.trim() || category || 'General');
 
   const validateBase = () => {
     if (!organization?.id) {
@@ -185,32 +220,81 @@ export function AddLogoDialog({ categories, onAdded }: Props) {
     }
   };
 
-  const handleAi = async () => {
+  const handleDiscover = async () => {
     if (!validateBase()) return;
     setBusy(true);
-    const toastId = toast.loading(`Searching the web for ${name} logo…`);
+    setAiStep('discovering');
     try {
-      await insertRow();
-      const { data, error } = await supabase.functions.invoke('scrape-brand-logos', {
+      const { data, error } = await supabase.functions.invoke('discover-brand-logos', {
+        body: { website_url: website.trim() },
+      });
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'discovery failed');
+      const found: Candidate[] = data.candidates || [];
+      if (!found.length) {
+        toast.warning('No logos found on that website. Try Manual or Upload instead.');
+        setAiStep('form');
+        return;
+      }
+      setCandidates(found);
+      setSelections(
+        found.map((c) => ({
+          url: c.url,
+          lockup: c.suggestedLockup || 'wordmark',
+          variant: c.suggestedVariant || 'color',
+          // Pre-enable wordmark candidates by default, skip favicons
+          enabled: c.suggestedLockup !== 'icon',
+        })),
+      );
+      setDiscoveredColors(data.colors || null);
+      setAiStep('preview');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Discovery failed');
+      setAiStep('form');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCommit = async () => {
+    const picked = selections.filter((s) => s.enabled);
+    if (!picked.length) {
+      toast.error('Select at least one logo to save');
+      return;
+    }
+    setBusy(true);
+    setAiStep('committing');
+    try {
+      const { data, error } = await supabase.functions.invoke('commit-brand-logos', {
         body: {
-          brands: [{ name: name.trim(), website_url: website.trim() }],
+          organization_id: organization!.id,
+          name: name.trim(),
+          category: resolveCategory(),
+          description: description.trim() || undefined,
+          website_url: website.trim() || undefined,
+          selections: picked.map((s) => ({
+            url: s.url,
+            lockup: s.lockup,
+            variant: s.variant,
+          })),
         },
       });
       if (error) throw error;
-      const res = data?.results?.[0];
-      if (res?.ok) {
-        toast.success(`Found logo for ${name}`, { id: toastId });
+      if (!data?.ok) throw new Error(data?.error || 'commit failed');
+
+      const savedCount = data.files?.length ?? picked.length;
+      const failed = data.errors?.length ?? 0;
+      if (failed) {
+        toast.warning(`Saved ${savedCount} logo(s); ${failed} failed to download`);
       } else {
-        toast.warning(
-          `Brand added, but no logo found automatically: ${res?.error || 'unknown'}`,
-          { id: toastId },
-        );
+        toast.success(`Added ${name} with ${savedCount} logo${savedCount === 1 ? '' : 's'}`);
       }
       onAdded();
       setOpen(false);
       resetAll();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'AI search failed', { id: toastId });
+      toast.error(e instanceof Error ? e.message : 'Commit failed');
+      setAiStep('preview');
     } finally {
       setBusy(false);
     }
@@ -219,8 +303,15 @@ export function AddLogoDialog({ categories, onAdded }: Props) {
   const submit = () => {
     if (mode === 'manual') return handleManual();
     if (mode === 'upload') return handleUpload();
-    return handleAi();
+    if (aiStep === 'form' || aiStep === 'discovering') return handleDiscover();
+    return handleCommit();
   };
+
+  const updateSelection = (idx: number, patch: Partial<Selection>) => {
+    setSelections((prev) => prev.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
+  };
+
+  const showSharedFields = mode !== 'ai' || aiStep === 'form';
 
   return (
     <Dialog
@@ -235,7 +326,7 @@ export function AddLogoDialog({ categories, onAdded }: Props) {
           <Plus className="h-4 w-4" /> Add logo
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add a logo</DialogTitle>
           <DialogDescription>
@@ -244,7 +335,14 @@ export function AddLogoDialog({ categories, onAdded }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)} className="w-full">
+        <Tabs
+          value={mode}
+          onValueChange={(v) => {
+            setMode(v as Mode);
+            setAiStep('form');
+          }}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="manual" className="gap-1.5">
               <FilePlus2 className="h-3.5 w-3.5" /> Manual
@@ -257,66 +355,87 @@ export function AddLogoDialog({ categories, onAdded }: Props) {
             </TabsTrigger>
           </TabsList>
 
-          {/* Shared brand fields */}
-          <div className="space-y-3 pt-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Brand name *</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. American Express"
+          {/* AI step indicator */}
+          {mode === 'ai' && (
+            <div className="flex items-center justify-center gap-2 pt-4 text-xs">
+              <StepDot label="1. Brand" active={aiStep === 'form'} done={aiStep !== 'form'} />
+              <div className="h-px w-6 bg-border" />
+              <StepDot
+                label="2. Discover"
+                active={aiStep === 'discovering'}
+                done={aiStep === 'preview' || aiStep === 'committing'}
+              />
+              <div className="h-px w-6 bg-border" />
+              <StepDot
+                label="3. Review"
+                active={aiStep === 'preview' || aiStep === 'committing'}
+                done={false}
               />
             </div>
+          )}
 
-            <div className="grid grid-cols-2 gap-3">
+          {/* Shared brand fields */}
+          {showSharedFields && (
+            <div className="space-y-3 pt-4">
               <div className="space-y-1.5">
-                <Label className="text-xs">Category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.length === 0 && (
-                      <SelectItem value="General">General</SelectItem>
-                    )}
-                    {categories.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Or new category</Label>
+                <Label className="text-xs">Brand name *</Label>
                 <Input
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  placeholder="Optional"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. American Express"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Category</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.length === 0 && (
+                        <SelectItem value="General">General</SelectItem>
+                      )}
+                      {categories.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Or new category</Label>
+                  <Input
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    placeholder="Optional"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">
+                  Website URL {mode === 'ai' ? '*' : '(optional)'}
+                </Label>
+                <Input
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="https://example.com"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Description (optional)</Label>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Short description"
                 />
               </div>
             </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">
-                Website URL {mode === 'ai' ? '*' : '(optional)'}
-              </Label>
-              <Input
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://example.com"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">Description (optional)</Label>
-              <Input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Short description"
-              />
-            </div>
-          </div>
+          )}
 
           <TabsContent value="manual" className="mt-3">
             <p className="text-xs text-muted-foreground">
@@ -372,21 +491,161 @@ export function AddLogoDialog({ categories, onAdded }: Props) {
             </div>
           </TabsContent>
 
-          <TabsContent value="ai" className="mt-3">
-            <div className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-              <p className="font-medium text-foreground mb-1 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5" /> AI Logo Discovery
-              </p>
-              <p>
-                We'll scrape the official website with Firecrawl, pick the best logo (preferring
-                SVG), and save color, black, and white wordmark variants automatically. This usually
-                takes 10–30 seconds.
-              </p>
-            </div>
+          <TabsContent value="ai" className="mt-3 space-y-3">
+            {aiStep === 'form' && (
+              <div className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+                <p className="font-medium text-foreground mb-1 flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" /> AI Logo Discovery
+                </p>
+                <p>
+                  We'll scrape the brand's website with Firecrawl and surface every logo candidate
+                  (wordmark, icon, OG image, favicon). You'll preview them before anything is saved.
+                </p>
+              </div>
+            )}
+
+            {aiStep === 'discovering' && (
+              <div className="flex flex-col items-center justify-center py-10 gap-3 text-sm text-muted-foreground">
+                <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                <p>Scraping {new URL(website.startsWith('http') ? website : `https://${website}`).hostname}…</p>
+                <p className="text-xs">This usually takes 5–15 seconds.</p>
+              </div>
+            )}
+
+            {(aiStep === 'preview' || aiStep === 'committing') && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {candidates.length} candidate{candidates.length === 1 ? '' : 's'} found
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Toggle which to save and confirm the lockup/variant for each.
+                    </p>
+                  </div>
+                  {discoveredColors && (
+                    <div className="flex items-center gap-1">
+                      {Object.entries(discoveredColors)
+                        .slice(0, 5)
+                        .map(([k, v]) =>
+                          typeof v === 'string' && v.startsWith('#') ? (
+                            <div
+                              key={k}
+                              className="h-5 w-5 rounded border border-border"
+                              style={{ background: v }}
+                              title={`${k}: ${v}`}
+                            />
+                          ) : null,
+                        )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {candidates.map((c, idx) => {
+                    const sel = selections[idx];
+                    if (!sel) return null;
+                    const isWhite = sel.variant === 'white';
+                    return (
+                      <div
+                        key={`${c.url}-${idx}`}
+                        className={cn(
+                          'rounded-lg border-2 overflow-hidden transition-colors',
+                          sel.enabled
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border bg-card opacity-70',
+                        )}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => updateSelection(idx, { enabled: !sel.enabled })}
+                          className="w-full text-left"
+                        >
+                          <div
+                            className={cn(
+                              'relative h-28 flex items-center justify-center p-3',
+                              isWhite ? 'bg-slate-900' : 'bg-white',
+                            )}
+                          >
+                            <img
+                              src={c.url}
+                              alt={c.source}
+                              className="max-h-full max-w-full object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.opacity = '0.2';
+                              }}
+                            />
+                            <div className="absolute top-1.5 right-1.5">
+                              {sel.enabled ? (
+                                <CheckCircle2 className="h-5 w-5 text-primary bg-background rounded-full" />
+                              ) : (
+                                <Circle className="h-5 w-5 text-muted-foreground bg-background rounded-full" />
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                        <div className="p-2 space-y-1.5 border-t border-border">
+                          <p className="text-[10px] text-muted-foreground truncate" title={c.url}>
+                            {c.source}
+                            {c.format ? ` · ${c.format.toUpperCase()}` : ''}
+                          </p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <Select
+                              value={sel.lockup}
+                              onValueChange={(v) =>
+                                updateSelection(idx, { lockup: v as ClientLogoLockup })
+                              }
+                            >
+                              <SelectTrigger className="h-7 text-[11px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="icon">Icon</SelectItem>
+                                <SelectItem value="wordmark">Wordmark</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Select
+                              value={sel.variant}
+                              onValueChange={(v) =>
+                                updateSelection(idx, { variant: v as ClientLogoVariant })
+                              }
+                            >
+                              <SelectTrigger className="h-7 text-[11px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="color">Color</SelectItem>
+                                <SelectItem value="black">Black</SelectItem>
+                                <SelectItem value="white">White</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  {selections.filter((s) => s.enabled).length} selected · originals will be
+                  downloaded and rehosted in the logo bucket.
+                </p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
         <DialogFooter>
+          {mode === 'ai' && aiStep === 'preview' && (
+            <Button
+              variant="ghost"
+              onClick={() => setAiStep('form')}
+              disabled={busy}
+              className="mr-auto"
+            >
+              <ArrowLeft className="h-3.5 w-3.5 mr-1.5" /> Back
+            </Button>
+          )}
           <Button variant="ghost" onClick={() => setOpen(false)} disabled={busy}>
             Cancel
           </Button>
@@ -394,23 +653,63 @@ export function AddLogoDialog({ categories, onAdded }: Props) {
             {busy ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                {mode === 'ai' ? 'Searching…' : mode === 'upload' ? 'Uploading…' : 'Adding…'}
+                {mode === 'ai'
+                  ? aiStep === 'discovering'
+                    ? 'Discovering…'
+                    : 'Saving…'
+                  : mode === 'upload'
+                  ? 'Uploading…'
+                  : 'Adding…'}
               </>
             ) : (
               <>
-                {mode === 'ai' ? (
-                  <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                ) : mode === 'upload' ? (
-                  <Upload className="h-3.5 w-3.5 mr-1.5" />
-                ) : (
-                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                {mode === 'manual' && (
+                  <>
+                    <Plus className="h-3.5 w-3.5 mr-1.5" /> Add brand
+                  </>
                 )}
-                {mode === 'ai' ? 'Find with AI' : mode === 'upload' ? 'Upload & add' : 'Add brand'}
+                {mode === 'upload' && (
+                  <>
+                    <Upload className="h-3.5 w-3.5 mr-1.5" /> Upload & add
+                  </>
+                )}
+                {mode === 'ai' && aiStep === 'form' && (
+                  <>
+                    <Search className="h-3.5 w-3.5 mr-1.5" /> Discover logos
+                  </>
+                )}
+                {mode === 'ai' && aiStep === 'preview' && (
+                  <>
+                    <Check className="h-3.5 w-3.5 mr-1.5" />
+                    Save {selections.filter((s) => s.enabled).length} logo
+                    {selections.filter((s) => s.enabled).length === 1 ? '' : 's'}
+                  </>
+                )}
               </>
             )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function StepDot({ label, active, done }: { label: string; active: boolean; done: boolean }) {
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-1.5 px-2 py-1 rounded-md',
+        active && 'bg-primary/10 text-primary font-medium',
+        done && !active && 'text-muted-foreground',
+        !active && !done && 'text-muted-foreground/60',
+      )}
+    >
+      {done ? (
+        <CheckCircle2 className="h-3.5 w-3.5" />
+      ) : (
+        <Circle className={cn('h-3.5 w-3.5', active && 'fill-primary/20')} />
+      )}
+      {label}
+    </div>
   );
 }
