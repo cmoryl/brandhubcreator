@@ -319,12 +319,15 @@ export default function PublicLogoHubMonoCutoutAudit() {
 
       <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
         <div className="container mx-auto max-w-7xl px-6 py-4 flex flex-wrap items-center gap-3">
-          <Input
-            placeholder="Search brand name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-[280px]"
-          />
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search brand name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 max-w-[260px]"
+            />
+          </div>
           <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
             <TabsList>
               <TabsTrigger value="fail-only">Failing ({summary.fail})</TabsTrigger>
@@ -333,7 +336,66 @@ export default function PublicLogoHubMonoCutoutAudit() {
               <TabsTrigger value="all">All</TabsTrigger>
             </TabsList>
           </Tabs>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn('gap-1', showFilters && 'bg-accent')}
+            onClick={() => setShowFilters((v) => !v)}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
+          </Button>
         </div>
+
+        {showFilters && (
+          <div className="container mx-auto max-w-7xl px-6 pb-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Lockup</span>
+              <select
+                className="text-xs rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+                value={lockupFilter}
+                onChange={(e) => setLockupFilter(e.target.value as typeof lockupFilter)}
+              >
+                <option value="all">All</option>
+                <option value="icon">Icon</option>
+                <option value="wordmark">Wordmark</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Failure</span>
+              <select
+                className="text-xs rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+                value={failureTypeFilter}
+                onChange={(e) => setFailureTypeFilter(e.target.value as typeof failureTypeFilter)}
+              >
+                <option value="all">Any</option>
+                <option value="missing-black">Missing black variant</option>
+                <option value="missing-white">Missing white variant</option>
+                <option value="no-markers">No mono markers</option>
+                <option value="incomplete">Incomplete cutouts</option>
+                <option value="fetch-error">Fetch error</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Category</span>
+              <select
+                className="text-xs rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c === 'all' ? 'All' : c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {(lockupFilter !== 'all' || failureTypeFilter !== 'all' || categoryFilter !== 'all') && (
+              <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => { setLockupFilter('all'); setFailureTypeFilter('all'); setCategoryFilter('all'); }}>
+                Reset
+              </Button>
+            )}
+          </div>
+        )}
       </section>
 
       <main className="container mx-auto max-w-7xl px-6 py-8 space-y-6">
