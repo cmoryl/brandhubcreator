@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, RefreshCw, AlertTriangle, CheckCircle2, MinusCircle, XOctagon } from 'lucide-react';
+import { ArrowLeft, Loader2, RefreshCw, AlertTriangle, CheckCircle2, MinusCircle, XOctagon, Search, SlidersHorizontal } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +73,10 @@ export default function PublicLogoHubMonoCutoutAudit() {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [statusFilter, setStatusFilter] = useState<'fail-only' | 'all' | 'pass' | 'error'>('fail-only');
   const [search, setSearch] = useState('');
+  const [lockupFilter, setLockupFilter] = useState<'all' | 'icon' | 'wordmark'>('all');
+  const [failureTypeFilter, setFailureTypeFilter] = useState<'all' | 'missing-black' | 'missing-white' | 'no-markers' | 'incomplete' | 'fetch-error'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
   const [regen, setRegen] = useState<{ running: boolean; result?: string }>({ running: false });
   const abortRef = useRef<AbortController | null>(null);
 
@@ -161,15 +165,66 @@ export default function PublicLogoHubMonoCutoutAudit() {
     setAnalyzing(false);
   }
 
+  const categories = useMemo(() => {
+    const set = new Set(brands.map((b) => b.category).filter(Boolean));
+    return ['all', ...Array.from(set).sort()];
+  }, [brands]);
+
+  function lockupMatches(lk: LockupSet): boolean {
+    if (lockupFilter === 'all') return true;
+    return lk.lockup === lockupFilter;
+  }
+
+  function failureTypeMatches(lk: LockupSet): boolean {
+    if (failureTypeFilter === 'all') return true;
+    const checks: (CutoutCheck | undefined)[] = [lk.blackCheck, lk.whiteCheck];
+    for (const c of checks) {
+      if (!c) continue;
+      switch (failureTypeFilter) {
+        case 'missing-black':
+          if (c.note?.toLowerCase().includes('missing black')) return true;
+          break;
+        case 'missing-white':
+          if (c.note?.toLowerCase().includes('missing white')) return true;
+          break;
+        case 'no-markers':
+          if (c.note?.toLowerCase().includes('no data-mono')) return true;
+          if (c.note?.toLowerCase().includes('not produced by the current pipeline')) return true;
+          break;
+        case 'incomplete':
+          if (c.note?.toLowerCase().includes('incomplete')) return true;
+          if (c.status === 'fail' && c.taggedCutouts > 0 && c.whiteCandidates > c.taggedCutouts) return true;
+          break;
+        case 'fetch-error':
+          if (lk.error || c.status === 'error') return true;
+          break;
+      }
+    }
+    return false;
+  }
+
   const filtered = useMemo(() => {
     return brands.filter((b) => {
       if (search && !b.name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (categoryFilter !== 'all' && b.category !== categoryFilter) return false;
+
+      // Apply lockup & failure type filters by checking if at least one lockup matches.
+      const activeSubFilters = lockupFilter !== 'all' || failureTypeFilter !== 'all';
+      if (activeSubFilters) {
+        const matchesLockup = b.lockups.filter(lockupMatches);
+        if (matchesLockup.length === 0) return false;
+        if (failureTypeFilter !== 'all') {
+          const hasFailureMatch = matchesLockup.some(failureTypeMatches);
+          if (!hasFailureMatch) return false;
+        }
+      }
+
       if (statusFilter === 'fail-only') return b.worst === 'fail';
       if (statusFilter === 'pass') return b.worst === 'pass';
       if (statusFilter === 'error') return b.worst === 'error';
       return true;
     });
-  }, [brands, search, statusFilter]);
+  }, [brands, search, statusFilter, lockupFilter, failureTypeFilter, categoryFilter]);
 
   const summary = useMemo(() => {
     const s = { total: brands.length, fail: 0, pass: 0, na: 0, error: 0 };
@@ -264,12 +319,15 @@ export default function PublicLogoHubMonoCutoutAudit() {
 
       <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
         <div className="container mx-auto max-w-7xl px-6 py-4 flex flex-wrap items-center gap-3">
-          <Input
-            placeholder="Search brand name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-[280px]"
-          />
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search brand name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 max-w-[260px]"
+            />
+          </div>
           <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
             <TabsList>
               <TabsTrigger value="fail-only">Failing ({summary.fail})</TabsTrigger>
@@ -278,7 +336,66 @@ export default function PublicLogoHubMonoCutoutAudit() {
               <TabsTrigger value="all">All</TabsTrigger>
             </TabsList>
           </Tabs>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn('gap-1', showFilters && 'bg-accent')}
+            onClick={() => setShowFilters((v) => !v)}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
+          </Button>
         </div>
+
+        {showFilters && (
+          <div className="container mx-auto max-w-7xl px-6 pb-4 flex flex-wrap items-center gap-3 border-t border-border/50 pt-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Lockup</span>
+              <select
+                className="text-xs rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+                value={lockupFilter}
+                onChange={(e) => setLockupFilter(e.target.value as typeof lockupFilter)}
+              >
+                <option value="all">All</option>
+                <option value="icon">Icon</option>
+                <option value="wordmark">Wordmark</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Failure</span>
+              <select
+                className="text-xs rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+                value={failureTypeFilter}
+                onChange={(e) => setFailureTypeFilter(e.target.value as typeof failureTypeFilter)}
+              >
+                <option value="all">Any</option>
+                <option value="missing-black">Missing black variant</option>
+                <option value="missing-white">Missing white variant</option>
+                <option value="no-markers">No mono markers</option>
+                <option value="incomplete">Incomplete cutouts</option>
+                <option value="fetch-error">Fetch error</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground">Category</span>
+              <select
+                className="text-xs rounded-md border border-border bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c === 'all' ? 'All' : c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {(lockupFilter !== 'all' || failureTypeFilter !== 'all' || categoryFilter !== 'all') && (
+              <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => { setLockupFilter('all'); setFailureTypeFilter('all'); setCategoryFilter('all'); }}>
+                Reset
+              </Button>
+            )}
+          </div>
+        )}
       </section>
 
       <main className="container mx-auto max-w-7xl px-6 py-8 space-y-6">
@@ -293,7 +410,7 @@ export default function PublicLogoHubMonoCutoutAudit() {
         )}
 
         {filtered.map((b) => (
-          <BrandCard key={b.id} brand={b} />
+          <BrandCard key={b.id} brand={b} filters={{ lockupFilter, failureTypeFilter }} />
         ))}
       </main>
     </div>
@@ -321,7 +438,45 @@ function StatusIcon({ status }: { status: CutoutStatus }) {
   return <MinusCircle className="h-4 w-4 text-muted-foreground" />;
 }
 
-function BrandCard({ brand }: { brand: BrandResult }) {
+interface FilterState {
+  lockupFilter: 'all' | 'icon' | 'wordmark';
+  failureTypeFilter: 'all' | 'missing-black' | 'missing-white' | 'no-markers' | 'incomplete' | 'fetch-error';
+}
+
+function failureTypeMatches(lk: LockupSet, failureTypeFilter: FilterState['failureTypeFilter']): boolean {
+  if (failureTypeFilter === 'all') return true;
+  const checks: (CutoutCheck | undefined)[] = [lk.blackCheck, lk.whiteCheck];
+  for (const c of checks) {
+    if (!c) continue;
+    switch (failureTypeFilter) {
+      case 'missing-black':
+        if (c.note?.toLowerCase().includes('missing black')) return true;
+        break;
+      case 'missing-white':
+        if (c.note?.toLowerCase().includes('missing white')) return true;
+        break;
+      case 'no-markers':
+        if (c.note?.toLowerCase().includes('no data-mono')) return true;
+        if (c.note?.toLowerCase().includes('not produced by the current pipeline')) return true;
+        break;
+      case 'incomplete':
+        if (c.note?.toLowerCase().includes('incomplete')) return true;
+        if (c.status === 'fail' && c.taggedCutouts > 0 && c.whiteCandidates > c.taggedCutouts) return true;
+        break;
+      case 'fetch-error':
+        if (lk.error || c.status === 'error') return true;
+        break;
+    }
+  }
+  return false;
+}
+
+function BrandCard({ brand, filters }: { brand: BrandResult; filters: FilterState }) {
+  function lockupVisible(lk: LockupSet): boolean {
+    if (filters.lockupFilter !== 'all' && lk.lockup !== filters.lockupFilter) return false;
+    if (filters.failureTypeFilter !== 'all' && !failureTypeMatches(lk, filters.failureTypeFilter)) return false;
+    return true;
+  }
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
@@ -347,7 +502,7 @@ function BrandCard({ brand }: { brand: BrandResult }) {
       ) : (
         <div className="divide-y divide-border">
           {brand.lockups.map((lk) => (
-            <LockupRow key={lk.lockup} lockup={lk} />
+            <LockupRow key={lk.lockup} lockup={lk} visible={lockupVisible(lk)} />
           ))}
           {brand.lockups.length === 0 && (
             <div className="p-5 text-sm text-muted-foreground">No color SVG to derive monochrome variants from.</div>
@@ -358,7 +513,8 @@ function BrandCard({ brand }: { brand: BrandResult }) {
   );
 }
 
-function LockupRow({ lockup }: { lockup: LockupSet }) {
+function LockupRow({ lockup, visible }: { lockup: LockupSet; visible: boolean }) {
+  if (!visible) return null;
   return (
     <div className="p-5">
       <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">
