@@ -737,10 +737,13 @@ export default function PublicLogoHub() {
               })()}
             </div>
             <button
+              type="button"
+              ref={previewCloseRef}
               onClick={() => setPreview(null)}
-              className="absolute right-3 top-3 rounded-sm p-1 bg-black/20 text-white hover:bg-black/40 transition-colors"
+              aria-label="Close preview"
+              className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-md bg-black/30 text-white hover:bg-black/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
         </div>
