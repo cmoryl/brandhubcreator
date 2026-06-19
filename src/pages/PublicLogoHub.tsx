@@ -265,7 +265,7 @@ export default function PublicLogoHub() {
 
       {/* Hero */}
       <header className="border-b border-border bg-card/40">
-        <div className="container mx-auto max-w-7xl px-6 py-12">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Globe2 className="h-5 w-5 text-primary" />
@@ -275,37 +275,37 @@ export default function PublicLogoHub() {
             </Badge>
           </div>
           <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+            <div className="min-w-0">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
                 Global Logo Hub
               </h1>
-              <p className="text-muted-foreground text-lg max-w-2xl">
+              <p className="text-muted-foreground text-base sm:text-lg max-w-2xl">
                 Browse every brand, partner and client logo in the library — with color, black, white,
                 icon and full logo variants.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
               <AddLogoDialog categories={categories} onAdded={loadLogos} />
               <a
                 href="/logohub/audit"
-                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/50 hover:bg-accent transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium hover:border-primary/50 hover:bg-accent transition-colors"
               >
                 View full audit →
               </a>
             </div>
           </div>
-          <div className="mt-6 flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
             <span>
               <span className="font-semibold text-foreground">{logos.length}</span> brands
             </span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>
               <span className="font-semibold text-foreground">
                 {logos.reduce((sum, l) => sum + l.files.length, 0)}
               </span>{' '}
               files
             </span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>
               <span className="font-semibold text-foreground">{categories.length}</span> categories
             </span>
