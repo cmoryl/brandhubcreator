@@ -3,7 +3,66 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { cn } from "@/lib/utils";
 
-const Tabs = TabsPrimitive.Root;
+// Radix Tabs builds aria-controls / aria-labelledby from React's useId(),
+// which emits IDs containing ":" (e.g. "radix-:r1:"). Those IDs are valid
+// HTML5, but axe-core's aria-valid-attr-value rule still flags them. We
+// also drop aria-controls when the referenced TabsContent isn't rendered
+// (common when Tabs is used purely as a filter switch with no panels).
+const SANITIZED_ATTRS = ["id", "aria-controls", "aria-labelledby"] as const;
+
+function sanitizeTabsA11y(root: HTMLElement) {
+  // 1. Replace colons in id / aria-controls / aria-labelledby.
+  root
+    .querySelectorAll<HTMLElement>(
+      '[id*=":"], [aria-controls*=":"], [aria-labelledby*=":"]',
+    )
+    .forEach((el) => {
+      for (const attr of SANITIZED_ATTRS) {
+        const value = el.getAttribute(attr);
+        if (value && value.includes(":")) {
+          el.setAttribute(attr, value.replace(/:/g, "-"));
+        }
+      }
+    });
+
+  // 2. Drop aria-controls on triggers whose panel is not in the document.
+  root.querySelectorAll<HTMLElement>('[role="tab"][aria-controls]').forEach(
+    (trigger) => {
+      const target = trigger.getAttribute("aria-controls");
+      if (target && !document.getElementById(target)) {
+        trigger.removeAttribute("aria-controls");
+      }
+    },
+  );
+}
+
+const Tabs = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>
+>(({ children, ...props }, _ref) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    sanitizeTabsA11y(node);
+    const observer = new MutationObserver(() => sanitizeTabsA11y(node));
+    observer.observe(node, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: [...SANITIZED_ATTRS],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} style={{ display: "contents" }}>
+      <TabsPrimitive.Root {...props}>{children}</TabsPrimitive.Root>
+    </div>
+  );
+});
+Tabs.displayName = "Tabs";
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
