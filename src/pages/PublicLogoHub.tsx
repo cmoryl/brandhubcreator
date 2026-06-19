@@ -672,8 +672,8 @@ export default function PublicLogoHub() {
                         ))}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 pt-2 flex-wrap">
-                      <Button asChild size="sm" className="flex-1 min-w-[160px]">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pt-2 sm:flex-wrap">
+                      <Button asChild size="sm" className="w-full sm:w-auto sm:flex-1 sm:min-w-[160px]">
                         <a
                           href={preview.file.url}
                           target="_blank"
@@ -687,6 +687,7 @@ export default function PublicLogoHub() {
                       <Button
                         size="sm"
                         variant="secondary"
+                        className="w-full sm:w-auto"
                         onClick={() => downloadFilesAsZip(preview.logo.name, preview.logo.files)}
                       >
                         <Package className="h-4 w-4 mr-2" />
@@ -695,7 +696,7 @@ export default function PublicLogoHub() {
                       <div className="text-[10px] text-muted-foreground whitespace-nowrap">
                         {currentLockup === 'icon' ? 'Icon' : 'Wordmark'} · {currentVariant.charAt(0).toUpperCase() + currentVariant.slice(1)} · {currentFormat.toUpperCase()}
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => setPreview(null)}>
+                      <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => setPreview(null)}>
                         <X className="h-4 w-4 mr-2" />
                         Close
                       </Button>
