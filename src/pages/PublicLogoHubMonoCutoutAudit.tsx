@@ -403,7 +403,7 @@ export default function PublicLogoHubMonoCutoutAudit() {
         )}
       </section>
 
-      <main className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      <section aria-label="Audit results" className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {filtered.length === 0 && !loading && !analyzing && (
           <div className="text-center py-24 text-muted-foreground">
             <CheckCircle2 className="h-10 w-10 mx-auto mb-3 text-emerald-500" />
