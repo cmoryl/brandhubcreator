@@ -472,7 +472,7 @@ export default function PublicLogoHub() {
                       className="min-h-9 text-xs px-3"
                       onClick={() => downloadFilesAsZip(logo.name, logo.files)}
                     >
-                      <Package className="h-3 w-3 mr-1" />
+                      <Package className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
                       Download all ({logo.files.length})
                     </Button>
                     {isAdmin && (
