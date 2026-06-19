@@ -573,18 +573,36 @@ export default function PublicLogoHub() {
       {/* Preview Modal */}
       {preview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
           onClick={() => setPreview(null)}
           role="presentation"
         >
           <div className="absolute inset-0 bg-black/70" aria-hidden="true" />
           <div
-            className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-y-auto"
+            className="relative bg-background rounded-t-2xl sm:rounded-xl shadow-2xl max-w-3xl w-full max-h-[92dvh] sm:max-h-[95vh] overflow-y-auto overscroll-contain animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:fade-in duration-200"
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              (e.currentTarget as any)._touchY = e.touches[0].clientY;
+              (e.currentTarget as any)._scrollTop = e.currentTarget.scrollTop;
+            }}
+            onTouchEnd={(e) => {
+              const startY = (e.currentTarget as any)._touchY ?? 0;
+              const startScroll = (e.currentTarget as any)._scrollTop ?? 0;
+              const dy = e.changedTouches[0].clientY - startY;
+              // Swipe down from top edge to dismiss (mobile only).
+              if (startScroll <= 0 && dy > 90) setPreview(null);
+            }}
             role="dialog"
             aria-modal="true"
             aria-labelledby="logo-preview-title"
           >
+            {/* Mobile grab handle */}
+            <div
+              className="sm:hidden sticky top-0 z-10 flex justify-center pt-2 pb-1 bg-background"
+              aria-hidden="true"
+            >
+              <div className="h-1.5 w-10 rounded-full bg-muted-foreground/30" />
+            </div>
             <PreviewStage logo={preview.logo} file={preview.file} />
 
             <div className="p-4 sm:p-6 space-y-4">
