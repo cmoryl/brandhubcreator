@@ -857,7 +857,7 @@ function LogoCell({
       <span
         className={cn(
           'absolute bottom-1 left-1 text-[8px] uppercase tracking-wider px-1 rounded',
-          dark ? 'bg-white/10 text-white/60' : 'bg-black/5 text-black/50',
+          dark ? 'bg-black/70 text-white' : 'bg-white/90 text-black',
         )}
       >
         {lockup === 'icon' ? 'Icon' : 'Logo'} · {variant}
