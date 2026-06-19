@@ -47,6 +47,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { ClientLogoFile, ClientLogoVariant, ClientLogoLockup } from '@/types/brand';
+import { AddLogoDialog } from '@/components/logohub/AddLogoDialog';
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'logo';
