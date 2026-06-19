@@ -496,7 +496,7 @@ export default function PublicLogoHub() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="min-h-9 min-w-9 px-3 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
+                            className="min-h-11 min-w-11 sm:min-h-9 sm:min-w-9 px-3 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
                             disabled={deletingId === logo.id}
                             aria-label={`Delete ${logo.name}`}
                             onClick={() => {
