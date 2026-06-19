@@ -369,6 +369,22 @@ export default function PublicLogoHubAudit() {
           </div>
         )}
 
+        <div className="mt-10 rounded-xl border border-border bg-card p-5 flex items-center justify-between gap-4">
+          <div>
+            <div className="font-semibold">Mono cutout audit</div>
+            <p className="text-sm text-muted-foreground">
+              Find brands whose black &amp; white derived SVGs lost their inner transparent
+              cutouts. Shows before/after previews per lockup.
+            </p>
+          </div>
+          <Link
+            to="/logohub/audit/mono-cutouts"
+            className="text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          >
+            Open →
+          </Link>
+        </div>
+
         {(isAdmin || isSuperAdmin) && (
           <div className="mt-10">
             <OrphanedFilesSection canDelete={isSuperAdmin} />

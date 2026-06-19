@@ -108,6 +108,7 @@ const AttributionsView = lazyWithRetry(() => import("./pages/AttributionsView"))
 const BrandIconHubPage = lazyWithRetry(() => import("./pages/BrandIconHubPage"));
 const PublicLogoHub = lazyWithRetry(() => import("./pages/PublicLogoHub"));
 const PublicLogoHubAudit = lazyWithRetry(() => import("./pages/PublicLogoHubAudit"));
+const PublicLogoHubMonoCutoutAudit = lazyWithRetry(() => import("./pages/PublicLogoHubMonoCutoutAudit"));
 const PublicLogoHubBrandAudit = lazyWithRetry(() => import("./pages/PublicLogoHubBrandAudit"));
 
 const queryClient = new QueryClient({
@@ -549,6 +550,14 @@ const App = () => (
                       element={
                         <Suspense fallback={<PageSkeleton />}>
                           <PublicLogoHubAudit />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="logohub/audit/mono-cutouts"
+                      element={
+                        <Suspense fallback={<PageSkeleton />}>
+                          <PublicLogoHubMonoCutoutAudit />
                         </Suspense>
                       }
                     />
