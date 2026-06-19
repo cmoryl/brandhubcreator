@@ -175,20 +175,35 @@ export default function PublicLogoHub() {
     file: ClientLogoFile;
   } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteDialogOpenId, setDeleteDialogOpenId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<{
+    logoId: string;
+    title: string;
+    message: string;
+  } | null>(null);
   const { isAdmin } = useAuth();
 
   const handleDeleteLogo = async (logo: GlobalLogoRow) => {
     setDeletingId(logo.id);
+    setDeleteError(null);
     try {
       const { error } = await supabase
         .from('global_client_logos')
         .delete()
         .eq('id', logo.id);
-      if (error) throw error;
+      if (error) {
+        const detail = [error.code && `Code: ${error.code}`, error.hint, error.details]
+          .filter(Boolean)
+          .join(' | ');
+        throw new Error(detail || error.message);
+      }
       setLogos((prev) => prev.filter((l) => l.id !== logo.id));
+      setDeleteDialogOpenId(null);
+      setDeleteError(null);
       toast.success(`Deleted ${logo.name}`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to delete logo');
+      const msg = e instanceof Error ? e.message : 'Failed to delete logo';
+      setDeleteError({ logoId: logo.id, title: `Could not delete ${logo.name}`, message: msg });
     } finally {
       setDeletingId(null);
     }
