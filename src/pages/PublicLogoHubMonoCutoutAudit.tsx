@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, RefreshCw, AlertTriangle, CheckCircle2, MinusCircle, XOctagon } from 'lucide-react';
+import { ArrowLeft, Loader2, RefreshCw, AlertTriangle, CheckCircle2, MinusCircle, XOctagon, Search, SlidersHorizontal } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,6 +73,10 @@ export default function PublicLogoHubMonoCutoutAudit() {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [statusFilter, setStatusFilter] = useState<'fail-only' | 'all' | 'pass' | 'error'>('fail-only');
   const [search, setSearch] = useState('');
+  const [lockupFilter, setLockupFilter] = useState<'all' | 'icon' | 'wordmark'>('all');
+  const [failureTypeFilter, setFailureTypeFilter] = useState<'all' | 'missing-black' | 'missing-white' | 'no-markers' | 'incomplete' | 'fetch-error'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
   const [regen, setRegen] = useState<{ running: boolean; result?: string }>({ running: false });
   const abortRef = useRef<AbortController | null>(null);
 
