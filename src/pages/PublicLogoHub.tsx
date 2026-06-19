@@ -465,11 +465,11 @@ export default function PublicLogoHub() {
                     ))}
 
                   </div>
-                  <div className="p-3 flex flex-wrap items-center gap-1.5">
+                  <div className="p-3 flex flex-wrap items-center gap-2">
                     <Button
                       size="sm"
                       variant="default"
-                      className="min-h-9 text-xs px-3"
+                      className="min-h-11 sm:min-h-9 text-xs px-3 flex-1 sm:flex-none"
                       onClick={() => downloadFilesAsZip(logo.name, logo.files)}
                     >
                       <Package className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
