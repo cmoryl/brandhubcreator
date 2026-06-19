@@ -353,7 +353,7 @@ export default function PublicLogoHub() {
               />
             </div>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-[130px] sm:w-[180px] shrink-0">
+              <SelectTrigger aria-label="Filter by category" className="w-[130px] sm:w-[180px] shrink-0">
                 <Filter className="h-4 w-4 mr-1 sm:mr-2 shrink-0" />
                 <SelectValue />
               </SelectTrigger>
