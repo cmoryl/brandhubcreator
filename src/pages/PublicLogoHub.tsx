@@ -568,7 +568,7 @@ export default function PublicLogoHub() {
             })}
           </div>
         )}
-      </main>
+      </section>
 
       {/* Preview Modal */}
       {preview && (
