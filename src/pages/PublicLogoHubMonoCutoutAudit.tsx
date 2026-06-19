@@ -165,15 +165,66 @@ export default function PublicLogoHubMonoCutoutAudit() {
     setAnalyzing(false);
   }
 
+  const categories = useMemo(() => {
+    const set = new Set(brands.map((b) => b.category).filter(Boolean));
+    return ['all', ...Array.from(set).sort()];
+  }, [brands]);
+
+  function lockupMatches(lk: LockupSet): boolean {
+    if (lockupFilter === 'all') return true;
+    return lk.lockup === lockupFilter;
+  }
+
+  function failureTypeMatches(lk: LockupSet): boolean {
+    if (failureTypeFilter === 'all') return true;
+    const checks: (CutoutCheck | undefined)[] = [lk.blackCheck, lk.whiteCheck];
+    for (const c of checks) {
+      if (!c) continue;
+      switch (failureTypeFilter) {
+        case 'missing-black':
+          if (c.note?.toLowerCase().includes('missing black')) return true;
+          break;
+        case 'missing-white':
+          if (c.note?.toLowerCase().includes('missing white')) return true;
+          break;
+        case 'no-markers':
+          if (c.note?.toLowerCase().includes('no data-mono')) return true;
+          if (c.note?.toLowerCase().includes('not produced by the current pipeline')) return true;
+          break;
+        case 'incomplete':
+          if (c.note?.toLowerCase().includes('incomplete')) return true;
+          if (c.status === 'fail' && c.taggedCutouts > 0 && c.whiteCandidates > c.taggedCutouts) return true;
+          break;
+        case 'fetch-error':
+          if (lk.error || c.status === 'error') return true;
+          break;
+      }
+    }
+    return false;
+  }
+
   const filtered = useMemo(() => {
     return brands.filter((b) => {
       if (search && !b.name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (categoryFilter !== 'all' && b.category !== categoryFilter) return false;
+
+      // Apply lockup & failure type filters by checking if at least one lockup matches.
+      const activeSubFilters = lockupFilter !== 'all' || failureTypeFilter !== 'all';
+      if (activeSubFilters) {
+        const matchesLockup = b.lockups.filter(lockupMatches);
+        if (matchesLockup.length === 0) return false;
+        if (failureTypeFilter !== 'all') {
+          const hasFailureMatch = matchesLockup.some(failureTypeMatches);
+          if (!hasFailureMatch) return false;
+        }
+      }
+
       if (statusFilter === 'fail-only') return b.worst === 'fail';
       if (statusFilter === 'pass') return b.worst === 'pass';
       if (statusFilter === 'error') return b.worst === 'error';
       return true;
     });
-  }, [brands, search, statusFilter]);
+  }, [brands, search, statusFilter, lockupFilter, failureTypeFilter, categoryFilter]);
 
   const summary = useMemo(() => {
     const s = { total: brands.length, fail: 0, pass: 0, na: 0, error: 0 };
