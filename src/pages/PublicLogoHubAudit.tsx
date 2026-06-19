@@ -373,7 +373,7 @@ export default function PublicLogoHubAudit() {
           </div>
         )}
 
-        <div className="mt-10 rounded-xl border border-border bg-card p-5 flex items-center justify-between gap-4">
+        <div className="mt-10 rounded-xl border border-border bg-card p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="font-semibold">Mono cutout audit</div>
             <p className="text-sm text-muted-foreground">
