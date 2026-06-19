@@ -36,7 +36,7 @@ const setMeta = (name: string, content: string) => {
   }
   el.setAttribute('content', content);
 };
-import { Search, Filter, Globe2, Loader2, Download, X, ZoomIn, Package, Trash2 } from 'lucide-react';
+import { Search, Filter, Globe2, Loader2, Download, X, ZoomIn, Package, Trash2, AlertCircle } from 'lucide-react';
 import JSZip from 'jszip';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
