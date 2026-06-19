@@ -644,7 +644,7 @@ export default function PublicLogoHub() {
                     disabled={disabled}
                     onClick={onClick}
                     className={cn(
-                      'px-3 py-1 rounded-full text-xs font-medium border transition-colors',
+                      'min-h-9 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                       active
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'bg-background text-foreground border-border hover:border-primary/50',
