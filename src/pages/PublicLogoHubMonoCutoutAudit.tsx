@@ -438,10 +438,43 @@ function StatusIcon({ status }: { status: CutoutStatus }) {
   return <MinusCircle className="h-4 w-4 text-muted-foreground" />;
 }
 
-function BrandCard({ brand }: { brand: BrandResult }) {
+interface FilterState {
+  lockupFilter: 'all' | 'icon' | 'wordmark';
+  failureTypeFilter: 'all' | 'missing-black' | 'missing-white' | 'no-markers' | 'incomplete' | 'fetch-error';
+}
+
+function failureTypeMatches(lk: LockupSet, failureTypeFilter: FilterState['failureTypeFilter']): boolean {
+  if (failureTypeFilter === 'all') return true;
+  const checks: (CutoutCheck | undefined)[] = [lk.blackCheck, lk.whiteCheck];
+  for (const c of checks) {
+    if (!c) continue;
+    switch (failureTypeFilter) {
+      case 'missing-black':
+        if (c.note?.toLowerCase().includes('missing black')) return true;
+        break;
+      case 'missing-white':
+        if (c.note?.toLowerCase().includes('missing white')) return true;
+        break;
+      case 'no-markers':
+        if (c.note?.toLowerCase().includes('no data-mono')) return true;
+        if (c.note?.toLowerCase().includes('not produced by the current pipeline')) return true;
+        break;
+      case 'incomplete':
+        if (c.note?.toLowerCase().includes('incomplete')) return true;
+        if (c.status === 'fail' && c.taggedCutouts > 0 && c.whiteCandidates > c.taggedCutouts) return true;
+        break;
+      case 'fetch-error':
+        if (lk.error || c.status === 'error') return true;
+        break;
+    }
+  }
+  return false;
+}
+
+function BrandCard({ brand, filters }: { brand: BrandResult; filters: FilterState }) {
   function lockupVisible(lk: LockupSet): boolean {
-    if (lockupFilter !== 'all' && lk.lockup !== lockupFilter) return false;
-    if (failureTypeFilter !== 'all' && !failureTypeMatches(lk)) return false;
+    if (filters.lockupFilter !== 'all' && lk.lockup !== filters.lockupFilter) return false;
+    if (filters.failureTypeFilter !== 'all' && !failureTypeMatches(lk, filters.failureTypeFilter)) return false;
     return true;
   }
   return (
