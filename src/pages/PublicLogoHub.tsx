@@ -831,7 +831,9 @@ function LogoCell({
             src={shownUrl}
             alt={`${brandName} ${lockup} ${variant}`}
             loading="lazy"
-            className="w-full h-full object-contain"
+            decoding="async"
+            draggable={false}
+            className="w-full h-full object-contain select-none pointer-events-none"
             style={
               tint === 'black'
                 ? { filter: 'brightness(0) saturate(100%)' }
