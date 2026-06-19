@@ -291,7 +291,7 @@ export default function PublicLogoHub() {
 
       {/* Hero */}
       <header className="border-b border-border bg-card/40">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-12">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Globe2 className="h-5 w-5 text-primary" />
@@ -340,8 +340,8 @@ export default function PublicLogoHub() {
       </header>
 
       {/* Filters */}
-      <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 space-y-3 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
+      <section className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-2 sm:py-4 space-y-2 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
           <div className="flex gap-2 md:flex-1 md:min-w-[220px]">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -399,7 +399,7 @@ export default function PublicLogoHub() {
             <p className="text-sm mt-1">Try adjusting your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
             {filtered.map((logo) => {
               const lockups: ClientLogoLockup[] =
                 lockup === 'all' ? ['icon', 'wordmark'] : [lockup as ClientLogoLockup];
@@ -465,11 +465,11 @@ export default function PublicLogoHub() {
                     ))}
 
                   </div>
-                  <div className="p-3 flex flex-wrap items-center gap-1.5">
+                  <div className="p-3 flex flex-wrap items-center gap-2">
                     <Button
                       size="sm"
                       variant="default"
-                      className="min-h-9 text-xs px-3"
+                      className="min-h-11 sm:min-h-9 text-xs px-3 flex-1 sm:flex-none"
                       onClick={() => downloadFilesAsZip(logo.name, logo.files)}
                     >
                       <Package className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
@@ -496,7 +496,7 @@ export default function PublicLogoHub() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="min-h-9 min-w-9 px-3 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
+                            className="min-h-11 min-w-11 sm:min-h-9 sm:min-w-9 px-3 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
                             disabled={deletingId === logo.id}
                             aria-label={`Delete ${logo.name}`}
                             onClick={() => {
@@ -573,18 +573,36 @@ export default function PublicLogoHub() {
       {/* Preview Modal */}
       {preview && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
           onClick={() => setPreview(null)}
           role="presentation"
         >
           <div className="absolute inset-0 bg-black/70" aria-hidden="true" />
           <div
-            className="relative bg-background rounded-xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-y-auto"
+            className="relative bg-background rounded-t-2xl sm:rounded-xl shadow-2xl max-w-3xl w-full max-h-[92dvh] sm:max-h-[95vh] overflow-y-auto overscroll-contain animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:fade-in duration-200"
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              (e.currentTarget as any)._touchY = e.touches[0].clientY;
+              (e.currentTarget as any)._scrollTop = e.currentTarget.scrollTop;
+            }}
+            onTouchEnd={(e) => {
+              const startY = (e.currentTarget as any)._touchY ?? 0;
+              const startScroll = (e.currentTarget as any)._scrollTop ?? 0;
+              const dy = e.changedTouches[0].clientY - startY;
+              // Swipe down from top edge to dismiss (mobile only).
+              if (startScroll <= 0 && dy > 90) setPreview(null);
+            }}
             role="dialog"
             aria-modal="true"
             aria-labelledby="logo-preview-title"
           >
+            {/* Mobile grab handle */}
+            <div
+              className="sm:hidden sticky top-0 z-10 flex justify-center pt-2 pb-1 bg-background"
+              aria-hidden="true"
+            >
+              <div className="h-1.5 w-10 rounded-full bg-muted-foreground/30" />
+            </div>
             <PreviewStage logo={preview.logo} file={preview.file} />
 
             <div className="p-4 sm:p-6 space-y-4">
@@ -644,7 +662,7 @@ export default function PublicLogoHub() {
                     disabled={disabled}
                     onClick={onClick}
                     className={cn(
-                      'min-h-9 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                      'min-h-11 sm:min-h-9 px-4 sm:px-3 py-2 sm:py-1.5 rounded-full text-xs font-medium border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                       active
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'bg-background text-foreground border-border hover:border-primary/50',
@@ -831,7 +849,9 @@ function LogoCell({
             src={shownUrl}
             alt={`${brandName} ${lockup} ${variant}`}
             loading="lazy"
-            className="w-full h-full object-contain"
+            decoding="async"
+            draggable={false}
+            className="w-full h-full object-contain select-none pointer-events-none"
             style={
               tint === 'black'
                 ? { filter: 'brightness(0) saturate(100%)' }
@@ -926,14 +946,16 @@ function PreviewStage({
     <div className="relative">
       <div
         className={cn(
-          'flex items-center justify-center p-4 sm:p-8 min-h-[200px] sm:min-h-[320px]',
+          'flex items-center justify-center p-4 sm:p-8 min-h-[180px] sm:min-h-[320px]',
           dark ? 'bg-neutral-900' : 'bg-white',
         )}
       >
         <img
           src={previewUrl}
           alt={`${logo.name} preview`}
-          className="h-[400px] w-full object-contain"
+          decoding="async"
+          draggable={false}
+          className="max-h-[240px] sm:max-h-[400px] w-full object-contain select-none"
         />
       </div>
       <div className="absolute left-3 bottom-3 flex flex-wrap gap-2">
