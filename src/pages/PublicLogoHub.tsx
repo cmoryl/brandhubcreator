@@ -253,7 +253,7 @@ export default function PublicLogoHub() {
     setLoading(true);
     const { data, error } = await supabase
       .from('global_client_logos')
-      .select('id, name, description, category, website_url, files')
+      .select('id, name, description, category, website_url, files, updated_at')
       .order('category')
       .order('name')
       .limit(2000);
