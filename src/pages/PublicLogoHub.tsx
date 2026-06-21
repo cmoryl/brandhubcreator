@@ -135,7 +135,20 @@ interface GlobalLogoRow {
   category: string;
   website_url: string | null;
   files: ClientLogoFile[];
+  updated_at: string | null;
 }
+
+const ASSET_DATE_FMT = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+const formatAssetDate = (iso: string | null): string | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return ASSET_DATE_FMT.format(d);
+};
 
 type VariantFilter = ClientLogoVariant | 'all';
 type LockupFilter = ClientLogoLockup | 'all';
