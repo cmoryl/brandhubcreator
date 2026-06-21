@@ -57,16 +57,65 @@ const extOf = (url: string, fallback?: string) => {
 
 type StatusFilter = 'all' | 'complete' | 'partial' | 'raster' | 'missing' | 'audit-fail' | 'audit-warn' | 'audit-pass';
 
+type AuditSeverity = 'pass' | 'warn' | 'fail';
+type CoverageBucket = 'complete' | 'partial' | 'raster' | 'missing';
+
+const ALL_SEVERITIES: AuditSeverity[] = ['pass', 'warn', 'fail'];
+const ALL_BUCKETS: CoverageBucket[] = ['complete', 'partial', 'raster', 'missing'];
+
+interface FilterState {
+  search: string;
+  category: string;
+  severities: AuditSeverity[];
+  buckets: CoverageBucket[];
+}
+
+interface FilterPreset {
+  id: string;
+  name: string;
+  filter: FilterState;
+  createdAt: number;
+}
+
+const PRESETS_KEY = 'logohub-audit-presets-v1';
+const DEFAULT_FILTER: FilterState = {
+  search: '',
+  category: 'all',
+  severities: [...ALL_SEVERITIES],
+  buckets: [...ALL_BUCKETS],
+};
+
+function loadPresets(): FilterPreset[] {
+  try {
+    const raw = localStorage.getItem(PRESETS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function savePresets(presets: FilterPreset[]) {
+  try {
+    localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+  } catch {
+    /* ignore quota */
+  }
+}
+
 export default function PublicLogoHubAudit() {
   const { isAdmin, isSuperAdmin } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('all');
-  const [status, setStatus] = useState<StatusFilter>('all');
+  const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER);
+  const [presets, setPresets] = useState<FilterPreset[]>([]);
+  const [presetName, setPresetName] = useState('');
+  const [activePresetId, setActivePresetId] = useState<string>('');
 
   useEffect(() => {
     document.title = 'Logo Hub Audit — Coverage & Format Details';
+    setPresets(loadPresets());
   }, []);
 
   useEffect(() => {
